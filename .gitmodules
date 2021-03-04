@@ -1,0 +1,3 @@
+[submodule "src/ext/ziplib"]
+	path = src/ext/ziplib
+	url = https://bitbucket.org/wbenny/ziplib.git
