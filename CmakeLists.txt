@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.12)
+project(books)
+ 
+add_compile_options("/std:c++latest")
+
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+include("scripts/cmake/target.cmake")
+include("scripts/cmake/utils.cmake")
+
+include("src/ext/ziplib.cmake")
+include("src/home/inpx/inpx.cmake")

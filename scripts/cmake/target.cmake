@@ -2,11 +2,18 @@ include_guard(GLOBAL)
 
 include(CMakeParseArguments)
 
-include(qt_macro)
-include(resources/remote_resources)
+set(CMAKE_DEBUG_POSTFIX "D")
+
+# BIN_DIR можеть быть задан в параметрах генерации
+if(NOT BIN_DIR)
+	set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
+else()
+	string(REPLACE "\\" "/" BIN_DIR ${BIN_DIR})
+endif()
+message(STATUS "Using directory ${BIN_DIR} for output")
 
 #######################################################
-# Вспомогательные функции/макросы для AddMovaviTarget #
+# Вспомогательные функции/макросы для AddTarget #
 #######################################################
 
 # Сброс всех текущих переменных.
@@ -152,7 +159,7 @@ function(postTarget TARGET_NAME)
 	endif()
 
 	# по дефолту всегда генерим PDB в Release.
-	if (MSVC AND NOT (TargetType STREQUAL "STATIC") AND NOT MOVAVI_WIN_DISABLE_RELEASE_PDB AND NOT ARG_NO_DEBUG_SYMBOLS)
+	if (MSVC AND NOT (TargetType STREQUAL "STATIC") AND NOT WIN_DISABLE_RELEASE_PDB AND NOT ARG_NO_DEBUG_SYMBOLS)
 		set_target_properties( ${ARG_NAME} PROPERTIES LINK_FLAGS_RELEASE " /DEBUG " )
 	endif()
 endfunction()
@@ -277,18 +284,6 @@ function(PrepareTargetSources SourcesList ExtraIncludes)
 		endforeach()
 	endif()
 
-	# Локализации
-	WrapLocales(ALL_SOURCES "${ARG_RESOURCE_MODULES}")
-
-	# Темы
-	WrapThemes(ALL_SOURCES "${ARG_RESOURCE_MODULES}")
-
-	# Ресурсы
-	WrapResources(ALL_SOURCES "${ARG_RESOURCE_PACKAGES}")
-
-	# Удалённые ресурсы
-	WrapRemoteResources(ALL_SOURCES "${ARG_REMOTE_RESOURCE_PACKAGES}")
-
 	# Объединенные сборки
 	if (NOT ARG_AMALGAMATION_MODE)
 		set(ARG_AMALGAMATION_MODE moc)
@@ -349,7 +344,7 @@ function(GenerateNoFixupFile bundle_name)
 endfunction()
 
 # Создание новой цели
-function(AddMovaviTarget)
+function(AddTarget)
 	set(__options
 		QT                  # используется Qt
 		NEED_PROTECTION     # таргет необходимо защищать (только для Win)
@@ -360,7 +355,7 @@ function(AddMovaviTarget)
 	set(__one_val_required
 		NAME                # Имя цели, обязательно
 		TYPE                # Тип цели shared_lib|static_lib|app|app_bundle|app_console|header_only
-		SOURCE_DIR          # Путь к папке с исходниками, относительно корня Movavi
+		SOURCE_DIR          # Путь к папке с исходниками
 		)
 	set(__one_val_optional
 		PROJECT_GROUP       # Группа проекта, может быть составной "Proc/Codec"
@@ -399,6 +394,8 @@ function(AddMovaviTarget)
 		REPO_DEPENDENCIES            # Зависимые репозитории (их NAME), которые будут добавлены в качестве INCLUDE_DIRS.
 	)
 	ParseArgumentsWithConditions(ARG "${__options}" "${__one_val_required}" "${__one_val_optional}" "${__multi_val}" ${ARGN})
+	
+	message( STATUS "Add target: ${ARG_NAME}")
 
 	list_exists_item(EXCLUDED_PLUGINS ${ARG_NAME} isExcluded)
 	if (isExcluded)
@@ -406,19 +403,6 @@ function(AddMovaviTarget)
 	endif()
 
 	initProject()
-
-	DetermineRepoName(${ARG_SOURCE_DIR} repoName)
-	if (${repoName}_DEPENDENCIES)
-		append(ARG_REPO_DEPENDENCIES ${${repoName}_DEPENDENCIES})
-	endif()
-
-	foreach (repoNameDep ${ARG_REPO_DEPENDENCIES})
-		if (${repoNameDep}_SRC_DIR)
-			append(ARG_INCLUDE_DIRS ${${repoNameDep}_SRC_DIR})
-		else()
-			message(FATAL_ERROR "Invalid repo name: ${repoNameDep} in ${ARG_NAME}")
-		endif()
-	endforeach()
 
 	set(publicIncludes)
 	if (ARG_EXPORT_INCLUDE)
@@ -687,7 +671,7 @@ function(AddMovaviTarget)
 			PRODUCT_VERSION_MAJOR             # старшая версия продукта
 			PRODUCT_VERSION_MINOR             # младшая версия продукта
 			FOUNDATION_HELPERS_SCRIPT_DIR     # путь расположения директории .../foundation/script/helpers
-			MOVAVI_COPYRIGHT_YEAR             # год регистрации авторского права
+			COPYRIGHT_YEAR                    # год регистрации авторского права
 			ARG_WIN_APP_ICON                  # путь расположения иконки инсталляции
 			TARGET_OUTPUT_NAME                # наименование исполняемого файла
 		)
@@ -698,7 +682,7 @@ function(AddMovaviTarget)
 	endif()
 
 	set(appTypesEntitlements app_bundle app)
-	if(APPLE AND MOVAVI_MAC_APP_STORE AND ARG_TYPE IN_LIST appTypesEntitlements)
+	if(APPLE AND MAC_APP_STORE AND ARG_TYPE IN_LIST appTypesEntitlements)
 		# Appstore требует указания entitlements
 		CheckNonEmptyVariable(ARG_ENTITLEMENTS "${ARG_NAME}: appstore requirement for (${appTypesEntitlements}) target types")
 	endif()
@@ -733,7 +717,7 @@ function(AddMovaviTarget)
 			file(REMOVE ${BIN_DIR}/${configFile})
 
 			set(configFileFullPath)
-			find_file(configFileFullPath ${configFile} PATHS ${MOVAVI_CONFIG_SEARCH_DIR} NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
+			find_file(configFileFullPath ${configFile} PATHS ${CONFIG_SEARCH_DIR} NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
 			append(${ARG_NAME}_INSTALL_CONFIGS ${configFileFullPath})
 			unset(configFileFullPath CACHE)
 
@@ -759,31 +743,4 @@ function(AddMovaviTarget)
 		append_unique(PREPARE_WORKSPACE_FILES ${allWorkspaceFiles})
 	endif()
 	set( PREPARE_WORKSPACE_FILES ${PREPARE_WORKSPACE_FILES} CACHE INTERNAL "" FORCE)
-endfunction()
-
-# Генерация заглушки для библиотеки со всеми хедерами из директории.
-# headerDirectory - директория с хедерами (будут извлечены рекурсивно все файлы)
-# stubFilename - путь к сгенерированному файлу
-# дополнительные параметры позволяют задать регулярные выражения для филтра исходников
-# использование:
-# GenerateStubCpp(${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/Lib_Stub.cpp "unit_tests")
-function(GenerateStubCpp headerDirectory stubFilename)
-	file(GLOB_RECURSE files ${headerDirectory}/*.h) # RELATIVE не используем из-за filterSources
-	filterSources(files ${ARGN})
-	set(STUB_DATA)
-	foreach(file ${files})
-		string(REPLACE "${headerDirectory}/" "" file "${file}")
-		set(STUB_DATA "${STUB_DATA}#include \"${file}\"\n")
-	endforeach()
-	configure_file(${FOUNDATION_HELPERS_SCRIPT_DIR}/Stub.h.in ${stubFilename})
-endfunction()
-
-# Компоновка дополнительных библиотек, с учетом дальнейшего фиксапа в цель
-# Использование: MovaviTargetLinkLibraries(SomeTarget target1 target2 target3)
-function(MovaviTargetLinkLibraries TargetName)
-	set(linkLibraries ${ARGN})
-	target_link_libraries(${TargetName} LINK_PRIVATE ${linkLibraries})
-	get_target_property(targets ${TargetName} LINK_TARGETS)
-	append(targets ${linkLibraries})
-	set_target_properties(${TargetName} PROPERTIES LINK_TARGETS "${targets}")
 endfunction()
