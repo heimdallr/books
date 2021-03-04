@@ -7,4 +7,6 @@ AddTarget(
 		lzma
 		zlib
 		ziplib
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
 )
