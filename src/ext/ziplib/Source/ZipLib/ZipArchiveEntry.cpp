@@ -58,24 +58,7 @@ namespace
   }
 }
 
-ZipArchiveEntry::ZipArchiveEntry()
-  : _archive(nullptr)
-  , _archiveStream(nullptr)
-  , _compressionStream(nullptr)
-  , _encryptionStream(nullptr)
-  , _rawStream(nullptr)
-
-  , _originallyInArchive(false)
-  , _isNewOrChanged(false)
-  , _hasLocalFileHeader(false)
-
-  , _offsetOfCompressedData(-1)
-  , _offsetOfSerializedLocalFileHeader(-1)
-
-  , _inputStream(nullptr)
-{
-
-}
+ZipArchiveEntry::ZipArchiveEntry() = default;
 
 ZipArchiveEntry::~ZipArchiveEntry()
 {

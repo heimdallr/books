@@ -18,17 +18,9 @@ class crc32_streambuf
     typedef typename base_type::pos_type  pos_type;
     typedef typename base_type::off_type  off_type;
 
-    crc32_streambuf()
-      : _inputStream(nullptr)
-      , _internalBufferPosition(_internalBuffer + INTERNAL_BUFFER_SIZE)
-      , _internalBufferEnd(_internalBuffer + INTERNAL_BUFFER_SIZE)
-      , _bytesRead(0)
-      , _crc32(0)
-    {
+    crc32_streambuf() = default;
 
-    }
-
-    crc32_streambuf(std::basic_istream<ELEM_TYPE, TRAITS_TYPE>& input)
+    explicit crc32_streambuf(std::basic_istream<ELEM_TYPE, TRAITS_TYPE>& input)
       : crc32_streambuf()
     {
       init(input);
@@ -96,10 +88,10 @@ class crc32_streambuf
     };
 
     ELEM_TYPE  _internalBuffer[INTERNAL_BUFFER_SIZE];
-    ELEM_TYPE* _internalBufferPosition;
-    ELEM_TYPE* _internalBufferEnd;
+    ELEM_TYPE* _internalBufferPosition{ _internalBuffer + INTERNAL_BUFFER_SIZE };
+    ELEM_TYPE* _internalBufferEnd{ _internalBuffer + INTERNAL_BUFFER_SIZE };
 
-    std::basic_istream<ELEM_TYPE, TRAITS_TYPE>* _inputStream;
-    size_t _bytesRead;
-    uint32_t _crc32;
+    std::basic_istream<ELEM_TYPE, TRAITS_TYPE> * _inputStream{ nullptr };
+    size_t _bytesRead{ 0 };
+    uint32_t _crc32{ 0 };
 };

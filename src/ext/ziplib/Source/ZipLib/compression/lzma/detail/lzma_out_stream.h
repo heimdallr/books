@@ -11,8 +11,6 @@ namespace detail
       typedef std::basic_ostream<ELEM_TYPE, TRAITS_TYPE> stream_t;
 
       lzma_out_stream()
-        : _bytesWritten(0)
-        , _stream(nullptr)
       {
         this->Write = [](void* p, const void* buf, size_t size)
         {
@@ -39,7 +37,7 @@ namespace detail
       void set_stream(stream_t& stream) { _stream = &stream; }
 
     private:
-      stream_t* _stream;
-      size_t _bytesWritten;
+        stream_t * _stream{ nullptr };
+        size_t _bytesWritten{ 0 };
   };
 }

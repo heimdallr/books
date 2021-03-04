@@ -360,32 +360,32 @@ class ZipArchiveEntry
     uint8_t GetLastByteOfEncryptionHeader();
 
     //////////////////////////////////////////////////////////////////////////
-    ZipArchive*                     _archive;           //< pointer to the owning zip archive
+    ZipArchive*                     _archive{nullptr};        //< pointer to the owning zip archive
 
-    std::shared_ptr<std::istream>   _rawStream;         //< stream of raw compressed data
-    std::shared_ptr<std::istream>   _compressionStream; //< stream of uncompressed data
-    std::shared_ptr<std::istream>   _encryptionStream;  //< underlying encryption stream
-    std::shared_ptr<std::istream>   _archiveStream;     //< substream of owning zip archive file
+    std::shared_ptr<std::istream>   _rawStream;               //< stream of raw compressed data
+    std::shared_ptr<std::istream>   _compressionStream;       //< stream of uncompressed data
+    std::shared_ptr<std::istream>   _encryptionStream;        //< underlying encryption stream
+    std::shared_ptr<std::istream>   _archiveStream;           //< substream of owning zip archive file
 
     // internal compression data
-    std::shared_ptr<std::iostream>  _immediateBuffer;   //< stream used in the immediate mode, stores compressed data in memory
-    std::istream*                   _inputStream;       //< input stream
+    std::shared_ptr<std::iostream>  _immediateBuffer;         //< stream used in the immediate mode, stores compressed data in memory
+    std::istream*                   _inputStream{ nullptr };  //< input stream
 
-    ICompressionMethod::Ptr         _compressionMethod; //< compression method
-    CompressionMode                 _compressionMode;   //< compression mode, either deferred or immediate
+    ICompressionMethod::Ptr         _compressionMethod;       //< compression method
+    CompressionMode                 _compressionMode;         //< compression mode, either deferred or immediate
 
     std::string _name;
 
     // TODO: make as flags
-    bool _originallyInArchive;
-    bool _isNewOrChanged;
-    bool _hasLocalFileHeader;
+    bool _originallyInArchive{ false };
+    bool _isNewOrChanged{ false };
+    bool _hasLocalFileHeader{ false };
 
     detail::ZipLocalFileHeader _localFileHeader;
     detail::ZipCentralDirectoryFileHeader _centralDirectoryFileHeader;
 
-    std::ios::pos_type _offsetOfCompressedData;
-    std::ios::pos_type _offsetOfSerializedLocalFileHeader;
+    std::ios::pos_type _offsetOfCompressedData{ -1 };
+    std::ios::pos_type _offsetOfSerializedLocalFileHeader{ -1 };
 
     std::string _password;
 };
