@@ -13,21 +13,12 @@
 namespace {
 
 constexpr std::string_view INP_EXT = ".inp";
-constexpr char DATE_SEPARATOR = '-';
 constexpr char FIELDS_SEPARATOR = '\x04';
 constexpr char INI_SEPARATOR = '=';
 constexpr char LIST_SEPARATOR = ':';
 constexpr char NAMES_SEPARATOR = ',';
 constexpr char GENRE_SEPARATOR = '|';
 
-constexpr const char * DB_CHARSET       = "db_charset";
-constexpr const char * DB_CLIENT_PATHS  = "db_client_paths";
-constexpr const char * DB_CREATE_PARAMS = "page_size 16384 default character set utf8";
-constexpr const char * DB_HOST          = "db_host";
-constexpr const char * DB_NAME          = "db_name";
-constexpr const char * DB_ROLE          = "db_role";
-constexpr const char * DB_USER_NAME     = "db_user_name";
-constexpr const char * DB_USER_PASSWORD = "db_user_password";
 constexpr const char * GENRES           = "genres";
 constexpr const char * INI_EXT          = "ini";
 constexpr const char * INPX             = "inpx";
@@ -399,205 +390,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 
 	return data;
 }
-/*
-std::pair<IBPP::Transaction, IBPP::Statement> ReStart(const IBPP::Database & db, const std::string & query = {})
-{
-	std::pair<IBPP::Transaction, IBPP::Statement> result;
 
-	result.first = TransactionFactory(db, IBPP::amWrite, IBPP::ilConcurrency, IBPP::lrNoWait);
-	result.first->Start();
-	assert(result.first->Started());
-	result.second = StatementFactory(db, result.first, query);
-
-	return result;
-}
-	
-template<typename It, typename F>
-bool StoreRows(const std::string & process, const IBPP::Database & db, const std::string & query, It beg, It end, F && f)
-{
-	const auto rowsTotal = std::distance(beg, end);
-	Timer t(std::string("store ") + process + " " + std::to_string(rowsTotal));
-
-	int64_t rowsInserted = 0;
-
-	auto [tr, st] = ReStart(db, query);
-
-	for (; beg != end; ++beg)
-	{
-		f(st, *beg);
-		st->Execute();
-		const auto affectedRows = st->AffectedRows();
-		assert(affectedRows != 0);
-		rowsInserted += affectedRows;
-		if (affectedRows != 0 && (rowsInserted % LOG_INTERVAL) == 0)
-		{
-			tr->Commit();
-			std::cout << rowsInserted << " rows inserted (" << rowsInserted * 100 / rowsTotal << "%)" << std::endl;
-
-			const auto started = ReStart(db, query);
-			tr = started.first;
-			st = started.second;
-		}
-	}
-
-	tr->Commit();
-	std::cout << "total " << rowsInserted << " rows inserted (" << rowsInserted * 100 / rowsTotal << "%)" << std::endl;
-	if (rowsTotal != rowsInserted)
-		std::cerr << rowsTotal - rowsInserted << " rows lost" << std::endl;
-
-	return rowsTotal == rowsInserted;
-}
-
-auto GetDB(const Ini & ini)
-{
-	return IBPP::DatabaseFactory(ini.Get(DB_HOST), ini.Get(DB_NAME), ini.Get(DB_USER_NAME), ini.Get(DB_USER_PASSWORD), ini.Get(DB_ROLE), ini.Get(DB_CHARSET), DB_CREATE_PARAMS);
-}
-
-constexpr const char * g_dbCreate[]
-{
-	"create domain date__ as date",
-	"create domain file_name__ as varchar(64)",
-	"create domain human_name__ as varchar(64)",
-	"create domain id__ as bigint not null",
-	"create domain int__ as bigint",
-	"create domain name__ as varchar(4096)",
-	"create domain short_name__ as varchar(8)",
-	"create domain search_name__ as varchar(16)",
-
-	"create table genre(id id__, id_parent int__, name name__ not null, code human_name__)",
-	"create table series(id id__, name name__ not null)",
-	"create table author(id id__, last_name name__ not null, first_name human_name__, middle_name human_name__, search_name search_name__ not null)",
-	"create table book(id id__, title name__ not null, id_series int__, num_series int__, archive file_name__ not null, file_name file_name__ not null, file_size int__ not null, format short_name__ not null, date_add date__ not null, lang short_name__ not null, rate int__, keywords name__)",
-	"create table l_book_author(id_book id__, id_author id__)",
-	"create table l_book_genre(id_book id__, id_genre id__)",
-
-	"create or alter trigger author_bi_set_search_name for author active before insert position 0 as \
-		begin                                                                                        \
-			if (new.search_name is null) then                                                        \
-				new.search_name = lower(left(new.last_name, 16));                                    \
-		end",
-};
-
-constexpr std::pair<const char *, const char *> g_dbUpdate[]
-{
-	{ "pk_genre"               , "alter table genre add constraint pk_genre primary key (id)" },
-	{ "pk_series"              , "alter table series add constraint pk_series primary key (id)" },
-	{ "pk_author"              , "alter table author add constraint pk_author primary key (id)" },
-	{ "pk_book"                , "alter table book add constraint pk_book primary key (id)" },
-	{ "fk_book_series"         , "alter table book add constraint fk_book_series foreign key (id_series) references series (id) on delete cascade on update cascade" },
-	{ "unq_l_book_author"      , "alter table l_book_author add constraint unq_l_book_author unique(id_book, id_author)" },
-	{ "fk_l_book_author_book"  , "alter table l_book_author add constraint fk_l_book_author_book foreign key(id_book) references book(id) on delete cascade on update cascade" },
-	{ "fk_l_book_author_author", "alter table l_book_author add constraint fk_l_book_author_author foreign key(id_author) references author(id) on delete cascade on update cascade" },
-	{ "unq_l_book_genre"       , "alter table l_book_genre add constraint unq_l_book_genre unique(id_book, id_genre)" },
-	{ "fk_l_book_genre_book"   , "alter table l_book_genre add constraint fk_l_book_genre_book foreign key(id_book) references book(id) on delete cascade on update cascade" },
-	{ "fk_l_book_genre_genre"  , "alter table l_book_genre add constraint fk_l_book_genre_genre foreign key(id_genre) references genre(id) on delete cascade on update cascade" },
-	{ "author_idx_search_name" , "create index author_idx_search_name on author (search_name)" },
-};
-
-void CreateDatabase(const Ini & ini)
-{
-	std::cout << "create database" << std::endl;
-	auto db = GetDB(ini);
-	try
-	{
-		db->Connect();
-		if (db->Connected())
-			db->Drop();
-	}
-	catch(...)
-	{
-	}
-
-	db->Create(3);
-	db->Connect();
-	assert(db->Connected());
-	auto [tr, st] = ReStart(db);
-	for (const auto * query : g_dbCreate)
-		st->ExecuteImmediate(query);
-	tr->Commit();
-}
-	
-bool Store(const Ini & ini, const Data & data)
-{
-	auto db = GetDB(ini);
-	db->Connect();
-	assert(db->Connected());
-
-	bool ok = true;
-
-	ok = StoreRows("genre", db, "insert into genre(id, id_parent, name, code) values(?, ?, ?, ?)", std::cbegin(data.genres), std::cend(data.genres), [](IBPP::Statement & statement, const Genres::value_type & genre)
-	{
-													  statement->Set(1, genre.id);
-		genre.parentId == 0 ? statement->SetNull(2) : statement->Set(2, genre.parentId);
-													  statement->Set(3, genre.name);
-		genre.code.empty()  ? statement->SetNull(4) : statement->Set(4, genre.code);
-	}) && ok;
-
-	ok = StoreRows("series", db, "insert into series(id, name) values(?, ?)", std::cbegin(data.series), std::cend(data.series), [](IBPP::Statement & statement, const Dictionary::value_type & item)
-	{
-		statement->Set(1, item.second);
-		statement->Set(2, item.first);
-	}) && ok;
-
-	ok = StoreRows("authors", db, "insert into author(id, last_name, first_name, middle_name) values(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](IBPP::Statement & statement, const Dictionary::value_type & item)
-	{
-		auto it = std::cbegin(item.first);
-		const auto lastName   = Next(it, std::cend(item.first), NAMES_SEPARATOR);
-		const auto firstName  = Next(it, std::cend(item.first), NAMES_SEPARATOR);
-		const auto middleName = Next(it, std::cend(item.first), NAMES_SEPARATOR);
-
-													 statement->Set(1, item.second);
-													 statement->Set(2, lastName);
-		firstName.empty()  ? statement->SetNull(3) : statement->Set(3, firstName);
-		middleName.empty() ? statement->SetNull(4) : statement->Set(4, middleName);
-	}) && ok;
-
-	ok = StoreRows("books", db, "insert into book(id, title, id_series, num_series, archive, file_name, file_size, format, date_add, lang, rate, keywords) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", std::cbegin(data.books), std::cend(data.books), [](IBPP::Statement & statement, const Books::value_type & item)
-	{
-		auto it = std::cbegin(item.date);
-		const auto year = Next(it, std::cend(item.date), DATE_SEPARATOR);
-		const auto month = Next(it, std::cend(item.date), DATE_SEPARATOR);
-		const auto day = Next(it, std::cend(item.date), DATE_SEPARATOR);
-		const auto date = IBPP::Date(To<int>(year), To<int>(month), To<int>(day));
-
-														 statement->Set(1, item.id);
-														 statement->Set(2, item.title);
-		item.seriesId  ==  0  ? statement->SetNull(3) :  statement->Set(3, item.seriesId);
-		item.seriesNum == -1  ? statement->SetNull(4) :  statement->Set(4, item.seriesNum);
-														 statement->Set(5, item.archive);
-														 statement->Set(6, item.file);
-														 statement->Set(7, item.size);
-														 statement->Set(8, item.format);
-														 statement->Set(9, date);
-														 statement->Set(10, item.language);
-		item.rate      == -1  ? statement->SetNull(11) : statement->Set(11, item.rate);
-		item.keywords.empty() ? statement->SetNull(12) : statement->Set(12, item.keywords);
-	}) && ok;
-
-	ok = StoreRows("book genre links", db, "insert into l_book_genre(id_book, id_genre) values(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](IBPP::Statement & statement, const Links::value_type & item)
-	{
-		statement->Set(1, item.first);
-		statement->Set(2, genres[item.second].id);
-	}) && ok;
-
-	ok = StoreRows("book author links", db, "insert into l_book_author(id_book, id_author) values(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](IBPP::Statement & statement, const Links::value_type & item)
-	{
-		statement->Set(1, item.first);
-		statement->Set(2, item.second);
-	}) && ok;
-
-	Timer t("add constraints");
-	for (const auto & [obj, query] : g_dbUpdate)
-	{
-		Timer tObj(obj);
-		auto [tr, st] = ReStart(db);
-		st->ExecuteImmediate(query);
-		tr->Commit();
-	}
-
-	return ok;
-}
-*/
 Ini ParseConfig(int argc, char * argv[])
 {
 	return Ini(argc < 2 ? std::filesystem::path(argv[0]).replace_extension(INI_EXT) : std::filesystem::path(argv[1]));
@@ -609,11 +402,6 @@ void mainImpl(int argc, char * argv[])
 {
 	const auto ini = ParseConfig(argc, argv);
 	const auto data = Parse(ini.Get(GENRES), ini.Get(INPX));
-
-//	IBPP::ClientLibSearchPaths(ini.Get(DB_CLIENT_PATHS));
-//	CreateDatabase(ini);
-//	if (!Store(ini, data))
-//		std::cerr << "something was wrong";
 }
 
 int main(int argc, char* argv[])
