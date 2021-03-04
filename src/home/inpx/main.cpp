@@ -1,3 +1,5 @@
+__pragma(warning(push, 0))
+
 #include <cassert>
 #include <chrono>
 #include <filesystem>
@@ -6,9 +8,11 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "ZipFile.h"
+#include "ZipLib/ZipFile.h"
 
 #include <Windows.h>
+
+__pragma(warning(pop))
 
 namespace {
 
@@ -63,9 +67,9 @@ struct StringHash
 	// ReSharper disable once CppTypeAliasNeverUsed
 	using is_transparent = void;
 
-	int64_t operator()(const char * str) const { return hash_type{}(str); }
-	int64_t operator()(std::string_view str) const { return hash_type{}(str); }
-	int64_t operator()(std::string const & str) const { return hash_type{}(str); }
+	int64_t operator()(const char *        str) const { return static_cast<int64_t>(hash_type{}(str)); }
+	int64_t operator()(std::string_view    str) const { return static_cast<int64_t>(hash_type{}(str)); }
+	int64_t operator()(std::string const & str) const { return static_cast<int64_t>(hash_type{}(str)); }
 };
 
 struct Book
@@ -118,7 +122,7 @@ std::string toLower(std::string multiByteStr)
 {
 	const auto size = [](const auto & str) { return static_cast<int>(str.size()); };
 	
-	const auto wideSize = MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), nullptr, 0);
+	const auto wideSize = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), nullptr, 0));
 	std::wstring wideString(wideSize, 0);
 	MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), wideString.data(), size(wideString));
 
@@ -127,7 +131,7 @@ std::string toLower(std::string multiByteStr)
 		return std::tolower(c, g_utf8);
 	});
 
-	const auto multiByteSize = WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), nullptr, 0, nullptr, nullptr);
+	const auto multiByteSize = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), nullptr, 0, nullptr, nullptr));
 	multiByteStr.resize(multiByteSize);
 	WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), multiByteStr.data(), size(multiByteStr), nullptr, nullptr);
 	
@@ -153,11 +157,6 @@ struct Genre
 		, nameLower(toLower(name))
 	{
 		std::cout << nameLower << std::endl;
-	}
-
-	operator int64_t() const noexcept
-	{
-		return id;
 	}
 };
 	
@@ -273,7 +272,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 
 		const auto it = index.find(genre.parentCore);
 		if (it != index.end())
-			genre.parentId = genres[it->second].id;
+			genre.parentId = genres[static_cast<size_t>(it->second)].id;
 	}
 
 	return std::make_pair(std::move(genres), std::move(index));
@@ -308,7 +307,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 	Data data;
 	auto [genresData, genresIndex] = LoadGenres(genresName);
 	data.genres = std::move(genresData);
-	const auto unknownGenreId = data.genres[genresIndex.find(UNKNOWN)->second].id;
+	const auto unknownGenreId = data.genres[static_cast<size_t>(genresIndex.find(UNKNOWN)->second)].id;
 
 	std::vector<std::string> unknownGenres;
 	
@@ -366,9 +365,10 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 				, [&data = data.genres](Dictionary & container, std::string_view value)
 					{
 						const auto it = container.find(value);
-						return it != container.end() ? it : std::ranges::find_if(container, [&data, value = toLower(std::string(std::cbegin(value), std::cend(value)))](const Dictionary::value_type & item)
+						const auto v = toLower(std::string(std::cbegin(value), std::cend(value)));
+						return it != container.end() ? it : std::ranges::find_if(container, [&data, &v](const Dictionary::value_type & item)
 						{
-							return value == data[item.second].nameLower;
+							return v == data[static_cast<size_t>(item.second)].nameLower;
 						});
 					}
 			);

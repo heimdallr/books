@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 project(books)
  
-add_compile_options("/std:c++latest")
+add_compile_options(
+	/std:c++latest
+	/wd4503	# decorated name length exceeded, name was truncated
+	/wd4566 # Ошибка в ассертах с русскими сиволами assert(true && "Превед") - character represented by universal-character-name
+	/we5038 # reorder
+)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
 

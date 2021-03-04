@@ -22,5 +22,4 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/ziplib/Source/ZipLib"
 	PROJECT_GROUP Util/Zip
 	EXCLUDE_SOURCES "${CMAKE_CURRENT_LIST_DIR}/ziplib/Source/ZipLib/extlibs/"
-	EXPORT_INCLUDE
 )
