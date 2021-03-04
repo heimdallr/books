@@ -8,6 +8,7 @@ __pragma(warning(push, 0))
 #include <iostream>
 #include <unordered_map>
 
+#include "sqlite/sqlite3.h"
 #include "ZipLib/ZipFile.h"
 
 #include <Windows.h>
