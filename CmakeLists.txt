@@ -16,4 +16,4 @@ include("scripts/cmake/target.cmake")
 include("scripts/cmake/utils.cmake")
 
 include("src/ext/ziplib.cmake")
-include("src/home/inpx/inpx.cmake")
+include("src/home/inpx.cmake")
