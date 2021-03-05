@@ -130,6 +130,8 @@ namespace sqlite3pp
     void set_update_handler(update_handler h);
     void set_authorize_handler(authorize_handler h);
 
+    void load_extension(const char * file, const char * proc = nullptr) const;
+
    private:
     database(sqlite3* pdb);
 

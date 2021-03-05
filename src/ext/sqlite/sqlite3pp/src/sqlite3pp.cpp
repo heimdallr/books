@@ -195,6 +195,19 @@ namespace sqlite3pp
     sqlite3_set_authorizer(db_, ah_ ? authorizer_impl : 0, &ah_);
   }
 
+  void database::load_extension(const char * file, const char * proc) const
+  {
+    sqlite3_enable_load_extension(db_, 1);
+    char * pzErrMsg = nullptr;
+    const auto result = sqlite3_load_extension(db_, file, proc, &pzErrMsg);
+    if (result == SQLITE_OK)
+      return;
+
+    std::string error = pzErrMsg;
+    sqlite3_free(pzErrMsg);
+    throw database_error(error.data());
+  }
+	
   long long int database::last_insert_rowid() const
   {
     return sqlite3_last_insert_rowid(db_);
