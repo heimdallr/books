@@ -2596,6 +2596,11 @@ static int process_input(struct callback_data *p, FILE *in){
   int lineno = 0;
   int startline = 0;
 
+  char bom[3];
+  fread(bom, sizeof(bom), 1, in);
+  if (_memicmp(bom, "\0xEF\0xBB\0xBF", sizeof(bom)) == 0)
+      fseek(in, 0, SEEK_SET);
+
   while( errCnt==0 || !bail_on_error || (in==0 && stdin_is_interactive) ){
     fflush(p->out);
     free(zLine);
@@ -2850,7 +2855,7 @@ int main_impl(int argc, char **argv){
   struct callback_data data;
   const char *zInitFile = 0;
   char *zFirstCmd = 0;
-  int i;
+  int i, j;
   int rc = 0;
 
   if( strcmp(sqlite3_sourceid(),SQLITE_SOURCE_ID)!=0 ){
@@ -2948,186 +2953,260 @@ int main_impl(int argc, char **argv){
     data.zDbFilename = 0;
 #endif
   }
-  if( i<argc ){
-    zFirstCmd = argv[i++];
-  }
-  if( i<argc ){
-    fprintf(stderr,"%s: Error: too many options: \"%s\"\n", Argv0, argv[i]);
-    fprintf(stderr,"Use -help for a list of options.\n");
-    return 1;
-  }
   data.out = stdout;
-
-#ifdef SQLITE_OMIT_MEMORYDB
-  if( data.zDbFilename==0 ){
-    fprintf(stderr,"%s: Error: no database filename specified\n", Argv0);
-    return 1;
-  }
-#endif
 
   /* Go ahead and open the database file if it already exists.  If the
   ** file does not exist, delay opening it.  This prevents empty database
   ** files from being created if a user mistypes the database name argument
   ** to the sqlite command-line tool.
   */
-  if( access(data.zDbFilename, 0)==0 ){
-    open_db(&data);
+  if (access(data.zDbFilename, 0) == 0)
+  {
+      open_db(&data);
   }
 
   /* Process the initialization file if there is one.  If no -init option
   ** is given on the command line, look for a file named ~/.sqliterc and
   ** try to process it.
   */
-  rc = process_sqliterc(&data,zInitFile);
-  if( rc>0 ){
-    return rc;
+  rc = process_sqliterc(&data, zInitFile);
+  if (rc > 0)
+  {
+      return rc;
   }
 
-  /* Make a second pass through the command-line argument and set
-  ** options.  This second pass is delayed until after the initialization
-  ** file is processed so that the command-line arguments will override
-  ** settings in the initialization file.
-  */
-  for(i=1; i<argc && argv[i][0]=='-'; i++){
-    char *z = argv[i];
-    if( z[1]=='-' ){ z++; }
-    if( strcmp(z,"-init")==0 ){
-      i++;
-    }else if( strcmp(z,"-html")==0 ){
-      data.mode = MODE_Html;
-    }else if( strcmp(z,"-list")==0 ){
-      data.mode = MODE_List;
-    }else if( strcmp(z,"-line")==0 ){
-      data.mode = MODE_Line;
-    }else if( strcmp(z,"-column")==0 ){
-      data.mode = MODE_Column;
-    }else if( strcmp(z,"-csv")==0 ){
-      data.mode = MODE_Csv;
-      memcpy(data.separator,",",2);
-    }else if( strcmp(z,"-separator")==0 ){
-      i++;
-      if(i>=argc){
-        fprintf(stderr,"%s: Error: missing argument for option: %s\n",
-                        Argv0, z);
-        fprintf(stderr,"Use -help for a list of options.\n");
-        return 1;
+  j = i;
+  while (j < argc)
+  {
+      zFirstCmd = argv[j++];
+      i = j;
+
+#ifdef SQLITE_OMIT_MEMORYDB
+      if (data.zDbFilename == 0)
+      {
+          fprintf(stderr, "%s: Error: no database filename specified\n", Argv0);
+          return 1;
       }
-      sqlite3_snprintf(sizeof(data.separator), data.separator,
-                       "%.*s",(int)sizeof(data.separator)-1,argv[i]);
-    }else if( strcmp(z,"-nullvalue")==0 ){
-      i++;
-      if(i>=argc){
-        fprintf(stderr,"%s: Error: missing argument for option: %s\n",
-                        Argv0, z);
-        fprintf(stderr,"Use -help for a list of options.\n");
-        return 1;
-      }
-      sqlite3_snprintf(sizeof(data.nullvalue), data.nullvalue,
-                       "%.*s",(int)sizeof(data.nullvalue)-1,argv[i]);
-    }else if( strcmp(z,"-header")==0 ){
-      data.showHeader = 1;
-    }else if( strcmp(z,"-noheader")==0 ){
-      data.showHeader = 0;
-    }else if( strcmp(z,"-echo")==0 ){
-      data.echoOn = 1;
-    }else if( strcmp(z,"-stats")==0 ){
-      data.statsOn = 1;
-    }else if( strcmp(z,"-bail")==0 ){
-      bail_on_error = 1;
-    }else if( strcmp(z,"-version")==0 ){
-      printf("%s %s\n", sqlite3_libversion(), sqlite3_sourceid());
-      return 0;
-    }else if( strcmp(z,"-interactive")==0 ){
-      stdin_is_interactive = 1;
-    }else if( strcmp(z,"-batch")==0 ){
-      stdin_is_interactive = 0;
-    }else if( strcmp(z,"-heap")==0 ){
-      i++;
-    }else if( strcmp(z,"-vfs")==0 ){
-      i++;
+#endif
+
+      /* Make a second pass through the command-line argument and set
+      ** options.  This second pass is delayed until after the initialization
+      ** file is processed so that the command-line arguments will override
+      ** settings in the initialization file.
+      */
+      for (i = 1; i < argc && argv[i][0] == '-'; i++)
+      {
+          char * z = argv[i];
+          if (z[1] == '-')
+          {
+              z++;
+          }
+          if (strcmp(z, "-init") == 0)
+          {
+              i++;
+          }
+          else if (strcmp(z, "-html") == 0)
+          {
+              data.mode = MODE_Html;
+          }
+          else if (strcmp(z, "-list") == 0)
+          {
+              data.mode = MODE_List;
+          }
+          else if (strcmp(z, "-line") == 0)
+          {
+              data.mode = MODE_Line;
+          }
+          else if (strcmp(z, "-column") == 0)
+          {
+              data.mode = MODE_Column;
+          }
+          else if (strcmp(z, "-csv") == 0)
+          {
+              data.mode = MODE_Csv;
+              memcpy(data.separator, ",", 2);
+          }
+          else if (strcmp(z, "-separator") == 0)
+          {
+              i++;
+              if (i >= argc)
+              {
+                  fprintf(stderr, "%s: Error: missing argument for option: %s\n",
+                      Argv0, z);
+                  fprintf(stderr, "Use -help for a list of options.\n");
+                  return 1;
+              }
+              sqlite3_snprintf(sizeof(data.separator), data.separator,
+                  "%.*s", (int)sizeof(data.separator) - 1, argv[i]);
+          }
+          else if (strcmp(z, "-nullvalue") == 0)
+          {
+              i++;
+              if (i >= argc)
+              {
+                  fprintf(stderr, "%s: Error: missing argument for option: %s\n",
+                      Argv0, z);
+                  fprintf(stderr, "Use -help for a list of options.\n");
+                  return 1;
+              }
+              sqlite3_snprintf(sizeof(data.nullvalue), data.nullvalue,
+                  "%.*s", (int)sizeof(data.nullvalue) - 1, argv[i]);
+          }
+          else if (strcmp(z, "-header") == 0)
+          {
+              data.showHeader = 1;
+          }
+          else if (strcmp(z, "-noheader") == 0)
+          {
+              data.showHeader = 0;
+          }
+          else if (strcmp(z, "-echo") == 0)
+          {
+              data.echoOn = 1;
+          }
+          else if (strcmp(z, "-stats") == 0)
+          {
+              data.statsOn = 1;
+          }
+          else if (strcmp(z, "-bail") == 0)
+          {
+              bail_on_error = 1;
+          }
+          else if (strcmp(z, "-version") == 0)
+          {
+              printf("%s %s\n", sqlite3_libversion(), sqlite3_sourceid());
+              return 0;
+          }
+          else if (strcmp(z, "-interactive") == 0)
+          {
+              stdin_is_interactive = 1;
+          }
+          else if (strcmp(z, "-batch") == 0)
+          {
+              stdin_is_interactive = 0;
+          }
+          else if (strcmp(z, "-heap") == 0)
+          {
+              i++;
+          }
+          else if (strcmp(z, "-vfs") == 0)
+          {
+              i++;
 #ifdef SQLITE_ENABLE_VFSTRACE
-    }else if( strcmp(z,"-vfstrace")==0 ){
-      i++;
+          }
+          else if (strcmp(z, "-vfstrace") == 0)
+          {
+              i++;
 #endif
 #ifdef SQLITE_ENABLE_MULTIPLEX
-    }else if( strcmp(z,"-multiplex")==0 ){
-      i++;
+          }
+          else if (strcmp(z, "-multiplex") == 0)
+          {
+              i++;
 #endif
-    }else if( strcmp(z,"-help")==0 ){
-      usage(1);
-    }else if( strcmp(z,"-cmd")==0 ){
-      if( i==argc-1 ) break;
-      i++;
-      z = argv[i];
-      if( z[0]=='.' ){
-        rc = do_meta_command(z, &data);
-        if( rc && bail_on_error ) return rc;
-      }else{
-        open_db(&data);
-        rc = shell_exec(data.db, z, shell_callback, &data, &zErrMsg);
-        if( zErrMsg!=0 ){
-          fprintf(stderr,"Error: %s\n", zErrMsg);
-          if( bail_on_error ) return rc!=0 ? rc : 1;
-        }else if( rc!=0 ){
-          fprintf(stderr,"Error: unable to process SQL \"%s\"\n", z);
-          if( bail_on_error ) return rc;
-        }
+          }
+          else if (strcmp(z, "-help") == 0)
+          {
+              usage(1);
+          }
+          else if (strcmp(z, "-cmd") == 0)
+          {
+              if (i == argc - 1) break;
+              i++;
+              z = argv[i];
+              if (z[0] == '.')
+              {
+                  rc = do_meta_command(z, &data);
+                  if (rc && bail_on_error) return rc;
+              }
+              else
+              {
+                  open_db(&data);
+                  rc = shell_exec(data.db, z, shell_callback, &data, &zErrMsg);
+                  if (zErrMsg != 0)
+                  {
+                      fprintf(stderr, "Error: %s\n", zErrMsg);
+                      if (bail_on_error) return rc != 0 ? rc : 1;
+                  }
+                  else if (rc != 0)
+                  {
+                      fprintf(stderr, "Error: unable to process SQL \"%s\"\n", z);
+                      if (bail_on_error) return rc;
+                  }
+              }
+          }
+          else
+          {
+              fprintf(stderr, "%s: Error: unknown option: %s\n", Argv0, z);
+              fprintf(stderr, "Use -help for a list of options.\n");
+              return 1;
+          }
       }
-    }else{
-      fprintf(stderr,"%s: Error: unknown option: %s\n", Argv0, z);
-      fprintf(stderr,"Use -help for a list of options.\n");
-      return 1;
-    }
-  }
 
-  if( zFirstCmd ){
-    /* Run just the command that follows the database name
-    */
-    if( zFirstCmd[0]=='.' ){
-      rc = do_meta_command(zFirstCmd, &data);
-    }else{
-      open_db(&data);
-      rc = shell_exec(data.db, zFirstCmd, shell_callback, &data, &zErrMsg);
-      if( zErrMsg!=0 ){
-        fprintf(stderr,"Error: %s\n", zErrMsg);
-        return rc!=0 ? rc : 1;
-      }else if( rc!=0 ){
-        fprintf(stderr,"Error: unable to process SQL \"%s\"\n", zFirstCmd);
-        return rc;
+      if (zFirstCmd)
+      {
+          /* Run just the command that follows the database name
+          */
+          if (zFirstCmd[0] == '.')
+          {
+              rc = do_meta_command(zFirstCmd, &data);
+          }
+          else
+          {
+              open_db(&data);
+              rc = shell_exec(data.db, zFirstCmd, shell_callback, &data, &zErrMsg);
+              if (zErrMsg != 0)
+              {
+                  fprintf(stderr, "Error: %s\n", zErrMsg);
+                  return rc != 0 ? rc : 1;
+              }
+              else if (rc != 0)
+              {
+                  fprintf(stderr, "Error: unable to process SQL \"%s\"\n", zFirstCmd);
+                  return rc;
+              }
+          }
       }
-    }
-  }else{
-    /* Run commands received from standard input
-    */
-    if( stdin_is_interactive ){
-      char *zHome;
-      char *zHistory = 0;
-      int nHistory;
-      printf(
-        "SQLite version %s %.19s\n" /*extra-version-info*/
-        "Enter \".help\" for instructions\n"
-        "Enter SQL statements terminated with a \";\"\n",
-        sqlite3_libversion(), sqlite3_sourceid()
-      );
-      zHome = find_home_dir();
-      if( zHome ){
-        nHistory = strlen30(zHome) + 20;
-        if( (zHistory = malloc(nHistory))!=0 ){
-          sqlite3_snprintf(nHistory, zHistory,"%s/.sqlite_history", zHome);
-        }
-      }
+      else
+      {
+          /* Run commands received from standard input
+          */
+          if (stdin_is_interactive)
+          {
+              char * zHome;
+              char * zHistory = 0;
+              int nHistory;
+              printf(
+                  "SQLite version %s %.19s\n" /*extra-version-info*/
+                  "Enter \".help\" for instructions\n"
+                  "Enter SQL statements terminated with a \";\"\n",
+                  sqlite3_libversion(), sqlite3_sourceid()
+              );
+              zHome = find_home_dir();
+              if (zHome)
+              {
+                  nHistory = strlen30(zHome) + 20;
+                  if ((zHistory = malloc(nHistory)) != 0)
+                  {
+                      sqlite3_snprintf(nHistory, zHistory, "%s/.sqlite_history", zHome);
+                  }
+              }
 #if defined(HAVE_READLINE) && HAVE_READLINE==1
-      if( zHistory ) read_history(zHistory);
+              if (zHistory) read_history(zHistory);
 #endif
-      rc = process_input(&data, 0);
-      if( zHistory ){
-        stifle_history(100);
-        write_history(zHistory);
-        free(zHistory);
+              rc = process_input(&data, 0);
+              if (zHistory)
+              {
+                  stifle_history(100);
+                  write_history(zHistory);
+                  free(zHistory);
+              }
+          }
+          else
+          {
+              rc = process_input(&data, stdin);
+          }
       }
-    }else{
-      rc = process_input(&data, stdin);
-    }
   }
   set_table_name(&data, 0);
   if( data.db ){
