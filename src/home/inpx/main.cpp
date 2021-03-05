@@ -8,8 +8,9 @@ __pragma(warning(push, 0))
 #include <iostream>
 #include <unordered_map>
 
-#include "sqlite/sqlite3.h"
 #include "ZipLib/ZipFile.h"
+#include "sqlite/shell/sqlite_shell.h"
+#include "sqlite3pp.h"
 
 #include <Windows.h>
 
@@ -401,6 +402,27 @@ Ini ParseConfig(int argc, char * argv[])
 
 void mainImpl(int argc, char * argv[])
 {
+	std::ifstream t("D:/src/other/home/books/build64/bin/CreateCollectionDB_SQLite.sql");
+	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+
+	char v1[] = "exe";
+	char v2[] = R"(D:\src\other\home\books\build64\bin\base.db)";
+	char v3[] = ".read D:/src/other/home/books/build64/bin/CreateCollectionDB_SQLite.sql";
+	
+	char * v[]
+	{
+		v1,
+		v2,
+		v3,
+	};
+	
+	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
+	
+	sqlite3pp::database db("test.db");
+	sqlite3pp::transaction tr(db);
+	[[maybe_unused]] auto res = sqlite3pp::command(db, str.data()).execute_all();
+	tr.commit();
+
 	const auto ini = ParseConfig(argc, argv);
 	const auto data = Parse(ini.Get(GENRES), ini.Get(INPX));
 }

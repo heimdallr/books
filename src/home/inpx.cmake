@@ -3,6 +3,7 @@ AddTarget(
 	TYPE app_console
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/inpx"
 	INCLUDE_DIRS
+		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite3pp/src"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
@@ -11,6 +12,7 @@ AddTarget(
 		lzma
 		sqlite
 		sqlite3pp
+		sqlite3shell_lib
 		ziplib
 		zlib
 	COMPILER_OPTIONS
