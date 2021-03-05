@@ -7,6 +7,7 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite3pp/src"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/fmt/include"
 	LINK_TARGETS
 		bzip2
 		lzma
@@ -15,6 +16,7 @@ AddTarget(
 		sqlite3shell_lib
 		ziplib
 		zlib
+		fmt
 	COMPILER_OPTIONS
 		[ MSVC /WX /Wall ]
 )

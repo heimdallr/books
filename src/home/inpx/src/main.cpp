@@ -11,6 +11,7 @@ __pragma(warning(push, 0))
 #include "ZipLib/ZipFile.h"
 #include "sqlite/shell/sqlite_shell.h"
 #include "sqlite3pp.h"
+#include "fmt/core.h"
 
 #include <Windows.h>
 
@@ -161,7 +162,6 @@ struct Genre
 		, parentId(parentId_)
 		, nameLower(toLower(name))
 	{
-		std::cout << nameLower << std::endl;
 	}
 };
 	
@@ -234,7 +234,7 @@ public:
 	{
 		const auto it = _data.find(key);
 		if (it == _data.end())
-			throw std::invalid_argument(std::string("Cannot find key ") + key);
+			throw std::invalid_argument(fmt::format("Cannot find key {}", key));
 
 		return it->second;
 	}
@@ -250,7 +250,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 
 	std::ifstream iniStream(genresIniFileName);
 	if (!iniStream.is_open())
-		throw std::invalid_argument(std::string("Cannot open '") + genresIniFileName.data() + "'");
+		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName));
 	
 	std::string line;
 	while (std::getline(iniStream, line))
@@ -404,6 +404,8 @@ Ini ParseConfig(int argc, char * argv[])
 
 bool TableExists(sqlite3pp::database & db, const std::string & table)
 {
+	sqlite3pp::query query(db, fmt::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
+	return std::begin(query) != std::end(query);
 }
 
 SettingsTableData ReadSettings(const std::string & dbFileName)
@@ -411,33 +413,29 @@ SettingsTableData ReadSettings(const std::string & dbFileName)
 	SettingsTableData data;
 
 	sqlite3pp::database db(dbFileName.data());
-	sqlite3pp::query query(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='Settings'");
-	if (std::distance(std::begin(query), std::end(query)) == 0)
+	if (!TableExists(db, "Settings"))
 		return {};
 
 	sqlite3pp::query query(db, "select SettingID, SettingValue from Settings");
 
-	for (auto row : query)
+	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [](const auto & row)
 	{
-		std::string id, value;
-		row.getter() >> sqlite3pp::ignore >> id >> value;
-	}
+		int id;
+		const char * value;
+		std::tie(id, value) = row.template get_columns<int, char const *>(0, 1);
+		return std::make_pair(id, std::string(value));
+	});
 
 	return data;
 }
-	
-}
 
-void mainImpl(int argc, char * argv[])
+void ReCreateDatabase(std::string dbFileName)
 {
-	const auto ini = ParseConfig(argc, argv);
-	auto dbFileName = ini(DB);
-
-	const auto settingsTableData = ReadSettings(dbFileName);
+	std::cout << "Recreating database" << std::endl;
 
 	char stubExe[] = "stub.exe";
-	auto readScript = std::string(".read ") + CREATE_COLLECTION_SCRIPT;
-	auto loadExt = std::string(".load ") + MHL_SQLITE_EXTENSION;
+	auto readScript = fmt::format(".read {}.", CREATE_COLLECTION_SCRIPT);
+	auto loadExt = fmt::format(".load {}", MHL_SQLITE_EXTENSION);
 
 	char * v[]
 	{
@@ -446,16 +444,31 @@ void mainImpl(int argc, char * argv[])
 		loadExt.data(),
 		readScript.data(),
 	};
-	
-	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
 
+	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
+}
+
+void Store(const std::string & dbFileName, const Data & /*data*/)
+{
 	sqlite3pp::database db(dbFileName.data());
 	db.load_extension(MHL_SQLITE_EXTENSION);
 
 	sqlite3pp::transaction tr(db);
 	tr.commit();
+}
+	
+}
+
+void mainImpl(int argc, char * argv[])
+{
+	const auto ini = ParseConfig(argc, argv);
+	const auto dbFileName = ini(DB);
+
+	const auto settingsTableData = ReadSettings(dbFileName);
+	ReCreateDatabase(dbFileName);
 
 	const auto data = Parse(ini(GENRES), ini(INPX));
+	Store(dbFileName, data);
 }
 
 int main(int argc, char* argv[])
