@@ -3,6 +3,7 @@ include_guard(GLOBAL)
 include(CMakeParseArguments)
 
 set(CMAKE_DEBUG_POSTFIX "D")
+set(SCRIPT_HELPERS_DIR "${CMAKE_CURRENT_LIST_DIR}/../helpers")
 
 # BIN_DIR можеть быть задан в параметрах генерации
 if(NOT BIN_DIR)
@@ -211,7 +212,7 @@ endfunction(setTargetOutput TARGET_NAME)
 function(CreateExportLibFile target definition_name output_file)
 	set(TARGET ${target})
 	set(DEFINITION_NAME ${definition_name})
-	configure_file(${FOUNDATION_HELPERS_SCRIPT_DIR}/ExportLib.h.in ${output_file} @ONLY)
+	configure_file(${SCRIPT_HELPERS_DIR}/ExportLib.h.in ${output_file} @ONLY)
 endfunction()
 
 function(PrepareTargetSources SourcesList ExtraIncludes)
@@ -304,7 +305,7 @@ function(PrepareTargetSources SourcesList ExtraIncludes)
 		if (amalgSourcesSize GREATER miminalFilesCount)
 			string(REPLACE ";" ">\n#include <" amalgamation_lines "${amalgSources}")
 			set(amalgamation_lines "#include <${amalgamation_lines}>\n")
-			configure_file(${FOUNDATION_HELPERS_SCRIPT_DIR}/AmalgamationBuild.cpp.in "${amalgamationBuildFile}")
+			configure_file(${SCRIPT_HELPERS_DIR}/AmalgamationBuild.cpp.in "${amalgamationBuildFile}")
 			set_source_files_properties(${amalgSources} PROPERTIES HEADER_FILE_ONLY true)
 			append_unique(ALL_SOURCES "${amalgamationBuildFile}")
 		endif()
@@ -324,11 +325,11 @@ function(GenerateQtConf output_path)
 
 	if(CMAKE_GENERATOR MATCHES Xcode)
 		foreach (type ${CMAKE_CONFIGURATION_TYPES})
-			configure_file( ${FOUNDATION_HELPERS_SCRIPT_DIR}/qt.conf.nofixup.in ${CMAKE_CURRENT_BINARY_DIR}/${type}${PATH_IN_BUNDLE}/qt.conf @ONLY )
+			configure_file( ${SCRIPT_HELPERS_DIR}/qt.conf.nofixup.in ${CMAKE_CURRENT_BINARY_DIR}/${type}${PATH_IN_BUNDLE}/qt.conf @ONLY )
 		endforeach()
 	else()
 		set(bundleBinaryPath "${CMAKE_CURRENT_BINARY_DIR}${PATH_IN_BUNDLE}")
-		configure_file( ${FOUNDATION_HELPERS_SCRIPT_DIR}/qt.conf.nofixup.in ${bundleBinaryPath}/qt.conf @ONLY )
+		configure_file( ${SCRIPT_HELPERS_DIR}/qt.conf.nofixup.in ${bundleBinaryPath}/qt.conf @ONLY )
 	endif()
 endfunction()
 
@@ -489,7 +490,7 @@ function(AddTarget)
 
 		set( TargetType STATIC )
 		set( CreateTarget "library" )
-		configure_file(${FOUNDATION_HELPERS_SCRIPT_DIR}/HeaderOnlyLibraryStub.cpp.in ${ARG_NAME}_stub.cpp)
+		configure_file(${SCRIPT_HELPERS_DIR}/HeaderOnlyLibraryStub.cpp.in ${ARG_NAME}_stub.cpp)
 		append(ALL_SOURCES ${ARG_NAME}_stub.cpp)
 	else()
 		message( FATAL_ERROR "Unknown target TYPE: ${ARG_TYPE}" )
@@ -670,7 +671,7 @@ function(AddTarget)
 			PRODUCT_NAME_VERSIONED            # навзание продукта с номером версии включительно
 			PRODUCT_VERSION_MAJOR             # старшая версия продукта
 			PRODUCT_VERSION_MINOR             # младшая версия продукта
-			FOUNDATION_HELPERS_SCRIPT_DIR     # путь расположения директории .../foundation/script/helpers
+			SCRIPT_HELPERS_DIR                # путь расположения директории .../helpers
 			COPYRIGHT_YEAR                    # год регистрации авторского права
 			ARG_WIN_APP_ICON                  # путь расположения иконки инсталляции
 			TARGET_OUTPUT_NAME                # наименование исполняемого файла
@@ -678,7 +679,7 @@ function(AddTarget)
 
 		set(APP_ICON ${ARG_WIN_APP_ICON})
 		set(rc_file_name "win_resources.rc")
-		configure_file(${FOUNDATION_HELPERS_SCRIPT_DIR}/win/${rc_file_name}.in ${ARG_NAME}/${rc_file_name})
+		configure_file(${SCRIPT_HELPERS_DIR}/win/${rc_file_name}.in ${ARG_NAME}/${rc_file_name})
 	endif()
 
 	set(appTypesEntitlements app_bundle app)

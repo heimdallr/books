@@ -1,0 +1,7 @@
+/// Generated from helpers/HeaderOnlyLibraryStub.cpp.in
+
+namespace Movavi {
+
+[[maybe_unused]] void StubFor@ARG_NAME@() {}
+
+}
