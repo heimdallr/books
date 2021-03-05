@@ -31,7 +31,7 @@ constexpr const char * GENRES      = "genres";
 constexpr const char * INI_EXT     = "ini";
 constexpr const char * INPX        = "inpx";
 constexpr const char * UNKNOWN     = "unknown";
-constexpr const char * MHL_USER_DB = "mhl_user_db";
+constexpr const char * DB          = "db";
 
 constexpr int64_t LOG_INTERVAL = 10000;
 
@@ -169,6 +169,7 @@ using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::string, int64_t, StringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<int64_t, int64_t>>;
+using SettingsTableData = std::unordered_map<int, std::string>;
 
 using GetIdFunctor = std::function<int64_t(std::string_view)>;
 using FindFunctor = std::function<Dictionary::iterator(Dictionary &, std::string_view)>;
@@ -229,7 +230,7 @@ public:
 		}
 	}
 
-	const std::string & Get(const char * key) const
+	const std::string & operator()(const char * key) const
 	{
 		const auto it = _data.find(key);
 		if (it == _data.end())
@@ -401,15 +402,38 @@ Ini ParseConfig(int argc, char * argv[])
 	return Ini(argc < 2 ? std::filesystem::path(argv[0]).replace_extension(INI_EXT) : std::filesystem::path(argv[1]));
 }
 
+bool TableExists(sqlite3pp::database & db, const std::string & table)
+{
+}
+
+SettingsTableData ReadSettings(const std::string & dbFileName)
+{
+	SettingsTableData data;
+
+	sqlite3pp::database db(dbFileName.data());
+	sqlite3pp::query query(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='Settings'");
+	if (std::distance(std::begin(query), std::end(query)) == 0)
+		return {};
+
+	sqlite3pp::query query(db, "select SettingID, SettingValue from Settings");
+
+	for (auto row : query)
+	{
+		std::string id, value;
+		row.getter() >> sqlite3pp::ignore >> id >> value;
+	}
+
+	return data;
+}
+	
 }
 
 void mainImpl(int argc, char * argv[])
 {
 	const auto ini = ParseConfig(argc, argv);
-	char databaseFileName[] = R"(D:\src\other\home\books\build64\bin\base.db)";
+	auto dbFileName = ini(DB);
 
-	sqlite3pp::database db(databaseFileName);
-//	db.load_extension("MyHomeLibSQLIteExtD.dll");
+	const auto settingsTableData = ReadSettings(dbFileName);
 
 	char stubExe[] = "stub.exe";
 	auto readScript = std::string(".read ") + CREATE_COLLECTION_SCRIPT;
@@ -418,17 +442,20 @@ void mainImpl(int argc, char * argv[])
 	char * v[]
 	{
 		stubExe,
-		databaseFileName,
+		dbFileName.data(),
 		loadExt.data(),
 		readScript.data(),
 	};
 	
 	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
 
+	sqlite3pp::database db(dbFileName.data());
+	db.load_extension(MHL_SQLITE_EXTENSION);
+
 	sqlite3pp::transaction tr(db);
 	tr.commit();
 
-	const auto data = Parse(ini.Get(GENRES), ini.Get(INPX));
+	const auto data = Parse(ini(GENRES), ini(INPX));
 }
 
 int main(int argc, char* argv[])
