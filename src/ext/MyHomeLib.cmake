@@ -6,3 +6,5 @@
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
 )
+
+set(CREATE_COLLECTION_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/MyHomeLib/Program/DAO/SQLite/Resources/CreateCollectionDB_SQLite.sql")

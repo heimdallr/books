@@ -16,6 +16,8 @@ __pragma(warning(push, 0))
 
 __pragma(warning(pop))
 
+#include "Configuration.h"
+
 namespace {
 
 constexpr std::string_view INP_EXT = ".inp";
@@ -25,10 +27,11 @@ constexpr char LIST_SEPARATOR = ':';
 constexpr char NAMES_SEPARATOR = ',';
 constexpr char GENRE_SEPARATOR = '|';
 
-constexpr const char * GENRES           = "genres";
-constexpr const char * INI_EXT          = "ini";
-constexpr const char * INPX             = "inpx";
-constexpr const char * UNKNOWN          = "unknown";
+constexpr const char * GENRES      = "genres";
+constexpr const char * INI_EXT     = "ini";
+constexpr const char * INPX        = "inpx";
+constexpr const char * UNKNOWN     = "unknown";
+constexpr const char * MHL_USER_DB = "mhl_user_db";
 
 constexpr int64_t LOG_INTERVAL = 10000;
 
@@ -402,28 +405,29 @@ Ini ParseConfig(int argc, char * argv[])
 
 void mainImpl(int argc, char * argv[])
 {
-	std::ifstream t("D:/src/other/home/books/build64/bin/CreateCollectionDB_SQLite.sql");
-	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+	const auto ini = ParseConfig(argc, argv);
+	char databaseFileName[] = R"(D:\src\other\home\books\build64\bin\base.db)";
 
-	char v1[] = "exe";
-	char v2[] = R"(D:\src\other\home\books\build64\bin\base.db)";
-	char v3[] = ".read D:/src/other/home/books/build64/bin/CreateCollectionDB_SQLite.sql";
-	
+	sqlite3pp::database db(databaseFileName);
+//	db.load_extension("MyHomeLibSQLIteExtD.dll");
+
+	char stubExe[] = "stub.exe";
+	auto readScript = std::string(".read ") + CREATE_COLLECTION_SCRIPT;
+	auto loadExt = std::string(".load ") + MHL_SQLITE_EXTENSION;
+
 	char * v[]
 	{
-		v1,
-		v2,
-		v3,
+		stubExe,
+		databaseFileName,
+		loadExt.data(),
+		readScript.data(),
 	};
 	
 	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
-	
-	sqlite3pp::database db("test.db");
+
 	sqlite3pp::transaction tr(db);
-	[[maybe_unused]] auto res = sqlite3pp::command(db, str.data()).execute_all();
 	tr.commit();
 
-	const auto ini = ParseConfig(argc, argv);
 	const auto data = Parse(ini.Get(GENRES), ini.Get(INPX));
 }
 

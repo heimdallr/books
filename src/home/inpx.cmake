@@ -1,7 +1,7 @@
 AddTarget(
 	NAME inpx
 	TYPE app_console
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/inpx"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/inpx/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite"
@@ -18,3 +18,4 @@ AddTarget(
 	COMPILER_OPTIONS
 		[ MSVC /WX /Wall ]
 )
+configure_file(${CMAKE_CURRENT_LIST_DIR}/inpx/helpers/Configuration.h.in ${CMAKE_CURRENT_BINARY_DIR}/Configuration.h @ONLY)
