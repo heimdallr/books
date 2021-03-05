@@ -10,7 +10,7 @@ __pragma(warning(push, 0))
 
 #include "ZipLib/ZipFile.h"
 #include "sqlite/shell/sqlite_shell.h"
-#include "sqlite3pp.h"
+#include "sqlite3ppext.h"
 #include "fmt/core.h"
 
 #include <Windows.h>
@@ -127,7 +127,7 @@ const std::locale g_utf8("ru_RU.UTF-8");
 std::string toLower(std::string multiByteStr)
 {
 	const auto size = [](const auto & str) { return static_cast<int>(str.size()); };
-	
+
 	const auto wideSize = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), nullptr, 0));
 	std::wstring wideString(wideSize, 0);
 	MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), wideString.data(), size(wideString));
@@ -140,23 +140,23 @@ std::string toLower(std::string multiByteStr)
 	const auto multiByteSize = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), nullptr, 0, nullptr, nullptr));
 	multiByteStr.resize(multiByteSize);
 	WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), multiByteStr.data(), size(multiByteStr), nullptr, nullptr);
-	
+
 	return multiByteStr;
 }
 
 struct Genre
 {
-	int64_t id;
 	std::string code;
 	std::string parentCore;
 	std::string name;
 	int64_t parentId;
+	std::string dbCode;
 
 	std::string nameLower;
+	int64_t childrenCount{ 0 };
 
-	Genre(int64_t id_, std::string_view code_, std::string_view parentCode_, std::string_view name_, int64_t parentId_ = 0)
-		: id(id_)
-		, code(code_)
+	Genre(std::string_view code_, std::string_view parentCode_, std::string_view name_, int64_t parentId_ = 0)
+		: code(code_)
 		, parentCore(parentCode_)
 		, name(name_)
 		, parentId(parentId_)
@@ -209,7 +209,7 @@ T To(std::string_view value, T defaultValue = 0)
 		? defaultValue
 		: static_cast<T>(std::strtoull(value.data(), &p_end, 10));
 }
-	
+
 class Ini
 {
 public:
@@ -251,12 +251,16 @@ auto LoadGenres(std::string_view genresIniFileName)
 	std::ifstream iniStream(genresIniFileName);
 	if (!iniStream.is_open())
 		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName));
-	
+
+	index.emplace("", static_cast<int64_t>(std::size(genres)));
+	auto & root = genres.emplace_back("", "", "");
+	root.dbCode = "0";
+
 	std::string line;
 	while (std::getline(iniStream, line))
 	{
 		auto it = std::cbegin(line);
-		const auto codes   = Next(it, std::cend(line), GENRE_SEPARATOR);
+		const auto codes = Next(it, std::cend(line), GENRE_SEPARATOR);
 		auto itCode = std::cbegin(codes);
 		std::string code;
 		while(itCode != std::cend(codes))
@@ -265,21 +269,20 @@ auto LoadGenres(std::string_view genresIniFileName)
 			if (code.empty())
 				code = added;
 		}
-		
+
 		const auto parent = Next(it, std::cend(line), GENRE_SEPARATOR);
 		const auto title  = Next(it, std::cend(line), GENRE_SEPARATOR);
-		genres.emplace_back(GetId(), code, parent, title);
+		genres.emplace_back(code, parent, title);
 	}
 
-	for (auto & genre : genres)
+	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre & genre)
 	{
-		if (genre.parentCore.empty())
-			continue;
-
 		const auto it = index.find(genre.parentCore);
-		if (it != index.end())
-			genre.parentId = genres[static_cast<size_t>(it->second)].id;
-	}
+		assert(it != index.end());
+		auto & parent = genres[static_cast<size_t>(it->second)];
+		genre.parentId = it->second;
+		genre.dbCode = fmt::format("{0}.{1}", parent.dbCode, ++parent.childrenCount);
+	});
 
 	return std::make_pair(std::move(genres), std::move(index));
 }
@@ -313,10 +316,11 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 	Data data;
 	auto [genresData, genresIndex] = LoadGenres(genresName);
 	data.genres = std::move(genresData);
-	const auto unknownGenreId = data.genres[static_cast<size_t>(genresIndex.find(UNKNOWN)->second)].id;
+	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
+	auto & unknownGenre = data.genres[static_cast<size_t>(unknownGenreId)];
 
 	std::vector<std::string> unknownGenres;
-	
+
 	const auto archive = ZipFile::Open(inpxFileName.data());
 	const auto entriesCount = archive->GetEntriesCount();
 	int64_t n = 0;
@@ -361,11 +365,12 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 
 			ParseItem(id, authors, data.authors, data.booksAuthors);
 			ParseItem(id, genres, genresIndex, data.booksGenres
-				, [unknownGenreId, &unknownGenres, &data = data.genres](std::string_view title)
+				, [unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::string_view title)
 					{
 						const auto result = static_cast<int64_t>(std::size(data));
-						data.emplace_back(GetId(), title, "", title, unknownGenreId);
-						unknownGenres.push_back(data.back().nameLower);
+						auto & genre = data.emplace_back(title, "", title, unknownGenreId);
+						genre.dbCode = fmt::format("{0}.{1}", unknownGenre.dbCode, ++unknownGenre.childrenCount);
+						unknownGenres.push_back(genre.nameLower);
 						return result;
 					}
 				, [&data = data.genres](Dictionary & container, std::string_view value)
@@ -448,15 +453,54 @@ void ReCreateDatabase(std::string dbFileName)
 	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
 }
 
-void Store(const std::string & dbFileName, const Data & /*data*/)
+void Store(const std::string & dbFileName, const Data & data)
 {
-	sqlite3pp::database db(dbFileName.data());
+	sqlite3pp::database db(dbFileName.data());	
 	db.load_extension(MHL_SQLITE_EXTENSION);
+	sqlite3pp::ext::function func(db);
+	func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
 
-	sqlite3pp::transaction tr(db);
-	tr.commit();
+	{
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command cmd(db, "INSERT INTO Authors (LastName, FirstName, MiddleName) VALUES(?, ?, ?)");
+		for (const auto & [author, id] : data.authors)
+		{
+			auto it = std::cbegin(author);
+			const auto last = Next(it, std::cend(author), NAMES_SEPARATOR);
+			const auto first = Next(it, std::cend(author), NAMES_SEPARATOR);
+			const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
+			cmd.binder() << last << first << middle;
+			cmd.execute();
+			cmd.reset();
+		}
+		tr.commit();
+	}
+
+	{
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command cmd(db, "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)");
+		for (const auto & [series, id] : data.series)
+		{
+			cmd.binder() << id << series;
+			cmd.execute();
+			cmd.reset();
+		}
+		tr.commit();
+	}
+
+	{
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command cmd(db, "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)");
+		std::for_each(std::next(std::cbegin(data.genres)), std::cend(data.genres), [&cmd, &genres = data.genres](const Genre & genre)
+		{
+			cmd.binder() << genre.dbCode << genres[static_cast<size_t>(genre.parentId)].dbCode << genre.code << genre.name;
+			cmd.execute();
+			cmd.reset();
+		});
+		tr.commit();
+	}
 }
-	
+
 }
 
 void mainImpl(int argc, char * argv[])
