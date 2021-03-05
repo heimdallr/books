@@ -18,4 +18,5 @@ include("scripts/cmake/utils.cmake")
 
 include("src/ext/ziplib.cmake")
 include("src/ext/sqlite.cmake")
+include("src/ext/MyHomeLib.cmake")
 include("src/home/inpx.cmake")
