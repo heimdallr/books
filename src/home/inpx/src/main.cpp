@@ -194,6 +194,26 @@ Dictionary::iterator FindDefault(Dictionary & container, std::string_view value)
 	return container.find(value);
 }
 
+std::ostream & operator<<(std::ostream & stream, const Dictionary::value_type & value)
+{
+	return stream << value.second << ": " << value.first;
+}
+
+std::ostream & operator<<(std::ostream & stream, const Links::value_type & value)
+{
+	return stream << value.first << ": " << value.second;
+}
+
+std::ostream & operator<<(std::ostream & stream, const Genre & value)
+{
+	return stream << value.dbCode << ", " << value.code << ": " << value.name;
+}
+
+std::ostream & operator<<(std::ostream & stream, const Book & value)
+{
+	return stream << value.folder << ", " << value.insideNo << ", " << value.libId << ": " << value.id << ", " << value.title;
+}
+
 struct Data
 {
 	Books books;
@@ -466,9 +486,13 @@ void ReCreateDatabase(std::string dbFileName)
 }
 
 template<typename It, typename Functor>
-int64_t StoreRange(std::string dbFileName, std::string query, It beg, It end, Functor && f)
+size_t StoreRange(std::string dbFileName, std::string process, std::string query, It beg, It end, Functor && f)
 {
-	sqlite3pp::database db(dbFileName.data());	
+	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
+	Timer t(fmt::format("store {0} {1}", process, rowsTotal));
+	size_t rowsInserted = 0;
+
+	sqlite3pp::database db(dbFileName.data());
 	db.load_extension(MHL_SQLITE_EXTENSION);
 	sqlite3pp::ext::function func(db);
 	func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
@@ -476,23 +500,45 @@ int64_t StoreRange(std::string dbFileName, std::string query, It beg, It end, Fu
 	sqlite3pp::transaction tr(db);
 	sqlite3pp::command cmd(db, query.data());
 
-	const auto result = std::accumulate(beg, end, int64_t{ 0 }, [f = std::forward<Functor>(f), &cmd](int64_t init, const typename It::value_type & value)
+	const auto log = [rowsTotal, &rowsInserted]
+	{
+		std::cout << fmt::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal) << std::endl;
+	};
+	
+	const auto result = std::accumulate(beg, end, size_t{ 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
 	{
 		f(cmd, value);
-		return init
+		const auto result = 0
 			+ cmd.execute()
 			+ cmd.reset()
 			;
+
+		if (result == 0)
+		{
+			if (++rowsInserted % LOG_INTERVAL == 0)
+				log();
+		}
+		else
+		{
+			std::cerr << db.error_code() << ": " << db.error_msg() << std::endl << value << std::endl;
+		}
+
+		return init + result;
 	});
+
 	tr.commit();
+
+	std::cout << "total "; log();
+	if (rowsTotal != rowsInserted)
+		std::cerr << rowsTotal - rowsInserted << " rows lost" << std::endl;
 
 	return result;
 }
 
-int64_t Store(const std::string & dbFileName, const Data & data)
+size_t Store(const std::string & dbFileName, const Data & data)
 {
-	int64_t result = 0;
-	result += StoreRange(dbFileName, "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	size_t result = 0;
+	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{		
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
@@ -502,12 +548,12 @@ int64_t Store(const std::string & dbFileName, const Data & data)
 		cmd.binder() << id << last << first << middle;
 	});
 
-	result += StoreRange(dbFileName, "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
 	});
 
-	result += StoreRange(dbFileName, "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(data.genres)), std::cend(data.genres), [&genres = data.genres](sqlite3pp::command & cmd, const Genre & genre)
+	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(data.genres)), std::cend(data.genres), [&genres = data.genres](sqlite3pp::command & cmd, const Genre & genre)
 	{
 		cmd.binder() << genre.dbCode << genres[genre.parentId].dbCode << genre.code << genre.name;
 	});
@@ -518,7 +564,7 @@ int64_t Store(const std::string & dbFileName, const Data & data)
 		"Folder   , FileName  , InsideNo , Ext     , "
 		"BookSize , IsLocal   , IsDeleted, KeyWords"
 		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	result += StoreRange(dbFileName, queryText, std::cbegin(data.books), std::cend(data.books), [](sqlite3pp::command & cmd, const Book & book)
+	result += StoreRange(dbFileName, "Books", queryText, std::cbegin(data.books), std::cend(data.books), [](sqlite3pp::command & cmd, const Book & book)
 	{
 																		   cmd.bind( 1, book.id);
 																		   cmd.bind( 2, book.libId, sqlite3pp::nocopy);
@@ -538,12 +584,12 @@ int64_t Store(const std::string & dbFileName, const Data & data)
 			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, book.keywords, sqlite3pp::nocopy);
 	});
 
-	result += StoreRange(dbFileName, "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
+	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
 	});
 
-	result += StoreRange(dbFileName, "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
+	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
 		cmd.binder() << item.first << genres[item.second].dbCode;
@@ -563,7 +609,8 @@ void mainImpl(int argc, char * argv[])
 	ReCreateDatabase(dbFileName);
 
 	const auto data = Parse(ini(GENRES), ini(INPX));
-	Store(dbFileName, data);
+	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
+		std::cerr << "Something went wrong" << std::endl;
 }
 
 int main(int argc, char* argv[])
