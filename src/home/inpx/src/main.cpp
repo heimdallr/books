@@ -35,10 +35,10 @@ constexpr const char * INPX        = "inpx";
 constexpr const char * UNKNOWN     = "unknown";
 constexpr const char * DB          = "db";
 
-constexpr int64_t LOG_INTERVAL = 10000;
+constexpr size_t LOG_INTERVAL = 10000;
 
-int64_t g_id = 0;
-int64_t GetId()
+size_t g_id = 0;
+size_t GetId()
 {
 	return ++g_id;
 }
@@ -81,19 +81,19 @@ struct StringHash
 
 struct Book
 {
-	Book(int64_t id_
+	Book(size_t id_
 		, std::string_view libId_
 		, std::string_view title_
-		, int64_t seriesId_
-		, int64_t seriesNum_
+		, int seriesId_
+		, int seriesNum_
 		, std::string_view date_
-		, int64_t rate_
+		, int rate_
 		, std::string_view language_
 		, std::string_view folder_
 		, std::string_view fileName_
-		, int64_t insideNo_
+		, size_t insideNo_
 		, std::string_view format_
-		, int64_t size_
+		, size_t size_
 		, bool isDeleted_
 		, std::string_view keywords_
 	)
@@ -115,19 +115,19 @@ struct Book
 	{
 	}
 
-	int64_t     id;
+	size_t      id;
 	std::string libId;
 	std::string title;
-	int64_t     seriesId;
-	int64_t     seriesNum;
+	int         seriesId;
+	int         seriesNum;
 	std::string date;
-	int64_t     rate;
+	int         rate;
 	std::string language;
 	std::string folder;
 	std::string fileName;
-	int64_t     insideNo;
+	size_t      insideNo;
 	std::string format;
-	int64_t     size;
+	size_t      size;
 	bool        isDeleted;
 	std::string keywords;
 };
@@ -159,13 +159,13 @@ struct Genre
 	std::string code;
 	std::string parentCore;
 	std::string name;
-	int64_t parentId;
+	size_t parentId;
 	std::string dbCode;
 
 	std::string nameLower;
-	int64_t childrenCount{ 0 };
+	size_t childrenCount{ 0 };
 
-	Genre(std::string_view code_, std::string_view parentCode_, std::string_view name_, int64_t parentId_ = 0)
+	Genre(std::string_view code_, std::string_view parentCode_, std::string_view name_, size_t parentId_ = 0)
 		: code(code_)
 		, parentCore(parentCode_)
 		, name(name_)
@@ -176,15 +176,15 @@ struct Genre
 };
 	
 using Books = std::vector<Book>;
-using Dictionary = std::unordered_map<std::string, int64_t, StringHash, std::equal_to<>>;
+using Dictionary = std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
-using Links = std::vector<std::pair<int64_t, int64_t>>;
+using Links = std::vector<std::pair<size_t, size_t>>;
 using SettingsTableData = std::unordered_map<int, std::string>;
 
-using GetIdFunctor = std::function<int64_t(std::string_view)>;
+using GetIdFunctor = std::function<size_t(std::string_view)>;
 using FindFunctor = std::function<Dictionary::iterator(Dictionary &, std::string_view)>;
 
-int64_t GetIdDefault(std::string_view)
+size_t GetIdDefault(std::string_view)
 {
 	return GetId();
 }
@@ -262,7 +262,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 	if (!iniStream.is_open())
 		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName));
 
-	index.emplace("", static_cast<int64_t>(std::size(genres)));
+	index.emplace("", std::size(genres));
 	auto & root = genres.emplace_back("", "", "");
 	root.dbCode = "0";
 
@@ -275,7 +275,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 		std::string code;
 		while(itCode != std::cend(codes))
 		{
-			const auto & added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), static_cast<int64_t>(std::size(genres))).first->first;
+			const auto & added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
 				code = added;
 		}
@@ -289,7 +289,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 	{
 		const auto it = index.find(genre.parentCore);
 		assert(it != index.end());
-		auto & parent = genres[static_cast<size_t>(it->second)];
+		auto & parent = genres[it->second];
 		genre.parentId = it->second;
 		genre.dbCode = fmt::format("{0}.{1}", parent.dbCode, ++parent.childrenCount);
 	});
@@ -297,25 +297,26 @@ auto LoadGenres(std::string_view genresIniFileName)
 	return std::make_pair(std::move(genres), std::move(index));
 }
 
-int64_t Add(std::string_view value, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+template<typename T, T emptyValue = 0>
+T Add(std::string_view value, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	if (value.empty())
-		return -1;
+		return emptyValue;
 
 	auto it = find(container, value);
 	if (it == container.end())
 		it = container.emplace(value, getId(value)).first;
 
-	return it->second;
+	return static_cast<T>(it->second);
 }
 
-void ParseItem(int64_t id, std::string_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+void ParseItem(size_t id, std::string_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
 	{
 		const auto value = Next(it, std::cend(data), LIST_SEPARATOR);
-		links.emplace_back(id, Add(value, container, getId, find));
+		links.emplace_back(id, Add<size_t>(value, container, getId, find));
 	}
 }
 
@@ -327,13 +328,13 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 	auto [genresData, genresIndex] = LoadGenres(genresName);
 	data.genres = std::move(genresData);
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
-	auto & unknownGenre = data.genres[static_cast<size_t>(unknownGenreId)];
+	auto & unknownGenre = data.genres[unknownGenreId];
 
 	std::vector<std::string> unknownGenres;
 
 	const auto archive = ZipFile::Open(inpxFileName.data());
 	const auto entriesCount = archive->GetEntriesCount();
-	int64_t n = 0;
+	size_t n = 0;
 
 	for (size_t i = 0; i < entriesCount; ++i)
 	{
@@ -351,7 +352,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 		auto * const stream = entry->GetDecompressionStream();
 		assert(stream);
 
-		int64_t insideNo = 0;
+		size_t insideNo = 0;
 		std::string line;		
 		while (std::getline(*stream, line))
 		{
@@ -378,7 +379,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 			ParseItem(id, genres, genresIndex, data.booksGenres
 				, [unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::string_view title)
 					{
-						const auto result = static_cast<int64_t>(std::size(data));
+						const auto result = std::size(data);
 						auto & genre = data.emplace_back(title, "", title, unknownGenreId);
 						genre.dbCode = fmt::format("{0}.{1}", unknownGenre.dbCode, ++unknownGenre.childrenCount);
 						unknownGenres.push_back(genre.nameLower);
@@ -390,12 +391,12 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 						const auto v = toLower(std::string(std::cbegin(value), std::cend(value)));
 						return it != container.end() ? it : std::ranges::find_if(container, [&data, &v](const Dictionary::value_type & item)
 						{
-							return v == data[static_cast<size_t>(item.second)].nameLower;
+							return v == data[item.second].nameLower;
 						});
 					}
 			);
 
-			data.books.emplace_back(id, libId, title, Add(seriesName, data.series), To<int64_t>(seriesNum, -1), date, To<int64_t>(rate), lang, folder, fileName, insideNo++, ext, To<int64_t>(size), To<bool>(del, false), keywords);
+			data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false), keywords);
 
 			if ((++n % LOG_INTERVAL) == 0)
 				std::cout << n << " rows parsed" << std::endl;
@@ -508,7 +509,7 @@ int64_t Store(const std::string & dbFileName, const Data & data)
 
 	result += StoreRange(dbFileName, "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(data.genres)), std::cend(data.genres), [&genres = data.genres](sqlite3pp::command & cmd, const Genre & genre)
 	{
-		cmd.binder() << genre.dbCode << genres[static_cast<size_t>(genre.parentId)].dbCode << genre.code << genre.name;
+		cmd.binder() << genre.dbCode << genres[genre.parentId].dbCode << genre.code << genre.name;
 	});
 
 	const char * queryText = "INSERT INTO Books ("
@@ -544,8 +545,8 @@ int64_t Store(const std::string & dbFileName, const Data & data)
 
 	result += StoreRange(dbFileName, "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
-		assert(static_cast<size_t>(item.second) < std::size(genres));
-		cmd.binder() << item.first << genres[static_cast<size_t>(item.second)].dbCode;
+		assert(item.second < std::size(genres));
+		cmd.binder() << item.first << genres[item.second].dbCode;
 	});
 
 	return result;
