@@ -6,6 +6,7 @@ __pragma(warning(push, 0))
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <numeric>
 #include <unordered_map>
 
 #include "ZipLib/ZipFile.h"
@@ -81,44 +82,53 @@ struct StringHash
 struct Book
 {
 	Book(int64_t id_
+		, std::string_view libId_
 		, std::string_view title_
 		, int64_t seriesId_
 		, int64_t seriesNum_
-		, std::string_view archive_
-		, std::string_view file_
-		, int64_t size_
-		, std::string_view format_
 		, std::string_view date_
-		, std::string_view language_
 		, int64_t rate_
+		, std::string_view language_
+		, std::string_view folder_
+		, std::string_view fileName_
+		, int64_t insideNo_
+		, std::string_view format_
+		, int64_t size_
+		, bool isDeleted_
 		, std::string_view keywords_
 	)
 		: id(id_)
+		, libId(libId_)
 		, title(title_)
 		, seriesId(seriesId_)
 		, seriesNum(seriesNum_)
-		, archive(archive_)
-		, file(file_)
-		, size(size_)
-		, format(format_)
 		, date(date_)
-		, language(language_)
 		, rate(rate_)
+		, language(language_)
+		, folder(folder_)
+		, fileName(fileName_)
+		, insideNo(insideNo_)
+		, format(format_)
+		, size(size_)
+		, isDeleted(isDeleted_)
 		, keywords(keywords_)
 	{
 	}
 
 	int64_t     id;
+	std::string libId;
 	std::string title;
 	int64_t     seriesId;
 	int64_t     seriesNum;
-	std::string archive;
-	std::string file;
-	int64_t     size;
-	std::string format;
 	std::string date;
+	int64_t     rate;
 	std::string language;
-	int64_t rate;
+	std::string folder;
+	std::string fileName;
+	int64_t     insideNo;
+	std::string format;
+	int64_t     size;
+	bool        isDeleted;
 	std::string keywords;
 };
 
@@ -290,7 +300,7 @@ auto LoadGenres(std::string_view genresIniFileName)
 int64_t Add(std::string_view value, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	if (value.empty())
-		return 0;
+		return -1;
 
 	auto it = find(container, value);
 	if (it == container.end())
@@ -328,40 +338,41 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 	for (size_t i = 0; i < entriesCount; ++i)
 	{
 		const auto entry = archive->GetEntry(static_cast<int>(i));
-		const auto filename = entry->GetFullName();
+		const auto folder = entry->GetFullName();
 
-		if (!filename.ends_with(INP_EXT))
+		if (!folder.ends_with(INP_EXT))
 		{
-			std::cout << filename << " skipped" << std::endl;
+			std::cout << folder << " skipped" << std::endl;
 			continue;
 		}
 
-		std::cout << filename << std::endl;
+		std::cout << folder << std::endl;
 
 		auto * const stream = entry->GetDecompressionStream();
 		assert(stream);
 
-		std::string line;
+		int64_t insideNo = 0;
+		std::string line;		
 		while (std::getline(*stream, line))
 		{
 			const auto id = GetId();
 
 			auto itBook = std::cbegin(line);
 			//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-			const auto authors    =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto genres     =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto title      =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto seriesName =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto seriesNum  =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto file       =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto size       =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-/*			const auto libid      = */ Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-/*			const auto del        = */ Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto ext        =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto date       =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto lang       =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto rate       =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto keywords   =    Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto authors    = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto genres     = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto title      = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto seriesName = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto seriesNum  = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto fileName   = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto size       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto libId      = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto del        = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto ext        = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto date       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto lang       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto rate       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto keywords   = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
 
 			ParseItem(id, authors, data.authors, data.booksAuthors);
 			ParseItem(id, genres, genresIndex, data.booksGenres
@@ -384,7 +395,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 					}
 			);
 
-			data.books.emplace_back(id, title, Add(seriesName, data.series), To<int64_t>(seriesNum, -1), filename, file, To<int64_t>(size), ext, date, lang, To<int64_t>(rate, -1), keywords);
+			data.books.emplace_back(id, libId, title, Add(seriesName, data.series), To<int64_t>(seriesNum, -1), date, To<int64_t>(rate), lang, folder, fileName, insideNo++, ext, To<int64_t>(size), To<bool>(del, false), keywords);
 
 			if ((++n % LOG_INTERVAL) == 0)
 				std::cout << n << " rows parsed" << std::endl;
@@ -453,52 +464,91 @@ void ReCreateDatabase(std::string dbFileName)
 	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
 }
 
-void Store(const std::string & dbFileName, const Data & data)
+template<typename It, typename Functor>
+int64_t StoreRange(std::string dbFileName, std::string query, It beg, It end, Functor && f)
 {
 	sqlite3pp::database db(dbFileName.data());	
 	db.load_extension(MHL_SQLITE_EXTENSION);
 	sqlite3pp::ext::function func(db);
 	func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
 
-	{
-		sqlite3pp::transaction tr(db);
-		sqlite3pp::command cmd(db, "INSERT INTO Authors (LastName, FirstName, MiddleName) VALUES(?, ?, ?)");
-		for (const auto & [author, id] : data.authors)
-		{
-			auto it = std::cbegin(author);
-			const auto last = Next(it, std::cend(author), NAMES_SEPARATOR);
-			const auto first = Next(it, std::cend(author), NAMES_SEPARATOR);
-			const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
-			cmd.binder() << last << first << middle;
-			cmd.execute();
-			cmd.reset();
-		}
-		tr.commit();
-	}
+	sqlite3pp::transaction tr(db);
+	sqlite3pp::command cmd(db, query.data());
 
+	const auto result = std::accumulate(beg, end, int64_t{ 0 }, [f = std::forward<Functor>(f), &cmd](int64_t init, const typename It::value_type & value)
 	{
-		sqlite3pp::transaction tr(db);
-		sqlite3pp::command cmd(db, "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)");
-		for (const auto & [series, id] : data.series)
-		{
-			cmd.binder() << id << series;
-			cmd.execute();
-			cmd.reset();
-		}
-		tr.commit();
-	}
+		f(cmd, value);
+		return init
+			+ cmd.execute()
+			+ cmd.reset()
+			;
+	});
+	tr.commit();
 
+	return result;
+}
+
+int64_t Store(const std::string & dbFileName, const Data & data)
+{
+	int64_t result = 0;
+	result += StoreRange(dbFileName, "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	{		
+		const auto & [author, id] = item;
+		auto it = std::cbegin(author);
+		const auto last   = Next(it, std::cend(author), NAMES_SEPARATOR);
+		const auto first  = Next(it, std::cend(author), NAMES_SEPARATOR);
+		const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
+		cmd.binder() << id << last << first << middle;
+	});
+
+	result += StoreRange(dbFileName, "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		sqlite3pp::transaction tr(db);
-		sqlite3pp::command cmd(db, "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)");
-		std::for_each(std::next(std::cbegin(data.genres)), std::cend(data.genres), [&cmd, &genres = data.genres](const Genre & genre)
-		{
-			cmd.binder() << genre.dbCode << genres[static_cast<size_t>(genre.parentId)].dbCode << genre.code << genre.name;
-			cmd.execute();
-			cmd.reset();
-		});
-		tr.commit();
-	}
+		cmd.binder() << item.second << item.first;
+	});
+
+	result += StoreRange(dbFileName, "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(data.genres)), std::cend(data.genres), [&genres = data.genres](sqlite3pp::command & cmd, const Genre & genre)
+	{
+		cmd.binder() << genre.dbCode << genres[static_cast<size_t>(genre.parentId)].dbCode << genre.code << genre.name;
+	});
+
+	const char * queryText = "INSERT INTO Books ("
+		"BookID   , LibID     , Title    , SeriesID, "
+		"SeqNumber, UpdateDate, LibRate  , Lang    , "
+		"Folder   , FileName  , InsideNo , Ext     , "
+		"BookSize , IsLocal   , IsDeleted, KeyWords"
+		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	result += StoreRange(dbFileName, queryText, std::cbegin(data.books), std::cend(data.books), [](sqlite3pp::command & cmd, const Book & book)
+	{
+																		   cmd.bind( 1, book.id);
+																		   cmd.bind( 2, book.libId, sqlite3pp::nocopy);
+																		   cmd.bind( 3, book.title, sqlite3pp::nocopy);
+			book.seriesId  == -1  ? cmd.bind( 4, sqlite3pp::null_type()) : cmd.bind( 4, book.seriesId);
+			book.seriesNum == -1  ? cmd.bind( 5, sqlite3pp::null_type()) : cmd.bind( 5, book.seriesNum);
+																		   cmd.bind( 6, book.date, sqlite3pp::nocopy);
+																		   cmd.bind( 7, book.rate);
+																		   cmd.bind( 8, book.language, sqlite3pp::nocopy);
+																		   cmd.bind( 9, book.folder, sqlite3pp::nocopy);
+																		   cmd.bind(10, book.fileName, sqlite3pp::nocopy);
+																		   cmd.bind(11, book.insideNo);
+																		   cmd.bind(12, book.format, sqlite3pp::nocopy);
+																		   cmd.bind(13, book.size);
+																		   cmd.bind(14, 1);
+																		   cmd.bind(15, book.isDeleted ? 1 : 0);
+			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, book.keywords, sqlite3pp::nocopy);
+	});
+
+	result += StoreRange(dbFileName, "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
+	{
+		cmd.binder() << item.second << item.first;
+	});
+
+	result += StoreRange(dbFileName, "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
+	{
+		assert(static_cast<size_t>(item.second) < std::size(genres));
+		cmd.binder() << item.first << genres[static_cast<size_t>(item.second)].dbCode;
+	});
+
+	return result;
 }
 
 }
