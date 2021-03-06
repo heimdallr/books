@@ -6,6 +6,7 @@ add_compile_options(
 	/wd4503	# decorated name length exceeded, name was truncated
 	/wd4566 # Ошибка в ассертах с русскими сиволами assert(true && "Превед") - character represented by universal-character-name
 	/we5038 # reorder
+	/wd4820 # bytes padding added after data member
 )
 add_definitions(
 	-DNOMINMAX
