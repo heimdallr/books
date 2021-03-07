@@ -29,15 +29,19 @@ constexpr wchar_t INI_SEPARATOR    = '=';
 constexpr wchar_t LIST_SEPARATOR   = ':';
 constexpr wchar_t NAMES_SEPARATOR  = ',';
 
-constexpr const wchar_t * COLLECTION_INFO  = L"collection.info";
-constexpr const wchar_t * CREATE_DB_SCRIPT = L"create_db_script";
-constexpr const wchar_t * DB_PATH          = L"db_path";
-constexpr const wchar_t * GENRES           = L"genres";
-constexpr const wchar_t * INI_EXT          = L"ini";
-constexpr const wchar_t * INPX             = L"inpx";
-constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
-constexpr const wchar_t * VERSION_INFO     = L"version.info";
-constexpr const wchar_t * ZIP              = L"zip";
+constexpr const wchar_t * COLLECTION_INFO   = L"collection.info";
+constexpr const wchar_t * CREATE_DB_SCRIPT  = L"create_db_script";
+constexpr const wchar_t * DB_PATH           = L"db_path";
+constexpr const wchar_t * DEFAULT_DB_PATH   = L"db.hlc2";
+constexpr const wchar_t * DEFAULT_DB_SCRIPT = L"db.sql";
+constexpr const wchar_t * DEFAULT_GENRES    = L"genres.ini";
+constexpr const wchar_t * DEFAULT_INPX      = L"db.inpx";
+constexpr const wchar_t * GENRES            = L"genres";
+constexpr const wchar_t * INI_EXT           = L"ini";
+constexpr const wchar_t * INPX              = L"inpx";
+constexpr const wchar_t * MHL_TRIGGERS_ON   = L"mhl_triggers_on";
+constexpr const wchar_t * VERSION_INFO      = L"version.info";
+constexpr const wchar_t * ZIP               = L"zip";
 
 constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
@@ -338,6 +342,14 @@ std::ostream & operator<<(std::ostream & stream, const Book & value)
 	return stream << ToMultiByte(value.folder) << ", " << value.insideNo << ", " << ToMultiByte(value.libId) << ": " << value.id << ", " << ToMultiByte(value.title);
 }
 
+bool IsComment(std::wstring_view line)
+{
+	return false
+		|| std::size(line) < 3
+		|| line.starts_with(COMMENT_START)
+		;
+}
+
 struct Data
 {
 	Books books;
@@ -377,7 +389,7 @@ public:
 		std::wifstream iniStream(path);
 		while (std::getline(iniStream, line))
 		{
-			if (line.starts_with(COMMENT_START))
+			if (IsComment(line))
 				continue;
 
 			auto it = std::cbegin(line);
@@ -385,15 +397,6 @@ public:
 			const auto value = Next(it, std::cend(line), INI_SEPARATOR);
 			_data.emplace(key, value);
 		}
-	}
-
-	const std::wstring & operator()(const wchar_t * key) const
-	{
-		const auto it = _data.find(key);
-		if (it == _data.end())
-			throw std::invalid_argument(fmt::format("Cannot find key {}", ToMultiByte(key)));
-
-		return it->second;
 	}
 
 	const std::wstring & operator()(const wchar_t * key, const std::wstring & defaultValue) const
@@ -423,7 +426,7 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 	while (std::getline(iniStream, buf))
 	{
 		const auto line = ToWide(buf);
-		if (line.starts_with(COMMENT_START))
+		if (IsComment(line))
 			continue;
 
 		auto it = std::cbegin(line);
@@ -799,12 +802,12 @@ void mainImpl(int argc, char * argv[])
 	const auto ini = ParseConfig(argc, argv);
 
 	g_mhlTriggersOn = _wtoi(ini(MHL_TRIGGERS_ON, std::to_wstring(g_mhlTriggersOn)).data());
-	const auto dbFileName = ini(DB_PATH);
+	const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
 
 	auto settingsTableData = ReadSettings(dbFileName);
-	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT));
+	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT, DEFAULT_DB_SCRIPT));
 
-	const auto data = Parse(ini(GENRES), ini(INPX), std::move(settingsTableData));
+	const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData));
 	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
 		std::cerr << "Something went wrong" << std::endl;
 }
