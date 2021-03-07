@@ -22,11 +22,11 @@ __pragma(warning(pop))
 
 namespace {
 
-constexpr char FIELDS_SEPARATOR = '\x04';
-constexpr char INI_SEPARATOR = '=';
-constexpr char LIST_SEPARATOR = ':';
-constexpr char NAMES_SEPARATOR = ',';
-constexpr char GENRE_SEPARATOR = '|';
+constexpr wchar_t FIELDS_SEPARATOR = '\x04';
+constexpr wchar_t INI_SEPARATOR    = '=';
+constexpr wchar_t LIST_SEPARATOR   = ':';
+constexpr wchar_t NAMES_SEPARATOR  = ',';
+constexpr wchar_t GENRE_SEPARATOR  = '|';
 
 constexpr const wchar_t * GENRES           = L"genres";
 constexpr const wchar_t * INI_EXT          = L"ini";
@@ -88,7 +88,7 @@ struct Book
 		, std::wstring_view format_
 		, size_t size_
 		, bool isDeleted_
-		, std::wstring_view keywords_
+		, std::wstring_view keywords_ = {}
 	)
 		: id(id_)
 		, libId(libId_)
@@ -223,7 +223,7 @@ struct StringLess<void>
 
 	using is_transparent = int;
 };
-	
+
 struct Genre
 {
 	std::wstring code;
@@ -262,24 +262,29 @@ Dictionary::const_iterator FindDefault(const Dictionary & container, std::wstrin
 	return container.find(value);
 }
 
-std::wostream & operator<<(std::wostream & stream, const Dictionary::value_type & value)
+std::ostream & operator<<(std::ostream & stream, const Dictionary::value_type & value)
 {
-	return stream << value.second << ": " << value.first;
+	return stream << value.second << ": " << ToMultiByte(value.first);
 }
 
-std::wostream & operator<<(std::wostream & stream, const Links::value_type & value)
+std::ostream & operator<<(std::ostream & stream, const Links::value_type & value)
 {
 	return stream << value.first << ": " << value.second;
 }
 
-std::wostream & operator<<(std::wostream & stream, const Genre & value)
+std::ostream & operator<<(std::ostream & stream, const SettingsTableData::value_type & value)
 {
-	return stream << value.dbCode << ", " << value.code << ": " << value.name;
+	return stream << value.first << ": " << value.second;
 }
 
-std::wostream & operator<<(std::wostream & stream, const Book & value)
+std::ostream & operator<<(std::ostream & stream, const Genre & value)
 {
-	return stream << value.folder << ", " << value.insideNo << ", " << value.libId << ": " << value.id << ", " << value.title;
+	return stream << ToMultiByte(value.dbCode) << ", " << ToMultiByte(value.code) << ": " << ToMultiByte(value.name);
+}
+
+std::ostream & operator<<(std::ostream & stream, const Book & value)
+{
+	return stream << ToMultiByte(value.folder) << ", " << value.insideNo << ", " << ToMultiByte(value.libId) << ": " << value.id << ", " << ToMultiByte(value.title);
 }
 
 struct Data
@@ -469,7 +474,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 			const auto date       = Next(it, end, FIELDS_SEPARATOR);
 			const auto lang       = Next(it, end, FIELDS_SEPARATOR);
 			const auto rate       = Next(it, end, FIELDS_SEPARATOR);
-			const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
+//			const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
 
 			ParseItem(id, authors, data.authors, data.booksAuthors);
 			ParseItem(id, genres, genresIndex, data.booksGenres
@@ -491,7 +496,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 					}
 			);
 
-			data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false), keywords);
+			data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
 
 			if ((++n % LOG_INTERVAL) == 0)
 				std::cout << n << " rows parsed" << std::endl;
@@ -601,7 +606,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 		}
 		else
 		{
-			std::wcerr << db.error_code() << ": " << ToWide(db.error_msg()) << std::endl << value << std::endl;
+			std::cerr << db.error_code() << ": " << db.error_msg() << std::endl << value << std::endl;
 		}
 
 		return init + result;
