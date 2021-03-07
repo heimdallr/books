@@ -22,19 +22,19 @@ __pragma(warning(pop))
 
 namespace {
 
-constexpr std::string_view INP_EXT = ".inp";
 constexpr char FIELDS_SEPARATOR = '\x04';
 constexpr char INI_SEPARATOR = '=';
 constexpr char LIST_SEPARATOR = ':';
 constexpr char NAMES_SEPARATOR = ',';
 constexpr char GENRE_SEPARATOR = '|';
 
-constexpr const char * GENRES      = "genres";
-constexpr const char * INI_EXT     = "ini";
-constexpr const char * INPX        = "inpx";
-constexpr const char * DB          = "db";
+constexpr const wchar_t * GENRES      = L"genres";
+constexpr const wchar_t * INI_EXT     = L"ini";
+constexpr const wchar_t * INPX        = L"inpx";
+constexpr const wchar_t * DB          = L"db";
 
-constexpr std::string_view UNKNOWN = "unknown";
+constexpr std::wstring_view INP_EXT = L".inp";
+constexpr std::wstring_view UNKNOWN = L"unknown";
 
 constexpr size_t LOG_INTERVAL = 10000;
 
@@ -47,15 +47,15 @@ size_t GetId()
 class Timer
 {
 public:
-	explicit Timer(std::string process_)
+	explicit Timer(std::wstring process_)
 		: t(std::chrono::high_resolution_clock::now())
 		, process(std::move(process_))
 	{
-		std::cout << process << " started" << std::endl;
+		std::wcout << process << " started" << std::endl;
 	}
 	~Timer()
 	{
-		std::cout << process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count() << " ms" << std::endl;
+		std::wcout << process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count() << " ms" << std::endl;
 	}
 
 	// rule 5
@@ -66,26 +66,26 @@ public:
 
 private:
 	const std::chrono::steady_clock::time_point t;
-	const std::string process;
+	const std::wstring process;
 };
 
 struct Book
 {
 	Book(size_t id_
-		, std::string_view libId_
-		, std::string_view title_
+		, std::wstring_view libId_
+		, std::wstring_view title_
 		, int seriesId_
 		, int seriesNum_
-		, std::string_view date_
+		, std::wstring_view date_
 		, int rate_
-		, std::string_view language_
-		, std::string_view folder_
-		, std::string_view fileName_
+		, std::wstring_view language_
+		, std::wstring_view folder_
+		, std::wstring_view fileName_
 		, size_t insideNo_
-		, std::string_view format_
+		, std::wstring_view format_
 		, size_t size_
 		, bool isDeleted_
-		, std::string_view keywords_
+		, std::wstring_view keywords_
 	)
 		: id(id_)
 		, libId(libId_)
@@ -106,20 +106,20 @@ struct Book
 	}
 
 	size_t      id;
-	std::string libId;
-	std::string title;
+	std::wstring libId;
+	std::wstring title;
 	int         seriesId;
 	int         seriesNum;
-	std::string date;
+	std::wstring date;
 	int         rate;
-	std::string language;
-	std::string folder;
-	std::string fileName;
+	std::wstring language;
+	std::wstring folder;
+	std::wstring fileName;
 	size_t      insideNo;
-	std::string format;
+	std::wstring format;
 	size_t      size;
 	bool        isDeleted;
-	std::string keywords;
+	std::wstring keywords;
 };
 
 const std::locale g_utf8("ru_RU.UTF-8");
@@ -129,74 +129,78 @@ SizeType StrSize(const StringType & str)
 {
 	return static_cast<SizeType>(std::size(str));
 }
-template<typename StringType>
-std::wstring ToWide(const StringType & multiByteStr)
+template<typename SizeType>
+SizeType StrSize(const char * str)
 {
-	const auto wideSize = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), StrSize<int>(multiByteStr), nullptr, 0));
-	std::wstring wideString(wideSize, 0);
-	MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), StrSize<int>(multiByteStr), wideString.data(), StrSize<int>(wideString));
-
-	return wideString;
+	return static_cast<SizeType>(std::strlen(str));
+}
+template<typename SizeType>
+SizeType StrSize(const wchar_t * str)
+{
+	return static_cast<SizeType>(std::wcslen(str));
 }
 
-std::string ToMultiByte(const std::wstring & wideString)
+template<typename StringType>
+const char * MultiByteData(const StringType & str)
 {
-	const auto multiByteSize = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, wideString.data(), StrSize<int>(wideString), nullptr, 0, nullptr, nullptr));
-	std::string multiByteStr(multiByteSize, 0);
-	WideCharToMultiByte(CP_UTF8, 0, wideString.data(), StrSize<int>(wideString), multiByteStr.data(), StrSize<int>(multiByteStr), nullptr, nullptr);
+	return str.data();
+}
+const char * MultiByteData(const char * data)
+{
+	return data;
+}
+template<typename StringType>
+std::wstring ToWide(const StringType & str)
+{
+	const auto size = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), nullptr, 0));
+	std::wstring result(size, 0);
+	MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), result.data(), StrSize<int>(result));
 
-	return multiByteStr;
+	return result;
+}
+template<typename StringType>
+const wchar_t * WideData(const StringType & str)
+{
+	return str.data();
+}
+const wchar_t * WideData(const wchar_t * data)
+{
+	return data;
+}
+template<typename StringType>
+std::string ToMultiByte(const StringType & str)
+{
+	const auto size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));
+	std::string result(size, 0);
+	WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), result.data(), StrSize<int>(result), nullptr, nullptr);
+
+	return result;
 }
 	
-std::string toLower(const std::string & multiByteStr)
+template<typename LhsType, typename RhsType>
+bool IsStringEqual(LhsType && lhs, RhsType && rhs)
 {
-	std::wstring wideString = ToWide(multiByteStr);
-
-	std::ranges::transform(std::as_const(wideString), std::begin(wideString), [](auto c)
-	{
-		return std::tolower(c, g_utf8);
-	});
-
-	return ToMultiByte(wideString);
+	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
+		, WideData(lhs), StrSize<int>(lhs)
+		, WideData(rhs), StrSize<int>(rhs)
+	) == CSTR_EQUAL;
 }
 
 template<typename LhsType, typename RhsType>
-bool CompareNoCaseA(LhsType && lhs, RhsType && rhs)
+bool IsStringLess(LhsType && lhs, RhsType && rhs)
 {	
-	const auto lhsWide = ToWide(lhs), rhsWide = ToWide(rhs);
 	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
-		, lhsWide.data(), StrSize<int>(lhsWide)
-		, rhsWide.data(), StrSize<int>(rhsWide)
+		, WideData(lhs), StrSize<int>(lhs)
+		, WideData(rhs), StrSize<int>(rhs)
 	) - CSTR_EQUAL < 0;
 }
 
-struct Genre
-{
-	std::string code;
-	std::string parentCore;
-	std::string name;
-	size_t parentId;
-	std::string dbCode;
-
-	std::string nameLower;
-	size_t childrenCount{ 0 };
-
-	Genre(std::string_view code_, std::string_view parentCode_, std::string_view name_, size_t parentId_ = 0)
-		: code(code_)
-		, parentCore(parentCode_)
-		, name(name_)
-		, parentId(parentId_)
-		, nameLower(toLower(name))
-	{
-	}
-};
-
 template <class T = void>
-struct Less
+struct StringLess
 {
-	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef T _FIRST_ARGUMENT_TYPE_NAME;
-	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef T _SECOND_ARGUMENT_TYPE_NAME;
-	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef bool _RESULT_TYPE_NAME;
+	typedef T _FIRST_ARGUMENT_TYPE_NAME;
+	typedef T _SECOND_ARGUMENT_TYPE_NAME;
+	typedef bool _RESULT_TYPE_NAME;
 
 	constexpr bool operator()(const T & lhs, const T & rhs) const
 	{
@@ -204,55 +208,73 @@ struct Less
 	}
 };
 template <>
-struct Less<void>
+struct StringLess<void>
 {
 	template <class LhsType, class RhsType>
 	constexpr auto operator()(LhsType && lhs, RhsType && rhs) const
 		noexcept(noexcept(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))) // strengthened
 		-> decltype(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))
 	{
-		//static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs)
-		return CompareNoCaseA(lhs, rhs);
+		return IsStringLess(static_cast<LhsType &&>(lhs), static_cast<RhsType &&>(rhs));
 	}
 
 	using is_transparent = int;
 };
 	
+struct Genre
+{
+	std::wstring code;
+	std::wstring parentCore;
+	std::wstring name;
+	size_t parentId;
+	std::wstring dbCode;
+
+	size_t childrenCount{ 0 };
+
+	Genre(std::wstring_view code_, std::wstring_view parentCode_, std::wstring_view name_, size_t parentId_ = 0)
+		: code(code_)
+		, parentCore(parentCode_)
+		, name(name_)
+		, parentId(parentId_)
+	{
+	}
+};
+
 using Books = std::vector<Book>;
-using Dictionary = std::map<std::string, size_t, Less<>>;
+using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
 using SettingsTableData = std::map<int, std::string>;
 
-using GetIdFunctor = std::function<size_t(std::string_view)>;
-using FindFunctor = std::function<Dictionary::iterator(Dictionary &, std::string_view)>;
+using GetIdFunctor = std::function<size_t(std::wstring_view)>;
+using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
 
-size_t GetIdDefault(std::string_view)
+size_t GetIdDefault(std::wstring_view)
 {
 	return GetId();
 }
 
-Dictionary::iterator FindDefault(Dictionary & container, std::string_view value)
+Dictionary::const_iterator FindDefault(const Dictionary & container, std::wstring_view value)
 {
 	return container.find(value);
 }
 
-std::ostream & operator<<(std::ostream & stream, const Dictionary::value_type & value)
+std::wostream & operator<<(std::wostream & stream, const Dictionary::value_type & value)
 {
 	return stream << value.second << ": " << value.first;
 }
 
-std::ostream & operator<<(std::ostream & stream, const Links::value_type & value)
+std::wostream & operator<<(std::wostream & stream, const Links::value_type & value)
 {
 	return stream << value.first << ": " << value.second;
 }
 
-std::ostream & operator<<(std::ostream & stream, const Genre & value)
+std::wostream & operator<<(std::wostream & stream, const Genre & value)
 {
 	return stream << value.dbCode << ", " << value.code << ": " << value.name;
 }
 
-std::ostream & operator<<(std::ostream & stream, const Book & value)
+std::wostream & operator<<(std::wostream & stream, const Book & value)
 {
 	return stream << value.folder << ", " << value.insideNo << ", " << value.libId << ": " << value.id << ", " << value.title;
 }
@@ -266,21 +288,20 @@ struct Data
 };
 
 template <typename It>
-std::string_view Next(It & beg, const It end, const char separator)
+std::wstring_view Next(It & beg, const It end, const char separator)
 {
 	auto next = std::find(beg, end, separator);
-	const std::string_view result(beg, next);
+	const std::wstring_view result(beg, next);
 	beg = next != end ? std::next(next) : end;
 	return result;
 }
 
 template<typename T>
-T To(std::string_view value, T defaultValue = 0)
+T To(std::wstring_view value, T defaultValue = 0)
 {
-	char * p_end;
 	return value.empty()
 		? defaultValue
-		: static_cast<T>(std::strtoull(value.data(), &p_end, 10));
+		: static_cast<T>(_wtoi64(value.data()));
 }
 
 class Ini
@@ -291,9 +312,9 @@ public:
 		if (!exists(path))
 			throw std::invalid_argument("Need inpx file as command line argument");
 
-		std::string line;
+		std::wstring line;
 
-		std::ifstream iniStream(path);
+		std::wifstream iniStream(path);
 		while (std::getline(iniStream, line))
 		{
 			auto it = std::cbegin(line);
@@ -303,39 +324,40 @@ public:
 		}
 	}
 
-	const std::string & operator()(const char * key) const
+	const std::wstring & operator()(const wchar_t * key) const
 	{
 		const auto it = _data.find(key);
 		if (it == _data.end())
-			throw std::invalid_argument(fmt::format("Cannot find key {}", key));
+			throw std::invalid_argument(fmt::format("Cannot find key {}", ToMultiByte(key)));
 
 		return it->second;
 	}
 
 private:
-	std::unordered_map<std::string, std::string> _data;
+	std::map<std::wstring, std::wstring> _data;
 };
 
-auto LoadGenres(std::string_view genresIniFileName)
+auto LoadGenres(std::wstring_view genresIniFileName)
 {
 	Genres genres;
 	Dictionary index;
 
-	std::ifstream iniStream(genresIniFileName);
+	std::ifstream iniStream(ToMultiByte(genresIniFileName));
 	if (!iniStream.is_open())
-		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName));
+		throw std::invalid_argument(fmt::format("Cannot open '{}'", ToMultiByte(genresIniFileName)));
 
-	index.emplace("", std::size(genres));
-	auto & root = genres.emplace_back("", "", "");
-	root.dbCode = "0";
+	index.emplace(L"", std::size(genres));
+	auto & root = genres.emplace_back(L"", L"", L"");
+	root.dbCode = L"0";
 
-	std::string line;
-	while (std::getline(iniStream, line))
+	std::string buf;
+	while (std::getline(iniStream, buf))
 	{
+		const auto line = ToWide(buf);
 		auto it = std::cbegin(line);
 		const auto codes = Next(it, std::cend(line), GENRE_SEPARATOR);
 		auto itCode = std::cbegin(codes);
-		std::string code;
+		std::wstring code;
 		while(itCode != std::cend(codes))
 		{
 			const auto & added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), std::size(genres)).first->first;
@@ -354,14 +376,14 @@ auto LoadGenres(std::string_view genresIniFileName)
 		assert(it != index.end());
 		auto & parent = genres[it->second];
 		genre.parentId = it->second;
-		genre.dbCode = fmt::format("{0}.{1}", parent.dbCode, ++parent.childrenCount);
+		genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(parent.dbCode), ++parent.childrenCount));
 	});
 
 	return std::make_pair(std::move(genres), std::move(index));
 }
 
 template<typename T, T emptyValue = 0>
-T Add(std::string_view value, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+T Add(std::wstring_view value, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	if (value.empty())
 		return emptyValue;
@@ -373,7 +395,7 @@ T Add(std::string_view value, Dictionary & container, const GetIdFunctor & getId
 	return static_cast<T>(it->second);
 }
 
-void ParseItem(size_t id, std::string_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+void ParseItem(size_t id, std::wstring_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
@@ -383,78 +405,79 @@ void ParseItem(size_t id, std::string_view data, Dictionary & container, Links &
 	}
 }
 
-Data Parse(std::string_view genresName, std::string_view inpxFileName)
+Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 {
-	Timer t("parsing archives");
+	Timer t(L"parsing archives");
 
 	Data data;
-	auto [genresData, genresIndex] = LoadGenres(genresName);
+	auto [genresData, genresIndex] = LoadGenres(genresFileName);
 	data.genres = std::move(genresData);
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 	auto & unknownGenre = data.genres[unknownGenreId];
 
-	std::vector<std::string> unknownGenres;
+	std::vector<std::wstring> unknownGenres;
 
-	const auto archive = ZipFile::Open(inpxFileName.data());
+	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
 	const auto entriesCount = archive->GetEntriesCount();
 	size_t n = 0;
 
 	for (size_t i = 0; i < entriesCount; ++i)
 	{
 		const auto entry = archive->GetEntry(static_cast<int>(i));
-		const auto folder = entry->GetFullName();
+		const auto folder = ToWide(entry->GetFullName());
 
 		if (!folder.ends_with(INP_EXT))
 		{
-			std::cout << folder << " skipped" << std::endl;
+			std::wcout << folder << L" skipped" << std::endl;
 			continue;
 		}
 
-		std::cout << folder << std::endl;
+		std::wcout << folder << std::endl;
 
 		auto * const stream = entry->GetDecompressionStream();
-		assert(stream);
 
 		size_t insideNo = 0;
-		std::string line;		
-		while (std::getline(*stream, line))
+		std::string buf;
+		while (std::getline(*stream, buf))
 		{
 			const auto id = GetId();
 
-			auto itBook = std::cbegin(line);
+			const auto line = ToWide(buf);
+			auto it = std::cbegin(line);
+			const auto end = std::cend(line);
+
 			//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-			const auto authors    = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto genres     = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto title      = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto seriesName = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto seriesNum  = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto fileName   = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto size       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto libId      = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto del        = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto ext        = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto date       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto lang       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto rate       = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
-			const auto keywords   = Next(itBook, std::cend(line), FIELDS_SEPARATOR);
+			const auto authors    = Next(it, end, FIELDS_SEPARATOR);
+			const auto genres     = Next(it, end, FIELDS_SEPARATOR);
+			const auto title      = Next(it, end, FIELDS_SEPARATOR);
+			const auto seriesName = Next(it, end, FIELDS_SEPARATOR);
+			const auto seriesNum  = Next(it, end, FIELDS_SEPARATOR);
+			const auto fileName   = Next(it, end, FIELDS_SEPARATOR);
+			const auto size       = Next(it, end, FIELDS_SEPARATOR);
+			const auto libId      = Next(it, end, FIELDS_SEPARATOR);
+			const auto del        = Next(it, end, FIELDS_SEPARATOR);
+			const auto ext        = Next(it, end, FIELDS_SEPARATOR);
+			const auto date       = Next(it, end, FIELDS_SEPARATOR);
+			const auto lang       = Next(it, end, FIELDS_SEPARATOR);
+			const auto rate       = Next(it, end, FIELDS_SEPARATOR);
+			const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
 
 			ParseItem(id, authors, data.authors, data.booksAuthors);
 			ParseItem(id, genres, genresIndex, data.booksGenres
-				, [unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::string_view title)
+				, [unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::wstring_view title)
 					{
 						const auto result = std::size(data);
-						auto & genre = data.emplace_back(title, "", title, unknownGenreId);
-						genre.dbCode = fmt::format("{0}.{1}", unknownGenre.dbCode, ++unknownGenre.childrenCount);
-						unknownGenres.push_back(genre.nameLower);
+						auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
+						genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
+						unknownGenres.push_back(genre.name);
 						return result;
 					}
-				, [&data = data.genres](Dictionary & container, std::string_view value)
+				, [&data = data.genres](const Dictionary & container, std::wstring_view value)
 					{
 						const auto it = container.find(value);
-						const auto v = toLower(std::string(std::cbegin(value), std::cend(value)));
-						return it != container.end() ? it : std::ranges::find_if(container, [&data, &v](const Dictionary::value_type & item)
+						return it != container.end() ? it : std::ranges::find_if(container, [value, &data](const auto & item)
 						{
-							return v == data[item.second].nameLower;
+							return IsStringEqual(value, data[item.second].name);
 						});
 					}
 			);
@@ -471,7 +494,7 @@ Data Parse(std::string_view genresName, std::string_view inpxFileName)
 	if (!std::empty(unknownGenres))
 	{
 		std::cerr << "Unknown genres" << std::endl;
-		std::copy(std::cbegin(unknownGenres), std::cend(unknownGenres), std::ostream_iterator<std::string>(std::cerr, "\n"));
+		std::transform(std::cbegin(unknownGenres), std::cend(unknownGenres), std::ostream_iterator<std::string>(std::cerr, "\n"), &ToMultiByte<std::wstring>);
 	}
 
 	return data;
@@ -488,11 +511,11 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 	return std::begin(query) != std::end(query);
 }
 
-SettingsTableData ReadSettings(const std::string & dbFileName)
+SettingsTableData ReadSettings(const std::wstring & dbFileName)
 {
 	SettingsTableData data;
 
-	sqlite3pp::database db(dbFileName.data());
+	sqlite3pp::database db(ToMultiByte(dbFileName).data());
 	if (!TableExists(db, "Settings"))
 		return {};
 
@@ -509,18 +532,19 @@ SettingsTableData ReadSettings(const std::string & dbFileName)
 	return data;
 }
 
-void ReCreateDatabase(std::string dbFileName)
+void ReCreateDatabase(std::wstring_view dbFileName)
 {
 	std::cout << "Recreating database" << std::endl;
 
 	char stubExe[] = "stub.exe";
 	auto readScript = fmt::format(".read {}.", CREATE_COLLECTION_SCRIPT);
 	auto loadExt = fmt::format(".load {}", MHL_SQLITE_EXTENSION);
+	auto dbFileNameStr = ToMultiByte(dbFileName);
 
 	char * v[]
 	{
 		stubExe,
-		dbFileName.data(),
+		dbFileNameStr.data(),
 		loadExt.data(),
 		readScript.data(),
 	};
@@ -529,13 +553,13 @@ void ReCreateDatabase(std::string dbFileName)
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(std::string dbFileName, std::string process, std::string query, It beg, It end, Functor && f)
+size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string query, It beg, It end, Functor && f)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
-	Timer t(fmt::format("store {0} {1}", process, rowsTotal));
+	Timer t(ToWide(fmt::format("store {0} {1}", process, rowsTotal)));
 	size_t rowsInserted = 0;
 
-	sqlite3pp::database db(dbFileName.data());
+	sqlite3pp::database db(ToMultiByte(dbFileName).data());
 	db.load_extension(MHL_SQLITE_EXTENSION);
 	sqlite3pp::ext::function func(db);
 	func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
@@ -563,7 +587,7 @@ size_t StoreRange(std::string dbFileName, std::string process, std::string query
 		}
 		else
 		{
-			std::cerr << db.error_code() << ": " << db.error_msg() << std::endl << value << std::endl;
+			std::wcerr << db.error_code() << ": " << ToWide(db.error_msg()) << std::endl << value << std::endl;
 		}
 
 		return init + result;
@@ -578,7 +602,7 @@ size_t StoreRange(std::string dbFileName, std::string process, std::string query
 	return result;
 }
 
-size_t Store(const std::string & dbFileName, const Data & data)
+size_t Store(std::wstring_view dbFileName, const Data & data)
 {
 	size_t result = 0;
 	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
@@ -588,17 +612,17 @@ size_t Store(const std::string & dbFileName, const Data & data)
 		const auto last   = Next(it, std::cend(author), NAMES_SEPARATOR);
 		const auto first  = Next(it, std::cend(author), NAMES_SEPARATOR);
 		const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
-		cmd.binder() << id << last << first << middle;
+		cmd.binder() << id << ToMultiByte(last) << ToMultiByte(first) << ToMultiByte(middle);
 	});
 
 	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		cmd.binder() << item.second << item.first;
+		cmd.binder() << item.second << ToMultiByte(item.first);
 	});
 
 	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(data.genres)), std::cend(data.genres), [&genres = data.genres](sqlite3pp::command & cmd, const Genre & genre)
 	{
-		cmd.binder() << genre.dbCode << genres[genre.parentId].dbCode << genre.code << genre.name;
+		cmd.binder() << ToMultiByte(genre.dbCode) << ToMultiByte(genres[genre.parentId].dbCode) << ToMultiByte(genre.code) << ToMultiByte(genre.name);
 	});
 
 	const char * queryText = "INSERT INTO Books ("
@@ -610,21 +634,21 @@ size_t Store(const std::string & dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Books", queryText, std::cbegin(data.books), std::cend(data.books), [](sqlite3pp::command & cmd, const Book & book)
 	{
 																		   cmd.bind( 1, book.id);
-																		   cmd.bind( 2, book.libId, sqlite3pp::nocopy);
-																		   cmd.bind( 3, book.title, sqlite3pp::nocopy);
+																		   cmd.bind( 2, ToMultiByte(book.libId), sqlite3pp::copy);
+																		   cmd.bind( 3, ToMultiByte(book.title), sqlite3pp::copy);
 			book.seriesId  == -1  ? cmd.bind( 4, sqlite3pp::null_type()) : cmd.bind( 4, book.seriesId);
 			book.seriesNum == -1  ? cmd.bind( 5, sqlite3pp::null_type()) : cmd.bind( 5, book.seriesNum);
-																		   cmd.bind( 6, book.date, sqlite3pp::nocopy);
+																		   cmd.bind( 6, ToMultiByte(book.date), sqlite3pp::copy);
 																		   cmd.bind( 7, book.rate);
-																		   cmd.bind( 8, book.language, sqlite3pp::nocopy);
-																		   cmd.bind( 9, book.folder, sqlite3pp::nocopy);
-																		   cmd.bind(10, book.fileName, sqlite3pp::nocopy);
+																		   cmd.bind( 8, ToMultiByte(book.language), sqlite3pp::copy);
+																		   cmd.bind( 9, ToMultiByte(book.folder), sqlite3pp::copy);
+																		   cmd.bind(10, ToMultiByte(book.fileName), sqlite3pp::copy);
 																		   cmd.bind(11, book.insideNo);
-																		   cmd.bind(12, book.format, sqlite3pp::nocopy);
+																		   cmd.bind(12, ToMultiByte(book.format), sqlite3pp::copy);
 																		   cmd.bind(13, book.size);
 																		   cmd.bind(14, 1);
 																		   cmd.bind(15, book.isDeleted ? 1 : 0);
-			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, book.keywords, sqlite3pp::nocopy);
+			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, ToMultiByte(book.keywords), sqlite3pp::copy);
 	});
 
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
@@ -635,7 +659,7 @@ size_t Store(const std::string & dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
-		cmd.binder() << item.first << genres[item.second].dbCode;
+		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
 	});
 
 	return result;
@@ -660,7 +684,7 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		Timer t("work");
+		Timer t(L"work");
 		mainImpl(argc, argv);
 		return 0;
 	}
