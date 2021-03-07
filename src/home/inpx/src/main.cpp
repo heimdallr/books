@@ -6,8 +6,8 @@ __pragma(warning(push, 0))
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <numeric>
-#include <unordered_map>
 
 #include "ZipLib/ZipFile.h"
 #include "sqlite/shell/sqlite_shell.h"
@@ -32,8 +32,9 @@ constexpr char GENRE_SEPARATOR = '|';
 constexpr const char * GENRES      = "genres";
 constexpr const char * INI_EXT     = "ini";
 constexpr const char * INPX        = "inpx";
-constexpr const char * UNKNOWN     = "unknown";
 constexpr const char * DB          = "db";
+
+constexpr std::string_view UNKNOWN = "unknown";
 
 constexpr size_t LOG_INTERVAL = 10000;
 
@@ -66,17 +67,6 @@ public:
 private:
 	const std::chrono::steady_clock::time_point t;
 	const std::string process;
-};
-
-struct StringHash
-{
-	using hash_type = std::hash<std::string_view>;
-	// ReSharper disable once CppTypeAliasNeverUsed
-	using is_transparent = void;
-
-	int64_t operator()(const char *        str) const { return static_cast<int64_t>(hash_type{}(str)); }
-	int64_t operator()(std::string_view    str) const { return static_cast<int64_t>(hash_type{}(str)); }
-	int64_t operator()(std::string const & str) const { return static_cast<int64_t>(hash_type{}(str)); }
 };
 
 struct Book
@@ -134,24 +124,50 @@ struct Book
 
 const std::locale g_utf8("ru_RU.UTF-8");
 
-std::string toLower(std::string multiByteStr)
+template<typename SizeType, typename StringType>
+SizeType StrSize(const StringType & str)
 {
-	const auto size = [](const auto & str) { return static_cast<int>(str.size()); };
-
-	const auto wideSize = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), nullptr, 0));
+	return static_cast<SizeType>(std::size(str));
+}
+template<typename StringType>
+std::wstring ToWide(const StringType & multiByteStr)
+{
+	const auto wideSize = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), StrSize<int>(multiByteStr), nullptr, 0));
 	std::wstring wideString(wideSize, 0);
-	MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), size(multiByteStr), wideString.data(), size(wideString));
+	MultiByteToWideChar(CP_UTF8, 0, multiByteStr.data(), StrSize<int>(multiByteStr), wideString.data(), StrSize<int>(wideString));
+
+	return wideString;
+}
+
+std::string ToMultiByte(const std::wstring & wideString)
+{
+	const auto multiByteSize = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, wideString.data(), StrSize<int>(wideString), nullptr, 0, nullptr, nullptr));
+	std::string multiByteStr(multiByteSize, 0);
+	WideCharToMultiByte(CP_UTF8, 0, wideString.data(), StrSize<int>(wideString), multiByteStr.data(), StrSize<int>(multiByteStr), nullptr, nullptr);
+
+	return multiByteStr;
+}
+	
+std::string toLower(const std::string & multiByteStr)
+{
+	std::wstring wideString = ToWide(multiByteStr);
 
 	std::ranges::transform(std::as_const(wideString), std::begin(wideString), [](auto c)
 	{
 		return std::tolower(c, g_utf8);
 	});
 
-	const auto multiByteSize = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), nullptr, 0, nullptr, nullptr));
-	multiByteStr.resize(multiByteSize);
-	WideCharToMultiByte(CP_UTF8, 0, wideString.data(), size(wideString), multiByteStr.data(), size(multiByteStr), nullptr, nullptr);
+	return ToMultiByte(wideString);
+}
 
-	return multiByteStr;
+template<typename LhsType, typename RhsType>
+bool CompareNoCaseA(LhsType && lhs, RhsType && rhs)
+{	
+	const auto lhsWide = ToWide(lhs), rhsWide = ToWide(rhs);
+	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
+		, lhsWide.data(), StrSize<int>(lhsWide)
+		, rhsWide.data(), StrSize<int>(rhsWide)
+	) - CSTR_EQUAL < 0;
 }
 
 struct Genre
@@ -174,12 +190,39 @@ struct Genre
 	{
 	}
 };
+
+template <class T = void>
+struct Less
+{
+	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef T _FIRST_ARGUMENT_TYPE_NAME;
+	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef T _SECOND_ARGUMENT_TYPE_NAME;
+	_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef bool _RESULT_TYPE_NAME;
+
+	constexpr bool operator()(const T & lhs, const T & rhs) const
+	{
+		return lhs < rhs;
+	}
+};
+template <>
+struct Less<void>
+{
+	template <class LhsType, class RhsType>
+	constexpr auto operator()(LhsType && lhs, RhsType && rhs) const
+		noexcept(noexcept(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))) // strengthened
+		-> decltype(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))
+	{
+		//static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs)
+		return CompareNoCaseA(lhs, rhs);
+	}
+
+	using is_transparent = int;
+};
 	
 using Books = std::vector<Book>;
-using Dictionary = std::unordered_map<std::string, size_t, StringHash, std::equal_to<>>;
+using Dictionary = std::map<std::string, size_t, Less<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::unordered_map<int, std::string>;
+using SettingsTableData = std::map<int, std::string>;
 
 using GetIdFunctor = std::function<size_t(std::string_view)>;
 using FindFunctor = std::function<Dictionary::iterator(Dictionary &, std::string_view)>;
