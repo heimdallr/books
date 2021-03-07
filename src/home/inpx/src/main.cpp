@@ -22,6 +22,7 @@ __pragma(warning(pop))
 
 namespace {
 
+constexpr wchar_t COMMENT_START     = '#';
 constexpr wchar_t FIELDS_SEPARATOR = '\x04';
 constexpr wchar_t GENRE_SEPARATOR  = '|';
 constexpr wchar_t INI_SEPARATOR    = '=';
@@ -376,6 +377,9 @@ public:
 		std::wifstream iniStream(path);
 		while (std::getline(iniStream, line))
 		{
+			if (line.starts_with(COMMENT_START))
+				continue;
+
 			auto it = std::cbegin(line);
 			const auto key = Next(it, std::cend(line), INI_SEPARATOR);
 			const auto value = Next(it, std::cend(line), INI_SEPARATOR);
@@ -419,6 +423,9 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 	while (std::getline(iniStream, buf))
 	{
 		const auto line = ToWide(buf);
+		if (line.starts_with(COMMENT_START))
+			continue;
+
 		auto it = std::cbegin(line);
 		const auto codes = Next(it, std::cend(line), GENRE_SEPARATOR);
 		auto itCode = std::cbegin(codes);
