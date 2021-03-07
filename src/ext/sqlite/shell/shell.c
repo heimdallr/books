@@ -2978,6 +2978,9 @@ int main_impl(int argc, char **argv){
   j = i;
   while (j < argc)
   {
+      if (rc > 0)
+          return rc;
+ 
       zFirstCmd = argv[j++];
       i = j;
 

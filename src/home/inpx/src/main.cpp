@@ -532,12 +532,12 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 	return data;
 }
 
-void ReCreateDatabase(std::wstring_view dbFileName)
+void ReCreateDatabase(std::wstring_view dbFileName, std::wstring_view createDbScript)
 {
 	std::cout << "Recreating database" << std::endl;
 
 	char stubExe[] = "stub.exe";
-	auto readScript = fmt::format(".read {}.", CREATE_COLLECTION_SCRIPT);
+	auto readScript = fmt::format(".read {}.", ToMultiByte(createDbScript));
 	auto loadExt = fmt::format(".load {}", MHL_SQLITE_EXTENSION);
 	auto dbFileNameStr = ToMultiByte(dbFileName);
 
@@ -549,7 +549,8 @@ void ReCreateDatabase(std::wstring_view dbFileName)
 		readScript.data(),
 	};
 
-	SQLiteShellExecute(static_cast<int>(std::size(v)), v);
+	if (SQLiteShellExecute(static_cast<int>(std::size(v)), v) != 0)
+		throw std::runtime_error("Cannot create database");
 }
 
 template<typename It, typename Functor>
@@ -575,7 +576,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string
 	{
 		std::cout << fmt::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal) << std::endl;
 	};
-	
+
 	const auto result = std::accumulate(beg, end, size_t{ 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
 	{
 		f(cmd, value);
@@ -677,7 +678,7 @@ void mainImpl(int argc, char * argv[])
 	const auto dbFileName = ini(DB);
 
 	const auto settingsTableData = ReadSettings(dbFileName);
-	ReCreateDatabase(dbFileName);
+	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT));
 
 	const auto data = Parse(ini(GENRES), ini(INPX));
 	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)

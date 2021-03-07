@@ -1,5 +1,3 @@
-constexpr const char * CREATE_COLLECTION_SCRIPT = "@CREATE_COLLECTION_SCRIPT@";
-
 constexpr const char * MHL_SQLITE_EXTENSION = 
 #ifdef NDEBUG
 	"@RUNTIME_FILE_MyHomeLibSQLIteExt_Release@"
