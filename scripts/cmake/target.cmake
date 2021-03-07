@@ -395,7 +395,7 @@ function(AddTarget)
 		REPO_DEPENDENCIES            # Зависимые репозитории (их NAME), которые будут добавлены в качестве INCLUDE_DIRS.
 	)
 	ParseArgumentsWithConditions(ARG "${__options}" "${__one_val_required}" "${__one_val_optional}" "${__multi_val}" ${ARGN})
-	
+
 	message( STATUS "Add target: ${ARG_NAME}")
 
 	list_exists_item(EXCLUDED_PLUGINS ${ARG_NAME} isExcluded)

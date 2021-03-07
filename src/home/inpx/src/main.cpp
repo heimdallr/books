@@ -285,7 +285,7 @@ void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genres
 			std::cout << n << " rows parsed" << std::endl;
 	}
 }
-	
+
 Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
 {
 	Timer t(L"parsing archives");
