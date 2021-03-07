@@ -28,15 +28,18 @@ constexpr char LIST_SEPARATOR = ':';
 constexpr char NAMES_SEPARATOR = ',';
 constexpr char GENRE_SEPARATOR = '|';
 
-constexpr const wchar_t * GENRES      = L"genres";
-constexpr const wchar_t * INI_EXT     = L"ini";
-constexpr const wchar_t * INPX        = L"inpx";
-constexpr const wchar_t * DB          = L"db";
+constexpr const wchar_t * GENRES           = L"genres";
+constexpr const wchar_t * INI_EXT          = L"ini";
+constexpr const wchar_t * INPX             = L"inpx";
+constexpr const wchar_t * DB_PATH          = L"db_path";
+constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
 
 constexpr std::wstring_view INP_EXT = L".inp";
 constexpr std::wstring_view UNKNOWN = L"unknown";
 
 constexpr size_t LOG_INTERVAL = 10000;
+
+int g_mhlTriggersOn = 1;
 
 size_t g_id = 0;
 size_t GetId()
@@ -333,6 +336,12 @@ public:
 		return it->second;
 	}
 
+	const std::wstring & operator()(const wchar_t * key, const std::wstring & defaultValue) const
+	{
+		const auto it = _data.find(key);
+		return it != _data.end() ? it->second : defaultValue;
+	}
+
 private:
 	std::map<std::wstring, std::wstring> _data;
 };
@@ -489,7 +498,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 		}
 	}
 
-	std::cout << "total " << n << " rows parsed" << std::endl;
+	std::cout << n << " rows parsed" << std::endl;
 
 	if (!std::empty(unknownGenres))
 	{
@@ -554,7 +563,7 @@ void ReCreateDatabase(std::wstring_view dbFileName, std::wstring_view createDbSc
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string query, It beg, It end, Functor && f, bool addExt = true)
+size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::string_view query, It beg, It end, Functor && f, bool addExt = true)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
 	Timer t(ToWide(fmt::format("store {0} {1}", process, rowsTotal)));
@@ -566,7 +575,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string
 	{
 		db.load_extension(MHL_SQLITE_EXTENSION);
 		std::make_unique<sqlite3pp::ext::function>(db).swap(func);
-		func->create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
+		func->create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(g_mhlTriggersOn); });
 	}
 
 	sqlite3pp::transaction tr(db);
@@ -598,11 +607,11 @@ size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string
 		return init + result;
 	});
 
-	tr.commit();
-
-	std::cout << "total "; log();
+	log();
 	if (rowsTotal != rowsInserted)
 		std::cerr << rowsTotal - rowsInserted << " rows lost" << std::endl;
+
+	tr.commit();
 
 	return result;
 }
@@ -675,7 +684,9 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 void mainImpl(int argc, char * argv[])
 {
 	const auto ini = ParseConfig(argc, argv);
-	const auto dbFileName = ini(DB);
+
+	g_mhlTriggersOn = _wtoi(ini(MHL_TRIGGERS_ON, std::to_wstring(g_mhlTriggersOn)).data());
+	const auto dbFileName = ini(DB_PATH);
 
 	const auto settingsTableData = ReadSettings(dbFileName);
 	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT));
