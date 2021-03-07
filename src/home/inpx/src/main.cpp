@@ -553,16 +553,20 @@ void ReCreateDatabase(std::wstring_view dbFileName)
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string query, It beg, It end, Functor && f)
+size_t StoreRange(std::wstring_view dbFileName, std::string process, std::string query, It beg, It end, Functor && f, bool addExt = true)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
 	Timer t(ToWide(fmt::format("store {0} {1}", process, rowsTotal)));
 	size_t rowsInserted = 0;
 
 	sqlite3pp::database db(ToMultiByte(dbFileName).data());
-	db.load_extension(MHL_SQLITE_EXTENSION);
-	sqlite3pp::ext::function func(db);
-	func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
+	std::unique_ptr<sqlite3pp::ext::function> func;
+	if (addExt)
+	{
+		db.load_extension(MHL_SQLITE_EXTENSION);
+		std::make_unique<sqlite3pp::ext::function>(db).swap(func);
+		func->create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(1); });
+	}
 
 	sqlite3pp::transaction tr(db);
 	sqlite3pp::command cmd(db, query.data());
@@ -654,13 +658,13 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
-	});
+	}, false);
 
 	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
-	});
+	}, false);
 
 	return result;
 }
