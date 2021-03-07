@@ -28,11 +28,12 @@ constexpr wchar_t LIST_SEPARATOR   = ':';
 constexpr wchar_t NAMES_SEPARATOR  = ',';
 constexpr wchar_t GENRE_SEPARATOR  = '|';
 
+constexpr const wchar_t * CREATE_DB_SCRIPT = L"create_db_script";
+constexpr const wchar_t * DB_PATH          = L"db_path";
 constexpr const wchar_t * GENRES           = L"genres";
 constexpr const wchar_t * INI_EXT          = L"ini";
 constexpr const wchar_t * INPX             = L"inpx";
 constexpr const wchar_t * ZIP              = L"zip";
-constexpr const wchar_t * DB_PATH          = L"db_path";
 constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
 
 constexpr std::wstring_view INP_EXT = L".inp";
