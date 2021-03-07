@@ -35,11 +35,51 @@ constexpr const wchar_t * INI_EXT          = L"ini";
 constexpr const wchar_t * INPX             = L"inpx";
 constexpr const wchar_t * ZIP              = L"zip";
 constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
+constexpr const wchar_t * COLLECTION_INFO  = L"collection.info";
+constexpr const wchar_t * VERSION_INFO     = L"version.info";
+
+constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
 constexpr std::wstring_view INP_EXT = L".inp";
 constexpr std::wstring_view UNKNOWN = L"unknown";
 
 constexpr size_t LOG_INTERVAL = 10000;
+
+[[maybe_unused]] constexpr uint32_t PROP_CLASS_SYSTEM     = 0x10000000;
+[[maybe_unused]] constexpr uint32_t PROP_CLASS_COLLECTION = 0x20000000;
+[[maybe_unused]] constexpr uint32_t PROP_CLASS_BOTH       = PROP_CLASS_SYSTEM | PROP_CLASS_COLLECTION;
+[[maybe_unused]] constexpr uint32_t PROP_CLASS_MASK       = 0xF0000000;
+
+[[maybe_unused]] constexpr uint32_t PROP_TYPE_INTEGER  = 0x00010000;
+[[maybe_unused]] constexpr uint32_t PROP_TYPE_DATETIME = 0x00020000;
+[[maybe_unused]] constexpr uint32_t PROP_TYPE_BOOLEAN  = 0x00030000;
+[[maybe_unused]] constexpr uint32_t PROP_TYPE_STRING   = 0x00040000;
+[[maybe_unused]] constexpr uint32_t PROP_TYPE_MASK     = 0x0FFF0000;
+
+[[maybe_unused]] constexpr uint32_t PROP_ID               = PROP_CLASS_SYSTEM     | PROP_TYPE_INTEGER  | 0x0000;
+[[maybe_unused]] constexpr uint32_t PROP_DATAFILE         = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0001;
+[[maybe_unused]] constexpr uint32_t PROP_CODE             = PROP_CLASS_BOTH       | PROP_TYPE_INTEGER  | 0x0002;
+[[maybe_unused]] constexpr uint32_t PROP_DISPLAYNAME      = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0003;
+[[maybe_unused]] constexpr uint32_t PROP_ROOTFOLDER       = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0004;
+[[maybe_unused]] constexpr uint32_t PROP_LIBUSER          = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0005;
+[[maybe_unused]] constexpr uint32_t PROP_LIBPASSWORD      = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0006;
+[[maybe_unused]] constexpr uint32_t PROP_URL              = PROP_CLASS_BOTH       | PROP_TYPE_STRING   | 0x0007;
+[[maybe_unused]] constexpr uint32_t PROP_CONNECTIONSCRIPT = PROP_CLASS_BOTH       | PROP_TYPE_STRING   | 0x0008;
+[[maybe_unused]] constexpr uint32_t PROP_DATAVERSION      = PROP_CLASS_BOTH       | PROP_TYPE_INTEGER  | 0x0009;
+[[maybe_unused]] constexpr uint32_t PROP_NOTES            = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000A;
+[[maybe_unused]] constexpr uint32_t PROP_CREATIONDATE     = PROP_CLASS_COLLECTION | PROP_TYPE_DATETIME | 0x000B;
+[[maybe_unused]] constexpr uint32_t PROP_SCHEMA_VERSION   = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000C;
+
+[[maybe_unused]] constexpr uint32_t PROP_LAST_AUTHOR      = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000D;
+[[maybe_unused]] constexpr uint32_t PROP_LAST_AUTHOR_BOOK = PROP_CLASS_COLLECTION | PROP_TYPE_INTEGER  | 0x000F;
+
+[[maybe_unused]] constexpr uint32_t PROP_LAST_SERIES      = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x0010;
+[[maybe_unused]] constexpr uint32_t PROP_LAST_SERIES_BOOK = PROP_CLASS_COLLECTION | PROP_TYPE_INTEGER  | 0x0011;
+
+constexpr uint32_t g_collectionInfoSettings[]
+{
+	0, 0, PROP_CODE, PROP_NOTES,
+};
 
 int g_mhlTriggersOn = 1;
 
@@ -257,7 +297,7 @@ using Books = std::vector<Book>;
 using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::map<int, std::string>;
+using SettingsTableData = std::map<uint32_t, std::string>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
@@ -303,10 +343,11 @@ struct Data
 	Dictionary authors, series;
 	Genres genres;
 	Links booksAuthors, booksGenres;
+	SettingsTableData settings;
 };
 
 template <typename It>
-std::wstring_view Next(It & beg, const It end, const char separator)
+std::wstring_view Next(It & beg, const It end, const wchar_t separator)
 {
 	auto next = std::find(beg, end, separator);
 	const std::wstring_view result(beg, next);
@@ -429,13 +470,39 @@ void ParseItem(size_t id, std::wstring_view data, Dictionary & container, Links 
 	}
 }
 
-Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
+std::string & TrimRight(std::string & line)
+{
+	while (line.ends_with('\r'))
+		line.pop_back();
+
+	return line;
+}
+
+void ProcessCollectionInfo(std::istream & stream, SettingsTableData & settingsTableData)
+{
+	std::string line;
+	for (size_t i = 0, sz = std::size(g_collectionInfoSettings); i < sz && std::getline(stream, line); ++i)
+		if (g_collectionInfoSettings[i] != 0)
+			settingsTableData[g_collectionInfoSettings[i]] = TrimRight(line);
+}
+
+void ProcessVersionInfo(std::istream & stream, SettingsTableData & settingsTableData)
+{
+	std::string line;
+	if (std::getline(stream, line))
+		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
+}
+
+Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
 {
 	Timer t(L"parsing archives");
 
 	Data data;
+	data.settings = std::move(settingsTableData);
+
 	auto [genresData, genresIndex] = LoadGenres(genresFileName);
 	data.genres = std::move(genresData);
+
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 	auto & unknownGenre = data.genres[unknownGenreId];
 
@@ -448,7 +515,20 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 	for (size_t i = 0; i < entriesCount; ++i)
 	{
 		const auto entry = archive->GetEntry(static_cast<int>(i));
-		const auto folder = ToWide(entry->GetFullName());
+		auto folder = ToWide(entry->GetFullName());
+		auto * const stream = entry->GetDecompressionStream();
+
+		if (folder == COLLECTION_INFO)
+		{
+			ProcessCollectionInfo(*stream, data.settings);
+			continue;
+		}
+
+		if (folder == VERSION_INFO)
+		{
+			ProcessVersionInfo(*stream, data.settings);
+			continue;
+		}
 
 		if (!folder.ends_with(INP_EXT))
 		{
@@ -458,8 +538,6 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 
 		folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
 		std::wcout << folder << std::endl;
-
-		auto * const stream = entry->GetDecompressionStream();
 
 		size_t insideNo = 0;
 		std::string buf;
@@ -548,11 +626,18 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 
 	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [](const auto & row)
 	{
-		int id;
+		int64_t id;
 		const char * value;
-		std::tie(id, value) = row.template get_columns<int, char const *>(0, 1);
-		return std::make_pair(id, std::string(value));
+		std::tie(id, value) = row.template get_columns<int64_t, char const *>(0, 1);
+		return std::make_pair(static_cast<uint32_t>(id), std::string(value));
 	});
+
+	data[PROP_SCHEMA_VERSION] = SCHEMA_VERSION_VALUE;
+
+	auto & strDate = data.emplace(PROP_CREATIONDATE, std::string()).first->second;
+	strDate.resize(30);
+	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
 	return data;
 }
@@ -692,6 +777,11 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
 	}, false);
 
+	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", std::cbegin(data.settings), std::cend(data.settings), [](sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
+	{
+		cmd.binder() << static_cast<size_t>(item.first) << item.second;
+	}, false);
+	
 	return result;
 }
 
@@ -704,10 +794,10 @@ void mainImpl(int argc, char * argv[])
 	g_mhlTriggersOn = _wtoi(ini(MHL_TRIGGERS_ON, std::to_wstring(g_mhlTriggersOn)).data());
 	const auto dbFileName = ini(DB_PATH);
 
-	const auto settingsTableData = ReadSettings(dbFileName);
+	auto settingsTableData = ReadSettings(dbFileName);
 	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT));
 
-	const auto data = Parse(ini(GENRES), ini(INPX));
+	const auto data = Parse(ini(GENRES), ini(INPX), std::move(settingsTableData));
 	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
 		std::cerr << "Something went wrong" << std::endl;
 }
