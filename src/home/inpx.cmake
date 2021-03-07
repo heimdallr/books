@@ -19,5 +19,6 @@ AddTarget(
 		fmt
 	COMPILER_OPTIONS
 		[ MSVC /WX /Wall ]
+	STATIC_RUNTIME
 )
 configure_file(${CMAKE_CURRENT_LIST_DIR}/inpx/helpers/Configuration.h.in ${CMAKE_CURRENT_BINARY_DIR}/Configuration.h @ONLY)
