@@ -1,0 +1,120 @@
+__pragma(warning(push, 0))
+
+#include <Windows.h>
+
+__pragma(warning(pop))
+const std::locale g_utf8("ru_RU.UTF-8");
+
+template<typename SizeType, typename StringType>
+SizeType StrSize(const StringType & str)
+{
+	return static_cast<SizeType>(std::size(str));
+}
+template<typename SizeType>
+SizeType StrSize(const char * str)
+{
+	return static_cast<SizeType>(std::strlen(str));
+}
+template<typename SizeType>
+SizeType StrSize(const wchar_t * str)
+{
+	return static_cast<SizeType>(std::wcslen(str));
+}
+
+template<typename StringType>
+const char * MultiByteData(const StringType & str)
+{
+	return str.data();
+}
+const char * MultiByteData(const char * data)
+{
+	return data;
+}
+template<typename StringType>
+std::wstring ToWide(const StringType & str)
+{
+	const auto size = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), nullptr, 0));
+	std::wstring result(size, 0);
+	MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), result.data(), StrSize<int>(result));
+
+	return result;
+}
+template<typename StringType>
+const wchar_t * WideData(const StringType & str)
+{
+	return str.data();
+}
+const wchar_t * WideData(const wchar_t * data)
+{
+	return data;
+}
+template<typename StringType>
+std::string ToMultiByte(const StringType & str)
+{
+	const auto size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));
+	std::string result(size, 0);
+	WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), result.data(), StrSize<int>(result), nullptr, nullptr);
+
+	return result;
+}
+
+template<typename LhsType, typename RhsType>
+bool IsStringEqual(LhsType && lhs, RhsType && rhs)
+{
+	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
+		, WideData(lhs), StrSize<int>(lhs)
+		, WideData(rhs), StrSize<int>(rhs)
+	) == CSTR_EQUAL;
+}
+
+template<typename LhsType, typename RhsType>
+bool IsStringLess(LhsType && lhs, RhsType && rhs)
+{
+	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
+		, WideData(lhs), StrSize<int>(lhs)
+		, WideData(rhs), StrSize<int>(rhs)
+	) - CSTR_EQUAL < 0;
+}
+
+template <class T = void>
+struct StringLess
+{
+	typedef T _FIRST_ARGUMENT_TYPE_NAME;
+	typedef T _SECOND_ARGUMENT_TYPE_NAME;
+	typedef bool _RESULT_TYPE_NAME;
+
+	constexpr bool operator()(const T & lhs, const T & rhs) const
+	{
+		return lhs < rhs;
+	}
+};
+template <>
+struct StringLess<void>
+{
+	template <class LhsType, class RhsType>
+	constexpr auto operator()(LhsType && lhs, RhsType && rhs) const
+		noexcept(noexcept(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))) // strengthened
+		-> decltype(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))
+	{
+		return IsStringLess(static_cast<LhsType &&>(lhs), static_cast<RhsType &&>(rhs));
+	}
+
+	using is_transparent = int;
+};
+
+template<typename T>
+T To(std::wstring_view value, T defaultValue = 0)
+{
+	return value.empty()
+		? defaultValue
+		: static_cast<T>(_wtoi64(value.data()));
+}
+
+template <typename It>
+std::wstring_view Next(It & beg, const It end, const wchar_t separator)
+{
+	auto next = std::find(beg, end, separator);
+	const std::wstring_view result(beg, next);
+	beg = next != end ? std::next(next) : end;
+	return result;
+}

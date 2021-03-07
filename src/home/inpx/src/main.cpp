@@ -14,77 +14,15 @@ __pragma(warning(push, 0))
 #include "sqlite3ppext.h"
 #include "fmt/core.h"
 
-#include <Windows.h>
-
 __pragma(warning(pop))
+
+#include "constant.h"
+#include "types.h"
 
 #include "Configuration.h"
 
 namespace {
 
-constexpr wchar_t COMMENT_START     = '#';
-constexpr wchar_t FIELDS_SEPARATOR = '\x04';
-constexpr wchar_t GENRE_SEPARATOR  = '|';
-constexpr wchar_t INI_SEPARATOR    = '=';
-constexpr wchar_t LIST_SEPARATOR   = ':';
-constexpr wchar_t NAMES_SEPARATOR  = ',';
-
-constexpr const wchar_t * COLLECTION_INFO   = L"collection.info";
-constexpr const wchar_t * CREATE_DB_SCRIPT  = L"create_db_script";
-constexpr const wchar_t * DB_PATH           = L"db_path";
-constexpr const wchar_t * DEFAULT_DB_PATH   = L"db.hlc2";
-constexpr const wchar_t * DEFAULT_DB_SCRIPT = L"db.sql";
-constexpr const wchar_t * DEFAULT_GENRES    = L"genres.ini";
-constexpr const wchar_t * DEFAULT_INPX      = L"db.inpx";
-constexpr const wchar_t * GENRES            = L"genres";
-constexpr const wchar_t * INI_EXT           = L"ini";
-constexpr const wchar_t * INPX              = L"inpx";
-constexpr const wchar_t * MHL_TRIGGERS_ON   = L"mhl_triggers_on";
-constexpr const wchar_t * VERSION_INFO      = L"version.info";
-constexpr const wchar_t * ZIP               = L"zip";
-
-constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
-
-constexpr std::wstring_view INP_EXT = L".inp";
-constexpr std::wstring_view UNKNOWN = L"unknown";
-
-constexpr size_t LOG_INTERVAL = 10000;
-
-[[maybe_unused]] constexpr uint32_t PROP_CLASS_SYSTEM     = 0x10000000;
-[[maybe_unused]] constexpr uint32_t PROP_CLASS_COLLECTION = 0x20000000;
-[[maybe_unused]] constexpr uint32_t PROP_CLASS_BOTH       = PROP_CLASS_SYSTEM | PROP_CLASS_COLLECTION;
-[[maybe_unused]] constexpr uint32_t PROP_CLASS_MASK       = 0xF0000000;
-
-[[maybe_unused]] constexpr uint32_t PROP_TYPE_INTEGER  = 0x00010000;
-[[maybe_unused]] constexpr uint32_t PROP_TYPE_DATETIME = 0x00020000;
-[[maybe_unused]] constexpr uint32_t PROP_TYPE_BOOLEAN  = 0x00030000;
-[[maybe_unused]] constexpr uint32_t PROP_TYPE_STRING   = 0x00040000;
-[[maybe_unused]] constexpr uint32_t PROP_TYPE_MASK     = 0x0FFF0000;
-
-[[maybe_unused]] constexpr uint32_t PROP_ID               = PROP_CLASS_SYSTEM     | PROP_TYPE_INTEGER  | 0x0000;
-[[maybe_unused]] constexpr uint32_t PROP_DATAFILE         = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0001;
-[[maybe_unused]] constexpr uint32_t PROP_CODE             = PROP_CLASS_BOTH       | PROP_TYPE_INTEGER  | 0x0002;
-[[maybe_unused]] constexpr uint32_t PROP_DISPLAYNAME      = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0003;
-[[maybe_unused]] constexpr uint32_t PROP_ROOTFOLDER       = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0004;
-[[maybe_unused]] constexpr uint32_t PROP_LIBUSER          = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0005;
-[[maybe_unused]] constexpr uint32_t PROP_LIBPASSWORD      = PROP_CLASS_SYSTEM     | PROP_TYPE_STRING   | 0x0006;
-[[maybe_unused]] constexpr uint32_t PROP_URL              = PROP_CLASS_BOTH       | PROP_TYPE_STRING   | 0x0007;
-[[maybe_unused]] constexpr uint32_t PROP_CONNECTIONSCRIPT = PROP_CLASS_BOTH       | PROP_TYPE_STRING   | 0x0008;
-[[maybe_unused]] constexpr uint32_t PROP_DATAVERSION      = PROP_CLASS_BOTH       | PROP_TYPE_INTEGER  | 0x0009;
-[[maybe_unused]] constexpr uint32_t PROP_NOTES            = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000A;
-[[maybe_unused]] constexpr uint32_t PROP_CREATIONDATE     = PROP_CLASS_COLLECTION | PROP_TYPE_DATETIME | 0x000B;
-[[maybe_unused]] constexpr uint32_t PROP_SCHEMA_VERSION   = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000C;
-
-[[maybe_unused]] constexpr uint32_t PROP_LAST_AUTHOR      = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x000D;
-[[maybe_unused]] constexpr uint32_t PROP_LAST_AUTHOR_BOOK = PROP_CLASS_COLLECTION | PROP_TYPE_INTEGER  | 0x000F;
-
-[[maybe_unused]] constexpr uint32_t PROP_LAST_SERIES      = PROP_CLASS_COLLECTION | PROP_TYPE_STRING   | 0x0010;
-[[maybe_unused]] constexpr uint32_t PROP_LAST_SERIES_BOOK = PROP_CLASS_COLLECTION | PROP_TYPE_INTEGER  | 0x0011;
-
-constexpr uint32_t g_collectionInfoSettings[]
-{
-	0, 0, PROP_CODE, PROP_NOTES,
-};
 
 int g_mhlTriggersOn = 1;
 
@@ -118,194 +56,6 @@ private:
 	const std::chrono::steady_clock::time_point t;
 	const std::wstring process;
 };
-
-struct Book
-{
-	Book(size_t id_
-		, std::wstring_view libId_
-		, std::wstring_view title_
-		, int seriesId_
-		, int seriesNum_
-		, std::wstring_view date_
-		, int rate_
-		, std::wstring_view language_
-		, std::wstring_view folder_
-		, std::wstring_view fileName_
-		, size_t insideNo_
-		, std::wstring_view format_
-		, size_t size_
-		, bool isDeleted_
-		, std::wstring_view keywords_ = {}
-	)
-		: id(id_)
-		, libId(libId_)
-		, title(title_)
-		, seriesId(seriesId_)
-		, seriesNum(seriesNum_)
-		, date(date_)
-		, rate(rate_)
-		, language(language_)
-		, folder(folder_)
-		, fileName(fileName_)
-		, insideNo(insideNo_)
-		, format(InsertDot(format_))
-		, size(size_)
-		, isDeleted(isDeleted_)
-		, keywords(keywords_)
-	{
-	}
-
-	size_t      id;
-	std::wstring libId;
-	std::wstring title;
-	int         seriesId;
-	int         seriesNum;
-	std::wstring date;
-	int         rate;
-	std::wstring language;
-	std::wstring folder;
-	std::wstring fileName;
-	size_t      insideNo;
-	std::wstring format;
-	size_t      size;
-	bool        isDeleted;
-	std::wstring keywords;
-
-private:
-	static std::wstring InsertDot(std::wstring_view format)
-	{
-		std::wstring result(L".");
-		result.insert(result.end(), std::cbegin(format), std::cend(format));
-		return result;
-	}
-};
-
-const std::locale g_utf8("ru_RU.UTF-8");
-
-template<typename SizeType, typename StringType>
-SizeType StrSize(const StringType & str)
-{
-	return static_cast<SizeType>(std::size(str));
-}
-template<typename SizeType>
-SizeType StrSize(const char * str)
-{
-	return static_cast<SizeType>(std::strlen(str));
-}
-template<typename SizeType>
-SizeType StrSize(const wchar_t * str)
-{
-	return static_cast<SizeType>(std::wcslen(str));
-}
-
-template<typename StringType>
-const char * MultiByteData(const StringType & str)
-{
-	return str.data();
-}
-const char * MultiByteData(const char * data)
-{
-	return data;
-}
-template<typename StringType>
-std::wstring ToWide(const StringType & str)
-{
-	const auto size = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), nullptr, 0));
-	std::wstring result(size, 0);
-	MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), result.data(), StrSize<int>(result));
-
-	return result;
-}
-template<typename StringType>
-const wchar_t * WideData(const StringType & str)
-{
-	return str.data();
-}
-const wchar_t * WideData(const wchar_t * data)
-{
-	return data;
-}
-template<typename StringType>
-std::string ToMultiByte(const StringType & str)
-{
-	const auto size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));
-	std::string result(size, 0);
-	WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), result.data(), StrSize<int>(result), nullptr, nullptr);
-
-	return result;
-}
-
-template<typename LhsType, typename RhsType>
-bool IsStringEqual(LhsType && lhs, RhsType && rhs)
-{
-	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
-		, WideData(lhs), StrSize<int>(lhs)
-		, WideData(rhs), StrSize<int>(rhs)
-	) == CSTR_EQUAL;
-}
-
-template<typename LhsType, typename RhsType>
-bool IsStringLess(LhsType && lhs, RhsType && rhs)
-{
-	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
-		, WideData(lhs), StrSize<int>(lhs)
-		, WideData(rhs), StrSize<int>(rhs)
-	) - CSTR_EQUAL < 0;
-}
-
-template <class T = void>
-struct StringLess
-{
-	typedef T _FIRST_ARGUMENT_TYPE_NAME;
-	typedef T _SECOND_ARGUMENT_TYPE_NAME;
-	typedef bool _RESULT_TYPE_NAME;
-
-	constexpr bool operator()(const T & lhs, const T & rhs) const
-	{
-		return lhs < rhs;
-	}
-};
-template <>
-struct StringLess<void>
-{
-	template <class LhsType, class RhsType>
-	constexpr auto operator()(LhsType && lhs, RhsType && rhs) const
-		noexcept(noexcept(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))) // strengthened
-		-> decltype(static_cast<LhsType &&>(lhs) < static_cast<RhsType &&>(rhs))
-	{
-		return IsStringLess(static_cast<LhsType &&>(lhs), static_cast<RhsType &&>(rhs));
-	}
-
-	using is_transparent = int;
-};
-
-struct Genre
-{
-	std::wstring code;
-	std::wstring parentCore;
-	std::wstring name;
-	size_t parentId;
-	std::wstring dbCode;
-
-	size_t childrenCount{ 0 };
-
-	Genre(std::wstring_view code_, std::wstring_view parentCode_, std::wstring_view name_, size_t parentId_ = 0)
-		: code(code_)
-		, parentCore(parentCode_)
-		, name(name_)
-		, parentId(parentId_)
-	{
-	}
-};
-
-using Books = std::vector<Book>;
-using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
-using Genres = std::vector<Genre>;
-using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::map<uint32_t, std::string>;
-
-using GetIdFunctor = std::function<size_t(std::wstring_view)>;
-using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
 
 size_t GetIdDefault(std::wstring_view)
 {
@@ -350,32 +100,6 @@ bool IsComment(std::wstring_view line)
 		;
 }
 
-struct Data
-{
-	Books books;
-	Dictionary authors, series;
-	Genres genres;
-	Links booksAuthors, booksGenres;
-	SettingsTableData settings;
-};
-
-template <typename It>
-std::wstring_view Next(It & beg, const It end, const wchar_t separator)
-{
-	auto next = std::find(beg, end, separator);
-	const std::wstring_view result(beg, next);
-	beg = next != end ? std::next(next) : end;
-	return result;
-}
-
-template<typename T>
-T To(std::wstring_view value, T defaultValue = 0)
-{
-	return value.empty()
-		? defaultValue
-		: static_cast<T>(_wtoi64(value.data()));
-}
-
 class Ini
 {
 public:
@@ -418,9 +142,8 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 	if (!iniStream.is_open())
 		throw std::invalid_argument(fmt::format("Cannot open '{}'", ToMultiByte(genresIniFileName)));
 
-	index.emplace(L"", std::size(genres));
-	auto & root = genres.emplace_back(L"", L"", L"");
-	root.dbCode = L"0";
+	genres.emplace_back(L"0");
+	index.emplace(genres.front().code, size_t{0});
 
 	std::string buf;
 	while (std::getline(iniStream, buf))
@@ -503,6 +226,66 @@ void ProcessVersionInfo(std::istream & stream, SettingsTableData & settingsTable
 		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
 }
 
+void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
+{
+	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
+	auto & unknownGenre = data.genres[unknownGenreId];
+
+	folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
+
+	size_t insideNo = 0;
+	std::string buf;
+	while (std::getline(stream, buf))
+	{
+		const auto id = GetId();
+
+		const auto line = ToWide(buf);
+		auto it = std::cbegin(line);
+		const auto end = std::cend(line);
+
+		//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
+		const auto authors = Next(it, end, FIELDS_SEPARATOR);
+		const auto genres = Next(it, end, FIELDS_SEPARATOR);
+		const auto title = Next(it, end, FIELDS_SEPARATOR);
+		const auto seriesName = Next(it, end, FIELDS_SEPARATOR);
+		const auto seriesNum = Next(it, end, FIELDS_SEPARATOR);
+		const auto fileName = Next(it, end, FIELDS_SEPARATOR);
+		const auto size = Next(it, end, FIELDS_SEPARATOR);
+		const auto libId = Next(it, end, FIELDS_SEPARATOR);
+		const auto del = Next(it, end, FIELDS_SEPARATOR);
+		const auto ext = Next(it, end, FIELDS_SEPARATOR);
+		const auto date = Next(it, end, FIELDS_SEPARATOR);
+		const auto lang = Next(it, end, FIELDS_SEPARATOR);
+		const auto rate = Next(it, end, FIELDS_SEPARATOR);
+//		const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
+
+		ParseItem(id, authors, data.authors, data.booksAuthors);
+		ParseItem(id, genres, genresIndex, data.booksGenres,
+			[unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::wstring_view title)
+			{
+				const auto result = std::size(data);
+				auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
+				genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
+				unknownGenres.push_back(genre.name);
+				return result;
+			},
+			[&data = data.genres](const Dictionary & container, std::wstring_view value)
+			{
+				const auto it = container.find(value);
+				return it != container.end() ? it : std::ranges::find_if(container, [value, &data](const auto & item)
+				{
+					return IsStringEqual(value, data[item.second].name);
+				});
+			}
+		);
+
+		data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
+
+		if ((++n % LOG_INTERVAL) == 0)
+			std::cout << n << " rows parsed" << std::endl;
+	}
+}
+	
 Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
 {
 	Timer t(L"parsing archives");
@@ -512,9 +295,6 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 
 	auto [genresData, genresIndex] = LoadGenres(genresFileName);
 	data.genres = std::move(genresData);
-
-	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
-	auto & unknownGenre = data.genres[unknownGenreId];
 
 	std::vector<std::wstring> unknownGenres;
 
@@ -528,78 +308,16 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 		auto folder = ToWide(entry->GetFullName());
 		auto * const stream = entry->GetDecompressionStream();
 
-		if (folder == COLLECTION_INFO)
-		{
-			ProcessCollectionInfo(*stream, data.settings);
-			continue;
-		}
-
-		if (folder == VERSION_INFO)
-		{
-			ProcessVersionInfo(*stream, data.settings);
-			continue;
-		}
-
-		if (!folder.ends_with(INP_EXT))
-		{
-			std::wcout << folder << L" skipped" << std::endl;
-			continue;
-		}
-
-		folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
 		std::wcout << folder << std::endl;
 
-		size_t insideNo = 0;
-		std::string buf;
-		while (std::getline(*stream, buf))
-		{
-			const auto id = GetId();
-
-			const auto line = ToWide(buf);
-			auto it = std::cbegin(line);
-			const auto end = std::cend(line);
-
-			//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-			const auto authors    = Next(it, end, FIELDS_SEPARATOR);
-			const auto genres     = Next(it, end, FIELDS_SEPARATOR);
-			const auto title      = Next(it, end, FIELDS_SEPARATOR);
-			const auto seriesName = Next(it, end, FIELDS_SEPARATOR);
-			const auto seriesNum  = Next(it, end, FIELDS_SEPARATOR);
-			const auto fileName   = Next(it, end, FIELDS_SEPARATOR);
-			const auto size       = Next(it, end, FIELDS_SEPARATOR);
-			const auto libId      = Next(it, end, FIELDS_SEPARATOR);
-			const auto del        = Next(it, end, FIELDS_SEPARATOR);
-			const auto ext        = Next(it, end, FIELDS_SEPARATOR);
-			const auto date       = Next(it, end, FIELDS_SEPARATOR);
-			const auto lang       = Next(it, end, FIELDS_SEPARATOR);
-			const auto rate       = Next(it, end, FIELDS_SEPARATOR);
-//			const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
-
-			ParseItem(id, authors, data.authors, data.booksAuthors);
-			ParseItem(id, genres, genresIndex, data.booksGenres
-				, [unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::wstring_view title)
-					{
-						const auto result = std::size(data);
-						auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
-						genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
-						unknownGenres.push_back(genre.name);
-						return result;
-					}
-				, [&data = data.genres](const Dictionary & container, std::wstring_view value)
-					{
-						const auto it = container.find(value);
-						return it != container.end() ? it : std::ranges::find_if(container, [value, &data](const auto & item)
-						{
-							return IsStringEqual(value, data[item.second].name);
-						});
-					}
-			);
-
-			data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
-
-			if ((++n % LOG_INTERVAL) == 0)
-				std::cout << n << " rows parsed" << std::endl;
-		}
+		if (folder == COLLECTION_INFO)
+			ProcessCollectionInfo(*stream, data.settings);
+		else if (folder == VERSION_INFO)
+			ProcessVersionInfo(*stream, data.settings);
+		else if (folder.ends_with(INP_EXT))
+			ProcessInpx(*stream, folder, genresIndex, data, unknownGenres, n);
+		else
+			std::wcout << folder << L" skipped" << std::endl;
 	}
 
 	std::cout << n << " rows parsed" << std::endl;
@@ -654,7 +372,7 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 
 void ReCreateDatabase(std::wstring_view dbFileName, std::wstring_view createDbScript)
 {
-	std::cout << "Recreating database" << std::endl;
+	Timer t(L"create database");
 
 	char stubExe[] = "stub.exe";
 	auto readScript = fmt::format(".read {}.", ToMultiByte(createDbScript));
@@ -721,8 +439,10 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 	log();
 	if (rowsTotal != rowsInserted)
 		std::cerr << rowsTotal - rowsInserted << " rows lost" << std::endl;
-
-	tr.commit();
+	{
+		Timer tc(L"commit");
+		tr.commit();
+	}
 
 	return result;
 }
