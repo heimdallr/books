@@ -23,20 +23,20 @@ __pragma(warning(pop))
 namespace {
 
 constexpr wchar_t FIELDS_SEPARATOR = '\x04';
+constexpr wchar_t GENRE_SEPARATOR  = '|';
 constexpr wchar_t INI_SEPARATOR    = '=';
 constexpr wchar_t LIST_SEPARATOR   = ':';
 constexpr wchar_t NAMES_SEPARATOR  = ',';
-constexpr wchar_t GENRE_SEPARATOR  = '|';
 
+constexpr const wchar_t * COLLECTION_INFO  = L"collection.info";
 constexpr const wchar_t * CREATE_DB_SCRIPT = L"create_db_script";
 constexpr const wchar_t * DB_PATH          = L"db_path";
 constexpr const wchar_t * GENRES           = L"genres";
 constexpr const wchar_t * INI_EXT          = L"ini";
 constexpr const wchar_t * INPX             = L"inpx";
-constexpr const wchar_t * ZIP              = L"zip";
 constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
-constexpr const wchar_t * COLLECTION_INFO  = L"collection.info";
 constexpr const wchar_t * VERSION_INFO     = L"version.info";
+constexpr const wchar_t * ZIP              = L"zip";
 
 constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
@@ -229,7 +229,7 @@ std::string ToMultiByte(const StringType & str)
 
 	return result;
 }
-	
+
 template<typename LhsType, typename RhsType>
 bool IsStringEqual(LhsType && lhs, RhsType && rhs)
 {
@@ -241,7 +241,7 @@ bool IsStringEqual(LhsType && lhs, RhsType && rhs)
 
 template<typename LhsType, typename RhsType>
 bool IsStringLess(LhsType && lhs, RhsType && rhs)
-{	
+{
 	return CompareStringW(GetThreadLocale(), NORM_IGNORECASE
 		, WideData(lhs), StrSize<int>(lhs)
 		, WideData(rhs), StrSize<int>(rhs)
@@ -721,7 +721,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 {
 	size_t result = 0;
 	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
-	{		
+	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
 		const auto last   = Next(it, std::cend(author), NAMES_SEPARATOR);
@@ -781,7 +781,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 	{
 		cmd.binder() << static_cast<size_t>(item.first) << item.second;
 	}, false);
-	
+
 	return result;
 }
 
