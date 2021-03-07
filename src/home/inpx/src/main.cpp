@@ -31,6 +31,7 @@ constexpr wchar_t GENRE_SEPARATOR  = '|';
 constexpr const wchar_t * GENRES           = L"genres";
 constexpr const wchar_t * INI_EXT          = L"ini";
 constexpr const wchar_t * INPX             = L"inpx";
+constexpr const wchar_t * ZIP              = L"zip";
 constexpr const wchar_t * DB_PATH          = L"db_path";
 constexpr const wchar_t * MHL_TRIGGERS_ON  = L"mhl_triggers_on";
 
@@ -101,7 +102,7 @@ struct Book
 		, folder(folder_)
 		, fileName(fileName_)
 		, insideNo(insideNo_)
-		, format(format_)
+		, format(InsertDot(format_))
 		, size(size_)
 		, isDeleted(isDeleted_)
 		, keywords(keywords_)
@@ -123,6 +124,14 @@ struct Book
 	size_t      size;
 	bool        isDeleted;
 	std::wstring keywords;
+
+private:
+	static std::wstring InsertDot(std::wstring_view format)
+	{
+		std::wstring result(L".");
+		result.insert(result.end(), std::cbegin(format), std::cend(format));
+		return result;
+	}
 };
 
 const std::locale g_utf8("ru_RU.UTF-8");
@@ -446,6 +455,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName)
 			continue;
 		}
 
+		folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
 		std::wcout << folder << std::endl;
 
 		auto * const stream = entry->GetDecompressionStream();
