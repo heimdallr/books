@@ -370,12 +370,12 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 	return data;
 }
 
-void ReCreateDatabase(std::wstring_view dbFileName, std::wstring_view createDbScript)
+void ExecuteScript(const std::wstring & action, std::wstring_view dbFileName, std::wstring_view scriptFileName)
 {
-	Timer t(L"create database");
+	Timer t(action);
 
 	char stubExe[] = "stub.exe";
-	auto readScript = fmt::format(".read {}.", ToMultiByte(createDbScript));
+	auto readScript = fmt::format(".read {}.", ToMultiByte(scriptFileName));
 	auto loadExt = fmt::format(".load {}", MHL_SQLITE_EXTENSION);
 	auto dbFileNameStr = ToMultiByte(dbFileName);
 
@@ -388,7 +388,7 @@ void ReCreateDatabase(std::wstring_view dbFileName, std::wstring_view createDbSc
 	};
 
 	if (SQLiteShellExecute(static_cast<int>(std::size(v)), v) != 0)
-		throw std::runtime_error("Cannot create database");
+		throw std::runtime_error(fmt::format("Cannot {}", ToMultiByte(action)));
 }
 
 template<typename It, typename Functor>
@@ -525,11 +525,13 @@ void mainImpl(int argc, char * argv[])
 	const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
 
 	auto settingsTableData = ReadSettings(dbFileName);
-	ReCreateDatabase(dbFileName, ini(CREATE_DB_SCRIPT, DEFAULT_DB_SCRIPT));
+	ExecuteScript(L"create database", dbFileName, ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 
 	const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData));
 	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
 		std::cerr << "Something went wrong" << std::endl;
+
+	ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
 }
 
 int main(int argc, char* argv[])
