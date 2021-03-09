@@ -54,3 +54,5 @@ CREATE INDEX IXGenreList_GenreCode_BookID ON Genre_List (GenreCode, BookID);
 
 CREATE UNIQUE INDEX UIX_Author_List_BookID_AuthorID ON Author_List (BookID, AuthorID);
 CREATE INDEX IXAuthorList_AuthorID_BookID ON Author_List (AuthorID, BookID);
+
+ANALYZE;
