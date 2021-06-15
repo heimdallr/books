@@ -2,11 +2,11 @@ rem @echo off
 
 set start_time=%DATE% %TIME%
 
-call scripts\check_cmake.bat
+call src\ext\scripts\batch\check_cmake.bat
 if NOT [%ERRORLEVEL%]==[0] goto end
 
 set tee_name=tee.exe
-call scripts\check_executable.bat %tee_name%
+call src\ext\scripts\batch\check_executable.bat %tee_name%
 if NOT [%ERRORLEVEL%]==[0] goto end
 
 set originalDir=%CD%

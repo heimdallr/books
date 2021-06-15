@@ -26,8 +26,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-include("scripts/cmake/target.cmake")
-include("scripts/cmake/utils.cmake")
+include("src/ext/scripts/cmake/target.cmake")
+include("src/ext/scripts/cmake/utils.cmake")
 
 include("src/ext/ziplib.cmake")
 include("src/ext/sqlite.cmake")
