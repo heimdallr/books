@@ -278,6 +278,36 @@ void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genres
 				});
 			}
 		);
+		{
+			const auto add = [&index = genresIndex, &genres = data.genres] (std::wstring_view code, std::wstring_view name, const auto parentIt)
+			{
+				assert(parentIt != index.end() && parentIt->second < std::size(genres));
+				const auto it = index.insert(std::make_pair(code, std::size(genres))).first;
+				auto & parentGenre = genres[parentIt->second];
+				auto & genre = genres.emplace_back(code, parentGenre.code, name, parentIt->second);
+				genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
+				return it;
+			};
+
+			auto itDate = std::cbegin(date);
+			const auto endDate = std::cend(date);
+			const auto year = Next(itDate, endDate, DATE_SEPARATOR);
+			const auto month = Next(itDate, endDate, DATE_SEPARATOR);
+			const auto dateCode = ToWide(fmt::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
+
+			auto itIndexDate = genresIndex.find(dateCode);
+			if (itIndexDate == genresIndex.end())
+			{
+				const auto yearCode = ToWide(fmt::format("year_{0}", ToMultiByte(year)));
+				auto itIndexYear = genresIndex.find(yearCode);
+				if (itIndexYear == genresIndex.end())
+					itIndexYear = add(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
+
+				itIndexDate = add(dateCode, month, itIndexYear);
+			}
+
+			data.booksGenres.emplace_back(id, itIndexDate->second);
+		}
 
 		data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
 

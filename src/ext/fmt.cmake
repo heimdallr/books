@@ -4,6 +4,6 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/fmt/src"
 	PROJECT_GROUP Util
 	INCLUDE_DIRS
-		"${CMAKE_CURRENT_LIST_DIR}//fmt/include"
+		"${CMAKE_CURRENT_LIST_DIR}/fmt/include"
 	STATIC_RUNTIME
 )

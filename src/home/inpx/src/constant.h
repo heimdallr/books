@@ -1,4 +1,5 @@
 constexpr wchar_t COMMENT_START     = '#';
+constexpr wchar_t DATE_SEPARATOR   = '-';
 constexpr wchar_t FIELDS_SEPARATOR = '\x04';
 constexpr wchar_t GENRE_SEPARATOR  = '|';
 constexpr wchar_t INI_SEPARATOR    = '=';
@@ -25,6 +26,7 @@ constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F
 
 constexpr std::wstring_view INP_EXT = L".inp";
 constexpr std::wstring_view UNKNOWN = L"unknown";
+constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code";
 
 constexpr size_t LOG_INTERVAL = 10000;
 
