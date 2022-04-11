@@ -1,34 +1,34 @@
-constexpr wchar_t COMMENT_START     = '#';
-constexpr wchar_t DATE_SEPARATOR   = '-';
-constexpr wchar_t FIELDS_SEPARATOR = '\x04';
-constexpr wchar_t GENRE_SEPARATOR  = '|';
-constexpr wchar_t INI_SEPARATOR    = '=';
-constexpr wchar_t LIST_SEPARATOR   = ':';
-constexpr wchar_t NAMES_SEPARATOR  = ',';
+[[maybe_unused]] constexpr wchar_t COMMENT_START     = '#';
+[[maybe_unused]] constexpr wchar_t DATE_SEPARATOR   = '-';
+[[maybe_unused]] constexpr wchar_t FIELDS_SEPARATOR = '\x04';
+[[maybe_unused]] constexpr wchar_t GENRE_SEPARATOR  = '|';
+[[maybe_unused]] constexpr wchar_t INI_SEPARATOR    = '=';
+[[maybe_unused]] constexpr wchar_t LIST_SEPARATOR   = ':';
+[[maybe_unused]] constexpr wchar_t NAMES_SEPARATOR  = ',';
 
-constexpr const wchar_t * COLLECTION_INFO          = L"collection.info";
-constexpr const wchar_t * DB_CREATE_SCRIPT         = L"db_create_script";
-constexpr const wchar_t * DB_PATH                  = L"db_path";
-constexpr const wchar_t * DB_UPDATE_SCRIPT         = L"db_update_script";
-constexpr const wchar_t * DEFAULT_DB_CREATE_SCRIPT = L"db_create.sql";
-constexpr const wchar_t * DEFAULT_DB_PATH          = L"db.hlc2";
-constexpr const wchar_t * DEFAULT_DB_UPDATE_SCRIPT = L"db_update.sql";
-constexpr const wchar_t * DEFAULT_GENRES           = L"genres.ini";
-constexpr const wchar_t * DEFAULT_INPX             = L"db.inpx";
-constexpr const wchar_t * GENRES                   = L"genres";
-constexpr const wchar_t * INI_EXT                  = L"ini";
-constexpr const wchar_t * INPX                     = L"inpx";
-constexpr const wchar_t * MHL_TRIGGERS_ON          = L"mhl_triggers_on";
-constexpr const wchar_t * VERSION_INFO             = L"version.info";
-constexpr const wchar_t * ZIP                      = L"zip";
+[[maybe_unused]] constexpr const wchar_t * COLLECTION_INFO          = L"collection.info";
+[[maybe_unused]] constexpr const wchar_t * DB_CREATE_SCRIPT         = L"db_create_script";
+[[maybe_unused]] constexpr const wchar_t * DB_PATH                  = L"db_path";
+[[maybe_unused]] constexpr const wchar_t * DB_UPDATE_SCRIPT         = L"db_update_script";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_CREATE_SCRIPT = L"db_create.sql";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_PATH          = L"db.hlc2";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_UPDATE_SCRIPT = L"db_update.sql";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_GENRES           = L"genres.ini";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_INPX             = L"db.inpx";
+[[maybe_unused]] constexpr const wchar_t * GENRES                   = L"genres";
+[[maybe_unused]] constexpr const wchar_t * INI_EXT                  = L"ini";
+[[maybe_unused]] constexpr const wchar_t * INPX                     = L"inpx";
+[[maybe_unused]] constexpr const wchar_t * MHL_TRIGGERS_ON          = L"mhl_triggers_on";
+[[maybe_unused]] constexpr const wchar_t * VERSION_INFO             = L"version.info";
+[[maybe_unused]] constexpr const wchar_t * ZIP                      = L"zip";
 
-constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
+[[maybe_unused]] constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
-constexpr std::wstring_view INP_EXT = L".inp";
-constexpr std::wstring_view UNKNOWN = L"unknown";
-constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code";
+[[maybe_unused]] constexpr std::wstring_view INP_EXT = L".inp";
+[[maybe_unused]] constexpr std::wstring_view UNKNOWN = L"unknown";
+[[maybe_unused]] constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code";
 
-constexpr size_t LOG_INTERVAL = 10000;
+[[maybe_unused]] constexpr size_t LOG_INTERVAL = 10000;
 
 [[maybe_unused]] constexpr uint32_t PROP_CLASS_SYSTEM     = 0x10000000;
 [[maybe_unused]] constexpr uint32_t PROP_CLASS_COLLECTION = 0x20000000;

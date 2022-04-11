@@ -1,3 +1,5 @@
+#pragma once
+
 constexpr const char * MHL_SQLITE_EXTENSION =
 #ifdef NDEBUG
 	"@RUNTIME_FILE_MyHomeLibSQLIteExt_Release@"

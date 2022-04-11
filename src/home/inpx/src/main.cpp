@@ -1,4 +1,4 @@
-__pragma(warning(push, 0))
+#pragma warning(push, 0)
 
 #include <cassert>
 #include <chrono>
@@ -9,17 +9,17 @@ __pragma(warning(push, 0))
 #include <map>
 #include <numeric>
 
-#include "ZipLib/ZipFile.h"
+#include "fmt/core.h"
 #include "sqlite/shell/sqlite_shell.h"
 #include "sqlite3ppext.h"
-#include "fmt/core.h"
-
-__pragma(warning(pop))
+#include "ZipLib/ZipFile.h"
 
 #include "constant.h"
 #include "types.h"
 
 #include "Configuration.h"
+
+#pragma warning(pop)
 
 namespace {
 
@@ -355,7 +355,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 	if (!std::empty(unknownGenres))
 	{
 		std::cerr << "Unknown genres" << std::endl;
-		std::transform(std::cbegin(unknownGenres), std::cend(unknownGenres), std::ostream_iterator<std::string>(std::cerr, "\n"), &ToMultiByte<std::wstring>);
+		std::ranges::transform(std::as_const(unknownGenres), std::ostream_iterator<std::string>(std::cerr, "\n"), &ToMultiByte<std::wstring>);
 	}
 
 	return data;

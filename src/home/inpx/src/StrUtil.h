@@ -1,8 +1,9 @@
-__pragma(warning(push, 0))
+#pragma once
 
+#pragma warning(push, 0)
 #include <Windows.h>
+#pragma warning(pop)
 
-__pragma(warning(pop))
 const std::locale g_utf8("ru_RU.UTF-8");
 
 template<typename SizeType, typename StringType>
@@ -26,7 +27,7 @@ const char * MultiByteData(const StringType & str)
 {
 	return str.data();
 }
-const char * MultiByteData(const char * data)
+inline const char * MultiByteData(const char * data)
 {
 	return data;
 }
@@ -44,7 +45,7 @@ const wchar_t * WideData(const StringType & str)
 {
 	return str.data();
 }
-const wchar_t * WideData(const wchar_t * data)
+inline const wchar_t * WideData(const wchar_t * data)
 {
 	return data;
 }
