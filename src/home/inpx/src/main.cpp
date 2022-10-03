@@ -14,12 +14,12 @@
 #include "sqlite3ppext.h"
 #include "ZipLib/ZipFile.h"
 
+#pragma warning(pop)
+
 #include "constant.h"
 #include "types.h"
 
 #include "Configuration.h"
-
-#pragma warning(pop)
 
 namespace {
 
