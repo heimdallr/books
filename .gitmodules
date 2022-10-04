@@ -1,12 +1,12 @@
-[submodule "src/ext/fmt"]
-	path = src/ext/fmt
-	url = https://github.com/fmtlib/fmt.git
-[submodule "src/ext/MyHomeLib"]
-	path = src/ext/MyHomeLib
-	url = https://github.com/OleksiyPenkov/MyHomeLib.git
 [submodule "src/ext/scripts"]
 	path = src/ext/scripts
 	url = ../scripts.git
 [submodule "src/ext/ZipLib"]
 	path = src/ext/ZipLib
 	url = ../ziplib.git
+[submodule "src/ext/fmt"]
+	path = src/ext/fmt
+	url = ../fmt.git
+[submodule "src/ext/MyHomeLib"]
+	path = src/ext/MyHomeLib
+	url = ../MyHomeLib.git
