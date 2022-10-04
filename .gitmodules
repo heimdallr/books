@@ -13,3 +13,6 @@
 [submodule "src/ext/sqlite/sqlite3pp"]
 	path = src/ext/sqlite/sqlite3pp
 	url = ../sqlite3pp.git
+[submodule "src/ext/sqlite/shell"]
+	path = src/ext/sqlite/shell
+	url = ../sqlite_shell.git
