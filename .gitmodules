@@ -10,3 +10,6 @@
 [submodule "src/ext/MyHomeLib"]
 	path = src/ext/MyHomeLib
 	url = ../MyHomeLib.git
+[submodule "src/ext/sqlite/sqlite3pp"]
+	path = src/ext/sqlite/sqlite3pp
+	url = ../sqlite3pp.git
