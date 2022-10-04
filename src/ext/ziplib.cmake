@@ -26,4 +26,6 @@ AddTarget(
 	PROJECT_GROUP Util/Zip
 	EXCLUDE_SOURCES "${CMAKE_CURRENT_LIST_DIR}/ziplib/Source/ZipLib/extlibs/"
 	STATIC_RUNTIME
+	COMPILER_OPTIONS
+		[ MSVC /std:c++14 ]
 )
