@@ -24,13 +24,16 @@ add_definitions(
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-link_directories(${CMAKE_CURRENT_BINARY_DIR})
+set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-include("src/ext/scripts/cmake/target.cmake")
-include("src/ext/scripts/cmake/utils.cmake")
+set(SCRIPTS_PATH "src/ext/scripts")
+include("${SCRIPTS_PATH}/cmake/utils.cmake")
+include("${SCRIPTS_PATH}/cmake/target.cmake")
 
 include("src/ext/ziplib.cmake")
 include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 include("src/ext/fmt.cmake")
+
 include("src/home/inpx.cmake")
+include("src/home/flibrary.cmake")

@@ -1,6 +1,0 @@
-/// Generated from helpers/AmalgamationBuild.cpp.in
-#define MOVAVI_AMALGAMATION_BUILD
-#ifdef __clang__
-#  pragma clang diagnostic ignored  "-Wnonportable-include-path"
-#endif
-@amalgamation_lines@

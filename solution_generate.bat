@@ -1,9 +1,7 @@
 rem @echo off
 
 set start_time=%DATE% %TIME%
-
-call src\ext\scripts\batch\check_cmake.bat
-if NOT [%ERRORLEVEL%]==[0] goto end
+set cmake_path=D:\programs\cmake\3.20.3\bin\cmake.exe
 
 set tee_name=tee.exe
 call src\ext\scripts\batch\check_executable.bat %tee_name%
