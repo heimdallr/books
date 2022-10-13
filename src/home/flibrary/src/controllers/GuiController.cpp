@@ -57,14 +57,18 @@ GuiController::GuiController(const std::string & databaseName, QObject * parent)
 
 GuiController::~GuiController() = default;
 
+void GuiController::Start()
+{
+	m_impl->Start(this);
+}
+
 QAbstractItemModel * GuiController::GetAuthorsModel()
 {
 	return m_impl->GetAuthorsModel();
 }
 
-void GuiController::Start()
+void GuiController::OnCurrentAuthorChanged(int /*index*/)
 {
-	m_impl->Start(this);
 }
-	
+
 }

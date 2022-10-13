@@ -24,6 +24,8 @@ Rectangle
 		boundsBehavior: Flickable.StopAtBounds
 		ScrollBar.vertical: ScrollBar {}
 
+		onCurrentIndexChanged: guiController.OnCurrentAuthorChanged(currentIndex)
+
 		delegate: Rectangle
 		{
 			readonly property bool isSelected: listViewID.currentIndex == index

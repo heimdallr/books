@@ -22,6 +22,7 @@ public:
 
 public:
 	Q_INVOKABLE QAbstractItemModel * GetAuthorsModel();
+	Q_INVOKABLE void OnCurrentAuthorChanged(int index);
 
 private:
 	class Impl;
