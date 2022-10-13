@@ -35,6 +35,8 @@ include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 include("src/ext/fmt.cmake")
 
+include("src/home/database/database.cmake")
+
 include("src/home/inpx.cmake")
 include("src/home/flibrary.cmake")
 
