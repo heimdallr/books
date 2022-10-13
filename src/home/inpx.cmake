@@ -1,6 +1,7 @@
 AddTarget(
 	NAME inpx
 	TYPE app_console
+	PROJECT_GROUP Tool
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/inpx/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"

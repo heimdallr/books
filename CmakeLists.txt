@@ -23,7 +23,7 @@ add_definitions(
 )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
+set(WARN_DISABLE_DEPRECATED	ON)
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(SCRIPTS_PATH "src/ext/scripts")
@@ -37,3 +37,5 @@ include("src/ext/fmt.cmake")
 
 include("src/home/inpx.cmake")
 include("src/home/flibrary.cmake")
+
+include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")
