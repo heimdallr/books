@@ -5,7 +5,6 @@ AddTarget(
 	PROJECT_GROUP Util/SQL
 	COMPILE_DEFINITIONS
 		SQLITE_THREADSAFE=0
-	STATIC_RUNTIME
 )
 AddTarget(
 	NAME sqlite3pp
@@ -14,7 +13,6 @@ AddTarget(
 	PROJECT_GROUP Util/SQL
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
-	STATIC_RUNTIME
 )
 AddTarget(
 	NAME sqlite3shell_lib
@@ -27,7 +25,6 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/shell/main.c"
 	LINK_TARGETS
 		sqlite
-	STATIC_RUNTIME
 )
 AddTarget(
 	NAME sqlite3
@@ -38,5 +35,4 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
 	LINK_TARGETS
 		sqlite
-	STATIC_RUNTIME
 )
