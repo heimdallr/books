@@ -24,6 +24,10 @@ AddTarget(
 	QRC
 		"${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/main.qrc"
 	LINK_TARGETS
+		DatabaseFactory
+		DatabaseInt
+		sqlite
+		sqlite3pp
 	MODULES
 		qt
 	COMPILER_OPTIONS
