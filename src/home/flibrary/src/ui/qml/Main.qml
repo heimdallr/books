@@ -5,8 +5,8 @@ ApplicationWindow
 {
 	id: applicationWindowID
 
-	width: 800
-	height: 600
+	width: 1280
+	height: 720
 
 	title: qsTranslate("Main", "Flibrary - flibusta books collection")
 
