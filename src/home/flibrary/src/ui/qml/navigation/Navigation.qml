@@ -11,8 +11,10 @@ Rectangle
 
 		anchors.fill: parent
 
-		model: guiController.GetAuthorsModel()
-		currentIndex: guiController.currentNavigationIndex
+		readonly property var modelController: guiController.GetAuthorsModelController()
+
+		model: modelController.model
+		currentIndex: modelController.currentIndex
 
 		flickableDirection: Flickable.VerticalFlick
 		boundsBehavior: Flickable.StopAtBounds
@@ -59,9 +61,10 @@ Rectangle
 				color: isSelected ?  "white" : "black"
 			}
 
-			MouseArea {
+			MouseArea
+			{
 				anchors.fill: parent
-				onClicked: guiController.currentNavigationIndex = index
+				onClicked: listViewID.modelController.currentIndex = index
 			}
 		}
 	}

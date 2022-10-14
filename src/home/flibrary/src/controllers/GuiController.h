@@ -5,16 +5,19 @@
 #include <QObject>
 
 #include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
 
 class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
+class ModelController;
+
 class GuiController
 	: public QObject
 {
+	NON_COPY_MOVABLE(GuiController)
 	Q_OBJECT
-	Q_PROPERTY(int currentNavigationIndex READ GetCurrentNavigationIndex WRITE SetCurrentNavigationIndex NOTIFY CurrentNavigationIndexChanged)
 	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
@@ -23,18 +26,14 @@ public:
 	void Start();
 
 public:
-	Q_INVOKABLE QAbstractItemModel * GetAuthorsModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
+	Q_INVOKABLE ModelController * GetAuthorsModelController() noexcept;
 
 signals:
-	void CurrentNavigationIndexChanged() const;
 	void RunningChanged() const;
 
-private:
-	int GetCurrentNavigationIndex() const;
-	void SetCurrentNavigationIndex(int);
-
-	bool GetRunning() const;
+private: // property setters
+	bool GetRunning() const noexcept;
 
 private:
 	class Impl;
