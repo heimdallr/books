@@ -12,19 +12,14 @@ Rectangle
 		anchors.fill: parent
 
 		model: guiController.GetAuthorsModel()
-
-		focus: true
-
-		Keys.onUpPressed: if (listViewID.currentIndex > 0)
-			listViewID.currentIndex--
-		Keys.onDownPressed: if (listViewID.currentIndex < listViewID.count - 1)
-			listViewID.currentIndex++
+		currentIndex: guiController.currentNavigationIndex
 
 		flickableDirection: Flickable.VerticalFlick
 		boundsBehavior: Flickable.StopAtBounds
-		ScrollBar.vertical: ScrollBar {}
+		ScrollBar.vertical: ScrollBar { id: scrollBarID }
 
-		onCurrentIndexChanged: guiController.OnCurrentAuthorChanged(currentIndex)
+// @todo
+//		onCurrentIndexChanged: scrollBarID.position = currentIndex / count
 
 		delegate: Rectangle
 		{
@@ -66,11 +61,7 @@ Rectangle
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked:
-				{
-					listViewID.focus = true
-					listViewID.currentIndex = index
-				}
+				onClicked: guiController.currentNavigationIndex = index
 			}
 		}
 	}

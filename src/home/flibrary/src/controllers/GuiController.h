@@ -14,6 +14,8 @@ class GuiController
 	: public QObject
 {
 	Q_OBJECT
+	Q_PROPERTY(int currentNavigationIndex READ GetCurrentNavigationIndex WRITE SetCurrentNavigationIndex NOTIFY CurrentNavigationIndexChanged)
+	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
 	~GuiController() override;
@@ -22,7 +24,17 @@ public:
 
 public:
 	Q_INVOKABLE QAbstractItemModel * GetAuthorsModel();
-	Q_INVOKABLE void OnCurrentAuthorChanged(int index);
+	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
+
+signals:
+	void CurrentNavigationIndexChanged() const;
+	void RunningChanged() const;
+
+private:
+	int GetCurrentNavigationIndex() const;
+	void SetCurrentNavigationIndex(int);
+
+	bool GetRunning() const;
 
 private:
 	class Impl;

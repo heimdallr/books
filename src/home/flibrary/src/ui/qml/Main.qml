@@ -12,6 +12,11 @@ ApplicationWindow
 
 	visible: true
 
+	readonly property bool running: guiController.running
+
+	onRunningChanged: if (!running)
+		close()
+
 	SplitView
 	{
 		id: splitViewID
@@ -20,6 +25,10 @@ ApplicationWindow
 		orientation: Qt.Horizontal
 
 		handle: SplitViewHandle {}
+
+		focus: true
+
+		Keys.onPressed: (event) => guiController.OnKeyPressed(event.key, event.modifiers)
 
 		Navigation
 		{
@@ -36,4 +45,6 @@ ApplicationWindow
 			SplitView.fillWidth: true
 		}
 	}
+
+
 }
