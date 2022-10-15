@@ -1,10 +1,12 @@
 #pragma once
 
+#include "fnd/observer.h"
+
 namespace HomeCompa::Flibrary {
 
 class ModelController;
 
-class ModelControllerObserver
+class ModelControllerObserver : public Observer
 {
 public:
 	virtual ~ModelControllerObserver() = default;

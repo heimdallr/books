@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ModelObserver.h"
-
 #include <QMetaType>
+
+#include "ModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
 class AuthorsModelObserver
-	: virtual public ModelObserver
+	: public ModelObserver
 {
 };
 
