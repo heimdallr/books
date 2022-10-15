@@ -9,6 +9,8 @@ namespace HomeCompa {
 
 class Observer
 {
+	template<typename T> friend class Observable;
+
 public:
 	~Observer()
 	{
@@ -16,6 +18,7 @@ public:
 			observable->HandleObserverDestructed(this);
 	}
 
+private:
 	void Register(ObserverHelper::Observable * observable)
 	{
 		[[maybe_unused]] const auto [_, inserted] = m_observables.emplace(observable);
