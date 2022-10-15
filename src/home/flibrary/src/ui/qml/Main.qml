@@ -26,7 +26,7 @@ ApplicationWindow
 
 		handle: SplitViewHandle {}
 
-		focus: true
+		focus: guiController.mainWindowFocused
 
 		Keys.onPressed: (event) => guiController.OnKeyPressed(event.key, event.modifiers)
 
@@ -45,6 +45,4 @@ ApplicationWindow
 			SplitView.fillWidth: true
 		}
 	}
-
-
 }

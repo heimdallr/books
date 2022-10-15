@@ -2,12 +2,15 @@
 #include <QQmlContext>
 
 #include "fnd/algorithm.h"
+#include "fnd/ConvertableT.h"
 
 #include "database/factory/Factory.h"
 
 #include "database/interface/Database.h"
 
 #include "models/AuthorsModel.h"
+#include "models/AuthorsModelObserver.h"
+#include "models/BaseRole.h"
 
 #include "GuiController.h"
 
@@ -18,7 +21,10 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-class AuthorsModelController : public ModelController
+class AuthorsModelController
+	: public ConvertibleT<AuthorsModelController>
+	, public ModelController
+	, public AuthorsModelObserver
 {
 public:
 	explicit AuthorsModelController(DB::Database & db)
@@ -26,7 +32,19 @@ public:
 	{
 		QQmlEngine::setObjectOwnership(m_model.get(), QQmlEngine::CppOwnership);
 		QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
+		m_model->setData({}, QVariant::fromValue(To<AuthorsModelObserver>()), BaseRole::ObserverRegister);
 		SetModel(m_model.get());
+	}
+
+	~AuthorsModelController() override
+	{
+		m_model->setData({}, QVariant::fromValue(To<AuthorsModelObserver>()), BaseRole::ObserverUnregister);
+	}
+
+private: // AuthorsModelObserver
+	void HandleModelItemFound(const int index) override
+	{
+		SetCurrentIndex(index);
 	}
 
 private:
@@ -80,9 +98,14 @@ public:
 	}
 
 private: // ModelControllerObserver
-	void HandleCurrentIndexChanged(ModelController * const controller, const int /*index*/) override
+	void HandleCurrentIndexChanged(ModelController * const /*controller*/, const int /*index*/) override
+	{
+	}
+
+	void HandleClicked(ModelController * const controller, const int /*index*/) override
 	{
 		m_focusedController = controller;
+		emit m_self.MainWindowFocusedChanged();
 	}
 
 private:

@@ -1,4 +1,5 @@
 #include <QAbstractItemModel>
+#include <QTimer>
 
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
@@ -6,7 +7,13 @@
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
 
+#include "models/BaseRole.h"
+
 namespace HomeCompa::Flibrary {
+
+namespace {
+using Role = BaseRole;
+}
 
 struct ModelController::Impl
 	: Observable<ModelControllerObserver>
@@ -17,9 +24,15 @@ struct ModelController::Impl
 	explicit Impl(ModelController & self)
 		: m_self(self)
 	{
+		m_findTimer.setSingleShot(true);
+		m_findTimer.setInterval(std::chrono::milliseconds(250));
+		connect(&m_findTimer, &QTimer::timeout, [&]
+		{
+			(void)model->setData({}, m_findText, Role::Find);
+		});
 	}
 
-	void OnKeyPressed(int key, int modifiers)
+	void OnKeyPressed(int key, int modifiers) const
 	{
 		if (modifiers == Qt::ControlModifier)
 		{
@@ -55,6 +68,12 @@ struct ModelController::Impl
 		}
 	}
 
+	void Find(const QString & findText)
+	{
+		m_findText = findText;
+		m_findTimer.start();
+	}
+
 private:
 	int IncreaseNavigationIndex(const int increment) const
 	{
@@ -64,6 +83,8 @@ private:
 
 private:
 	ModelController & m_self;
+	QString m_findText;
+	QTimer m_findTimer;
 };
 
 ModelController::ModelController(QObject * parent)
@@ -94,6 +115,17 @@ void ModelController::SetModel(QAbstractItemModel * const model)
 	m_impl->model = model;
 }
 
+void ModelController::SetCurrentIndex(int index)
+{
+	if (Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged))
+		m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index);
+}
+
+void ModelController::Find(const QString & findText)
+{
+	m_impl->Find(findText);
+}
+
 int ModelController::GetCurrentIndex() const
 {
 	return m_impl->currentIndex;
@@ -105,10 +137,10 @@ QAbstractItemModel * ModelController::GetModel()
 	return m_impl->model;
 }
 
-void ModelController::SetCurrentIndex(const int index)
+void ModelController::OnClicked(const int index)
 {
-	if (Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged))
-		m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index);
+	m_impl->Perform(&ModelControllerObserver::HandleClicked, this, index);
+	SetCurrentIndex(index);
 }
 
 }

@@ -19,6 +19,8 @@ class GuiController
 	NON_COPY_MOVABLE(GuiController)
 	Q_OBJECT
 	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
+	Q_PROPERTY(bool mainWindowFocused READ GetMainWindowFocused NOTIFY MainWindowFocusedChanged)
+
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
 	~GuiController() override;
@@ -31,6 +33,10 @@ public:
 
 signals:
 	void RunningChanged() const;
+	void MainWindowFocusedChanged() const;
+
+private: // property getters
+	bool GetMainWindowFocused() const noexcept { return true; }
 
 private: // property setters
 	bool GetRunning() const noexcept;

@@ -1,23 +1,60 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 Rectangle
 {
 	id: navigationID
 
+	readonly property var modelController: guiController.GetAuthorsModelController()
+
+	RowLayout
+	{
+		id: findLayoutID
+		spacing: 4
+
+		anchors
+		{
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
+
+		Text
+		{
+			id: filterTextId
+			text: qsTranslate("Navigation", "Find")
+			font.pointSize: 12
+		}
+
+		TextField
+		{
+			Layout.fillWidth: true
+			font.pointSize: 12
+			onTextChanged: navigationID.modelController.Find(text)
+		}
+	}
+
 	ListView
 	{
 		id: listViewID
 
-		anchors.fill: parent
-
-		readonly property var modelController: guiController.GetAuthorsModelController()
+		anchors
+		{
+			top: findLayoutID.bottom
+			bottom: parent.bottom
+			left: parent.left
+			right: parent.right
+		}
 
 		model: modelController.model
 		currentIndex: modelController.currentIndex
 
+		clip: true
+		boundsBehavior: Flickable.DragAndOvershootBounds
+		snapMode: ListView.SnapToItem
+
 		flickableDirection: Flickable.VerticalFlick
-		boundsBehavior: Flickable.StopAtBounds
 		ScrollBar.vertical: ScrollBar { id: scrollBarID }
 
 // @todo
@@ -64,7 +101,7 @@ Rectangle
 			MouseArea
 			{
 				anchors.fill: parent
-				onClicked: listViewID.modelController.currentIndex = index
+				onClicked: modelController.currentIndex = index
 			}
 		}
 	}
