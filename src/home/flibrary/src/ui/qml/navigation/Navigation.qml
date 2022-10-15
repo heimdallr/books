@@ -47,12 +47,6 @@ Rectangle
 			}
 		}
 
-		Text
-		{
-			text: qsTranslate("Navigation", "Find")
-			font.pointSize: 12
-		}
-
 		TextField
 		{
 			id: viewModeTextID
