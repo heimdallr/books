@@ -1,7 +1,7 @@
 AddTarget(
 	NAME DatabaseInt
 	TYPE header_only
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/interface"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/database/interface"
 	PROJECT_GROUP Interface
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
@@ -9,9 +9,9 @@ AddTarget(
 AddTarget(
 	NAME DatabaseFactory
 	TYPE shared_lib
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/factory"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/database/factory"
 	INCLUDE_DIRS
-		"${CMAKE_CURRENT_LIST_DIR}/.."
+		"${CMAKE_CURRENT_LIST_DIR}"
 	PROJECT_GROUP Database
 	LINK_TARGETS
 		DatabaseInt
@@ -22,11 +22,11 @@ AddTarget(
 AddTarget(
 	NAME DatabaseSqlite
 	TYPE shared_lib
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/impl/sqlite"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/database/impl/sqlite"
 	INCLUDE_DIRS
-		"${CMAKE_CURRENT_LIST_DIR}/.."
-		"${CMAKE_CURRENT_LIST_DIR}/../../ext/sqlite/sqlite"
-		"${CMAKE_CURRENT_LIST_DIR}/../../ext/sqlite/sqlite3pp/src"
+		"${CMAKE_CURRENT_LIST_DIR}"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite3pp/src"
 	PROJECT_GROUP Database/Impl
 	LINK_TARGETS
 		DatabaseInt
