@@ -20,18 +20,45 @@ Rectangle
 			right: parent.right
 		}
 
+		function setViewMode()
+		{
+			navigationID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
+		}
+
+		ComboBox
+		{
+			id: viewModeComboBoxID
+			ListModel
+			{
+				id: viewModeModelID
+		    }
+
+			model: viewModeModelID
+			textRole: "text"
+			valueRole: "value"
+
+			onActivated: findLayoutID.setViewMode()
+
+			Component.onCompleted:
+			{
+				viewModeModelID.append({"text": qsTranslate("ViewMode", "Find"), "value": "Find"})
+				viewModeModelID.append({"text": qsTranslate("ViewMode", "Filter"), "value": "Filter"})
+				currentIndex = indexOfValue("Find")
+			}
+		}
+
 		Text
 		{
-			id: filterTextId
 			text: qsTranslate("Navigation", "Find")
 			font.pointSize: 12
 		}
 
 		TextField
 		{
+			id: viewModeTextID
 			Layout.fillWidth: true
 			font.pointSize: 12
-			onTextChanged: navigationID.modelController.Find(text)
+			onTextChanged: findLayoutID.setViewMode()
 		}
 	}
 

@@ -94,6 +94,11 @@ public:
 		QSortFilterProxyModel::setSourceModel(&m_model);
 	}
 
+	bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const override
+	{
+		return m_model.FilterAcceptsRow(sourceRow, sourceParent);
+	}
+
 private:
 	Model m_model;
 };

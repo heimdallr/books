@@ -13,6 +13,7 @@ struct BaseRole
 		ObserverRegister,
 		ObserverUnregister,
 		Find,
+		Filter,
 		Last
 	};
 };

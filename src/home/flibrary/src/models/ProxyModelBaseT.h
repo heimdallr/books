@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fnd/algorithm.h"
 #include "fnd/observable.h"
 #include "fnd/NonCopyMovable.h"
 
@@ -25,6 +26,12 @@ protected:
 		, m_items(std::move(items))
 		, m_roleNames(QAbstractListModel::roleNames())
 	{
+	}
+
+public:
+	virtual bool FilterAcceptsRow(int row, const QModelIndex & /*parent*/) const
+	{
+		return m_filerString.isEmpty() || data(index(row, 0), Qt::DisplayRole).toString().contains(m_filerString, Qt::CaseInsensitive);
 	}
 
 protected:
@@ -72,6 +79,8 @@ protected:
 				if (!value.isValid() || value.isNull())
 					return false;
 
+				Util::Set(m_filerString, {}, m_proxyModel, &QSortFilterProxyModel::invalidate);
+
 				const auto it = std::ranges::find_if(m_items, [&, value = value.toString()](const Item & item)
 				{
 					return GetFindString(item).startsWith(value, Qt::CaseInsensitive);
@@ -82,6 +91,9 @@ protected:
 				Observable<Observer>::Perform(&Observer::HandleModelItemFound, static_cast<int>(std::ranges::distance(std::ranges::begin(m_items), it)));
 				return true;
 			}
+
+			case Role::Filter:
+				return Util::Set(m_filerString, value.toString(), m_proxyModel, &QSortFilterProxyModel::invalidate);
 
 			default:
 				break;
@@ -137,6 +149,8 @@ protected:
 
 	QHash<int, QByteArray> m_roleNames;
 	QHash<int, RoleGetter> m_roleValues;
+
+	QString m_filerString;
 };
 
 }

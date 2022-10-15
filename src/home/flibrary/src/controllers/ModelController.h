@@ -22,9 +22,10 @@ class ModelController
 	Q_OBJECT
 	Q_PROPERTY(int currentIndex READ GetCurrentIndex WRITE OnClicked NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QAbstractItemModel * model READ GetModel NOTIFY ModelChanged)
+	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 
 public:
-	Q_INVOKABLE void Find(const QString & findText);
+	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
 
 public:
 	explicit ModelController(QObject * parent = nullptr);
@@ -46,6 +47,7 @@ protected:
 private: // property getters
 	int GetCurrentIndex() const;
 	QAbstractItemModel * GetModel();
+	QString GetViewMode() const;
 
 private: // property setters
 	void OnClicked(int index);

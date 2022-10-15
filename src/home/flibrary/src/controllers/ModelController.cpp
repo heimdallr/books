@@ -2,6 +2,7 @@
 #include <QTimer>
 
 #include "fnd/algorithm.h"
+#include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
 #include "ModelController.h"
@@ -12,7 +13,20 @@
 namespace HomeCompa::Flibrary {
 
 namespace {
+
 using Role = BaseRole;
+
+#define VIEW_MODE_ITEMS_MACRO \
+		VIEW_MODE_ITEM(Find) \
+		VIEW_MODE_ITEM(Filter)
+
+constexpr std::pair<const char *, int> g_viewModes[]
+{
+#define VIEW_MODE_ITEM(NAME) { #NAME, Role::NAME },
+		VIEW_MODE_ITEMS_MACRO
+#undef  VIEW_MODE_ITEM
+};
+
 }
 
 struct ModelController::Impl
@@ -20,6 +34,7 @@ struct ModelController::Impl
 {
 	QAbstractItemModel * model { nullptr };
 	int currentIndex { 0 };
+	int viewModeRole { Role::Find };
 
 	explicit Impl(ModelController & self)
 		: m_self(self)
@@ -28,7 +43,7 @@ struct ModelController::Impl
 		m_findTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&m_findTimer, &QTimer::timeout, [&]
 		{
-			(void)model->setData({}, m_findText, Role::Find);
+			(void)model->setData({}, m_viewModeText, viewModeRole);
 		});
 	}
 
@@ -68,9 +83,10 @@ struct ModelController::Impl
 		}
 	}
 
-	void Find(const QString & findText)
+	void SetViewMode(const QString & mode, const QString & text)
 	{
-		m_findText = findText;
+		viewModeRole = FindSecond(g_viewModes, mode.toStdString().data(), PszComparer{});
+		m_viewModeText = text;
 		m_findTimer.start();
 	}
 
@@ -83,8 +99,9 @@ private:
 
 private:
 	ModelController & m_self;
-	QString m_findText;
 	QTimer m_findTimer;
+
+	QString m_viewModeText;
 };
 
 ModelController::ModelController(QObject * parent)
@@ -121,9 +138,9 @@ void ModelController::SetCurrentIndex(int index)
 		m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index);
 }
 
-void ModelController::Find(const QString & findText)
+void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
-	m_impl->Find(findText);
+	m_impl->SetViewMode(mode, text);
 }
 
 int ModelController::GetCurrentIndex() const
@@ -135,6 +152,11 @@ QAbstractItemModel * ModelController::GetModel()
 {
 	assert(m_impl->model);
 	return m_impl->model;
+}
+
+QString ModelController::GetViewMode() const
+{
+	return FindFirst(g_viewModes, m_impl->viewModeRole);
 }
 
 void ModelController::OnClicked(const int index)
