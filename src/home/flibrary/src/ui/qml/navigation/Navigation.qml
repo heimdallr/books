@@ -6,7 +6,8 @@ Rectangle
 {
 	id: navigationID
 
-	readonly property var modelController: guiController.GetAuthorsModelController()
+	property var modelController: undefined
+	property alias delegate: listViewID.delegate
 
 	ColumnLayout
 	{
@@ -91,8 +92,6 @@ Rectangle
 
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
-
-			delegate: AuthorDelegate {}
 
 			onHeightChanged: modelController.SetPageSize(height / currentItem.height)
 		}
