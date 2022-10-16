@@ -8,87 +8,80 @@ Rectangle
 
 	readonly property var modelController: guiController.GetAuthorsModelController()
 
-	RowLayout
+	ColumnLayout
 	{
-		id: findLayoutID
+		anchors.fill: parent
 		spacing: 4
 
-		anchors
+		RowLayout
 		{
-			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
+			id: findLayoutID
+			spacing: 4
+			Layout.fillWidth: true
 
-		function setViewMode()
-		{
-			navigationID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
-		}
-
-		ComboBox
-		{
-			id: viewModeComboBoxID
-			ListModel
+			function setViewMode()
 			{
-				id: viewModeModelID
-		    }
+				navigationID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
+			}
 
-			model: viewModeModelID
-			textRole: "text"
-			valueRole: "value"
-
-			onActivated: findLayoutID.setViewMode()
-
-			Component.onCompleted:
+			ComboBox
 			{
-				viewModeModelID.append({"text": qsTranslate("ViewMode", "Find"), "value": "Find"})
-				viewModeModelID.append({"text": qsTranslate("ViewMode", "Filter"), "value": "Filter"})
-				currentIndex = indexOfValue("Find")
+				id: viewModeComboBoxID
+
+				model: viewModeModelID
+				textRole: "text"
+				valueRole: "value"
+
+				onActivated: findLayoutID.setViewMode()
+
+				ListModel { id: viewModeModelID }
+
+				Component.onCompleted:
+				{
+					viewModeModelID.append({"text": qsTranslate("ViewMode", "Find"), "value": "Find"})
+					viewModeModelID.append({"text": qsTranslate("ViewMode", "Filter"), "value": "Filter"})
+					currentIndex = indexOfValue("Find")
+				}
+			}
+
+			TextField
+			{
+				id: viewModeTextID
+				Layout.fillWidth: true
+				font.pointSize: 12
+				onTextChanged: findLayoutID.setViewMode()
 			}
 		}
 
-		TextField
+		ListView
 		{
-			id: viewModeTextID
+			id: listViewID
+
 			Layout.fillWidth: true
-			font.pointSize: 12
-			onTextChanged: findLayoutID.setViewMode()
-		}
-	}
+			Layout.fillHeight: true
 
-	ListView
-	{
-		id: listViewID
+			model: modelController.model
+			currentIndex: modelController.currentIndex
 
-		anchors
-		{
-			top: findLayoutID.bottom
-			bottom: parent.bottom
-			left: parent.left
-			right: parent.right
-		}
+			clip: true
+			boundsBehavior: Flickable.DragAndOvershootBounds
+			snapMode: ListView.SnapToItem
 
-		model: modelController.model
-		currentIndex: modelController.currentIndex
+			flickableDirection: Flickable.VerticalFlick
+			ScrollBar.vertical: ScrollBar { id: scrollBarID }
 
-		clip: true
-		boundsBehavior: Flickable.DragAndOvershootBounds
-		snapMode: ListView.SnapToItem
+			delegate: AuthorDelegate
+			{
+				id: delegateID
+				width: navigationID.width
 
-		flickableDirection: Flickable.VerticalFlick
-		ScrollBar.vertical: ScrollBar { id: scrollBarID }
+				readonly property bool isSelected: listViewID.currentIndex == index
 
-		delegate: AuthorDelegate
-		{
-			id: delegateID
-			width: navigationID.width
-
-			readonly property bool isSelected: listViewID.currentIndex == index
-
-			onClickedFunction: () => Click = true
-			backgroundColor: isSelected ? "blue" : "white"
-			textColor: isSelected ? "white" : "black"
-			text: Title
+				onClickedFunction: () => Click = true
+				backgroundColor: isSelected ? "blue" : "white"
+				textColor: isSelected ? "white" : "black"
+				text: Title
+			}
 		}
 	}
 }
