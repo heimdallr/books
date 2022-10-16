@@ -3,6 +3,7 @@
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
 
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
+		<file alias="AuthorDelegate.qml">../src/ui/qml/navigation/AuthorDelegate.qml</file>
 		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
 		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
 		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>

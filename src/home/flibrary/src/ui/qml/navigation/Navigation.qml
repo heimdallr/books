@@ -78,49 +78,17 @@ Rectangle
 		flickableDirection: Flickable.VerticalFlick
 		ScrollBar.vertical: ScrollBar { id: scrollBarID }
 
-		delegate: Rectangle
+		delegate: AuthorDelegate
 		{
+			id: delegateID
+			width: navigationID.width
+
 			readonly property bool isSelected: listViewID.currentIndex == index
 
-			width: navigationID.width
-			height: 36
-
-			color: isSelected ?  "lightblue" : "white"
-
-			Rectangle
-			{
-				anchors
-				{
-					top: parent.top
-					left: parent.left
-					right: parent.right
-				}
-
-				color: "lightgray"
-				height: 1
-			}
-
-			Text
-			{
-				anchors
-				{
-					bottom: parent.bottom
-					left: parent.left
-		
-					leftMargin: 4
-					bottomMargin: 4
-				}
-
-				font.pointSize: 12
-				text: display
-				color: isSelected ?  "white" : "black"
-			}
-
-			MouseArea
-			{
-				anchors.fill: parent
-				onClicked: modelController.currentIndex = index
-			}
+			modelController: navigationID.modelController
+			backgroundColor: isSelected ? "blue" : "white"
+			textColor: isSelected ? "white" : "black"
+			text: display
 		}
 	}
 }
