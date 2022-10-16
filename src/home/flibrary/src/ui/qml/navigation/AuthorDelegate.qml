@@ -6,13 +6,10 @@ Rectangle
 {
 	id: autorDelegateID
 
-	property var onClickedFunction: undefined
-
-	property alias backgroundColor: autorDelegateID.color
-	property alias textColor: textID.color
-	property alias text: textID.text
+	property bool isSelected: false
 
 	height: 36
+	color: isSelected ? "blue" : "white"
 
 	border { color: "lightgray"; width: 1 }
 
@@ -26,13 +23,15 @@ Rectangle
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
-
 		font.pointSize: 12
+
+		color: isSelected ? "white" : "black"
+		text: Title
 	}
 
 	MouseArea
 	{
 		anchors.fill: parent
-		onClicked: onClickedFunction()
+		onClicked: Click = true
 	}
 }

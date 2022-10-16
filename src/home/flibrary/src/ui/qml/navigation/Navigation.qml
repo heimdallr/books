@@ -75,13 +75,10 @@ Rectangle
 				id: delegateID
 				width: navigationID.width
 
-				readonly property bool isSelected: listViewID.currentIndex == index
-
-				onClickedFunction: () => Click = true
-				backgroundColor: isSelected ? "blue" : "white"
-				textColor: isSelected ? "white" : "black"
-				text: Title
+				isSelected: listViewID.currentIndex == index
 			}
+
+			highlightFollowsCurrentItem: false
 		}
 	}
 }
