@@ -26,7 +26,7 @@ struct Author
 };
 
 class Model final
-	: public ProxyModelBaseT<Author, AuthorsRole, AuthorsModelObserver>
+	: public ProxyModelBaseT<Author, AuthorsRole, ModelObserver>
 {
 public:
 	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)

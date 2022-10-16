@@ -6,7 +6,7 @@ Rectangle
 {
 	id: autorDelegateID
 
-	property var modelController: undefined
+	property var onClickedFunction: undefined
 
 	property alias backgroundColor: autorDelegateID.color
 	property alias textColor: textID.color
@@ -33,6 +33,6 @@ Rectangle
 	MouseArea
 	{
 		anchors.fill: parent
-		onClicked: modelController.currentIndex = index
+		onClicked: onClickedFunction()
 	}
 }

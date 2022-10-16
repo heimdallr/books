@@ -2,14 +2,12 @@
 #include <QQmlContext>
 
 #include "fnd/algorithm.h"
-#include "fnd/ConvertableT.h"
 
 #include "database/factory/Factory.h"
 
 #include "database/interface/Database.h"
 
 #include "models/AuthorsModel.h"
-#include "models/AuthorsModelObserver.h"
 #include "models/BaseRole.h"
 
 #include "GuiController.h"
@@ -22,29 +20,21 @@ namespace HomeCompa::Flibrary {
 namespace {
 
 class AuthorsModelController
-	: public ConvertibleT<AuthorsModelController>
-	, public ModelController
-	, public AuthorsModelObserver
+	: public ModelController
 {
+	NON_COPY_MOVABLE(AuthorsModelController)
 public:
 	explicit AuthorsModelController(DB::Database & db)
 		: m_model(std::unique_ptr<QAbstractItemModel>(CreateAuthorsModel(db)))
 	{
 		QQmlEngine::setObjectOwnership(m_model.get(), QQmlEngine::CppOwnership);
 		QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
-		m_model->setData({}, QVariant::fromValue(To<AuthorsModelObserver>()), BaseRole::ObserverRegister);
-		SetModel(m_model.get());
+		ResetModel(m_model.get());
 	}
 
 	~AuthorsModelController() override
 	{
-		m_model->setData({}, QVariant::fromValue(To<AuthorsModelObserver>()), BaseRole::ObserverUnregister);
-	}
-
-private: // AuthorsModelObserver
-	void HandleModelItemFound(const int index) override
-	{
-		SetCurrentIndex(index);
+		ResetModel();
 	}
 
 private:

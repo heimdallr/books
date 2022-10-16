@@ -2,7 +2,6 @@
 
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
-#include "fnd/NonCopyMovable.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -11,8 +10,6 @@ class ProxyModelBaseT
 	: public QAbstractListModel
 	, public Observable<ObserverType>
 {
-	NON_COPY_MOVABLE(ProxyModelBaseT)
-
 protected:
 	using Item = ItemType;
 	using Items = std::vector<Item>;
@@ -26,10 +23,11 @@ protected:
 		, m_items(std::move(items))
 		, m_roleNames(QAbstractListModel::roleNames())
 	{
+		m_roleNames.insert(Role::Click, "Click");
 	}
 
 public:
-	virtual bool FilterAcceptsRow(int row, const QModelIndex & /*parent*/) const
+	virtual bool FilterAcceptsRow(int row, const QModelIndex & /*parent*/ = {}) const
 	{
 		return m_filerString.isEmpty() || data(index(row, 0), Qt::DisplayRole).toString().contains(m_filerString, Qt::CaseInsensitive);
 	}
@@ -48,8 +46,17 @@ protected:
 		return assert(false && "Unknown role"), QVariant();
 	}
 
-	virtual bool SetDataLocal(const QModelIndex &, const QVariant &, int, Item &)
+	virtual bool SetDataLocal(const QModelIndex & index, const QVariant &, int role, Item &)
 	{
+		switch (role)
+		{
+			case Role::Click:
+				return Observable<Observer>::Perform(&Observer::HandleItemClicked, index.row()), true;
+
+			default:
+				break;
+		}
+
 		return assert(false && "Unknown role"), false;
 	}
 
@@ -58,8 +65,7 @@ protected:
 		switch (role)
 		{
 			case Role::ResetBegin:
-				emit beginResetModel();
-				return true;
+				return emit beginResetModel(), true;
 
 			case Role::ResetEnd:
 				emit endResetModel();
@@ -67,12 +73,10 @@ protected:
 				return true;
 
 			case Role::ObserverRegister:
-				Observable<Observer>::Register(value.value<Observer *>());
-				return true;
+				return Observable<Observer>::Register(value.value<Observer *>()), true;
 
 			case Role::ObserverUnregister:
-				Observable<Observer>::Unregister(value.value<Observer *>());
-				return true;
+				return Observable<Observer>::Unregister(value.value<Observer *>()), true;
 
 			case Role::Find:
 			{
@@ -93,7 +97,31 @@ protected:
 			}
 
 			case Role::Filter:
-				return Util::Set(m_filerString, value.toString(), m_proxyModel, &QSortFilterProxyModel::invalidate);
+				if (Util::Set(m_filerString, value.toString(), m_proxyModel, &QSortFilterProxyModel::invalidate))
+					return Observable<Observer>::Perform(&Observer::HandleInvalidated), true;
+				return false;
+
+			case Role::TranslateIndexFromGlobal:
+			{
+				const auto request = value.value<TranslateIndexFromGlobalRequest>();
+				*request.localIndex = m_proxyModel.mapFromSource(index(request.globalIndex)).row();
+				return true;
+			}
+
+			case Role::CheckIndexVisible:
+			{
+				const auto request = value.value<CheckIndexVisibleRequest>();
+				if (*request.visibleIndex >= 0 && *request.visibleIndex < rowCount())
+					if (FilterAcceptsRow(*request.visibleIndex))
+						return true;
+
+				for (int i = 0, sz = rowCount(); i < sz; ++i)
+					if (FilterAcceptsRow(i))
+						return (*request.visibleIndex = i), true;
+
+				*request.visibleIndex = -1;
+				return false;
+			}
 
 			default:
 				break;

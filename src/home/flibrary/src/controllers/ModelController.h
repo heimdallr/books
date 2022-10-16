@@ -18,9 +18,9 @@ class ModelControllerObserver;
 class ModelController
 	: public QObject
 {
-//	NON_COPY_MOVABLE(ModelController)
+	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
-	Q_PROPERTY(int currentIndex READ GetCurrentIndex WRITE OnClicked NOTIFY CurrentIndexChanged)
+	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QAbstractItemModel * model READ GetModel NOTIFY ModelChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 
@@ -41,16 +41,14 @@ signals:
 	void ModelChanged() const;
 
 protected:
-	void SetModel(QAbstractItemModel * model);
-	void SetCurrentIndex(int index);
+	void ResetModel(QAbstractItemModel * model = nullptr);
 
 private: // property getters
-	int GetCurrentIndex() const;
+	int GetCurrentLocalIndex() const;
 	QAbstractItemModel * GetModel();
 	QString GetViewMode() const;
 
 private: // property setters
-	void OnClicked(int index);
 
 private:
 	struct Impl;

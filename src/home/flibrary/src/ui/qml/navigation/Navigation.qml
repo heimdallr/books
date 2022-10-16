@@ -85,7 +85,7 @@ Rectangle
 
 			readonly property bool isSelected: listViewID.currentIndex == index
 
-			modelController: navigationID.modelController
+			onClickedFunction: () => Click = true
 			backgroundColor: isSelected ? "blue" : "white"
 			textColor: isSelected ? "white" : "black"
 			text: display

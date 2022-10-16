@@ -1,7 +1,9 @@
 #include <QAbstractItemModel>
+#include <QPointer>
 #include <QTimer>
 
 #include "fnd/algorithm.h"
+#include "fnd/ConvertableT.h"
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
@@ -9,6 +11,7 @@
 #include "ModelControllerObserver.h"
 
 #include "models/BaseRole.h"
+#include "models/ModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -30,9 +33,14 @@ constexpr std::pair<const char *, int> g_viewModes[]
 }
 
 struct ModelController::Impl
-	: Observable<ModelControllerObserver>
+	: ConvertibleT<Impl>
+	, Observable<ModelControllerObserver>
+	, ModelObserver
 {
-	QAbstractItemModel * model { nullptr };
+	NON_COPY_MOVABLE(Impl)
+
+public:
+	QPointer<QAbstractItemModel> model;
 	int currentIndex { 0 };
 	int viewModeRole { Role::Find };
 
@@ -47,40 +55,54 @@ struct ModelController::Impl
 		});
 	}
 
-	void OnKeyPressed(int key, int modifiers) const
+	~Impl() override
+	{
+		if (model)
+			model->setData({}, QVariant::fromValue(To<ModelObserver>()), BaseRole::ObserverUnregister);
+	}
+
+	QAbstractItemModel * GetModel() const
+	{
+		assert(model);
+		return model;
+	}
+
+	bool OnKeyPressed(int key, int modifiers)
 	{
 		if (modifiers == Qt::ControlModifier)
 		{
 			switch (key)
 			{
 				case Qt::Key_Home:
-					return m_self.SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
+					return SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
 
 				case Qt::Key_End:
-					return m_self.SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
+					return SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
 
 				default:
-					return;
+					return false;
 			}
 		}
 
 		switch (key)
 		{
 			case Qt::Key_Up:
-				return m_self.SetCurrentIndex(IncreaseNavigationIndex(-1));
+				return SetCurrentIndex(IncreaseNavigationIndex(-1));
 
 			case Qt::Key_Down:
-				return m_self.SetCurrentIndex(IncreaseNavigationIndex(1));
+				return SetCurrentIndex(IncreaseNavigationIndex(1));
 
 			case Qt::Key_PageUp:
-				return m_self.SetCurrentIndex(IncreaseNavigationIndex(-10));
+				return SetCurrentIndex(IncreaseNavigationIndex(-10));
 
 			case Qt::Key_PageDown:
-				return m_self.SetCurrentIndex(IncreaseNavigationIndex(10));
+				return SetCurrentIndex(IncreaseNavigationIndex(10));
 
 			default:
 				break;
 		}
+
+		return false;
 	}
 
 	void SetViewMode(const QString & mode, const QString & text)
@@ -90,7 +112,34 @@ struct ModelController::Impl
 		m_findTimer.start();
 	}
 
+private: // ModelObserver
+	void HandleModelItemFound(const int index) override
+	{
+		SetCurrentIndex(index);
+	}
+
+	void HandleItemClicked(const int index) override
+	{
+		Perform(&ModelControllerObserver::HandleClicked, &m_self, index);
+		SetCurrentIndex(index);
+	}
+
+	void HandleInvalidated() override
+	{
+		(void)GetModel()->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &currentIndex }), Role::CheckIndexVisible);
+		if (!SetCurrentIndex(currentIndex))
+			emit m_self.CurrentIndexChanged();
+	}
+
 private:
+	bool SetCurrentIndex(const int index)
+	{
+		return true
+			&& Util::Set(currentIndex, index, m_self, &ModelController::CurrentIndexChanged)
+			&& (Perform(&ModelControllerObserver::HandleCurrentIndexChanged, &m_self, index), true)
+			;
+	}
+
 	int IncreaseNavigationIndex(const int increment) const
 	{
 		const int index = currentIndex + increment;
@@ -127,15 +176,20 @@ void ModelController::UnregisterObserver(ModelControllerObserver * observer)
 	m_impl->Unregister(observer);
 }
 
-void ModelController::SetModel(QAbstractItemModel * const model)
+void ModelController::ResetModel(QAbstractItemModel * const model)
 {
-	m_impl->model = model;
-}
+	const auto setRegisterData = [&impl = *m_impl](QAbstractItemModel * const model, int role)
+	{
+		(void)model->setData({}, QVariant::fromValue(impl.To<ModelObserver>()), role);
+	};
 
-void ModelController::SetCurrentIndex(int index)
-{
-	if (Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged))
-		m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index);
+	if (m_impl->model)
+		setRegisterData(m_impl->model, BaseRole::ObserverUnregister);
+
+	if (model)
+		setRegisterData(model, BaseRole::ObserverRegister);
+
+	m_impl->model = model;
 }
 
 void ModelController::SetViewMode(const QString & mode, const QString & text)
@@ -143,26 +197,21 @@ void ModelController::SetViewMode(const QString & mode, const QString & text)
 	m_impl->SetViewMode(mode, text);
 }
 
-int ModelController::GetCurrentIndex() const
+int ModelController::GetCurrentLocalIndex() const
 {
-	return m_impl->currentIndex;
+	int localIndex = -1;
+	(void)m_impl->GetModel()->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { m_impl->currentIndex, &localIndex }), Role::TranslateIndexFromGlobal);
+	return localIndex;
 }
 
 QAbstractItemModel * ModelController::GetModel()
 {
-	assert(m_impl->model);
-	return m_impl->model;
+	return m_impl->GetModel();
 }
 
 QString ModelController::GetViewMode() const
 {
 	return FindFirst(g_viewModes, m_impl->viewModeRole);
-}
-
-void ModelController::OnClicked(const int index)
-{
-	m_impl->Perform(&ModelControllerObserver::HandleClicked, this, index);
-	SetCurrentIndex(index);
 }
 
 }
