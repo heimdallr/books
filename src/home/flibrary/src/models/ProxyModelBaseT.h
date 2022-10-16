@@ -32,7 +32,7 @@ protected:
 public:
 	virtual bool FilterAcceptsRow(int row, const QModelIndex & /*parent*/ = {}) const
 	{
-		return m_filerString.isEmpty() || data(index(row, 0), Qt::DisplayRole).toString().contains(m_filerString, Qt::CaseInsensitive);
+		return m_filerString.isEmpty() || data(index(row, 0), Role::Title).toString().contains(m_filerString, Qt::CaseInsensitive);
 	}
 
 protected:
@@ -90,7 +90,7 @@ protected:
 
 				const auto it = std::ranges::find_if(m_items, [&, value = value.toString()](const Item & item)
 				{
-					return GetFindString(item).startsWith(value, Qt::CaseInsensitive);
+					return item.Title.startsWith(value, Qt::CaseInsensitive);
 				});
 				if (it == std::ranges::end(m_items))
 					return false;
@@ -132,8 +132,6 @@ protected:
 
 		return assert(false && "Unknown role"), false;
 	}
-
-	virtual const QString & GetFindString(const Item & item) const = 0;
 
 protected: // QAbstractListModel
 	int rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const override

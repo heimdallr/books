@@ -1,5 +1,3 @@
-#include <QSortFilterProxyModel>
-
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
@@ -12,9 +10,12 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
+constexpr auto QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
+
 struct AuthorsRole
 	: RoleBase
 {
+	// ReSharper disable once CppClassNeverUsed
 	enum Value
 	{
 	};
@@ -22,7 +23,7 @@ struct AuthorsRole
 
 struct Author
 {
-	long long int Id;
+	long long int Id { 0 };
 	QString Title;
 };
 
@@ -50,17 +51,11 @@ public:
 		AddReadableRole(Role::Title, &Author::Title);
 	}
 
-private: // ProxyModelBaseT
-	const QString & GetFindString(const Item & item) const override
-	{
-		return item.Title;
-	}
-
 private:
 	static Items CreateItems(DB::Database & db)
 	{
 		Items items;
-		for (const auto query = db.CreateQuery("select a.AuthorID ID, a.FirstName FIRST_NAME, a.LastName LAST_NAME, a.MiddleName MIDDLE_NAME from Authors a order by a.LastName || a.FirstName || a.MiddleName"); !query->Eof(); query->Next())
+		for (const auto query = db.CreateQuery(QUERY); !query->Eof(); query->Next())
 		{
 			items.emplace_back();
 			items.back().Id = query->Get<long long int>(0);
