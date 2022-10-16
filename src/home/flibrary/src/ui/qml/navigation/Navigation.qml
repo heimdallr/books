@@ -78,9 +78,6 @@ Rectangle
 		flickableDirection: Flickable.VerticalFlick
 		ScrollBar.vertical: ScrollBar { id: scrollBarID }
 
-// @todo
-//		onCurrentIndexChanged: scrollBarID.position = currentIndex / count
-
 		delegate: Rectangle
 		{
 			readonly property bool isSelected: listViewID.currentIndex == index
