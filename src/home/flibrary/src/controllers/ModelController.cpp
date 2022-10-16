@@ -43,6 +43,7 @@ public:
 	QPointer<QAbstractItemModel> model;
 	int currentIndex { 0 };
 	int viewModeRole { Role::Find };
+	int pageSize { 10 };
 
 	explicit Impl(ModelController & self)
 		: m_self(self)
@@ -93,10 +94,10 @@ public:
 				return SetCurrentIndex(IncreaseNavigationIndex(1));
 
 			case Qt::Key_PageUp:
-				return SetCurrentIndex(IncreaseNavigationIndex(-10));
+				return SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
 
 			case Qt::Key_PageDown:
-				return SetCurrentIndex(IncreaseNavigationIndex(10));
+				return SetCurrentIndex(IncreaseNavigationIndex(pageSize));
 
 			default:
 				break;
@@ -195,6 +196,11 @@ void ModelController::ResetModel(QAbstractItemModel * const model)
 void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
 	m_impl->SetViewMode(mode, text);
+}
+
+void ModelController::SetPageSize(const int pageSize)
+{
+	m_impl->pageSize = pageSize;
 }
 
 int ModelController::GetCurrentLocalIndex() const

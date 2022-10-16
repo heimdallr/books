@@ -26,6 +26,7 @@ class ModelController
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
+	Q_INVOKABLE void SetPageSize(int pageSize);
 
 public:
 	explicit ModelController(QObject * parent = nullptr);

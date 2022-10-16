@@ -89,13 +89,15 @@ Rectangle
 			flickableDirection: Flickable.VerticalFlick
 			ScrollBar.vertical: ScrollBar {}
 
+			highlight: highlightID
+			highlightFollowsCurrentItem: false
+
 			delegate: AuthorDelegate
 			{
 				width: navigationID.width
 			}
 
-			highlight: highlightID
-			highlightFollowsCurrentItem: false
+			onHeightChanged: modelController.SetPageSize(height / currentItem.height)
 		}
 	}
 }
