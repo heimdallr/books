@@ -19,13 +19,13 @@ public:
 	}
 
 private:
-	void Register(ObserverHelper::Observable * observable)
+	void RegisterObservableHelper(ObserverHelper::Observable * observable)
 	{
 		[[maybe_unused]] const auto [_, inserted] = m_observables.emplace(observable);
 		assert(inserted);
 	}
 
-	void Unregister(ObserverHelper::Observable * observable)
+	void UnregisterObservableHelper(ObserverHelper::Observable * observable)
 	{
 		[[maybe_unused]] const auto result = m_observables.erase(observable);
 		assert(result == 1);

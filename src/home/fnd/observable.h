@@ -15,12 +15,12 @@ public:
 	~Observable() override
 	{
 		for (auto * observer : m_observers)
-			observer->Unregister(this);
+			observer->UnregisterObservableHelper(this);
 	}
 
 	void Register(T * observer)
 	{
-		observer->Register(this);
+		observer->RegisterObservableHelper(this);
 		[[maybe_unused]] auto inserted = m_observers.emplace(observer).second;
 		inserted = m_observersMap.emplace(observer, observer).second;
 		assert(inserted);
@@ -28,7 +28,7 @@ public:
 
 	void Unregister(T * observer)
 	{
-		observer->Unregister(this);
+		observer->UnregisterObservableHelper(this);
 		[[maybe_unused]] const auto result = Remove(observer);
 		assert(result);
 	}
