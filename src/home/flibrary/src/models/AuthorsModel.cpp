@@ -4,7 +4,7 @@
 #include "database/interface/Query.h"
 
 #include "AuthorsModelObserver.h"
-#include "BaseRole.h"
+#include "RoleBase.h"
 
 #include "ProxyModelBaseT.h"
 
@@ -13,7 +13,7 @@ namespace HomeCompa::Flibrary {
 namespace {
 
 struct AuthorsRole
-	: BaseRole
+	: RoleBase
 {
 };
 
@@ -32,12 +32,6 @@ public:
 	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db))
 	{
-	}
-
-private: // QAbstractItemModel
-	int rowCount(const QModelIndex & parent = QModelIndex()) const override
-	{
-		return parent.isValid() ? 0 : static_cast<int>(std::size(m_items));
 	}
 
 private: // ProxyModelBaseT

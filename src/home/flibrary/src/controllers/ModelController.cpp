@@ -10,14 +10,14 @@
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
 
-#include "models/BaseRole.h"
+#include "models/RoleBase.h"
 #include "models/ModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
 namespace {
 
-using Role = BaseRole;
+using Role = RoleBase;
 
 #define VIEW_MODE_ITEMS_MACRO \
 		VIEW_MODE_ITEM(Find) \
@@ -58,7 +58,7 @@ public:
 	~Impl() override
 	{
 		if (model)
-			model->setData({}, QVariant::fromValue(To<ModelObserver>()), BaseRole::ObserverUnregister);
+			model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
 	}
 
 	QAbstractItemModel * GetModel() const
@@ -184,10 +184,10 @@ void ModelController::ResetModel(QAbstractItemModel * const model)
 	};
 
 	if (m_impl->model)
-		setRegisterData(m_impl->model, BaseRole::ObserverUnregister);
+		setRegisterData(m_impl->model, RoleBase::ObserverUnregister);
 
 	if (model)
-		setRegisterData(model, BaseRole::ObserverRegister);
+		setRegisterData(model, RoleBase::ObserverRegister);
 
 	m_impl->model = model;
 }

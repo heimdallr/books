@@ -1,12 +1,13 @@
 #pragma once
 
+#include <QObject>
 #include <qnamespace.h>
 
 namespace HomeCompa::Flibrary {
 
-struct BaseRole
+struct RoleBase : QObject
 {
-	enum BaseValue
+	enum ValueBase
 	{
 		FakeRoleFirst = Qt::UserRole + 1,
 
@@ -25,6 +26,7 @@ struct BaseRole
 
 		FakeRoleLast
 	};
+	Q_ENUM(ValueBase)
 };
 
 struct TranslateIndexFromGlobalRequest

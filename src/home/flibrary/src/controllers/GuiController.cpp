@@ -8,7 +8,7 @@
 #include "database/interface/Database.h"
 
 #include "models/AuthorsModel.h"
-#include "models/BaseRole.h"
+#include "models/RoleBase.h"
 
 #include "GuiController.h"
 
