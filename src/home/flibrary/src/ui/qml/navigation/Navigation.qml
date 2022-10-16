@@ -92,10 +92,7 @@ Rectangle
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
 
-			delegate: AuthorDelegate
-			{
-				width: navigationID.width
-			}
+			delegate: AuthorDelegate {}
 
 			onHeightChanged: modelController.SetPageSize(height / currentItem.height)
 		}

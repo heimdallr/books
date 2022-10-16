@@ -5,6 +5,7 @@ Rectangle
 	id: autorDelegateID
 
 	height: 36
+	width: parent.width
 	color: "transparent"
 
 	border { color: "lightgray"; width: 1 }
