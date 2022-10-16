@@ -1,15 +1,11 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
 
 Rectangle
 {
 	id: autorDelegateID
 
-	property bool isSelected: false
-
 	height: 36
-	color: isSelected ? "blue" : "white"
+	color: "transparent"
 
 	border { color: "lightgray"; width: 1 }
 
@@ -25,7 +21,7 @@ Rectangle
 		}
 		font.pointSize: 12
 
-		color: isSelected ? "white" : "black"
+		color: "black"
 		text: Title
 	}
 

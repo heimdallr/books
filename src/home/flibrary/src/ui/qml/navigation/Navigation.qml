@@ -53,6 +53,25 @@ Rectangle
 			}
 		}
 
+		Component
+		{
+		    id: highlightID
+		    Rectangle
+			{
+		        width: navigationID.width; height: 36; radius: 5
+		        color: "lightsteelblue"
+		        y: listViewID.currentItem.y
+		        Behavior on y
+				{
+		            SpringAnimation
+					{
+		                spring: 3
+		                damping: 0.3
+		            }
+		        }
+		    }
+		}
+
 		ListView
 		{
 			id: listViewID
@@ -68,16 +87,14 @@ Rectangle
 			snapMode: ListView.SnapToItem
 
 			flickableDirection: Flickable.VerticalFlick
-			ScrollBar.vertical: ScrollBar { id: scrollBarID }
+			ScrollBar.vertical: ScrollBar {}
 
 			delegate: AuthorDelegate
 			{
-				id: delegateID
 				width: navigationID.width
-
-				isSelected: listViewID.currentIndex == index
 			}
 
+			highlight: highlightID
 			highlightFollowsCurrentItem: false
 		}
 	}
