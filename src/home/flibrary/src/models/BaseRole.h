@@ -8,16 +8,22 @@ struct BaseRole
 {
 	enum BaseValue
 	{
-		ResetBegin = Qt::UserRole + 1,
+		FakeRoleFirst = Qt::UserRole + 1,
+
+		// запись глобальная
+		ResetBegin,
 		ResetEnd,
 		ObserverRegister,
 		ObserverUnregister,
 		Find,
 		Filter,
-		Click,
 		TranslateIndexFromGlobal,
 		CheckIndexVisible,
-		Last
+
+		// локальная
+		Click,
+
+		FakeRoleLast
 	};
 };
 
