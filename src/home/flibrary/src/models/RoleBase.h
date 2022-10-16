@@ -1,15 +1,20 @@
 #pragma once
 
-#include <QObject>
 #include <qnamespace.h>
+#include <QObject>
 
 namespace HomeCompa::Flibrary {
 
-struct RoleBase : QObject
+struct RoleBase : public QObject
 {
+	Q_OBJECT
+public:
 	enum ValueBase
 	{
 		FakeRoleFirst = Qt::UserRole + 1,
+
+		// чтение локальное
+		Title,
 
 		// запись глобальная
 		ResetBegin,

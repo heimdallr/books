@@ -88,7 +88,7 @@ Rectangle
 			onClickedFunction: () => Click = true
 			backgroundColor: isSelected ? "blue" : "white"
 			textColor: isSelected ? "white" : "black"
-			text: display
+			text: Title
 		}
 	}
 }

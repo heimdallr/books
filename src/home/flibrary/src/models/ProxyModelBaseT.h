@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QMetaEnum>
+#include <QSortFilterProxyModel>
+
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
@@ -23,7 +26,7 @@ protected:
 		, m_items(std::move(items))
 		, m_roleNames(QAbstractListModel::roleNames())
 	{
-		m_roleNames.insert(Role::Click, "Click");
+		AddRole(Role::Click);
 	}
 
 public:
@@ -169,6 +172,42 @@ protected:
 	const Item & GetItem(int n) const
 	{
 		return const_cast<ProxyModelBaseT *>(this)->GetItem(n);
+	}
+
+	void AddRole(typename Role::Value role)
+	{
+		m_roleNames[role] = QMetaEnum::fromType<typename Role::Value>().valueToKey(role);
+	}
+
+	void AddRole(typename Role::ValueBase role)
+	{
+		m_roleNames[role] = QMetaEnum::fromType<typename Role::ValueBase>().valueToKey(role);
+	}
+
+	template <typename Member>
+	void AddReadableRole(typename Role::Value role, Member member)
+	{
+		const auto meta = QMetaEnum::fromType<typename Role::Value>();
+		m_roleNames[role] = meta.valueToKey(role);
+		m_roleValues[role] = CreateGetter(member);
+	}
+
+	template <typename Member>
+	void AddReadableRole(typename Role::ValueBase role, Member member)
+	{
+		const auto meta = QMetaEnum::fromType<typename Role::ValueBase>();
+		m_roleNames[role] = meta.valueToKey(role);
+		m_roleValues[role] = CreateGetter(member);
+	}
+
+private:
+	template <typename Member>
+	static RoleGetter CreateGetter(Member member)
+	{
+		return [member] (const Item & item)
+		{
+			return QVariant::fromValue(item.*member);
+		};
 	}
 
 protected:

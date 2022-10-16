@@ -15,15 +15,30 @@ namespace {
 struct AuthorsRole
 	: RoleBase
 {
+	enum Value
+	{
+	};
 };
 
 struct Author
 {
-	long long int id;
-	QString firstName;
-	QString lastName;
-	QString middleName;
+	long long int Id;
+	QString Title;
 };
+
+void AppendTitle(QString & title, std::string_view str)
+{
+	if (!str.empty())
+		title.append(" ").append(str.data());
+}
+
+QString CreateTitle(const DB::Query & query)
+{
+	QString title = query.Get<std::string>(2).data();
+	AppendTitle(title, query.Get<std::string>(1));
+	AppendTitle(title, query.Get<std::string>(3));
+	return title;
+}
 
 class Model final
 	: public ProxyModelBaseT<Author, AuthorsRole, ModelObserver>
@@ -32,33 +47,13 @@ public:
 	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db))
 	{
+		AddReadableRole(Role::Title, &Author::Title);
 	}
 
 private: // ProxyModelBaseT
-	QVariant GetDataLocal(const QModelIndex &, int role, const Item & item) const override
-	{
-		switch (role)
-		{
-			case Qt::DisplayRole:
-			{
-				QString result = item.lastName;
-				if (!item.firstName.isEmpty())
-					result.append(" ").append(item.firstName);
-				if (!item.middleName.isEmpty())
-					result.append(" ").append(item.middleName);
-				return result;
-			}
-
-			default:
-				assert(false && "unexpected role");
-		}
-
-		return {};
-	}
-
 	const QString & GetFindString(const Item & item) const override
 	{
-		return item.lastName;
+		return item.Title;
 	}
 
 private:
@@ -68,10 +63,8 @@ private:
 		for (const auto query = db.CreateQuery("select a.AuthorID ID, a.FirstName FIRST_NAME, a.LastName LAST_NAME, a.MiddleName MIDDLE_NAME from Authors a order by a.LastName || a.FirstName || a.MiddleName"); !query->Eof(); query->Next())
 		{
 			items.emplace_back();
-			items.back().id = query->Get<long long int>(0);
-			items.back().firstName = query->Get<std::string>(1).data();
-			items.back().lastName = query->Get<std::string>(2).data();
-			items.back().middleName = query->Get<std::string>(3).data();
+			items.back().Id = query->Get<long long int>(0);
+			items.back().Title = CreateTitle(*query);
 		}
 
 		return items;
