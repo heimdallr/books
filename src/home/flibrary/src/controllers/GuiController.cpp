@@ -1,3 +1,4 @@
+#include <QAbstractItemModel>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
@@ -7,41 +8,16 @@
 
 #include "database/interface/Database.h"
 
-#include "models/AuthorsModel.h"
 #include "models/RoleBase.h"
 
 #include "GuiController.h"
 
-#include "ModelController.h"
-#include "ModelControllerObserver.h"
+#include "ModelControllers/ModelController.h"
+#include "ModelControllers/ModelControllerObserver.h"
+#include "ModelControllers/AuthorsModelController.h"
+#include "ModelControllers/BooksModelController.h"
 
 namespace HomeCompa::Flibrary {
-
-namespace {
-
-class AuthorsModelController
-	: public ModelController
-{
-	NON_COPY_MOVABLE(AuthorsModelController)
-public:
-	explicit AuthorsModelController(DB::Database & db)
-		: m_model(std::unique_ptr<QAbstractItemModel>(CreateAuthorsModel(db)))
-	{
-		QQmlEngine::setObjectOwnership(m_model.get(), QQmlEngine::CppOwnership);
-		QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
-		ResetModel(m_model.get());
-	}
-
-	~AuthorsModelController() override
-	{
-		ResetModel();
-	}
-
-private:
-	PropagateConstPtr<QAbstractItemModel> m_model;
-};
-
-}
 
 class GuiController::Impl
 	: virtual public ModelControllerObserver
@@ -52,7 +28,7 @@ public:
 		: m_self(self)
 		, m_db(Create(DB::Factory::Impl::Sqlite, databaseName))
 	{
-		m_authorsModelController.RegisterObserver(this);
+		m_authorsModelController->RegisterObserver(this);
 	}
 
 	~Impl() override
@@ -84,7 +60,12 @@ public:
 
 	ModelController * GetAuthorsModelController() noexcept
 	{
-		return &m_authorsModelController;
+		return m_authorsModelController.get();
+	}
+
+	ModelController * GetBooksModelController() noexcept
+	{
+		return m_booksModelController.get();
 	}
 
 private: // ModelControllerObserver
@@ -102,8 +83,9 @@ private:
 	GuiController & m_self;
 	QQmlApplicationEngine m_qmlEngine;
 	PropagateConstPtr<DB::Database> m_db;
-	AuthorsModelController m_authorsModelController { *m_db };
-	ModelController * m_focusedController { &m_authorsModelController };
+	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_db) };
+	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_db) };
+	ModelController * m_focusedController { m_authorsModelController.get() };
 	bool m_running { true };
 };
 
@@ -128,6 +110,11 @@ void GuiController::OnKeyPressed(const int key, const int modifiers)
 ModelController * GuiController::GetAuthorsModelController() noexcept
 {
 	return m_impl->GetAuthorsModelController();
+}
+
+ModelController * GuiController::GetBooksModelController() noexcept
+{
+	return m_impl->GetBooksModelController();
 }
 
 bool GuiController::GetRunning() const noexcept

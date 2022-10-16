@@ -29,6 +29,13 @@ public:
 	Q_INVOKABLE void SetPageSize(int pageSize);
 
 public:
+	enum class Type
+	{
+		Authors,
+		Books,
+	};
+
+public:
 	explicit ModelController(QObject * parent = nullptr);
 	~ModelController() override;
 
@@ -36,6 +43,9 @@ public:
 
 	void RegisterObserver(ModelControllerObserver * observer);
 	void UnregisterObserver(ModelControllerObserver * observer);
+
+public:
+	virtual Type GetType() const noexcept = 0;
 
 signals:
 	void CurrentIndexChanged() const;

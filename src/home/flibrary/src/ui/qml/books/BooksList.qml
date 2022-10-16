@@ -2,5 +2,10 @@ import QtQuick 2.15
 
 Rectangle
 {
-	color: "green"
+//	Navigation
+//	{
+//		anchors.fill: parent
+//		modelController: guiController.GetAuthorsModelController()
+//		delegate: AuthorDelegate {}
+//	}
 }
