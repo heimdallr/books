@@ -99,6 +99,9 @@ Rectangle
 			highlightFollowsCurrentItem: false
 
 			onHeightChanged: modelController.SetPageSize(height / Constants.delegateHeight)
+
+			Keys.onPressed: (event) => modelController.OnKeyPressed(event.key, event.modifiers)
+			focus: modelController.focused
 		}
 
 		Rectangle

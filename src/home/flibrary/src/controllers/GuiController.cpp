@@ -31,10 +31,13 @@ public:
 		, m_db(Create(DB::Factory::Impl::Sqlite, databaseName))
 	{
 		m_authorsModelController->RegisterObserver(this);
+		m_booksModelController->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
+		m_authorsModelController->UnregisterObserver(this);
+		m_booksModelController->UnregisterObserver(this);
 		m_qmlEngine.clearComponentCache();
 	}
 
@@ -50,14 +53,6 @@ public:
 	bool GetRunning() const noexcept
 	{
 		return m_running;
-	}
-
-	void OnKeyPressed(const int key, const int modifiers)
-	{
-		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
-			Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
-
-		m_focusedController->OnKeyPressed(key, modifiers);
 	}
 
 	ModelController * GetAuthorsModelController() noexcept
@@ -82,10 +77,10 @@ private: // ModelControllerObserver
 		}
 	}
 
-	void HandleClicked(ModelController * const controller, const int /*index*/) override
+	void OnKeyPressed(const int key, const int modifiers) override
 	{
-		m_focusedController = controller;
-		emit m_self.MainWindowFocusedChanged();
+		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
+			Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
 	}
 
 private:
@@ -95,7 +90,6 @@ private:
 	PropagateConstPtr<DB::Database> m_db;
 	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_executor, *m_db) };
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_executor, *m_db) };
-	ModelController * m_focusedController { m_authorsModelController.get() };
 	bool m_running { true };
 };
 
@@ -110,11 +104,6 @@ GuiController::~GuiController() = default;
 void GuiController::Start()
 {
 	m_impl->Start();
-}
-
-void GuiController::OnKeyPressed(const int key, const int modifiers)
-{
-	m_impl->OnKeyPressed(key, modifiers);
 }
 
 ModelController * GuiController::GetAuthorsModelController() noexcept

@@ -73,6 +73,8 @@ public:
 
 	bool OnKeyPressed(int key, int modifiers)
 	{
+		Perform(&ModelControllerObserver::OnKeyPressed, key, modifiers);
+
 		if (modifiers == Qt::ControlModifier)
 		{
 			switch (key)
@@ -124,8 +126,8 @@ private: // ModelObserver
 
 	void HandleItemClicked(const int index) override
 	{
-		Perform(&ModelControllerObserver::HandleClicked, &m_self, index);
 		SetCurrentIndex(index);
+		emit m_self.FocusedChanged();
 	}
 
 	void HandleInvalidated() override

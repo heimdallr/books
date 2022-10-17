@@ -26,10 +26,6 @@ ApplicationWindow
 
 		handle: SplitViewHandle {}
 
-		focus: guiController.mainWindowFocused
-
-		Keys.onPressed: (event) => guiController.OnKeyPressed(event.key, event.modifiers)
-
 		Navigation
 		{
 			SplitView.preferredWidth: applicationWindowID.width / 4

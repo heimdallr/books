@@ -22,11 +22,13 @@ class ModelController
 	Q_OBJECT
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
+	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
+	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
 
 public:
 	enum class Type
@@ -39,8 +41,6 @@ public:
 	explicit ModelController(QAbstractItemModel * model, QObject * parent = nullptr);
 	~ModelController() override;
 
-	void OnKeyPressed(int key, int modifiers);
-
 	void RegisterObserver(ModelControllerObserver * observer);
 	void UnregisterObserver(ModelControllerObserver * observer);
 
@@ -49,8 +49,10 @@ public:
 
 signals:
 	void CurrentIndexChanged() const;
+	void FocusedChanged() const;
 
 private: // property getters
+	bool GetFocused() const noexcept { return true; }
 	int GetCurrentLocalIndex();
 	QString GetViewMode() const;
 
