@@ -55,7 +55,8 @@ private:
 	static Items CreateItems(DB::Database & db)
 	{
 		Items items;
-		for (const auto query = db.CreateQuery(QUERY); !query->Eof(); query->Next())
+		const auto query = db.CreateQuery(QUERY);
+		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			items.emplace_back();
 			items.back().Id = query->Get<long long int>(0);

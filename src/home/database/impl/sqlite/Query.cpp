@@ -9,6 +9,11 @@ namespace HomeCompa::DB::Impl::Sqlite {
 
 namespace {
 
+inline int Index(const size_t index)
+{
+	return static_cast<int>(index);
+}
+
 class Query
 	: virtual public DB::Query
 {
@@ -16,16 +21,20 @@ public:
 	Query(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string & query)
 		: m_lock(mutex)
 		, m_query(db, query.data())
-		, m_it(m_query.begin())
 	{
 	}
 
 private: // Query
+	void Execute() override
+	{
+		m_it = m_query.begin();
+	}
+
 	bool Eof() override
 	{
 		return m_it == m_query.end();
 	}
-	
+
 	void Next() override
 	{
 		assert(!Eof());
@@ -47,7 +56,7 @@ private: // Query
 	{
 		return Get<long long int>(index);
 	}
-	
+
 	double GetDouble(const size_t index) const override
 	{
 		return Get<double>(index);
@@ -63,10 +72,51 @@ private: // Query
 		return Get<const char *>(index);
 	}
 
+	int BindInt(size_t index, int value) override
+	{
+		return m_query.bind(Index(index), value);
+	}
+
+	int BindLong(size_t index, long long int value) override
+	{
+		return m_query.bind(Index(index), value);
+	}
+
+	int BindDouble(size_t index, double value) override
+	{
+		return m_query.bind(Index(index), value);
+	}
+
+	int BindString(size_t index, const std::string & value) override
+	{
+		return m_query.bind(Index(index), value, sqlite3pp::nocopy);
+	}
+
+	int BindInt(std::string_view name, int value) override
+	{
+		return m_query.bind(name.data(), value);
+	}
+
+	int BindLong(std::string_view name, long long int value) override
+	{
+		return m_query.bind(name.data(), value);
+	}
+
+	int BindDouble(std::string_view name, double value) override
+	{
+		return m_query.bind(name.data(), value);
+	}
+
+	int BindString(std::string_view name, const std::string & value) override
+	{
+		return m_query.bind(name.data(), value, sqlite3pp::nocopy);
+	}
+
+private:
 	template<typename T>
 	T Get(const size_t index) const
 	{
-		return (*m_it).get<T>(static_cast<int>(index));
+		return (*m_it).get<T>(Index(index));
 	}
 
 private:
