@@ -84,7 +84,7 @@ private: // ModelControllerObserver
 
 	void OnKeyPressed(const int key, const int modifiers) override
 	{
-		if (key == 45 && modifiers == Qt::AltModifier)
+		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
 			Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
 	}
 
