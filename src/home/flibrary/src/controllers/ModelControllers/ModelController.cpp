@@ -47,7 +47,7 @@ private:
 
 public:
 	PropagateConstPtr<QAbstractItemModel> model;
-	int currentIndex { 0 };
+	int currentIndex { -1 };
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
 
@@ -132,8 +132,9 @@ private: // ModelObserver
 
 	void HandleInvalidated() override
 	{
-		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &currentIndex }), Role::CheckIndexVisible);
-		if (!SetCurrentIndex(currentIndex))
+		auto toIndex = currentIndex;
+		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &toIndex }), Role::CheckIndexVisible);
+		if (!SetCurrentIndex(toIndex))
 			emit m_self.CurrentIndexChanged();
 	}
 

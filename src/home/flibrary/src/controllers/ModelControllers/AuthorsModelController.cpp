@@ -44,6 +44,7 @@ Authors CreateItems(DB::Database & db)
 
 	return items;
 }
+
 }
 
 QAbstractItemModel * CreateAuthorsModel(Authors & items, QObject * parent = nullptr);
