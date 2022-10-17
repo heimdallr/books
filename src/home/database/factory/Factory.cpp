@@ -1,12 +1,9 @@
 #include <cassert>
 
 #include "database/interface/Database.h"
+#include "database/impl/sqlite/Database.h"
 
 #include "Factory.h"
-
-namespace HomeCompa::DB::Impl::Sqlite {
-std::unique_ptr<Database> CreateDatabase(const std::string & connection);
-}
 
 namespace HomeCompa::DB::Factory {
 
@@ -29,9 +26,9 @@ auto GetCreator(const Impl impl)
 {
 	return g_creators[ToIndex(impl)];
 }
-	
+
 }
-	
+
 std::unique_ptr<Database> Create(const Impl impl, const std::string & connection)
 {
 	const auto creator = GetCreator(impl);
