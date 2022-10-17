@@ -38,24 +38,29 @@ private: // Query
 		return static_cast<size_t>(m_query.column_count());
 	}
 
-	int GetInt(size_t index) const override
+	int GetInt(const size_t index) const override
 	{
 		return Get<int>(index);
 	}
 
-	long long int GetLong(size_t index) const override
+	long long int GetLong(const size_t index) const override
 	{
 		return Get<long long int>(index);
 	}
 	
-	double GetDouble(size_t index) const override
+	double GetDouble(const size_t index) const override
 	{
 		return Get<double>(index);
 	}
 
-	std::string GetString(size_t index) const override
+	std::string GetString(const size_t index) const override
 	{
 		return Get<std::string>(index);
+	}
+
+	const char * GetRawString(const size_t index) const override
+	{
+		return Get<const char *>(index);
 	}
 
 	template<typename T>

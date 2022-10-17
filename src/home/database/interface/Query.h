@@ -19,6 +19,7 @@ public:
 	virtual long long int GetLong(size_t index) const = 0;
 	virtual double GetDouble(size_t index) const = 0;
 	virtual std::string GetString(size_t index) const = 0;
+	virtual const char * GetRawString(size_t index) const = 0;
 
 	template<typename T>
 	T Get(size_t index) const
@@ -45,6 +46,11 @@ template<> inline double GetImpl(const Query & query, size_t index)
 template<> inline std::string GetImpl(const Query & query, size_t index)
 {
 	return query.GetString(index);
+}
+
+template<> inline const char * GetImpl(const Query & query, size_t index)
+{
+	return query.GetRawString(index);
 }
 
 }

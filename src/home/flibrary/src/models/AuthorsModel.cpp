@@ -35,9 +35,9 @@ void AppendTitle(QString & title, std::string_view str)
 
 QString CreateTitle(const DB::Query & query)
 {
-	QString title = query.Get<std::string>(2).data();
-	AppendTitle(title, query.Get<std::string>(1));
-	AppendTitle(title, query.Get<std::string>(3));
+	QString title = query.Get<const char *>(2);
+	AppendTitle(title, query.Get<const char *>(1));
+	AppendTitle(title, query.Get<const char *>(3));
 	return title;
 }
 
