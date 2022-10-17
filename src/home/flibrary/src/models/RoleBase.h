@@ -17,6 +17,9 @@ public:
 		Id,
 		Title,
 
+		// запись локальная
+		Click,
+
 		// запись глобальная
 		ResetBegin,
 		ResetEnd,
@@ -24,11 +27,11 @@ public:
 		ObserverUnregister,
 		Find,
 		Filter,
+
+		// чтение через глобальную запись
 		TranslateIndexFromGlobal,
 		CheckIndexVisible,
-
-		// локальная
-		Click,
+		IncreaseLocalIndex,
 
 		FakeRoleLast
 	};
@@ -37,8 +40,7 @@ public:
 
 struct TranslateIndexFromGlobalRequest
 {
-	int globalIndex;
-	int * localIndex;
+	int * index;
 };
 
 struct CheckIndexVisibleRequest
@@ -46,7 +48,14 @@ struct CheckIndexVisibleRequest
 	int * visibleIndex;
 };
 
+struct IncreaseLocalIndexRequest
+{
+	int index;
+	int * incrementedIndex;
+};
+
 }
 
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::TranslateIndexFromGlobalRequest);
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::CheckIndexVisibleRequest);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IncreaseLocalIndexRequest);

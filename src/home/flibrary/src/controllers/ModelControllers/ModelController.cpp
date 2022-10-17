@@ -146,10 +146,11 @@ private:
 			;
 	}
 
-	int IncreaseNavigationIndex(const int increment) const
+	int IncreaseNavigationIndex(const int increment)
 	{
-		const int index = currentIndex + increment;
-		return std::clamp(index, 0, model->rowCount() - 1);
+		int result = currentIndex + increment;
+		(void)model->setData({}, QVariant::fromValue(IncreaseLocalIndexRequest { currentIndex, &result }), Role::IncreaseLocalIndex);
+		return result;
 	}
 };
 
@@ -163,7 +164,10 @@ ModelController::~ModelController() = default;
 
 void ModelController::OnKeyPressed(const int key, const int modifiers)
 {
-	m_impl->OnKeyPressed(key, modifiers);
+	QTimer::singleShot(0, [=, &impl = *m_impl]
+	{
+		impl.OnKeyPressed(key, modifiers);
+	});
 }
 
 void ModelController::RegisterObserver(ModelControllerObserver * observer)
@@ -188,8 +192,8 @@ void ModelController::SetPageSize(const int pageSize)
 
 int ModelController::GetCurrentLocalIndex()
 {
-	int localIndex = -1;
-	(void)m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { m_impl->currentIndex, &localIndex }), Role::TranslateIndexFromGlobal);
+	int localIndex = m_impl->currentIndex;
+	(void)m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &localIndex }), Role::TranslateIndexFromGlobal);
 	return localIndex;
 }
 

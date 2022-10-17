@@ -107,7 +107,7 @@ protected:
 			case Role::TranslateIndexFromGlobal:
 			{
 				const auto request = value.value<TranslateIndexFromGlobalRequest>();
-				*request.localIndex = m_proxyModel.mapFromSource(index(request.globalIndex)).row();
+				*request.index = m_proxyModel.mapFromSource(index(*request.index)).row();
 				return true;
 			}
 
@@ -124,6 +124,16 @@ protected:
 
 				*request.visibleIndex = -1;
 				return false;
+			}
+
+			case Role::IncreaseLocalIndex:
+			{
+				const auto request = value.value<IncreaseLocalIndexRequest>();
+				assert(request.incrementedIndex);
+				auto localIndexIncremented = m_proxyModel.mapFromSource(index(request.index)).row() + (*request.incrementedIndex - request.index);
+				localIndexIncremented = std::clamp(localIndexIncremented, 0, m_proxyModel.rowCount());
+				*request.incrementedIndex = m_proxyModel.mapToSource(m_proxyModel.index(localIndexIncremented, 0)).row();
+				return true;
 			}
 
 			default:

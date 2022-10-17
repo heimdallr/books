@@ -70,8 +70,12 @@ private: // ModelControllerObserver
 	{
 		if (controller->GetType() == ModelController::Type::Authors)
 		{
-			const auto * authorsModel = controller->GetModel();
-			const auto authorIdVar = authorsModel->data(authorsModel->index(index, 0), RoleBase::Id);
+			auto * authorsModel = controller->GetModel();
+			int localIndex = index;
+			authorsModel->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest{ &localIndex }), RoleBase::TranslateIndexFromGlobal);
+			const auto localModelIndex = authorsModel->index(localIndex, 0);
+			assert(localModelIndex.isValid());
+			const auto authorIdVar = authorsModel->data(localModelIndex, RoleBase::Id);
 			assert(authorIdVar.isValid());
 			m_booksModelController->SetAuthorId(authorIdVar.toInt());
 		}
