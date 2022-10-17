@@ -1,6 +1,14 @@
 #pragma once
 
+#include "fnd/memory.h"
+
 #include "ModelController.h"
+
+#include "models/Book.h"
+
+namespace HomeCompa {
+class Executor;
+}
 
 namespace HomeCompa::DB {
 class Database;
@@ -13,7 +21,7 @@ class BooksModelController
 {
 	NON_COPY_MOVABLE(BooksModelController)
 public:
-	explicit BooksModelController(DB::Database & db);
+	BooksModelController(Executor & executor, DB::Database & db);
 	~BooksModelController() override;
 
 	void SetAuthorId(int authorId);
@@ -22,6 +30,7 @@ private: // ModelController
 	Type GetType() const noexcept override;
 
 private:
+	Books m_books;
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };

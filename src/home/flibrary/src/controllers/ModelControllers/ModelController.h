@@ -36,7 +36,7 @@ public:
 	};
 
 public:
-	explicit ModelController(QObject * parent = nullptr);
+	explicit ModelController(QAbstractItemModel * model, QObject * parent = nullptr);
 	~ModelController() override;
 
 	void OnKeyPressed(int key, int modifiers);
@@ -51,11 +51,8 @@ signals:
 	void CurrentIndexChanged() const;
 	void ModelChanged() const;
 
-public:
-	void ResetModel(QAbstractItemModel * model = nullptr);
-
 public: // property getters
-	int GetCurrentLocalIndex() const;
+	int GetCurrentLocalIndex();
 	QAbstractItemModel * GetModel();
 	QString GetViewMode() const;
 

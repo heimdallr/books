@@ -3,6 +3,8 @@
 #include <QQmlContext>
 
 #include "fnd/algorithm.h"
+#include "fnd/executor.h"
+#include "fnd/executor/factory.h"
 
 #include "database/factory/Factory.h"
 
@@ -89,9 +91,10 @@ private: // ModelControllerObserver
 private:
 	GuiController & m_self;
 	QQmlApplicationEngine m_qmlEngine;
+	PropagateConstPtr<Executor> m_executor{ ExecutorFactory::Create(ExecutorImpl::Sync) };
 	PropagateConstPtr<DB::Database> m_db;
-	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_db) };
-	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_db) };
+	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_executor, *m_db) };
+	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_executor, *m_db) };
 	ModelController * m_focusedController { m_authorsModelController.get() };
 	bool m_running { true };
 };

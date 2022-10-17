@@ -1,7 +1,7 @@
 #include <cassert>
 
-#include "factory.h"
 #include "executor.h"
+#include "factory.h"
 
 namespace HomeCompa::ExecutorPrivate::Sync {
 std::unique_ptr<Executor> CreateExecutor();
@@ -29,14 +29,13 @@ auto GetCreator(const ExecutorImpl impl)
 	return g_creators[ToIndex(impl)];
 }
 
+}
 
 std::unique_ptr<Executor> Create(const ExecutorImpl impl)
 {
 	const auto creator = GetCreator(impl);
 	assert(creator);
 	return creator();
-}
-
 }
 
 }

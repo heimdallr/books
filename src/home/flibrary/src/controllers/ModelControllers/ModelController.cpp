@@ -1,5 +1,5 @@
 #include <QAbstractItemModel>
-#include <QPointer>
+#include <QQmlEngine>
 #include <QTimer>
 
 #include "fnd/algorithm.h"
@@ -39,14 +39,21 @@ struct ModelController::Impl
 {
 	NON_COPY_MOVABLE(Impl)
 
+private:
+	ModelController & m_self;
+	QTimer m_findTimer;
+
+	QString m_viewModeText;
+
 public:
-	QPointer<QAbstractItemModel> model;
+	PropagateConstPtr<QAbstractItemModel> model;
 	int currentIndex { 0 };
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
 
-	explicit Impl(ModelController & self)
+	Impl(ModelController & self, QAbstractItemModel * model_)
 		: m_self(self)
+		, model(model_)
 	{
 		m_findTimer.setSingleShot(true);
 		m_findTimer.setInterval(std::chrono::milliseconds(250));
@@ -54,18 +61,14 @@ public:
 		{
 			(void)model->setData({}, m_viewModeText, viewModeRole);
 		});
+
+		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
+		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverRegister);
 	}
 
 	~Impl() override
 	{
-		if (model)
-			model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
-	}
-
-	QAbstractItemModel * GetModel() const
-	{
-		assert(model);
-		return model;
+		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
 	}
 
 	bool OnKeyPressed(int key, int modifiers)
@@ -127,7 +130,7 @@ private: // ModelObserver
 
 	void HandleInvalidated() override
 	{
-		(void)GetModel()->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &currentIndex }), Role::CheckIndexVisible);
+		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &currentIndex }), Role::CheckIndexVisible);
 		if (!SetCurrentIndex(currentIndex))
 			emit m_self.CurrentIndexChanged();
 	}
@@ -146,17 +149,11 @@ private:
 		const int index = currentIndex + increment;
 		return std::clamp(index, 0, model->rowCount() - 1);
 	}
-
-private:
-	ModelController & m_self;
-	QTimer m_findTimer;
-
-	QString m_viewModeText;
 };
 
-ModelController::ModelController(QObject * parent)
+ModelController::ModelController(QAbstractItemModel * model, QObject * parent)
 	: QObject(parent)
-	, m_impl(*this)
+	, m_impl(*this, model)
 {
 }
 
@@ -177,22 +174,6 @@ void ModelController::UnregisterObserver(ModelControllerObserver * observer)
 	m_impl->Unregister(observer);
 }
 
-void ModelController::ResetModel(QAbstractItemModel * const model)
-{
-	const auto setRegisterData = [&impl = *m_impl](QAbstractItemModel * const model, int role)
-	{
-		(void)model->setData({}, QVariant::fromValue(impl.To<ModelObserver>()), role);
-	};
-
-	if (m_impl->model)
-		setRegisterData(m_impl->model, RoleBase::ObserverUnregister);
-
-	if (model)
-		setRegisterData(model, RoleBase::ObserverRegister);
-
-	m_impl->model = model;
-}
-
 void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
 	m_impl->SetViewMode(mode, text);
@@ -203,16 +184,16 @@ void ModelController::SetPageSize(const int pageSize)
 	m_impl->pageSize = pageSize;
 }
 
-int ModelController::GetCurrentLocalIndex() const
+int ModelController::GetCurrentLocalIndex()
 {
 	int localIndex = -1;
-	(void)m_impl->GetModel()->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { m_impl->currentIndex, &localIndex }), Role::TranslateIndexFromGlobal);
+	(void)m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { m_impl->currentIndex, &localIndex }), Role::TranslateIndexFromGlobal);
 	return localIndex;
 }
 
 QAbstractItemModel * ModelController::GetModel()
 {
-	return m_impl->GetModel();
+	return m_impl->model.get();
 }
 
 QString ModelController::GetViewMode() const

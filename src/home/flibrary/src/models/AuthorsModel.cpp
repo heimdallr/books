@@ -1,6 +1,4 @@
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
-
+#include "Author.h"
 #include "ModelObserver.h"
 #include "RoleBase.h"
 
@@ -10,7 +8,6 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-constexpr auto QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
 
 struct AuthorsRole
 	: RoleBase
@@ -21,59 +18,24 @@ struct AuthorsRole
 	};
 };
 
-struct Author
-{
-	long long int Id { 0 };
-	QString Title;
-};
-
-void AppendTitle(QString & title, std::string_view str)
-{
-	if (!str.empty())
-		title.append(" ").append(str.data());
-}
-
-QString CreateTitle(const DB::Query & query)
-{
-	QString title = query.Get<const char *>(2);
-	AppendTitle(title, query.Get<const char *>(1));
-	AppendTitle(title, query.Get<const char *>(3));
-	return title;
-}
-
 class Model final
 	: public ProxyModelBaseT<Author, AuthorsRole, ModelObserver>
 {
 public:
-	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)
-		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db))
+	Model(Authors & items, QSortFilterProxyModel & proxyModel)
+		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
 	{
 		AddReadableRole(Role::Id, &Author::Id);
 		AddReadableRole(Role::Title, &Author::Title);
-	}
-
-private:
-	static Items CreateItems(DB::Database & db)
-	{
-		Items items;
-		const auto query = db.CreateQuery(QUERY);
-		for (query->Execute(); !query->Eof(); query->Next())
-		{
-			items.emplace_back();
-			items.back().Id = query->Get<long long int>(0);
-			items.back().Title = CreateTitle(*query);
-		}
-
-		return items;
 	}
 };
 
 class ProxyModel final : public QSortFilterProxyModel
 {
 public:
-	ProxyModel(DB::Database & db, QObject * parent)
+	ProxyModel(Authors & items, QObject * parent)
 		: QSortFilterProxyModel(parent)
-		, m_model(db, *this)
+		, m_model(items, *this)
 	{
 		QSortFilterProxyModel::setSourceModel(&m_model);
 	}
@@ -89,9 +51,9 @@ private:
 
 }
 
-QAbstractItemModel * CreateAuthorsModel(DB::Database & db, QObject * parent)
+QAbstractItemModel * CreateAuthorsModel(Authors & items, QObject * parent)
 {
-	return new ProxyModel(db, parent);
+	return new ProxyModel(items, parent);
 }
 
 }

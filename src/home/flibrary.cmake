@@ -26,6 +26,7 @@ AddTarget(
 	LINK_TARGETS
 		DatabaseFactory
 		DatabaseInt
+		Fnd
 		sqlite
 		sqlite3pp
 	MODULES

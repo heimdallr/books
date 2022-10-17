@@ -21,9 +21,9 @@ protected:
 	using RoleGetter = std::function<QVariant(const Item &)>;
 
 protected:
-	explicit ProxyModelBaseT(QSortFilterProxyModel & proxyModel, Items items)
+	explicit ProxyModelBaseT(QSortFilterProxyModel & proxyModel, Items & items)
 		: m_proxyModel(proxyModel)
-		, m_items(std::move(items))
+		, m_items(items)
 		, m_roleNames(QAbstractListModel::roleNames())
 	{
 		AddRole(Role::Click);
@@ -210,7 +210,7 @@ private:
 
 protected:
 	QSortFilterProxyModel & m_proxyModel;
-	Items m_items;
+	Items & m_items;
 
 	QHash<int, QByteArray> m_roleNames;
 	QHash<int, RoleGetter> m_roleValues;

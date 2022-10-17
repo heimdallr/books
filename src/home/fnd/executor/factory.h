@@ -5,6 +5,7 @@
 #include "FndLib.h"
 
 namespace HomeCompa {
+
 class Executor;
 enum class ExecutorImpl
 {
