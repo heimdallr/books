@@ -42,7 +42,7 @@ public:
 		qmlContext->setContextProperty("guiController", &m_self);
 		qRegisterMetaType<QAbstractItemModel *>("QAbstractItemModel*");
 		qRegisterMetaType<ModelController *>("ModelController*");
-		m_qmlEngine.load("qrc:/qml/Main.qml");
+		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
 	bool GetRunning() const noexcept
