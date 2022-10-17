@@ -72,7 +72,7 @@ protected:
 
 			case Role::ResetEnd:
 				emit endResetModel();
-				m_proxyModel.invalidate();
+				Invalidate();
 				return true;
 
 			case Role::ObserverRegister:
@@ -86,7 +86,7 @@ protected:
 				if (!value.isValid() || value.isNull())
 					return false;
 
-				Util::Set(m_filerString, {}, m_proxyModel, &QSortFilterProxyModel::invalidate);
+				Util::Set(m_filerString, {}, *this, &ProxyModelBaseT::Invalidate);
 
 				const auto it = std::ranges::find_if(m_items, [&, value = value.toString()](const Item & item)
 				{
@@ -100,7 +100,7 @@ protected:
 			}
 
 			case Role::Filter:
-				if (Util::Set(m_filerString, value.toString(), m_proxyModel, &QSortFilterProxyModel::invalidate))
+				if (Util::Set(m_filerString, value.toString(), *this, &ProxyModelBaseT::Invalidate))
 					return Observable<Observer>::Perform(&Observer::HandleInvalidated), true;
 				return false;
 
@@ -206,6 +206,12 @@ private:
 		{
 			return QVariant::fromValue(item.*member);
 		};
+	}
+
+	void Invalidate()
+	{
+		m_proxyModel.invalidate();
+		Observable<Observer>::Perform(&Observer::HandleInvalidated);
 	}
 
 protected:

@@ -1,11 +1,9 @@
 import QtQuick 2.15
 
-Rectangle
+import "Core"
+
+CustomListView
 {
-//	Navigation
-//	{
-//		anchors.fill: parent
-//		modelController: guiController.GetAuthorsModelController()
-//		delegate: AuthorDelegate {}
-//	}
+	modelController: guiController.GetBooksModelController()
+	delegate: AuthorDelegate {}
 }

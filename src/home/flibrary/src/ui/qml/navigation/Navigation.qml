@@ -4,4 +4,6 @@ import "Core"
 
 CustomListView
 {
+	modelController: guiController.GetAuthorsModelController()
+	delegate: AuthorDelegate {}
 }

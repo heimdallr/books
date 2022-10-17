@@ -80,7 +80,7 @@ Rectangle
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			model: modelController.model
+			model: modelController.GetModel()
 			currentIndex: modelController.currentIndex
 
 			clip: true
@@ -93,7 +93,7 @@ Rectangle
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
 
-			onHeightChanged: modelController.SetPageSize(height / currentItem.height)
+			onHeightChanged: modelController.SetPageSize(height / 36)
 		}
 
 		Rectangle

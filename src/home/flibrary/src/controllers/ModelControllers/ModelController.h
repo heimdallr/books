@@ -21,12 +21,12 @@ class ModelController
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex NOTIFY CurrentIndexChanged)
-	Q_PROPERTY(QAbstractItemModel * model READ GetModel NOTIFY ModelChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
+	Q_INVOKABLE QAbstractItemModel * GetModel();
 
 public:
 	enum class Type
@@ -49,11 +49,9 @@ public:
 
 signals:
 	void CurrentIndexChanged() const;
-	void ModelChanged() const;
 
-public: // property getters
+private: // property getters
 	int GetCurrentLocalIndex();
-	QAbstractItemModel * GetModel();
 	QString GetViewMode() const;
 
 private: // property setters

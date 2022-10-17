@@ -1,13 +1,13 @@
 #include <QAbstractItemModel>
 
+#include "fnd/executor.h"
+
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
 #include "models/RoleBase.h"
 
 #include "AuthorsModelController.h"
-
-#include "fnd/executor.h"
 
 namespace HomeCompa::Flibrary {
 

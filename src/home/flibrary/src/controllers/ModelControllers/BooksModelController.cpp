@@ -1,15 +1,21 @@
 #include <QAbstractItemModel>
 #include <QTimer>
 
+#include "fnd/executor.h"
+
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
 #include "models/Book.h"
+#include "models/RoleBase.h"
+
 #include "BooksModelController.h"
 
 namespace HomeCompa::Flibrary {
 
 namespace {
+
+using Role = RoleBase;
 
 constexpr auto QUERY =
 	"select b.BookID, b.Title "
@@ -49,21 +55,36 @@ struct BooksModelController::Impl
 	{
 		setAuthorTimer.setSingleShot(true);
 		setAuthorTimer.setInterval(std::chrono::milliseconds(250));
-//		connect(&setAuthorTimer, &QTimer::timeout, [&]
-//		{
-//			if (m_authorId == authorId)
-//				return;
-//
-//			m_authorId = authorId;
-//			m_self.ResetModel(CreateBooksModel(m_db, m_authorId));
-//			emit m_self.ModelChanged();
-//		});
+		connect(&setAuthorTimer, &QTimer::timeout, [&]
+		{
+			if (m_authorId == authorId)
+				return;
+
+			m_authorId = authorId;
+			UpdateItems();
+		});
+
+	}
+
+	void UpdateItems()
+	{
+		m_executor.Execute([&]
+		{
+			auto items = CreateItems(m_db, m_authorId);
+			return[&, items = std::move(items)]() mutable
+			{
+				(void)m_self.GetModel()->setData({}, true, Role::ResetBegin);
+				m_self.m_books = std::move(items);
+				(void)m_self.GetModel()->setData({}, true, Role::ResetEnd);
+			};
+		});
 	}
 
 private:
 	BooksModelController & m_self;
 	Executor & m_executor;
 	DB::Database & m_db;
+	int m_authorId { -1 };
 };
 
 BooksModelController::BooksModelController(Executor & executor, DB::Database & db)

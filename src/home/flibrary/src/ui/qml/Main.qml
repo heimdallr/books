@@ -35,9 +35,6 @@ ApplicationWindow
 			SplitView.preferredWidth: applicationWindowID.width / 4
 			SplitView.minimumWidth: applicationWindowID.width / 6
 			SplitView.maximumWidth: applicationWindowID.width / 2
-
-			modelController: guiController.GetAuthorsModelController()
-			delegate: AuthorDelegate {}
 		}
 
 		Books
