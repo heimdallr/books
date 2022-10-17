@@ -135,6 +135,8 @@ public:
 	{
 	}
 
+	PropagateConstPtr() = default;
+
 	PropagateConstPtr(PropagateConstPtr &&) noexcept = default;
 
 	PropagateConstPtr & operator=(PropagateConstPtr &&) noexcept = default;

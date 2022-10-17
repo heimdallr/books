@@ -22,6 +22,11 @@
 
 namespace HomeCompa::Flibrary {
 
+PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
+{
+	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, databaseName));
+}
+
 class GuiController::Impl
 	: virtual public ModelControllerObserver
 {
@@ -29,8 +34,10 @@ class GuiController::Impl
 public:
 	Impl(GuiController & self, const std::string & databaseName)
 		: m_self(self)
-		, m_db(Create(DB::Factory::Impl::Sqlite, databaseName))
+		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
+		PropagateConstPtr<AuthorsModelController>(std::make_unique<AuthorsModelController>(*m_executor, *m_db)).swap(m_authorsModelController);
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db)).swap(m_booksModelController);
 		m_authorsModelController->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(this);
 	}
@@ -91,10 +98,10 @@ private: // ModelControllerObserver
 private:
 	GuiController & m_self;
 	QQmlApplicationEngine m_qmlEngine;
-	PropagateConstPtr<Util::Executor> m_executor{Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) };
 	PropagateConstPtr<DB::Database> m_db;
-	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_executor, *m_db) };
-	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_executor, *m_db) };
+	PropagateConstPtr<Util::Executor> m_executor;
+	PropagateConstPtr<AuthorsModelController> m_authorsModelController;
+	PropagateConstPtr<BooksModelController> m_booksModelController;
 	bool m_running { true };
 };
 

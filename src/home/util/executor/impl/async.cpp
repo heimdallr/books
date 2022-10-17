@@ -18,10 +18,12 @@ class Executor
 	NON_COPY_MOVABLE(Executor)
 
 public:
-	Executor()
-		: m_thread(&Executor::Work, this)
+	explicit Executor(std::function<void()> initializer)
+		: m_initializer(std::move(initializer))
+		, m_thread(&Executor::Work, this)
 	{
-		m_promise.get_future().get();
+		m_initializePromise.get_future().get();
+		m_startPromise.get_future().get();
 	}
 
 	~Executor() override
@@ -50,7 +52,11 @@ private: // Util::Executor
 private:
 	void Work()
 	{
-		m_promise.set_value();
+		m_initializePromise.set_value();
+		const auto initializer = std::move(m_initializer);
+		initializer();
+
+		m_startPromise.set_value();
 		while (m_running)
 		{
 			{
@@ -86,10 +92,12 @@ private:
 	}
 
 private:
+	std::function<void()> m_initializer;
 	std::atomic_bool m_running { true };
 	std::mutex m_startMutex;
 	std::condition_variable m_startCondition;
-	std::promise<void> m_promise;
+	std::promise<void> m_startPromise;
+	std::promise<void> m_initializePromise;
 	std::thread m_thread;
 	std::mutex m_tasksGuard;
 	std::map<int, Task> m_tasks;
@@ -98,9 +106,9 @@ private:
 
 }
 
-std::unique_ptr<Util::Executor> CreateExecutor()
+std::unique_ptr<Util::Executor> CreateExecutor(std::function<void()> initializer)
 {
-	return std::make_unique<Executor>();
+	return std::make_unique<Executor>(std::move(initializer));
 }
 
 }

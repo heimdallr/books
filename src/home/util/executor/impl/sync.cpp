@@ -9,6 +9,13 @@ namespace {
 class Executor
 	: virtual public Util::Executor
 {
+public:
+	explicit Executor(std::function<void()> initializer)
+	{
+		const auto f = std::move(initializer);
+		f();
+	}
+private: // Util::Executor
 	void Execute(Task && task, int /*priority*/) override
 	{
 		const auto taskResult = task();
@@ -18,9 +25,9 @@ class Executor
 
 }
 
-std::unique_ptr<Util::Executor> CreateExecutor()
+std::unique_ptr<Util::Executor> CreateExecutor(std::function<void()> initializer)
 {
-	return std::make_unique<Executor>();
+	return std::make_unique<Executor>(std::move(initializer));
 }
 
 }

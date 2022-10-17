@@ -22,6 +22,6 @@ enum class ExecutorImpl
 
 namespace HomeCompa::Util::ExecutorFactory {
 
-UTIL_API std::unique_ptr<Executor> Create(ExecutorImpl impl);
+UTIL_API std::unique_ptr<Executor> Create(ExecutorImpl impl, std::function<void()> = []{});
 
 }
