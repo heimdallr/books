@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
+import "constants.js" as Constants
+
 Rectangle
 {
 	id: navigationID
@@ -49,28 +51,31 @@ Rectangle
 			{
 				id: viewModeTextID
 				Layout.fillWidth: true
-				font.pointSize: 12
+				font.pointSize: Constants.fontSize
 				onTextChanged: findLayoutID.setViewMode()
 			}
 		}
 
 		Component
 		{
-		    id: highlightID
-		    Rectangle
+			id: highlightID
+			Rectangle
 			{
-		        width: navigationID.width; height: 36; radius: 5
-		        color: "lightsteelblue"
-		        y: listViewID.currentItem.y
-		        Behavior on y
+				width: navigationID.width
+				height: Constants.delegateHeight
+				radius: 5
+
+				color: listViewID.focus ? Constants.highlightColor : Constants.highlightColorUnfocused
+				y: listViewID.currentItem ? listViewID.currentItem.y : 0
+				Behavior on y
 				{
-		            SpringAnimation
+					SpringAnimation
 					{
-		                spring: 3
-		                damping: 0.3
-		            }
-		        }
-		    }
+						spring: 3
+						damping: 0.3
+					}
+				}
+			}
 		}
 
 		ListView
@@ -93,14 +98,14 @@ Rectangle
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
 
-			onHeightChanged: modelController.SetPageSize(height / 36)
+			onHeightChanged: modelController.SetPageSize(height / Constants.delegateHeight)
 		}
 
 		Rectangle
 		{
-			height: 36
+			height: Constants.delegateHeight
 			Layout.fillWidth: true
-			border { color: "lightgray"; width: 1 }
+			border { color: Constants.borderColor; width: 1 }
 
 			Text
 			{
@@ -111,7 +116,7 @@ Rectangle
 					bottom: parent.bottom
 					bottomMargin: 4
 				}
-				font.pointSize: 10
+				font.pointSize: Constants.fontSizeSmall
 				text: qsTranslate("Navigation", "Total: %1").arg(listViewID.count)
 			}
 		}

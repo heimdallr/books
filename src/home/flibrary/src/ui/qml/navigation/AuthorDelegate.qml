@@ -1,14 +1,16 @@
 import QtQuick 2.15
 
+import "Core/constants.js" as Constants
+
 Rectangle
 {
-	id: autorDelegateID
+	property int itemWidth: undefined
 
-	height: 36
-	width: parent.width
+	width: itemWidth
+	height: Constants.delegateHeight
 	color: "transparent"
 
-	border { color: "lightgray"; width: 1 }
+	border { color: Constants.borderColor; width: 1 }
 
 	Text
 	{
@@ -20,7 +22,7 @@ Rectangle
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
-		font.pointSize: 12
+		font.pointSize: Constants.fontSize
 
 		color: "black"
 		text: Title

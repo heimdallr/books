@@ -4,6 +4,10 @@ import "Core"
 
 CustomListView
 {
+	id: listViewID
 	modelController: guiController.GetBooksModelController()
-	delegate: AuthorDelegate {}
+	delegate: AuthorDelegate
+	{
+		itemWidth: listViewID.width
+	}
 }

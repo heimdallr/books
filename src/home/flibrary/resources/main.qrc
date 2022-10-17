@@ -10,6 +10,7 @@
 	</qresource>
 
 	<qresource prefix="Core">
+		<file alias="constants.js">../src/ui/qml/core/constants.js</file>
 		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
 		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
 	</qresource>
