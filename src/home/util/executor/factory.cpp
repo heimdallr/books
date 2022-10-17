@@ -3,11 +3,11 @@
 #include "executor.h"
 #include "factory.h"
 
-namespace HomeCompa::ExecutorPrivate::Sync {
+namespace HomeCompa::Util::ExecutorPrivate::Sync {
 std::unique_ptr<Executor> CreateExecutor();
 }
 
-namespace HomeCompa::ExecutorFactory {
+namespace HomeCompa::Util::ExecutorFactory {
 
 namespace {
 

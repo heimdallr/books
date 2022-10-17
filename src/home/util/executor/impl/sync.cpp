@@ -2,12 +2,12 @@
 
 #include "executor.h"
 
-namespace HomeCompa::ExecutorPrivate::Sync {
+namespace HomeCompa::Util::ExecutorPrivate::Sync {
 
 namespace {
 
 class Executor
-	: virtual public HomeCompa::Executor
+	: virtual public Util::Executor
 {
 	void Execute(Task && task) override
 	{
@@ -18,7 +18,7 @@ class Executor
 
 }
 
-std::unique_ptr<HomeCompa::Executor> CreateExecutor()
+std::unique_ptr<Util::Executor> CreateExecutor()
 {
 	return std::make_unique<Executor>();
 }

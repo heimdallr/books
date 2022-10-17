@@ -2,7 +2,7 @@
 
 #include <functional>
 
-namespace HomeCompa {
+namespace HomeCompa::Util {
 
 class Executor
 {

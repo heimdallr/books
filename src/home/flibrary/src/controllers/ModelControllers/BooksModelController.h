@@ -6,7 +6,7 @@
 
 #include "models/Book.h"
 
-namespace HomeCompa {
+namespace HomeCompa::Util {
 class Executor;
 }
 
@@ -21,7 +21,7 @@ class BooksModelController
 {
 	NON_COPY_MOVABLE(BooksModelController)
 public:
-	BooksModelController(Executor & executor, DB::Database & db);
+	BooksModelController(Util::Executor & executor, DB::Database & db);
 	~BooksModelController() override;
 
 	void SetAuthorId(int authorId);

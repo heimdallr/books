@@ -1,6 +1,6 @@
 AddTarget(
 	NAME Fnd
-	TYPE shared_lib
+	TYPE header_only
 	PROJECT_GROUP Util
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/fnd"
 	COMPILER_OPTIONS

@@ -27,6 +27,7 @@ AddTarget(
 		DatabaseFactory
 		DatabaseInt
 		Fnd
+		Util
 		sqlite
 		sqlite3pp
 	MODULES

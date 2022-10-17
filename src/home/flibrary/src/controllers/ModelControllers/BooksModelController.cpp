@@ -1,13 +1,13 @@
 #include <QAbstractItemModel>
 #include <QTimer>
 
-#include "fnd/executor.h"
-
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
 #include "models/Book.h"
 #include "models/RoleBase.h"
+
+#include "util/executor.h"
 
 #include "BooksModelController.h"
 
@@ -48,7 +48,7 @@ struct BooksModelController::Impl
 	QTimer setAuthorTimer;
 	int authorId { -1 };
 
-	Impl(BooksModelController & self, Executor & executor, DB::Database & db)
+	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db)
 		: m_self(self)
 		, m_executor(executor)
 		, m_db(db)
@@ -82,12 +82,12 @@ struct BooksModelController::Impl
 
 private:
 	BooksModelController & m_self;
-	Executor & m_executor;
+	Util::Executor & m_executor;
 	DB::Database & m_db;
 	int m_authorId { -1 };
 };
 
-BooksModelController::BooksModelController(Executor & executor, DB::Database & db)
+BooksModelController::BooksModelController(Util::Executor & executor, DB::Database & db)
 	: ModelController(CreateBooksModel(m_books))
 	, m_impl(*this, executor, db)
 {

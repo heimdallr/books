@@ -1,0 +1,13 @@
+AddTarget(
+	NAME Util
+	TYPE shared_lib
+	PROJECT_GROUP Util
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/util"
+	QT_USE
+		Core
+	LINK_TARGETS
+	MODULES
+		qt
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
+)

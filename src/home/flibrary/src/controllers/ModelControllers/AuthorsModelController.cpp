@@ -1,11 +1,11 @@
 #include <QAbstractItemModel>
 
-#include "fnd/executor.h"
-
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
 #include "models/RoleBase.h"
+
+#include "util/executor.h"
 
 #include "AuthorsModelController.h"
 
@@ -50,7 +50,7 @@ QAbstractItemModel * CreateAuthorsModel(Authors & items, QObject * parent = null
 
 struct AuthorsModelController::Impl
 {
-	Impl(AuthorsModelController & self, Executor & executor, DB::Database & db)
+	Impl(AuthorsModelController & self, Util::Executor & executor, DB::Database & db)
 		: m_self(self)
 		, m_executor(executor)
 		, m_db(db)
@@ -69,11 +69,11 @@ struct AuthorsModelController::Impl
 
 private:
 	AuthorsModelController & m_self;
-	Executor & m_executor;
+	Util::Executor & m_executor;
 	DB::Database & m_db;
 };
 
-AuthorsModelController::AuthorsModelController(Executor & executor, DB::Database & db)
+AuthorsModelController::AuthorsModelController(Util::Executor & executor, DB::Database & db)
 	: ModelController(CreateAuthorsModel(m_authors))
 	, m_impl(*this, executor, db)
 {
