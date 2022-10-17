@@ -69,8 +69,15 @@ public:
 	}
 
 private: // ModelControllerObserver
-	void HandleCurrentIndexChanged(ModelController * const /*controller*/, const int /*index*/) override
+	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
+		if (controller->GetType() == ModelController::Type::Authors)
+		{
+			const auto * authorsModel = controller->GetModel();
+			const auto authorIdVar = authorsModel->data(authorsModel->index(index, 0), RoleBase::Id);
+			assert(authorIdVar.isValid());
+			m_booksModelController->SetAuthorId(authorIdVar.toInt());
+		}
 	}
 
 	void HandleClicked(ModelController * const controller, const int /*index*/) override

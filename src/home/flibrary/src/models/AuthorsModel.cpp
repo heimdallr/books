@@ -1,7 +1,7 @@
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
-#include "AuthorsModelObserver.h"
+#include "ModelObserver.h"
 #include "RoleBase.h"
 
 #include "ProxyModelBaseT.h"
@@ -48,6 +48,7 @@ public:
 	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db))
 	{
+		AddReadableRole(Role::Id, &Author::Id);
 		AddReadableRole(Role::Title, &Author::Title);
 	}
 

@@ -14,6 +14,7 @@ public:
 		FakeRoleFirst = Qt::UserRole + 1,
 
 		// чтение локальное
+		Id,
 		Title,
 
 		// запись глобальная

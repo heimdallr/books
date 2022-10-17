@@ -1,7 +1,7 @@
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
-#include "AuthorsModelObserver.h"
+#include "ModelObserver.h"
 #include "RoleBase.h"
 
 #include "ProxyModelBaseT.h"
@@ -10,9 +10,13 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-constexpr auto QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
+constexpr auto QUERY =
+	"select b.BookID, b.Title "
+	"from books b "
+	"join Author_List al on al.BookID = b.BookID and al.AuthorID = :id"
+	;
 
-struct AuthorsRole
+struct BooksRole
 	: RoleBase
 {
 	// ReSharper disable once CppClassNeverUsed
@@ -21,45 +25,34 @@ struct AuthorsRole
 	};
 };
 
-struct Author
+struct Book
 {
 	long long int Id { 0 };
 	QString Title;
 };
 
-void AppendTitle(QString & title, std::string_view str)
-{
-	if (!str.empty())
-		title.append(" ").append(str.data());
-}
-
-QString CreateTitle(const DB::Query & query)
-{
-	QString title = query.Get<std::string>(2).data();
-	AppendTitle(title, query.Get<std::string>(1));
-	AppendTitle(title, query.Get<std::string>(3));
-	return title;
-}
-
 class Model final
-	: public ProxyModelBaseT<Author, AuthorsRole, ModelObserver>
+	: public ProxyModelBaseT<Book, BooksRole, ModelObserver>
 {
 public:
-	Model(DB::Database & db, QSortFilterProxyModel & proxyModel)
-		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db))
+	Model(DB::Database & db, int authorId, QSortFilterProxyModel & proxyModel)
+		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, CreateItems(db, authorId))
 	{
-		AddReadableRole(Role::Title, &Author::Title);
+		AddReadableRole(Role::Title, &Book::Title);
 	}
 
 private:
-	static Items CreateItems(DB::Database & db)
+	static Items CreateItems(DB::Database & db, const int authorId)
 	{
 		Items items;
-		for (const auto query = db.CreateQuery(QUERY); !query->Eof(); query->Next())
+		const auto query = db.CreateQuery(QUERY);
+		[[maybe_unused]] const auto result = query->Bind(":id", authorId);
+		assert(result == 0);
+		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			items.emplace_back();
 			items.back().Id = query->Get<long long int>(0);
-			items.back().Title = CreateTitle(*query);
+			items.back().Title = query->Get<const char *>(1);
 		}
 
 		return items;
@@ -69,9 +62,9 @@ private:
 class ProxyModel final : public QSortFilterProxyModel
 {
 public:
-	ProxyModel(DB::Database & db, QObject * parent)
+	ProxyModel(DB::Database & db, int authorId, QObject * parent)
 		: QSortFilterProxyModel(parent)
-		, m_model(db, *this)
+		, m_model(db, authorId, *this)
 	{
 		QSortFilterProxyModel::setSourceModel(&m_model);
 	}
@@ -87,9 +80,9 @@ private:
 
 }
 
-QAbstractItemModel * CreateBooksModel(DB::Database & db, QObject * parent)
+QAbstractItemModel * CreateBooksModel(DB::Database & db, int authorId, QObject * parent)
 {
-	return new ProxyModel(db, parent);
+	return new ProxyModel(db, authorId, parent);
 }
 
 }

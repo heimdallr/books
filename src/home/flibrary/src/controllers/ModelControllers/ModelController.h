@@ -51,10 +51,10 @@ signals:
 	void CurrentIndexChanged() const;
 	void ModelChanged() const;
 
-protected:
+public:
 	void ResetModel(QAbstractItemModel * model = nullptr);
 
-private: // property getters
+public: // property getters
 	int GetCurrentLocalIndex() const;
 	QAbstractItemModel * GetModel();
 	QString GetViewMode() const;
