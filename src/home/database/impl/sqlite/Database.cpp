@@ -7,8 +7,6 @@
 
 #include "sqlite3ppext.h"
 
-#include "Database.h"
-
 namespace HomeCompa::DB::Impl::Sqlite {
 
 std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex &);

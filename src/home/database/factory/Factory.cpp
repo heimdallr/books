@@ -1,9 +1,12 @@
 #include <cassert>
 
 #include "database/interface/Database.h"
-#include "database/impl/sqlite/Database.h"
 
 #include "Factory.h"
+
+namespace HomeCompa::DB::Impl::Sqlite {
+std::unique_ptr<Database> CreateDatabase(const std::string & connection);
+}
 
 namespace HomeCompa::DB::Factory {
 
