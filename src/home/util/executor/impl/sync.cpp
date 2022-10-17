@@ -9,7 +9,7 @@ namespace {
 class Executor
 	: virtual public Util::Executor
 {
-	void Execute(Task && task) override
+	void Execute(Task && task, int /*priority*/) override
 	{
 		const auto taskResult = task();
 		taskResult();

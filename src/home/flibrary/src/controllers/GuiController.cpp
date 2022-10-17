@@ -91,7 +91,7 @@ private: // ModelControllerObserver
 private:
 	GuiController & m_self;
 	QQmlApplicationEngine m_qmlEngine;
-	PropagateConstPtr<Util::Executor> m_executor{Util::ExecutorFactory::Create(Util::ExecutorImpl::Sync) };
+	PropagateConstPtr<Util::Executor> m_executor{Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) };
 	PropagateConstPtr<DB::Database> m_db;
 	PropagateConstPtr<AuthorsModelController> m_authorsModelController { std::make_unique<AuthorsModelController>(*m_executor, *m_db) };
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::make_unique<BooksModelController>(*m_executor, *m_db) };

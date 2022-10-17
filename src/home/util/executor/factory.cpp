@@ -3,9 +3,9 @@
 #include "executor.h"
 #include "factory.h"
 
-namespace HomeCompa::Util::ExecutorPrivate::Sync {
-std::unique_ptr<Executor> CreateExecutor();
-}
+#define UTIL_EXECUTOR_IMPL(NAME) namespace HomeCompa::Util::ExecutorPrivate::NAME { std::unique_ptr<Executor> CreateExecutor(); }
+		UTIL_EXECUTOR_IMPLS_XMACRO
+#undef	UTIL_EXECUTOR_IMPL
 
 namespace HomeCompa::Util::ExecutorFactory {
 
@@ -14,7 +14,9 @@ namespace {
 using FactoryCreator = std::unique_ptr<Executor>(*)();
 constexpr FactoryCreator g_creators[]
 {
-	&ExecutorPrivate::Sync::CreateExecutor,
+#define UTIL_EXECUTOR_IMPL(NAME) &ExecutorPrivate::NAME::CreateExecutor,
+		UTIL_EXECUTOR_IMPLS_XMACRO
+#undef	UTIL_EXECUTOR_IMPL
 };
 
 size_t ToIndex(const ExecutorImpl impl)
