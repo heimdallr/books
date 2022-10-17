@@ -12,7 +12,7 @@ public:
 
 public:
 	virtual ~Executor() = default;
-	virtual void Execute(Task && task, int priority = 0) = 0;
+	virtual void operator()(Task && task, int priority = 0) = 0;
 };
 
 }

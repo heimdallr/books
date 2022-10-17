@@ -68,7 +68,7 @@ struct BooksModelController::Impl
 
 	void UpdateItems()
 	{
-		m_executor.Execute([&]
+		m_executor([&]
 		{
 			auto items = CreateItems(m_db, m_authorId);
 			return[&, items = std::move(items)]() mutable

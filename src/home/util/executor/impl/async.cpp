@@ -39,7 +39,7 @@ public:
 	}
 
 private: // Util::Executor
-	void Execute(Task && task, int priority) override
+	void operator()(Task && task, int priority) override
 	{
 		{
 			std::lock_guard lock(m_tasksGuard);

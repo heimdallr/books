@@ -56,7 +56,7 @@ struct AuthorsModelController::Impl
 		, m_executor(executor)
 		, m_db(db)
 	{
-		m_executor.Execute([&]
+		m_executor([&]
 		{
 			auto items = CreateItems(m_db);
 			return[&, items = std::move(items)]() mutable
