@@ -17,7 +17,7 @@
 
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
-#include "ModelControllers/AuthorsModelController.h"
+#include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/BooksModelController.h"
 
 namespace HomeCompa::Flibrary {
@@ -36,17 +36,17 @@ public:
 		: m_self(self)
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
-		PropagateConstPtr<AuthorsModelController>(std::make_unique<AuthorsModelController>(*m_executor, *m_db)).swap(m_authorsModelController);
+		PropagateConstPtr<NavigationModelController>(std::make_unique<NavigationModelController>(*m_executor, *m_db)).swap(m_navigationModelController);
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db)).swap(m_booksModelController);
-		m_authorsModelController->RegisterObserver(this);
+		m_navigationModelController->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
-		m_authorsModelController->UnregisterObserver(this);
-		m_booksModelController->UnregisterObserver(this);
 		m_qmlEngine.clearComponentCache();
+		m_navigationModelController->UnregisterObserver(this);
+		m_booksModelController->UnregisterObserver(this);
 	}
 
 	void Start()
@@ -58,6 +58,15 @@ public:
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
+	void OnKeyPressed(int key, int modifiers)
+	{
+		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
+			return (void)Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
+
+		if (m_activeModelController)
+			m_activeModelController->OnKeyPressed(key, modifiers);
+	}
+
 	bool GetRunning() const noexcept
 	{
 		return m_running;
@@ -65,7 +74,7 @@ public:
 
 	ModelController * GetAuthorsModelController() noexcept
 	{
-		return m_authorsModelController.get();
+		return m_navigationModelController.get();
 	}
 
 	ModelController * GetBooksModelController() noexcept
@@ -88,10 +97,17 @@ private: // ModelControllerObserver
 		}
 	}
 
-	void OnKeyPressed(const int key, const int modifiers) override
+	void HandleClicked(ModelController * controller) override
 	{
-		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
-			Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
+		m_activeModelController = controller;
+
+		const auto setFocus = [&] (ModelController * modelController)
+		{
+			modelController->SetFocused(modelController == m_activeModelController);
+		};
+
+		setFocus(m_navigationModelController.get());
+		setFocus(m_booksModelController.get());
 	}
 
 private:
@@ -99,8 +115,9 @@ private:
 	QQmlApplicationEngine m_qmlEngine;
 	PropagateConstPtr<DB::Database> m_db;
 	PropagateConstPtr<Util::Executor> m_executor;
-	PropagateConstPtr<AuthorsModelController> m_authorsModelController;
+	PropagateConstPtr<NavigationModelController> m_navigationModelController;
 	PropagateConstPtr<BooksModelController> m_booksModelController;
+	ModelController * m_activeModelController { nullptr };
 	bool m_running { true };
 };
 
@@ -115,6 +132,11 @@ GuiController::~GuiController() = default;
 void GuiController::Start()
 {
 	m_impl->Start();
+}
+
+void GuiController::OnKeyPressed(int key, int modifiers)
+{
+	m_impl->OnKeyPressed(key, modifiers);
 }
 
 ModelController * GuiController::GetAuthorsModelController() noexcept

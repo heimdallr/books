@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
+import "Navigation"
+import "Book"
 import "Core"
 
 ApplicationWindow
@@ -21,6 +23,9 @@ ApplicationWindow
 
 	SplitView
 	{
+		focus: true
+		Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
+
 		anchors.fill: parent
 		orientation: Qt.Horizontal
 

@@ -1,6 +1,6 @@
 import QtQuick 2.15
 
-import "Core/constants.js" as Constants
+import "qrc:/Core/constants.js" as Constants
 
 Rectangle
 {

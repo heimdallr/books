@@ -50,6 +50,7 @@ public:
 	int currentIndex { -1 };
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
+	bool focused { false };
 
 	Impl(ModelController & self, QAbstractItemModel * model_)
 		: m_self(self)
@@ -73,8 +74,6 @@ public:
 
 	bool OnKeyPressed(int key, int modifiers)
 	{
-		Perform(&ModelControllerObserver::OnKeyPressed, key, modifiers);
-
 		if (modifiers == Qt::ControlModifier)
 		{
 			switch (key)
@@ -128,6 +127,7 @@ private: // ModelObserver
 	{
 		SetCurrentIndex(index);
 		emit m_self.FocusedChanged();
+		Perform(&ModelControllerObserver::HandleClicked, &m_self);
 	}
 
 	void HandleInvalidated() override
@@ -181,6 +181,11 @@ void ModelController::UnregisterObserver(ModelControllerObserver * observer)
 	m_impl->Unregister(observer);
 }
 
+void ModelController::SetFocused(const bool value)
+{
+	Util::Set(m_impl->focused, value, *this, &ModelController::FocusedChanged);
+}
+
 void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
 	m_impl->SetViewMode(mode, text);
@@ -189,6 +194,11 @@ void ModelController::SetViewMode(const QString & mode, const QString & text)
 void ModelController::SetPageSize(const int pageSize)
 {
 	m_impl->pageSize = pageSize;
+}
+
+bool ModelController::GetFocused() const noexcept
+{
+	return m_impl->focused;
 }
 
 int ModelController::GetCurrentLocalIndex()

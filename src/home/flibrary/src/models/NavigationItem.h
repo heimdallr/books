@@ -2,11 +2,11 @@
 
 #include <QString>
 
-#include "AuthorDecl.h"
+#include "NavigationItemDecl.h"
 
 namespace HomeCompa::Flibrary {
 
-struct Author
+struct NavigationItem
 {
 	long long int Id { 0 };
 	QString Title;

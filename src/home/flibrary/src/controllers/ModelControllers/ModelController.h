@@ -44,6 +44,8 @@ public:
 	void RegisterObserver(ModelControllerObserver * observer);
 	void UnregisterObserver(ModelControllerObserver * observer);
 
+	void SetFocused(bool value);
+
 public:
 	virtual Type GetType() const noexcept = 0;
 
@@ -52,7 +54,7 @@ signals:
 	void FocusedChanged() const;
 
 private: // property getters
-	bool GetFocused() const noexcept { return true; }
+	bool GetFocused() const noexcept;
 	int GetCurrentLocalIndex();
 	QString GetViewMode() const;
 

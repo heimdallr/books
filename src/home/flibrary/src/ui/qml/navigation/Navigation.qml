@@ -1,13 +1,18 @@
 import QtQuick 2.15
 
-import "Core"
+import "qrc:/"
 
-CustomListView
+ViewTemplate
 {
 	id: listViewID
 	modelController: guiController.GetAuthorsModelController()
-	delegate: AuthorDelegate
+	loadPath: "Navigation/"
+
+	Component.onCompleted:
 	{
-		itemWidth: listViewID.width
+		viewSourceComboBox.add(qsTranslate("ViewSource", "Authors"), "Authors")
+		viewSourceComboBox.add(qsTranslate("ViewSource", "Series"), "Series")
+		viewSourceComboBox.add(qsTranslate("ViewSource", "Genres"), "Genres")
+		viewSourceComboBox.currentIndex = viewSourceComboBox.indexOfValue("Authors")
 	}
 }

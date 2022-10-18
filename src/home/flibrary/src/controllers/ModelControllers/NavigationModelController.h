@@ -2,7 +2,7 @@
 
 #include "fnd/memory.h"
 
-#include "models/Author.h"
+#include "models/NavigationItem.h"
 
 #include "ModelController.h"
 
@@ -16,20 +16,20 @@ class Database;
 
 namespace HomeCompa::Flibrary {
 
-class AuthorsModelController
+class NavigationModelController
 	: public ModelController
 {
-	NON_COPY_MOVABLE(AuthorsModelController)
+	NON_COPY_MOVABLE(NavigationModelController)
 public:
-	AuthorsModelController(Util::Executor & executor, DB::Database & db);
+	NavigationModelController(Util::Executor & executor, DB::Database & db);
 
-	~AuthorsModelController() override;
+	~NavigationModelController() override;
 
 private: // ModelController
 	Type GetType() const noexcept override;
 
 private:
-	Authors m_authors;
+	NavigationItems m_authors;
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };

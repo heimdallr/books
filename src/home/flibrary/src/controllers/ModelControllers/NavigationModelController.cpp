@@ -7,7 +7,7 @@
 
 #include "util/executor.h"
 
-#include "AuthorsModelController.h"
+#include "NavigationModelController.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -31,9 +31,9 @@ QString CreateTitle(const DB::Query & query)
 	return title;
 }
 
-Authors CreateItems(DB::Database & db)
+NavigationItems CreateItems(DB::Database & db)
 {
-	Authors items;
+	NavigationItems items;
 	const auto query = db.CreateQuery(QUERY);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
@@ -47,11 +47,11 @@ Authors CreateItems(DB::Database & db)
 
 }
 
-QAbstractItemModel * CreateAuthorsModel(Authors & items, QObject * parent = nullptr);
+QAbstractItemModel * CreateAuthorsModel(NavigationItems & items, QObject * parent = nullptr);
 
-struct AuthorsModelController::Impl
+struct NavigationModelController::Impl
 {
-	Impl(AuthorsModelController & self, Util::Executor & executor, DB::Database & db)
+	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db)
 		: m_self(self)
 		, m_executor(executor)
 		, m_db(db)
@@ -69,20 +69,20 @@ struct AuthorsModelController::Impl
 	}
 
 private:
-	AuthorsModelController & m_self;
+	NavigationModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
 };
 
-AuthorsModelController::AuthorsModelController(Util::Executor & executor, DB::Database & db)
+NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db)
 	: ModelController(CreateAuthorsModel(m_authors))
 	, m_impl(*this, executor, db)
 {
 }
 
-AuthorsModelController::~AuthorsModelController() = default;
+NavigationModelController::~NavigationModelController() = default;
 
-ModelController::Type AuthorsModelController::GetType() const noexcept
+ModelController::Type NavigationModelController::GetType() const noexcept
 {
 	return Type::Authors;
 }

@@ -1,17 +1,31 @@
 <RCC>
 	<qresource prefix="">
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
+		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate.qml</file>
+	</qresource>
 
+	<qresource prefix="Navigation">
+		<file alias="Authors.qml">../src/ui/qml/navigation/Authors.qml</file>
+		<file alias="Series.qml">../src/ui/qml/navigation/Series.qml</file>
+		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
+		<file alias="SearchPanel.qml">../src/ui/qml/navigation/SearchPanel.qml</file>
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
-		<file alias="AuthorDelegate.qml">../src/ui/qml/navigation/AuthorDelegate.qml</file>
+		<file alias="NavigationDelegate.qml">../src/ui/qml/navigation/NavigationDelegate.qml</file>
+	</qresource>
+
+	<qresource prefix="Book">
 		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
 		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
+		<file alias="BookDelegate.qml">../src/ui/qml/books/BookDelegate.qml</file>
 		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>
+		<file alias="BooksListView.qml">../src/ui/qml/books/BooksListView.qml</file>
+		<file alias="BooksTreeView.qml">../src/ui/qml/books/BooksTreeView.qml</file>
 	</qresource>
 
 	<qresource prefix="Core">
 		<file alias="constants.js">../src/ui/qml/core/constants.js</file>
 		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
 		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
+		<file alias="CustomCombobox.qml">../src/ui/qml/core/CustomCombobox.qml</file>
 	</qresource>
 </RCC>
