@@ -74,14 +74,13 @@ public:
 	}
 
 private: // ModelControllerObserver
-	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
+	void HandleCurrentIndexChanged(ModelController * const controller, int index) override
 	{
 		if (controller->GetType() == ModelController::Type::Authors)
 		{
 			auto * authorsModel = controller->GetModel();
-			int localIndex = index;
-			authorsModel->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest{ &localIndex }), RoleBase::TranslateIndexFromGlobal);
-			const auto localModelIndex = authorsModel->index(localIndex, 0);
+			authorsModel->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest{ &index }), RoleBase::TranslateIndexFromGlobal);
+			const auto localModelIndex = authorsModel->index(index, 0);
 			assert(localModelIndex.isValid());
 			const auto authorIdVar = authorsModel->data(localModelIndex, RoleBase::Id);
 			assert(authorIdVar.isValid());
