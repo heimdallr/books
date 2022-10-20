@@ -1,4 +1,5 @@
 #include <QAbstractItemModel>
+#include <QPointer>
 #include <QTimer>
 
 #include "database/interface/Database.h"
@@ -45,22 +46,23 @@ QAbstractItemModel * CreateBooksModel(Books & items, QObject * parent = nullptr)
 
 struct BooksModelController::Impl
 {
-	QTimer setAuthorTimer;
-	int authorId { -1 };
+	Books books;
+	QTimer setNavigationIdTimer;
+	int navigationId { -1 };
 
 	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db)
 		: m_self(self)
 		, m_executor(executor)
 		, m_db(db)
 	{
-		setAuthorTimer.setSingleShot(true);
-		setAuthorTimer.setInterval(std::chrono::milliseconds(250));
-		connect(&setAuthorTimer, &QTimer::timeout, [&]
+		setNavigationIdTimer.setSingleShot(true);
+		setNavigationIdTimer.setInterval(std::chrono::milliseconds(250));
+		connect(&setNavigationIdTimer, &QTimer::timeout, [&]
 		{
-			if (m_authorId == authorId)
+			if (m_navigationId == navigationId)
 				return;
 
-			m_authorId = authorId;
+			m_navigationId = navigationId;
 			UpdateItems();
 		});
 
@@ -68,14 +70,18 @@ struct BooksModelController::Impl
 
 	void UpdateItems()
 	{
-		m_executor([&]
+		QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
+		m_executor([&, model = std::move(model)]() mutable
 		{
-			auto items = CreateItems(m_db, m_authorId);
-			return[&, items = std::move(items)]() mutable
+			auto items = CreateItems(m_db, m_navigationId);
+			return[&, items = std::move(items), model = std::move(model)]() mutable
 			{
-				(void)m_self.GetModel()->setData({}, true, Role::ResetBegin);
-				m_self.m_books = std::move(items);
-				(void)m_self.GetModel()->setData({}, true, Role::ResetEnd);
+				if (model.isNull())
+					return;
+
+				(void)model->setData({}, true, Role::ResetBegin);
+				books = std::move(items);
+				(void)model->setData({}, true, Role::ResetEnd);
 			};
 		});
 	}
@@ -84,26 +90,31 @@ private:
 	BooksModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
-	int m_authorId { -1 };
+	int m_navigationId { -1 };
 };
 
 BooksModelController::BooksModelController(Util::Executor & executor, DB::Database & db)
-	: ModelController(CreateBooksModel(m_books))
+	: ModelController()
 	, m_impl(*this, executor, db)
 {
 }
 
 BooksModelController::~BooksModelController() = default;
 
+void BooksModelController::SetNavigationId(int navigationId)
+{
+	m_impl->navigationId = navigationId;
+	m_impl->setNavigationIdTimer.start();
+}
+
 ModelController::Type BooksModelController::GetType() const noexcept
 {
 	return Type::Books;
 }
 
-void BooksModelController::SetAuthorId(int authorId)
+QAbstractItemModel * BooksModelController::GetModelImpl(const QString & /*modelType*/)
 {
-	m_impl->authorId = authorId;
-	m_impl->setAuthorTimer.start();
+	return CreateBooksModel(m_impl->books);
 }
 
 }

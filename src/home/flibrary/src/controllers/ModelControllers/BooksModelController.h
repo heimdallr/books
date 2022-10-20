@@ -24,13 +24,13 @@ public:
 	BooksModelController(Util::Executor & executor, DB::Database & db);
 	~BooksModelController() override;
 
-	void SetAuthorId(int authorId);
+	void SetNavigationId(int navigationId);
 
 private: // ModelController
 	Type GetType() const noexcept override;
+	QAbstractItemModel * GetModelImpl(const QString & modelType) override;
 
 private:
-	Books m_books;
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };

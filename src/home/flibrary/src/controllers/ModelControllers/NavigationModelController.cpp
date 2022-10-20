@@ -1,4 +1,5 @@
 #include <QAbstractItemModel>
+#include <QPointer>
 
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
@@ -15,7 +16,7 @@ namespace {
 
 using Role = RoleBase;
 
-constexpr auto QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
+constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
 
 void AppendTitle(QString & title, std::string_view str)
 {
@@ -23,7 +24,7 @@ void AppendTitle(QString & title, std::string_view str)
 		title.append(" ").append(str.data());
 }
 
-QString CreateTitle(const DB::Query & query)
+QString CreateAuthorTitle(const DB::Query & query)
 {
 	QString title = query.Get<const char *>(2);
 	AppendTitle(title, query.Get<const char *>(1));
@@ -31,18 +32,37 @@ QString CreateTitle(const DB::Query & query)
 	return title;
 }
 
-NavigationItems CreateItems(DB::Database & db)
+NavigationItems CreateAuthors(DB::Database & db)
 {
 	NavigationItems items;
-	const auto query = db.CreateQuery(QUERY);
+	const auto query = db.CreateQuery(AUTHORS_QUERY);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		items.emplace_back();
 		items.back().Id = query->Get<long long int>(0);
-		items.back().Title = CreateTitle(*query);
+		items.back().Title = CreateAuthorTitle(*query);
 	}
 
 	return items;
+}
+
+using NavigationItemsCreator = NavigationItems(*)(DB::Database & db);
+
+void SelectDataImpl(Util::Executor & executor, DB::Database & db, NavigationItemsCreator creator, QPointer<QAbstractItemModel> model, NavigationItems & navigationItems)
+{
+	executor([&db, &navigationItems, model = std::move(model), creator]() mutable
+	{
+		auto items = creator(db);
+		return[&navigationItems, items = std::move(items), model = std::move(model)]() mutable
+		{
+			if (model.isNull())
+				return;
+
+			(void)model->setData({}, true, Role::ResetBegin);
+			navigationItems = std::move(items);
+			(void)model->setData({}, true, Role::ResetEnd);
+		};
+	});
 }
 
 }
@@ -51,32 +71,25 @@ QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject 
 
 struct NavigationModelController::Impl
 {
-	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db)
-		: m_self(self)
-		, m_executor(executor)
+	NavigationItems authors;
+	Impl(Util::Executor & executor, DB::Database & db)
+		: m_executor(executor)
 		, m_db(db)
 	{
-		m_executor([&]
-		{
-			auto items = CreateItems(m_db);
-			return[&, items = std::move(items)]() mutable
-			{
-				(void)m_self.GetModel()->setData({}, true, Role::ResetBegin);
-				m_self.m_authors = std::move(items);
-				(void)m_self.GetModel()->setData({}, true, Role::ResetEnd);
-			};
-		});
+	}
+
+	void SelectData(NavigationItemsCreator creator, QPointer<QAbstractItemModel> model)
+	{
+		SelectDataImpl(m_executor, m_db, creator, std::move(model), authors);
 	}
 
 private:
-	NavigationModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
 };
 
 NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db)
-	: ModelController(CreateNavigationListModel(m_authors))
-	, m_impl(*this, executor, db)
+	: m_impl(executor, db)
 {
 }
 
@@ -84,7 +97,20 @@ NavigationModelController::~NavigationModelController() = default;
 
 ModelController::Type NavigationModelController::GetType() const noexcept
 {
-	return Type::Authors;
+	return Type::Navigation;
+}
+
+QAbstractItemModel * NavigationModelController::GetModelImpl(const QString & modelType)
+{
+	if (modelType == "Authors")
+	{
+		auto * model = CreateNavigationListModel(m_impl->authors);
+		m_impl->SelectData(&CreateAuthors, model);
+		return model;
+	}
+
+	assert(false && "unexpected modelType");
+	return nullptr;
 }
 
 }

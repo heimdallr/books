@@ -27,7 +27,7 @@ class ModelController
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
-	Q_INVOKABLE QAbstractItemModel * GetModel();
+	Q_INVOKABLE QAbstractItemModel * GetModel(const QString & modelType);
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
 
 public:
@@ -38,13 +38,14 @@ public:
 	};
 
 public:
-	explicit ModelController(QAbstractItemModel * model, QObject * parent = nullptr);
+	explicit ModelController(QObject * parent = nullptr);
 	~ModelController() override;
 
 	void RegisterObserver(ModelControllerObserver * observer);
 	void UnregisterObserver(ModelControllerObserver * observer);
 
 	void SetFocused(bool value);
+	QAbstractItemModel * GetCurrentModel();
 
 public:
 	virtual Type GetType() const noexcept = 0;
@@ -59,6 +60,9 @@ private: // property getters
 	QString GetViewMode() const;
 
 private: // property setters
+
+private:
+	virtual QAbstractItemModel * GetModelImpl(const QString & modelType) = 0;
 
 private:
 	struct Impl;

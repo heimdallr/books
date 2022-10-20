@@ -51,20 +51,18 @@ public:
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
 	bool focused { false };
+	QString currentModelType;
 
-	Impl(ModelController & self, QAbstractItemModel * model_)
+	explicit Impl(ModelController & self)
 		: m_self(self)
-		, model(model_)
 	{
 		m_findTimer.setSingleShot(true);
 		m_findTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&m_findTimer, &QTimer::timeout, [&]
 		{
+			assert(model);
 			(void)model->setData({}, m_viewModeText, viewModeRole);
 		});
-
-		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
-		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverRegister);
 	}
 
 	~Impl() override
@@ -155,9 +153,9 @@ private:
 	}
 };
 
-ModelController::ModelController(QAbstractItemModel * model, QObject * parent)
+ModelController::ModelController(QObject * parent)
 	: QObject(parent)
-	, m_impl(*this, model)
+	, m_impl(*this)
 {
 }
 
@@ -186,6 +184,12 @@ void ModelController::SetFocused(const bool value)
 	Util::Set(m_impl->focused, value, *this, &ModelController::FocusedChanged);
 }
 
+QAbstractItemModel * ModelController::GetCurrentModel()
+{
+	assert(m_impl->model);
+	return m_impl->model.get();
+}
+
 void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
 	m_impl->SetViewMode(mode, text);
@@ -208,8 +212,19 @@ int ModelController::GetCurrentLocalIndex()
 	return localIndex;
 }
 
-QAbstractItemModel * ModelController::GetModel()
+QAbstractItemModel * ModelController::GetModel(const QString & modelType)
 {
+	if (m_impl->currentModelType == modelType)
+		return m_impl->model.get();
+
+	if (m_impl->model)
+		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
+
+	auto * model = GetModelImpl(modelType);
+	QQmlEngine::setObjectOwnership(model, QQmlEngine::CppOwnership);
+	m_impl->model.reset(model);
+	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverRegister);
+	m_impl->currentModelType = modelType;
 	return m_impl->model.get();
 }
 

@@ -8,6 +8,8 @@ Item
 	CustomListView
 	{
 		anchors.fill: parent
+
+		modelType: "BooksListView"
 		delegate: BookDelegate
 		{
 			itemWidth: booksListViewID.width
