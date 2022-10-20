@@ -32,6 +32,7 @@ Rectangle
 			CustomCombobox
 			{
 				id: viewSourceComboBoxID
+				currentIndex: -1
 			}
 
 			TextField
