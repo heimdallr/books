@@ -47,7 +47,7 @@ NavigationItems CreateItems(DB::Database & db)
 
 }
 
-QAbstractItemModel * CreateAuthorsModel(NavigationItems & items, QObject * parent = nullptr);
+QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject * parent = nullptr);
 
 struct NavigationModelController::Impl
 {
@@ -75,7 +75,7 @@ private:
 };
 
 NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db)
-	: ModelController(CreateAuthorsModel(m_authors))
+	: ModelController(CreateNavigationListModel(m_authors))
 	, m_impl(*this, executor, db)
 {
 }

@@ -6,6 +6,8 @@ import "constants.js" as Constants
 
 Item
 {
+	id: customListViewID
+
 	property alias delegate: listViewID.delegate
 
 	ColumnLayout
@@ -18,7 +20,7 @@ Item
 			id: highlightID
 			Rectangle
 			{
-				width: navigationID.width
+				width: customListViewID.width
 				height: Constants.delegateHeight
 				radius: 5
 

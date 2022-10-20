@@ -7,7 +7,7 @@ import "../Core/constants.js" as Constants
 
 Rectangle
 {
-	id: navigationID
+	id: viewTemplateID
 
 	property var modelController
 	property string loadPath
@@ -26,7 +26,7 @@ Rectangle
 
 			function setViewMode()
 			{
-				navigationID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
+				viewTemplateID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
 			}
 
 			CustomCombobox

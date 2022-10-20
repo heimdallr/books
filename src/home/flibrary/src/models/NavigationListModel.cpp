@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary {
 namespace {
 
 
-struct AuthorsRole
+struct NavigationListRole
 	: RoleBase
 {
 	// ReSharper disable once CppClassNeverUsed
@@ -19,7 +19,7 @@ struct AuthorsRole
 };
 
 class Model final
-	: public ProxyModelBaseT<NavigationItem, AuthorsRole, ModelObserver>
+	: public ProxyModelBaseT<NavigationItem, NavigationListRole, ModelObserver>
 {
 public:
 	Model(NavigationItems & items, QSortFilterProxyModel & proxyModel)
@@ -51,7 +51,7 @@ private:
 
 }
 
-QAbstractItemModel * CreateAuthorsModel(NavigationItems & items, QObject * parent)
+QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject * parent)
 {
 	return new ProxyModel(items, parent);
 }
