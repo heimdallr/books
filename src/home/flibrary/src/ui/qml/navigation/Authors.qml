@@ -12,7 +12,7 @@ Item
 		modelType: "Authors"
 		delegate: NavigationDelegate
 		{
-			itemWidth: authorsID.width
+			width: authorsID.width
 		}
 	}
 }

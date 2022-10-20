@@ -63,23 +63,6 @@ NavigationItems CreateSeries(DB::Database & db)
 
 using NavigationItemsCreator = NavigationItems(*)(DB::Database & db);
 
-void SelectDataImpl(Util::Executor & executor, DB::Database & db, NavigationItemsCreator creator, QPointer<QAbstractItemModel> model, NavigationItems & navigationItems)
-{
-	executor([&db, &navigationItems, model = std::move(model), creator]() mutable
-	{
-		auto items = creator(db);
-		return[&navigationItems, items = std::move(items), model = std::move(model)]() mutable
-		{
-			if (model.isNull())
-				return;
-
-			(void)model->setData({}, true, Role::ResetBegin);
-			navigationItems = std::move(items);
-			(void)model->setData({}, true, Role::ResetEnd);
-		};
-	}, 1);
-}
-
 }
 
 QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject * parent = nullptr);
@@ -87,8 +70,9 @@ QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject 
 class NavigationModelController::Impl
 {
 public:
-	Impl(Util::Executor & executor, DB::Database & db)
-		: m_executor(executor)
+	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db)
+		: m_self(self)
+		, m_executor(executor)
 		, m_db(db)
 	{
 	}
@@ -106,14 +90,27 @@ public:
 	}
 
 private:
-	QAbstractItemModel * GetModelImpl(NavigationItemsCreator creator, NavigationItems & items) const
+	QAbstractItemModel * GetModelImpl(NavigationItemsCreator creator, NavigationItems & navigationItems) const
 	{
-		auto * model = CreateNavigationListModel(items);
-		SelectDataImpl(m_executor, m_db, creator, model, items);
+		auto * model = CreateNavigationListModel(navigationItems);
+		m_executor([&, model = QPointer(model), creator]() mutable
+		{
+			auto items = creator(m_db);
+			return[&, items = std::move(items), model = std::move(model)]() mutable
+			{
+				if (model.isNull())
+					return;
+
+				(void)model->setData({}, true, Role::ResetBegin);
+				navigationItems = std::move(items);
+				(void)model->setData({}, true, Role::ResetEnd);
+			};
+		}, 1);
 		return model;
 	}
 
 private:
+	NavigationModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
 	NavigationItems m_authors;
@@ -121,7 +118,7 @@ private:
 };
 
 NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db)
-	: m_impl(executor, db)
+	: m_impl(*this, executor, db)
 {
 }
 

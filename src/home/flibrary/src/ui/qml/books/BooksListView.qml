@@ -5,6 +5,9 @@ import "qrc:/Core"
 Item
 {
 	id: booksListViewID
+
+	readonly property bool authorVisible: modelController.navigationType != "Authors"
+
 	CustomListView
 	{
 		anchors.fill: parent
@@ -12,7 +15,8 @@ Item
 		modelType: "BooksListView"
 		delegate: BookDelegate
 		{
-			itemWidth: booksListViewID.width
+			width: booksListViewID.width
+			authorVisible: booksListViewID.authorVisible
 		}
 	}
 }

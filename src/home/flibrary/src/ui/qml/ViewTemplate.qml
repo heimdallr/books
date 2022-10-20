@@ -13,6 +13,13 @@ Rectangle
 	property string loadPath
 	property alias viewSourceComboBox: viewSourceComboBoxID
 
+	function onSourceChanged()
+	{
+		viewModeTextID.text = ""
+		modelController.currentIndex = -1
+		loaderID.setSource(loadPath + viewSourceComboBoxID.currentValue + ".qml")
+	}
+
 	ColumnLayout
 	{
 		anchors.fill: parent
@@ -33,6 +40,7 @@ Rectangle
 			{
 				id: viewSourceComboBoxID
 				currentIndex: -1
+				onCurrentValueChanged: onSourceChanged()
 			}
 
 			TextField
@@ -58,9 +66,9 @@ Rectangle
 
 		Loader
 		{
+			id: loaderID
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-			source: loadPath + viewSourceComboBoxID.currentValue + ".qml"
 		}
 	}
 }

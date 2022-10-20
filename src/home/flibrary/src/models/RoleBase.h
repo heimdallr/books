@@ -5,7 +5,7 @@
 
 namespace HomeCompa::Flibrary {
 
-struct RoleBase : public QObject
+struct RoleBase : QObject
 {
 	Q_OBJECT
 public:

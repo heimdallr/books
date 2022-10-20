@@ -197,12 +197,20 @@ const QString & ModelController::GetCurrentModelType() const
 
 int ModelController::GetId(int index)
 {
+	if (!m_impl->model)
+		return 0;
+
 	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
 	const auto localModelIndex = m_impl->model->index(index, 0);
 	assert(localModelIndex.isValid());
 	const auto authorIdVar = m_impl->model->data(localModelIndex, RoleBase::Id);
 	assert(authorIdVar.isValid());
 	return authorIdVar.toInt();
+}
+
+const QString & ModelController::GetNavigationType() const
+{
+	return m_impl->currentModelType;
 }
 
 void ModelController::SetViewMode(const QString & mode, const QString & text)
@@ -222,6 +230,7 @@ bool ModelController::GetFocused() const noexcept
 
 int ModelController::GetCurrentLocalIndex()
 {
+	assert(m_impl->model);
 	int localIndex = m_impl->currentIndex;
 	(void)m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &localIndex }), Role::TranslateIndexFromGlobal);
 	return localIndex;
@@ -240,12 +249,18 @@ QAbstractItemModel * ModelController::GetModel(const QString & modelType)
 	m_impl->model.reset(model);
 	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverRegister);
 	m_impl->currentModelType = modelType;
+	emit NavigationTypeChanged();
 	return m_impl->model.get();
 }
 
 QString ModelController::GetViewMode() const
 {
 	return FindFirst(g_viewModes, m_impl->viewModeRole);
+}
+
+void ModelController::SetCurrentLocalIndex(int)
+{
+	m_impl->currentIndex = -1;
 }
 
 }

@@ -20,9 +20,10 @@ class ModelController
 {
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
-	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex NOTIFY CurrentIndexChanged)
+	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE SetCurrentLocalIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
+	Q_PROPERTY(QString navigationType READ GetNavigationType NOTIFY NavigationTypeChanged)
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
@@ -55,6 +56,7 @@ public:
 signals:
 	void CurrentIndexChanged() const;
 	void FocusedChanged() const;
+	void NavigationTypeChanged() const;
 
 private: // property getters
 	bool GetFocused() const noexcept;
@@ -62,9 +64,11 @@ private: // property getters
 	QString GetViewMode() const;
 
 private: // property setters
+	void SetCurrentLocalIndex(int);
 
 private:
 	virtual QAbstractItemModel * GetModelImpl(const QString & modelType) = 0;
+	virtual const QString & GetNavigationType() const;
 
 private:
 	struct Impl;

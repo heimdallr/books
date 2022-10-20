@@ -29,6 +29,7 @@ public:
 private: // ModelController
 	Type GetType() const noexcept override;
 	QAbstractItemModel * GetModelImpl(const QString & modelType) override;
+	const QString & GetNavigationType() const override;
 
 private:
 	struct Impl;

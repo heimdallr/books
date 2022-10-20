@@ -1,31 +1,33 @@
 import QtQuick 2.15
+import QtQuick.Layouts 1.15
 
 import "qrc:/Core/constants.js" as Constants
 
 Rectangle
 {
-	property int itemWidth: undefined
+	id: delegateID
+	property bool authorVisible: true
 
-	width: itemWidth
 	height: Constants.delegateHeight
 	color: "transparent"
 
 	border { color: Constants.borderColor; width: 1 }
 
-	Text
+	RowLayout
 	{
-		id: textID
-		anchors
+		Text
 		{
-			left: parent.left
-			leftMargin: 4
-			bottom: parent.bottom
-			bottomMargin: 4
+			Layout.preferredWidth: delegateID.width / 4
+			font.pointSize: Constants.fontSize
+			text: Author
+			visible: delegateID.authorVisible
 		}
-		font.pointSize: Constants.fontSize
-
-		color: "black"
-		text: Title
+		Text
+		{
+			Layout.fillWidth: true
+			font.pointSize: Constants.fontSize
+			text: Title
+		}
 	}
 
 	MouseArea

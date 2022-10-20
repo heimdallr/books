@@ -41,14 +41,23 @@ constexpr std::pair<const char *, const char *> g_joins[]
 	{ "Series", WHERE_SERIES },
 };
 
-void AppendTitle(QString & title, std::string_view str, std::string_view separator)
+void AppendTitle(QString & title, const QString & str, std::string_view separator)
 {
-	if (!str.empty())
-		title.append(separator.data()).append(str.data());
+	if (!str.isEmpty())
+		title.append(separator.data()).append(str);
 }
 
-Books CreateItems(DB::Database & db, const std::string & navigationType, int navigationId)
+void AppendAuthorName(QString & title, QString str, std::string_view separator)
 {
+	if (!str.isEmpty())
+		AppendTitle(title, str.mid(0, 1) + ".", separator);
+}
+
+Books CreateItems(DB::Database & db, const std::string & navigationType, const int navigationId)
+{
+	if (navigationType.empty())
+		return {};
+
 	std::map<long long int, size_t> index;
 
 	Books items;
@@ -78,8 +87,8 @@ Books CreateItems(DB::Database & db, const std::string & navigationType, int nav
 		item.FileName = query->Get<const char *>(7);
 		item.IsDeleted = query->Get<int>(8) != 0;
 		item.Author = query->Get<const char *>(9);
-		AppendTitle(item.Author, query->Get<const char *>(10), " ");
-		AppendTitle(item.Author, query->Get<const char *>(11), " ");
+		AppendAuthorName(item.Author, query->Get<const char *>(10), " ");
+		AppendAuthorName(item.Author, query->Get<const char *>(11), "");
 		item.GenreAlias = query->Get<const char *>(12);
 		item.SeriesTitle = query->Get<const char *>(13);
 	}
@@ -107,10 +116,12 @@ struct BooksModelController::Impl
 		setNavigationIdTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&setNavigationIdTimer, &QTimer::timeout, [&]
 		{
-			if (m_navigationId == navigationId)
+			if (m_navigationId == navigationId && m_navigationType == navigationType)
 				return;
 
+			m_navigationType = navigationType;
 			m_navigationId = navigationId;
+
 			UpdateItems();
 		});
 	}
@@ -118,7 +129,7 @@ struct BooksModelController::Impl
 	void UpdateItems()
 	{
 		QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
-		m_executor([&, model = std::move(model), navigationType = navigationType.toStdString(), navigationId = m_navigationId]() mutable
+		m_executor([&, model = std::move(model), navigationType = m_navigationType.toStdString(), navigationId = m_navigationId]() mutable
 		{
 			auto items = CreateItems(m_db, navigationType, navigationId);
 			return[&, items = std::move(items), model = std::move(model)]() mutable
@@ -129,6 +140,8 @@ struct BooksModelController::Impl
 				(void)model->setData({}, true, Role::ResetBegin);
 				books = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
+
+				emit m_self.NavigationTypeChanged();
 			};
 		}, 2);
 	}
@@ -137,6 +150,7 @@ private:
 	BooksModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
+	QString m_navigationType;
 	int m_navigationId { -1 };
 };
 
@@ -163,6 +177,11 @@ ModelController::Type BooksModelController::GetType() const noexcept
 QAbstractItemModel * BooksModelController::GetModelImpl(const QString & /*modelType*/)
 {
 	return CreateBooksModel(m_impl->books);
+}
+
+const QString & BooksModelController::GetNavigationType() const
+{
+	return m_impl->navigationType;
 }
 
 }

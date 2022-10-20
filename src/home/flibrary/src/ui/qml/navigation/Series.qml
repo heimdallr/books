@@ -12,7 +12,7 @@ Item
 		modelType: "Series"
 		delegate: NavigationDelegate
 		{
-			itemWidth: seriesID.width
+			width: seriesID.width
 		}
 	}
 }

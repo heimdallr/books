@@ -4,9 +4,6 @@ import "qrc:/Core/constants.js" as Constants
 
 Rectangle
 {
-	property int itemWidth: undefined
-
-	width: itemWidth
 	height: Constants.delegateHeight
 	color: "transparent"
 

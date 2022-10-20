@@ -1,30 +1,23 @@
-#include "ModelObserver.h"
-#include "RoleBase.h"
-
-#include "ProxyModelBaseT.h"
 #include "Book.h"
+#include "BookRole.h"
+#include "ModelObserver.h"
+#include "ProxyModelBaseT.h"
 
 namespace HomeCompa::Flibrary {
 
 namespace {
 
-struct BooksRole
-	: RoleBase
-{
-	// ReSharper disable once CppClassNeverUsed
-	enum Value
-	{
-	};
-};
-
 class Model final
-	: public ProxyModelBaseT<Book, BooksRole, ModelObserver>
+	: public ProxyModelBaseT<Book, BookRole, ModelObserver>
 {
 public:
 	Model(Books & items, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
 	{
 		AddReadableRole(Role::Title, &Book::Title);
+#define	BOOK_ROLE_ITEM(NAME) AddReadableRole(Role::NAME, &Book::NAME);
+		BOOK_ROLE_ITEMS_XMACRO
+#undef	BOOK_ROLE_ITEM
 	}
 };
 
