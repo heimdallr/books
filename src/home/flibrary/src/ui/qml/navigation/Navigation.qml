@@ -5,7 +5,7 @@ import "qrc:/"
 ViewTemplate
 {
 	id: listViewID
-	modelController: guiController.GetAuthorsModelController()
+	modelController: guiController.GetNavigationModelController()
 	loadPath: "Navigation/"
 
 	Component.onCompleted:

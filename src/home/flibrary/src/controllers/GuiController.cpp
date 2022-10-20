@@ -72,7 +72,7 @@ public:
 		return m_running;
 	}
 
-	ModelController * GetAuthorsModelController() noexcept
+	ModelController * GetNavigationModelController() noexcept
 	{
 		return m_navigationModelController.get();
 	}
@@ -85,15 +85,15 @@ public:
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, int index) override
 	{
-		if (controller->GetType() == ModelController::Type::Authors)
+		if (controller->GetType() == ModelController::Type::Navigation)
 		{
-			auto * authorsModel = controller->GetModel();
+			auto * authorsModel = controller->GetCurrentModel();
 			authorsModel->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest{ &index }), RoleBase::TranslateIndexFromGlobal);
 			const auto localModelIndex = authorsModel->index(index, 0);
 			assert(localModelIndex.isValid());
 			const auto authorIdVar = authorsModel->data(localModelIndex, RoleBase::Id);
 			assert(authorIdVar.isValid());
-			m_booksModelController->SetAuthorId(authorIdVar.toInt());
+			m_booksModelController->SetNavigationId(authorIdVar.toInt());
 		}
 	}
 
@@ -139,9 +139,9 @@ void GuiController::OnKeyPressed(int key, int modifiers)
 	m_impl->OnKeyPressed(key, modifiers);
 }
 
-ModelController * GuiController::GetAuthorsModelController() noexcept
+ModelController * GuiController::GetNavigationModelController() noexcept
 {
-	return m_impl->GetAuthorsModelController();
+	return m_impl->GetNavigationModelController();
 }
 
 ModelController * GuiController::GetBooksModelController() noexcept

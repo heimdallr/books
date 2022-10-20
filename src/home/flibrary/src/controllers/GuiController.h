@@ -28,7 +28,7 @@ public:
 
 public:
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
-	Q_INVOKABLE ModelController * GetAuthorsModelController() noexcept;
+	Q_INVOKABLE ModelController * GetNavigationModelController() noexcept;
 	Q_INVOKABLE ModelController * GetBooksModelController() noexcept;
 
 signals:

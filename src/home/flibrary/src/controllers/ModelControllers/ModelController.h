@@ -33,7 +33,7 @@ public:
 public:
 	enum class Type
 	{
-		Authors,
+		Navigation,
 		Books,
 	};
 
