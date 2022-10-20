@@ -30,7 +30,7 @@ private: // ModelController
 	QAbstractItemModel * GetModelImpl(const QString & modelType) override;
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

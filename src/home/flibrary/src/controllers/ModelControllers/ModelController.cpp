@@ -190,6 +190,21 @@ QAbstractItemModel * ModelController::GetCurrentModel()
 	return m_impl->model.get();
 }
 
+const QString & ModelController::GetCurrentModelType() const
+{
+	return m_impl->currentModelType;
+}
+
+int ModelController::GetId(int index)
+{
+	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
+	const auto localModelIndex = m_impl->model->index(index, 0);
+	assert(localModelIndex.isValid());
+	const auto authorIdVar = m_impl->model->data(localModelIndex, RoleBase::Id);
+	assert(authorIdVar.isValid());
+	return authorIdVar.toInt();
+}
+
 void ModelController::SetViewMode(const QString & mode, const QString & text)
 {
 	m_impl->SetViewMode(mode, text);

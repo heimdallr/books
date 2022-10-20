@@ -24,7 +24,7 @@ public:
 	BooksModelController(Util::Executor & executor, DB::Database & db);
 	~BooksModelController() override;
 
-	void SetNavigationId(int navigationId);
+	void SetNavigationId(const QString & navigationType, int navigationId);
 
 private: // ModelController
 	Type GetType() const noexcept override;

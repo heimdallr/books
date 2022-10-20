@@ -17,6 +17,7 @@ namespace {
 using Role = RoleBase;
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
+constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series order by SeriesTitle";
 
 void AppendTitle(QString & title, std::string_view str)
 {
@@ -46,6 +47,20 @@ NavigationItems CreateAuthors(DB::Database & db)
 	return items;
 }
 
+NavigationItems CreateSeries(DB::Database & db)
+{
+	NavigationItems items;
+	const auto query = db.CreateQuery(SERIES_QUERY);
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		items.emplace_back();
+		items.back().Id = query->Get<long long int>(0);
+		items.back().Title = query->Get<const char *>(1);
+	}
+
+	return items;
+}
+
 using NavigationItemsCreator = NavigationItems(*)(DB::Database & db);
 
 void SelectDataImpl(Util::Executor & executor, DB::Database & db, NavigationItemsCreator creator, QPointer<QAbstractItemModel> model, NavigationItems & navigationItems)
@@ -62,30 +77,47 @@ void SelectDataImpl(Util::Executor & executor, DB::Database & db, NavigationItem
 			navigationItems = std::move(items);
 			(void)model->setData({}, true, Role::ResetEnd);
 		};
-	});
+	}, 1);
 }
 
 }
 
 QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject * parent = nullptr);
 
-struct NavigationModelController::Impl
+class NavigationModelController::Impl
 {
-	NavigationItems authors;
+public:
 	Impl(Util::Executor & executor, DB::Database & db)
 		: m_executor(executor)
 		, m_db(db)
 	{
 	}
 
-	void SelectData(NavigationItemsCreator creator, QPointer<QAbstractItemModel> model)
+	QAbstractItemModel * GetModel(const QString & modelType)
 	{
-		SelectDataImpl(m_executor, m_db, creator, std::move(model), authors);
+		if (modelType == "Authors")
+			return GetModelImpl(&CreateAuthors, m_authors);
+
+		if (modelType == "Series")
+			return GetModelImpl(&CreateSeries, m_series);
+
+		assert(false && "unexpected modelType");
+		return nullptr;
+	}
+
+private:
+	QAbstractItemModel * GetModelImpl(NavigationItemsCreator creator, NavigationItems & items) const
+	{
+		auto * model = CreateNavigationListModel(items);
+		SelectDataImpl(m_executor, m_db, creator, model, items);
+		return model;
 	}
 
 private:
 	Util::Executor & m_executor;
 	DB::Database & m_db;
+	NavigationItems m_authors;
+	NavigationItems m_series;
 };
 
 NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db)
@@ -102,15 +134,7 @@ ModelController::Type NavigationModelController::GetType() const noexcept
 
 QAbstractItemModel * NavigationModelController::GetModelImpl(const QString & modelType)
 {
-	if (modelType == "Authors")
-	{
-		auto * model = CreateNavigationListModel(m_impl->authors);
-		m_impl->SelectData(&CreateAuthors, model);
-		return model;
-	}
-
-	assert(false && "unexpected modelType");
-	return nullptr;
+	return m_impl->GetModel(modelType);
 }
 
 }

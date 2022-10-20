@@ -27,6 +27,7 @@ AddTarget(
 		DatabaseFactory
 		DatabaseInt
 		Fnd
+		MyHomeLibSQLIteExt
 		Util
 		sqlite
 		sqlite3pp

@@ -10,6 +10,16 @@ struct Book
 {
 	long long int Id { 0 };
 	QString Title;
+	int SeqNumber;
+	QString UpdateDate;
+	int LibRate;
+	QString Lang;
+	QString Folder;
+	QString FileName;
+	bool IsDeleted;
+	QString Author;
+	QString GenreAlias;
+	QString SeriesTitle;
 };
 
 }

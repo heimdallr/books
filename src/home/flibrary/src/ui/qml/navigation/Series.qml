@@ -8,6 +8,8 @@ Item
 	CustomListView
 	{
 		anchors.fill: parent
+
+		modelType: "Series"
 		delegate: NavigationDelegate
 		{
 			itemWidth: seriesID.width

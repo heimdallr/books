@@ -20,11 +20,14 @@
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/BooksModelController.h"
 
+#include "Configuration.h"
+
 namespace HomeCompa::Flibrary {
 
 PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
-	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, databaseName));
+	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
+	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, connectionString));
 }
 
 class GuiController::Impl
@@ -86,15 +89,7 @@ private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, int index) override
 	{
 		if (controller->GetType() == ModelController::Type::Navigation)
-		{
-			auto * authorsModel = controller->GetCurrentModel();
-			authorsModel->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest{ &index }), RoleBase::TranslateIndexFromGlobal);
-			const auto localModelIndex = authorsModel->index(index, 0);
-			assert(localModelIndex.isValid());
-			const auto authorIdVar = authorsModel->data(localModelIndex, RoleBase::Id);
-			assert(authorIdVar.isValid());
-			m_booksModelController->SetNavigationId(authorIdVar.toInt());
-		}
+			m_booksModelController->SetNavigationId(m_navigationModelController->GetCurrentModelType(), m_navigationModelController->GetId(index));
 	}
 
 	void HandleClicked(ModelController * controller) override
