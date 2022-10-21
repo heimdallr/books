@@ -56,6 +56,9 @@ protected:
 			case Role::Click:
 				return Observable<Observer>::Perform(&Observer::HandleItemClicked, index.row()), true;
 
+			case Role::KeyPressed:
+				return true;
+
 			default:
 				break;
 		}

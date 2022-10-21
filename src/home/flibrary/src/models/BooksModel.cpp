@@ -32,16 +32,28 @@ private: // ProxyModelBaseT
 				emit dataChanged(index, index, { role });
 				return true;
 
-			case Role::ToggleChecked:
-				item.Checked = !item.Checked;
-				emit dataChanged(index, index, { Role::Checked });
-				return true;
+			case Role::KeyPressed:
+				return OnKeyPressed(index, value, item);
 
 			default:
 				break;
 		}
 
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
+	}
+
+private:
+	bool OnKeyPressed(const QModelIndex & index, const QVariant & value, Item & item)
+	{
+		const auto [key, modifiers] = value.value<QPair<int, int>>();
+		if (modifiers == Qt::NoModifier && key == Qt::Key_Space)
+		{
+			item.Checked = !item.Checked;
+			emit dataChanged(index, index, { Role::Checked });
+			return true;
+		}
+
+		return false;
 	}
 };
 

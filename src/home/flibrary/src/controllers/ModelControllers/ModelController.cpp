@@ -13,8 +13,6 @@
 #include "models/RoleBase.h"
 #include "models/ModelObserver.h"
 
-#include "models/BookRole.h"
-
 namespace HomeCompa::Flibrary {
 
 namespace {
@@ -72,47 +70,45 @@ public:
 		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
 	}
 
-	bool OnKeyPressed(int key, int modifiers)
+	void OnKeyPressed(const int key, const int modifiers)
 	{
+		(void)model->setData(model->index(currentIndex, 0), QVariant::fromValue(qMakePair(key, modifiers)), Role::KeyPressed);
+
 		if (modifiers == Qt::ControlModifier)
 		{
 			switch (key)
 			{
 				case Qt::Key_Home:
-					return SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
 
 				case Qt::Key_End:
-					return SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
 
 				default:
-					return false;
+					return;
 			}
 		}
 
-		switch (key)
+		if (modifiers == Qt::NoModifier)
 		{
-			case Qt::Key_Up:
-				return SetCurrentIndex(IncreaseNavigationIndex(-1));
+			switch (key)
+			{
+				case Qt::Key_Up:
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(-1));
 
-			case Qt::Key_Down:
-				return SetCurrentIndex(IncreaseNavigationIndex(1));
+				case Qt::Key_Down:
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(1));
 
-			case Qt::Key_PageUp:
-				return SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
+				case Qt::Key_PageUp:
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
 
-			case Qt::Key_PageDown:
-				return SetCurrentIndex(IncreaseNavigationIndex(pageSize));
+				case Qt::Key_PageDown:
+					return (void)SetCurrentIndex(IncreaseNavigationIndex(pageSize));
 
-			case Qt::Key_Space:
-				if (m_self.GetType() == Type::Books)
-					return model->setData(model->index(currentIndex, 0), {}, BookRole::ToggleChecked);
-				return false;
-
-			default:
-				break;
+				default:
+					break;
+			}
 		}
-
-		return false;
 	}
 
 	void SetViewMode(const QString & mode, const QString & text)

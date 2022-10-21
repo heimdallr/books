@@ -19,6 +19,7 @@ public:
 
 		// запись локальная
 		Click,
+		KeyPressed,
 
 		// запись глобальная
 		ResetBegin,
