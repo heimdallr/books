@@ -53,7 +53,7 @@ void AppendAuthorName(QString & title, QString str, std::string_view separator)
 		AppendTitle(title, str.mid(0, 1) + ".", separator);
 }
 
-Books CreateItems(DB::Database & db, const std::string & navigationType, const int navigationId)
+Books CreateItems(DB::Database & db, const std::string & navigationType, const QString & navigationId)
 {
 	if (navigationType.empty())
 		return {};
@@ -62,7 +62,7 @@ Books CreateItems(DB::Database & db, const std::string & navigationType, const i
 
 	Books items;
 	const auto query = db.CreateQuery(std::string(QUERY) + FindSecond(g_joins, navigationType.data(), PszComparer{}));
-	[[maybe_unused]] const auto result = query->Bind(":id", navigationId);
+	[[maybe_unused]] const auto result = query->Bind(":id", navigationId.toInt());
 	assert(result == 0);
 
 	for (query->Execute(); !query->Eof(); query->Next())
@@ -105,7 +105,7 @@ struct BooksModelController::Impl
 	Books books;
 	QTimer setNavigationIdTimer;
 	QString navigationType;
-	int navigationId { -1 };
+	QString navigationId;
 
 	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db)
 		: m_self(self)
@@ -151,7 +151,7 @@ private:
 	Util::Executor & m_executor;
 	DB::Database & m_db;
 	QString m_navigationType;
-	int m_navigationId { -1 };
+	QString m_navigationId;
 };
 
 BooksModelController::BooksModelController(Util::Executor & executor, DB::Database & db)
@@ -162,7 +162,7 @@ BooksModelController::BooksModelController(Util::Executor & executor, DB::Databa
 
 BooksModelController::~BooksModelController() = default;
 
-void BooksModelController::SetNavigationId(const QString & navigationType, int navigationId)
+void BooksModelController::SetNavigationId(const QString & navigationType, const QString & navigationId)
 {
 	m_impl->navigationType = navigationType;
 	m_impl->navigationId = navigationId;

@@ -48,7 +48,7 @@ public:
 	void SetFocused(bool value);
 	QAbstractItemModel * GetCurrentModel();
 	const QString & GetCurrentModelType() const;
-	int GetId(int index);
+	QString GetId(int index);
 
 public:
 	virtual Type GetType() const noexcept = 0;

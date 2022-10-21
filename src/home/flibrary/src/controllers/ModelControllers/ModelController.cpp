@@ -195,17 +195,17 @@ const QString & ModelController::GetCurrentModelType() const
 	return m_impl->currentModelType;
 }
 
-int ModelController::GetId(int index)
+QString ModelController::GetId(int index)
 {
 	if (!m_impl->model)
-		return 0;
+		return {};
 
 	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
 	const auto localModelIndex = m_impl->model->index(index, 0);
 	assert(localModelIndex.isValid());
 	const auto authorIdVar = m_impl->model->data(localModelIndex, RoleBase::Id);
 	assert(authorIdVar.isValid());
-	return authorIdVar.toInt();
+	return authorIdVar.toString();
 }
 
 const QString & ModelController::GetNavigationType() const
