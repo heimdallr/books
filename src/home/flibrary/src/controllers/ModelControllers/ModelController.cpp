@@ -13,6 +13,8 @@
 #include "models/RoleBase.h"
 #include "models/ModelObserver.h"
 
+#include "models/BookRole.h"
+
 namespace HomeCompa::Flibrary {
 
 namespace {
@@ -100,6 +102,11 @@ public:
 
 			case Qt::Key_PageDown:
 				return SetCurrentIndex(IncreaseNavigationIndex(pageSize));
+
+			case Qt::Key_Space:
+				if (m_self.GetType() == Type::Books)
+					return model->setData(model->index(currentIndex, 0), {}, BookRole::ToggleChecked);
+				return false;
 
 			default:
 				break;

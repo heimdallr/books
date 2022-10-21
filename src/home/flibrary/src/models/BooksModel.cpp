@@ -1,3 +1,5 @@
+#include <QTimer>
+
 #include "Book.h"
 #include "BookRole.h"
 #include "ModelObserver.h"
@@ -18,6 +20,28 @@ public:
 #define	BOOK_ROLE_ITEM(NAME) AddReadableRole(Role::NAME, &Book::NAME);
 		BOOK_ROLE_ITEMS_XMACRO
 #undef	BOOK_ROLE_ITEM
+	}
+
+private: // ProxyModelBaseT
+	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
+	{
+		switch (role)
+		{
+			case Role::Checked:
+				item.Checked = value.toBool();
+				emit dataChanged(index, index, { role });
+				return true;
+
+			case Role::ToggleChecked:
+				item.Checked = !item.Checked;
+				emit dataChanged(index, index, { Role::Checked });
+				return true;
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
 	}
 };
 

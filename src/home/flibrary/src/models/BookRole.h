@@ -7,17 +7,18 @@
 
 namespace HomeCompa::Flibrary {
 
-#define BOOK_ROLE_ITEMS_XMACRO      \
-		BOOK_ROLE_ITEM(SeqNumber)   \
-		BOOK_ROLE_ITEM(UpdateDate)  \
-		BOOK_ROLE_ITEM(LibRate)     \
-		BOOK_ROLE_ITEM(Lang)        \
-		BOOK_ROLE_ITEM(Folder)      \
-		BOOK_ROLE_ITEM(FileName)    \
-		BOOK_ROLE_ITEM(IsDeleted)   \
-		BOOK_ROLE_ITEM(Author)      \
-		BOOK_ROLE_ITEM(GenreAlias)  \
-		BOOK_ROLE_ITEM(SeriesTitle) \
+#define BOOK_ROLE_ITEMS_XMACRO        \
+		BOOK_ROLE_ITEM(SeqNumber)     \
+		BOOK_ROLE_ITEM(UpdateDate)    \
+		BOOK_ROLE_ITEM(LibRate)       \
+		BOOK_ROLE_ITEM(Lang)          \
+		BOOK_ROLE_ITEM(Folder)        \
+		BOOK_ROLE_ITEM(FileName)      \
+		BOOK_ROLE_ITEM(IsDeleted)     \
+		BOOK_ROLE_ITEM(Author)        \
+		BOOK_ROLE_ITEM(GenreAlias)    \
+		BOOK_ROLE_ITEM(SeriesTitle)   \
+		BOOK_ROLE_ITEM(Checked)
 
 struct BookRole
 	: RoleBase
@@ -30,6 +31,8 @@ public:
 #define	BOOK_ROLE_ITEM(NAME) NAME,
 		BOOK_ROLE_ITEMS_XMACRO
 #undef	BOOK_ROLE_ITEM
+		ToggleChecked,
+		FakeBookRoleLast
 	};
 
 	Q_ENUM(Value)

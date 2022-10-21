@@ -34,20 +34,33 @@ constexpr auto QUERY =
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
+constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 
-constexpr std::pair<const char *, const char *> g_joins[]
+using Binder = int(*)(DB::Query &, const QString &);
+int BindInt(DB::Query & query, const QString & id)
 {
-	{ "Authors", WHERE_AUTHOR },
-	{ "Series", WHERE_SERIES },
+	return query.Bind(":id", id.toInt());
+}
+
+int BindString(DB::Query & query, const QString & id)
+{
+	return query.Bind(":id", id.toStdString());
+}
+
+constexpr std::pair<const char *, std::pair<const char *, Binder>> g_joins[]
+{
+	{ "Authors", { WHERE_AUTHOR, &BindInt    } },
+	{ "Series" , { WHERE_SERIES, &BindInt    } },
+	{ "Genres" , { WHERE_GENRE , &BindString } },
 };
 
 void AppendTitle(QString & title, const QString & str, std::string_view separator)
 {
 	if (!str.isEmpty())
-		title.append(separator.data()).append(str);
+		title.append(title.isEmpty() ? "" : separator.data()).append(str);
 }
 
-void AppendAuthorName(QString & title, QString str, std::string_view separator)
+void AppendAuthorName(QString & title, const QString & str, std::string_view separator)
 {
 	if (!str.isEmpty())
 		AppendTitle(title, str.mid(0, 1) + ".", separator);
@@ -61,17 +74,25 @@ Books CreateItems(DB::Database & db, const std::string & navigationType, const Q
 	std::map<long long int, size_t> index;
 
 	Books items;
-	const auto query = db.CreateQuery(std::string(QUERY) + FindSecond(g_joins, navigationType.data(), PszComparer{}));
-	[[maybe_unused]] const auto result = query->Bind(":id", navigationId.toInt());
+	const auto [whereClause, bind] = FindSecond(g_joins, navigationType.data(), PszComparer {});
+	const auto query = db.CreateQuery(std::string(QUERY) + whereClause);
+	[[maybe_unused]] const auto result = bind(*query, navigationId);
 	assert(result == 0);
 
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto id = query->Get<long long int>(0);
 		const auto it = index.find(id);
+
+		QString genre = query->Get<const char *>(12);
+		bool isNumber = false;
+		(void)genre.toInt(&isNumber);
+		if (isNumber)
+			genre.clear();
+
 		if (it != index.end())
 		{
-			AppendTitle(items[it->second].GenreAlias, query->Get<const char *>(12), " / ");
+			AppendTitle(items[it->second].GenreAlias, genre, " / ");
 			continue;
 		}
 
@@ -89,7 +110,7 @@ Books CreateItems(DB::Database & db, const std::string & navigationType, const Q
 		item.Author = query->Get<const char *>(9);
 		AppendAuthorName(item.Author, query->Get<const char *>(10), " ");
 		AppendAuthorName(item.Author, query->Get<const char *>(11), "");
-		item.GenreAlias = query->Get<const char *>(12);
+		item.GenreAlias = genre;
 		item.SeriesTitle = query->Get<const char *>(13);
 	}
 
@@ -128,14 +149,12 @@ struct BooksModelController::Impl
 
 	void UpdateItems()
 	{
-		QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
-		m_executor([&, model = std::move(model), navigationType = m_navigationType.toStdString(), navigationId = m_navigationId]() mutable
+		m_executor([&, navigationType = m_navigationType.toStdString(), navigationId = m_navigationId]
 		{
 			auto items = CreateItems(m_db, navigationType, navigationId);
-			return[&, items = std::move(items), model = std::move(model)]() mutable
+			return[&, items = std::move(items)]() mutable
 			{
-				if (model.isNull())
-					return;
+				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
 
 				(void)model->setData({}, true, Role::ResetBegin);
 				books = std::move(items);

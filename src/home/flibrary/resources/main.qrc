@@ -27,5 +27,6 @@
 		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
 		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
 		<file alias="CustomCombobox.qml">../src/ui/qml/core/CustomCombobox.qml</file>
+		<file alias="CustomText.qml">../src/ui/qml/core/CustomText.qml</file>
 	</qresource>
 </RCC>

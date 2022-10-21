@@ -20,6 +20,7 @@ struct Book
 	QString Author;
 	QString GenreAlias;
 	QString SeriesTitle;
+	bool Checked { false };
 };
 
 }
