@@ -8,7 +8,7 @@ namespace HomeCompa::Flibrary {
 
 struct NavigationItem
 {
-	long long int Id { 0 };
+	QString Id;
 	QString Title;
 };
 

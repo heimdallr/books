@@ -9,6 +9,7 @@ Rectangle
 {
 	id: delegateID
 	property alias authorVisible: authorID.visible
+	property alias genreVisible: genreID.visible
 
 	height: Constants.delegateHeight
 	color: "transparent"
@@ -43,6 +44,7 @@ Rectangle
 
 		CustomText
 		{
+			id: genreID
 			Layout.preferredWidth: layoutID.width / 8
 			text: GenreAlias
 		}

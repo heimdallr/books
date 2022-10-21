@@ -7,6 +7,7 @@ Item
 	id: booksListViewID
 
 	readonly property bool authorVisible: modelController.navigationType != "Authors"
+	readonly property bool genreVisible: modelController.navigationType != "Genres"
 
 	CustomListView
 	{
@@ -17,6 +18,7 @@ Item
 		{
 			width: booksListViewID.width
 			authorVisible: booksListViewID.authorVisible
+			genreVisible: booksListViewID.genreVisible
 		}
 	}
 }
