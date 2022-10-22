@@ -38,14 +38,20 @@ public:
 protected:
 	virtual QVariant GetDataLocal(const QModelIndex &, int role, const Item & item) const
 	{
+		if (role == 0)
+			return {};
+
 		if (const auto it = m_roleValues.find(role); it != m_roleValues.end())
 			return (*it)(item);
 
 		return assert(false && "Unknown role"), QVariant();
 	}
 
-	virtual QVariant GetDataGlobal(int) const
+	virtual QVariant GetDataGlobal(int role) const
 	{
+		if (role == 0)
+			return {};
+
 		return assert(false && "Unknown role"), QVariant();
 	}
 
@@ -53,6 +59,9 @@ protected:
 	{
 		switch (role)
 		{
+			case 0:
+				break;
+
 			case Role::Click:
 				return Observable<Observer>::Perform(&Observer::HandleItemClicked, index.row()), true;
 
@@ -70,6 +79,9 @@ protected:
 	{
 		switch (role)
 		{
+			case 0:
+				break;
+
 			case Role::ResetBegin:
 				return emit beginResetModel(), true;
 
