@@ -1,4 +1,4 @@
-#include "NavigationItem.h"
+#include "NavigationListItem.h"
 #include "ModelObserver.h"
 #include "RoleBase.h"
 
@@ -19,21 +19,21 @@ struct NavigationListRole
 };
 
 class Model final
-	: public ProxyModelBaseT<NavigationItem, NavigationListRole, ModelObserver>
+	: public ProxyModelBaseT<NavigationListItem, NavigationListRole, ModelObserver>
 {
 public:
-	Model(NavigationItems & items, QSortFilterProxyModel & proxyModel)
+	Model(NavigationListItems & items, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
 	{
-		AddReadableRole(Role::Id, &NavigationItem::Id);
-		AddReadableRole(Role::Title, &NavigationItem::Title);
+		AddReadableRole(Role::Id, &Item::Id);
+		AddReadableRole(Role::Title, &Item::Title);
 	}
 };
 
 class ProxyModel final : public QSortFilterProxyModel
 {
 public:
-	ProxyModel(NavigationItems & items, QObject * parent)
+	ProxyModel(NavigationListItems & items, QObject * parent)
 		: QSortFilterProxyModel(parent)
 		, m_model(items, *this)
 	{
@@ -51,7 +51,7 @@ private:
 
 }
 
-QAbstractItemModel * CreateNavigationListModel(NavigationItems & items, QObject * parent)
+QAbstractItemModel * CreateNavigationModel(NavigationListItems & items, QObject * parent)
 {
 	return new ProxyModel(items, parent);
 }

@@ -2,14 +2,15 @@
 
 #include <QString>
 
-#include "NavigationItemDecl.h"
+#include "NavigationTreeItemDecl.h"
 
 namespace HomeCompa::Flibrary {
 
-struct NavigationItem
+struct NavigationTreeItem
 {
 	QString Id;
 	QString Title;
+	QString ParentId;
 };
 
 }

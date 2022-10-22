@@ -8,8 +8,9 @@ import "qrc:/Core/constants.js" as Constants
 Rectangle
 {
 	id: delegateID
-	property alias authorVisible: authorID.visible
-	property alias genreVisible: genreID.visible
+	property alias authorsVisible: authorID.visible
+	property alias seriesVisible: seriesID.visible
+	property alias genresVisible: genreID.visible
 
 	height: Constants.delegateHeight
 	color: "transparent"
@@ -34,6 +35,14 @@ Rectangle
 			Layout.preferredWidth: layoutID.width / 8
 			visible: delegateID.authorVisible
 			text: Author
+		}
+
+		CustomText
+		{
+			id: seriesID
+			Layout.preferredWidth: layoutID.width / 16
+			visible: delegateID.seriesVisible
+			text: SeriesTitle
 		}
 
 		CustomText

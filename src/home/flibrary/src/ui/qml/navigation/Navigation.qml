@@ -5,7 +5,6 @@ import "qrc:/"
 ViewTemplate
 {
 	id: listViewID
-	modelController: guiController.GetNavigationModelController()
 	loadPath: "Navigation/"
 
 	Component.onCompleted:
@@ -13,6 +12,6 @@ ViewTemplate
 		viewSourceComboBox.add(qsTranslate("ViewSource", "Authors"), "Authors")
 		viewSourceComboBox.add(qsTranslate("ViewSource", "Series"), "Series")
 		viewSourceComboBox.add(qsTranslate("ViewSource", "Genres"), "Genres")
-		viewSourceComboBox.currentIndex = viewSourceComboBox.indexOfValue("Authors")
+		viewSourceComboBox.currentIndex = viewSourceComboBox.indexOfValue("Genres")
 	}
 }

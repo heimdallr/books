@@ -23,12 +23,11 @@ class ModelController
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE SetCurrentLocalIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
-	Q_PROPERTY(QString navigationType READ GetNavigationType NOTIFY NavigationTypeChanged)
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
-	Q_INVOKABLE QAbstractItemModel * GetModel(const QString & modelType);
+	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
 
 public:
@@ -47,7 +46,6 @@ public:
 
 	void SetFocused(bool value);
 	QAbstractItemModel * GetCurrentModel();
-	const QString & GetCurrentModelType() const;
 	QString GetId(int index);
 
 public:
@@ -67,8 +65,7 @@ private: // property setters
 	void SetCurrentLocalIndex(int);
 
 private:
-	virtual QAbstractItemModel * GetModelImpl(const QString & modelType) = 0;
-	virtual const QString & GetNavigationType() const;
+	virtual QAbstractItemModel * CreateModel() = 0;
 
 private:
 	struct Impl;

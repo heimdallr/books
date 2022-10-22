@@ -8,7 +8,6 @@ Item
 {
 	id: customListViewID
 
-	property string modelType
 	property alias delegate: listViewID.delegate
 
 	ColumnLayout
@@ -45,7 +44,7 @@ Item
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			model: modelController.GetModel(modelType)
+			model: modelController.GetModel()
 			currentIndex: modelController.currentIndex
 
 			clip: true

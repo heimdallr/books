@@ -9,10 +9,11 @@ Item
 	{
 		anchors.fill: parent
 
-		modelType: "Genres"
 		delegate: NavigationDelegate
 		{
 			width: genresID.width
 		}
 	}
+
+	Component.onCompleted: viewTemplateID.modelController = guiController.GetNavigationModelControllerGenres()
 }

@@ -4,6 +4,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "controllers/ModelControllers/NavigationSource.h"
+
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 
@@ -47,11 +49,11 @@ int BindString(DB::Query & query, const QString & id)
 	return query.Bind(":id", id.toStdString());
 }
 
-constexpr std::pair<const char *, std::pair<const char *, Binder>> g_joins[]
+constexpr std::pair<NavigationSource, std::pair<const char *, Binder>> g_joins[]
 {
-	{ "Authors", { WHERE_AUTHOR, &BindInt    } },
-	{ "Series" , { WHERE_SERIES, &BindInt    } },
-	{ "Genres" , { WHERE_GENRE , &BindString } },
+	{ NavigationSource::Authors, { WHERE_AUTHOR, &BindInt    } },
+	{ NavigationSource::Series , { WHERE_SERIES, &BindInt    } },
+	{ NavigationSource::Genres , { WHERE_GENRE , &BindString } },
 };
 
 void AppendTitle(QString & title, const QString & str, std::string_view separator)
@@ -66,15 +68,15 @@ void AppendAuthorName(QString & title, const QString & str, std::string_view sep
 		AppendTitle(title, str.mid(0, 1) + ".", separator);
 }
 
-Books CreateItems(DB::Database & db, const std::string & navigationType, const QString & navigationId)
+Books CreateItems(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
 {
-	if (navigationType.empty())
+	if (navigationSource == NavigationSource::Undefined)
 		return {};
 
 	std::map<long long int, size_t> index;
 
 	Books items;
-	const auto [whereClause, bind] = FindSecond(g_joins, navigationType.data(), PszComparer {});
+	const auto [whereClause, bind] = FindSecond(g_joins, navigationSource);
 	const auto query = db.CreateQuery(std::string(QUERY) + whereClause);
 	[[maybe_unused]] const auto result = bind(*query, navigationId);
 	assert(result == 0);
@@ -125,7 +127,7 @@ struct BooksModelController::Impl
 {
 	Books books;
 	QTimer setNavigationIdTimer;
-	QString navigationType;
+	NavigationSource navigationSource{ NavigationSource::Undefined };
 	QString navigationId;
 
 	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db)
@@ -137,10 +139,10 @@ struct BooksModelController::Impl
 		setNavigationIdTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&setNavigationIdTimer, &QTimer::timeout, [&]
 		{
-			if (m_navigationId == navigationId && m_navigationType == navigationType)
+			if (m_navigationId == navigationId && m_navigationSource == navigationSource)
 				return;
 
-			m_navigationType = navigationType;
+			m_navigationSource = navigationSource;
 			m_navigationId = navigationId;
 
 			UpdateItems();
@@ -149,9 +151,9 @@ struct BooksModelController::Impl
 
 	void UpdateItems()
 	{
-		m_executor([&, navigationType = m_navigationType.toStdString(), navigationId = m_navigationId]
+		m_executor([&, navigationSource = m_navigationSource, navigationId = m_navigationId]
 		{
-			auto items = CreateItems(m_db, navigationType, navigationId);
+			auto items = CreateItems(m_db, navigationSource, navigationId);
 			return[&, items = std::move(items)]() mutable
 			{
 				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
@@ -169,7 +171,7 @@ private:
 	BooksModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
-	QString m_navigationType;
+	NavigationSource m_navigationSource{ NavigationSource::Undefined };
 	QString m_navigationId;
 };
 
@@ -181,9 +183,9 @@ BooksModelController::BooksModelController(Util::Executor & executor, DB::Databa
 
 BooksModelController::~BooksModelController() = default;
 
-void BooksModelController::SetNavigationId(const QString & navigationType, const QString & navigationId)
+void BooksModelController::SetNavigationState(NavigationSource navigationSource, const QString & navigationId)
 {
-	m_impl->navigationType = navigationType;
+	m_impl->navigationSource = navigationSource;
 	m_impl->navigationId = navigationId;
 	m_impl->setNavigationIdTimer.start();
 }
@@ -193,14 +195,9 @@ ModelController::Type BooksModelController::GetType() const noexcept
 	return Type::Books;
 }
 
-QAbstractItemModel * BooksModelController::GetModelImpl(const QString & /*modelType*/)
+QAbstractItemModel * BooksModelController::CreateModel()
 {
 	return CreateBooksModel(m_impl->books);
-}
-
-const QString & BooksModelController::GetNavigationType() const
-{
-	return m_impl->navigationType;
 }
 
 }

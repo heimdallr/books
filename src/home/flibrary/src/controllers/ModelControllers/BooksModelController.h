@@ -16,6 +16,8 @@ class Database;
 
 namespace HomeCompa::Flibrary {
 
+enum class NavigationSource;
+
 class BooksModelController
 	: public ModelController
 {
@@ -24,12 +26,11 @@ public:
 	BooksModelController(Util::Executor & executor, DB::Database & db);
 	~BooksModelController() override;
 
-	void SetNavigationId(const QString & navigationType, const QString & navigationId);
+	void SetNavigationState(NavigationSource navigationSource, const QString & navigationId);
 
 private: // ModelController
 	Type GetType() const noexcept override;
-	QAbstractItemModel * GetModelImpl(const QString & modelType) override;
-	const QString & GetNavigationType() const override;
+	QAbstractItemModel * CreateModel() override;
 
 private:
 	struct Impl;

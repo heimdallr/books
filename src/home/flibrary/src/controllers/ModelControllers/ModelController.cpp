@@ -51,7 +51,6 @@ public:
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
 	bool focused { false };
-	QString currentModelType;
 
 	explicit Impl(ModelController & self)
 		: m_self(self)
@@ -67,6 +66,7 @@ public:
 
 	~Impl() override
 	{
+		assert(model);
 		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
 	}
 
@@ -193,11 +193,6 @@ QAbstractItemModel * ModelController::GetCurrentModel()
 	return m_impl->model.get();
 }
 
-const QString & ModelController::GetCurrentModelType() const
-{
-	return m_impl->currentModelType;
-}
-
 QString ModelController::GetId(int index)
 {
 	if (!m_impl->model)
@@ -209,11 +204,6 @@ QString ModelController::GetId(int index)
 	const auto authorIdVar = m_impl->model->data(localModelIndex, RoleBase::Id);
 	assert(authorIdVar.isValid());
 	return authorIdVar.toString();
-}
-
-const QString & ModelController::GetNavigationType() const
-{
-	return m_impl->currentModelType;
 }
 
 void ModelController::SetViewMode(const QString & mode, const QString & text)
@@ -239,20 +229,18 @@ int ModelController::GetCurrentLocalIndex()
 	return localIndex;
 }
 
-QAbstractItemModel * ModelController::GetModel(const QString & modelType)
+QAbstractItemModel * ModelController::GetModel()
 {
-	if (m_impl->currentModelType == modelType)
+	if (m_impl->model)
 		return m_impl->model.get();
 
-	if (m_impl->model)
-		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
+//	if (m_impl->model)
+//		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
 
-	auto * model = GetModelImpl(modelType);
+	auto * model = CreateModel();
 	QQmlEngine::setObjectOwnership(model, QQmlEngine::CppOwnership);
 	m_impl->model.reset(model);
 	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverRegister);
-	m_impl->currentModelType = modelType;
-	emit NavigationTypeChanged();
 	return m_impl->model.get();
 }
 

@@ -15,19 +15,24 @@
 
 #include "GuiController.h"
 
+#include "ModelControllers/BooksModelController.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
 #include "ModelControllers/NavigationModelController.h"
-#include "ModelControllers/BooksModelController.h"
+#include "ModelControllers/NavigationSource.h"
 
 #include "Configuration.h"
 
 namespace HomeCompa::Flibrary {
 
+namespace {
+
 PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
 	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
 	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, connectionString));
+}
+
 }
 
 class GuiController::Impl
@@ -39,17 +44,17 @@ public:
 		: m_self(self)
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
-		PropagateConstPtr<NavigationModelController>(std::make_unique<NavigationModelController>(*m_executor, *m_db)).swap(m_navigationModelController);
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db)).swap(m_booksModelController);
-		m_navigationModelController->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
 		m_qmlEngine.clearComponentCache();
-		m_navigationModelController->UnregisterObserver(this);
+		for (auto & [_, controller] : m_navigationModelControllers)
+			controller->UnregisterObserver(this);
 		m_booksModelController->UnregisterObserver(this);
+
 	}
 
 	void Start()
@@ -75,9 +80,17 @@ public:
 		return m_running;
 	}
 
-	ModelController * GetNavigationModelController() noexcept
+	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
 	{
-		return m_navigationModelController.get();
+		m_navigationSource = navigationSource;
+		const auto it = m_navigationModelControllers.find(navigationSource);
+		if (it != m_navigationModelControllers.end())
+			return it->second.get();
+
+		auto & controller = m_navigationModelControllers.emplace(navigationSource, std::make_unique<NavigationModelController>(*m_executor, *m_db, navigationSource)).first->second;
+		controller->RegisterObserver(this);
+
+		return controller.get();
 	}
 
 	ModelController * GetBooksModelController() noexcept
@@ -85,11 +98,16 @@ public:
 		return m_booksModelController.get();
 	}
 
+	bool IsFieldVisible(const NavigationSource navigationSource) const noexcept
+	{
+		return navigationSource != m_navigationSource;
+	}
+
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, int index) override
 	{
 		if (controller->GetType() == ModelController::Type::Navigation)
-			m_booksModelController->SetNavigationId(m_navigationModelController->GetCurrentModelType(), m_navigationModelController->GetId(index));
+			m_booksModelController->SetNavigationState(m_navigationSource, controller->GetId(index));
 	}
 
 	void HandleClicked(ModelController * controller) override
@@ -101,7 +119,8 @@ private: // ModelControllerObserver
 			modelController->SetFocused(modelController == m_activeModelController);
 		};
 
-		setFocus(m_navigationModelController.get());
+		for (auto & [_, navigationModelController] : m_navigationModelControllers)
+			setFocus(navigationModelController.get());
 		setFocus(m_booksModelController.get());
 	}
 
@@ -110,10 +129,11 @@ private:
 	QQmlApplicationEngine m_qmlEngine;
 	PropagateConstPtr<DB::Database> m_db;
 	PropagateConstPtr<Util::Executor> m_executor;
-	PropagateConstPtr<NavigationModelController> m_navigationModelController;
+	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
 	PropagateConstPtr<BooksModelController> m_booksModelController;
 	ModelController * m_activeModelController { nullptr };
 	bool m_running { true };
+	NavigationSource m_navigationSource { NavigationSource::Undefined };
 };
 
 GuiController::GuiController(const std::string & databaseName, QObject * parent)
@@ -134,14 +154,39 @@ void GuiController::OnKeyPressed(int key, int modifiers)
 	m_impl->OnKeyPressed(key, modifiers);
 }
 
-ModelController * GuiController::GetNavigationModelController() noexcept
+ModelController * GuiController::GetNavigationModelControllerAuthors()
 {
-	return m_impl->GetNavigationModelController();
+	return m_impl->GetNavigationModelController(NavigationSource::Authors);
+}
+
+ModelController * GuiController::GetNavigationModelControllerSeries()
+{
+	return m_impl->GetNavigationModelController(NavigationSource::Series);
+}
+
+ModelController * GuiController::GetNavigationModelControllerGenres()
+{
+	return m_impl->GetNavigationModelController(NavigationSource::Genres);
 }
 
 ModelController * GuiController::GetBooksModelController() noexcept
 {
 	return m_impl->GetBooksModelController();
+}
+
+bool GuiController::IsAuthorsVisible() const noexcept
+{
+	return m_impl->IsFieldVisible(NavigationSource::Authors);
+}
+
+bool GuiController::IsSeriesVisible() const noexcept
+{
+	return m_impl->IsFieldVisible(NavigationSource::Series);
+}
+
+bool GuiController::IsGenresVisible() const noexcept
+{
+	return m_impl->IsFieldVisible(NavigationSource::Genres);
 }
 
 bool GuiController::GetRunning() const noexcept

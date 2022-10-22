@@ -2,9 +2,9 @@
 
 #include "fnd/memory.h"
 
-#include "models/NavigationItem.h"
-
 #include "ModelController.h"
+
+#include "NavigationSource.h"
 
 namespace HomeCompa::Util {
 class Executor;
@@ -21,13 +21,13 @@ class NavigationModelController
 {
 	NON_COPY_MOVABLE(NavigationModelController)
 public:
-	NavigationModelController(Util::Executor & executor, DB::Database & db);
+	NavigationModelController(Util::Executor & executor, DB::Database & db, NavigationSource navigationSource);
 
 	~NavigationModelController() override;
 
 private: // ModelController
 	Type GetType() const noexcept override;
-	QAbstractItemModel * GetModelImpl(const QString & modelType) override;
+	QAbstractItemModel * CreateModel() override;
 
 private:
 	class Impl;

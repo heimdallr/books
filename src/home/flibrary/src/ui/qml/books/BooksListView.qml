@@ -6,19 +6,22 @@ Item
 {
 	id: booksListViewID
 
-	readonly property bool authorVisible: modelController.navigationType != "Authors"
-	readonly property bool genreVisible: modelController.navigationType != "Genres"
+	readonly property bool authorsVisible: guiController.IsAuthorsVisible()
+	readonly property bool seriesVisible: guiController.IsSeriesVisible()
+	readonly property bool genresVisible: guiController.IsGenresVisible()
 
 	CustomListView
 	{
 		anchors.fill: parent
 
-		modelType: "BooksListView"
 		delegate: BookDelegate
 		{
 			width: booksListViewID.width
-			authorVisible: booksListViewID.authorVisible
-			genreVisible: booksListViewID.genreVisible
+			authorsVisible: booksListViewID.authorsVisible
+			seriesVisible: booksListViewID.seriesVisible
+			genresVisible: booksListViewID.genresVisible
 		}
 	}
+
+	Component.onCompleted: viewTemplateID.modelController = guiController.GetBooksModelController()
 }

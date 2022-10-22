@@ -5,7 +5,6 @@ import "qrc:/"
 ViewTemplate
 {
 	id: listViewID
-	modelController: guiController.GetBooksModelController()
 	loadPath: "Book/"
 	Component.onCompleted:
 	{

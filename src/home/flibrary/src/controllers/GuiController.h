@@ -28,8 +28,14 @@ public:
 
 public:
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
-	Q_INVOKABLE ModelController * GetNavigationModelController() noexcept;
+	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
+	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
+	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
 	Q_INVOKABLE ModelController * GetBooksModelController() noexcept;
+
+	Q_INVOKABLE bool IsAuthorsVisible() const noexcept;
+	Q_INVOKABLE bool IsSeriesVisible() const noexcept;
+	Q_INVOKABLE bool IsGenresVisible() const noexcept;
 
 signals:
 	void RunningChanged() const;
