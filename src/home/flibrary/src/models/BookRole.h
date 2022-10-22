@@ -1,6 +1,5 @@
 #pragma once
 
-#include <qnamespace.h>
 #include <QObject>
 
 #include "RoleBase.h"
