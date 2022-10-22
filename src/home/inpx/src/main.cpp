@@ -283,8 +283,8 @@ void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genres
 			{
 				assert(parentIt != index.end() && parentIt->second < std::size(genres));
 				const auto it = index.insert(std::make_pair(code, std::size(genres))).first;
+				auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
 				auto & parentGenre = genres[parentIt->second];
-				auto & genre = genres.emplace_back(code, parentGenre.code, name, parentIt->second);
 				genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
 				return it;
 			};
