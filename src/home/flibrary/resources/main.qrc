@@ -10,7 +10,8 @@
 		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
 		<file alias="SearchPanel.qml">../src/ui/qml/navigation/SearchPanel.qml</file>
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
-		<file alias="NavigationDelegate.qml">../src/ui/qml/navigation/NavigationDelegate.qml</file>
+		<file alias="NavigationListDelegate.qml">../src/ui/qml/navigation/NavigationListDelegate.qml</file>
+		<file alias="NavigationTreeDelegate.qml">../src/ui/qml/navigation/NavigationTreeDelegate.qml</file>
 	</qresource>
 
 	<qresource prefix="Book">

@@ -9,7 +9,7 @@ Item
 	{
 		anchors.fill: parent
 
-		delegate: NavigationDelegate
+		delegate: NavigationListDelegate
 		{
 			width: authorsID.width
 		}
