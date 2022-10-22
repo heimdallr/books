@@ -19,6 +19,9 @@ class GuiController
 	NON_COPY_MOVABLE(GuiController)
 	Q_OBJECT
 	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
+	Q_PROPERTY(bool authorsVisible READ IsAuthorsVisible NOTIFY AuthorsVisibleChanged)
+	Q_PROPERTY(bool seriesVisible READ IsSeriesVisible NOTIFY SeriesVisibleChanged)
+	Q_PROPERTY(bool genresVisible READ IsGenresVisible NOTIFY GenresVisibleChanged)
 
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
@@ -33,14 +36,16 @@ public:
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
 	Q_INVOKABLE ModelController * GetBooksModelController() noexcept;
 
-	Q_INVOKABLE bool IsAuthorsVisible() const noexcept;
-	Q_INVOKABLE bool IsSeriesVisible() const noexcept;
-	Q_INVOKABLE bool IsGenresVisible() const noexcept;
-
 signals:
 	void RunningChanged() const;
+	void AuthorsVisibleChanged() const;
+	void SeriesVisibleChanged() const;
+	void GenresVisibleChanged() const;
 
 private: // property getters
+	bool IsAuthorsVisible() const noexcept;
+	bool IsSeriesVisible() const noexcept;
+	bool IsGenresVisible() const noexcept;
 
 private: // property setters
 	bool GetRunning() const noexcept;

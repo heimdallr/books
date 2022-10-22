@@ -4,9 +4,10 @@ import "qrc:/Core/constants.js" as Constants
 
 Rectangle
 {
+	readonly property bool expanded: Expanded
+
 	height: Constants.delegateHeight
 	color: "transparent"
-
 	border { color: Constants.borderColor; width: 1 }
 
 	Rectangle
@@ -18,7 +19,7 @@ Rectangle
 		{
 			verticalCenter: parent.verticalCenter
 			left: parent.left
-			leftMargin: 4 + parent.height * TreeLevel
+			leftMargin: 4 + size * TreeLevel
 		}
 
 		Rectangle
@@ -43,6 +44,7 @@ Rectangle
 			width: 2
 			height: plusID.size / 2
 			border { color: Constants.borderColor; width: 1 }
+			visible: !expanded
 		}
 
 		color: "transparent"
@@ -51,6 +53,13 @@ Rectangle
 		radius: 5
 		border { color: Constants.borderColor; width: 1 }
 		visible: ChildrenCount > 0
+
+		MouseArea
+		{
+			z: 2
+			anchors.fill: parent
+			onClicked: Expand = !expanded
+		}
 	}
 
 	Text
@@ -59,7 +68,7 @@ Rectangle
 		anchors
 		{
 			left: parent.left
-			leftMargin: 4 + 4 + plusID.size + parent.height * TreeLevel
+			leftMargin: 4 + 4 + plusID.size + plusID.size * TreeLevel
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
@@ -71,7 +80,15 @@ Rectangle
 
 	MouseArea
 	{
-		anchors.fill: parent
+		z: 1
+		anchors
+		{
+			left: textID.left
+			top: parent.top
+			bottom: parent.bottom
+			right: parent.right
+		}
+
 		onClicked: Click = true
 	}
 }

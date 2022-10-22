@@ -9,6 +9,8 @@ ApplicationWindow
 {
 	id: applicationWindowID
 
+	property alias focus: splitViewID.focus
+
 	width: 1280
 	height: 720
 
@@ -23,6 +25,7 @@ ApplicationWindow
 
 	SplitView
 	{
+		id: splitViewID
 		focus: true
 		Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
 

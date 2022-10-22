@@ -15,5 +15,9 @@ Item
 		}
 	}
 
-	Component.onCompleted: viewTemplateID.modelController = guiController.GetNavigationModelControllerAuthors()
+	Component.onCompleted:
+	{
+		viewTemplateID.modelController = guiController.GetNavigationModelControllerAuthors()
+		viewTemplateID.modelController.currentIndex = -1
+	}
 }

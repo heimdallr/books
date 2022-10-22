@@ -20,7 +20,7 @@ class ModelController
 {
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
-	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE SetCurrentLocalIndex NOTIFY CurrentIndexChanged)
+	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE UpdateCurrentIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
 
@@ -62,7 +62,7 @@ private: // property getters
 	QString GetViewMode() const;
 
 private: // property setters
-	void SetCurrentLocalIndex(int);
+	void UpdateCurrentIndex(int globalIndex);
 
 private:
 	virtual QAbstractItemModel * CreateModel() = 0;

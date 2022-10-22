@@ -72,7 +72,10 @@ public:
 
 	void OnKeyPressed(const int key, const int modifiers)
 	{
-		(void)model->setData(model->index(currentIndex, 0), QVariant::fromValue(qMakePair(key, modifiers)), Role::KeyPressed);
+		auto index = currentIndex;
+		model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
+
+		(void)model->setData(model->index(index, 0), QVariant::fromValue(qMakePair(key, modifiers)), Role::KeyPressed);
 
 		if (modifiers == Qt::ControlModifier)
 		{
@@ -116,6 +119,13 @@ public:
 		viewModeRole = FindSecond(g_viewModes, mode.toStdString().data(), PszComparer{});
 		m_viewModeText = text;
 		m_findTimer.start();
+	}
+
+	void UpdateCurrentIndex(const int globalIndex)
+	{
+		const auto index = globalIndex == -1 ? currentIndex : globalIndex;
+		currentIndex = -1;
+		HandleItemClicked(index);
 	}
 
 private: // ModelObserver
@@ -249,9 +259,9 @@ QString ModelController::GetViewMode() const
 	return FindFirst(g_viewModes, m_impl->viewModeRole);
 }
 
-void ModelController::SetCurrentLocalIndex(int)
+void ModelController::UpdateCurrentIndex(const int globalIndex)
 {
-	m_impl->currentIndex = -1;
+	m_impl->UpdateCurrentIndex(globalIndex);
 }
 
 }

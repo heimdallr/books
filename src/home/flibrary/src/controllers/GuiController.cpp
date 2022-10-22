@@ -45,6 +45,7 @@ public:
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db)).swap(m_booksModelController);
+		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		m_booksModelController->RegisterObserver(this);
 	}
 
@@ -83,11 +84,16 @@ public:
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
 	{
 		m_navigationSource = navigationSource;
+		emit m_self.AuthorsVisibleChanged();
+		emit m_self.SeriesVisibleChanged();
+		emit m_self.GenresVisibleChanged();
+
 		const auto it = m_navigationModelControllers.find(navigationSource);
 		if (it != m_navigationModelControllers.end())
 			return it->second.get();
 
 		auto & controller = m_navigationModelControllers.emplace(navigationSource, std::make_unique<NavigationModelController>(*m_executor, *m_db, navigationSource)).first->second;
+		QQmlEngine::setObjectOwnership(controller.get(), QQmlEngine::CppOwnership);
 		controller->RegisterObserver(this);
 
 		return controller.get();

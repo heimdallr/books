@@ -15,5 +15,9 @@ Item
 		}
 	}
 
-	Component.onCompleted: viewTemplateID.modelController = guiController.GetNavigationModelControllerGenres()
+	Component.onCompleted:
+	{
+		viewTemplateID.modelController = guiController.GetNavigationModelControllerGenres()
+		viewTemplateID.modelController.currentIndex = -1
+	}
 }

@@ -16,8 +16,8 @@ Rectangle
 	function onSourceChanged()
 	{
 		viewModeTextID.text = ""
-//		modelController.currentIndex = -1
 		loaderID.setSource(loadPath + viewSourceComboBoxID.currentValue + ".qml")
+		applicationWindowID.focus = true
 	}
 
 	ColumnLayout

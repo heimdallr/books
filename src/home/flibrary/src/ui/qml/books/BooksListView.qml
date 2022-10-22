@@ -6,9 +6,9 @@ Item
 {
 	id: booksListViewID
 
-	readonly property bool authorsVisible: guiController.IsAuthorsVisible()
-	readonly property bool seriesVisible: guiController.IsSeriesVisible()
-	readonly property bool genresVisible: guiController.IsGenresVisible()
+	readonly property bool authorsVisible: guiController.authorsVisible
+	readonly property bool seriesVisible: guiController.seriesVisible
+	readonly property bool genresVisible: guiController.genresVisible
 
 	CustomListView
 	{

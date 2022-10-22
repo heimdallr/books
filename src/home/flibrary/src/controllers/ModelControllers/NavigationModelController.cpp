@@ -1,3 +1,5 @@
+#include <stack>
+
 #include <QAbstractItemModel>
 #include <QPointer>
 
@@ -66,7 +68,9 @@ NavigationListItems CreateSeries(DB::Database & db)
 	return items;
 }
 
-NavigationTreeItems CreateGenres(DB::Database & db)
+namespace GenresDetails {
+
+NavigationTreeItems SelectGenres(DB::Database & db)
 {
 	NavigationTreeItems items;
 	const auto query = db.CreateQuery(GENRES_QUERY);
@@ -79,6 +83,59 @@ NavigationTreeItems CreateGenres(DB::Database & db)
 	}
 
 	return items;
+}
+
+struct S
+{
+	QString id;
+	size_t index;
+	int level;
+};
+
+NavigationTreeItems ReorderGenres(NavigationTreeItems & items)
+{
+	std::map<QString, std::map<int, size_t, std::greater<>>> treeIndex;
+	for (size_t i = 0, sz = std::size(items); i < sz; ++i)
+	{
+		const auto & item = items[i];
+		treeIndex[item.ParentId][item.Id.mid(item.Id.lastIndexOf('.') + 1).toInt()] = i;
+	}
+
+	for (auto & item : items)
+		if (const auto it = treeIndex.find(item.Id); it != treeIndex.end())
+			item.ChildrenCount = static_cast<int>(it->second.size());
+
+	std::vector<size_t> sortedIndex;
+
+	std::stack<S> s;
+	for (const auto & [_, i] : treeIndex["0"])
+	{
+		s.emplace(items[i].Id, i, 0);
+		items[i].ParentId.clear();
+	}
+
+	while (!s.empty())
+	{
+		auto [parentId, index, level] = std::move(s.top());
+		sortedIndex.push_back(index);
+		items[index].TreeLevel = level;
+		s.pop();
+		for (const auto & [_, i] : treeIndex[parentId])
+			s.emplace(items[i].Id, i, level + 1);
+	}
+
+	NavigationTreeItems result;
+	result.reserve(items.size());
+	std::ranges::transform(std::as_const(sortedIndex), std::back_inserter(result), [&items] (size_t index) { return std::move(items[index]); });
+	return result;
+}
+
+}
+
+NavigationTreeItems CreateGenres(DB::Database & db)
+{
+	NavigationTreeItems items = GenresDetails::SelectGenres(db);
+	return GenresDetails::ReorderGenres(items);
 }
 
 template<typename T>

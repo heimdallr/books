@@ -86,6 +86,7 @@ protected:
 				return emit beginResetModel(), true;
 
 			case Role::ResetEnd:
+				Reset();
 				emit endResetModel();
 				Invalidate();
 				return true;
@@ -158,6 +159,10 @@ protected:
 		return assert(false && "Unknown role"), false;
 	}
 
+	virtual void Reset()
+	{
+	}
+
 protected: // QAbstractListModel
 	int rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const override
 	{
@@ -223,6 +228,12 @@ protected:
 		m_roleValues[role] = CreateGetter(member);
 	}
 
+	void Invalidate()
+	{
+		m_proxyModel.invalidate();
+		Observable<Observer>::Perform(&Observer::HandleInvalidated);
+	}
+
 private:
 	template <typename Member>
 	static RoleGetter CreateGetter(Member member)
@@ -231,12 +242,6 @@ private:
 		{
 			return QVariant::fromValue(item.*member);
 		};
-	}
-
-	void Invalidate()
-	{
-		m_proxyModel.invalidate();
-		Observable<Observer>::Perform(&Observer::HandleInvalidated);
 	}
 
 protected:
