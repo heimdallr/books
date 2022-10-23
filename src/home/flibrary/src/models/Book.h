@@ -8,7 +8,8 @@ namespace HomeCompa::Flibrary {
 
 struct Book
 {
-	long long int Id { 0 };
+	long long int Id { -1 };
+	size_t ParentId { static_cast<size_t>(-1) };
 	QString Title;
 	int SeqNumber;
 	QString UpdateDate;
@@ -21,6 +22,7 @@ struct Book
 	QString GenreAlias;
 	QString SeriesTitle;
 	bool Checked { false };
+	bool IsDictionary { false };
 };
 
 }

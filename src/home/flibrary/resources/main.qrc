@@ -17,7 +17,8 @@
 	<qresource prefix="Book">
 		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
 		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
-		<file alias="BookDelegate.qml">../src/ui/qml/books/BookDelegate.qml</file>
+		<file alias="BookListDelegate.qml">../src/ui/qml/books/BookListDelegate.qml</file>
+		<file alias="BookTreeDelegate.qml">../src/ui/qml/books/BookTreeDelegate.qml</file>
 		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>
 		<file alias="BooksListView.qml">../src/ui/qml/books/BooksListView.qml</file>
 		<file alias="BooksTreeView.qml">../src/ui/qml/books/BooksTreeView.qml</file>

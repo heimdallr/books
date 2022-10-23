@@ -14,7 +14,7 @@ Item
 	{
 		anchors.fill: parent
 
-		delegate: BookDelegate
+		delegate: BookListDelegate
 		{
 			width: booksListViewID.width
 			authorsVisible: booksListViewID.authorsVisible
@@ -23,5 +23,5 @@ Item
 		}
 	}
 
-	Component.onCompleted: viewTemplateID.modelController = guiController.GetBooksModelController()
+	Component.onCompleted: viewTemplateID.modelController = guiController.GetBooksModelControllerList()
 }

@@ -34,7 +34,8 @@ public:
 	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
-	Q_INVOKABLE ModelController * GetBooksModelController() noexcept;
+	Q_INVOKABLE ModelController * GetBooksModelControllerList();
+	Q_INVOKABLE ModelController * GetBooksModelControllerTree();
 
 signals:
 	void RunningChanged() const;

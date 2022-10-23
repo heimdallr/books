@@ -4,8 +4,6 @@
 
 #include "ModelController.h"
 
-#include "models/Book.h"
-
 namespace HomeCompa::Util {
 class Executor;
 }
@@ -16,6 +14,7 @@ class Database;
 
 namespace HomeCompa::Flibrary {
 
+enum class BooksViewType;
 enum class NavigationSource;
 
 class BooksModelController
@@ -23,7 +22,7 @@ class BooksModelController
 {
 	NON_COPY_MOVABLE(BooksModelController)
 public:
-	BooksModelController(Util::Executor & executor, DB::Database & db);
+	BooksModelController(Util::Executor & executor, DB::Database & db, BooksViewType booksViewType);
 	~BooksModelController() override;
 
 	void SetNavigationState(NavigationSource navigationSource, const QString & navigationId);

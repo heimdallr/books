@@ -16,6 +16,7 @@
 #include "GuiController.h"
 
 #include "ModelControllers/BooksModelController.h"
+#include "ModelControllers/BooksViewType.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
 #include "ModelControllers/NavigationModelController.h"
@@ -44,9 +45,6 @@ public:
 		: m_self(self)
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
-		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db)).swap(m_booksModelController);
-		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
-		m_booksModelController->RegisterObserver(this);
 	}
 
 	~Impl() override
@@ -54,7 +52,9 @@ public:
 		m_qmlEngine.clearComponentCache();
 		for (auto & [_, controller] : m_navigationModelControllers)
 			controller->UnregisterObserver(this);
-		m_booksModelController->UnregisterObserver(this);
+
+		if (m_booksModelController)
+			m_booksModelController->UnregisterObserver(this);
 
 	}
 
@@ -83,6 +83,9 @@ public:
 
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
 	{
+		if (m_navigationSource != navigationSource)
+			m_currentNavigationIndex = -1;
+
 		m_navigationSource = navigationSource;
 		emit m_self.AuthorsVisibleChanged();
 		emit m_self.SeriesVisibleChanged();
@@ -99,8 +102,19 @@ public:
 		return controller.get();
 	}
 
-	ModelController * GetBooksModelController() noexcept
+	ModelController * GetBooksModelController(const BooksViewType type) noexcept
 	{
+		if (m_booksViewType == type)
+			return m_booksModelController.get();
+
+		m_booksViewType = type;
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, type)).swap(m_booksModelController);
+		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
+		m_booksModelController->RegisterObserver(this);
+
+		if (m_navigationSource != NavigationSource::Undefined && m_currentNavigationIndex != -1)
+			m_booksModelController->SetNavigationState(m_navigationSource, m_navigationModelControllers[m_navigationSource]->GetId(m_currentNavigationIndex));
+
 		return m_booksModelController.get();
 	}
 
@@ -110,10 +124,14 @@ public:
 	}
 
 private: // ModelControllerObserver
-	void HandleCurrentIndexChanged(ModelController * const controller, int index) override
+	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
 		if (controller->GetType() == ModelController::Type::Navigation)
-			m_booksModelController->SetNavigationState(m_navigationSource, controller->GetId(index));
+		{
+			m_currentNavigationIndex = index;
+			if (m_booksModelController)
+				m_booksModelController->SetNavigationState(m_navigationSource, controller->GetId(index));
+		}
 	}
 
 	void HandleClicked(ModelController * controller) override
@@ -127,7 +145,9 @@ private: // ModelControllerObserver
 
 		for (auto & [_, navigationModelController] : m_navigationModelControllers)
 			setFocus(navigationModelController.get());
-		setFocus(m_booksModelController.get());
+
+		if (m_booksModelController)
+			setFocus(m_booksModelController.get());
 	}
 
 private:
@@ -140,6 +160,8 @@ private:
 	ModelController * m_activeModelController { nullptr };
 	bool m_running { true };
 	NavigationSource m_navigationSource { NavigationSource::Undefined };
+	BooksViewType m_booksViewType { BooksViewType::Undefined };
+	int m_currentNavigationIndex = -1;
 };
 
 GuiController::GuiController(const std::string & databaseName, QObject * parent)
@@ -175,9 +197,14 @@ ModelController * GuiController::GetNavigationModelControllerGenres()
 	return m_impl->GetNavigationModelController(NavigationSource::Genres);
 }
 
-ModelController * GuiController::GetBooksModelController() noexcept
+ModelController * GuiController::GetBooksModelControllerList()
 {
-	return m_impl->GetBooksModelController();
+	return m_impl->GetBooksModelController(BooksViewType::List);
+}
+
+ModelController * GuiController::GetBooksModelControllerTree()
+{
+	return m_impl->GetBooksModelController(BooksViewType::Tree);
 }
 
 bool GuiController::IsAuthorsVisible() const noexcept

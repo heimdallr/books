@@ -56,7 +56,6 @@ Rectangle
 
 		MouseArea
 		{
-			z: 2
 			anchors.fill: parent
 			onClicked: Expand = !expanded
 		}
@@ -80,7 +79,6 @@ Rectangle
 
 	MouseArea
 	{
-		z: 1
 		anchors
 		{
 			left: textID.left
