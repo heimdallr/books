@@ -1,5 +1,6 @@
 import QtQuick 2.15
 
+import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
 
 Rectangle
@@ -9,7 +10,7 @@ Rectangle
 
 	border { color: Constants.borderColor; width: 1 }
 
-	Text
+	CustomText
 	{
 		id: textID
 		anchors
@@ -19,9 +20,7 @@ Rectangle
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
-		font.pointSize: Constants.fontSize
 
-		color: "black"
 		text: Title
 	}
 

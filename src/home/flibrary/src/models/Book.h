@@ -23,6 +23,8 @@ struct Book
 	QString SeriesTitle;
 	bool Checked { false };
 	bool IsDictionary { false };
+	bool Expanded { false };
+	int TreeLevel { 0 };
 };
 
 }

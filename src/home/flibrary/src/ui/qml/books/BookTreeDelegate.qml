@@ -17,12 +17,21 @@ Rectangle
 
 	border { color: Constants.borderColor; width: 1 }
 
-	BookLayout
+	Component
 	{
-		id: bookID
+		id: book
+		BookLayout
+		{
+			id: bookID
+			authorsVisible: delegateID.authorsVisible
+			seriesVisible: delegateID.seriesVisible
+			genresVisible: delegateID.genresVisible
+		}
+	}
+
+	Loader
+	{
 		anchors.fill: parent
-		authorsVisible: delegateID.authorsVisible
-		seriesVisible: delegateID.seriesVisible
-		genresVisible: delegateID.genresVisible
+		sourceComponent: book
 	}
 }

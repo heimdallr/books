@@ -258,6 +258,7 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 		auto & r = result.emplace_back(std::move(item));
 		if (!parentSeries.isEmpty())
 		{
+			r.TreeLevel = 1;
 			r.ParentId = parentPosition;
 			langs.insert(r.Lang);
 		}
@@ -319,6 +320,7 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 				auto & r = result.emplace_back();
 				r.Title = series;
 				r.IsDictionary = true;
+				r.TreeLevel = 1;
 			}
 		}
 
@@ -326,7 +328,17 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 		authorLang.insert(r.Lang);
 		seriesLang.insert(r.Lang);
 
-		r.ParentId = !series.isEmpty() ? seriesPosition : !author.isEmpty() ? authorPosition : r.ParentId;
+		if (!series.isEmpty())
+		{
+			r.ParentId = seriesPosition;
+			r.TreeLevel = 2;
+		}
+
+		else if (!author.isEmpty())
+		{
+			r.ParentId = authorPosition;
+			r.TreeLevel = 1;
+		}
 	}
 
 	ProcessLangs(author, authorLang, result, authorPosition);
