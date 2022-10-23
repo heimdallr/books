@@ -78,7 +78,7 @@ private:
 
 }
 
-QAbstractItemModel * CreateBooksModel(Books & items, QObject * parent)
+QAbstractItemModel * CreateBooksTreeModel(Books & items, QObject * parent)
 {
 	return new ProxyModel(items, parent);
 }

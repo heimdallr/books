@@ -140,7 +140,7 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 			continue;
 		}
 
-		auto indexValue = index.emplace(id, std::size(items)).first->second;
+		auto & indexValue = index.emplace(id, std::size(items)).first->second;
 		updateIndexValue(indexValue);
 
 		auto & item = items.emplace_back();
@@ -189,20 +189,12 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 		}
 	}
 
-	return data;
-}
-
-Books CreateItemsList(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
-{
-	auto [books, index, authors, series, genres] = CreateItems(db, navigationSource, navigationId);
-	return books;
-}
-
-Books CreateBookTreeForAuthor(Books & items, const Series & series)
-{
 	const auto correctSeqNumber = [] (int n) { return n ? n : std::numeric_limits<int>::max(); };
 	std::ranges::sort(items, [&] (const Book & lhs, const Book & rhs)
 	{
+		if (lhs.Author != rhs.Author)
+			return lhs.Author < rhs.Author;
+
 		if (lhs.SeriesTitle == rhs.SeriesTitle)
 			return
 				  lhs.SeqNumber != rhs.SeqNumber   ? correctSeqNumber(lhs.SeqNumber) < correctSeqNumber(rhs.SeqNumber)
@@ -217,31 +209,44 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 		return rhs.SeriesTitle.isEmpty();
 	});
 
+	return data;
+}
 
+Books CreateItemsList(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
+{
+	auto [books, index, authors, series, genres] = CreateItems(db, navigationSource, navigationId);
+	return books;
+}
+
+void ProcessLangs(const QString & parent, std::set<QString> & langs, Books & books, const size_t index)
+{
+	if (parent.isEmpty())
+		return langs.clear();
+
+	assert(index < books.size());
+	auto & book = books[index];
+	for (const auto & lang : langs)
+		book.Lang.append(lang).append(",");
+
+	langs.clear();
+};
+
+Books CreateBookTreeForAuthor(Books & items, const Series & series)
+{
 	Books result;
 	result.reserve(items.size() + series.size() + 1);
+
 	QString parentSeries;
-	size_t parentId = 0;
+	size_t parentPosition = 0;
 	std::set<QString> langs;
-
-	const auto processLangs = [&] ()
-	{
-		if (parentSeries.isEmpty())
-			return langs.clear();
-
-		for (const auto & lang : langs)
-			result[parentId].Lang.append(lang).append(",");
-
-		langs.clear();
-	};
 
 	for (auto & item : items)
 	{
 		if (parentSeries != item.SeriesTitle)
 		{
-			processLangs();
+			ProcessLangs(parentSeries, langs, result, parentPosition);
 			parentSeries = item.SeriesTitle;
-			parentId = std::size(result);
+			parentPosition = std::size(result);
 			if (!parentSeries.isEmpty())
 			{
 				auto & r = result.emplace_back();
@@ -253,12 +258,79 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 		auto & r = result.emplace_back(std::move(item));
 		if (!parentSeries.isEmpty())
 		{
-			r.ParentId = parentId;
+			r.ParentId = parentPosition;
 			langs.insert(r.Lang);
 		}
 	}
 
-	processLangs();
+	ProcessLangs(parentSeries, langs, result, parentPosition);
+
+	return result;
+}
+
+Books CreateBookTree(Books & items, const Index & index, const Authors & authorsIndex, const Series & seriesIndex)
+{
+	Books result;
+	result.reserve(items.size() + authorsIndex.size() + seriesIndex.size() + 1);
+
+	QString author;
+	size_t authorPosition = 0;
+	std::set<QString> authorLang;
+
+	QString series;
+	size_t seriesPosition = 0;
+	std::set<QString> seriesLang;
+
+	for (auto & item : items)
+	{
+		if (author != item.Author)
+		{
+			ProcessLangs(author, authorLang, result, authorPosition);
+			author = item.Author;
+			authorPosition = std::size(result);
+			if (!author.isEmpty())
+			{
+				auto & r = result.emplace_back();
+				const auto it = index.find(item.Id);
+				assert(it != index.end());
+				for (const auto authorId : it->second.authors)
+				{
+					const auto authorIt = authorsIndex.find(authorId);
+					assert(authorIt != authorsIndex.end());
+					auto a = authorIt->second.last;
+					AppendTitle(a, authorIt->second.first, " ");
+					AppendTitle(a, authorIt->second.last, " ");
+					AppendTitle(r.Title, a, ", ");
+				}
+
+				r.IsDictionary = true;
+			}
+			if (!series.isEmpty())
+				series = "kdajncjadbnlkd_jfblajdksvb210732ncasdhfjakf";
+		}
+
+		if (series != item.SeriesTitle)
+		{
+			ProcessLangs(series, seriesLang, result, seriesPosition);
+			series = item.SeriesTitle;
+			seriesPosition = std::size(result);
+			if (!series.isEmpty())
+			{
+				auto & r = result.emplace_back();
+				r.Title = series;
+				r.IsDictionary = true;
+			}
+		}
+
+		auto & r = result.emplace_back(std::move(item));
+		authorLang.insert(r.Lang);
+		seriesLang.insert(r.Lang);
+
+		r.ParentId = !series.isEmpty() ? seriesPosition : !author.isEmpty() ? authorPosition : r.ParentId;
+	}
+
+	ProcessLangs(author, authorLang, result, authorPosition);
+	ProcessLangs(series, seriesLang, result, seriesPosition);
 
 	return result;
 }
@@ -275,7 +347,7 @@ Books CreateItemsTree(DB::Database & db, const NavigationSource navigationSource
 			break;
 	}
 
-	return books;
+	return CreateBookTree(books, index, authors, series);
 }
 
 using ItemsCreator = Books(*)(DB::Database &, NavigationSource, const QString &);
@@ -287,17 +359,26 @@ constexpr std::pair<BooksViewType, ItemsCreator> g_itemCreators[]
 
 }
 
-QAbstractItemModel * CreateBooksModel(Books & items, QObject * parent = nullptr);
+QAbstractItemModel * CreateBooksListModel(Books & items, QObject * parent = nullptr);
+QAbstractItemModel * CreateBooksTreeModel(Books & items, QObject * parent = nullptr);
+using ModelCreator = QAbstractItemModel * (*)(Books & items, QObject * parent);
+constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
+{
+	{ BooksViewType::List, &CreateBooksListModel },
+	{ BooksViewType::Tree, &CreateBooksTreeModel },
+};
 
 struct BooksModelController::Impl
 {
 	Books books;
 	QTimer setNavigationIdTimer;
+	const BooksViewType booksViewType;
 	NavigationSource navigationSource{ NavigationSource::Undefined };
 	QString navigationId;
 
-	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db, const BooksViewType booksViewType)
-		: m_self(self)
+	Impl(BooksModelController & self, Util::Executor & executor, DB::Database & db, const BooksViewType booksViewType_)
+		: booksViewType(booksViewType_)
+		, m_self(self)
 		, m_executor(executor)
 		, m_db(db)
 		, m_itemsCreator(FindSecond(g_itemCreators, booksViewType))
@@ -365,7 +446,7 @@ ModelController::Type BooksModelController::GetType() const noexcept
 
 QAbstractItemModel * BooksModelController::CreateModel()
 {
-	return CreateBooksModel(m_impl->books);
+	return FindSecond(g_modelCreators, m_impl->booksViewType)(m_impl->books, nullptr);
 }
 
 }

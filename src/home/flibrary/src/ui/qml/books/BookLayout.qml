@@ -5,17 +5,12 @@ import QtQuick.Layouts 1.15
 import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
 
-Rectangle
+Item
 {
-	id: delegateID
+	id: itemID
 	property alias authorsVisible: authorID.visible
 	property alias seriesVisible: seriesID.visible
 	property alias genresVisible: genreID.visible
-
-	height: Constants.delegateHeight
-	color: "transparent"
-
-	border { color: Constants.borderColor; width: 1 }
 
 	RowLayout
 	{

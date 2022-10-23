@@ -6,8 +6,6 @@ Item
 {
 	id: booksListViewID
 
-	readonly property bool authorsVisible: guiController.authorsVisible
-	readonly property bool seriesVisible: guiController.seriesVisible
 	readonly property bool genresVisible: guiController.genresVisible
 
 	CustomListView
@@ -17,8 +15,8 @@ Item
 		delegate: BookTreeDelegate
 		{
 			width: booksListViewID.width
-			authorsVisible: booksListViewID.authorsVisible
-			seriesVisible: booksListViewID.seriesVisible
+			authorsVisible: false
+			seriesVisible: false
 			genresVisible: booksListViewID.genresVisible
 		}
 	}

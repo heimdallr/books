@@ -8,67 +8,21 @@ import "qrc:/Core/constants.js" as Constants
 Rectangle
 {
 	id: delegateID
-	property alias authorsVisible: authorID.visible
-	property alias seriesVisible: seriesID.visible
-	property alias genresVisible: genreID.visible
+	property bool authorsVisible: true
+	property bool seriesVisible: true
+	property bool genresVisible: true
 
 	height: Constants.delegateHeight
 	color: "transparent"
 
 	border { color: Constants.borderColor; width: 1 }
 
-	RowLayout
+	BookLayout
 	{
-		id: layoutID
+		id: bookID
 		anchors.fill: parent
-
-		CheckBox
-		{
-			id: checkBoxID
-			checked: Checked
-			onClicked: Checked = !Checked
-		}
-
-		CustomText
-		{
-			id: authorID
-			Layout.preferredWidth: layoutID.width / 8
-			visible: delegateID.authorVisible
-			text: Author
-		}
-
-		CustomText
-		{
-			id: seriesID
-			Layout.preferredWidth: layoutID.width / 16
-			visible: delegateID.seriesVisible
-			text: SeriesTitle
-		}
-
-		CustomText
-		{
-			Layout.fillWidth: true
-			text: Title
-		}
-
-		CustomText
-		{
-			id: genreID
-			Layout.preferredWidth: layoutID.width / 8
-			text: GenreAlias
-		}
-
-		CustomText
-		{
-			Layout.preferredWidth: 36
-			text: Lang
-		}
-	}
-
-	MouseArea
-	{
-		anchors.fill: parent
-		anchors.leftMargin: checkBoxID.width
-		onClicked: Click = true
+		authorsVisible: delegateID.authorsVisible
+		seriesVisible: delegateID.seriesVisible
+		genresVisible: delegateID.genresVisible
 	}
 }
