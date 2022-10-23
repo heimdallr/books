@@ -11,55 +11,23 @@ Rectangle
 	color: "transparent"
 	border { color: Constants.borderColor; width: 1 }
 
-	Rectangle
+	Expander
 	{
-		id: plusID
-		readonly property int size: parent.height / 2
+		id: expanderID
+		height: parent.height / 2
+		width: height
 
 		anchors
 		{
 			verticalCenter: parent.verticalCenter
 			left: parent.left
-			leftMargin: 4 + size * TreeLevel
+			leftMargin: 4 + width * TreeLevel
 		}
 
-		Rectangle
-		{
-			anchors
-			{
-				verticalCenter: parent.verticalCenter
-				horizontalCenter: parent.horizontalCenter
-			}
-			width: plusID.size / 2
-			height: 2
-			border { color: Constants.borderColor; width: 1 }
-		}
-
-		Rectangle
-		{
-			anchors
-			{
-				verticalCenter: parent.verticalCenter
-				horizontalCenter: parent.horizontalCenter
-			}
-			width: 2
-			height: plusID.size / 2
-			border { color: Constants.borderColor; width: 1 }
-			visible: !expanded
-		}
-
-		color: "transparent"
-		width: size
-		height: size
-		radius: 5
-		border { color: Constants.borderColor; width: 1 }
 		visible: ChildrenCount > 0
+		expanded: Expanded
 
-		MouseArea
-		{
-			anchors.fill: parent
-			onClicked: Expand = !expanded
-		}
+		onClick: () => Expand = !expanded
 	}
 
 	CustomText
@@ -68,7 +36,7 @@ Rectangle
 		anchors
 		{
 			left: parent.left
-			leftMargin: 4 + 4 + plusID.size + plusID.size * TreeLevel
+			leftMargin: 4 + 4 + expanderID.width + expanderID.width * TreeLevel
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
