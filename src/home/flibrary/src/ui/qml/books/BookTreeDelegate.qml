@@ -19,10 +19,23 @@ Rectangle
 
 	Component
 	{
-		id: book
+		id: dictionaryID
+		Expandable
+		{
+			height: Constants.delegateHeight
+			expanded: Expanded
+			level: TreeLevel
+			expanderVisible: true
+			onClicked: Click = true
+			onExpanderClicked: Expand = !expanded
+		}
+	}
+
+	Component
+	{
+		id: bookID
 		BookLayout
 		{
-			id: bookID
 			authorsVisible: delegateID.authorsVisible
 			seriesVisible: delegateID.seriesVisible
 			genresVisible: delegateID.genresVisible
@@ -32,6 +45,6 @@ Rectangle
 	Loader
 	{
 		anchors.fill: parent
-		sourceComponent: book
+		sourceComponent: IsDictionary ? dictionaryID : bookID
 	}
 }

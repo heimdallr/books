@@ -17,7 +17,10 @@ namespace HomeCompa::Flibrary {
 		BOOK_ROLE_ITEM(Author)        \
 		BOOK_ROLE_ITEM(GenreAlias)    \
 		BOOK_ROLE_ITEM(SeriesTitle)   \
-		BOOK_ROLE_ITEM(Checked)
+		BOOK_ROLE_ITEM(Checked)       \
+		BOOK_ROLE_ITEM(IsDictionary)  \
+		BOOK_ROLE_ITEM(Expanded)      \
+		BOOK_ROLE_ITEM(TreeLevel)     \
 
 struct BookRole
 	: RoleBase
