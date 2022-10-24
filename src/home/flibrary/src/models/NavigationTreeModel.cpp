@@ -19,7 +19,6 @@ public:
 	Model(NavigationTreeItems & items, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
 	{
-		AddRole(Role::Expand);
 		AddReadableRole(Role::Id, &Item::Id);
 		AddReadableRole(Role::Title, &Item::Title);
 #define NAVIGATION_TREE_ROLE_ITEM(NAME) AddReadableRole(Role::NAME, &Item::NAME);
@@ -41,7 +40,7 @@ private: // ProxyModelBaseT
 	{
 		switch (role)
 		{
-			case Role::Expand:
+			case Role::Expanded:
 				item.Expanded = value.toBool();
 				emit dataChanged(index, index, { Role::Expanded });
 				Invalidate();
@@ -67,7 +66,7 @@ private:
 			{
 				case Qt::Key_Left:
 					if (item.Expanded && item.ChildrenCount > 0)
-						return SetDataLocal(index, false, Role::Expand, item);
+						return SetDataLocal(index, false, Role::Expanded, item);
 
 					Perform(&ModelObserver::HandleModelItemFound, static_cast<int>(m_index[item.ParentId]));
 					return true;
@@ -77,7 +76,7 @@ private:
 						return false;
 
 					if (!item.Expanded)
-						return SetDataLocal(index, true, Role::Expand, item);
+						return SetDataLocal(index, true, Role::Expanded, item);
 
 					Perform(&ModelObserver::HandleModelItemFound, index.row() + 1);
 					return true;
@@ -96,10 +95,6 @@ private:
 		for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
 			m_index[m_items[i].Id] = i;
 
-		m_children.clear();
-		for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
-			m_children[m_items[i].ParentId].push_back(i);
-
 		m_parents.clear();
 		m_parents.resize(std::size(m_items));
 		for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
@@ -116,7 +111,6 @@ private:
 
 private:
 	std::unordered_map<QString, size_t> m_index;
-	std::unordered_map<QString, std::vector<size_t>> m_children;
 	std::vector<std::vector<size_t>> m_parents;
 };
 

@@ -11,59 +11,78 @@ Item
 	property alias authorsVisible: authorID.visible
 	property alias seriesVisible: seriesID.visible
 	property alias genresVisible: genreID.visible
+	property int treeMargin: 0
 
 	RowLayout
 	{
 		id: layoutID
 		anchors.fill: parent
 
+		Item
+		{
+			Layout.minimumWidth: treeMargin
+			Layout.maximumWidth: treeMargin
+		}
+
 		CheckBox
 		{
+			Layout.alignment: Qt.AlignCenter
 			id: checkBoxID
 			checked: Checked
 			onClicked: Checked = !Checked
 		}
 
-		CustomText
+		Item
 		{
-			id: authorID
-			Layout.preferredWidth: layoutID.width / 8
-			visible: delegateID.authorVisible
-			text: Author
-		}
-
-		CustomText
-		{
-			id: seriesID
-			Layout.preferredWidth: layoutID.width / 16
-			visible: delegateID.seriesVisible
-			text: SeriesTitle
-		}
-
-		CustomText
-		{
+			height: parent.height
 			Layout.fillWidth: true
-			text: Title
-		}
+			Layout.fillHeight: true
+			RowLayout
+			{
+				anchors.fill: parent
 
-		CustomText
-		{
-			id: genreID
-			Layout.preferredWidth: layoutID.width / 8
-			text: GenreAlias
-		}
+				CustomText
+				{
+					id: authorID
+					Layout.preferredWidth: layoutID.width / 8
+					visible: delegateID.authorVisible
+					text: Author
+				}
 
-		CustomText
-		{
-			Layout.preferredWidth: 36
-			text: Lang
-		}
-	}
+				CustomText
+				{
+					id: seriesID
+					Layout.preferredWidth: layoutID.width / 16
+					visible: delegateID.seriesVisible
+					text: SeriesTitle
+				}
 
-	MouseArea
-	{
-		anchors.fill: parent
-		anchors.leftMargin: checkBoxID.width
-		onClicked: Click = true
+				CustomText
+				{
+					Layout.fillWidth: true
+					text: Title
+				}
+
+				CustomText
+				{
+					id: genreID
+					Layout.preferredWidth: layoutID.width / 8
+					text: GenreAlias
+				}
+
+				CustomText
+				{
+					Layout.preferredWidth: 36
+					text: Lang
+				}
+			}
+
+			MouseArea
+			{
+				anchors.fill: parent
+//				anchors.leftMargin: checkBoxID.width
+				onClicked: Click = true
+			}
+		}
 	}
 }

@@ -22,14 +22,61 @@ public:
 #undef	BOOK_ROLE_ITEM
 	}
 
+public: // ProxyModelBaseT
+	bool FilterAcceptsRow(const int row, const QModelIndex & parent) const override
+	{
+		return true
+			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+			&& [&items = m_items] (size_t index)
+				{
+					while (true)
+					{
+						if (items[index].TreeLevel == 0)
+							return true;
+
+						index = items[index].ParentId;
+						if (!items[index].Expanded)
+							return false;
+					}
+				}(static_cast<size_t>(row))
+			;
+	}
+
 private: // ProxyModelBaseT
+	QVariant GetDataLocal(const QModelIndex & index, const int role, const Item & item) const override
+	{
+		switch (role)
+		{
+			case Role::Checked:
+				if (!item.IsDictionary)
+					return item.Checked;
+
+				return Qt::PartiallyChecked;
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataLocal(index, role, item);
+	}
+
 	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
 	{
 		switch (role)
 		{
 			case Role::Checked:
-				item.Checked = value.toBool();
-				emit dataChanged(index, index, { role });
+				if (!item.IsDictionary)
+				{
+					item.Checked = value.toBool();
+					emit dataChanged(index, index, { role });
+					return true;
+				}
+				return false;
+
+			case Role::Expanded:
+				item.Expanded = value.toBool();
+				emit dataChanged(index, index, { Role::Expanded });
+				Invalidate();
 				return true;
 
 			case Role::KeyPressed:
@@ -55,6 +102,13 @@ private:
 
 		return false;
 	}
+
+	void Reset() override
+	{
+	}
+
+private:
+	std::vector<std::vector<size_t>> m_children;
 };
 
 class ProxyModel final : public QSortFilterProxyModel

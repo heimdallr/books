@@ -6,9 +6,11 @@ import "qrc:/Core/constants.js" as Constants
 Expandable
 {
 	height: Constants.delegateHeight
+	text: Title
 	expanded: Expanded
-	level: TreeLevel
+	treeMargin: height * TreeLevel / 2
 	expanderVisible: ChildrenCount > 0
 	onClicked: Click = true
-	onExpanderClicked: Expand = !expanded
+	onExpanderClicked: Expanded = !expanded
+
 }

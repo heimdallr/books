@@ -22,7 +22,6 @@ public:
 #define NAVIGATION_TREE_ROLE_ITEM(NAME) NAME,
 		NAVIGATION_TREE_ROLE_ITEMS_XMACRO
 #undef	NAVIGATION_TREE_ROLE_ITEM
-		Expand,
 		FakeNavigationTreeRoleLast
 	};
 

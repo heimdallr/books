@@ -5,8 +5,9 @@ import "qrc:/Core/constants.js" as Constants
 Rectangle
 {
 	id: expanderID
-	property var onClick
 	property bool expanded
+
+	signal clicked()
 
 	Rectangle
 	{
@@ -40,6 +41,6 @@ Rectangle
 	MouseArea
 	{
 		anchors.fill: parent
-		onClicked: onClick()
+		onClicked: () => expanderID.clicked()
 	}
 }

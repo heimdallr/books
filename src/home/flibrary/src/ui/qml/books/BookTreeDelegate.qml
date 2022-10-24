@@ -23,11 +23,19 @@ Rectangle
 		Expandable
 		{
 			height: Constants.delegateHeight
+
+			text: Title
 			expanded: Expanded
-			level: TreeLevel
+			treeMargin: height * TreeLevel / 2
+
 			expanderVisible: true
+			onExpanderClicked: Expanded = !expanded
+
+			checkboxVisible: true
+			checkboxState: Qt.PartiallyChecked
+			onCheckboxClicked: Checked = !Checked
+
 			onClicked: Click = true
-			onExpanderClicked: Expand = !expanded
 		}
 	}
 
@@ -39,6 +47,7 @@ Rectangle
 			authorsVisible: delegateID.authorsVisible
 			seriesVisible: delegateID.seriesVisible
 			genresVisible: delegateID.genresVisible
+			treeMargin: height * (TreeLevel + 1) / 2
 		}
 	}
 

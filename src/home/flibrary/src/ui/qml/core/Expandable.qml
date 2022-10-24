@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
@@ -7,11 +8,15 @@ Rectangle
 {
 	id: expandableID
 	property bool expanded
-	property int level
+	property int treeMargin: 0
 	property alias expanderVisible: expanderID.visible
+	property alias checkboxVisible: checkBoxID.visible
+	property alias checkboxState: checkBoxID.checkState
+	property alias text: textID.text
 
 	signal clicked()
 	signal expanderClicked()
+	signal checkboxClicked()
 
 	color: "transparent"
 	border { color: Constants.borderColor; width: 1 }
@@ -26,12 +31,28 @@ Rectangle
 		{
 			verticalCenter: parent.verticalCenter
 			left: parent.left
-			leftMargin: 4 + width * level
+			leftMargin: 4 + treeMargin
 		}
 
 		expanded: expandableID.expanded
 
-		onClick: () => expandableID.expanderClicked()
+		onClicked: () => expandableID.expanderClicked()
+	}
+
+	CheckBox
+	{
+		id: checkBoxID
+		anchors
+		{
+			verticalCenter: parent.verticalCenter
+			left: expanderID.right
+			leftMargin: 4
+		}
+
+		tristate: true
+		visible: false
+
+		onClicked:  () => expandableID.checkboxClicked()
 	}
 
 	CustomText
@@ -39,13 +60,11 @@ Rectangle
 		id: textID
 		anchors
 		{
-			left: expanderID.right
+			left: checkBoxID.visible ? checkBoxID.right : expanderID.right
 			leftMargin: 4
 			bottom: parent.bottom
 			bottomMargin: 4
 		}
-
-		text: Title
 	}
 
 	MouseArea

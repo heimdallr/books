@@ -163,7 +163,9 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 		assert(it != index.end());
 		const auto & indexValue = it->second;
 
-		for (const auto authorId : indexValue.authors)
+		std::vector<QString> itemAuthors;
+		itemAuthors.reserve(indexValue.authors.size());
+		std::ranges::transform(indexValue.authors, std::back_inserter(itemAuthors), [&authors] (const long long int authorId)
 		{
 			assert(authors.contains(authorId));
 			const auto & author = authors[authorId];
@@ -171,9 +173,11 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 			auto itemAuthor = author.last;
 			AppendAuthorName(itemAuthor, author.first, " ");
 			AppendAuthorName(itemAuthor, author.middle, "");
-
+			return itemAuthor;
+		});
+		std::ranges::sort(itemAuthors);
+		for (const auto & itemAuthor : itemAuthors)
 			AppendTitle(item.Author, itemAuthor, ", ");
-		}
 
 		for (const auto & genreId : indexValue.genres)
 		{
@@ -294,15 +298,20 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 				auto & r = result.emplace_back();
 				const auto it = index.find(item.Id);
 				assert(it != index.end());
-				for (const auto authorId : it->second.authors)
+				std::vector<QString> authors;
+				authors.reserve(it->second.authors.size());
+				std::ranges::transform(it->second.authors, std::back_inserter(authors), [&authorsIndex] (const long long int authorId)
 				{
 					const auto authorIt = authorsIndex.find(authorId);
 					assert(authorIt != authorsIndex.end());
-					auto a = authorIt->second.last;
-					AppendTitle(a, authorIt->second.first, " ");
-					AppendTitle(a, authorIt->second.last, " ");
+					auto author = authorIt->second.last;
+					AppendTitle(author, authorIt->second.first, " ");
+					AppendTitle(author, authorIt->second.middle, " ");
+					return author;
+				});
+				std::ranges::sort(authors);
+				for (const auto & a : authors)
 					AppendTitle(r.Title, a, ", ");
-				}
 
 				r.IsDictionary = true;
 			}
