@@ -27,8 +27,10 @@ set(WARN_DISABLE_DEPRECATED	ON)
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(SCRIPTS_PATH "src/ext/scripts")
+include("${SCRIPTS_PATH}/cmake/map.cmake")
 include("${SCRIPTS_PATH}/cmake/utils.cmake")
 include("${SCRIPTS_PATH}/cmake/target.cmake")
+include("${SCRIPTS_PATH}/cmake/GenerateSettingsClass.cmake")
 
 include("src/ext/ziplib.cmake")
 include("src/ext/sqlite.cmake")

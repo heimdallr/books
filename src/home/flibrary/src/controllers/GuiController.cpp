@@ -22,6 +22,7 @@
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
 
+#include "Settings/DelegateSettings.h"
 #include "Configuration.h"
 
 namespace HomeCompa::Flibrary {
@@ -64,6 +65,7 @@ public:
 		qmlContext->setContextProperty("guiController", &m_self);
 		qRegisterMetaType<QAbstractItemModel *>("QAbstractItemModel*");
 		qRegisterMetaType<ModelController *>("ModelController*");
+		qRegisterMetaType<DelegateSettings *>("DelegateSettings*");
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
