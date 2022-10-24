@@ -32,8 +32,8 @@ Rectangle
 			onExpanderClicked: Expanded = !expanded
 
 			checkboxVisible: true
-			checkboxState: Qt.PartiallyChecked
-			onCheckboxClicked: Checked = !Checked
+			checkboxState: Checked
+			onCheckboxClicked: Checked = true
 
 			onClicked: Click = true
 		}

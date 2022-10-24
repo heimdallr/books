@@ -80,7 +80,6 @@ Item
 			MouseArea
 			{
 				anchors.fill: parent
-//				anchors.leftMargin: checkBoxID.width
 				onClicked: Click = true
 			}
 		}

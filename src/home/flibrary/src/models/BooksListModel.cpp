@@ -47,11 +47,7 @@ private:
 	{
 		const auto [key, modifiers] = value.value<QPair<int, int>>();
 		if (modifiers == Qt::NoModifier && key == Qt::Key_Space)
-		{
-			item.Checked = !item.Checked;
-			emit dataChanged(index, index, { Role::Checked });
-			return true;
-		}
+			return setData(index, !item.Checked, Role::Checked);
 
 		return false;
 	}

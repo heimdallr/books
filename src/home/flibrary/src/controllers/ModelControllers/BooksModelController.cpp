@@ -330,6 +330,8 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 				r.Title = series;
 				r.IsDictionary = true;
 				r.TreeLevel = 1;
+				if (!author.isEmpty())
+					r.ParentId = authorPosition;
 			}
 		}
 
