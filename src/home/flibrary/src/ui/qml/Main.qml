@@ -1,7 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Window 2.0
-import QSystemTrayIcon 1.0
 
 import "Navigation"
 import "Book"
@@ -11,7 +9,7 @@ ApplicationWindow
 {
 	id: applicationWindowID
 
-	property alias focus: splitViewID.focus
+//	property alias focus: splitViewID.focus
 
 	width: 1280
 	height: 720
@@ -22,61 +20,63 @@ ApplicationWindow
 
 	readonly property bool running: guiController.running
 
-	QSystemTrayIcon
-	{
-		id: systemTray
+	Tray {}
 
-		Component.onCompleted:
+	Menu
+	{
+		id: trayMenu
+
+		MenuItem
 		{
-			icon = iconTray
-			toolTip = "Flibrary"
-			show()
+			text: qsTranslate("Tray", "Show Flibrary")
+			onTriggered: application.show()
 		}
 
-		onActivated:
+		MenuItem
 		{
-			if (reason === 1)
+			text: qsTranslate("Tray", "Exit")
+			onTriggered:
 			{
-				trayMenu.popup()
-			}
-			else
-			{
-				if (applicationWindowID.visibility === Window.Hidden)
-				{
-					applicationWindowID.show()
-				}
-				else
-				{
-					applicationWindowID.hide()
-				}
+				systemTray.hide()
+				Qt.quit()
 			}
 		}
 	}
 
 	onRunningChanged: if (!running)
-		close()
+		Qt.quit()
 
-	SplitView
+	Component
 	{
-		id: splitViewID
-		focus: true
-		Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
+		id: splitViewComponentID
+		SplitView
+		{
+			id: splitViewID
+			focus: true
+			Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
 
+			anchors.fill: parent
+			orientation: Qt.Horizontal
+
+			handle: SplitViewHandle {}
+
+			Navigation
+			{
+				SplitView.preferredWidth: applicationWindowID.width / 4
+				SplitView.minimumWidth: applicationWindowID.width / 6
+				SplitView.maximumWidth: applicationWindowID.width / 2
+			}
+
+			Books
+			{
+				SplitView.fillWidth: true
+			}
+		}
+	}
+
+	Loader
+	{
 		anchors.fill: parent
-		orientation: Qt.Horizontal
-
-		handle: SplitViewHandle {}
-
-		Navigation
-		{
-			SplitView.preferredWidth: applicationWindowID.width / 4
-			SplitView.minimumWidth: applicationWindowID.width / 6
-			SplitView.maximumWidth: applicationWindowID.width / 2
-		}
-
-		Books
-		{
-			SplitView.fillWidth: true
-		}
+		sourceComponent: guiController.opened ? splitViewComponentID : undefined
 	}
 }

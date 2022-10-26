@@ -2,6 +2,7 @@
 	<qresource prefix="">
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
 		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate.qml</file>
+		<file alias="Tray.qml">../src/ui/qml/Tray.qml</file>
 	</qresource>
 
 	<qresource prefix="Navigation">
@@ -34,6 +35,10 @@
 		<file alias="CustomText.qml">../src/ui/qml/core/CustomText.qml</file>
 		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
 		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
+	</qresource>
+
+	<qresource prefix="Dialogs/">
+		<file alias="AddCollection.qml">../src/ui/qml/dialogs/AddCollection.qml</file>
 	</qresource>
 
 	<qresource prefix="icons/">

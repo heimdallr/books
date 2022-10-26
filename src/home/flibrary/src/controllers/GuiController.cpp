@@ -1,5 +1,8 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
+#include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QFileDialog>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
@@ -15,6 +18,8 @@
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
+
+#include "util/Settings.h"
 
 #include "GuiController.h"
 
@@ -49,8 +54,22 @@ class GuiController::Impl
 public:
 	Impl(GuiController & self, const std::string & databaseName)
 		: m_self(self)
-		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [&] { CreateDatabase(databaseName).swap(m_db); }))
 	{
+		if (!databaseName.empty())
+		{
+			CreateExecutor(databaseName);
+			return;
+		}
+
+		const auto currentDbId = m_settings.Get("database/current", {}).toString();
+		if (currentDbId.isEmpty())
+			return;
+
+		const auto currentDbFileName = m_settings.Get("database/" + currentDbId + "/database", {}).toString();
+		if (currentDbFileName.isEmpty())
+			return;
+
+		CreateExecutor(currentDbFileName.toStdString());
 	}
 
 	~Impl() override
@@ -61,7 +80,6 @@ public:
 
 		if (m_booksModelController)
 			m_booksModelController->UnregisterObserver(this);
-
 	}
 
 	void Start()
@@ -91,6 +109,11 @@ public:
 	bool GetRunning() const noexcept
 	{
 		return m_running;
+	}
+
+	bool GetOpened() const noexcept
+	{
+		return !!m_db;
 	}
 
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
@@ -130,6 +153,22 @@ public:
 		return m_booksModelController.get();
 	}
 
+	void AddCollection(const QString & name, const QString & db, const QString & folder)
+	{
+		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+		hash.addData(db.toUtf8());
+		const auto currentDb = hash.result().toHex();
+		const auto dbSection = "database/" + currentDb;
+
+		m_settings.Set(dbSection + "/name", name);
+		m_settings.Set(dbSection + "/database", db);
+		m_settings.Set(dbSection + "/folder", folder);
+
+		m_settings.Set("database/current", currentDb);
+
+		CreateExecutor(db.toStdString());
+	}
+
 	bool IsFieldVisible(const NavigationSource navigationSource) const noexcept
 	{
 		return navigationSource != m_navigationSource;
@@ -162,6 +201,17 @@ private: // ModelControllerObserver
 			setFocus(m_booksModelController.get());
 	}
 
+	void CreateExecutor(const std::string & databaseName)
+	{
+		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [databaseName, &db = m_db]
+		{
+			CreateDatabase(databaseName).swap(db);
+		});
+
+		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
+		emit m_self.OpenedChanged();
+	}
+
 private:
 	GuiController & m_self;
 	QQmlApplicationEngine m_qmlEngine;
@@ -174,6 +224,8 @@ private:
 	NavigationSource m_navigationSource { NavigationSource::Undefined };
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex = -1;
+
+	Settings m_settings{ "HomeCompa", "Flibrary" };
 };
 
 GuiController::GuiController(const std::string & databaseName, QObject * parent)
@@ -219,6 +271,21 @@ ModelController * GuiController::GetBooksModelControllerTree()
 	return m_impl->GetBooksModelController(BooksViewType::Tree);
 }
 
+void GuiController::AddCollection(const QString & name, const QString & db, const QString & folder)
+{
+	m_impl->AddCollection(name, db, folder);
+}
+
+QString GuiController::SelectFile(const QString & fileName) const
+{
+	return QFileDialog::getOpenFileName(nullptr, QCoreApplication::translate("FileDialog", "Select database file"), fileName);
+}
+
+QString GuiController::SelectFolder(const QString & folderName) const
+{
+	return QFileDialog::getExistingDirectory(nullptr, QCoreApplication::translate("FileDialog", "Select archives folder"), folderName);
+}
+
 bool GuiController::IsAuthorsVisible() const noexcept
 {
 	return m_impl->IsFieldVisible(NavigationSource::Authors);
@@ -232,6 +299,11 @@ bool GuiController::IsSeriesVisible() const noexcept
 bool GuiController::IsGenresVisible() const noexcept
 {
 	return m_impl->IsFieldVisible(NavigationSource::Genres);
+}
+
+bool GuiController::GetOpened() const noexcept
+{
+	return m_impl->GetOpened();
 }
 
 bool GuiController::GetRunning() const noexcept
