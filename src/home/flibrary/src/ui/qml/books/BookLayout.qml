@@ -20,7 +20,7 @@ Item
 		height: parent.height
 	}
 
-	CheckBox
+	CustomCheckbox
 	{
 		id: checkBoxID
 		anchors
@@ -28,9 +28,6 @@ Item
 			verticalCenter: parent.verticalCenter
 			left: treeMarginID.right
 		}
-
-		indicator.width: Constants.checkboxSize
-		indicator.height: Constants.checkboxSize
 
 		checked: Checked
 		onClicked: Checked = !Checked

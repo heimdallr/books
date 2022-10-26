@@ -39,7 +39,7 @@ Rectangle
 		onClicked: () => expandableID.expanderClicked()
 	}
 
-	CheckBox
+	CustomCheckbox
 	{
 		id: checkBoxID
 		anchors
@@ -48,9 +48,6 @@ Rectangle
 			left: expanderID.right
 			leftMargin: 4
 		}
-
-		indicator.width: Constants.checkboxSize
-		indicator.height: Constants.checkboxSize
 
 		tristate: true
 		visible: false
