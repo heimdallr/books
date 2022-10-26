@@ -1,3 +1,12 @@
+CreateMap(SETTING_NAMES
+	VARIABLES
+		titleWidth 50
+		genreWidth 30
+		someWidth 20
+	)
+
+GenerateSettingsClass(DelegateSettings SETTING_NAMES)
+
 AddTarget(
 	NAME flibrary
 	TYPE app_bundle
@@ -5,6 +14,8 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
+	SOURCES
+		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_DelegateSettings.cpp"
 	QT_USE
 		Core
 		Widgets

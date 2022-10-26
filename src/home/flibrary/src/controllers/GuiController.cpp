@@ -1,6 +1,9 @@
+#pragma warning(push, 0)
 #include <QAbstractItemModel>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QSystemTrayIcon>
+#pragma warning(pop)
 
 #include "fnd/algorithm.h"
 
@@ -24,6 +27,8 @@
 
 #include "Settings/DelegateSettings.h"
 #include "Configuration.h"
+
+Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 
 namespace HomeCompa::Flibrary {
 
@@ -63,9 +68,14 @@ public:
 	{
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
+		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
+
+		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
+		qRegisterMetaType<QSystemTrayIcon::ActivationReason>("ActivationReason");
 		qRegisterMetaType<QAbstractItemModel *>("QAbstractItemModel*");
 		qRegisterMetaType<ModelController *>("ModelController*");
 		qRegisterMetaType<DelegateSettings *>("DelegateSettings*");
+
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 

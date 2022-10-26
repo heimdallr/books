@@ -1,5 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Window 2.0
+import QSystemTrayIcon 1.0
 
 import "Navigation"
 import "Book"
@@ -19,6 +21,37 @@ ApplicationWindow
 	visible: true
 
 	readonly property bool running: guiController.running
+
+	QSystemTrayIcon
+	{
+		id: systemTray
+
+		Component.onCompleted:
+		{
+			icon = iconTray
+			toolTip = "Flibrary"
+			show()
+		}
+
+		onActivated:
+		{
+			if (reason === 1)
+			{
+				trayMenu.popup()
+			}
+			else
+			{
+				if (applicationWindowID.visibility === Window.Hidden)
+				{
+					applicationWindowID.show()
+				}
+				else
+				{
+					applicationWindowID.hide()
+				}
+			}
+		}
+	}
 
 	onRunningChanged: if (!running)
 		close()

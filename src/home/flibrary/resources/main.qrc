@@ -34,4 +34,9 @@
 		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
 		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
 	</qresource>
+
+	<qresource prefix="icons/">
+		<file alias="main.png">icons/main.png</file>
+		<file alias="tray.png">icons/tray.png</file>
+	</qresource>
 </RCC>
