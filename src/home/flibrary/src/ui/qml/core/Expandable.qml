@@ -49,6 +49,9 @@ Rectangle
 			leftMargin: 4
 		}
 
+		indicator.width: Constants.checkboxSize
+		indicator.height: Constants.checkboxSize
+
 		tristate: true
 		visible: false
 
