@@ -24,7 +24,7 @@ using Role = RoleBase;
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series order by SeriesTitle";
-constexpr auto GENRES_QUERY = "select GenreCode, ParentCode, GenreAlias from Genres";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias from Genres g where exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode) or exists (select 42 from Genres p where p.ParentCode = g.GenreCode)";
 
 void AppendTitle(QString & title, std::string_view str)
 {
