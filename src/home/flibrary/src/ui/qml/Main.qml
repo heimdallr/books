@@ -9,7 +9,7 @@ ApplicationWindow
 {
 	id: applicationWindowID
 
-//	property alias focus: splitViewID.focus
+	property alias focus: splitViewID.focus
 
 	width: 1280
 	height: 720
@@ -51,7 +51,6 @@ ApplicationWindow
 		id: splitViewComponentID
 		SplitView
 		{
-			id: splitViewID
 			focus: true
 			Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
 
@@ -76,6 +75,7 @@ ApplicationWindow
 
 	Loader
 	{
+		id: splitViewID
 		anchors.fill: parent
 		sourceComponent: guiController.opened ? splitViewComponentID : undefined
 	}

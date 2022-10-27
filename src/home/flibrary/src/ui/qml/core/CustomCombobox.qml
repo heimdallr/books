@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Controls 1.4
 
 ComboBox
 {
@@ -8,12 +8,11 @@ ComboBox
 	function add(text, value)
 	{
 		viewModeModelID.append({"text": text, "value": value})
-
 	}
 
 	model: viewModeModelID
+	currentIndex: -1
 	textRole: "text"
-	valueRole: "value"
 
 	ListModel { id: viewModeModelID }
 }

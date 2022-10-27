@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.15
 
 import "Core"
@@ -16,7 +16,7 @@ Rectangle
 	function onSourceChanged()
 	{
 		viewModeTextID.text = ""
-		loaderID.setSource(loadPath + viewSourceComboBoxID.currentValue + ".qml")
+		loaderID.setSource(loadPath + viewSourceComboBox.model.get(viewSourceComboBox.currentIndex).value + ".qml")
 		applicationWindowID.focus = true
 	}
 
@@ -33,14 +33,14 @@ Rectangle
 
 			function setViewMode()
 			{
-				viewTemplateID.modelController.SetViewMode(viewModeComboBoxID.currentValue, viewModeTextID.text)
+				modelController.SetViewMode(viewModeComboBoxID.value, viewModeTextID.text)
 			}
 
 			CustomCombobox
 			{
 				id: viewSourceComboBoxID
 				currentIndex: -1
-				onCurrentValueChanged: onSourceChanged()
+				onCurrentIndexChanged: onSourceChanged()
 			}
 
 			TextField
@@ -51,16 +51,10 @@ Rectangle
 				onTextChanged: findLayoutID.setViewMode()
 			}
 
-			CustomCombobox
+			ViewModeCombobox
 			{
 				id: viewModeComboBoxID
-				onActivated: findLayoutID.setViewMode()
-				Component.onCompleted:
-				{
-					add(qsTranslate("ViewMode", "Find"), "Find")
-					add(qsTranslate("ViewMode", "Filter"), "Filter")
-					currentIndex = indexOfValue("Find")
-				}
+				onValueChanged: findLayoutID.setViewMode()
 			}
 		}
 

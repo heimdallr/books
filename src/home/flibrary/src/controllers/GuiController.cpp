@@ -87,6 +87,8 @@ public:
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
+		qmlContext->setContextProperty("iconFind", QIcon(":/icons/find.png"));
+		qmlContext->setContextProperty("iconFilter", QIcon(":/icons/filter.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
 		qRegisterMetaType<QSystemTrayIcon::ActivationReason>("ActivationReason");

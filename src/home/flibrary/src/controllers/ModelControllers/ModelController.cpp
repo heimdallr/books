@@ -205,7 +205,7 @@ QAbstractItemModel * ModelController::GetCurrentModel()
 
 QString ModelController::GetId(int index)
 {
-	if (!m_impl->model)
+	if (!m_impl->model || index < 0)
 		return {};
 
 	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);

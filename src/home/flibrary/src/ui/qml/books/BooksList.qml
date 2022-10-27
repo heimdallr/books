@@ -10,6 +10,6 @@ ViewTemplate
 	{
 		viewSourceComboBox.add(qsTranslate("ViewSource", "List"), "BooksListView")
 		viewSourceComboBox.add(qsTranslate("ViewSource", "Tree"), "BooksTreeView")
-		viewSourceComboBox.currentIndex = viewSourceComboBox.indexOfValue("BooksListView")
+		viewSourceComboBox.currentIndex = 0
 	}
 }
