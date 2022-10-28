@@ -35,12 +35,12 @@ Rectangle
 	}
 
 	color: "transparent"
-	radius: 5
+	radius: 3
 	border { color: Constants.borderColor; width: 1 }
 
 	MouseArea
 	{
-		anchors.fill: parent
-		onClicked: () => expanderID.clicked()
+		anchors. fill: parent
+		onClicked: expanderID.clicked()
 	}
 }
