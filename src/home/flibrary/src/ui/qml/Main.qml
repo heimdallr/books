@@ -10,15 +10,40 @@ ApplicationWindow
 	id: applicationWindowID
 
 	property alias focus: splitViewID.focus
+	property bool completed: false
 
-	width: 1280
-	height: 720
+	width:
+	{
+		const v = uiSettings.mainWindowWidth
+		return v > 0 ? v : 1024
+	}
+
+	height:
+	{
+		const v = uiSettings.mainWindowHeight
+		return v > 0 ? v : 720
+	}
 
 	title: qsTranslate("Main", "Flibrary - flibusta books collection")
 
 	visible: true
 
 	readonly property bool running: guiController.running
+
+	onWidthChanged: uiSettings.mainWindowWidth = width
+	onHeightChanged: uiSettings.mainWindowHeight = height
+	onXChanged: if (completed) uiSettings.mainWindowPosX = x
+	onYChanged: if (completed) uiSettings.mainWindowPosY = y
+
+	Component.onCompleted:
+	{
+		if ((x = uiSettings.mainWindowPosX) < 0)
+			x = (screen.width - width) / 2
+		if ((y = uiSettings.mainWindowPosY) < 0)
+			y = (screen.height - height) / 2
+
+		completed = true;
+	}
 
 	Tray {}
 

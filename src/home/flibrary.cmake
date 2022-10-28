@@ -1,11 +1,12 @@
-CreateMap(SETTING_NAMES
+CreateMap(UI_SETTING_NAMES
 	VARIABLES
-		titleWidth 50
-		genreWidth 30
-		someWidth 20
+		mainWindowHeight -1
+		mainWindowWidth -1
+		mainWindowPosX -1
+		mainWindowPosY -1
 	)
 
-GenerateSettingsClass(DelegateSettings SETTING_NAMES)
+GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
 
 AddTarget(
 	NAME flibrary
@@ -15,7 +16,7 @@ AddTarget(
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
 	SOURCES
-		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_DelegateSettings.cpp"
+		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QT_USE
 		Core
 		Widgets

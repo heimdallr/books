@@ -30,7 +30,7 @@
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
 
-#include "Settings/DelegateSettings.h"
+#include "Settings/UiSettings.h"
 #include "Configuration.h"
 
 Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
@@ -86,15 +86,13 @@ public:
 	{
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
+		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
-		qmlContext->setContextProperty("iconFind", QIcon(":/icons/find.png"));
-		qmlContext->setContextProperty("iconFilter", QIcon(":/icons/filter.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
 		qRegisterMetaType<QSystemTrayIcon::ActivationReason>("ActivationReason");
 		qRegisterMetaType<QAbstractItemModel *>("QAbstractItemModel*");
 		qRegisterMetaType<ModelController *>("ModelController*");
-		qRegisterMetaType<DelegateSettings *>("DelegateSettings*");
 
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
@@ -227,7 +225,8 @@ private:
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex = -1;
 
-	Settings m_settings{ "HomeCompa", "Flibrary" };
+	Settings m_settings { "HomeCompa", "Flibrary" };
+	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
 };
 
 GuiController::GuiController(const std::string & databaseName, QObject * parent)
