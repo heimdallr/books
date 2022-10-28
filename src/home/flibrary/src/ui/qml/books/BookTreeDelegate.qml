@@ -25,6 +25,7 @@ Rectangle
 			height: Constants.delegateHeight
 
 			text: Title
+			textColor: IsDeleted ? "gray" : "black"
 			expanded: Expanded
 			treeMargin: height * TreeLevel / 2
 

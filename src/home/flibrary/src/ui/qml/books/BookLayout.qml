@@ -12,6 +12,8 @@ Item
 	property alias genresVisible: genreID.visible
 	property int treeMargin: 0
 
+	property color textColor: IsDeleted ? "gray" : "black"
+
 	Item
 	{
 		id: treeMarginID
@@ -35,7 +37,7 @@ Item
 
 	Item
 	{
-		anchors{ left: checkBoxID.right; top: parent.top; bottom: parent.bottom; right: parent.right }
+		anchors { left: checkBoxID.right; top: parent.top; bottom: parent.bottom; right: parent.right }
 
 		RowLayout
 		{
@@ -47,6 +49,7 @@ Item
 				id: authorID
 				Layout.preferredWidth: layoutID.width / 8
 				visible: delegateID.authorVisible
+				color: textColor
 				text: Author
 			}
 
@@ -55,12 +58,14 @@ Item
 				id: seriesID
 				Layout.preferredWidth: layoutID.width / 16
 				visible: delegateID.seriesVisible
+				color: textColor
 				text: SeriesTitle
 			}
 
 			CustomText
 			{
 				Layout.fillWidth: true
+				color: textColor
 				text: Title
 			}
 
@@ -68,12 +73,14 @@ Item
 			{
 				id: genreID
 				Layout.preferredWidth: layoutID.width / 8
+				color: textColor
 				text: GenreAlias
 			}
 
 			CustomText
 			{
 				Layout.preferredWidth: 36
+				color: textColor
 				text: Lang
 			}
 		}

@@ -13,6 +13,7 @@ Rectangle
 	property alias checkboxVisible: checkBoxID.visible
 	property alias checkboxState: checkBoxID.checkState
 	property alias text: textID.text
+	property alias textColor: textID.color
 
 	signal clicked()
 	signal expanderClicked()
