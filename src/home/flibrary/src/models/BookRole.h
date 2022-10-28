@@ -33,6 +33,7 @@ public:
 #define	BOOK_ROLE_ITEM(NAME) NAME,
 		BOOK_ROLE_ITEMS_XMACRO
 #undef	BOOK_ROLE_ITEM
+		ShowDeleted,
 		FakeBookRoleLast
 	};
 

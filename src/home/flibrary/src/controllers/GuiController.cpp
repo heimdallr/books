@@ -15,6 +15,7 @@
 #include "database/interface/Database.h"
 
 #include "models/RoleBase.h"
+#include "models/BookRole.h"
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
@@ -70,6 +71,12 @@ public:
 			return;
 
 		CreateExecutor(currentDbFileName.toStdString());
+
+		connect(&m_uiSettings, &UiSettings::showDeletedChanged, [&]
+		{
+			if (m_booksModelController)
+				m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
+		});
 	}
 
 	~Impl() override
@@ -146,6 +153,7 @@ public:
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, type)).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		m_booksModelController->RegisterObserver(this);
+		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
 		if (m_navigationSource != NavigationSource::Undefined && m_currentNavigationIndex != -1)
 			m_booksModelController->SetNavigationState(m_navigationSource, m_navigationModelControllers[m_navigationSource]->GetId(m_currentNavigationIndex));

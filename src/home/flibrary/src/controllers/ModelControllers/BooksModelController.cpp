@@ -222,13 +222,14 @@ Books CreateItemsList(DB::Database & db, const NavigationSource navigationSource
 	return books;
 }
 
-void ProcessLangs(const QString & parent, std::set<QString> & langs, Books & books, const size_t index)
+void PostProcess(const QString & parent, const bool deleted, std::set<QString> & langs, Books & books, const size_t index)
 {
 	if (parent.isEmpty())
 		return langs.clear();
 
 	assert(index < books.size());
 	auto & book = books[index];
+	book.IsDeleted = deleted;
 	for (const auto & lang : langs)
 		book.Lang.append(lang).append(",");
 
@@ -242,13 +243,15 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 
 	QString parentSeries;
 	size_t parentPosition = 0;
+	bool deleted = true;
 	std::set<QString> langs;
 
 	for (auto & item : items)
 	{
 		if (parentSeries != item.SeriesTitle)
 		{
-			ProcessLangs(parentSeries, langs, result, parentPosition);
+			PostProcess(parentSeries, deleted, langs, result, parentPosition);
+			deleted = true;
 			parentSeries = item.SeriesTitle;
 			parentPosition = std::size(result);
 			if (!parentSeries.isEmpty())
@@ -259,6 +262,9 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 			}
 		}
 
+		if (!item.IsDeleted)
+			deleted = false;
+
 		auto & r = result.emplace_back(std::move(item));
 		if (!parentSeries.isEmpty())
 		{
@@ -268,7 +274,7 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 		}
 	}
 
-	ProcessLangs(parentSeries, langs, result, parentPosition);
+	PostProcess(parentSeries, deleted, langs, result, parentPosition);
 
 	return result;
 }
@@ -280,17 +286,20 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 
 	QString author;
 	size_t authorPosition = 0;
+	bool authorDeleted = true;
 	std::set<QString> authorLang;
 
 	QString series;
 	size_t seriesPosition = 0;
+	bool seriesDeleted = true;
 	std::set<QString> seriesLang;
 
 	for (auto & item : items)
 	{
 		if (author != item.Author)
 		{
-			ProcessLangs(author, authorLang, result, authorPosition);
+			PostProcess(author, authorDeleted, authorLang, result, authorPosition);
+			authorDeleted = true;
 			author = item.Author;
 			authorPosition = std::size(result);
 			if (!author.isEmpty())
@@ -315,13 +324,15 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 
 				r.IsDictionary = true;
 			}
+			seriesDeleted = true;
 			if (!series.isEmpty())
 				series = "kdajncjadbnlkd_jfblajdksvb210732ncasdhfjakf";
 		}
 
 		if (series != item.SeriesTitle)
 		{
-			ProcessLangs(series, seriesLang, result, seriesPosition);
+			PostProcess(series, seriesDeleted, seriesLang, result, seriesPosition);
+			seriesDeleted = true;
 			series = item.SeriesTitle;
 			seriesPosition = std::size(result);
 			if (!series.isEmpty())
@@ -338,6 +349,8 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 		auto & r = result.emplace_back(std::move(item));
 		authorLang.insert(r.Lang);
 		seriesLang.insert(r.Lang);
+		if (!item.IsDeleted)
+			authorDeleted = seriesDeleted = false;
 
 		if (!series.isEmpty())
 		{
@@ -352,8 +365,8 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 		}
 	}
 
-	ProcessLangs(author, authorLang, result, authorPosition);
-	ProcessLangs(series, seriesLang, result, seriesPosition);
+	PostProcess(author, authorDeleted, authorLang, result, authorPosition);
+	PostProcess(series, seriesDeleted, seriesLang, result, seriesPosition);
 
 	return result;
 }

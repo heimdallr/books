@@ -22,6 +22,15 @@ public:
 #undef	BOOK_ROLE_ITEM
 	}
 
+public: // ProxyModelBaseT
+	bool FilterAcceptsRow(int row, const QModelIndex & parent = {}) const override
+	{
+		return true
+			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+			&& (m_showDeleted || !GetItem(row).IsDeleted)
+			;
+	}
+
 private: // ProxyModelBaseT
 	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
 	{
@@ -42,6 +51,20 @@ private: // ProxyModelBaseT
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
 	}
 
+	bool SetDataGlobal(const QVariant& value, int role) override
+	{
+		switch (role)
+		{
+			case Role::ShowDeleted:
+				return Util::Set(m_showDeleted, value.toBool(), *this, &Model::Invalidate);
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::SetDataGlobal(value, role);
+	}
+
 private:
 	bool OnKeyPressed(const QModelIndex & index, const QVariant & value, Item & item)
 	{
@@ -51,6 +74,9 @@ private:
 
 		return false;
 	}
+
+private:
+	bool m_showDeleted { false };
 };
 
 class ProxyModel final : public QSortFilterProxyModel

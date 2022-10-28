@@ -1,5 +1,6 @@
 CreateMap(UI_SETTING_NAMES
 	VARIABLES
+		showDeleted 0
 		mainWindowHeight -1
 		mainWindowWidth -1
 		mainWindowPosX -1
