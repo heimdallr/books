@@ -19,3 +19,6 @@
 [submodule "src/ext/sqlite/sqlite"]
 	path = src/ext/sqlite/sqlite
 	url = ../sqlite3.git
+[submodule "src/ext/SimpleSaxParser"]
+	path = src/ext/SimpleSaxParser
+	url = ../SimpleSaxParser.git

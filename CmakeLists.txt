@@ -36,6 +36,7 @@ include("src/ext/ziplib.cmake")
 include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 include("src/ext/fmt.cmake")
+include("src/ext/SimpleSaxParser.cmake")
 
 include("src/home/fnd.cmake")
 include("src/home/util.cmake")
