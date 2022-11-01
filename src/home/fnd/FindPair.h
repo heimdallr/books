@@ -288,4 +288,15 @@ struct PszComparer
 	bool operator()(const char * lhs, const char * rhs) const { return strcmp(lhs, rhs) == 0; }
 };
 
+struct PszComparerCaseInsensitive
+{
+	bool operator()(const char * lhs, const char * rhs) const
+	{
+		while (*lhs && *rhs && std::tolower(*lhs++) == std::tolower(*rhs++))
+			;
+
+		return !*lhs && !*rhs;
+	}
+};
+
 }
