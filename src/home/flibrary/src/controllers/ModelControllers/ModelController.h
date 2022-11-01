@@ -64,8 +64,9 @@ private: // property getters
 private: // property setters
 	void UpdateCurrentIndex(int globalIndex);
 
-private:
+protected:
 	virtual QAbstractItemModel * CreateModel() = 0;
+	virtual bool SetCurrentIndex(int index);
 
 private:
 	struct Impl;

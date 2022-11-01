@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/observable.h"
 
 #include "controllers/ModelControllers/BooksViewType.h"
 #include "controllers/ModelControllers/NavigationSource.h"
@@ -18,6 +19,7 @@
 
 #include "util/executor.h"
 
+#include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
 
 namespace HomeCompa::Flibrary {
@@ -27,7 +29,7 @@ namespace {
 using Role = RoleBase;
 
 constexpr auto QUERY =
-"select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName, b.IsDeleted "
+"select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.IsDeleted "
 ", a.LastName, a.FirstName, a.MiddleName "
 ", g.GenreAlias, s.SeriesTitle "
 ", a.AuthorID, b.SeriesID, g.GenreCode "
@@ -405,6 +407,7 @@ constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
 };
 
 struct BooksModelController::Impl
+	: virtual Observable<BooksModelControllerObserver>
 {
 	Books books;
 	QTimer setNavigationIdTimer;
@@ -475,6 +478,16 @@ void BooksModelController::SetNavigationState(NavigationSource navigationSource,
 	m_impl->setNavigationIdTimer.start();
 }
 
+void BooksModelController::RegisterObserver(BooksModelControllerObserver * observer)
+{
+	m_impl->Register(observer);
+}
+
+void BooksModelController::UnregisterObserver(BooksModelControllerObserver * observer)
+{
+	m_impl->Unregister(observer);
+}
+
 ModelController::Type BooksModelController::GetType() const noexcept
 {
 	return Type::Books;
@@ -483,6 +496,18 @@ ModelController::Type BooksModelController::GetType() const noexcept
 QAbstractItemModel * BooksModelController::CreateModel()
 {
 	return FindSecond(g_modelCreators, m_impl->booksViewType)(m_impl->books, nullptr);
+}
+
+bool BooksModelController::SetCurrentIndex(const int index)
+{
+	if (index < 0)
+		return false;
+	assert(index < std::size(m_impl->books));
+	const auto & book = m_impl->books[index];
+	if (!book.IsDictionary)
+		m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, book.Folder.toStdString(), book.FileName.toStdString());
+
+	return ModelController::SetCurrentIndex(index);
 }
 
 }

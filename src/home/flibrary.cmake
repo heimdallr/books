@@ -16,6 +16,8 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QT_USE
@@ -37,13 +39,18 @@ AddTarget(
 	QRC
 		"${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/main.qrc"
 	LINK_TARGETS
+		bzip2
 		DatabaseFactory
 		DatabaseInt
 		Fnd
+		lzma
 		MyHomeLibSQLIteExt
-		Util
+		SimpleSaxParser
 		sqlite
 		sqlite3pp
+		Util
+		ziplib
+		zlib
 	MODULES
 		qt
 	COMPILER_OPTIONS

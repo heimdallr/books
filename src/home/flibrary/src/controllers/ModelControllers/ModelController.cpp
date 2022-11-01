@@ -46,7 +46,7 @@ private:
 	QString m_viewModeText;
 
 public:
-	PropagateConstPtr<QAbstractItemModel> model;
+	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>() };
 	int currentIndex { -1 };
 	int viewModeRole { Role::Find };
 	int pageSize { 10 };
@@ -75,17 +75,21 @@ public:
 		auto index = currentIndex;
 		model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
 
-		(void)model->setData(model->index(index, 0), QVariant::fromValue(qMakePair(key, modifiers)), Role::KeyPressed);
+		const auto modelIndex = model->index(index, 0);
+		if (!modelIndex.isValid())
+			return;
+
+		(void)model->setData(modelIndex, QVariant::fromValue(qMakePair(key, modifiers)), Role::KeyPressed);
 
 		if (modifiers == Qt::ControlModifier)
 		{
 			switch (key)
 			{
 				case Qt::Key_Home:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(-model->rowCount()));
 
 				case Qt::Key_End:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(model->rowCount()));
 
 				default:
 					return;
@@ -97,16 +101,16 @@ public:
 			switch (key)
 			{
 				case Qt::Key_Up:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(-1));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(-1));
 
 				case Qt::Key_Down:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(1));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(1));
 
 				case Qt::Key_PageUp:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
 
 				case Qt::Key_PageDown:
-					return (void)SetCurrentIndex(IncreaseNavigationIndex(pageSize));
+					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(pageSize));
 
 				default:
 					break;
@@ -131,12 +135,12 @@ public:
 private: // ModelObserver
 	void HandleModelItemFound(const int index) override
 	{
-		SetCurrentIndex(index);
+		m_self.SetCurrentIndex(index);
 	}
 
 	void HandleItemClicked(const int index) override
 	{
-		SetCurrentIndex(index);
+		m_self.SetCurrentIndex(index);
 		emit m_self.FocusedChanged();
 		Perform(&ModelControllerObserver::HandleClicked, &m_self);
 	}
@@ -145,19 +149,11 @@ private: // ModelObserver
 	{
 		auto toIndex = currentIndex;
 		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &toIndex }), Role::CheckIndexVisible);
-		if (!SetCurrentIndex(toIndex))
+		if (!m_self.SetCurrentIndex(toIndex))
 			emit m_self.CurrentIndexChanged();
 	}
 
 private:
-	bool SetCurrentIndex(const int index)
-	{
-		return true
-			&& Util::Set(currentIndex, index, m_self, &ModelController::CurrentIndexChanged)
-			&& (Perform(&ModelControllerObserver::HandleCurrentIndexChanged, &m_self, index), true)
-			;
-	}
-
 	int IncreaseNavigationIndex(const int increment)
 	{
 		int result = currentIndex + increment;
@@ -244,8 +240,8 @@ QAbstractItemModel * ModelController::GetModel()
 	if (m_impl->model)
 		return m_impl->model.get();
 
-//	if (m_impl->model)
-//		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
+	if (m_impl->model)
+		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
 
 	auto * model = CreateModel();
 	QQmlEngine::setObjectOwnership(model, QQmlEngine::CppOwnership);
@@ -262,6 +258,14 @@ QString ModelController::GetViewMode() const
 void ModelController::UpdateCurrentIndex(const int globalIndex)
 {
 	m_impl->UpdateCurrentIndex(globalIndex);
+}
+
+bool ModelController::SetCurrentIndex(const int index)
+{
+	return true
+		&& Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged)
+		&& (m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index), true)
+		;
 }
 
 }
