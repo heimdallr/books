@@ -130,13 +130,6 @@ public:
 		: m_p(std::move(p))
 	{}
 
-	explicit PropagateConstPtr(T * p)
-	: m_p(p)
-	{
-	}
-
-	PropagateConstPtr() = default;
-
 	PropagateConstPtr(PropagateConstPtr &&) noexcept = default;
 
 	PropagateConstPtr & operator=(PropagateConstPtr &&) noexcept = default;
