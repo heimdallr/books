@@ -16,6 +16,8 @@
 
 #pragma warning(pop)
 
+#include <set>
+
 #include "constant.h"
 #include "types.h"
 
@@ -226,12 +228,14 @@ void ProcessVersionInfo(std::istream & stream, SettingsTableData & settingsTable
 		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
 }
 
-void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
+void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
 {
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 	auto & unknownGenre = data.genres[unknownGenreId];
 
 	folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
+
+	std::set<std::string> files;
 
 	size_t insideNo = 0;
 	std::string buf;
@@ -258,6 +262,8 @@ void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genres
 		const auto lang = Next(it, end, FIELDS_SEPARATOR);
 		const auto rate = Next(it, end, FIELDS_SEPARATOR);
 //		const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
+
+		files.emplace(ToMultiByte(fileName) + "." + ToMultiByte(ext));
 
 		ParseItem(id, authors, data.authors, data.booksAuthors);
 		ParseItem(id, genres, genresIndex, data.booksGenres,
@@ -314,6 +320,18 @@ void ProcessInpx(std::istream & stream, std::wstring folder, Dictionary & genres
 		if ((++n % LOG_INTERVAL) == 0)
 			std::cout << n << " rows parsed" << std::endl;
 	}
+
+	const auto archive = ZipFile::Open(ToMultiByte(rootFolder.wstring() + L"/" + folder));
+	const auto entriesCount = archive->GetEntriesCount();
+	for (size_t i = 0; i < entriesCount; ++i)
+	{
+		const auto entry = archive->GetEntry(static_cast<int>(i));
+		const auto fileName = entry->GetFullName();
+		if (files.contains(fileName))
+			continue;
+
+		std::cerr << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName << std::endl;
+	}
 }
 
 Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
@@ -332,6 +350,8 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 	const auto entriesCount = archive->GetEntriesCount();
 	size_t n = 0;
 
+	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
+
 	for (size_t i = 0; i < entriesCount; ++i)
 	{
 		const auto entry = archive->GetEntry(static_cast<int>(i));
@@ -345,7 +365,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 		else if (folder == VERSION_INFO)
 			ProcessVersionInfo(*stream, data.settings);
 		else if (folder.ends_with(INP_EXT))
-			ProcessInpx(*stream, folder, genresIndex, data, unknownGenres, n);
+			ProcessInpx(*stream, rootFolder, folder, genresIndex, data, unknownGenres, n);
 		else
 			std::wcout << folder << L" skipped" << std::endl;
 	}
