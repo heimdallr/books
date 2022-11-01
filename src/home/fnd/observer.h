@@ -12,7 +12,7 @@ class Observer
 	template<typename T> friend class Observable;
 
 public:
-	~Observer()
+	virtual ~Observer()
 	{
 		for (auto * const observable : m_observables)
 			observable->HandleObserverDestructed(this);
