@@ -14,7 +14,7 @@ ApplicationWindow
 
 	width:
 	{
-		const v = uiSettings.mainWindowWidth
+		const v =  uiSettings.mainWindowWidth
 		return v > 0 ? v : 1024
 	}
 
@@ -30,8 +30,8 @@ ApplicationWindow
 
 	readonly property bool running: guiController.running
 
-	onWidthChanged: uiSettings.mainWindowWidth = width
-	onHeightChanged: uiSettings.mainWindowHeight = height
+	onWidthChanged: if (completed) uiSettings.mainWindowWidth = width
+	onHeightChanged: if (completed) uiSettings.mainWindowHeight = height
 	onXChanged: if (completed) uiSettings.mainWindowPosX = x
 	onYChanged: if (completed) uiSettings.mainWindowPosY = y
 
