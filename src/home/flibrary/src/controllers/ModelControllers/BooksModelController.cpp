@@ -448,8 +448,6 @@ struct BooksModelController::Impl
 				(void)model->setData({}, true, Role::ResetBegin);
 				books = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
-
-				emit m_self.NavigationTypeChanged();
 			};
 		}, 2);
 	}

@@ -54,7 +54,6 @@ public:
 signals:
 	void CurrentIndexChanged() const;
 	void FocusedChanged() const;
-	void NavigationTypeChanged() const;
 
 private: // property getters
 	bool GetFocused() const noexcept;
