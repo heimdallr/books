@@ -10,6 +10,7 @@ class BooksModelControllerObserver
 public:
 	virtual ~BooksModelControllerObserver() = default;
 	virtual void HandleBookChanged(const std::string & folder, const std::string & file) = 0;
+	virtual void HandleModelReset() = 0;
 };
 
 }

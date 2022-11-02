@@ -44,6 +44,7 @@ Item
 
 		CustomText
 		{
+			SplitView.fillWidth: true
 			text: qsTranslate("Header", "Title")
 		}
 
@@ -54,9 +55,10 @@ Item
 			text: qsTranslate("Header", "GenreAlias")
 		}
 
-		CustomText
+		LanguageFilter
 		{
-			text: qsTranslate("Header", "Lang")
+			width: 36
+			SplitView.preferredWidth: 50
 		}
 	}
 

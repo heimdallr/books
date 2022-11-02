@@ -34,6 +34,8 @@ public:
 		BOOK_ROLE_ITEMS_XMACRO
 #undef	BOOK_ROLE_ITEM
 		ShowDeleted,
+		Language,
+		Languages,
 		FakeBookRoleLast
 	};
 

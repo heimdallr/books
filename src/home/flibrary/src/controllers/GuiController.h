@@ -24,6 +24,8 @@ class GuiController
 	Q_PROPERTY(bool authorsVisible READ IsAuthorsVisible NOTIFY AuthorsVisibleChanged)
 	Q_PROPERTY(bool seriesVisible READ IsSeriesVisible NOTIFY SeriesVisibleChanged)
 	Q_PROPERTY(bool genresVisible READ IsGenresVisible NOTIFY GenresVisibleChanged)
+	Q_PROPERTY(QStringList languages READ GetLanguages NOTIFY LanguagesChanged)
+	Q_PROPERTY(QString language READ GetLanguage WRITE SetLanguage)
 
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
@@ -49,15 +51,19 @@ signals:
 	void SeriesVisibleChanged() const;
 	void GenresVisibleChanged() const;
 	void OpenedChanged() const;
+	void LanguagesChanged() const;
 
 private: // property getters
 	bool IsAuthorsVisible() const noexcept;
 	bool IsSeriesVisible() const noexcept;
 	bool IsGenresVisible() const noexcept;
 	bool GetOpened() const noexcept;
+	bool GetRunning() const noexcept;
+	QString GetLanguage();
+	QStringList GetLanguages();
 
 private: // property setters
-	bool GetRunning() const noexcept;
+	void SetLanguage(const QString & language);
 
 private:
 	class Impl;

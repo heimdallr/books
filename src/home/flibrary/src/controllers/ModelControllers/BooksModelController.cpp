@@ -448,6 +448,8 @@ struct BooksModelController::Impl
 				(void)model->setData({}, true, Role::ResetBegin);
 				books = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
+
+				Perform(&BooksModelControllerObserver::HandleModelReset);
 			};
 		}, 2);
 	}

@@ -22,6 +22,7 @@
 #include "util/Settings.h"
 
 #include "ModelControllers/BooksModelController.h"
+#include "ModelControllers/BooksModelControllerObserver.h"
 #include "ModelControllers/BooksViewType.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
@@ -50,6 +51,7 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 
 class GuiController::Impl
 	: virtual public ModelControllerObserver
+	, virtual BooksModelControllerObserver
 {
 	NON_COPY_MOVABLE(Impl)
 public:
@@ -92,6 +94,7 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(this);
 		}
 	}
 
@@ -130,6 +133,16 @@ public:
 		return !!m_db;
 	}
 
+	QStringList GetLanguages()
+	{
+		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Languages).toStringList() : QStringList{};
+	}
+
+	QString GetLanguage()
+	{
+		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Language).toString() : QString {};
+	}
+
 	AnnotationController * GetAnnotationController()
 	{
 		return m_annotationController.get();
@@ -165,12 +178,14 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(this);
 		}
 
 		m_booksViewType = type;
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, type)).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
+		m_booksModelController->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_annotationController->GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
@@ -198,6 +213,12 @@ public:
 
 		CreateExecutor(db.toStdString());
 		m_annotationController->SetRootFolder(std::filesystem::path(folder.toUtf8().data()));
+	}
+
+	void SetLanguage(const QString & language)
+	{
+		if (m_booksModelController && !m_preventSetLanguageFilter)
+			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
 	}
 
 	bool IsFieldVisible(const NavigationSource navigationSource) const noexcept
@@ -232,6 +253,19 @@ private: // ModelControllerObserver
 			setFocus(m_booksModelController.get());
 	}
 
+private: //BooksModelControllerObserver
+	void HandleBookChanged(const std::string & /*folder*/, const std::string & /*file*/) override
+	{
+	}
+
+	void HandleModelReset() override
+	{
+		m_preventSetLanguageFilter = true;
+		emit m_self.LanguagesChanged();
+		m_preventSetLanguageFilter = false;
+	}
+
+private:
 	void CreateExecutor(const std::string & databaseName)
 	{
 		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [databaseName, &db = m_db]
@@ -258,7 +292,8 @@ private:
 	bool m_running { true };
 	NavigationSource m_navigationSource { NavigationSource::Undefined };
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
-	int m_currentNavigationIndex = -1;
+	int m_currentNavigationIndex { -1 };
+	bool m_preventSetLanguageFilter { false };
 
 	Settings m_settings { "HomeCompa", "Flibrary" };
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
@@ -350,6 +385,21 @@ bool GuiController::GetOpened() const noexcept
 bool GuiController::GetRunning() const noexcept
 {
 	return m_impl->GetRunning();
+}
+
+QStringList GuiController::GetLanguages()
+{
+	return m_impl->GetLanguages();
+}
+
+QString GuiController::GetLanguage()
+{
+	return m_impl->GetLanguage();
+}
+
+void GuiController::SetLanguage(const QString & language)
+{
+	m_impl->SetLanguage(language);
 }
 
 }

@@ -220,6 +220,10 @@ private: // BooksModelControllerObserver
 		m_annotationTimer.start();
 	}
 
+	void HandleModelReset() override
+	{
+	}
+
 private:
 	void ExtractAnnotation()
 	{

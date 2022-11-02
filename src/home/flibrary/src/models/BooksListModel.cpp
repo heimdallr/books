@@ -1,3 +1,6 @@
+#include <ranges>
+#include <set>
+
 #include <QTimer>
 
 #include "Book.h"
@@ -23,15 +26,40 @@ public:
 	}
 
 public: // ProxyModelBaseT
-	bool FilterAcceptsRow(int row, const QModelIndex & parent = {}) const override
+	bool FilterAcceptsRow(const int row, const QModelIndex & parent = {}) const override
 	{
+		const auto & item = GetItem(row);
 		return true
 			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
-			&& (m_showDeleted || !GetItem(row).IsDeleted)
+			&& (m_showDeleted || !item.IsDeleted)
+			&& (m_languageFilter.isEmpty() || item.Lang == m_languageFilter)
 			;
 	}
 
 private: // ProxyModelBaseT
+	QVariant GetDataGlobal(const int role) const override
+	{
+		switch (role)
+		{
+			case Role::Language:
+				return m_languageFilter;
+
+			case Role::Languages:
+			{
+				std::set<QString> uniqueLanguages = GetLanguages();
+				QStringList result{{}};
+				result.reserve(static_cast<int>(std::size(uniqueLanguages)));
+				std::ranges::copy(uniqueLanguages, std::back_inserter(result));
+				return result;
+			}
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
+	}
+
 	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
 	{
 		switch (role)
@@ -51,18 +79,29 @@ private: // ProxyModelBaseT
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
 	}
 
-	bool SetDataGlobal(const QVariant& value, int role) override
+	bool SetDataGlobal(const QVariant & value, const int role) override
 	{
 		switch (role)
 		{
 			case Role::ShowDeleted:
 				return Util::Set(m_showDeleted, value.toBool(), *this, &Model::Invalidate);
 
+			case Role::Language:
+				m_languageFilter = value.toString();
+				Invalidate();
+				return true;
+
 			default:
 				break;
 		}
 
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataGlobal(value, role);
+	}
+
+	void Reset() override
+	{
+		if (!GetLanguages().contains(m_languageFilter))
+			m_languageFilter.clear();
 	}
 
 private:
@@ -75,8 +114,16 @@ private:
 		return false;
 	}
 
+	std::set<QString> GetLanguages() const
+	{
+		std::set<QString> uniqueLanguages;
+		std::ranges::transform(m_items, std::inserter(uniqueLanguages, uniqueLanguages.end()), [] (const Item & item) { return item.Lang; });
+		return uniqueLanguages;
+	}
+
 private:
 	bool m_showDeleted { false };
+	QString m_languageFilter;
 };
 
 class ProxyModel final : public QSortFilterProxyModel
