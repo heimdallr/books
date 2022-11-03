@@ -134,7 +134,10 @@ template
 	>
 InputIterator FindPairIteratorBySecond(InputIterator begin, InputIterator end, const typename Value::second_type & key, KeyEqual comparer = KeyEqual {})
 {
-	return std::find_if(begin, end, std::bind(comparer, key, std::bind(&Value::second, std::placeholders::_1)));
+	return std::find_if(begin, end, [&] (const auto & it)
+	{
+		return comparer(key, it.second);
+	});
 }
 
 /// Ищем в диапазоне пар по second, возвращаем итератор
