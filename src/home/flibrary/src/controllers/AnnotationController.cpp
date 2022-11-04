@@ -22,20 +22,28 @@ namespace HomeCompa::Flibrary {
 namespace {
 
 constexpr auto CONTENT_TYPE = "content-type";
+constexpr auto ID = "id";
+constexpr auto L_HREF = "l:href";
+
+#define XML_PARSE_MODE_ITEMS_XMACRO     \
+		XML_PARSE_MODE_ITEM(annotation) \
+		XML_PARSE_MODE_ITEM(binary)     \
+		XML_PARSE_MODE_ITEM(coverpage)  \
+		XML_PARSE_MODE_ITEM(image)      \
 
 enum class XmlParseMode
 {
 	unknown = -1,
-	annotation,
-	binary,
+#define XML_PARSE_MODE_ITEM(NAME) NAME,
+		XML_PARSE_MODE_ITEMS_XMACRO
+#undef	XML_PARSE_MODE_ITEM
 };
 
 constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 {
-#define ITEM(NAME) { #NAME, XmlParseMode::NAME }
-		ITEM(annotation),
-		ITEM(binary),
-#undef	ITEM
+#define XML_PARSE_MODE_ITEM(NAME) { #NAME, XmlParseMode::NAME },
+		XML_PARSE_MODE_ITEMS_XMACRO
+#undef	XML_PARSE_MODE_ITEM
 };
 
 std::string cp2utf(const std::string & str)
@@ -97,6 +105,7 @@ struct SaxHandler : XSPHandler
 {
 	std::string annotation;
 	std::vector<QString> covers;
+	int coverIndex { -1 };
 
 private: // XSPHandler
 	void OnEncoding([[maybe_unused]] const std::string & name) override
@@ -106,13 +115,18 @@ private: // XSPHandler
 
 	void OnElementBegin(const std::string & name) override
 	{
-		if (name == "p" && m_mode == XmlParseMode::annotation)
+		if (name == "p")
 		{
-			annotation.append("    ");
+			if (m_mode == XmlParseMode::annotation)
+				annotation.append("    ");
 			return;
 		}
 
-		m_mode = FindSecond(g_parseModes, name.data(), XmlParseMode::unknown, PszComparer {});
+		const auto mode = FindSecond(g_parseModes, name.data(), XmlParseMode::unknown, PszComparer {});
+		if (mode == XmlParseMode::image && m_mode != XmlParseMode::coverpage)
+			return;
+
+		m_mode = mode;
 	}
 
 	void OnElementEnd(const std::string & name) override
@@ -138,19 +152,49 @@ private: // XSPHandler
 
 	void OnAttribute(const std::string & name, const std::string & value) override
 	{
-		if (m_mode == XmlParseMode::binary && name == CONTENT_TYPE)
-			m_binaryContentType = value;
+		switch (m_mode)
+		{
+			case XmlParseMode::binary:
+				if (name == CONTENT_TYPE)
+				{
+					m_binaryContentType = value;
+					break;
+				}
+				if (name == ID)
+				{
+					m_binaryId = value;
+					break;
+				}
+				break;
+
+			case XmlParseMode::image:
+				if (name == L_HREF)
+				{
+					m_coverPageId = value;
+					if (const auto pos = m_coverPageId.find_first_not_of('#'); pos != std::string::npos)
+						m_coverPageId.erase(m_coverPageId.cbegin(), std::next(m_coverPageId.cbegin(), pos));
+				}
+				break;
+
+			default:
+				break;
+		}
 	}
 
 private:
 	void ProcessBinary(const std::string & value)
 	{
+		if (m_binaryId == m_coverPageId)
+			coverIndex = static_cast<int>(covers.size());
+
 		covers.emplace_back(QString("data:%1;base64,").arg(m_binaryContentType.data()).append(value.data()));
 	}
 
 private:
 	XmlParseMode m_mode { XmlParseMode::unknown };
 	std::string m_binaryContentType;
+	std::string m_coverPageId;
+	std::string m_binaryId;
 	StringConverter m_stringConverter { &passThru };
 };
 
@@ -275,8 +319,11 @@ private:
 				std::lock_guard lock(m_guard);
 				m_annotation = QString::fromStdString(handler.annotation);
 				m_covers = std::move(handler.covers);
-				if (!m_covers.empty())
-					m_coverIndex = 0;
+				m_coverIndex
+					= m_covers.empty()			? -1
+					: handler.coverIndex >= 0	? handler.coverIndex
+					:							  0
+					;
 			}
 			catch(SaxParserException &)
 			{
