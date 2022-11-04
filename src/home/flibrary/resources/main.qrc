@@ -39,6 +39,7 @@
 		<file alias="CustomToolTip.qml">../src/ui/qml/core/CustomToolTip.qml</file>
 		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
 		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
+		<file alias="TopBottomLines.qml">../src/ui/qml/core/TopBottomLines.qml</file>
 	</qresource>
 
 	<qresource prefix="Dialogs/">

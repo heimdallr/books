@@ -3,12 +3,14 @@ import QtQuick 2.15
 import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
 
-Rectangle
+Item
 {
 	height: Constants.delegateHeight
-	color: "transparent"
 
-	border { color: Constants.borderColor; width: 1 }
+	TopBottomLines
+	{
+		anchors.fill: parent
+	}
 
 	CustomText
 	{

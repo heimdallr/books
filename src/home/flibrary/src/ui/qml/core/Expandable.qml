@@ -4,7 +4,7 @@ import QtQuick.Controls 2.15
 import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
 
-Rectangle
+Item
 {
 	id: expandableID
 	property bool expanded
@@ -19,8 +19,10 @@ Rectangle
 	signal expanderClicked()
 	signal checkboxClicked()
 
-	color: "transparent"
-	border { color: Constants.borderColor; width: 1 }
+	TopBottomLines
+	{
+		anchors.fill: parent
+	}
 
 	Expander
 	{

@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.15
 import "qrc:/Core"
 import "qrc:/Core/constants.js" as Constants
 
-Rectangle
+Item
 {
 	id: delegateID
 	property bool authorsVisible: true
@@ -13,9 +13,6 @@ Rectangle
 	property bool genresVisible: true
 
 	height: Constants.delegateHeight
-	color: "transparent"
-
-	border { color: Constants.borderColor; width: 1 }
 
 	BookLayout
 	{

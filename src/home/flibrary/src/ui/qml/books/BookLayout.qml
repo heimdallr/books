@@ -14,6 +14,11 @@ Item
 
 	property color textColor: IsDeleted ? "gray" : "black"
 
+	TopBottomLines
+	{
+		anchors.fill: parent
+	}
+
 	Item
 	{
 		id: treeMarginID
