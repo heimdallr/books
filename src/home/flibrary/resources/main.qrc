@@ -52,4 +52,10 @@
 		<file alias="find.png">icons/find.png</file>
 		<file alias="filter.png">icons/filter.png</file>
 	</qresource>
+
+	<qresource prefix="icons/checkbox">
+		<file alias="checked.png">icons/checkbox/checked.png</file>
+		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
+		<file alias="partially.png">icons/checkbox/partially.png</file>
+	</qresource>
 </RCC>

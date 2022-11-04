@@ -61,7 +61,7 @@ Rectangle
 			CustomText
 			{
 				Layout.rightMargin: 4
-				text: modelController.count
+				text: modelController ? modelController.count : ""
 			}
 		}
 

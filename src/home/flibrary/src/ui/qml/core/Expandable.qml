@@ -11,7 +11,7 @@ Item
 	property int treeMargin: 0
 	property alias expanderVisible: expanderID.visible
 	property alias checkboxVisible: checkBoxID.visible
-	property alias checkboxState: checkBoxID.checkState
+	property alias checkboxState: checkBoxID.checkedState
 	property alias text: textID.text
 	property alias textColor: textID.color
 
@@ -52,7 +52,7 @@ Item
 			leftMargin: 4
 		}
 
-		tristate: true
+		partiallyCheckedEnabled: true
 		visible: false
 
 		onClicked:  () => expandableID.checkboxClicked()
