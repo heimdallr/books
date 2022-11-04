@@ -12,14 +12,12 @@ Item
 	property bool seriesVisible: true
 	property bool genresVisible: true
 
-	height: Constants.delegateHeight
-
 	Component
 	{
 		id: dictionaryID
 		Expandable
 		{
-			height: Constants.delegateHeight
+			height: delegateID.height
 
 			text: Title
 			textColor: IsDeleted ? "gray" : "black"

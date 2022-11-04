@@ -12,8 +12,6 @@ SplitView
 
 	id: headerID
 
-	height: Constants.delegateHeight
-
 	orientation: Qt.Horizontal
 	handle: SplitViewHandle {}
 

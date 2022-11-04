@@ -1,6 +1,7 @@
 import QtQuick 2.15
 
 import "qrc:/Core"
+import "qrc:/Core/constants.js" as Constants
 
 Item
 {
@@ -13,6 +14,8 @@ Item
 	BooksHeader
 	{
 		id: headerID
+
+		height: Constants.delegateHeight
 		anchors
 		{
 			left: parent.left
@@ -38,6 +41,8 @@ Item
 		delegate: BookListDelegate
 		{
 			width: booksViewID.width
+			height: Constants.delegateHeight
+
 			authorsVisible: booksViewID.authorsVisible
 			seriesVisible: booksViewID.seriesVisible
 			genresVisible: booksViewID.genresVisible

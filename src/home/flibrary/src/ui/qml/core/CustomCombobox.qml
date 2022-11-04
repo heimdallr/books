@@ -14,8 +14,6 @@ ComboBox
 		viewModeModelID.append({"text": text, "value": value})
 	}
 
-	height: Constants.delegateHeight
-
 	model: viewModeModelID
 	currentIndex: -1
 	textRole: "text"
