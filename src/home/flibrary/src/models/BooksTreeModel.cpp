@@ -54,22 +54,9 @@ private: // ProxyModelBaseT
 		{
 			case Role::Checked:
 				if (!item.IsDictionary)
-					return item.Checked;
-				{
-					bool checked = false, unchecked = false;
-					ForEachChild(index.row(), [&] (size_t row)
-					{
-						const auto & child = m_items[row];
-						if (child.IsDictionary)
-							return false;
+					return item.Checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
 
-						child.Checked ? checked = true : unchecked = true;
-
-						return checked && unchecked;
-					});
-					assert(checked || unchecked);
-					return checked ? unchecked ? Qt::PartiallyChecked : Qt::Checked : Qt::Unchecked;
-				}
+				return ChildrenCheckedState(index.row());
 
 			default:
 				break;
@@ -87,11 +74,11 @@ private: // ProxyModelBaseT
 				std::set<int> changed { index.row() };
 				if (!item.IsDictionary)
 				{
-					item.Checked = value.toBool();
+					item.Checked = !item.Checked;
 				}
 				else
 				{
-					const auto checked = index.data(Role::Checked).toInt();
+					const auto checked = ChildrenCheckedState(index.row());
 					ForEachChild(index.row(), [&] (size_t row)
 					{
 						changed.insert(static_cast<int>(row));
@@ -108,7 +95,7 @@ private: // ProxyModelBaseT
 					return false;
 				});
 
-				for (const auto & range : Util::CreateRanges(changed))
+				for (auto && range : Util::CreateRanges(changed))
 					emit dataChanged(this->index(range.first), this->index(range.second - 1), { Role::Checked });
 
 				return true;
@@ -191,6 +178,27 @@ private:
 			&& (m_showDeleted || !item.IsDeleted)
 			&& (m_languageFilter.isEmpty() || item.IsDictionary ? item.Lang.contains(m_languageFilter) : item.Lang == m_languageFilter)
 			;
+	}
+
+	int ChildrenCheckedState(const int row) const
+	{
+		bool checked = false, unchecked = false;
+		ForEachChild(row, [&] (size_t n)
+		{
+			const auto & child = m_items[n];
+			if (child.IsDictionary)
+				return false;
+
+			child.Checked ? checked = true : unchecked = true;
+
+			return checked && unchecked;
+		});
+		assert(checked || unchecked);
+		return
+			checked
+				? unchecked ? Qt::CheckState::PartiallyChecked
+							: Qt::CheckState::Checked
+				:			  Qt::CheckState::Unchecked;
 	}
 
 	bool OnKeyPressed(const QModelIndex & index, const QVariant & value, Item & item)

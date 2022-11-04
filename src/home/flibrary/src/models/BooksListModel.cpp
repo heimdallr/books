@@ -37,27 +37,18 @@ public: // ProxyModelBaseT
 	}
 
 private: // ProxyModelBaseT
-	QVariant GetDataGlobal(const int role) const override
+	QVariant GetDataLocal(const QModelIndex & index, const int role, const Item & item) const override
 	{
 		switch (role)
 		{
-			case Role::Language:
-				return m_languageFilter;
-
-			case Role::Languages:
-			{
-				std::set<QString> uniqueLanguages = GetLanguages();
-				QStringList result{{}};
-				result.reserve(static_cast<int>(std::size(uniqueLanguages)));
-				std::ranges::copy(uniqueLanguages, std::back_inserter(result));
-				return result;
-			}
+			case Role::Checked:
+				return item.Checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
 
 			default:
 				break;
 		}
 
-		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataLocal(index, role, item);
 	}
 
 	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
@@ -65,7 +56,7 @@ private: // ProxyModelBaseT
 		switch (role)
 		{
 			case Role::Checked:
-				item.Checked = value.toBool();
+				item.Checked = !item.Checked;
 				emit dataChanged(index, index, { role });
 				return true;
 
@@ -77,6 +68,29 @@ private: // ProxyModelBaseT
 		}
 
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
+	}
+
+	QVariant GetDataGlobal(const int role) const override
+	{
+		switch (role)
+		{
+			case Role::Language:
+				return m_languageFilter;
+
+			case Role::Languages:
+			{
+				std::set<QString> uniqueLanguages = GetLanguages();
+				QStringList result { {} };
+				result.reserve(static_cast<int>(std::size(uniqueLanguages)));
+				std::ranges::copy(uniqueLanguages, std::back_inserter(result));
+				return result;
+			}
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
 	}
 
 	bool SetDataGlobal(const QVariant & value, const int role) override

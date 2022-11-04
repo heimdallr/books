@@ -52,7 +52,6 @@ Item
 			leftMargin: 4
 		}
 
-		partiallyCheckedEnabled: true
 		visible: false
 
 		onClicked:  () => expandableID.checkboxClicked()
@@ -66,7 +65,7 @@ Item
 			left: checkBoxID.visible ? checkBoxID.right : expanderID.right
 			leftMargin: 4
 			bottom: parent.bottom
-			bottomMargin: 4
+			bottomMargin: 2
 		}
 	}
 

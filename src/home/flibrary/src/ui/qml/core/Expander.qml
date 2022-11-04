@@ -2,41 +2,19 @@ import QtQuick 2.15
 
 import "qrc:/Core/constants.js" as Constants
 
-Rectangle
+Item
 {
 	id: expanderID
 	property bool expanded
 
 	signal clicked()
 
-	Rectangle
+	Image
 	{
-		anchors
-		{
-			verticalCenter: parent.verticalCenter
-			horizontalCenter: parent.horizontalCenter
-		}
-		width: parent.width / 2
-		height: 2
-		border { color: Constants.borderColor; width: 1 }
+		anchors.fill: parent
+		fillMode: Image.PreserveAspectFit
+		source: ("qrc:/icons/expander/%1.png").arg(expanded ? "minus" : "plus")
 	}
-
-	Rectangle
-	{
-		anchors
-		{
-			verticalCenter: parent.verticalCenter
-			horizontalCenter: parent.horizontalCenter
-		}
-		width: 2
-		height: parent.height / 2
-		border { color: Constants.borderColor; width: 1 }
-		visible: !expanded
-	}
-
-	color: "transparent"
-	radius: 3
-	border { color: Constants.borderColor; width: 1 }
 
 	MouseArea
 	{

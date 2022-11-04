@@ -39,6 +39,7 @@ Rectangle
 			CustomCombobox
 			{
 				Layout.leftMargin: 4
+				Layout.preferredWidth: 100
 				id: viewSourceComboBoxID
 				currentIndex: -1
 				onCurrentIndexChanged: onSourceChanged()

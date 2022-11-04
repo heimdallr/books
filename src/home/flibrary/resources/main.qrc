@@ -58,4 +58,9 @@
 		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
 		<file alias="partially.png">icons/checkbox/partially.png</file>
 	</qresource>
+
+	<qresource prefix="icons/expander">
+		<file alias="plus.png">icons/expander/plus.png</file>
+		<file alias="minus.png">icons/expander/minus.png</file>
+	</qresource>
 </RCC>

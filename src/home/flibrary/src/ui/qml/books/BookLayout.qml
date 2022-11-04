@@ -36,8 +36,8 @@ Item
 			left: treeMarginID.right
 		}
 
-		checked: Checked
-		onClicked: Checked = !Checked
+		checkedState: Checked
+		onClicked: Checked = true
 	}
 
 	Item
