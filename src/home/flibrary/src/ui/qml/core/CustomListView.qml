@@ -22,7 +22,6 @@ Item
 			{
 				width: customListViewID.width
 				height: Constants.delegateHeight
-				radius: 5
 
 				color: modelController.focused ? Constants.highlightColor : Constants.highlightColorUnfocused
 				y: listViewID.currentItem ? listViewID.currentItem.y : 0

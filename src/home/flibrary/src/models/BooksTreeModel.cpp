@@ -28,11 +28,10 @@ public:
 	}
 
 public: // ProxyModelBaseT
-	bool FilterAcceptsRow(const int row, const QModelIndex & parent) const override
+	bool FilterAcceptsRow(const int row, const QModelIndex & /*parent*/) const override
 	{
-		const auto & item = GetItem(row);
 		return true
-			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+			&& FilterAcceptsRowIgnoreExpanded(row)
 			&& [&items = m_items] (size_t index)
 				{
 					while (true)
@@ -45,8 +44,6 @@ public: // ProxyModelBaseT
 							return false;
 					}
 				}(static_cast<size_t>(row))
-			&& (m_showDeleted || !item.IsDeleted)
-			&& (m_languageFilter.isEmpty() || item.IsDictionary ? item.Lang.contains(m_languageFilter) : item.Lang == m_languageFilter)
 			;
 	}
 
@@ -155,7 +152,7 @@ private: // ProxyModelBaseT
 					if (item.IsDictionary)
 						return ++n, false;
 
-					return ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(n++);
+					return FilterAcceptsRowIgnoreExpanded(n++);
 				});
 
 
@@ -186,6 +183,16 @@ private: // ProxyModelBaseT
 	}
 
 private:
+	bool FilterAcceptsRowIgnoreExpanded(const int row, const QModelIndex & parent = {}) const
+	{
+		const auto & item = GetItem(row);
+		return true
+			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+			&& (m_showDeleted || !item.IsDeleted)
+			&& (m_languageFilter.isEmpty() || item.IsDictionary ? item.Lang.contains(m_languageFilter) : item.Lang == m_languageFilter)
+			;
+	}
+
 	bool OnKeyPressed(const QModelIndex & index, const QVariant & value, Item & item)
 	{
 		const auto [key, modifiers] = value.value<QPair<int, int>>();
