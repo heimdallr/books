@@ -86,9 +86,16 @@ ApplicationWindow
 
 			Navigation
 			{
-				SplitView.preferredWidth: applicationWindowID.width / 4
 				SplitView.minimumWidth: applicationWindowID.width / 6
 				SplitView.maximumWidth: applicationWindowID.width / 2
+
+				onWidthChanged: if (applicationWindowID.completed)
+					uiSettings.navigationWidth = width / applicationWindowID.width
+
+				Component.onCompleted:
+				{
+					SplitView.preferredWidth = uiSettings.navigationWidth * applicationWindowID.width
+				}
 			}
 
 			Books

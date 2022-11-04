@@ -5,6 +5,8 @@ CreateMap(UI_SETTING_NAMES
 		mainWindowWidth -1
 		mainWindowPosX -1
 		mainWindowPosY -1
+		navigationWidth 0.25
+		bookInfoHeight 0.25
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
