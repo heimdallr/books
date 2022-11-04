@@ -62,6 +62,9 @@ Rectangle
 
 	    TextArea
 		{
+			readOnly: true
+			selectByKeyboard: true
+			selectByMouse: true
 			wrapMode: TextEdit.WordWrap
 			font.pointSize: Constants.fontSize
 			text: controller.annotation
