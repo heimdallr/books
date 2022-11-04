@@ -35,6 +35,7 @@ Rectangle
 			onHeightChanged: if (applicationWindowID.completed)
 				uiSettings.bookInfoHeight = height / booksID.height
 
+			visible: uiSettings.showBookInfo != 0
 		}
 	}
 	onHeightChanged:

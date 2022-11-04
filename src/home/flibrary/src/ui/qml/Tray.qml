@@ -80,32 +80,21 @@ Item
 
 	        MenuItem
 			{
-	            text: qsTranslate("Tray", "Show deleted books")
-				visible: uiSettings.showDeleted == 0
-	            onTriggered: uiSettings.showDeleted = 1
+	            text: uiSettings.showDeleted == 0 ? qsTranslate("Tray", "Show deleted books") : qsTranslate("Tray", "Hide deleted books")
+	            onTriggered: uiSettings.showDeleted = uiSettings.showDeleted == 0 ? 1 : 0
 	        }
 
 	        MenuItem
 			{
-	            text: qsTranslate("Tray", "Hide deleted books")
-				visible: uiSettings.showDeleted != 0
-	            onTriggered: uiSettings.showDeleted = 0
+	            text: uiSettings.showBookInfo == 0 ? qsTranslate("Tray", "Show annotation") : qsTranslate("Tray", "Hide annotation")
+	            onTriggered: uiSettings.showBookInfo = uiSettings.showBookInfo == 0 ? 1 : 0
 	        }
-
 		}
 
         MenuItem
 		{
-            text: qsTranslate("Tray", "Show Flibrary")
-			visible: applicationWindowID.visibility === Window.Hidden
-            onTriggered: applicationWindowID.show()
-        }
-
-        MenuItem
-		{
-            text: qsTranslate("Tray", "Hide Flibrary")
-			visible: applicationWindowID.visibility !== Window.Hidden
-            onTriggered: applicationWindowID.hide()
+            text: applicationWindowID.visibility === Window.Hidden ? qsTranslate("Tray", "Show Flibrary") : qsTranslate("Tray", "Hide Flibrary")
+            onTriggered: applicationWindowID.visibility === Window.Hidden ? applicationWindowID.show() : applicationWindowID.hide()
         }
 
         MenuItem
