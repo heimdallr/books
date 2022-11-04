@@ -59,25 +59,5 @@ Item
 
 			onHeightChanged: modelController.SetPageSize(height / Constants.delegateHeight)
 		}
-
-		Rectangle
-		{
-			height: Constants.delegateHeight
-			Layout.fillWidth: true
-			border { color: Constants.borderColor; width: 1 }
-
-			Text
-			{
-				anchors
-				{
-					right: parent.right
-					rightMargin: 4
-					bottom: parent.bottom
-					bottomMargin: 4
-				}
-				font.pointSize: Constants.fontSizeSmall
-				text: qsTranslate("Navigation", "Total: %1").arg(listViewID.count)
-			}
-		}
 	}
 }

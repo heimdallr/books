@@ -52,6 +52,15 @@ protected:
 		if (role == 0)
 			return {};
 
+		switch (role)
+		{
+			case Role::Count:
+				return m_proxyModel.rowCount();
+
+			default:
+				break;
+		}
+
 		return assert(false && "Unknown role"), QVariant();
 	}
 

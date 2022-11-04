@@ -23,6 +23,7 @@ class ModelController
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE UpdateCurrentIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
+	Q_PROPERTY(int count READ GetCount NOTIFY CountChanged)
 
 public:
 	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
@@ -54,11 +55,13 @@ public:
 signals:
 	void CurrentIndexChanged() const;
 	void FocusedChanged() const;
+	void CountChanged() const;
 
 private: // property getters
 	bool GetFocused() const noexcept;
 	int GetCurrentLocalIndex();
 	QString GetViewMode() const;
+	int GetCount() const;
 
 private: // property setters
 	void UpdateCurrentIndex(int globalIndex);

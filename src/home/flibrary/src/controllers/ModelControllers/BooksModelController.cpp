@@ -320,7 +320,6 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 
 				r.IsDictionary = true;
 			}
-			seriesDeleted = true;
 			if (!series.isEmpty())
 				series = "this could be your ad";
 		}

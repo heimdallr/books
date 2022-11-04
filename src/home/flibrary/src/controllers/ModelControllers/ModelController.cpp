@@ -67,13 +67,13 @@ public:
 	~Impl() override
 	{
 		assert(model);
-		model->setData({}, QVariant::fromValue(To<ModelObserver>()), RoleBase::ObserverUnregister);
+		model->setData({}, QVariant::fromValue(To<ModelObserver>()), Role::ObserverUnregister);
 	}
 
 	void OnKeyPressed(const int key, const int modifiers)
 	{
 		auto index = currentIndex;
-		model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
+		model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), Role::TranslateIndexFromGlobal);
 
 		const auto modelIndex = model->index(index, 0);
 		if (!modelIndex.isValid())
@@ -151,6 +151,8 @@ private: // ModelObserver
 		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &toIndex }), Role::CheckIndexVisible);
 		if (!m_self.SetCurrentIndex(toIndex))
 			emit m_self.CurrentIndexChanged();
+
+		emit m_self.CountChanged();
 	}
 
 private:
@@ -204,10 +206,10 @@ QString ModelController::GetId(int index)
 	if (!m_impl->model || index < 0)
 		return {};
 
-	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), RoleBase::TranslateIndexFromGlobal);
+	m_impl->model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), Role::TranslateIndexFromGlobal);
 	const auto localModelIndex = m_impl->model->index(index, 0);
 	assert(localModelIndex.isValid());
-	const auto authorIdVar = m_impl->model->data(localModelIndex, RoleBase::Id);
+	const auto authorIdVar = m_impl->model->data(localModelIndex, Role::Id);
 	assert(authorIdVar.isValid());
 	return authorIdVar.toString();
 }
@@ -241,18 +243,23 @@ QAbstractItemModel * ModelController::GetModel()
 		return m_impl->model.get();
 
 	if (m_impl->model)
-		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverUnregister);
+		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), Role::ObserverUnregister);
 
 	auto * model = CreateModel();
 	QQmlEngine::setObjectOwnership(model, QQmlEngine::CppOwnership);
 	m_impl->model.reset(model);
-	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), RoleBase::ObserverRegister);
+	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), Role::ObserverRegister);
 	return m_impl->model.get();
 }
 
 QString ModelController::GetViewMode() const
 {
 	return FindFirst(g_viewModes, m_impl->viewModeRole);
+}
+
+int ModelController::GetCount() const
+{
+	return m_impl->model ? m_impl->model->data({}, Role::Count).toInt() : 0;
 }
 
 void ModelController::UpdateCurrentIndex(const int globalIndex)

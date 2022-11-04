@@ -149,6 +149,16 @@ private: // ProxyModelBaseT
 				return result;
 			}
 
+			case Role::Count:
+				return std::ranges::count_if(m_items, [&, n = 0](const Item & item) mutable
+				{
+					if (item.IsDictionary)
+						return ++n, false;
+
+					return ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(n++);
+				});
+
+
 			default:
 				break;
 		}

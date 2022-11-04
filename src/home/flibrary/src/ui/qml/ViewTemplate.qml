@@ -39,6 +39,7 @@ Rectangle
 
 			CustomCombobox
 			{
+				Layout.leftMargin: 4
 				id: viewSourceComboBoxID
 				currentIndex: -1
 				onCurrentIndexChanged: onSourceChanged()
@@ -68,6 +69,12 @@ Rectangle
 				{
 					text: qsTranslate("ViewMode", "Show deleted books")
 				}
+			}
+
+			CustomText
+			{
+				Layout.rightMargin: 4
+				text: modelController.count
 			}
 		}
 

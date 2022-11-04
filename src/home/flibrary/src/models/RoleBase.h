@@ -21,6 +21,9 @@ public:
 		Click,
 		KeyPressed,
 
+		// чтение глобальное
+		Count,
+
 		// запись глобальная
 		ResetBegin,
 		ResetEnd,

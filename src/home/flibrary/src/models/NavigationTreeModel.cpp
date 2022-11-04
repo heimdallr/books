@@ -27,16 +27,20 @@ public:
 	}
 
 public: // ProxyModelBaseT
-	bool FilterAcceptsRow(int row, const QModelIndex & parent) const override
+	bool FilterAcceptsRow(const int row, const QModelIndex & parent) const override
 	{
+		const auto & item = GetItem(row);
 		return true
-			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+			&& (item.ChildrenCount == 0
+				? ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
+				: std::ranges::any_of(m_children[row], [&] (size_t n) { return ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(static_cast<int>(n)); })
+				)
 			&& std::ranges::all_of(m_parents[row], [&] (size_t n) { return m_items[n].Expanded; })
 			;
 	}
 
 private: // ProxyModelBaseT
-	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
+	bool SetDataLocal(const QModelIndex & index, const QVariant & value, const int role, Item & item) override
 	{
 		switch (role)
 		{
@@ -54,6 +58,26 @@ private: // ProxyModelBaseT
 		}
 
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
+	}
+
+	QVariant GetDataGlobal(const int role) const override
+	{
+		switch (role)
+		{
+			case Role::Count:
+				return std::ranges::count_if(m_items, [&, n = 0] (const Item & item) mutable
+				{
+					if (item.ChildrenCount > 0)
+						return ++n, false;
+
+					return ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(n++);
+				});
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
 	}
 
 private:
@@ -97,9 +121,19 @@ private:
 
 		m_parents.clear();
 		m_parents.resize(std::size(m_items));
+
+		m_children.clear();
+		m_children.resize(std::size(m_items));
+
 		for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
 		{
 			auto parentId = m_items[i].ParentId;
+			if (!parentId.isEmpty())
+			{
+				const auto parentIndex = m_index[parentId];
+				m_children[parentIndex].push_back(i);
+			}
+
 			while(!parentId.isEmpty())
 			{
 				const auto parentIndex = m_index[parentId];
@@ -112,6 +146,7 @@ private:
 private:
 	std::unordered_map<QString, size_t> m_index;
 	std::vector<std::vector<size_t>> m_parents;
+	std::vector<std::vector<size_t>> m_children;
 };
 
 class ProxyModel final : public QSortFilterProxyModel
