@@ -1,7 +1,5 @@
 import QtQuick 2.15
 
-import "qrc:/Core/constants.js" as Constants
-
 Item
 {
 	id: expanderID

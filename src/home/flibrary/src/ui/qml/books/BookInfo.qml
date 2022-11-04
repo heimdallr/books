@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import "qrc:/Core"
-import "qrc:/Core/constants.js" as Constants
 
 Rectangle
 {
@@ -66,7 +65,7 @@ Rectangle
 			selectByKeyboard: true
 			selectByMouse: true
 			wrapMode: TextEdit.WordWrap
-			font.pointSize: Constants.fontSize
+			font.pointSize: uiSettings.fontSize
 			text: controller.annotation
 	    }
 	}

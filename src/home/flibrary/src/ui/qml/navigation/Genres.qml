@@ -1,7 +1,6 @@
 import QtQuick 2.15
 
 import "qrc:/Core"
-import "qrc:/Core/constants.js" as Constants
 
 Item
 {
@@ -12,7 +11,7 @@ Item
 
 		delegate: NavigationTreeDelegate
 		{
-			height: Constants.delegateHeight
+			height: uiSettings.delegateHeight
 			width: genresID.width
 		}
 	}

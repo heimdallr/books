@@ -1,15 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 1.2
 
-import "../Core/constants.js" as Constants
-
 Rectangle
 {
 	id: viewModeComboBoxID
 
 	property string value
 
-	height: Constants.delegateHeight
+	height: uiSettings.delegateHeight
 	width: height
 
 	ExclusiveGroup { id: menuExclusiveGroup }

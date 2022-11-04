@@ -3,7 +3,6 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.15
 
 import "Core"
-import "../Core/constants.js" as Constants
 
 Rectangle
 {
@@ -49,7 +48,7 @@ Rectangle
 			{
 				id: viewModeTextID
 				Layout.fillWidth: true
-				font.pointSize: Constants.fontSize
+				font.pointSize: uiSettings.fontSize
 				onTextChanged: findLayoutID.setViewMode()
 			}
 

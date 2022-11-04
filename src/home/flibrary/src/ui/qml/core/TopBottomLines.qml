@@ -1,13 +1,11 @@
 import QtQuick 2.15
 
-import "qrc:/Core/constants.js" as Constants
-
 Item
 {
 	Rectangle
 	{
 		height: 1
-		color: Constants.borderColor
+		color: uiSettings.borderColor
 		anchors
 		{
 			left: parent.left
@@ -19,7 +17,7 @@ Item
 	Rectangle
 	{
 		height: 1
-		color: Constants.borderColor
+		color: uiSettings.borderColor
 		anchors
 		{
 			left: parent.left

@@ -2,8 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 
-import "qrc:/Core/constants.js" as Constants
-
 Item
 {
 	id: checkBoxID
@@ -11,7 +9,7 @@ Item
 	property int checkedState: 0
 	signal clicked()
 
-	height: Constants.checkboxSize
+	height: uiSettings.delegateHeight * 9 / 10
 	width: height
 	Image
 	{

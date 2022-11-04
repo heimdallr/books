@@ -2,8 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
-import "constants.js" as Constants
-
 Item
 {
 	id: customListViewID
@@ -21,9 +19,9 @@ Item
 			Rectangle
 			{
 				width: customListViewID.width
-				height: Constants.delegateHeight
+				height: uiSettings.delegateHeight
 
-				color: modelController.focused ? Constants.highlightColor : Constants.highlightColorUnfocused
+				color: modelController.focused ? uiSettings.highlightColor : uiSettings.highlightColorUnfocused
 				y: listViewID.currentItem ? listViewID.currentItem.y : 0
 				Behavior on y
 				{
@@ -56,7 +54,7 @@ Item
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
 
-			onHeightChanged: modelController.SetPageSize(height / Constants.delegateHeight)
+			onHeightChanged: modelController.SetPageSize(height / uiSettings.delegateHeight)
 		}
 	}
 }

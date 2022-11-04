@@ -4,7 +4,6 @@ import QtQuick.Layouts 1.15
 import QtQuick.Window 2.12
 
 import "qrc:/Core"
-import "../Core/constants.js" as Constants
 
 Window
 {
@@ -35,7 +34,7 @@ Window
 			{
 				id: collectionNameID
 				Layout.fillWidth: true
-				font.pointSize: Constants.fontSize
+				font.pointSize: uiSettings.fontSize
 			}
 		}
 
@@ -51,7 +50,7 @@ Window
 			{
 				id: collectionDatabaseID
 				Layout.fillWidth: true
-				font.pointSize: Constants.fontSize
+				font.pointSize: uiSettings.fontSize
 			}
 			Button
 			{
@@ -77,7 +76,7 @@ Window
 			{
 				id: collectionArchiveFolderID
 				Layout.fillWidth: true
-				font.pointSize: Constants.fontSize
+				font.pointSize: uiSettings.fontSize
 			}
 			Button
 			{
