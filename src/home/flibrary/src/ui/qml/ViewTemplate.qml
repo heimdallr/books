@@ -12,7 +12,6 @@ Rectangle
 	property var modelController
 	property string loadPath
 	property alias viewSourceComboBox: viewSourceComboBoxID
-	property alias showRemovedCheckboxVisible: showDeletedCheckboxID.visible
 
 	function onSourceChanged()
 	{
@@ -57,18 +56,6 @@ Rectangle
 			{
 				id: viewModeComboBoxID
 				onValueChanged: findLayoutID.setViewMode()
-			}
-
-			CustomCheckbox
-			{
-				id: showDeletedCheckboxID
-				checked: !uiSettings.showDeleted == 0
-				onClicked: uiSettings.showDeleted = uiSettings.showDeleted == 0 ? 1 : 0
-
-				CustomToolTip
-				{
-					text: qsTranslate("ViewMode", "Show deleted books")
-				}
 			}
 
 			CustomText

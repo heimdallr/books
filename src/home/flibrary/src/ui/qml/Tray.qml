@@ -74,6 +74,26 @@ Item
 	        }
 		}
 
+		Menu
+		{
+			title: qsTranslate("Tray", "View")
+
+	        MenuItem
+			{
+	            text: qsTranslate("Tray", "Show deleted books")
+				visible: uiSettings.showDeleted == 0
+	            onTriggered: uiSettings.showDeleted = 1
+	        }
+
+	        MenuItem
+			{
+	            text: qsTranslate("Tray", "Hide deleted books")
+				visible: uiSettings.showDeleted != 0
+	            onTriggered: uiSettings.showDeleted = 0
+	        }
+
+		}
+
         MenuItem
 		{
             text: qsTranslate("Tray", "Show Flibrary")

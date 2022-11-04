@@ -17,7 +17,6 @@ Item
 
 	Component.onCompleted:
 	{
-		viewTemplateID.showRemovedCheckboxVisible = false
 		viewTemplateID.modelController = guiController.GetNavigationModelControllerAuthors()
 		viewTemplateID.modelController.currentIndex = -1
 	}
