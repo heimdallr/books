@@ -1,5 +1,7 @@
 #include <mutex>
 
+#include <QCursor>
+#include <QGuiApplication>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
@@ -286,7 +288,7 @@ private:
 
 private:
 	const AnnotationController & m_self;
-	PropagateConstPtr<Util::Executor> m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) };
+	PropagateConstPtr<Util::Executor> m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {[]{}, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }, [] { QGuiApplication::restoreOverrideCursor(); }}) };
 	QTimer m_annotationTimer;
 	std::filesystem::path m_rootFolder;
 

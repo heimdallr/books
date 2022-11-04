@@ -3,7 +3,7 @@
 #include "executor.h"
 #include "factory.h"
 
-#define UTIL_EXECUTOR_IMPL(NAME) namespace HomeCompa::Util::ExecutorPrivate::NAME { std::unique_ptr<Executor> CreateExecutor(std::function<void()>); }
+#define UTIL_EXECUTOR_IMPL(NAME) namespace HomeCompa::Util::ExecutorPrivate::NAME { std::unique_ptr<Executor> CreateExecutor(ExecutorInitializer); }
 		UTIL_EXECUTOR_IMPLS_XMACRO
 #undef	UTIL_EXECUTOR_IMPL
 
@@ -11,7 +11,7 @@ namespace HomeCompa::Util::ExecutorFactory {
 
 namespace {
 
-using FactoryCreator = std::unique_ptr<Executor>(*)(std::function<void()>);
+using FactoryCreator = std::unique_ptr<Executor>(*)(ExecutorInitializer);
 constexpr FactoryCreator g_creators[]
 {
 #define UTIL_EXECUTOR_IMPL(NAME) &ExecutorPrivate::NAME::CreateExecutor,
@@ -33,7 +33,7 @@ auto GetCreator(const ExecutorImpl impl)
 
 }
 
-std::unique_ptr<Executor> Create(const ExecutorImpl impl, std::function<void()> initializer)
+std::unique_ptr<Executor> Create(const ExecutorImpl impl, ExecutorInitializer initializer)
 {
 	const auto creator = GetCreator(impl);
 	assert(creator);

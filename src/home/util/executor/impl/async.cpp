@@ -7,6 +7,7 @@
 
 #include "executor.h"
 #include "FunctorExecutionForwarder.h"
+#include "executor/factory.h"
 
 namespace HomeCompa::Util::ExecutorPrivate::Async {
 
@@ -18,7 +19,7 @@ class Executor
 	NON_COPY_MOVABLE(Executor)
 
 public:
-	explicit Executor(std::function<void()> initializer)
+	explicit Executor(ExecutorInitializer initializer)
 		: m_initializer(std::move(initializer))
 		, m_thread(&Executor::Work, this)
 	{
@@ -53,8 +54,7 @@ private:
 	void Work()
 	{
 		m_initializePromise.set_value();
-		const auto initializer = std::move(m_initializer);
-		initializer();
+		m_initializer.onCreate();
 
 		m_startPromise.set_value();
 		while (m_running)
@@ -86,13 +86,17 @@ private:
 				return task;
 			}();
 
+			m_forwarder.Forward(m_initializer.beforeExecute);
 			auto taskResult = task();
 			m_forwarder.Forward(std::move(taskResult));
+			m_forwarder.Forward(m_initializer.afterExecute);
 		}
+
+		m_initializer.onDestroy();
 	}
 
 private:
-	std::function<void()> m_initializer;
+	const ExecutorInitializer m_initializer;
 	std::atomic_bool m_running { true };
 	std::mutex m_startMutex;
 	std::condition_variable m_startCondition;
@@ -106,7 +110,7 @@ private:
 
 }
 
-std::unique_ptr<Util::Executor> CreateExecutor(std::function<void()> initializer)
+std::unique_ptr<Util::Executor> CreateExecutor(ExecutorInitializer initializer)
 {
 	return std::make_unique<Executor>(std::move(initializer));
 }

@@ -1,6 +1,7 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
 #include <QCoreApplication>
+#include <QGuiApplication>
 #include <QCryptographicHash>
 #include <QFileDialog>
 #include <QQmlApplicationEngine>
@@ -268,9 +269,10 @@ private: //BooksModelControllerObserver
 private:
 	void CreateExecutor(const std::string & databaseName)
 	{
-		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, [databaseName, &db = m_db]
-		{
-			CreateDatabase(databaseName).swap(db);
+		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {
+			  [databaseName, &db = m_db] { CreateDatabase(databaseName).swap(db); }
+			, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
+			, []{ QGuiApplication::restoreOverrideCursor(); }
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);

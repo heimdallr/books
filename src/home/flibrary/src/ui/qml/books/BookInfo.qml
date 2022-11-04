@@ -21,7 +21,7 @@ Rectangle
 
 		fillMode: Image.PreserveAspectFit
 		visible: controller.hasCover
-		source: visible ? controller.cover : undefined
+		source: visible ? controller.cover : ""
 
 		MouseArea
 		{

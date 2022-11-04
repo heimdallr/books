@@ -18,10 +18,18 @@ enum class ExecutorImpl
 #undef	UTIL_EXECUTOR_IMPL
 };
 
+struct ExecutorInitializer
+{
+	std::function<void()> onCreate { [] {} };
+	std::function<void()> beforeExecute { [] {} };
+	std::function<void()> afterExecute { [] {} };
+	std::function<void()> onDestroy { [] {} };
+};
+
 }
 
 namespace HomeCompa::Util::ExecutorFactory {
 
-UTIL_API std::unique_ptr<Executor> Create(ExecutorImpl impl, std::function<void()> = []{});
+UTIL_API std::unique_ptr<Executor> Create(ExecutorImpl impl, ExecutorInitializer initializer = {});
 
 }
