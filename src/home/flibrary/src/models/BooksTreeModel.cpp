@@ -3,7 +3,7 @@
 
 #include <QTimer>
 
-#include "Fnd/algorithm.h"
+#include "fnd/algorithm.h"
 
 #include "Book.h"
 #include "BookRole.h"
@@ -30,6 +30,7 @@ public:
 public: // ProxyModelBaseT
 	bool FilterAcceptsRow(const int row, const QModelIndex & parent) const override
 	{
+		const auto & item = GetItem(row);
 		return true
 			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
 			&& [&items = m_items] (size_t index)
@@ -44,7 +45,8 @@ public: // ProxyModelBaseT
 							return false;
 					}
 				}(static_cast<size_t>(row))
-			&& (m_showDeleted || !GetItem(row).IsDeleted)
+			&& (m_showDeleted || !item.IsDeleted)
+			&& (m_languageFilter.isEmpty() || item.IsDictionary ? item.Lang.contains(m_languageFilter) : item.Lang == m_languageFilter)
 			;
 	}
 
@@ -131,12 +133,40 @@ private: // ProxyModelBaseT
 		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
 	}
 
+	QVariant GetDataGlobal(const int role) const override
+	{
+		switch (role)
+		{
+			case Role::Language:
+				return m_languageFilter;
+
+			case Role::Languages:
+			{
+				std::set<QString> uniqueLanguages = GetLanguages();
+				QStringList result { {} };
+				result.reserve(static_cast<int>(std::size(uniqueLanguages)));
+				std::ranges::copy(uniqueLanguages, std::back_inserter(result));
+				return result;
+			}
+
+			default:
+				break;
+		}
+
+		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
+	}
+
 	bool SetDataGlobal(const QVariant & value, int role) override
 	{
 		switch (role)
 		{
 			case Role::ShowDeleted:
 				return Util::Set(m_showDeleted, value.toBool(), *this, &Model::Invalidate);
+
+			case Role::Language:
+				m_languageFilter = value.toString();
+				Invalidate();
+				return true;
 
 			default:
 				break;
@@ -214,6 +244,9 @@ private:
 
 	void Reset() override
 	{
+		if (!GetLanguages().contains(m_languageFilter))
+			m_languageFilter.clear();
+
 		m_children.clear();
 		m_children.resize(std::size(m_items));
 		for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
@@ -221,9 +254,20 @@ private:
 				m_children[m_items[i].ParentId].push_back(i);
 	}
 
+	std::set<QString> GetLanguages() const
+	{
+		std::set<QString> uniqueLanguages;
+		for (const auto & item : m_items)
+			if (!item.IsDictionary)
+				uniqueLanguages.insert(item.Lang);
+
+		return uniqueLanguages;
+	}
+
 private:
 	std::vector<std::vector<size_t>> m_children;
 	bool m_showDeleted { false };
+	QString m_languageFilter;
 };
 
 class ProxyModel final : public QSortFilterProxyModel

@@ -1,5 +1,4 @@
 #include <set>
-#include <ranges>
 
 #include <QAbstractItemModel>
 #include <QPointer>
@@ -77,11 +76,6 @@ void AppendAuthorName(QString & title, const QString & str, std::string_view sep
 
 struct IndexValue
 {
-	IndexValue(size_t index_)
-		: index(index_)
-	{
-	}
-
 	size_t index;
 	std::set<long long int> authors;
 	std::set<QString> genres;
@@ -224,18 +218,18 @@ Books CreateItemsList(DB::Database & db, const NavigationSource navigationSource
 	return books;
 }
 
-void PostProcess(const QString & parent, const bool deleted, std::set<QString> & langs, Books & books, const size_t index)
+void PostProcess(const QString & parent, const bool deleted, std::set<QString> & languages, Books & books, const size_t index)
 {
 	if (parent.isEmpty())
-		return langs.clear();
+		return languages.clear();
 
 	assert(index < books.size());
 	auto & book = books[index];
 	book.IsDeleted = deleted;
-	for (const auto & lang : langs)
+	for (const auto & lang : languages)
 		book.Lang.append(lang).append(",");
 
-	langs.clear();
+	languages.clear();
 };
 
 Books CreateBookTreeForAuthor(Books & items, const Series & series)
@@ -246,13 +240,13 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 	QString parentSeries;
 	size_t parentPosition = 0;
 	bool deleted = true;
-	std::set<QString> langs;
+	std::set<QString> languages;
 
 	for (auto & item : items)
 	{
 		if (parentSeries != item.SeriesTitle)
 		{
-			PostProcess(parentSeries, deleted, langs, result, parentPosition);
+			PostProcess(parentSeries, deleted, languages, result, parentPosition);
 			deleted = true;
 			parentSeries = item.SeriesTitle;
 			parentPosition = std::size(result);
@@ -272,11 +266,11 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 		{
 			r.TreeLevel = 1;
 			r.ParentId = parentPosition;
-			langs.insert(r.Lang);
+			languages.insert(r.Lang);
 		}
 	}
 
-	PostProcess(parentSeries, deleted, langs, result, parentPosition);
+	PostProcess(parentSeries, deleted, languages, result, parentPosition);
 
 	return result;
 }
@@ -328,7 +322,7 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 			}
 			seriesDeleted = true;
 			if (!series.isEmpty())
-				series = "kdajncjadbnlkd_jfblajdksvb210732ncasdhfjakf";
+				series = "this could be your ad";
 		}
 
 		if (series != item.SeriesTitle)
@@ -351,7 +345,7 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 		auto & r = result.emplace_back(std::move(item));
 		authorLang.insert(r.Lang);
 		seriesLang.insert(r.Lang);
-		if (!item.IsDeleted)
+		if (!r.IsDeleted)
 			authorDeleted = seriesDeleted = false;
 
 		if (!series.isEmpty())
@@ -502,7 +496,7 @@ bool BooksModelController::SetCurrentIndex(const int index)
 {
 	if (index < 0)
 		return false;
-	assert(index < std::size(m_impl->books));
+	assert(index < static_cast<int>(std::size(m_impl->books)));
 	const auto & book = m_impl->books[index];
 	if (!book.IsDictionary)
 		m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, book.Folder.toStdString(), book.FileName.toStdString());

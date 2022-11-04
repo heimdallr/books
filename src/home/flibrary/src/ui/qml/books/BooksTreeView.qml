@@ -4,20 +4,43 @@ import "qrc:/Core"
 
 Item
 {
-	id: booksListViewID
+	id: booksViewID
 
+	readonly property bool authorsVisible: guiController.authorsVisible
+	readonly property bool seriesVisible: guiController.seriesVisible
 	readonly property bool genresVisible: guiController.genresVisible
+
+	BooksHeader
+	{
+		id: headerID
+		anchors
+		{
+			left: parent.left
+			right: parent.right
+			top: parent.top
+		}
+
+		authorsVisible: booksViewID.authorsVisible
+		seriesVisible: booksViewID.seriesVisible
+		genresVisible: booksViewID.genresVisible
+	}
 
 	CustomListView
 	{
-		anchors.fill: parent
+		anchors
+		{
+			left: parent.left
+			right: parent.right
+			top: headerID.bottom
+			bottom: parent.bottom
+		}
 
 		delegate: BookTreeDelegate
 		{
-			width: booksListViewID.width
-			authorsVisible: false
-			seriesVisible: false
-			genresVisible: booksListViewID.genresVisible
+			width: booksViewID.width
+			authorsVisible: booksViewID.authorsVisible
+			seriesVisible: booksViewID.seriesVisible
+			genresVisible: booksViewID.genresVisible
 		}
 	}
 

@@ -1,19 +1,16 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
 
 import "qrc:/Core"
-import "qrc:/Core/constants.js" as Constants
 
 Item
 {
-	id: booksListViewID
+	id: booksViewID
 
 	readonly property bool authorsVisible: guiController.authorsVisible
 	readonly property bool seriesVisible: guiController.seriesVisible
 	readonly property bool genresVisible: guiController.genresVisible
 
-	SplitView
+	BooksHeader
 	{
 		id: headerID
 		anchors
@@ -23,43 +20,9 @@ Item
 			top: parent.top
 		}
 
-		height: Constants.delegateHeight
-
-		orientation: Qt.Horizontal
-		handle: SplitViewHandle {}
-
-		CustomText
-		{
-			id: authorID
-			visible: booksListViewID.authorsVisible
-			text: qsTranslate("Header", "Author")
-		}
-
-		CustomText
-		{
-			id: seriesID
-			visible: booksListViewID.seriesVisible
-			text: qsTranslate("Header", "SeriesTitle")
-		}
-
-		CustomText
-		{
-			SplitView.fillWidth: true
-			text: qsTranslate("Header", "Title")
-		}
-
-		CustomText
-		{
-			id: genreID
-			visible: booksListViewID.genresVisible
-			text: qsTranslate("Header", "GenreAlias")
-		}
-
-		LanguageFilter
-		{
-			width: 36
-			SplitView.preferredWidth: 50
-		}
+		authorsVisible: booksViewID.authorsVisible
+		seriesVisible: booksViewID.seriesVisible
+		genresVisible: booksViewID.genresVisible
 	}
 
 	CustomListView
@@ -74,10 +37,10 @@ Item
 
 		delegate: BookListDelegate
 		{
-			width: booksListViewID.width
-			authorsVisible: booksListViewID.authorsVisible
-			seriesVisible: booksListViewID.seriesVisible
-			genresVisible: booksListViewID.genresVisible
+			width: booksViewID.width
+			authorsVisible: booksViewID.authorsVisible
+			seriesVisible: booksViewID.seriesVisible
+			genresVisible: booksViewID.genresVisible
 		}
 	}
 
