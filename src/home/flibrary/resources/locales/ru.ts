@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="ru_RU">
 <context>
     <name>AddCollection</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="17"/>
         <source>Add new collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить новую коллекцию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="31"/>
         <source>Collection name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя коллекци</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="47"/>
         <source>Collection database file</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл базы данных</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="73"/>
         <source>Collection archive folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка с архивами</translation>
     </message>
 </context>
 <context>
@@ -29,12 +29,12 @@
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="36"/>
         <source>Warning</source>
-        <translation type="unfinished"></translation>
+        <translation>Внимание</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="37"/>
         <source>Are you sure you want to delete the collection?</source>
-        <translation type="unfinished"></translation>
+        <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
 </context>
 <context>
@@ -43,17 +43,17 @@
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="57"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
         <source>...</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="104"/>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="114"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -61,12 +61,12 @@
     <message>
         <location filename="../../src/controllers/GuiController.cpp" line="359"/>
         <source>Select database file</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите файл базы данных</translation>
     </message>
     <message>
         <location filename="../../src/controllers/GuiController.cpp" line="364"/>
         <source>Select archives folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите папку с архивами</translation>
     </message>
 </context>
 <context>
@@ -74,22 +74,22 @@
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="20"/>
         <source>Author</source>
-        <translation type="unfinished"></translation>
+        <translation>Автор</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="26"/>
         <source>SeriesTitle</source>
-        <translation type="unfinished"></translation>
+        <translation>Серия</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="32"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Название</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="38"/>
         <source>GenreAlias</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанр</translation>
     </message>
 </context>
 <context>
@@ -97,12 +97,12 @@
     <message>
         <location filename="../../../../../build64/Resources/flibrary.h" line="7"/>
         <source>en</source>
-        <translation type="unfinished"></translation>
+        <translation>English</translation>
     </message>
     <message>
         <location filename="../../../../../build64/Resources/flibrary.h" line="8"/>
         <source>ru</source>
-        <translation type="unfinished"></translation>
+        <translation>Русский</translation>
     </message>
 </context>
 <context>
@@ -119,68 +119,68 @@
         <location filename="../../src/ui/qml/Main.qml" line="56"/>
         <location filename="../../src/ui/qml/Tray.qml" line="96"/>
         <source>Show Flibrary</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать Flibrary</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="62"/>
         <location filename="../../src/ui/qml/Tray.qml" line="102"/>
         <source>Exit</source>
-        <translation type="unfinished"></translation>
+        <translation>Выход</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="18"/>
         <source>Flibrary</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="56"/>
         <source>Collections</source>
-        <translation type="unfinished"></translation>
+        <translation>Коллекции</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="60"/>
         <source>Add new collection...</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить коллкцию...</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="66"/>
         <source>Select collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать коллекцию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="72"/>
         <source>Remove collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="79"/>
         <source>View</source>
-        <translation type="unfinished"></translation>
+        <translation>Вид</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="83"/>
         <source>Show deleted books</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать удалённые книги</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="83"/>
         <source>Hide deleted books</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть удалённые книги</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="89"/>
         <source>Show annotation</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать аннотацию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="89"/>
         <source>Hide annotation</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть аннотацию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="96"/>
         <source>Hide Flibrary</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть Flibrary</translation>
     </message>
 </context>
 <context>
@@ -188,12 +188,12 @@
     <message>
         <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="18"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="32"/>
         <source>Filter</source>
-        <translation type="unfinished"></translation>
+        <translation>Фильтр</translation>
     </message>
 </context>
 <context>
@@ -201,27 +201,27 @@
     <message>
         <location filename="../../src/ui/qml/books/BooksList.qml" line="11"/>
         <source>List</source>
-        <translation type="unfinished"></translation>
+        <translation>Список</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksList.qml" line="12"/>
         <source>Tree</source>
-        <translation type="unfinished"></translation>
+        <translation>Дерево</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/navigation/Navigation.qml" line="12"/>
         <source>Authors</source>
-        <translation type="unfinished"></translation>
+        <translation>Авторы</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/navigation/Navigation.qml" line="13"/>
         <source>Series</source>
-        <translation type="unfinished"></translation>
+        <translation>Серии</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/navigation/Navigation.qml" line="14"/>
         <source>Genres</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанры</translation>
     </message>
 </context>
 </TS>
