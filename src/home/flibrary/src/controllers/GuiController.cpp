@@ -144,6 +144,11 @@ public:
 		return LOCALES[0];
 	}
 
+	const QString & GetTitle() const noexcept
+	{
+		return m_title;
+	}
+
 	AnnotationController * GetAnnotationController()
 	{
 		return m_annotationController.get();
@@ -272,6 +277,7 @@ private:
 		if (collection.id.isEmpty())
 			return;
 
+		Util::Set(m_title, QString("Flibrary - %1").arg(collection.name), m_self, &GuiController::TitleChanged);
 		m_annotationController->SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
 
 		CreateExecutor(collection.database.toStdString());
@@ -316,6 +322,7 @@ private:
 
 	Settings m_settings { "HomeCompa", "Flibrary" };
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
+	QString m_title;
 };
 
 GuiController::GuiController(QObject * parent)
@@ -432,6 +439,11 @@ QString GuiController::GetLanguage()
 QString GuiController::GetLocale() const
 {
 	return m_impl->GetLocale();
+}
+
+const QString & GuiController::GetTitle() const noexcept
+{
+	return m_impl->GetTitle();
 }
 
 void GuiController::SetLanguage(const QString & language)

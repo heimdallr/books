@@ -24,7 +24,7 @@ ApplicationWindow
 		return v > 0 ? v : 720
 	}
 
-	title: qsTranslate("Main", "Flibrary - flibusta books collection")
+	title: guiController.title
 
 	visible: true
 

@@ -26,6 +26,7 @@ class GuiController
 	Q_PROPERTY(QStringList locales READ GetLocales CONSTANT)
 	Q_PROPERTY(QString language READ GetLanguage WRITE SetLanguage)
 	Q_PROPERTY(QString locale READ GetLocale WRITE SetLocale NOTIFY LocaleChanged)
+	Q_PROPERTY(QString title READ GetTitle NOTIFY TitleChanged)
 
 public:
 	explicit GuiController(QObject * parent = nullptr);
@@ -54,6 +55,7 @@ signals:
 	void OpenedChanged() const;
 	void LanguagesChanged() const;
 	void LocaleChanged() const;
+	void TitleChanged() const;
 
 private: // property getters
 	bool IsAuthorsVisible() const noexcept;
@@ -63,6 +65,7 @@ private: // property getters
 	bool GetRunning() const noexcept;
 	QString GetLanguage();
 	QString GetLocale() const;
+	const QString & GetTitle() const noexcept;
 	QStringList GetLanguages();
 	QStringList GetLocales() const;
 
