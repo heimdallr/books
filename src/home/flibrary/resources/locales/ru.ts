@@ -135,7 +135,7 @@
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="56"/>
         <source>Collections</source>
-        <translation>Коллекции</translation>
+        <translation>Управление коллекциями</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="60"/>
