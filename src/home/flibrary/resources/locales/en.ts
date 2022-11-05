@@ -66,12 +66,12 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="388"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="386"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="393"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="391"/>
         <source>Select archives folder</source>
         <translation>select folder with archives</translation>
     </message>

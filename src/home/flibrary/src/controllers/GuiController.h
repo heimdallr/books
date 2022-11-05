@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <QObject>
 
 #include "fnd/memory.h"
@@ -43,7 +41,7 @@ public:
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
 	Q_INVOKABLE ModelController * GetBooksModelControllerList();
 	Q_INVOKABLE ModelController * GetBooksModelControllerTree();
-	Q_INVOKABLE void AddCollection(const QString & name, const QString & db, const QString & folder);
+	Q_INVOKABLE void AddCollection(QString name, QString db, QString folder);
 	Q_INVOKABLE QString SelectFile(const QString & fileName) const;
 	Q_INVOKABLE QString SelectFolder(const QString & folderName) const;
 	Q_INVOKABLE void Restart();

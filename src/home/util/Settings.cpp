@@ -31,4 +31,25 @@ void Settings::Set(const QString & key, const QVariant & value)
 	m_impl->settings.setValue(key, value);
 }
 
+bool Settings::HasKey(const QString & key) const
+{
+	return m_impl->settings.contains(key);
+}
+
+bool Settings::HasGroup(const QString & group) const
+{
+	return m_impl->settings.childGroups().contains(group);
+}
+
+SettingsGroup::SettingsGroup(Settings & settings, const QString & group)
+	: m_settings(settings)
+{
+	m_settings.m_impl->settings.beginGroup(group);
+}
+
+SettingsGroup::~SettingsGroup()
+{
+	m_settings.m_impl->settings.endGroup();
+}
+
 }
