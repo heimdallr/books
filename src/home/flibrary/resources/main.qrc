@@ -2,7 +2,6 @@
 	<qresource prefix="">
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
 		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate.qml</file>
-		<file alias="Tray.qml">../src/ui/qml/Tray.qml</file>
 		<file alias="ViewModeCombobox.qml">../src/ui/qml/ViewModeCombobox.qml</file>
 	</qresource>
 
@@ -43,6 +42,15 @@
 
 	<qresource prefix="Dialogs/">
 		<file alias="AddCollection.qml">../src/ui/qml/dialogs/AddCollection.qml</file>
+	</qresource>
+
+	<qresource prefix="Tray/">
+		<file alias="Tray.qml">../src/ui/qml/tray/Tray.qml</file>
+		<file alias="LanguageMenu.qml">../src/ui/qml/tray/LanguageMenu.qml</file>
+		<file alias="CollectionMenu.qml">../src/ui/qml/tray/CollectionMenu.qml</file>
+		<file alias="ViewMenu.qml">../src/ui/qml/tray/ViewMenu.qml</file>
+		<file alias="SettingsMenu.qml">../src/ui/qml/tray/SettingsMenu.qml</file>
+		<file alias="SystemMenu.qml">../src/ui/qml/tray/SystemMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="icons/">

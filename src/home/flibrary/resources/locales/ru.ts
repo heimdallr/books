@@ -27,12 +27,12 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="37"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="114"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="21"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
@@ -58,8 +58,8 @@ Restart now?</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="36"/>
-        <location filename="../../src/ui/qml/Tray.qml" line="113"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="14"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="20"/>
         <source>Warning</source>
         <translation>Внимание</translation>
     </message>
@@ -67,12 +67,12 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="386"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="383"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="391"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="388"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
@@ -114,89 +114,81 @@ Restart now?</source>
     </message>
 </context>
 <context>
-    <name>Main</name>
-    <message>
-        <location filename="../../src/ui/qml/Main.qml" line="27"/>
-        <source>Flibrary - flibusta books collection</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>Tray</name>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="56"/>
-        <location filename="../../src/ui/qml/Tray.qml" line="145"/>
+        <location filename="../../src/ui/qml/Main.qml" line="57"/>
+        <location filename="../../src/ui/qml/tray/Tray.qml" line="38"/>
         <source>Show Flibrary</source>
         <translation>Показать Flibrary</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="62"/>
-        <location filename="../../src/ui/qml/Tray.qml" line="151"/>
+        <location filename="../../src/ui/qml/Main.qml" line="63"/>
+        <location filename="../../src/ui/qml/tray/Tray.qml" line="44"/>
         <source>Exit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="18"/>
+        <location filename="../../src/ui/qml/tray/Tray.qml" line="13"/>
         <source>Flibrary</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="56"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="9"/>
         <source>Collections</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="60"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="30"/>
         <source>Add new collection...</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="66"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="36"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="72"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
         <source>Remove collection</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="79"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="6"/>
         <source>View</source>
         <translation>Вид</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="83"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="10"/>
         <source>Show deleted books</source>
         <translation>Показать удалённые книги</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="83"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="10"/>
         <source>Hide deleted books</source>
         <translation>Скрыть удалённые книги</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="89"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
         <source>Show annotation</source>
         <translation>Показать аннотацию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="89"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
         <source>Hide annotation</source>
         <translation>Скрыть аннотацию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="96"/>
+        <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="6"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="101"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="8"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="145"/>
+        <location filename="../../src/ui/qml/tray/Tray.qml" line="38"/>
         <source>Hide Flibrary</source>
         <translation>Скрыть Flibrary</translation>
     </message>

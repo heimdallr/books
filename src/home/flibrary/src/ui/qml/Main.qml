@@ -1,9 +1,10 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-import "Navigation"
 import "Book"
 import "Core"
+import "Navigation"
+import "Tray"
 
 ApplicationWindow
 {
