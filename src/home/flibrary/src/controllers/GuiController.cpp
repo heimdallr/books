@@ -62,15 +62,9 @@ class GuiController::Impl
 {
 	NON_COPY_MOVABLE(Impl)
 public:
-	Impl(GuiController & self, const std::string & databaseName)
+	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
-		if (!databaseName.empty())
-		{
-			CreateExecutor(databaseName);
-			return;
-		}
-
 		const auto currentDbId = m_settings.Get("database/current", {}).toString();
 		if (currentDbId.isEmpty())
 			return;
@@ -330,9 +324,9 @@ private:
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
 };
 
-GuiController::GuiController(const std::string & databaseName, QObject * parent)
+GuiController::GuiController(QObject * parent)
 	: QObject(parent)
-	, m_impl(*this, databaseName)
+	, m_impl(*this)
 {
 }
 

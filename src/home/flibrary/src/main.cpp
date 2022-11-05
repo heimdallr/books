@@ -14,7 +14,7 @@ int main(int argc, char * argv[])
 		QApplication app(argc, argv);
 		QApplication::setWindowIcon(QIcon(":/icons/main.png"));
 
-		GuiController guiController(argc > 1 ? argv[1] : "");
+		GuiController guiController;
 		guiController.Start();
 
 		if (const auto code = QApplication::exec(); code != 1234)

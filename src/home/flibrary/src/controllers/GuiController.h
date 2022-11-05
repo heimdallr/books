@@ -30,7 +30,7 @@ class GuiController
 	Q_PROPERTY(QString locale READ GetLocale WRITE SetLocale NOTIFY LocaleChanged)
 
 public:
-	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
+	explicit GuiController(QObject * parent = nullptr);
 	~GuiController() override;
 
 	void Start();
