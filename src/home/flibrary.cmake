@@ -17,6 +17,17 @@ CreateMap(UI_SETTING_NAMES
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
 
+
+set(LOCALES
+	"en"
+	"ru"
+	)
+GenerateTranslations(
+	NAME "flibrary"
+	PATH "${CMAKE_CURRENT_LIST_DIR}/flibrary"
+	LOCALES ${LOCALES}
+	)
+
 AddTarget(
 	NAME flibrary
 	TYPE app_bundle
@@ -28,6 +39,8 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
+	QRC
+		"${CMAKE_CURRENT_BINARY_DIR}/Resources/flibrary.qrc"
 	QT_USE
 		Core
 		Widgets
