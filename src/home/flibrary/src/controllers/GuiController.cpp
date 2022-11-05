@@ -1,9 +1,10 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
 #include <QCoreApplication>
-#include <QGuiApplication>
 #include <QCryptographicHash>
 #include <QFileDialog>
+#include <QGuiApplication>
+#include <QProcess>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
@@ -34,7 +35,9 @@
 #include "AnnotationController.h"
 #include "GuiController.h"
 
+#include "Resources/flibrary.h"
 #include "Settings/UiSettings.h"
+
 #include "Configuration.h"
 
 Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
@@ -42,6 +45,8 @@ Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 namespace HomeCompa::Flibrary {
 
 namespace {
+
+constexpr auto LANGUAGE = "Language";
 
 PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
@@ -102,8 +107,7 @@ public:
 
 	void Start()
 	{
-		const auto locale = m_settings.Get("Locale", "ru").toString();
-		m_translator.load(QString(":/resources/%1.qm").arg(locale));
+		m_translator.load(QString(":/resources/%1.qm").arg(GetLocale()));
 		QCoreApplication::installTranslator(&m_translator);
 
 		auto * const qmlContext = m_qmlEngine.rootContext();
@@ -147,6 +151,19 @@ public:
 	QString GetLanguage()
 	{
 		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Language).toString() : QString {};
+	}
+
+	QString GetLocale() const
+	{
+		auto locale = m_settings.Get(LANGUAGE, "").toString();
+		if (!locale.isEmpty())
+			return locale;
+
+		if (const auto it = std::ranges::find_if(LOCALES, [sysLocale = QLocale::system().name()](const char * item){ return sysLocale.startsWith(item); }); it != std::cend(LOCALES))
+			return *it;
+
+		assert(!std::empty(LOCALES));
+		return LOCALES[0];
 	}
 
 	AnnotationController * GetAnnotationController()
@@ -225,6 +242,12 @@ public:
 	{
 		if (m_booksModelController && !m_preventSetLanguageFilter)
 			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
+	}
+
+	void SetLocale(const QString & locale)
+	{
+		m_settings.Set(LANGUAGE, locale);
+		emit m_self.LocaleChanged();
 	}
 
 	bool IsFieldVisible(const NavigationSource navigationSource) const noexcept
@@ -370,6 +393,11 @@ QString GuiController::SelectFolder(const QString & folderName) const
 	return QFileDialog::getExistingDirectory(nullptr, QCoreApplication::translate("FileDialog", "Select archives folder"), folderName);
 }
 
+void GuiController::Restart()
+{
+	QCoreApplication::exit(1234);
+}
+
 bool GuiController::IsAuthorsVisible() const noexcept
 {
 	return m_impl->IsFieldVisible(NavigationSource::Authors);
@@ -400,14 +428,32 @@ QStringList GuiController::GetLanguages()
 	return m_impl->GetLanguages();
 }
 
+QStringList GuiController::GetLocales() const
+{
+	QStringList result;
+	result.reserve(static_cast<int>(std::size(LOCALES)));
+	std::ranges::copy(LOCALES, std::back_inserter(result));
+	return result;
+}
+
 QString GuiController::GetLanguage()
 {
 	return m_impl->GetLanguage();
 }
 
+QString GuiController::GetLocale() const
+{
+	return m_impl->GetLocale();
+}
+
 void GuiController::SetLanguage(const QString & language)
 {
 	m_impl->SetLanguage(language);
+}
+
+void GuiController::SetLocale(const QString & locale)
+{
+	m_impl->SetLocale(locale);
 }
 
 }

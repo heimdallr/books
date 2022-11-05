@@ -25,7 +25,9 @@ class GuiController
 	Q_PROPERTY(bool seriesVisible READ IsSeriesVisible NOTIFY SeriesVisibleChanged)
 	Q_PROPERTY(bool genresVisible READ IsGenresVisible NOTIFY GenresVisibleChanged)
 	Q_PROPERTY(QStringList languages READ GetLanguages NOTIFY LanguagesChanged)
+	Q_PROPERTY(QStringList locales READ GetLocales CONSTANT)
 	Q_PROPERTY(QString language READ GetLanguage WRITE SetLanguage)
+	Q_PROPERTY(QString locale READ GetLocale WRITE SetLocale NOTIFY LocaleChanged)
 
 public:
 	explicit GuiController(const std::string & databaseName, QObject * parent = nullptr);
@@ -44,6 +46,7 @@ public:
 	Q_INVOKABLE void AddCollection(const QString & name, const QString & db, const QString & folder);
 	Q_INVOKABLE QString SelectFile(const QString & fileName) const;
 	Q_INVOKABLE QString SelectFolder(const QString & folderName) const;
+	Q_INVOKABLE void Restart();
 
 signals:
 	void RunningChanged() const;
@@ -52,6 +55,7 @@ signals:
 	void GenresVisibleChanged() const;
 	void OpenedChanged() const;
 	void LanguagesChanged() const;
+	void LocaleChanged() const;
 
 private: // property getters
 	bool IsAuthorsVisible() const noexcept;
@@ -60,10 +64,13 @@ private: // property getters
 	bool GetOpened() const noexcept;
 	bool GetRunning() const noexcept;
 	QString GetLanguage();
+	QString GetLocale() const;
 	QStringList GetLanguages();
+	QStringList GetLocales() const;
 
 private: // property setters
 	void SetLanguage(const QString & language);
+	void SetLocale(const QString & locale);
 
 private:
 	class Impl;
