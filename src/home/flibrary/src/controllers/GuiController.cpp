@@ -7,6 +7,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
+#include <QTranslator>
 #pragma warning(pop)
 
 #include "fnd/algorithm.h"
@@ -101,6 +102,10 @@ public:
 
 	void Start()
 	{
+		const auto locale = m_settings.Get("Locale", "ru").toString();
+		m_translator.load(QString(":/resources/%1.qm").arg(locale));
+		QCoreApplication::installTranslator(&m_translator);
+
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
@@ -281,6 +286,7 @@ private:
 
 private:
 	GuiController & m_self;
+	QTranslator m_translator;
 	QQmlApplicationEngine m_qmlEngine;
 
 	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
