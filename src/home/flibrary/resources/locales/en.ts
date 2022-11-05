@@ -27,13 +27,14 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="36"/>
-        <source>Warning</source>
+        <location filename="../../src/ui/qml/Tray.qml" line="37"/>
+        <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Tray.qml" line="37"/>
-        <source>Are you sure you want to delete the collection?</source>
+        <location filename="../../src/ui/qml/Tray.qml" line="114"/>
+        <source>You must restart the application to apply the changes.
+Restart now?</source>
         <translation></translation>
     </message>
 </context>
@@ -55,16 +56,22 @@
         <source>Cancel</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../src/ui/qml/Tray.qml" line="36"/>
+        <location filename="../../src/ui/qml/Tray.qml" line="113"/>
+        <source>Warning</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="359"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="388"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="364"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="393"/>
         <source>Select archives folder</source>
         <translation>select folder with archives</translation>
     </message>
@@ -117,13 +124,13 @@
     <name>Tray</name>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="56"/>
-        <location filename="../../src/ui/qml/Tray.qml" line="96"/>
+        <location filename="../../src/ui/qml/Tray.qml" line="145"/>
         <source>Show Flibrary</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="62"/>
-        <location filename="../../src/ui/qml/Tray.qml" line="102"/>
+        <location filename="../../src/ui/qml/Tray.qml" line="151"/>
         <source>Exit</source>
         <translation></translation>
     </message>
@@ -179,6 +186,16 @@
     </message>
     <message>
         <location filename="../../src/ui/qml/Tray.qml" line="96"/>
+        <source>Settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/Tray.qml" line="101"/>
+        <source>Language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/Tray.qml" line="145"/>
         <source>Hide Flibrary</source>
         <translation></translation>
     </message>
