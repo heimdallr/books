@@ -66,12 +66,12 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="383"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="384"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="388"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="389"/>
         <source>Select archives folder</source>
         <translation>select folder with archives</translation>
     </message>
@@ -116,13 +116,13 @@ Restart now?</source>
     <name>Tray</name>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="57"/>
-        <location filename="../../src/ui/qml/tray/Tray.qml" line="38"/>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Show Flibrary</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="63"/>
-        <location filename="../../src/ui/qml/tray/Tray.qml" line="44"/>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="15"/>
         <source>Exit</source>
         <translation></translation>
     </message>
@@ -187,7 +187,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Tray.qml" line="38"/>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Hide Flibrary</source>
         <translation></translation>
     </message>

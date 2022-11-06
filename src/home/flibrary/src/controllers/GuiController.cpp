@@ -1,13 +1,11 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
-#include <QCoreApplication>
 #include <QFileDialog>
-#include <QGuiApplication>
-#include <QProcess>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
 #include <QTranslator>
+#include <QApplication>
 #pragma warning(pop)
 
 #include "fnd/algorithm.h"
@@ -33,6 +31,7 @@
 
 #include "AnnotationController.h"
 #include "Collection.h"
+#include "NavigationSourceProvider.h"
 
 #include "GuiController.h"
 
@@ -67,6 +66,7 @@ public:
 		: m_self(self)
 	{
 		OpenCollection(m_settings.Get("database/current", {}).toString());
+		QQmlEngine::setObjectOwnership(&m_annotationController, QQmlEngine::CppOwnership);
 	}
 
 	~Impl() override
@@ -78,7 +78,7 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(this);
 		}
 	}
@@ -91,6 +91,7 @@ public:
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
+		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -151,18 +152,15 @@ public:
 
 	AnnotationController * GetAnnotationController()
 	{
-		return m_annotationController.get();
+		return &m_annotationController;
 	}
 
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
 	{
-		if (m_navigationSource != navigationSource)
+		if (m_navigationSourceProvider.GetSource() != navigationSource)
 			m_currentNavigationIndex = -1;
 
-		m_navigationSource = navigationSource;
-		emit m_self.AuthorsVisibleChanged();
-		emit m_self.SeriesVisibleChanged();
-		emit m_self.GenresVisibleChanged();
+		m_navigationSourceProvider.SetSource(navigationSource);
 
 		const auto it = m_navigationModelControllers.find(navigationSource);
 		if (it != m_navigationModelControllers.end())
@@ -183,7 +181,7 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(this);
 		}
 
@@ -192,13 +190,13 @@ public:
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(this);
-		m_booksModelController->RegisterObserver(m_annotationController->GetBooksModelControllerObserver());
+		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
-		if (m_navigationSource != NavigationSource::Undefined && m_currentNavigationIndex != -1)
+		if (m_navigationSourceProvider.GetSource() != NavigationSource::Undefined && m_currentNavigationIndex != -1)
 		{
-			if (const auto it = m_navigationModelControllers.find(m_navigationSource); it != m_navigationModelControllers.end())
-				m_booksModelController->SetNavigationState(m_navigationSource, it->second->GetId(m_currentNavigationIndex));
+			if (const auto it = m_navigationModelControllers.find(m_navigationSourceProvider.GetSource()); it != m_navigationModelControllers.end())
+				m_booksModelController->SetNavigationState(m_navigationSourceProvider.GetSource(), it->second->GetId(m_currentNavigationIndex));
 		}
 
 		return m_booksModelController.get();
@@ -209,9 +207,7 @@ public:
 		const Collection collection(std::move(name), std::move(db), std::move(folder));
 		collection.Serialize(m_settings);
 		collection.SetActive(m_settings);
-
-		CreateExecutor(collection.database.toStdString());
-		m_annotationController->SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
+		QApplication::exit(1234);
 	}
 
 	void SetLanguage(const QString & language)
@@ -226,11 +222,6 @@ public:
 		emit m_self.LocaleChanged();
 	}
 
-	bool IsFieldVisible(const NavigationSource navigationSource) const noexcept
-	{
-		return navigationSource != m_navigationSource;
-	}
-
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
@@ -238,7 +229,7 @@ private: // ModelControllerObserver
 		{
 			m_currentNavigationIndex = index;
 			if (m_booksModelController)
-				m_booksModelController->SetNavigationState(m_navigationSource, controller->GetId(index));
+				m_booksModelController->SetNavigationState(m_navigationSourceProvider.GetSource(), controller->GetId(index));
 		}
 	}
 
@@ -278,7 +269,7 @@ private:
 			return;
 
 		Util::Set(m_title, QString("Flibrary - %1").arg(collection.name), m_self, &GuiController::TitleChanged);
-		m_annotationController->SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
+		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
 
 		CreateExecutor(collection.database.toStdString());
 
@@ -304,18 +295,18 @@ private:
 private:
 	GuiController & m_self;
 	QTranslator m_translator;
-	QQmlApplicationEngine m_qmlEngine;
 
 	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
 	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
 
-	PropagateConstPtr<AnnotationController> m_annotationController {std::make_unique<AnnotationController>()};
+	AnnotationController m_annotationController;
 	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
 	ModelController * m_activeModelController { nullptr };
 
+	NavigationSourceProvider m_navigationSourceProvider;
+
 	bool m_running { true };
-	NavigationSource m_navigationSource { NavigationSource::Undefined };
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
 	bool m_preventSetLanguageFilter { false };
@@ -323,6 +314,8 @@ private:
 	Settings m_settings { "HomeCompa", "Flibrary" };
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
 	QString m_title;
+
+	QQmlApplicationEngine m_qmlEngine;
 };
 
 GuiController::GuiController(QObject * parent)
@@ -391,21 +384,6 @@ QString GuiController::SelectFolder(const QString & folderName) const
 void GuiController::Restart()
 {
 	QCoreApplication::exit(1234);
-}
-
-bool GuiController::IsAuthorsVisible() const noexcept
-{
-	return m_impl->IsFieldVisible(NavigationSource::Authors);
-}
-
-bool GuiController::IsSeriesVisible() const noexcept
-{
-	return m_impl->IsFieldVisible(NavigationSource::Series);
-}
-
-bool GuiController::IsGenresVisible() const noexcept
-{
-	return m_impl->IsFieldVisible(NavigationSource::Genres);
 }
 
 bool GuiController::GetOpened() const noexcept

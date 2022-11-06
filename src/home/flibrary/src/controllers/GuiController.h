@@ -19,9 +19,6 @@ class GuiController
 	Q_OBJECT
 	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
 	Q_PROPERTY(bool opened READ GetOpened NOTIFY OpenedChanged)
-	Q_PROPERTY(bool authorsVisible READ IsAuthorsVisible NOTIFY AuthorsVisibleChanged)
-	Q_PROPERTY(bool seriesVisible READ IsSeriesVisible NOTIFY SeriesVisibleChanged)
-	Q_PROPERTY(bool genresVisible READ IsGenresVisible NOTIFY GenresVisibleChanged)
 	Q_PROPERTY(QStringList languages READ GetLanguages NOTIFY LanguagesChanged)
 	Q_PROPERTY(QStringList locales READ GetLocales CONSTANT)
 	Q_PROPERTY(QString language READ GetLanguage WRITE SetLanguage)
@@ -49,18 +46,12 @@ public:
 
 signals:
 	void RunningChanged() const;
-	void AuthorsVisibleChanged() const;
-	void SeriesVisibleChanged() const;
-	void GenresVisibleChanged() const;
 	void OpenedChanged() const;
 	void LanguagesChanged() const;
 	void LocaleChanged() const;
 	void TitleChanged() const;
 
 private: // property getters
-	bool IsAuthorsVisible() const noexcept;
-	bool IsSeriesVisible() const noexcept;
-	bool IsGenresVisible() const noexcept;
 	bool GetOpened() const noexcept;
 	bool GetRunning() const noexcept;
 	QString GetLanguage();

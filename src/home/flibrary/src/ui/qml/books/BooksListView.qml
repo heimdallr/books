@@ -6,9 +6,9 @@ Item
 {
 	id: booksViewID
 
-	readonly property bool authorsVisible: guiController.authorsVisible
-	readonly property bool seriesVisible: guiController.seriesVisible
-	readonly property bool genresVisible: guiController.genresVisible
+	readonly property bool authorsVisible: fieldsVisibilityProvider.authorsVisible
+	readonly property bool seriesVisible: fieldsVisibilityProvider.seriesVisible
+	readonly property bool genresVisible: fieldsVisibilityProvider.genresVisible
 
 	BooksHeader
 	{
