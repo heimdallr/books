@@ -99,18 +99,13 @@ public:
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
-	void OnKeyPressed(int key, int modifiers)
+	void OnKeyPressed(int key, int modifiers) const
 	{
 		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
-			return (void)Util::Set(m_running, false, m_self, &GuiController::RunningChanged);
+			return QCoreApplication::exit(0);
 
 		if (m_activeModelController)
 			m_activeModelController->OnKeyPressed(key, modifiers);
-	}
-
-	bool GetRunning() const noexcept
-	{
-		return m_running;
 	}
 
 	bool GetOpened() const noexcept
@@ -362,11 +357,6 @@ void GuiController::Restart()
 bool GuiController::GetOpened() const noexcept
 {
 	return m_impl->GetOpened();
-}
-
-bool GuiController::GetRunning() const noexcept
-{
-	return m_impl->GetRunning();
 }
 
 const QString & GuiController::GetTitle() const noexcept

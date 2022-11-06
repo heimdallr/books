@@ -29,8 +29,6 @@ ApplicationWindow
 
 	visible: true
 
-	readonly property bool running: guiController.running
-
 	onWidthChanged: if (completed) uiSettings.mainWindowWidth = width
 	onHeightChanged: if (completed) uiSettings.mainWindowHeight = height
 	onXChanged: if (completed) uiSettings.mainWindowPosX = x
@@ -68,9 +66,6 @@ ApplicationWindow
 			}
 		}
 	}
-
-	onRunningChanged: if (!running)
-		Qt.quit()
 
 	Component
 	{

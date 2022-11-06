@@ -17,7 +17,6 @@ class GuiController
 {
 	NON_COPY_MOVABLE(GuiController)
 	Q_OBJECT
-	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
 	Q_PROPERTY(bool opened READ GetOpened NOTIFY OpenedChanged)
 	Q_PROPERTY(QString title READ GetTitle NOTIFY TitleChanged)
 
@@ -40,13 +39,11 @@ public:
 	Q_INVOKABLE void Restart();
 
 signals:
-	void RunningChanged() const;
 	void OpenedChanged() const;
 	void TitleChanged() const;
 
 private: // property getters
 	bool GetOpened() const noexcept;
-	bool GetRunning() const noexcept;
 	const QString & GetTitle() const noexcept;
 
 private: // property setters
