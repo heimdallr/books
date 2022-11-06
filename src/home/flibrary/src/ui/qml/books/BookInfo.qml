@@ -5,8 +5,6 @@ import "qrc:/Core"
 
 Rectangle
 {
-	readonly property var controller: guiController.GetAnnotationController()
-
 	Image
 	{
 		id: imageID
@@ -19,8 +17,8 @@ Rectangle
 		}
 
 		fillMode: Image.PreserveAspectFit
-		visible: controller.hasCover
-		source: visible ? controller.cover : ""
+		visible: annotationController.hasCover
+		source: visible ? annotationController.cover : ""
 
 		MouseArea
 		{
@@ -32,7 +30,7 @@ Rectangle
 			}
 
 			width: parent.width / 2
-			onClicked: controller.CoverPrev()
+			onClicked: annotationController.CoverPrev()
 		}
 
 		MouseArea
@@ -45,7 +43,7 @@ Rectangle
 			}
 
 			width: parent.width / 2
-			onClicked: controller.CoverNext()
+			onClicked: annotationController.CoverNext()
 		}
 	}
 
@@ -66,7 +64,7 @@ Rectangle
 			selectByMouse: true
 			wrapMode: TextEdit.WordWrap
 			font.pointSize: uiSettings.fontSize
-			text: controller.annotation
+			text: annotationController.annotation
 	    }
 	}
 }

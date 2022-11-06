@@ -29,7 +29,6 @@ public:
 
 public:
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
-	Q_INVOKABLE AnnotationController * GetAnnotationController();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();

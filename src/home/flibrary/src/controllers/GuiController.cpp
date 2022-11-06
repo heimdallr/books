@@ -64,7 +64,6 @@ public:
 		: m_self(self)
 	{
 		OpenCollection(m_settings.Get("database/current", {}).toString());
-		QQmlEngine::setObjectOwnership(&m_annotationController, QQmlEngine::CppOwnership);
 	}
 
 	~Impl() override
@@ -88,6 +87,7 @@ public:
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
 		qmlContext->setContextProperty("localeController", &m_localeController);
+		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -121,11 +121,6 @@ public:
 	const QString & GetTitle() const noexcept
 	{
 		return m_title;
-	}
-
-	AnnotationController * GetAnnotationController()
-	{
-		return &m_annotationController;
 	}
 
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
@@ -317,11 +312,6 @@ void GuiController::Start()
 void GuiController::OnKeyPressed(int key, int modifiers)
 {
 	m_impl->OnKeyPressed(key, modifiers);
-}
-
-AnnotationController * GuiController::GetAnnotationController()
-{
-	return m_impl->GetAnnotationController();
 }
 
 ModelController * GuiController::GetNavigationModelControllerAuthors()
