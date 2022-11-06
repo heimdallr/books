@@ -67,12 +67,12 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="376"/>
+        <location filename="../../src/controllers/FileDialogProvider.cpp" line="17"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="381"/>
+        <location filename="../../src/controllers/FileDialogProvider.cpp" line="22"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
@@ -116,13 +116,13 @@ Restart now?</source>
 <context>
     <name>Tray</name>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="57"/>
+        <location filename="../../src/ui/qml/Main.qml" line="55"/>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Show Flibrary</source>
         <translation>Показать Flibrary</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="63"/>
+        <location filename="../../src/ui/qml/Main.qml" line="61"/>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="15"/>
         <source>Exit</source>
         <translation>Выход</translation>

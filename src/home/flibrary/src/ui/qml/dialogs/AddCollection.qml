@@ -57,7 +57,7 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = guiController.SelectFile(collectionDatabaseID.text)
+					const fileName = fileDialog.SelectFile(collectionDatabaseID.text)
 					if (fileName != "")
 						collectionDatabaseID.text = fileName
 				}
@@ -83,7 +83,7 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = guiController.SelectFolder(collectionArchiveFolderID.text)
+					const fileName = fileDialog.SelectFolder(collectionArchiveFolderID.text)
 					if (fileName != "")
 						collectionArchiveFolderID.text = fileName
 				}

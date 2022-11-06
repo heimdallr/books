@@ -34,8 +34,6 @@ public:
 	Q_INVOKABLE ModelController * GetBooksModelControllerList();
 	Q_INVOKABLE ModelController * GetBooksModelControllerTree();
 	Q_INVOKABLE void AddCollection(QString name, QString db, QString folder);
-	Q_INVOKABLE QString SelectFile(const QString & fileName) const;
-	Q_INVOKABLE QString SelectFolder(const QString & folderName) const;
 	Q_INVOKABLE void Restart();
 
 signals:

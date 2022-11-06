@@ -1,6 +1,5 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
-#include <QFileDialog>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
@@ -30,6 +29,7 @@
 
 #include "AnnotationController.h"
 #include "Collection.h"
+#include "FileDialogProvider.h"
 #include "LocaleController.h"
 #include "NavigationSourceProvider.h"
 
@@ -88,6 +88,7 @@ public:
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
 		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
+		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -276,7 +277,6 @@ private:
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
 	ModelController * m_activeModelController { nullptr };
 
-	bool m_running { true };
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
 	bool m_preventSetLanguageFilter { false };
@@ -337,16 +337,6 @@ ModelController * GuiController::GetBooksModelControllerTree()
 void GuiController::AddCollection(QString name, QString db, QString folder)
 {
 	m_impl->AddCollection(std::move(name), std::move(db), std::move(folder));
-}
-
-QString GuiController::SelectFile(const QString & fileName) const
-{
-	return QFileDialog::getOpenFileName(nullptr, QCoreApplication::translate("FileDialog", "Select database file"), fileName);
-}
-
-QString GuiController::SelectFolder(const QString & folderName) const
-{
-	return QFileDialog::getExistingDirectory(nullptr, QCoreApplication::translate("FileDialog", "Select archives folder"), folderName);
 }
 
 void GuiController::Restart()
