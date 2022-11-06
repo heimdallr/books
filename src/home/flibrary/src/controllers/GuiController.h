@@ -19,10 +19,6 @@ class GuiController
 	Q_OBJECT
 	Q_PROPERTY(bool running READ GetRunning NOTIFY RunningChanged)
 	Q_PROPERTY(bool opened READ GetOpened NOTIFY OpenedChanged)
-	Q_PROPERTY(QStringList languages READ GetLanguages NOTIFY LanguagesChanged)
-	Q_PROPERTY(QStringList locales READ GetLocales CONSTANT)
-	Q_PROPERTY(QString language READ GetLanguage WRITE SetLanguage)
-	Q_PROPERTY(QString locale READ GetLocale WRITE SetLocale NOTIFY LocaleChanged)
 	Q_PROPERTY(QString title READ GetTitle NOTIFY TitleChanged)
 
 public:
@@ -47,22 +43,14 @@ public:
 signals:
 	void RunningChanged() const;
 	void OpenedChanged() const;
-	void LanguagesChanged() const;
-	void LocaleChanged() const;
 	void TitleChanged() const;
 
 private: // property getters
 	bool GetOpened() const noexcept;
 	bool GetRunning() const noexcept;
-	QString GetLanguage();
-	QString GetLocale() const;
 	const QString & GetTitle() const noexcept;
-	QStringList GetLanguages();
-	QStringList GetLocales() const;
 
 private: // property setters
-	void SetLanguage(const QString & language);
-	void SetLocale(const QString & locale);
 
 private:
 	class Impl;

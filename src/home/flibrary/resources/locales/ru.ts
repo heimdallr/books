@@ -67,12 +67,12 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="384"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="376"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="389"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="381"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>

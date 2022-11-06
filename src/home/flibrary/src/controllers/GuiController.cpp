@@ -4,7 +4,6 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
-#include <QTranslator>
 #include <QApplication>
 #pragma warning(pop)
 
@@ -31,11 +30,11 @@
 
 #include "AnnotationController.h"
 #include "Collection.h"
+#include "LocaleController.h"
 #include "NavigationSourceProvider.h"
 
 #include "GuiController.h"
 
-#include "Resources/flibrary.h"
 #include "Settings/UiSettings.h"
 
 #include "Configuration.h"
@@ -45,8 +44,6 @@ Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 namespace HomeCompa::Flibrary {
 
 namespace {
-
-constexpr auto LANGUAGE = "Language";
 
 PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
@@ -59,6 +56,7 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 class GuiController::Impl
 	: virtual public ModelControllerObserver
 	, virtual BooksModelControllerObserver
+	, virtual LanguageProvider
 {
 	NON_COPY_MOVABLE(Impl)
 public:
@@ -85,13 +83,11 @@ public:
 
 	void Start()
 	{
-		m_translator.load(QString(":/resources/%1.qm").arg(GetLocale()));
-		QCoreApplication::installTranslator(&m_translator);
-
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
+		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -120,29 +116,6 @@ public:
 	bool GetOpened() const noexcept
 	{
 		return !!m_db;
-	}
-
-	QStringList GetLanguages()
-	{
-		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Languages).toStringList() : QStringList{};
-	}
-
-	QString GetLanguage()
-	{
-		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Language).toString() : QString {};
-	}
-
-	QString GetLocale() const
-	{
-		auto locale = m_settings.Get(LANGUAGE, "").toString();
-		if (!locale.isEmpty())
-			return locale;
-
-		if (const auto it = std::ranges::find_if(LOCALES, [sysLocale = QLocale::system().name()](const char * item){ return sysLocale.startsWith(item); }); it != std::cend(LOCALES))
-			return *it;
-
-		assert(!std::empty(LOCALES));
-		return LOCALES[0];
 	}
 
 	const QString & GetTitle() const noexcept
@@ -210,18 +183,6 @@ public:
 		QApplication::exit(1234);
 	}
 
-	void SetLanguage(const QString & language)
-	{
-		if (m_booksModelController && !m_preventSetLanguageFilter)
-			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
-	}
-
-	void SetLocale(const QString & locale)
-	{
-		m_settings.Set(LANGUAGE, locale);
-		emit m_self.LocaleChanged();
-	}
-
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
@@ -257,8 +218,30 @@ private: //BooksModelControllerObserver
 	void HandleModelReset() override
 	{
 		m_preventSetLanguageFilter = true;
-		emit m_self.LanguagesChanged();
+		emit m_localeController.LanguagesChanged();
 		m_preventSetLanguageFilter = false;
+	}
+
+private: // LanguageProvider
+	Settings & GetSettings() override
+	{
+		return m_settings;
+	}
+
+	QStringList GetLanguages() override
+	{
+		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Languages).toStringList() : QStringList {};
+	}
+
+	QString GetLanguage() override
+	{
+		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Language).toString() : QString {};
+	}
+
+	void SetLanguage(const QString & language) override
+	{
+		if (m_booksModelController && !m_preventSetLanguageFilter)
+			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
 	}
 
 private:
@@ -294,7 +277,6 @@ private:
 
 private:
 	GuiController & m_self;
-	QTranslator m_translator;
 
 	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
 	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
@@ -304,8 +286,6 @@ private:
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
 	ModelController * m_activeModelController { nullptr };
 
-	NavigationSourceProvider m_navigationSourceProvider;
-
 	bool m_running { true };
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
@@ -314,6 +294,9 @@ private:
 	Settings m_settings { "HomeCompa", "Flibrary" };
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
 	QString m_title;
+
+	NavigationSourceProvider m_navigationSourceProvider;
+	LocaleController m_localeController { *this };
 
 	QQmlApplicationEngine m_qmlEngine;
 };
@@ -396,42 +379,9 @@ bool GuiController::GetRunning() const noexcept
 	return m_impl->GetRunning();
 }
 
-QStringList GuiController::GetLanguages()
-{
-	return m_impl->GetLanguages();
-}
-
-QStringList GuiController::GetLocales() const
-{
-	QStringList result;
-	result.reserve(static_cast<int>(std::size(LOCALES)));
-	std::ranges::copy(LOCALES, std::back_inserter(result));
-	return result;
-}
-
-QString GuiController::GetLanguage()
-{
-	return m_impl->GetLanguage();
-}
-
-QString GuiController::GetLocale() const
-{
-	return m_impl->GetLocale();
-}
-
 const QString & GuiController::GetTitle() const noexcept
 {
 	return m_impl->GetTitle();
-}
-
-void GuiController::SetLanguage(const QString & language)
-{
-	m_impl->SetLanguage(language);
-}
-
-void GuiController::SetLocale(const QString & locale)
-{
-	m_impl->SetLocale(locale);
 }
 
 }

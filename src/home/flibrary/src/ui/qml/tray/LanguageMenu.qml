@@ -7,7 +7,7 @@ Menu
 	id: localeMenuID
 	title: qsTranslate("Tray", "Language")
 
-	readonly property string currentLanguage: guiController.locale
+	readonly property string currentLanguage: localeController.locale
 
 	ExclusiveGroup
 	{
@@ -25,7 +25,7 @@ Menu
 
 	Instantiator
 	{
-		model: guiController.locales
+		model: localeController.locales
 		MenuItem
 		{
 			text: qsTranslate("Language", modelData)
@@ -37,7 +37,7 @@ Menu
 				if (modelData === localeMenuID.currentLanguage)
 					return;
 
-				guiController.locale = modelData
+				localeController.locale = modelData
 				restartConfirmDialogID.open()
 			}
 		}
