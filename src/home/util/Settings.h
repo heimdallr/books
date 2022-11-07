@@ -1,11 +1,11 @@
 #pragma once
 
+#include <QStringList>
+#include <QVariant>
+
 #include "fnd/memory.h"
 
 #include "UtilLib.h"
-
-class QString;
-class QVariant;
 
 namespace HomeCompa {
 
@@ -19,11 +19,14 @@ public:
 	~Settings();
 
 public:
-	QVariant Get(const QString & key, const QVariant & defaultValue) const;
+	QVariant Get(const QString & key, const QVariant & defaultValue = {}) const;
 	void Set(const QString & key, const QVariant & value);
 
 	bool HasKey(const QString & key) const;
 	bool HasGroup(const QString & group) const;
+
+	QStringList GetKeys() const;
+	QStringList GetGroups() const;
 
 private:
 	struct Impl;

@@ -37,6 +37,12 @@ void Collection::SetActive(Settings & settings) const
 	settings.Set(CURRENT, id);
 }
 
+QString Collection::GetActive(Settings & settings)
+{
+	SettingsGroup databaseGroup(settings, DATABASE);
+	return settings.Get(CURRENT).toString();
+}
+
 void Collection::Serialize(Settings & settings) const
 {
 	SettingsGroup databaseGroup(settings, DATABASE);
@@ -47,16 +53,12 @@ void Collection::Serialize(Settings & settings) const
 	settings.Set(FOLDER, folder);
 }
 
-Collection Collection::Deserialize(Settings & settings, QString id)
+Collection DeserializeImpl(Settings & settings, QString id)
 {
 	Collection collection;
 	if (id.isEmpty())
 		return collection;
 
-	if (!settings.HasGroup(DATABASE))
-		return collection;
-
-	SettingsGroup databaseGroup(settings, DATABASE);
 	if (!settings.HasGroup(id))
 		return collection;
 
@@ -73,6 +75,18 @@ Collection Collection::Deserialize(Settings & settings, QString id)
 
 	collection.id = std::move(id);
 	return collection;
+}
+
+Collections Collection::Deserialize(Settings & settings)
+{
+	Collections collections;
+	SettingsGroup settingsGroup(settings, DATABASE);
+	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&] (QString id)
+	{
+		return DeserializeImpl(settings, std::move(id));
+	});
+
+	return collections;
 }
 
 }

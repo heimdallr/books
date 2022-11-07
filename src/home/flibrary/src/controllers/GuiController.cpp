@@ -20,7 +20,6 @@
 #include "util/Settings.h"
 
 #include "ModelControllers/BooksModelController.h"
-#include "ModelControllers/BooksModelControllerObserver.h"
 #include "ModelControllers/BooksViewType.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
@@ -29,6 +28,7 @@
 
 #include "AnnotationController.h"
 #include "Collection.h"
+#include "CollectionController.h"
 #include "FileDialogProvider.h"
 #include "LocaleController.h"
 #include "NavigationSourceProvider.h"
@@ -56,13 +56,13 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 class GuiController::Impl
 	: virtual ModelControllerObserver
 	, LocaleController::LanguageProvider
+	, CollectionController::Observer
 {
 	NON_COPY_MOVABLE(Impl)
 public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
-		OpenCollection(m_settings.Get("database/current", {}).toString());
 	}
 
 	~Impl() override
@@ -88,6 +88,7 @@ public:
 		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
+		qmlContext->setContextProperty("collectionController", new CollectionController(*this, &m_self));
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -165,14 +166,6 @@ public:
 		return m_booksModelController.get();
 	}
 
-	void AddCollection(QString name, QString db, QString folder)
-	{
-		const Collection collection(std::move(name), std::move(db), std::move(folder));
-		collection.Serialize(m_settings);
-		collection.SetActive(m_settings);
-		QApplication::exit(1234);
-	}
-
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
@@ -223,10 +216,9 @@ private: // LocaleController::LanguageProvider
 			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
 	}
 
-private:
-	void OpenCollection(QString collectionId)
+private: // CollectionController::Observer
+	void HandleCurrentCollectionChanged(const Collection & collection) override
 	{
-		const auto collection = Collection::Deserialize(m_settings, std::move(collectionId));
 		if (collection.id.isEmpty())
 		{
 			PropagateConstPtr<Util::Executor>(std::unique_ptr<Util::Executor>()).swap(m_executor);
@@ -246,6 +238,7 @@ private:
 		});
 	}
 
+private:
 	void CreateExecutor(const std::string & databaseName)
 	{
 		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {
@@ -324,11 +317,6 @@ ModelController * GuiController::GetBooksModelControllerList()
 ModelController * GuiController::GetBooksModelControllerTree()
 {
 	return m_impl->GetBooksModelController(BooksViewType::Tree);
-}
-
-void GuiController::AddCollection(QString name, QString db, QString folder)
-{
-	m_impl->AddCollection(std::move(name), std::move(db), std::move(folder));
 }
 
 bool GuiController::GetOpened() const noexcept

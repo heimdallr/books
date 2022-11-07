@@ -104,7 +104,7 @@ Window
 			    text: qsTranslate("Common", "Ok")
 				onClicked:
 				{
-					guiController.AddCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
+					collectionController.AddCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
 					dialogID.close()
 				}
 			}
