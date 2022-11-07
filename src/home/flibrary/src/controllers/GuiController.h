@@ -34,7 +34,6 @@ public:
 	Q_INVOKABLE ModelController * GetBooksModelControllerList();
 	Q_INVOKABLE ModelController * GetBooksModelControllerTree();
 	Q_INVOKABLE void AddCollection(QString name, QString db, QString folder);
-	Q_INVOKABLE void Restart();
 
 signals:
 	void OpenedChanged() const;

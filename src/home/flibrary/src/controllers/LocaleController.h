@@ -4,6 +4,7 @@
 
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+
 namespace HomeCompa {
 class Settings;
 }

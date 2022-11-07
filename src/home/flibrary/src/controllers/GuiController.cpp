@@ -240,12 +240,16 @@ private:
 	{
 		const auto collection = Collection::Deserialize(m_settings, std::move(collectionId));
 		if (collection.id.isEmpty())
+		{
+			PropagateConstPtr<Util::Executor>(std::unique_ptr<Util::Executor>()).swap(m_executor);
+			emit m_self.OpenedChanged();
 			return;
+		}
+
+		CreateExecutor(collection.database.toStdString());
 
 		Util::Set(m_title, QString("Flibrary - %1").arg(collection.name), m_self, &GuiController::TitleChanged);
 		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
-
-		CreateExecutor(collection.database.toStdString());
 
 		connect(&m_uiSettings, &UiSettings::showDeletedChanged, [&]
 		{
@@ -260,6 +264,7 @@ private:
 			  [databaseName, &db = m_db] { CreateDatabase(databaseName).swap(db); }
 			, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
 			, []{ QGuiApplication::restoreOverrideCursor(); }
+			, [&db = m_db] { PropagateConstPtr<DB::Database>(std::unique_ptr<DB::Database>()).swap(db); }
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
@@ -337,11 +342,6 @@ ModelController * GuiController::GetBooksModelControllerTree()
 void GuiController::AddCollection(QString name, QString db, QString folder)
 {
 	m_impl->AddCollection(std::move(name), std::move(db), std::move(folder));
-}
-
-void GuiController::Restart()
-{
-	QCoreApplication::exit(1234);
 }
 
 bool GuiController::GetOpened() const noexcept
