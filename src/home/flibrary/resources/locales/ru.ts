@@ -114,6 +114,99 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>QPlatformTheme</name>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="5"/>
+        <source>Save</source>
+        <translation>Сохранить</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="6"/>
+        <source>Save All</source>
+        <translation>Сохранить все</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="7"/>
+        <source>Open</source>
+        <translation>Открыть</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="8"/>
+        <source>&amp;Yes</source>
+        <translation>&amp;Да</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="9"/>
+        <source>Yes to &amp;All</source>
+        <translation>Да для &amp;всех</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="10"/>
+        <source>&amp;No</source>
+        <translation>&amp;Нет</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="11"/>
+        <source>N&amp;o to All</source>
+        <translation>Н&amp;ет для всех</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="12"/>
+        <source>Abort</source>
+        <translation>Прервать</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="13"/>
+        <source>Retry</source>
+        <translation>Повторить</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="14"/>
+        <source>Ignore</source>
+        <translation>Пропустить</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="15"/>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="16"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="17"/>
+        <source>Discard</source>
+        <translation>Отказаться</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="18"/>
+        <source>Help</source>
+        <translation>Помощь</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="19"/>
+        <source>Apply</source>
+        <translation>Применить</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="20"/>
+        <source>Reset</source>
+        <translation>Перезагрузить</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="21"/>
+        <source>Restore Defaults</source>
+        <translation>Восстановить по-умолчанию</translation>
+    </message>
+</context>
+<context>
     <name>Tray</name>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="55"/>

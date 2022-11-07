@@ -113,6 +113,99 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>QPlatformTheme</name>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
+        <source>OK</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="5"/>
+        <source>Save</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="6"/>
+        <source>Save All</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="7"/>
+        <source>Open</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="8"/>
+        <source>&amp;Yes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="9"/>
+        <source>Yes to &amp;All</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="10"/>
+        <source>&amp;No</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="11"/>
+        <source>N&amp;o to All</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="12"/>
+        <source>Abort</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="13"/>
+        <source>Retry</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="14"/>
+        <source>Ignore</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="15"/>
+        <source>Close</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="16"/>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="17"/>
+        <source>Discard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="18"/>
+        <source>Help</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="19"/>
+        <source>Apply</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="20"/>
+        <source>Reset</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/StandardButtonLocalization.h" line="21"/>
+        <source>Restore Defaults</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Tray</name>
     <message>
         <location filename="../../src/ui/qml/Main.qml" line="55"/>
