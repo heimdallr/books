@@ -47,6 +47,7 @@
 
 	<qresource prefix="Tray/">
 		<file alias="Tray.qml">../src/ui/qml/tray/Tray.qml</file>
+		<file alias="MainMenu.qml">../src/ui/qml/tray/MainMenu.qml</file>
 		<file alias="LanguageMenu.qml">../src/ui/qml/tray/LanguageMenu.qml</file>
 		<file alias="CollectionMenu.qml">../src/ui/qml/tray/CollectionMenu.qml</file>
 		<file alias="ViewMenu.qml">../src/ui/qml/tray/ViewMenu.qml</file>

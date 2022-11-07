@@ -209,13 +209,11 @@ Restart now?</source>
 <context>
     <name>Tray</name>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="55"/>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Show Flibrary</source>
         <translation>Показать Flibrary</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/Main.qml" line="61"/>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="15"/>
         <source>Exit</source>
         <translation>Выход</translation>

@@ -25,14 +25,8 @@ Item
 		}
 	}
 
-	Menu
+	MainMenu
 	{
         id: trayMenu
-
-		CollectionMenu {}
-		ViewMenu {}
-		SettingsMenu {}
-		MenuSeparator {}
-		SystemMenu {}
     }
 }

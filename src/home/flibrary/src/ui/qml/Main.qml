@@ -46,27 +46,6 @@ ApplicationWindow
 
 	Tray {}
 
-	Menu
-	{
-		id: trayMenu
-
-		MenuItem
-		{
-			text: qsTranslate("Tray", "Show Flibrary")
-			onTriggered: application.show()
-		}
-
-		MenuItem
-		{
-			text: qsTranslate("Tray", "Exit")
-			onTriggered:
-			{
-				systemTray.hide()
-				Qt.quit()
-			}
-		}
-	}
-
 	Component
 	{
 		id: splitViewComponentID
