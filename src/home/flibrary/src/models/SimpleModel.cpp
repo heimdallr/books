@@ -10,8 +10,10 @@ struct Role
 {
 	enum ValueBase
 	{
-		Value = Qt::UserRole + 1,
-		Title,
+		FakeFirst = Qt::UserRole + 1,
+#define SIMPLE_MODEL_ITEM(NAME) NAME,
+		SIMPLE_MODEL_ITEMS_XMACRO
+#undef	SIMPLE_MODEL_ITEM
 	};
 
 };
@@ -31,10 +33,9 @@ private: // QAbstractListModel
 	{
 		return QHash<int, QByteArray>
 		{
-#define ITEM(NAME) { Role::NAME, #NAME }
-		ITEM(Value),
-		ITEM(Title)
-#undef	ITEM
+#define		SIMPLE_MODEL_ITEM(NAME) { Role::NAME, #NAME },
+			SIMPLE_MODEL_ITEMS_XMACRO
+#undef		SIMPLE_MODEL_ITEM
 		};
 	}
 
@@ -49,11 +50,9 @@ private: // QAbstractListModel
 		const auto & item = m_items[index.row()];
 		switch (role)
 		{
-			case Role::Value:
-				return item.Value;
-
-			case Role::Title:
-				return item.Title;
+#define		SIMPLE_MODEL_ITEM(NAME) case Role::NAME: return item.NAME;
+			SIMPLE_MODEL_ITEMS_XMACRO
+#undef		SIMPLE_MODEL_ITEM
 
 			default:
 				assert(false && "Unexpected role");
