@@ -103,12 +103,12 @@ Restart now?</source>
 <context>
     <name>Language</name>
     <message>
-        <location filename="../../../../../build64/Resources/flibrary.h" line="7"/>
+        <location filename="../../../../../build64/Resources/flibrary_locales.h" line="7"/>
         <source>en</source>
         <translation>English</translation>
     </message>
     <message>
-        <location filename="../../../../../build64/Resources/flibrary.h" line="8"/>
+        <location filename="../../../../../build64/Resources/flibrary_locales.h" line="8"/>
         <source>ru</source>
         <translation>Русский</translation>
     </message>

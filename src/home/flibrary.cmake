@@ -40,7 +40,7 @@ AddTarget(
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QRC
-		"${CMAKE_CURRENT_BINARY_DIR}/Resources/flibrary.qrc"
+		"${CMAKE_CURRENT_BINARY_DIR}/Resources/flibrary_qm.qrc"
 	QT_USE
 		Core
 		Widgets

@@ -9,7 +9,7 @@
 
 #include "LocaleController.h"
 
-#include "Resources/flibrary.h"
+#include "Resources/flibrary_locales.h"
 
 namespace HomeCompa::Flibrary {
 
