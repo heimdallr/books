@@ -143,12 +143,12 @@ Restart now?</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="36"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="45"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
         <source>Remove collection</source>
         <translation>Удалить</translation>
     </message>

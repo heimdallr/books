@@ -21,38 +21,6 @@ QString GenerateId(const QString & database)
 	return hash.result().toHex();
 }
 
-}
-
-Collection::Collection(QString name_, QString database_, QString folder_)
-	: id(GenerateId(database_))
-	, name(std::move(name_))
-	, database(std::move(database_))
-	, folder(std::move(folder_))
-{
-}
-
-void Collection::SetActive(Settings & settings) const
-{
-	SettingsGroup databaseGroup(settings, DATABASE);
-	settings.Set(CURRENT, id);
-}
-
-QString Collection::GetActive(Settings & settings)
-{
-	SettingsGroup databaseGroup(settings, DATABASE);
-	return settings.Get(CURRENT).toString();
-}
-
-void Collection::Serialize(Settings & settings) const
-{
-	SettingsGroup databaseGroup(settings, DATABASE);
-	SettingsGroup idGroup(settings, id);
-
-	settings.Set(NAME, name);
-	settings.Set(DATABASE, database);
-	settings.Set(FOLDER, folder);
-}
-
 Collection DeserializeImpl(Settings & settings, QString id)
 {
 	Collection collection;
@@ -77,6 +45,32 @@ Collection DeserializeImpl(Settings & settings, QString id)
 	return collection;
 }
 
+}
+
+Collection::Collection(QString name_, QString database_, QString folder_)
+	: id(GenerateId(database_))
+	, name(std::move(name_))
+	, database(std::move(database_))
+	, folder(std::move(folder_))
+{
+}
+
+QString Collection::GetActive(Settings & settings)
+{
+	SettingsGroup databaseGroup(settings, DATABASE);
+	return settings.Get(CURRENT).toString();
+}
+
+void Collection::Serialize(Settings & settings) const
+{
+	SettingsGroup databaseGroup(settings, DATABASE);
+	SettingsGroup idGroup(settings, id);
+
+	settings.Set(NAME, name);
+	settings.Set(DATABASE, database);
+	settings.Set(FOLDER, folder);
+}
+
 Collections Collection::Deserialize(Settings & settings)
 {
 	Collections collections;
@@ -87,6 +81,12 @@ Collections Collection::Deserialize(Settings & settings)
 	});
 
 	return collections;
+}
+
+void Collection::SetActive(Settings & settings, const QString & id)
+{
+	SettingsGroup databaseGroup(settings, DATABASE);
+	settings.Set(CURRENT, id);
 }
 
 }

@@ -142,12 +142,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="36"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="45"/>
         <source>Select collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
         <source>Remove collection</source>
         <translation></translation>
     </message>

@@ -7,6 +7,8 @@
 
 #include "SettingsProvider.h"
 
+class QAbstractItemModel;
+
 namespace HomeCompa::Flibrary {
 
 struct Collection;
@@ -16,6 +18,11 @@ class CollectionController
 {
 	NON_COPY_MOVABLE(CollectionController)
 	Q_OBJECT
+
+	Q_PROPERTY(QString currentCollectionId READ GetCurrentCollectionId WRITE SetCurrentCollectionId NOTIFY CurrentCollectionIdChanged)
+
+signals:
+	void CurrentCollectionIdChanged();
 
 public:
 	class Observer
@@ -31,6 +38,13 @@ public:
 
 public:
 	Q_INVOKABLE void AddCollection(QString name, QString db, QString folder);
+	Q_INVOKABLE QAbstractItemModel * GetModel();
+
+private: // property getters
+	const QString & GetCurrentCollectionId() const noexcept;
+
+private: // property setters
+	void SetCurrentCollectionId(const QString & id);
 
 private:
 	struct Impl;

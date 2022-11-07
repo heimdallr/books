@@ -22,12 +22,11 @@ struct Collection
 	Collection() = default;
 	Collection(QString name, QString database, QString folder);
 
-	void SetActive(Settings & settings) const;
 	static QString GetActive(Settings & settings);
 
 	void Serialize(Settings & settings) const;
-//	static Collection Deserialize(Settings & settings, QString id);
 	static Collections Deserialize(Settings & settings);
+	static void SetActive(Settings & settings, const QString & id);
 };
 
 }
