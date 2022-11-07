@@ -27,6 +27,7 @@ struct Collection
 	void Serialize(Settings & settings) const;
 	static Collections Deserialize(Settings & settings);
 	static void SetActive(Settings & settings, const QString & id);
+	static void Remove(Settings & settings, const QString & id);
 };
 
 }

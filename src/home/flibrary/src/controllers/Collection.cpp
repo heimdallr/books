@@ -9,6 +9,7 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
+constexpr auto COLLECTIONS = "Collections";
 constexpr auto CURRENT = "current";
 constexpr auto DATABASE = "database";
 constexpr auto FOLDER = "folder";
@@ -57,13 +58,13 @@ Collection::Collection(QString name_, QString database_, QString folder_)
 
 QString Collection::GetActive(Settings & settings)
 {
-	SettingsGroup databaseGroup(settings, DATABASE);
+	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	return settings.Get(CURRENT).toString();
 }
 
 void Collection::Serialize(Settings & settings) const
 {
-	SettingsGroup databaseGroup(settings, DATABASE);
+	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	SettingsGroup idGroup(settings, id);
 
 	settings.Set(NAME, name);
@@ -74,10 +75,10 @@ void Collection::Serialize(Settings & settings) const
 Collections Collection::Deserialize(Settings & settings)
 {
 	Collections collections;
-	SettingsGroup settingsGroup(settings, DATABASE);
-	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&] (QString id)
+	SettingsGroup settingsGroup(settings, COLLECTIONS);
+	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&] (QString groupId)
 	{
-		return DeserializeImpl(settings, std::move(id));
+		return DeserializeImpl(settings, std::move(groupId));
 	});
 
 	return collections;
@@ -85,8 +86,14 @@ Collections Collection::Deserialize(Settings & settings)
 
 void Collection::SetActive(Settings & settings, const QString & id)
 {
-	SettingsGroup databaseGroup(settings, DATABASE);
+	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Set(CURRENT, id);
+}
+
+void Collection::Remove(Settings & settings, const QString & id)
+{
+	SettingsGroup databaseGroup(settings, COLLECTIONS);
+	settings.Remove(id);
 }
 
 }

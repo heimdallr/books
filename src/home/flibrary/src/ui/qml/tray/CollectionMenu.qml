@@ -14,10 +14,7 @@ Menu
 	    title: qsTranslate("Common", "Warning")
 	    text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
 		standardButtons: StandardButton.Yes | StandardButton.No
-	    onYes:
-		{
-			console.log(`accepted`)
-	    }
+	    onYes: collectionController.RemoveCurrentCollection()
 	}
 
 	AddCollection
@@ -43,6 +40,8 @@ Menu
 		readonly property string currentCollectionId: collectionController.currentCollectionId
 
         title: qsTranslate("Tray", "Select collection")
+
+		enabled: false
 
 		Instantiator
 		{
@@ -72,6 +71,7 @@ Menu
 
     MenuItem
 	{
+		enabled: collectionsMenuID.enabled
         text: qsTranslate("Tray", "Remove collection")
         onTriggered: removeConfirmDialogID.open()
     }

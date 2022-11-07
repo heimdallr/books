@@ -44,11 +44,18 @@ struct CollectionController::Impl
 			return;
 		}
 
-		if (const auto it = std::ranges::find_if(collections, [&] (const auto & item) { return item.id == currentCollectionId; }); it != collections.cend())
-			return observer.HandleCurrentCollectionChanged(*it);
+		if (const auto * collection = FindCollection(currentCollectionId))
+			return observer.HandleCurrentCollectionChanged(*collection);
 
 		currentCollectionId = collections.front().id;
+		Collection::SetActive(observer.GetSettings(), currentCollectionId);
 		observer.HandleCurrentCollectionChanged(collections.front());
+	}
+
+	const Collection * FindCollection(const QString & id) const
+	{
+		const auto it = std::ranges::find_if(std::as_const(collections), [&] (const auto & item) { return item.id == id; });
+		return it != std::cend(collections) ? &*it : nullptr;
 	}
 };
 
@@ -72,6 +79,12 @@ QAbstractItemModel * CollectionController::GetModel()
 	return m_impl->model.get();
 }
 
+void CollectionController::RemoveCurrentCollection()
+{
+	Collection::Remove(m_impl->observer.GetSettings(), m_impl->currentCollectionId);
+	QApplication::exit(1234);
+}
+
 const QString & CollectionController::GetCurrentCollectionId() const noexcept
 {
 	return m_impl->currentCollectionId;
@@ -80,7 +93,6 @@ const QString & CollectionController::GetCurrentCollectionId() const noexcept
 void CollectionController::SetCurrentCollectionId(const QString & id)
 {
 	Collection::SetActive(m_impl->observer.GetSettings(), id);
-	emit CurrentCollectionIdChanged();
 	QApplication::exit(1234);
 }
 

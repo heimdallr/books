@@ -138,19 +138,19 @@ Restart now?</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="30"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="27"/>
         <source>Add new collection...</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="45"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
         <source>Remove collection</source>
-        <translation>Удалить</translation>
+        <translation>Удалить коллекцию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="6"/>

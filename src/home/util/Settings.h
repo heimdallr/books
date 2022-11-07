@@ -28,6 +28,8 @@ public:
 	QStringList GetKeys() const;
 	QStringList GetGroups() const;
 
+	void Remove(const QString & key);
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

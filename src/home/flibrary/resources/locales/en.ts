@@ -137,12 +137,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="30"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="27"/>
         <source>Add new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="45"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
         <source>Select collection</source>
         <translation></translation>
     </message>

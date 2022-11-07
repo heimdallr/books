@@ -39,6 +39,7 @@ public:
 public:
 	Q_INVOKABLE void AddCollection(QString name, QString db, QString folder);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
+	Q_INVOKABLE void RemoveCurrentCollection();
 
 private: // property getters
 	const QString & GetCurrentCollectionId() const noexcept;
