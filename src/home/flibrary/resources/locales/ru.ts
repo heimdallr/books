@@ -25,6 +25,24 @@
     </message>
 </context>
 <context>
+    <name>BookContextMenu</name>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="14"/>
+        <source>Send to device</source>
+        <translation>Отправить на устройство</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
+        <source>Remove book</source>
+        <translation>Удалить книгу</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
+        <source>Restore book</source>
+        <translation>Восстановить книгу</translation>
+    </message>
+</context>
+<context>
     <name>Collection</name>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="16"/>

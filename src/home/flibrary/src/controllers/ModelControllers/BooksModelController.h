@@ -22,6 +22,15 @@ class BooksModelController
 	: public ModelController
 {
 	NON_COPY_MOVABLE(BooksModelController)
+	Q_OBJECT
+
+public:
+	Q_INVOKABLE bool RemoveAvailable(long long id) const;
+	Q_INVOKABLE bool RestoreAvailable(long long id) const;
+	Q_INVOKABLE void Remove(long long id);
+	Q_INVOKABLE void Restore(long long id);
+	Q_INVOKABLE void Save(const QString & path, long long id);
+
 public:
 	BooksModelController(Util::Executor & executor, DB::Database & db, BooksViewType booksViewType);
 	~BooksModelController() override;

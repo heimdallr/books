@@ -95,6 +95,7 @@ public:
 		qRegisterMetaType<QSystemTrayIcon::ActivationReason>("ActivationReason");
 		qRegisterMetaType<QAbstractItemModel *>("QAbstractItemModel*");
 		qRegisterMetaType<ModelController *>("ModelController*");
+		qRegisterMetaType<BooksModelController *>("BooksModelController*");
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
 
 		m_qmlEngine.load("qrc:/Main.qml");
@@ -137,7 +138,13 @@ public:
 		return controller.get();
 	}
 
-	ModelController * GetBooksModelController(const BooksViewType type) noexcept
+	BooksModelController * GetBooksModelController() noexcept
+	{
+		assert(m_booksModelController);
+		return m_booksModelController.get();
+	}
+
+	BooksModelController * GetBooksModelController(const BooksViewType type)
 	{
 		if (m_booksViewType == type)
 			return m_booksModelController.get();
@@ -309,14 +316,19 @@ ModelController * GuiController::GetNavigationModelControllerGenres()
 	return m_impl->GetNavigationModelController(NavigationSource::Genres);
 }
 
-ModelController * GuiController::GetBooksModelControllerList()
+BooksModelController * GuiController::GetBooksModelControllerList()
 {
 	return m_impl->GetBooksModelController(BooksViewType::List);
 }
 
-ModelController * GuiController::GetBooksModelControllerTree()
+BooksModelController * GuiController::GetBooksModelControllerTree()
 {
 	return m_impl->GetBooksModelController(BooksViewType::Tree);
+}
+
+BooksModelController * GuiController::GetBooksModelController()
+{
+	return m_impl->GetBooksModelController();
 }
 
 bool GuiController::GetOpened() const noexcept

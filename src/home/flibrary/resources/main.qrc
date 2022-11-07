@@ -26,6 +26,7 @@
 		<file alias="BooksListView.qml">../src/ui/qml/books/BooksListView.qml</file>
 		<file alias="BooksTreeView.qml">../src/ui/qml/books/BooksTreeView.qml</file>
 		<file alias="LanguageFilter.qml">../src/ui/qml/books/LanguageFilter.qml</file>
+		<file alias="BookContextMenu.qml">../src/ui/qml/books/BookContextMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="Core">

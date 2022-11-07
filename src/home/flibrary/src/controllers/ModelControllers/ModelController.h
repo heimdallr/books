@@ -20,6 +20,7 @@ class ModelController
 {
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
+
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE UpdateCurrentIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)

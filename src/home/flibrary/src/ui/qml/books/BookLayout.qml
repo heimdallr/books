@@ -91,8 +91,25 @@ Item
 
 		MouseArea
 		{
+			BookContextMenu
+			{
+				id: bookContextMenuID
+			}
+
 			anchors.fill: parent
-			onClicked: Click = true
+			acceptedButtons: Qt.LeftButton | Qt.RightButton
+			onClicked: (mouse)=>
+			{
+				if (mouse.button == Qt.LeftButton)
+				{
+					Click = true
+				}
+				else
+				{
+					bookContextMenuID.bookId = Id
+					bookContextMenuID.popup()
+				}
+			}
 		}
 	}
 }

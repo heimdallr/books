@@ -11,6 +11,7 @@ namespace HomeCompa::Flibrary {
 
 class AnnotationController;
 class ModelController;
+class BooksModelController;
 
 class GuiController
 	: public QObject
@@ -31,8 +32,9 @@ public:
 	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
-	Q_INVOKABLE ModelController * GetBooksModelControllerList();
-	Q_INVOKABLE ModelController * GetBooksModelControllerTree();
+	Q_INVOKABLE BooksModelController * GetBooksModelControllerList();
+	Q_INVOKABLE BooksModelController * GetBooksModelControllerTree();
+	Q_INVOKABLE BooksModelController * GetBooksModelController();
 
 signals:
 	void OpenedChanged() const;

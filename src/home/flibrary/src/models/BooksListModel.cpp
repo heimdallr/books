@@ -19,6 +19,7 @@ public:
 	Model(Books & items, QSortFilterProxyModel & proxyModel)
 		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
 	{
+		AddReadableRole(Role::Id, &Book::Id);
 		AddReadableRole(Role::Title, &Book::Title);
 #define	BOOK_ROLE_ITEM(NAME) AddReadableRole(Role::NAME, &Book::NAME);
 		BOOK_ROLE_ITEMS_XMACRO
