@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 1.4
 import QtQuick.Dialogs 1.1
 
+import "qrc:/Core"
 import "qrc:/Dialogs"
 
 Menu
@@ -28,46 +29,23 @@ Menu
         onTriggered: addCollectionID.show()
     }
 
-	ExclusiveGroup
-	{
-		id: exclusiveGroupID
-	}
-
-    Menu
+	DynamicMenu
 	{
 		id: collectionsMenuID
 
-		readonly property string currentCollectionId: collectionController.currentCollectionId
+		readonly property string currentId: collectionController.currentCollectionId
 
         title: qsTranslate("Tray", "Select collection")
 
-		enabled: false
-
-		Instantiator
+		model: collectionController.GetModel()
+		delegate: MenuItem
 		{
-			model: collectionController.GetModel()
-			MenuItem
-			{
-				text: Title
-				checkable: true
-				checked: Value === collectionsMenuID.currentCollectionId
-				exclusiveGroup: exclusiveGroupID
-				onTriggered: collectionController.currentCollectionId = Value
-			}
-
-			onObjectAdded:
-			{
-				collectionsMenuID.insertItem(index, object)
-				collectionsMenuID.enabled = true
-			}
-			onObjectRemoved:
-			{
-				collectionsMenuID.removeItem(object)
-				if (collectionsMenuID.items.count == 0)
-					collectionsMenuID.enabled = false
-			}
+			text: Title
+			checked: Value === collectionsMenuID.currentId
+			onTriggered: if (Value !== collectionsMenuID.currentId)
+				collectionController.currentCollectionId = Value
 		}
-    }
+	}
 
     MenuItem
 	{

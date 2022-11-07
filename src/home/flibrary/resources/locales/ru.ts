@@ -27,12 +27,12 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="16"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="21"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="18"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
@@ -58,8 +58,8 @@ Restart now?</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="14"/>
-        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="20"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation>Внимание</translation>
     </message>
@@ -133,22 +133,22 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="9"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="10"/>
         <source>Collections</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="27"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="28"/>
         <source>Add new collection...</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="42"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="38"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="53"/>
         <source>Remove collection</source>
         <translation>Удалить коллекцию</translation>
     </message>
@@ -183,7 +183,7 @@ Restart now?</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="8"/>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="10"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
