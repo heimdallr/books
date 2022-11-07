@@ -54,9 +54,8 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 }
 
 class GuiController::Impl
-	: virtual public ModelControllerObserver
-	, virtual BooksModelControllerObserver
-	, virtual LanguageProvider
+	: virtual ModelControllerObserver
+	, LocaleController::LanguageProvider
 {
 	NON_COPY_MOVABLE(Impl)
 public:
@@ -76,7 +75,7 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
-			m_booksModelController->UnregisterObserver(this);
+			m_booksModelController->UnregisterObserver(m_localeController.GetBooksModelControllerObserver());
 		}
 	}
 
@@ -146,14 +145,14 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
-			m_booksModelController->UnregisterObserver(this);
+			m_booksModelController->UnregisterObserver(m_localeController.GetBooksModelControllerObserver());
 		}
 
 		m_booksViewType = type;
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, type)).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
-		m_booksModelController->RegisterObserver(this);
+		m_booksModelController->RegisterObserver(m_localeController.GetBooksModelControllerObserver());
 		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
@@ -201,24 +200,13 @@ private: // ModelControllerObserver
 			setFocus(m_booksModelController.get());
 	}
 
-private: //BooksModelControllerObserver
-	void HandleBookChanged(const std::string & /*folder*/, const std::string & /*file*/) override
-	{
-	}
-
-	void HandleModelReset() override
-	{
-		m_preventSetLanguageFilter = true;
-		emit m_localeController.LanguagesChanged();
-		m_preventSetLanguageFilter = false;
-	}
-
-private: // LanguageProvider
+private: // SettingsProvider
 	Settings & GetSettings() override
 	{
 		return m_settings;
 	}
 
+private: // LocaleController::LanguageProvider
 	QStringList GetLanguages() override
 	{
 		return m_booksModelController ? m_booksModelController->GetModel()->data({}, BookRole::Languages).toStringList() : QStringList {};
@@ -231,7 +219,7 @@ private: // LanguageProvider
 
 	void SetLanguage(const QString & language) override
 	{
-		if (m_booksModelController && !m_preventSetLanguageFilter)
+		if (m_booksModelController)
 			m_booksModelController->GetModel()->setData({}, language, BookRole::Language);
 	}
 
@@ -284,7 +272,6 @@ private:
 
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
-	bool m_preventSetLanguageFilter { false };
 
 	Settings m_settings { "HomeCompa", "Flibrary" };
 	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };

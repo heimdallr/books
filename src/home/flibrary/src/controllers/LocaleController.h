@@ -5,21 +5,15 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "SettingsProvider.h"
+
 namespace HomeCompa {
 class Settings;
 }
 
 namespace HomeCompa::Flibrary {
 
-class LanguageProvider
-{
-public:
-	virtual ~LanguageProvider() = default;
-	virtual Settings & GetSettings() = 0;
-	virtual QStringList GetLanguages() = 0;
-	virtual QString GetLanguage() = 0;
-	virtual void SetLanguage(const QString & language) = 0;
-};
+class BooksModelControllerObserver;
 
 class LocaleController
 	: public QObject
@@ -37,8 +31,20 @@ signals:
 	void LocaleChanged() const;
 
 public:
+	class LanguageProvider
+		: virtual public SettingsProvider
+	{
+	public:
+		virtual QStringList GetLanguages() = 0;
+		virtual QString GetLanguage() = 0;
+		virtual void SetLanguage(const QString & language) = 0;
+	};
+
+public:
 	explicit LocaleController(LanguageProvider & languageProvider, QObject * parent = nullptr);
 	~LocaleController() override;
+
+	BooksModelControllerObserver * GetBooksModelControllerObserver();
 
 private: // property getters
 	QString GetLanguage();
