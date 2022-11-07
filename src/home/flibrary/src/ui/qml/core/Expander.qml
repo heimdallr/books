@@ -9,9 +9,12 @@ Item
 
 	Image
 	{
+		id: imageID
 		anchors.fill: parent
 		fillMode: Image.PreserveAspectFit
-		source: ("qrc:/icons/expander/%1.png").arg(expanded ? "minus" : "plus")
+		source: "qrc:/icons/expander.png"
+		transformOrigin: Item.Center
+		rotation: expanded ? 90 : 0
 	}
 
 	MouseArea
