@@ -14,7 +14,7 @@
 #include "database/interface/Query.h"
 
 #include "models/Book.h"
-#include "models/RoleBase.h"
+#include "models/BookRole.h"
 
 #include "util/executor.h"
 
@@ -25,7 +25,7 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-using Role = RoleBase;
+using Role = BookRole;
 
 constexpr auto QUERY =
 "select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.IsDeleted "
@@ -500,15 +500,15 @@ bool BooksModelController::RestoreAvailable(const long long id) const
 	return RemoveRestoreAvailableImpl(m_impl->books, id, true);
 }
 
-void BooksModelController::Remove(long long /*id*/)
+void BooksModelController::Remove(long long id)
 {
 }
 
-void BooksModelController::Restore(long long /*id*/)
+void BooksModelController::Restore(long long id)
 {
 }
 
-void BooksModelController::Save(const QString & /*path*/, long long /*id*/)
+void BooksModelController::Save(QString path, long long id)
 {
 }
 

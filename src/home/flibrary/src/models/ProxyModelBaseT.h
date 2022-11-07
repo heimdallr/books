@@ -21,7 +21,7 @@ protected:
 	using RoleGetter = std::function<QVariant(const Item &)>;
 
 protected:
-	explicit ProxyModelBaseT(QSortFilterProxyModel & proxyModel, Items & items)
+	ProxyModelBaseT(QSortFilterProxyModel & proxyModel, Items & items)
 		: m_proxyModel(proxyModel)
 		, m_items(items)
 		, m_roleNames(QAbstractListModel::roleNames())

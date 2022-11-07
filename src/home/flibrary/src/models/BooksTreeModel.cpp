@@ -5,34 +5,26 @@
 
 #include "fnd/algorithm.h"
 
-#include "Book.h"
-#include "BookRole.h"
-#include "ModelObserver.h"
-#include "ProxyModelBaseT.h"
+#include "BookModelBase.h"
 
 namespace HomeCompa::Flibrary {
 
 namespace {
 
 class Model final
-	: public ProxyModelBaseT<Book, BookRole, ModelObserver>
+	: public BookModelBase
 {
 public:
 	Model(Books & items, QSortFilterProxyModel & proxyModel)
-		: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
+		: BookModelBase(proxyModel, items)
 	{
-		AddReadableRole(Role::Id, &Book::Id);
-		AddReadableRole(Role::Title, &Book::Title);
-#define	BOOK_ROLE_ITEM(NAME) AddReadableRole(Role::NAME, &Book::NAME);
-		BOOK_ROLE_ITEMS_XMACRO
-#undef	BOOK_ROLE_ITEM
 	}
 
 public: // ProxyModelBaseT
 	bool FilterAcceptsRow(const int row, const QModelIndex & /*parent*/) const override
 	{
 		return true
-			&& FilterAcceptsRowIgnoreExpanded(row)
+			&& BookModelBase::FilterAcceptsRow(row)
 			&& [&items = m_items] (size_t index)
 				{
 					while (true)
@@ -63,7 +55,7 @@ private: // ProxyModelBaseT
 				break;
 		}
 
-		return ProxyModelBaseT<Item, Role, Observer>::GetDataLocal(index, role, item);
+		return BookModelBase::GetDataLocal(index, role, item);
 	}
 
 	bool SetDataLocal(const QModelIndex & index, const QVariant & value, int role, Item & item) override
@@ -115,32 +107,20 @@ private: // ProxyModelBaseT
 				break;
 		}
 
-		return ProxyModelBaseT<Item, Role, Observer>::SetDataLocal(index, value, role, item);
+		return BookModelBase::SetDataLocal(index, value, role, item);
 	}
 
 	QVariant GetDataGlobal(const int role) const override
 	{
 		switch (role)
 		{
-			case Role::Language:
-				return m_languageFilter;
-
-			case Role::Languages:
-			{
-				std::set<QString> uniqueLanguages = GetLanguages();
-				QStringList result { {} };
-				result.reserve(static_cast<int>(std::size(uniqueLanguages)));
-				std::ranges::copy(uniqueLanguages, std::back_inserter(result));
-				return result;
-			}
-
 			case Role::Count:
 				return std::ranges::count_if(m_items, [&, n = 0](const Item & item) mutable
 				{
 					if (item.IsDictionary)
 						return ++n, false;
 
-					return FilterAcceptsRowIgnoreExpanded(n++);
+					return BookModelBase::FilterAcceptsRow(n++);
 				});
 
 
@@ -148,39 +128,10 @@ private: // ProxyModelBaseT
 				break;
 		}
 
-		return ProxyModelBaseT<Item, Role, Observer>::GetDataGlobal(role);
-	}
-
-	bool SetDataGlobal(const QVariant & value, int role) override
-	{
-		switch (role)
-		{
-			case Role::ShowDeleted:
-				return Util::Set(m_showDeleted, value.toBool(), *this, &Model::Invalidate);
-
-			case Role::Language:
-				m_languageFilter = value.toString();
-				Invalidate();
-				return true;
-
-			default:
-				break;
-		}
-
-		return ProxyModelBaseT<Item, Role, Observer>::SetDataGlobal(value, role);
+		return BookModelBase::GetDataGlobal(role);
 	}
 
 private:
-	bool FilterAcceptsRowIgnoreExpanded(const int row, const QModelIndex & parent = {}) const
-	{
-		const auto & item = GetItem(row);
-		return true
-			&& ProxyModelBaseT<Item, Role, Observer>::FilterAcceptsRow(row, parent)
-			&& (m_showDeleted || !item.IsDeleted)
-			&& (m_languageFilter.isEmpty() || item.IsDictionary ? item.Lang.contains(m_languageFilter) : item.Lang == m_languageFilter)
-			;
-	}
-
 	int ChildrenCheckedState(const int row) const
 	{
 		bool checked = false, unchecked = false;
@@ -270,8 +221,7 @@ private:
 
 	void Reset() override
 	{
-		if (!GetLanguages().contains(m_languageFilter))
-			m_languageFilter.clear();
+		BookModelBase::Reset();
 
 		m_children.clear();
 		m_children.resize(std::size(m_items));
@@ -280,20 +230,8 @@ private:
 				m_children[m_items[i].ParentId].push_back(i);
 	}
 
-	std::set<QString> GetLanguages() const
-	{
-		std::set<QString> uniqueLanguages;
-		for (const auto & item : m_items)
-			if (!item.IsDictionary)
-				uniqueLanguages.insert(item.Lang);
-
-		return uniqueLanguages;
-	}
-
 private:
 	std::vector<std::vector<size_t>> m_children;
-	bool m_showDeleted { false };
-	QString m_languageFilter;
 };
 
 class ProxyModel final : public QSortFilterProxyModel

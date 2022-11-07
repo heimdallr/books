@@ -41,5 +41,3 @@ public:
 
 	Q_ENUM(Value)
 };
-
-}
