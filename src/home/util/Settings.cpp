@@ -56,15 +56,25 @@ void Settings::Remove(const QString & key)
 	m_impl->settings.remove(key);
 }
 
+void Settings::BeginGroup(const QString & group)
+{
+	m_impl->settings.beginGroup(group);
+}
+
+void Settings::EndGroup()
+{
+	m_impl->settings.endGroup();
+}
+
 SettingsGroup::SettingsGroup(Settings & settings, const QString & group)
 	: m_settings(settings)
 {
-	m_settings.m_impl->settings.beginGroup(group);
+	m_settings.BeginGroup(group);
 }
 
 SettingsGroup::~SettingsGroup()
 {
-	m_settings.m_impl->settings.endGroup();
+	m_settings.EndGroup();
 }
 
 }

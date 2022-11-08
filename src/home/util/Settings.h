@@ -9,11 +9,8 @@
 
 namespace HomeCompa {
 
-class SettingsGroup;
 class UTIL_API Settings
 {
-	friend class SettingsGroup;
-
 public:
 	Settings(const QString & organization, const QString & application);
 	~Settings();
@@ -29,6 +26,9 @@ public:
 	QStringList GetGroups() const;
 
 	void Remove(const QString & key);
+
+	void BeginGroup(const QString & group);
+	void EndGroup();
 
 private:
 	struct Impl;
