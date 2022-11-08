@@ -38,8 +38,8 @@
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
-        <source>Restore book</source>
-        <translation>Восстановить книгу</translation>
+        <source>Undo book deletion</source>
+        <translation>Отменить удаление книги</translation>
     </message>
 </context>
 <context>

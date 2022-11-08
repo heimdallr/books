@@ -30,7 +30,7 @@ Menu
 	MenuItem
 	{
 		id: restoreID
-		text: qsTranslate("BookContextMenu", "Restore book")
+		text: qsTranslate("BookContextMenu", "Undo book deletion")
         onTriggered: controller.Restore(menuID.bookId)
 	}
 
