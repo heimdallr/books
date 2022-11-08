@@ -40,8 +40,19 @@ public:
 		RestoreAvailable,
 		Remove,
 		Restore,
+		Save,
 		FakeBookRoleLast
 	};
 
 	Q_ENUM(Value)
 };
+
+struct SaveSettings
+{
+	QString path;
+	long long id;
+};
+
+}
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::SaveSettings);
