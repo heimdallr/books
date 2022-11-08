@@ -440,9 +440,14 @@ struct BooksModelController::Impl
 
 			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
 			settings.BeginGroup(Constant::BOOKS);
+			auto folders = settings.GetGroups();
+			const std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
 			const QString IsDeleted = Constant::IS_DELETED;
 			for (auto & item : items)
 			{
+				if (!foldersSet.contains(item.Folder))
+					continue;
+
 				SettingsGroup folderGroup(settings, item.Folder);
 				SettingsGroup fileGroup(settings, item.FileName);
 				item.IsDeleted = settings.Get(IsDeleted, item.IsDeleted ? 1 : 0).toInt();
