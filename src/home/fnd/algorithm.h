@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace HomeCompa::Util {
 
 template
@@ -28,7 +30,7 @@ static bool Set(T & dst, const T & value, const Obj & obj, const Signal signal)
 		return false;
 
 	dst = value;
-	emit (obj.*signal)();
+	(obj.*signal)();
 	return true;
 }
 
