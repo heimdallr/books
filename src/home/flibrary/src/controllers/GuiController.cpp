@@ -26,6 +26,8 @@
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
 
+#include "constants/ProductConstant.h"
+
 #include "AnnotationController.h"
 #include "Collection.h"
 #include "CollectionController.h"
@@ -49,6 +51,13 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
 	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
 	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, connectionString));
+}
+
+auto CreateUiSettings()
+{
+	auto settings = std::make_unique<Settings>(Constant::COMPANY_ID, Constant::PRODUCT_ID);
+	settings->BeginGroup("ui");
+	return settings;
 }
 
 }
@@ -273,8 +282,8 @@ private:
 	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
 
-	Settings m_settings { "HomeCompa", "Flibrary" };
-	UiSettings m_uiSettings { std::make_unique<Settings>("HomeCompa", "Flibrary\\ui") };
+	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
+	UiSettings m_uiSettings { CreateUiSettings() };
 	QString m_title;
 
 	NavigationSourceProvider m_navigationSourceProvider;
