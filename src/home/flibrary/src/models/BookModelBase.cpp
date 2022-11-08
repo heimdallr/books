@@ -51,37 +51,6 @@ bool RemoveRestoreAvailableImpl(const Books & books, const long long id, const b
 	return flag ? removedFound : notRemovedFound;
 }
 
-bool RemoveImpl(Books & books, const long long id, Settings & settings, QAbstractItemModel & model, bool remove)
-{
-	std::set<int> changed;
-	for (size_t i = 0, sz = std::size(books); i < sz; ++i)
-	{
-		if (books[i].Checked)
-			changed.emplace(static_cast<int>(i));
-	}
-	if (changed.empty())
-		if (const auto it = std::ranges::find_if(std::as_const(books), [id](const Book & book){ return book.Id == id; }); it != std::cend(books))
-			changed.emplace(static_cast<int>(std::distance(std::cbegin(books), it)));
-
-	for (const auto & range : Util::CreateRanges(changed))
-	{
-		for (auto i = range.first; i < range.second; ++i)
-		{
-			auto & item = books[i];
-			assert(item.IsDeleted != remove);
-			item.IsDeleted = remove;
-
-			SettingsGroup folderGroup(settings, item.Folder);
-			SettingsGroup fileGroup(settings, item.FileName);
-			settings.Set(Constant::IS_DELETED, item.IsDeleted ? 1 : 0);
-		}
-
-		emit model.dataChanged(model.index(range.first, 0), model.index(range.second - 1, 0), { BookRole::IsDeleted });
-	}
-
-	return true;
-}
-
 }
 
 struct BookModelBase::Impl
@@ -157,7 +126,7 @@ bool BookModelBase::SetDataGlobal(const QVariant & value, const int role)
 
 		case Role::Remove:
 		case Role::Restore:
-			return RemoveImpl(m_items, value.toLongLong(), m_impl->settings, *this, role == Role::Remove);
+			return RemoveImpl(value.toLongLong(), role == Role::Remove);
 
 		case Role::Save:
 		default:
@@ -171,6 +140,39 @@ void BookModelBase::Reset()
 {
 	if (!GetLanguages(m_items).contains(m_languageFilter))
 		m_languageFilter.clear();
+}
+
+bool BookModelBase::RemoveImpl(const long long id, const bool remove)
+{
+	std::set<int> changed;
+	for (size_t i = 0, sz = std::size(m_items); i < sz; ++i)
+	{
+		if (m_items[i].Checked)
+			changed.emplace(static_cast<int>(i));
+	}
+	if (changed.empty())
+		if (const auto it = std::ranges::find_if(std::as_const(m_items), [id] (const Book & book) { return book.Id == id; }); it != std::cend(m_items))
+			changed.emplace(static_cast<int>(std::distance(std::cbegin(m_items), it)));
+
+	for (const auto & range : Util::CreateRanges(changed))
+	{
+		for (auto i = range.first; i < range.second; ++i)
+		{
+			auto & item = m_items[i];
+			assert(item.IsDeleted != remove);
+			item.IsDeleted = remove;
+
+			SettingsGroup folderGroup(m_impl->settings, item.Folder);
+			SettingsGroup fileGroup(m_impl->settings, item.FileName);
+			m_impl->settings.Set(Constant::IS_DELETED, item.IsDeleted ? 1 : 0);
+
+			Perform(&ModelObserver::HandleBookRemoved, std::cref(item));
+		}
+
+		emit dataChanged(index(range.first, 0), index(range.second - 1, 0), { BookRole::IsDeleted });
+	}
+
+	return true;
 }
 
 }

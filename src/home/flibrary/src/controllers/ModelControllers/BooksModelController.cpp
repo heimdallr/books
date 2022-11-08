@@ -1,4 +1,6 @@
 #include <set>
+#include <shared_mutex>
+#include <unordered_set>
 
 #include <QAbstractItemModel>
 #include <QPointer>
@@ -46,6 +48,9 @@ constexpr auto QUERY =
 constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
+
+std::unordered_set<QString> g_folders;
+std::shared_mutex g_guardFolders;
 
 using Binder = int(*)(DB::Query &, const QString &);
 int BindInt(DB::Query & query, const QString & id)
@@ -437,22 +442,67 @@ struct BooksModelController::Impl
 		m_executor([&, navigationSource = m_navigationSource, navigationId = m_navigationId]
 		{
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
-
 			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
 			settings.BeginGroup(Constant::BOOKS);
-			auto folders = settings.GetGroups();
-			const std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
-			const QString IsDeleted = Constant::IS_DELETED;
-			for (auto & item : items)
-			{
-				if (!foldersSet.contains(item.Folder))
-					continue;
 
-				SettingsGroup folderGroup(settings, item.Folder);
-				SettingsGroup fileGroup(settings, item.FileName);
-				item.IsDeleted = settings.Get(IsDeleted, item.IsDeleted ? 1 : 0).toInt();
+			if ([]
+			{
+				std::shared_lock r(g_guardFolders);
+				return g_folders.empty();
+			}())
+			{
+				auto folders = settings.GetGroups();
+				std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
+				std::unique_lock w(g_guardFolders);
+				foldersSet.swap(g_folders);
 			}
 
+			std::vector<QString> toRemove;
+			{
+				std::shared_lock r(g_guardFolders);
+				const QString IsDeleted = Constant::IS_DELETED;
+				for (auto & item : items)
+				{
+					if (!g_folders.contains(item.Folder))
+						continue;
+
+					bool keyRemoved = false;
+					{
+						SettingsGroup folderGroup(settings, item.Folder);
+						if (settings.HasGroup(item.FileName))
+						{
+							SettingsGroup fileGroup(settings, item.FileName);
+							if (settings.HasKey(IsDeleted))
+							{
+								if (const bool isDeleted = settings.Get(IsDeleted, item.IsDeleted ? 1 : 0).toInt(); isDeleted != item.IsDeleted)
+								{
+									item.IsDeleted = isDeleted;
+								}
+								else
+								{
+									settings.Remove(IsDeleted);
+									keyRemoved = settings.GetKeys().isEmpty();
+								}
+							}
+						}
+						if (keyRemoved)
+						{
+							settings.Remove(item.FileName);
+							keyRemoved = settings.GetGroups().isEmpty();
+						}
+					}
+					if (keyRemoved)
+					{
+						settings.Remove(item.Folder);
+						toRemove.push_back(item.Folder);
+					}
+				}
+			}
+			{
+				std::unique_lock w(g_guardFolders);
+				for (const auto & folder : toRemove)
+					g_folders.erase(folder);
+			}
 			return[&, items = std::move(items)]() mutable
 			{
 				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
@@ -545,6 +595,12 @@ bool BooksModelController::SetCurrentIndex(const int index)
 		m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, book.Folder.toStdString(), book.FileName.toStdString());
 
 	return ModelController::SetCurrentIndex(index);
+}
+
+void BooksModelController::OnBookRemoved(const Book & book)
+{
+	std::unique_lock w(g_guardFolders);
+	g_folders.insert(book.Folder);
 }
 
 }

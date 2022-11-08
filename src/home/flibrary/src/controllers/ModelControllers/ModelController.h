@@ -14,6 +14,7 @@ class Database;
 namespace HomeCompa::Flibrary {
 
 class ModelControllerObserver;
+struct Book;
 
 class ModelController
 	: public QObject
@@ -70,6 +71,7 @@ private: // property setters
 protected:
 	virtual QAbstractItemModel * CreateModel() = 0;
 	virtual bool SetCurrentIndex(int index);
+	virtual void OnBookRemoved(const Book & /*book*/) { }
 
 private:
 	struct Impl;

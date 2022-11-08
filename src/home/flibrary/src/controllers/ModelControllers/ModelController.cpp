@@ -155,6 +155,11 @@ private: // ModelObserver
 		emit m_self.CountChanged();
 	}
 
+	void HandleBookRemoved(const Book & book) override
+	{
+		m_self.OnBookRemoved(book);
+	}
+
 private:
 	int IncreaseNavigationIndex(const int increment)
 	{

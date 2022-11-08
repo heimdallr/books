@@ -43,6 +43,7 @@ private: // ModelController
 	Type GetType() const noexcept override;
 	QAbstractItemModel * CreateModel() override;
 	bool SetCurrentIndex(int index) override;
+	void OnBookRemoved(const Book & book) override;
 
 private:
 	struct Impl;

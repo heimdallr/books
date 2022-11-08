@@ -25,6 +25,9 @@ protected: // ProxyModelBaseT
 	bool SetDataGlobal(const QVariant & value, int role) override;
 	void Reset() override;
 
+private:
+	bool RemoveImpl(long long id, bool remove);
+
 protected:
 	bool m_showDeleted { false };
 	QString m_languageFilter;

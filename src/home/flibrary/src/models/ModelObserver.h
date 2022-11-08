@@ -6,6 +6,8 @@
 
 namespace HomeCompa::Flibrary {
 
+struct Book;
+
 class ModelObserver : public Observer
 {
 public:
@@ -15,6 +17,7 @@ public:
 	virtual void HandleModelItemFound(int index) = 0;
 	virtual void HandleItemClicked(int index) = 0;
 	virtual void HandleInvalidated() = 0;
+	virtual void HandleBookRemoved(const Book & book) = 0;
 };
 
 }
