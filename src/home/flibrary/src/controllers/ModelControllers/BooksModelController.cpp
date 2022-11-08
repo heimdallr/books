@@ -7,6 +7,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
+#include "constants/ProductConstant.h"
+
 #include "controllers/ModelControllers/BooksViewType.h"
 #include "controllers/ModelControllers/NavigationSource.h"
 
@@ -17,6 +19,7 @@
 #include "models/BookRole.h"
 
 #include "util/executor.h"
+#include "util/Settings.h"
 
 #include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
@@ -434,6 +437,17 @@ struct BooksModelController::Impl
 		m_executor([&, navigationSource = m_navigationSource, navigationId = m_navigationId]
 		{
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
+
+			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
+			settings.BeginGroup(Constant::BOOKS);
+			const QString IsDeleted = Constant::IS_DELETED;
+			for (auto & item : items)
+			{
+				SettingsGroup folderGroup(settings, item.Folder);
+				SettingsGroup fileGroup(settings, item.FileName);
+				item.IsDeleted = settings.Get(IsDeleted, item.IsDeleted ? 1 : 0).toInt();
+			}
+
 			return[&, items = std::move(items)]() mutable
 			{
 				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
@@ -476,10 +490,12 @@ bool BooksModelController::RestoreAvailable(const long long id)
 
 void BooksModelController::Remove(long long id)
 {
+	(void)GetCurrentModel()->setData({}, id, Role::Remove);
 }
 
 void BooksModelController::Restore(long long id)
 {
+	(void)GetCurrentModel()->setData({}, id, Role::Restore);
 }
 
 void BooksModelController::Save(QString path, long long id)

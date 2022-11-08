@@ -1,5 +1,11 @@
 #include <set>
 
+#include "constants/ProductConstant.h"
+
+#include "fnd/algorithm.h"
+
+#include "util/Settings.h"
+
 #include "BookModelBase.h"
 
 namespace HomeCompa::Flibrary {
@@ -45,7 +51,48 @@ bool RemoveRestoreAvailableImpl(const Books & books, const long long id, const b
 	return flag ? removedFound : notRemovedFound;
 }
 
+bool RemoveImpl(Books & books, const long long id, Settings & settings, QAbstractItemModel & model, bool remove)
+{
+	std::set<int> changed;
+	for (size_t i = 0, sz = std::size(books); i < sz; ++i)
+	{
+		if (books[i].Checked)
+			changed.emplace(static_cast<int>(i));
+	}
+	if (changed.empty())
+		if (const auto it = std::ranges::find_if(std::as_const(books), [id](const Book & book){ return book.Id == id; }); it != std::cend(books))
+			changed.emplace(static_cast<int>(std::distance(std::cbegin(books), it)));
+
+	for (const auto & range : Util::CreateRanges(changed))
+	{
+		for (auto i = range.first; i < range.second; ++i)
+		{
+			auto & item = books[i];
+			assert(item.IsDeleted != remove);
+			item.IsDeleted = remove;
+
+			SettingsGroup folderGroup(settings, item.Folder);
+			SettingsGroup fileGroup(settings, item.FileName);
+			settings.Set(Constant::IS_DELETED, item.IsDeleted ? 1 : 0);
+		}
+
+		emit model.dataChanged(model.index(range.first, 0), model.index(range.second - 1, 0), { BookRole::IsDeleted });
+	}
+
+	return true;
 }
+
+}
+
+struct BookModelBase::Impl
+{
+	Impl()
+	{
+		settings.BeginGroup(Constant::BOOKS);
+	}
+
+	Settings settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
+};
 
 BookModelBase::BookModelBase(QSortFilterProxyModel & proxyModel, Items & items)
 	: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
@@ -56,6 +103,8 @@ BookModelBase::BookModelBase(QSortFilterProxyModel & proxyModel, Items & items)
 		BOOK_ROLE_ITEMS_XMACRO
 #undef	BOOK_ROLE_ITEM
 }
+
+BookModelBase::~BookModelBase() = default;
 
 bool BookModelBase::FilterAcceptsRow(const int row, const QModelIndex & parent) const
 {
@@ -105,6 +154,10 @@ bool BookModelBase::SetDataGlobal(const QVariant & value, const int role)
 		case Role::RemoveAvailable:
 		case Role::RestoreAvailable:
 			return RemoveRestoreAvailableImpl(m_items, value.toLongLong(), role == Role::RestoreAvailable);
+
+		case Role::Remove:
+		case Role::Restore:
+			return RemoveImpl(m_items, value.toLongLong(), m_impl->settings, *this, role == Role::Remove);
 
 		default:
 			break;

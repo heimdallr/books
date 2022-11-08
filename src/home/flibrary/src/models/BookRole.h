@@ -38,6 +38,8 @@ public:
 		Languages,
 		RemoveAvailable,
 		RestoreAvailable,
+		Remove,
+		Restore,
 		FakeBookRoleLast
 	};
 
