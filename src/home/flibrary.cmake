@@ -37,6 +37,7 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QRC
@@ -72,8 +73,11 @@ AddTarget(
 		Util
 		ziplib
 		zlib
+		plog
 	MODULES
 		qt
+	COMPILE_DEFINITIONS
+		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
 )

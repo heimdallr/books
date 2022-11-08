@@ -39,6 +39,7 @@ include("src/ext/MyHomeLib.cmake")
 include("src/ext/fmt.cmake")
 include("src/ext/SimpleSaxParser.cmake")
 
+include("src/home/plog.cmake")
 include("src/home/fnd.cmake")
 include("src/home/util.cmake")
 include("src/home/database.cmake")

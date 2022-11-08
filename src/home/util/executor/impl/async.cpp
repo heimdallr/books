@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include "fnd/NonCopyMovable.h"
+#include "plog/Log.h"
 
 #include "executor.h"
 #include "FunctorExecutionForwarder.h"
@@ -87,7 +88,9 @@ private:
 			}();
 
 			m_forwarder.Forward(m_initializer.beforeExecute);
+			PLOGD << "Task started";
 			auto taskResult = task();
+			PLOGD << "Task finished";
 			m_forwarder.Forward(std::move(taskResult));
 			m_forwarder.Forward(m_initializer.afterExecute);
 		}
