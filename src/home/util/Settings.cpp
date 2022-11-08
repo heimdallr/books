@@ -29,6 +29,7 @@ QVariant Settings::Get(const QString & key, const QVariant & defaultValue) const
 void Settings::Set(const QString & key, const QVariant & value)
 {
 	m_impl->settings.setValue(key, value);
+	m_impl->settings.sync();
 }
 
 bool Settings::HasKey(const QString & key) const
@@ -54,6 +55,7 @@ QStringList Settings::GetGroups() const
 void Settings::Remove(const QString & key)
 {
 	m_impl->settings.remove(key);
+	m_impl->settings.sync();
 }
 
 void Settings::BeginGroup(const QString & group)
