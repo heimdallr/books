@@ -44,32 +44,6 @@ constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 
-bool RemoveRestoreAvailableImpl(const Books & books, const long long id, const bool flag)
-{
-	bool removedFound = false, notRemovedFound = false;
-	for (const auto & book : books)
-	{
-		if (book.Checked && !book.IsDictionary)
-		{
-			(book.IsDeleted ? removedFound : notRemovedFound) = true;
-			if (removedFound && notRemovedFound)
-				return false;
-		}
-	}
-
-	if (!(removedFound || notRemovedFound))
-	{
-		const auto it = std::ranges::find_if(books, [id] (const Book & book) { return book.Id == id; });
-		return true
-			&& it != std::cend(books)
-			&& !it->IsDictionary
-			&& it->IsDeleted == flag
-			;
-	}
-
-	return flag ? removedFound : notRemovedFound;
-}
-
 using Binder = int(*)(DB::Query &, const QString &);
 int BindInt(DB::Query & query, const QString & id)
 {
@@ -490,14 +464,14 @@ BooksModelController::BooksModelController(Util::Executor & executor, DB::Databa
 
 BooksModelController::~BooksModelController() = default;
 
-bool BooksModelController::RemoveAvailable(const long long id) const
+bool BooksModelController::RemoveAvailable(const long long id)
 {
-	return RemoveRestoreAvailableImpl(m_impl->books, id, false);
+	return GetCurrentModel()->setData({}, id, Role::RemoveAvailable);
 }
 
-bool BooksModelController::RestoreAvailable(const long long id) const
+bool BooksModelController::RestoreAvailable(const long long id)
 {
-	return RemoveRestoreAvailableImpl(m_impl->books, id, true);
+	return GetCurrentModel()->setData({}, id, Role::RestoreAvailable);
 }
 
 void BooksModelController::Remove(long long id)

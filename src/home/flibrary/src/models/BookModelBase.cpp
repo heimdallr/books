@@ -16,6 +16,35 @@ std::set<QString> GetLanguages(const Books & books)
 	return uniqueLanguages;
 }
 
+bool RemoveRestoreAvailableImpl(const Books & books, const long long id, const bool flag)
+{
+	bool removedFound = false, notRemovedFound = false;
+	for (const auto & book : books)
+	{
+		if (book.Checked && !book.IsDictionary)
+		{
+			(book.IsDeleted ? removedFound : notRemovedFound) = true;
+			if (removedFound && notRemovedFound)
+				return false;
+		}
+	}
+
+	if (!(removedFound || notRemovedFound))
+	{
+		const auto it = std::ranges::find_if(books, [id] (const Book & book)
+		{
+			return book.Id == id;
+		});
+		return true
+			&& it != std::cend(books)
+			&& !it->IsDictionary
+			&& it->IsDeleted == flag
+			;
+	}
+
+	return flag ? removedFound : notRemovedFound;
+}
+
 }
 
 BookModelBase::BookModelBase(QSortFilterProxyModel & proxyModel, Items & items)
@@ -72,6 +101,10 @@ bool BookModelBase::SetDataGlobal(const QVariant & value, const int role)
 
 		case Role::ShowDeleted:
 			return Util::Set(m_showDeleted, value.toBool(), *this, &BookModelBase::Invalidate);
+
+		case Role::RemoveAvailable:
+		case Role::RestoreAvailable:
+			return RemoveRestoreAvailableImpl(m_items, value.toLongLong(), role == Role::RestoreAvailable);
 
 		default:
 			break;

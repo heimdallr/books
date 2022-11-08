@@ -36,6 +36,8 @@ public:
 		ShowDeleted,
 		Language,
 		Languages,
+		RemoveAvailable,
+		RestoreAvailable,
 		FakeBookRoleLast
 	};
 

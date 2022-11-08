@@ -25,8 +25,8 @@ class BooksModelController
 	Q_OBJECT
 
 public:
-	Q_INVOKABLE bool RemoveAvailable(long long id) const;
-	Q_INVOKABLE bool RestoreAvailable(long long id) const;
+	Q_INVOKABLE bool RemoveAvailable(long long id);
+	Q_INVOKABLE bool RestoreAvailable(long long id);
 	Q_INVOKABLE void Remove(long long id);
 	Q_INVOKABLE void Restore(long long id);
 	Q_INVOKABLE void Save(QString path, long long id);
