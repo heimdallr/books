@@ -5,13 +5,13 @@
 
 #include "Book.h"
 #include "BookRole.h"
-#include "ModelObserver.h"
+#include "BookModelObserver.h"
 #include "ProxyModelBaseT.h"
 
 namespace HomeCompa::Flibrary {
 
 class BookModelBase
-	: public ProxyModelBaseT<Book, BookRole, ModelObserver>
+	: public ProxyModelBaseT<Book, BookRole, BookModelObserver>
 {
 	NON_COPY_MOVABLE(BookModelBase)
 

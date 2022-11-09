@@ -1,7 +1,7 @@
 #include <stack>
 #include <unordered_map>
 
-#include "ModelObserver.h"
+#include "NavigationModelObserver.h"
 #include "NavigationTreeItem.h"
 #include "NavigationTreeRole.h"
 
@@ -13,7 +13,7 @@ namespace {
 
 
 class Model final
-	: public ProxyModelBaseT<NavigationTreeItem, NavigationTreeRole, ModelObserver>
+	: public ProxyModelBaseT<NavigationTreeItem, NavigationTreeRole, NavigationModelObserver>
 {
 public:
 	Model(NavigationTreeItems & items, QSortFilterProxyModel & proxyModel)

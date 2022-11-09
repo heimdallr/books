@@ -1,5 +1,5 @@
 #include "NavigationListItem.h"
-#include "ModelObserver.h"
+#include "NavigationModelObserver.h"
 #include "RoleBase.h"
 
 #include "ProxyModelBaseT.h"
@@ -19,7 +19,7 @@ struct NavigationListRole
 };
 
 class Model final
-	: public ProxyModelBaseT<NavigationListItem, NavigationListRole, ModelObserver>
+	: public ProxyModelBaseT<NavigationListItem, NavigationListRole, NavigationModelObserver>
 {
 public:
 	Model(NavigationListItems & items, QSortFilterProxyModel & proxyModel)

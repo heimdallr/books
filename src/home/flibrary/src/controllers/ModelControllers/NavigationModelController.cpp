@@ -208,7 +208,11 @@ NavigationModelController::NavigationModelController(Util::Executor & executor, 
 {
 }
 
-NavigationModelController::~NavigationModelController() = default;
+NavigationModelController::~NavigationModelController()
+{
+	if (auto * model = GetCurrentModel())
+		(void)model->setData({}, QVariant::fromValue(To<NavigationModelObserver>()), Role::ObserverUnregister);
+}
 
 ModelController::Type NavigationModelController::GetType() const noexcept
 {
@@ -217,7 +221,13 @@ ModelController::Type NavigationModelController::GetType() const noexcept
 
 QAbstractItemModel * NavigationModelController::CreateModel()
 {
-	return m_impl->CreateModel();
+	if (auto * model = GetCurrentModel())
+		(void)model->setData({}, QVariant::fromValue(To<NavigationModelObserver>()), Role::ObserverUnregister);
+
+	auto * model = m_impl->CreateModel();
+	(void)model->setData({}, QVariant::fromValue(To<NavigationModelObserver>()), Role::ObserverRegister);
+
+	return model;
 }
 
 }

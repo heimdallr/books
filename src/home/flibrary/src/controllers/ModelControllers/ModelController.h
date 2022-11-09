@@ -5,6 +5,8 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "models/ModelObserver.h"
+
 class QAbstractItemModel;
 
 namespace HomeCompa::DB {
@@ -18,6 +20,7 @@ struct Book;
 
 class ModelController
 	: public QObject
+	, virtual public ModelObserver
 {
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
@@ -32,6 +35,11 @@ public:
 	Q_INVOKABLE void SetPageSize(int pageSize);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
+
+signals:
+	void CurrentIndexChanged() const;
+	void FocusedChanged() const;
+	void CountChanged() const;
 
 public:
 	enum class Type
@@ -54,10 +62,10 @@ public:
 public:
 	virtual Type GetType() const noexcept = 0;
 
-signals:
-	void CurrentIndexChanged() const;
-	void FocusedChanged() const;
-	void CountChanged() const;
+private: // ModelObserver
+	void HandleModelItemFound(int index) override;
+	void HandleItemClicked(int index) override;
+	void HandleInvalidated() override;
 
 private: // property getters
 	bool GetFocused() const noexcept;
@@ -71,7 +79,6 @@ private: // property setters
 protected:
 	virtual QAbstractItemModel * CreateModel() = 0;
 	virtual bool SetCurrentIndex(int index);
-	virtual void OnBookRemoved(const Book & /*book*/) { }
 
 private:
 	struct Impl;

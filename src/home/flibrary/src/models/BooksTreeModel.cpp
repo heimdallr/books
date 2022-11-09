@@ -167,7 +167,7 @@ private:
 					if (item.Expanded && item.IsDictionary)
 						return SetDataLocal(index, false, Role::Expanded, item);
 
-					Perform(&ModelObserver::HandleModelItemFound, static_cast<int>(item.ParentId < std::size(m_items) ? item.ParentId : 0));
+					Perform(&Observer::HandleModelItemFound, static_cast<int>(item.ParentId < std::size(m_items) ? item.ParentId : 0));
 					return true;
 
 				case Qt::Key_Right:
@@ -177,7 +177,7 @@ private:
 					if (!item.Expanded)
 						return SetDataLocal(index, true, Role::Expanded, item);
 
-					Perform(&ModelObserver::HandleModelItemFound, index.row() + 1);
+					Perform(&Observer::HandleModelItemFound, index.row() + 1);
 					return true;
 
 				default:

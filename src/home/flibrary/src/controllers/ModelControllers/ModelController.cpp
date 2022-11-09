@@ -3,7 +3,6 @@
 #include <QTimer>
 
 #include "fnd/algorithm.h"
-#include "fnd/ConvertableT.h"
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
@@ -11,7 +10,6 @@
 #include "ModelControllerObserver.h"
 
 #include "models/RoleBase.h"
-#include "models/ModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -33,12 +31,8 @@ constexpr std::pair<const char *, int> g_viewModes[]
 }
 
 struct ModelController::Impl
-	: ConvertibleT<Impl>
-	, Observable<ModelControllerObserver>
-	, ModelObserver
+	: Observable<ModelControllerObserver>
 {
-	NON_COPY_MOVABLE(Impl)
-
 private:
 	ModelController & m_self;
 	QTimer m_findTimer;
@@ -62,12 +56,6 @@ public:
 			assert(model);
 			(void)model->setData({}, m_viewModeText, viewModeRole);
 		});
-	}
-
-	~Impl() override
-	{
-		assert(model);
-		model->setData({}, QVariant::fromValue(To<ModelObserver>()), Role::ObserverUnregister);
 	}
 
 	void OnKeyPressed(const int key, const int modifiers)
@@ -129,35 +117,7 @@ public:
 	{
 		const auto index = globalIndex == -1 ? currentIndex : globalIndex;
 		currentIndex = -1;
-		HandleItemClicked(index);
-	}
-
-private: // ModelObserver
-	void HandleModelItemFound(const int index) override
-	{
-		m_self.SetCurrentIndex(index);
-	}
-
-	void HandleItemClicked(const int index) override
-	{
-		m_self.SetCurrentIndex(index);
-		emit m_self.FocusedChanged();
-		Perform(&ModelControllerObserver::HandleClicked, &m_self);
-	}
-
-	void HandleInvalidated() override
-	{
-		auto toIndex = currentIndex;
-		(void)model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &toIndex }), Role::CheckIndexVisible);
-		if (!m_self.SetCurrentIndex(toIndex))
-			emit m_self.CurrentIndexChanged();
-
-		emit m_self.CountChanged();
-	}
-
-	void HandleBookRemoved(const Book & book) override
-	{
-		m_self.OnBookRemoved(book);
+		m_self.HandleItemClicked(index);
 	}
 
 private:
@@ -202,7 +162,6 @@ void ModelController::SetFocused(const bool value)
 
 QAbstractItemModel * ModelController::GetCurrentModel()
 {
-	assert(m_impl->model);
 	return m_impl->model.get();
 }
 
@@ -217,6 +176,28 @@ QString ModelController::GetId(int index)
 	const auto authorIdVar = m_impl->model->data(localModelIndex, Role::Id);
 	assert(authorIdVar.isValid());
 	return authorIdVar.toString();
+}
+
+void ModelController::HandleModelItemFound(const int index)
+{
+	SetCurrentIndex(index);
+}
+
+void ModelController::HandleItemClicked(const int index)
+{
+	SetCurrentIndex(index);
+	emit FocusedChanged();
+	m_impl->Perform(&ModelControllerObserver::HandleClicked, this);
+}
+
+void ModelController::HandleInvalidated()
+{
+	auto toIndex = m_impl->currentIndex;
+	(void)m_impl->model->setData({}, QVariant::fromValue(CheckIndexVisibleRequest { &toIndex }), Role::CheckIndexVisible);
+	if (!SetCurrentIndex(toIndex))
+		emit CurrentIndexChanged();
+
+	emit CountChanged();
 }
 
 void ModelController::SetViewMode(const QString & mode, const QString & text)
@@ -247,13 +228,9 @@ QAbstractItemModel * ModelController::GetModel()
 	if (m_impl->model)
 		return m_impl->model.get();
 
-	if (m_impl->model)
-		(void)m_impl->model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), Role::ObserverUnregister);
-
 	auto * model = CreateModel();
 	QQmlEngine::setObjectOwnership(model, QQmlEngine::CppOwnership);
 	m_impl->model.reset(model);
-	(void)model->setData({}, QVariant::fromValue(m_impl->To<ModelObserver>()), Role::ObserverRegister);
 	return m_impl->model.get();
 }
 

@@ -559,7 +559,11 @@ BooksModelController::BooksModelController(Util::Executor & executor, DB::Databa
 {
 }
 
-BooksModelController::~BooksModelController() = default;
+BooksModelController::~BooksModelController()
+{
+	if (auto * model = GetCurrentModel())
+		(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverUnregister);
+}
 
 bool BooksModelController::RemoveAvailable(const long long id)
 {
@@ -610,13 +614,20 @@ ModelController::Type BooksModelController::GetType() const noexcept
 
 QAbstractItemModel * BooksModelController::CreateModel()
 {
-	return FindSecond(g_modelCreators, m_impl->booksViewType)(m_impl->books, nullptr);
+	if (auto * model = GetCurrentModel())
+		(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverUnregister);
+
+	auto * model = FindSecond(g_modelCreators, m_impl->booksViewType)(m_impl->books, nullptr);
+	(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverRegister);
+
+	return model;
 }
 
 bool BooksModelController::SetCurrentIndex(const int index)
 {
 	if (index < 0)
 		return false;
+
 	assert(index < static_cast<int>(std::size(m_impl->books)));
 	const auto & book = m_impl->books[index];
 	if (!book.IsDictionary)
@@ -625,7 +636,7 @@ bool BooksModelController::SetCurrentIndex(const int index)
 	return ModelController::SetCurrentIndex(index);
 }
 
-void BooksModelController::OnBookRemoved(const Book & book)
+void BooksModelController::HandleBookRemoved(const Book & book)
 {
 	std::unique_lock w(g_guardFolders);
 	g_folders.insert(book.Folder);

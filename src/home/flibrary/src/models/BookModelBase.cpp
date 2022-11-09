@@ -166,7 +166,7 @@ bool BookModelBase::RemoveImpl(const long long id, const bool remove)
 			SettingsGroup fileGroup(m_impl->settings, item.FileName);
 			m_impl->settings.Set(Constant::IS_DELETED, item.IsDeleted ? 1 : 0);
 
-			Perform(&ModelObserver::HandleBookRemoved, std::cref(item));
+			Perform(&Observer::HandleBookRemoved, std::cref(item));
 		}
 
 		emit dataChanged(index(range.first, 0), index(range.second - 1, 0), { BookRole::IsDeleted });

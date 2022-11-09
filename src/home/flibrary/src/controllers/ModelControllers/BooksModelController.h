@@ -1,6 +1,9 @@
 #pragma once
 
+#include "fnd/ConvertableT.h"
 #include "fnd/memory.h"
+
+#include "models/BookModelObserver.h"
 
 #include "ModelController.h"
 
@@ -20,6 +23,8 @@ enum class NavigationSource;
 
 class BooksModelController
 	: public ModelController
+	, public BookModelObserver
+	, public ConvertibleT<BooksModelController>
 {
 	NON_COPY_MOVABLE(BooksModelController)
 	Q_OBJECT
@@ -43,7 +48,9 @@ private: // ModelController
 	Type GetType() const noexcept override;
 	QAbstractItemModel * CreateModel() override;
 	bool SetCurrentIndex(int index) override;
-	void OnBookRemoved(const Book & book) override;
+
+private: // BookModelObserver
+	void HandleBookRemoved(const Book & book) override;
 
 private:
 	struct Impl;

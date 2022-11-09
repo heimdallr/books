@@ -1,6 +1,9 @@
 #pragma once
 
+#include "fnd/ConvertableT.h"
 #include "fnd/memory.h"
+
+#include "models/NavigationModelObserver.h"
 
 #include "ModelController.h"
 
@@ -18,8 +21,12 @@ namespace HomeCompa::Flibrary {
 
 class NavigationModelController
 	: public ModelController
+	, public NavigationModelObserver
+	, public ConvertibleT<NavigationModelController>
 {
 	NON_COPY_MOVABLE(NavigationModelController)
+	Q_OBJECT
+
 public:
 	NavigationModelController(Util::Executor & executor, DB::Database & db, NavigationSource navigationSource);
 
