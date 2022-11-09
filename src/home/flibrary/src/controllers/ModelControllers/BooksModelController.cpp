@@ -49,8 +49,93 @@ constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 
-std::unordered_set<QString> g_folders;
-std::shared_mutex g_guardFolders;
+std::unordered_set<QString> g_folders;  // NOLINT(clang-diagnostic-exit-time-destructors)
+std::shared_mutex g_guardFolders;       // NOLINT(clang-diagnostic-exit-time-destructors)
+
+bool UserSettingsEmpty()
+{
+	std::shared_lock r(g_guardFolders);
+	return g_folders.empty();
+}
+
+void CollectUserSettings(Settings & settings)
+{
+	if (!UserSettingsEmpty())
+		return;
+
+	auto folders = settings.GetGroups();
+	std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
+
+	std::unique_lock w(g_guardFolders);
+	foldersSet.swap(g_folders);
+}
+
+bool CheckFileObsolete(Settings & settings, Book & item)
+{
+	if (!settings.HasGroup(item.FileName))
+		return true;
+
+	bool keyRemoved = false;
+	SettingsGroup fileGroup(settings, item.FileName);
+	if (settings.HasKey(Constant::IS_DELETED))
+	{
+		if (const bool isDeleted = settings.Get(Constant::IS_DELETED, item.IsDeleted ? 1 : 0).toInt(); isDeleted != item.IsDeleted)
+		{
+			item.IsDeleted = isDeleted;
+		}
+		else
+		{
+			settings.Remove(Constant::IS_DELETED);
+			keyRemoved = true;
+		}
+	}
+
+	return keyRemoved && settings.GetKeys().isEmpty();
+}
+
+bool CheckFolderObsolete(Settings & settings, Book & item)
+{
+	if (!settings.HasGroup(item.Folder))
+		return true;
+
+	SettingsGroup folderGroup(settings, item.Folder);
+	if (!CheckFileObsolete(settings, item))
+		return false;
+
+	settings.Remove(item.FileName);
+	return settings.GetGroups().isEmpty();
+}
+
+std::set<QString> GetObsoleteSettings(Settings & settings, Books & items)
+{
+	std::set<QString> toRemove;
+	std::shared_lock r(g_guardFolders);
+	for (auto & item : items)
+	{
+		if (!(true
+			&& g_folders.contains(item.Folder)
+			&& CheckFolderObsolete(settings, item)
+		))
+			continue;
+
+		settings.Remove(item.Folder);
+		toRemove.insert(item.Folder);
+	}
+
+	return toRemove;
+}
+
+void CheckUserSettings(Settings & settings, Books & items)
+{
+	CollectUserSettings(settings);
+	const auto toRemove = GetObsoleteSettings(settings, items);
+	if (toRemove.empty())
+		return;
+
+	std::unique_lock w(g_guardFolders);
+	for (const auto & folder : toRemove)
+		g_folders.erase(folder);
+}
 
 using Binder = int(*)(DB::Query &, const QString &);
 int BindInt(DB::Query & query, const QString & id)
@@ -84,7 +169,7 @@ void AppendAuthorName(QString & title, const QString & str, std::string_view sep
 
 struct IndexValue
 {
-	size_t index;
+	[[maybe_unused]] size_t index;
 	std::set<long long int> authors;
 	std::set<QString> genres;
 };
@@ -444,65 +529,8 @@ struct BooksModelController::Impl
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
 			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
 			settings.BeginGroup(Constant::BOOKS);
+			CheckUserSettings(settings, items);
 
-			if ([]
-			{
-				std::shared_lock r(g_guardFolders);
-				return g_folders.empty();
-			}())
-			{
-				auto folders = settings.GetGroups();
-				std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
-				std::unique_lock w(g_guardFolders);
-				foldersSet.swap(g_folders);
-			}
-
-			std::vector<QString> toRemove;
-			{
-				std::shared_lock r(g_guardFolders);
-				const QString IsDeleted = Constant::IS_DELETED;
-				for (auto & item : items)
-				{
-					if (!g_folders.contains(item.Folder))
-						continue;
-
-					bool keyRemoved = false;
-					{
-						SettingsGroup folderGroup(settings, item.Folder);
-						if (settings.HasGroup(item.FileName))
-						{
-							SettingsGroup fileGroup(settings, item.FileName);
-							if (settings.HasKey(IsDeleted))
-							{
-								if (const bool isDeleted = settings.Get(IsDeleted, item.IsDeleted ? 1 : 0).toInt(); isDeleted != item.IsDeleted)
-								{
-									item.IsDeleted = isDeleted;
-								}
-								else
-								{
-									settings.Remove(IsDeleted);
-									keyRemoved = settings.GetKeys().isEmpty();
-								}
-							}
-						}
-						if (keyRemoved)
-						{
-							settings.Remove(item.FileName);
-							keyRemoved = settings.GetGroups().isEmpty();
-						}
-					}
-					if (keyRemoved)
-					{
-						settings.Remove(item.Folder);
-						toRemove.push_back(item.Folder);
-					}
-				}
-			}
-			{
-				std::unique_lock w(g_guardFolders);
-				for (const auto & folder : toRemove)
-					g_folders.erase(folder);
-			}
 			return[&, items = std::move(items)]() mutable
 			{
 				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
