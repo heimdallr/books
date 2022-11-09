@@ -6,8 +6,6 @@
 #include <QApplication>
 #pragma warning(pop)
 
-#include "fnd/algorithm.h"
-
 #include "database/factory/Factory.h"
 #include "database/interface/Database.h"
 
@@ -34,6 +32,7 @@
 #include "FileDialogProvider.h"
 #include "LocaleController.h"
 #include "NavigationSourceProvider.h"
+#include "ProgressController.h"
 
 #include "GuiController.h"
 
@@ -98,6 +97,7 @@ public:
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("collectionController", new CollectionController(*this, &m_self));
+		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
 		qmlRegisterType<QSystemTrayIcon>("QSystemTrayIcon", 1, 0, "QSystemTrayIcon");
@@ -124,9 +124,9 @@ public:
 		return !!m_db;
 	}
 
-	const QString & GetTitle() const noexcept
+	QString GetTitle() const
 	{
-		return m_title;
+		return QString("Flibrary - %1").arg(m_currentCollection.name);
 	}
 
 	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
@@ -166,7 +166,7 @@ public:
 		}
 
 		m_booksViewType = type;
-		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, type)).swap(m_booksModelController);
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toUtf8().data())).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_localeController.GetBooksModelControllerObserver());
@@ -237,14 +237,15 @@ private: // CollectionController::Observer
 	{
 		if (collection.id.isEmpty())
 		{
+			m_currentCollection = Collection {};
 			PropagateConstPtr<Util::Executor>(std::unique_ptr<Util::Executor>()).swap(m_executor);
 			emit m_self.OpenedChanged();
 			return;
 		}
 
+		m_currentCollection = collection;
 		CreateExecutor(collection.database.toStdString());
 
-		Util::Set(m_title, QString("Flibrary - %1").arg(collection.name), m_self, &GuiController::TitleChanged);
 		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
 
 		connect(&m_uiSettings, &UiSettings::showDeletedChanged, [&]
@@ -252,6 +253,8 @@ private: // CollectionController::Observer
 			if (m_booksModelController)
 				m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 		});
+
+		emit m_self.TitleChanged();
 	}
 
 private:
@@ -284,10 +287,11 @@ private:
 
 	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
 	UiSettings m_uiSettings { CreateUiSettings() };
-	QString m_title;
+	Collection m_currentCollection;
 
 	NavigationSourceProvider m_navigationSourceProvider;
 	LocaleController m_localeController { *this };
+	ProgressController m_progressController;
 
 	QQmlApplicationEngine m_qmlEngine;
 };
@@ -345,7 +349,7 @@ bool GuiController::GetOpened() const noexcept
 	return m_impl->GetOpened();
 }
 
-const QString & GuiController::GetTitle() const noexcept
+QString GuiController::GetTitle() const
 {
 	return m_impl->GetTitle();
 }

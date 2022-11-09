@@ -42,7 +42,7 @@ signals:
 
 private: // property getters
 	bool GetOpened() const noexcept;
-	const QString & GetTitle() const noexcept;
+	QString GetTitle() const;
 
 private: // property setters
 

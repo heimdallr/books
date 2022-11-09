@@ -90,6 +90,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="57"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="114"/>
         <source>Cancel</source>
         <translation></translation>
@@ -357,12 +358,12 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="11"/>
+        <location filename="../../src/ui/qml/books/BooksList.qml" line="22"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="12"/>
+        <location filename="../../src/ui/qml/books/BooksList.qml" line="23"/>
         <source>Tree</source>
         <translation></translation>
     </message>

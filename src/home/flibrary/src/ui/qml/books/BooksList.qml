@@ -1,15 +1,41 @@
 import QtQuick 2.15
 
 import "qrc:/"
+import "qrc:/Core"
 
-ViewTemplate
+Item
 {
-	id: listViewID
-	loadPath: "Book/"
-	Component.onCompleted:
+	ViewTemplate
 	{
-		viewSourceComboBox.add(qsTranslate("ViewSource", "List"), "BooksListView")
-		viewSourceComboBox.add(qsTranslate("ViewSource", "Tree"), "BooksTreeView")
-		viewSourceComboBox.currentIndex = 0
+		id: listViewID
+		anchors
+		{
+			left: parent.left
+			right: parent.right
+			top: parent.top
+			bottom: progressBarID.top
+		}
+
+		loadPath: "Book/"
+		Component.onCompleted:
+		{
+			viewSourceComboBox.add(qsTranslate("ViewSource", "List"), "BooksListView")
+			viewSourceComboBox.add(qsTranslate("ViewSource", "Tree"), "BooksTreeView")
+			viewSourceComboBox.currentIndex = 0
+		}
+	}
+
+	CustomProgressBar
+	{
+		id: progressBarID
+		anchors
+		{
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
+
+		visible: progressController.started
+		height: visible ? uiSettings.delegateHeight * 3 / 2 : 0
 	}
 }

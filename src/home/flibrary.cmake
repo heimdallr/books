@@ -13,6 +13,7 @@ CreateMap(UI_SETTING_NAMES
 		borderColor             \"lightgray\"
 		highlightColor          \"lightsteelblue\"
 		highlightColorUnfocused \"lavender\"
+		progressBarColor        \"lightsteelblue\"
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include "fnd/ConvertableT.h"
 #include "fnd/memory.h"
 
@@ -18,6 +20,7 @@ class Database;
 namespace HomeCompa::Flibrary {
 
 class BooksModelControllerObserver;
+class ProgressController;
 enum class BooksViewType;
 enum class NavigationSource;
 
@@ -42,7 +45,7 @@ public:
 	Q_INVOKABLE void Save(QString path, long long id);
 
 public:
-	BooksModelController(Util::Executor & executor, DB::Database & db, BooksViewType booksViewType);
+	BooksModelController(Util::Executor & executor, DB::Database & db, ProgressController & progressController, BooksViewType booksViewType, std::filesystem::path archiveFolder);
 	~BooksModelController() override;
 
 	void SetNavigationState(NavigationSource navigationSource, const QString & navigationId);

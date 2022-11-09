@@ -40,6 +40,7 @@
 		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
 		<file alias="TopBottomLines.qml">../src/ui/qml/core/TopBottomLines.qml</file>
 		<file alias="DynamicMenu.qml">../src/ui/qml/core/DynamicMenu.qml</file>
+		<file alias="CustomProgressBar.qml">../src/ui/qml/core/CustomProgressBar.qml</file>
 	</qresource>
 
 	<qresource prefix="Dialogs/">
