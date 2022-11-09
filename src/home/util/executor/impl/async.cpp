@@ -45,7 +45,7 @@ private: // Util::Executor
 	{
 		{
 			std::lock_guard lock(m_tasksGuard);
-			m_tasks.insert_or_assign(priority, std::move(task));
+			m_tasks.insert_or_assign(priority ? priority : ++m_priority, std::move(task));
 		}
 		std::unique_lock lock(m_startMutex);
 		m_startCondition.notify_one();
@@ -109,6 +109,7 @@ private:
 	std::mutex m_tasksGuard;
 	std::map<int, Task> m_tasks;
 	FunctorExecutionForwarder m_forwarder;
+	int m_priority { 1024 };
 };
 
 }
