@@ -44,7 +44,6 @@ public:
 		RestoreAvailable,
 		Remove,
 		Restore,
-		Save,
 		FakeBookRoleLast
 	};
 

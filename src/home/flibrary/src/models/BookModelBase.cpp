@@ -146,7 +146,6 @@ bool BookModelBase::SetDataGlobal(const QVariant & value, const int role)
 		case Role::Restore:
 			return RemoveImpl(value.toLongLong(), role == Role::Remove);
 
-		case Role::Save:
 		default:
 			break;
 	}

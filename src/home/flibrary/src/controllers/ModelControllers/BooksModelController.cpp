@@ -611,9 +611,8 @@ void BooksModelController::Restore(long long id)
 	(void)GetCurrentModel()->setData({}, id, Role::Restore);
 }
 
-void BooksModelController::Save(QString path, long long id)
+void BooksModelController::Save(QString path, long long /*id*/)
 {
-	(void)GetCurrentModel()->setData({}, QVariant::fromValue(SaveSettings{std::move(path), id}), Role::Save);
 }
 
 void BooksModelController::SetNavigationState(NavigationSource navigationSource, const QString & navigationId)
