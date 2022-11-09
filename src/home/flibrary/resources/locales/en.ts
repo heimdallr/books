@@ -27,19 +27,39 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="14"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="13"/>
+        <source>Selection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="18"/>
+        <source>Select all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="25"/>
+        <source>Deselect all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="32"/>
+        <source>Invert selection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="40"/>
         <source>Send to device</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="52"/>
         <source>Remove book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="59"/>
         <source>Undo book deletion</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -308,12 +328,12 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="12"/>
         <source>About Flibrary</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
         <source>Another e-library book classifier</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="19"/>

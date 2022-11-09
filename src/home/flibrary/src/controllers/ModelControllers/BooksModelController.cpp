@@ -575,6 +575,31 @@ bool BooksModelController::RestoreAvailable(const long long id)
 	return GetCurrentModel()->setData({}, id, Role::RestoreAvailable);
 }
 
+bool BooksModelController::AllSelected()
+{
+	return GetCurrentModel()->data({}, Role::AllSelected).toBool();
+}
+
+bool BooksModelController::HasSelected()
+{
+	return GetCurrentModel()->data({}, Role::HasSelected).toBool();
+}
+
+bool BooksModelController::SelectAll()
+{
+	return GetCurrentModel()->setData({}, true, Role::SelectAll);
+}
+
+bool BooksModelController::DeselectAll()
+{
+	return GetCurrentModel()->setData({}, false, Role::SelectAll);
+}
+
+bool BooksModelController::InvertSelection()
+{
+	return GetCurrentModel()->setData({}, {}, Role::InvertSelection);
+}
+
 void BooksModelController::Remove(long long id)
 {
 	(void)GetCurrentModel()->setData({}, id, Role::Remove);

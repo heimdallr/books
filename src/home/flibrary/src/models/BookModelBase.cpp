@@ -101,6 +101,18 @@ QVariant BookModelBase::GetDataGlobal(int role) const
 			return result;
 		}
 
+		case Role::AllSelected:
+			return !std::ranges::any_of(std::as_const(m_items), [&, n = 0] (const Book & book) mutable
+			{
+				return FilterAcceptsRow(n++) && !book.IsDictionary && !book.Checked;
+			});
+
+		case Role::HasSelected:
+			return std::ranges::any_of(std::as_const(m_items), [&, n = 0](const Book & book) mutable
+			{
+				return FilterAcceptsRow(n++) && !book.IsDictionary && book.Checked;
+			});
+
 		default:
 			break;
 	}
@@ -123,6 +135,12 @@ bool BookModelBase::SetDataGlobal(const QVariant & value, const int role)
 		case Role::RemoveAvailable:
 		case Role::RestoreAvailable:
 			return RemoveRestoreAvailableImpl(m_items, value.toLongLong(), role == Role::RestoreAvailable);
+
+		case Role::SelectAll:
+			return ChangeCheckedAll([checked = value.toBool()](const Book &){ return checked; });
+
+		case Role::InvertSelection:
+			return ChangeCheckedAll([checked = value.toBool()](const Book & book){ return !book.Checked; });
 
 		case Role::Remove:
 		case Role::Restore:
@@ -173,6 +191,29 @@ bool BookModelBase::RemoveImpl(const long long id, const bool remove)
 	}
 
 	return true;
+}
+
+bool BookModelBase::ChangeCheckedAll(const std::function<bool(const Book &)> & f)
+{
+	std::set<int> changed;
+	for (int i = 0, sz = static_cast<int>(std::size(m_items)); i < sz; ++i)
+	{
+		auto & book = m_items[i];
+		if (!book.IsDictionary && FilterAcceptsRow(i))
+		{
+			const bool checked = f(book);
+			if (book.Checked != checked)
+			{
+				book.Checked = checked;
+				changed.insert(i);
+			}
+		}
+	}
+
+	for (const auto & range : Util::CreateRanges(changed))
+		emit dataChanged(index(range.first), index(range.second - 1), { Role::Checked });
+
+	return !changed.empty();
 }
 
 }

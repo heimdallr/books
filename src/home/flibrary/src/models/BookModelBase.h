@@ -27,6 +27,7 @@ protected: // ProxyModelBaseT
 
 private:
 	bool RemoveImpl(long long id, bool remove);
+	bool ChangeCheckedAll(const std::function<bool(const Book &)> & f);
 
 protected:
 	bool m_showDeleted { false };

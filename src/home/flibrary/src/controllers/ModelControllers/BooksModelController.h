@@ -32,6 +32,11 @@ class BooksModelController
 public:
 	Q_INVOKABLE bool RemoveAvailable(long long id);
 	Q_INVOKABLE bool RestoreAvailable(long long id);
+	Q_INVOKABLE bool AllSelected();
+	Q_INVOKABLE bool HasSelected();
+	Q_INVOKABLE bool SelectAll();
+	Q_INVOKABLE bool DeselectAll();
+	Q_INVOKABLE bool InvertSelection();
 	Q_INVOKABLE void Remove(long long id);
 	Q_INVOKABLE void Restore(long long id);
 	Q_INVOKABLE void Save(QString path, long long id);

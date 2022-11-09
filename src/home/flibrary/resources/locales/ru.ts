@@ -27,17 +27,37 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="14"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="13"/>
+        <source>Selection</source>
+        <translation>Выделение</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="18"/>
+        <source>Select all</source>
+        <translation>Выделить все</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="25"/>
+        <source>Deselect all</source>
+        <translation>Отменить выделение</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="32"/>
+        <source>Invert selection</source>
+        <translation>Инвертировать выделение</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="40"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="52"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="59"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
