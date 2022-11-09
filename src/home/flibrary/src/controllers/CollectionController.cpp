@@ -69,6 +69,10 @@ CollectionController::~CollectionController() = default;
 
 void CollectionController::AddCollection(QString name, QString db, QString folder)
 {
+	folder.replace("\\", "/");
+	while (folder.endsWith("\\"))
+		folder.resize(folder.size() - 1);
+
 	const Collection collection(std::move(name), std::move(db), std::move(folder));
 	collection.Serialize(m_impl->observer.GetSettings());
 	SetCurrentCollectionId(collection.id);
