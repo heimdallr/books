@@ -210,17 +210,17 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		authors.emplace(query->Get<long long int>(14), Author{ query->Get<const char *>(9), query->Get<const char *>(10), query->Get<const char *>(11) });
-		series.emplace(query->Get<long long int>(15), query->Get<const char *>(13));
-		genres.emplace(query->Get<const char *>(16), query->Get<const char *>(12));
+		authors.emplace(query->Get<long long int>(15), Author{ query->Get<const char *>(10), query->Get<const char *>(11), query->Get<const char *>(12) });
+		series.emplace(query->Get<long long int>(16), query->Get<const char *>(14));
+		genres.emplace(query->Get<const char *>(17), query->Get<const char *>(13));
 
 		const auto id = query->Get<long long int>(0);
 		const auto it = index.find(id);
 
 		const auto updateIndexValue = [&] (IndexValue & value)
 		{
-			value.authors.emplace(query->Get<long long int>(14));
-			value.genres.emplace(query->Get<const char *>(16));
+			value.authors.emplace(query->Get<long long int>(15));
+			value.genres.emplace(query->Get<const char *>(17));
 		};
 
 		if (it != index.end())
@@ -242,8 +242,9 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 		item.Lang = query->Get<const char *>(5);
 		item.Folder = query->Get<const char *>(6);
 		item.FileName = query->Get<const char *>(7);
-		item.IsDeleted = query->Get<int>(8) != 0;
-		item.SeriesTitle = query->Get<const char *>(13);
+		item.Size = static_cast<size_t>(query->Get<long long>(8));
+		item.IsDeleted = query->Get<int>(9) != 0;
+		item.SeriesTitle = query->Get<const char *>(14);
 	}
 
 	for (auto & item : items)

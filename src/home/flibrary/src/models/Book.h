@@ -17,6 +17,7 @@ struct Book
 	QString Lang;
 	QString Folder;
 	QString FileName;
+	size_t Size;
 	bool IsDeleted { true };
 	QString Author;
 	QString GenreAlias;
