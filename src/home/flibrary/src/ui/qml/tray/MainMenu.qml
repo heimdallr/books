@@ -8,6 +8,7 @@ Menu
 	CollectionMenu {}
 	ViewMenu {}
 	SettingsMenu {}
+	Help {}
 	MenuSeparator {}
 	SystemMenu {}
 }

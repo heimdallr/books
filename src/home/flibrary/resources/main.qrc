@@ -54,6 +54,7 @@
 		<file alias="ViewMenu.qml">../src/ui/qml/tray/ViewMenu.qml</file>
 		<file alias="SettingsMenu.qml">../src/ui/qml/tray/SettingsMenu.qml</file>
 		<file alias="SystemMenu.qml">../src/ui/qml/tray/SystemMenu.qml</file>
+		<file alias="Help.qml">../src/ui/qml/tray/Help.qml</file>
 	</qresource>
 
 	<qresource prefix="icons/">

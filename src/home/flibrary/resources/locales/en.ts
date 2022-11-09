@@ -300,6 +300,26 @@ Restart now?</source>
         <source>Hide Flibrary</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="7"/>
+        <source>Help</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="12"/>
+        <source>About Flibrary</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
+        <source>Another e-library book classifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="19"/>
+        <source>About Flibrary...</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ViewMode</name>

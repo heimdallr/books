@@ -301,6 +301,26 @@ Restart now?</source>
         <source>Hide Flibrary</source>
         <translation>Скрыть Flibrary</translation>
     </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="7"/>
+        <source>Help</source>
+        <translation>Помощь</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="12"/>
+        <source>About Flibrary</source>
+        <translation>О Flibrary</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
+        <source>Another e-library book classifier</source>
+        <translation>Ещё один классификатор книг электронной библиотеки</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="19"/>
+        <source>About Flibrary...</source>
+        <translation>О Flibrary...</translation>
+    </message>
 </context>
 <context>
     <name>ViewMode</name>
