@@ -39,6 +39,7 @@ Rectangle
 			{
 				Layout.leftMargin: 4
 				Layout.preferredWidth: 100
+				Layout.preferredHeight: uiSettings.delegateHeight
 				id: viewSourceComboBoxID
 				currentIndex: -1
 				onCurrentIndexChanged: onSourceChanged()
