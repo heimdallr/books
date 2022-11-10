@@ -91,7 +91,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="57"/>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="58"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="114"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
