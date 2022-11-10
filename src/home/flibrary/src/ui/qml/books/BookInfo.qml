@@ -16,8 +16,10 @@ Rectangle
 			bottom: parent.bottom
 		}
 
-		fillMode: Image.PreserveAspectFit
 		visible: annotationController.hasCover
+		width: visible ? height * sourceSize.width / sourceSize.height : 0
+
+		fillMode: Image.PreserveAspectFit
 		source: visible ? annotationController.cover : ""
 
 		MouseArea
