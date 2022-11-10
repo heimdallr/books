@@ -3,7 +3,6 @@
 
 #include "plog/Log.h"
 
-#include "constants/ProductConstant.h"
 #include "controllers/GuiController.h"
 
 using namespace HomeCompa::Flibrary;
@@ -13,8 +12,6 @@ int main(int argc, char * argv[])
 	try
 	{
 		PLOGD << "App started";
-
-		QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 		while (true)
 		{
