@@ -6,4 +6,10 @@ Menu
 	title: qsTranslate("Tray", "Settings")
 
 	LanguageMenu {}
+
+	MenuItem
+	{
+		text: qsTranslate("Tray", "Restore default values")
+		onTriggered: uiSettings.Reset()
+	}
 }

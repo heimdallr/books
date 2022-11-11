@@ -2,8 +2,8 @@ CreateMap(UI_SETTING_NAMES
 	VARIABLES
 		showDeleted               0
 		showBookInfo              1
-		mainWindowHeight         -1
-		mainWindowWidth          -1
+		mainWindowHeight          720
+		mainWindowWidth           1024
 		mainWindowPosX           -1
 		mainWindowPosY           -1
 		navigationWidth           0.25

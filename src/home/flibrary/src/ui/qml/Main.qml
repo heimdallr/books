@@ -13,17 +13,8 @@ ApplicationWindow
 	property alias focus: splitViewID.focus
 	property bool completed: false
 
-	width:
-	{
-		const v =  uiSettings.mainWindowWidth
-		return v > 0 ? v : 1024
-	}
-
-	height:
-	{
-		const v = uiSettings.mainWindowHeight
-		return v > 0 ? v : 720
-	}
+	width: uiSettings.mainWindowWidth
+	height: uiSettings.mainWindowHeight
 
 	title: guiController.title
 
@@ -49,6 +40,7 @@ ApplicationWindow
 	Component
 	{
 		id: splitViewComponentID
+
 		SplitView
 		{
 			focus: true
@@ -63,14 +55,10 @@ ApplicationWindow
 			{
 				SplitView.minimumWidth: applicationWindowID.width / 6
 				SplitView.maximumWidth: applicationWindowID.width / 2
+				SplitView.preferredWidth: uiSettings.navigationWidth * applicationWindowID.width
 
 				onWidthChanged: if (applicationWindowID.completed)
 					uiSettings.navigationWidth = width / applicationWindowID.width
-
-				Component.onCompleted:
-				{
-					SplitView.preferredWidth = uiSettings.navigationWidth * applicationWindowID.width
-				}
 			}
 
 			Books

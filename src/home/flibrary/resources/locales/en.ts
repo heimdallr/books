@@ -312,6 +312,11 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="12"/>
+        <source>Restore default values</source>
+        <translation></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="10"/>
         <source>Language</source>
         <translation></translation>
