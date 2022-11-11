@@ -5,6 +5,7 @@
 
 #include <QAbstractItemModel>
 #include <QPointer>
+#include <QTextCodec>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
@@ -809,7 +810,8 @@ std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, std::
 			return result;
 	}
 
-	const auto fileName = std::filesystem::path((book.SeqNumber > 0 ? QString::number(book.SeqNumber).toStdWString() + L"-" : L"") + book.Title.toStdWString() + L".fb2");
+	const auto ext = std::filesystem::path(book.FileName.toStdWString()).extension();
+	const auto fileName = ((book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data()).toStdWString();
 
 	result.second = (path / fileName).make_preferred().replace_extension("zip");
 	if (exists(result.second) && !remove(result.second))
@@ -819,7 +821,7 @@ std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, std::
 	if (!dstArchive)
 		return result;
 
-	auto dstEntry = dstArchive->CreateEntry(QString::fromStdString(fileName.generic_string()).toUtf8().data());
+	auto dstEntry = dstArchive->CreateEntry(QTextCodec::codecForName("IBM 866")->fromUnicode(fileName).toStdString());
 	if (!dstEntry)
 		return result;
 
