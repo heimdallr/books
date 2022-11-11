@@ -68,6 +68,14 @@ Item
 
 			CustomText
 			{
+				readonly property int seqNumber: SeqNumber
+				Layout.preferredWidth: 30
+				color: textColor
+				text: seqNumber > 0 ? seqNumber : ""
+			}
+
+			CustomText
+			{
 				Layout.fillWidth: true
 				color: textColor
 				text: Title

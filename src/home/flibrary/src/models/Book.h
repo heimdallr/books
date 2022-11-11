@@ -20,6 +20,7 @@ struct Book
 	size_t Size;
 	bool IsDeleted { true };
 	QString Author;
+	QString AuthorFull;
 	QString GenreAlias;
 	QString SeriesTitle;
 	bool Checked { false };

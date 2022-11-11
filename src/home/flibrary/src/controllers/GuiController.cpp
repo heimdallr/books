@@ -166,7 +166,7 @@ public:
 		}
 
 		m_booksViewType = type;
-		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toUtf8().data())).swap(m_booksModelController);
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString())).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_localeController.GetBooksModelControllerObserver());
@@ -246,7 +246,7 @@ private: // CollectionController::Observer
 		m_currentCollection = collection;
 		CreateExecutor(collection.database.toStdString());
 
-		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toUtf8().data()));
+		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toStdWString()));
 
 		connect(&m_uiSettings, &UiSettings::showDeletedChanged, [&]
 		{

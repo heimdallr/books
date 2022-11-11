@@ -11,7 +11,7 @@
 #include "fnd/observable.h"
 
 #include "ZipLib/ZipFile.h"
-#include "ZipLib/methods/Bzip2Method.h"
+#include "ZipLib/methods/DeflateMethod.h"
 
 #include "constants/ProductConstant.h"
 
@@ -172,6 +172,8 @@ void AppendAuthorName(QString & title, const QString & str, std::string_view sep
 		AppendTitle(title, str.mid(0, 1) + ".", separator);
 }
 
+using Appender = void(*)(QString & title, const QString & str, std::string_view separator);
+
 struct IndexValue
 {
 	[[maybe_unused]] size_t index;
@@ -199,6 +201,31 @@ struct Data
 	Series series;
 	Genres genres;
 };
+
+QString CreateAuthors(const Authors & authors, const std::set<long long int> & authorsIndex, Appender f, std::string_view separator1, std::string_view separator2)
+{
+	std::vector<QString> itemAuthors;
+	itemAuthors.reserve(authorsIndex.size());
+	std::ranges::transform(std::as_const(authorsIndex), std::back_inserter(itemAuthors), [&] (const long long int authorId)
+	{
+		assert(authors.contains(authorId));
+		const auto it = authors.find(authorId);
+		assert(it != authors.end());
+		const auto & author = it->second;
+
+		auto result = author.last;
+		f(result, author.first, separator1);
+		f(result, author.middle, separator2);
+		return result;
+	});
+	std::ranges::sort(itemAuthors);
+
+	QString result;
+	for (const auto & itemAuthor : itemAuthors)
+		AppendTitle(result, itemAuthor, ", ");
+
+	return result;
+}
 
 Data CreateItems(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
 {
@@ -258,21 +285,8 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 		assert(it != index.end());
 		const auto & indexValue = it->second;
 
-		std::vector<QString> itemAuthors;
-		itemAuthors.reserve(indexValue.authors.size());
-		std::ranges::transform(indexValue.authors, std::back_inserter(itemAuthors), [&authors] (const long long int authorId)
-		{
-			assert(authors.contains(authorId));
-			const auto & author = authors[authorId];
-
-			auto itemAuthor = author.last;
-			AppendAuthorName(itemAuthor, author.first, " ");
-			AppendAuthorName(itemAuthor, author.middle, "");
-			return itemAuthor;
-		});
-		std::ranges::sort(itemAuthors);
-		for (const auto & itemAuthor : itemAuthors)
-			AppendTitle(item.Author, itemAuthor, ", ");
+		item.Author = CreateAuthors(authors, indexValue.authors, &AppendAuthorName, " ", "");
+		item.AuthorFull = CreateAuthors(authors, indexValue.authors, &AppendTitle, " ", " ");
 
 		for (const auto & genreId : indexValue.genres)
 		{
@@ -778,13 +792,26 @@ ArchiveSrc GetDecompressedStream(const std::filesystem::path & archiveFolder, co
 	return result;
 }
 
-std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, const std::filesystem::path & path, const Book & book)
+std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, std::filesystem::path path, const Book & book)
 {
 	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(path) || create_directory(path)))
 		return result;
 
-	result.second = (path / book.FileName.toStdString()).replace_extension("zip").make_preferred();
+	path /= book.AuthorFull.toStdWString();
+	if (!(exists(path) || create_directory(path)))
+		return result;
+
+	if (!book.SeriesTitle.isEmpty())
+	{
+		path /= book.SeriesTitle.toStdWString();
+		if (!(exists(path) || create_directory(path)))
+			return result;
+	}
+
+	const auto fileName = std::filesystem::path((book.SeqNumber > 0 ? QString::number(book.SeqNumber).toStdWString() + L"-" : L"") + book.Title.toStdWString() + L".fb2");
+
+	result.second = (path / fileName).make_preferred().replace_extension("zip");
 	if (exists(result.second) && !remove(result.second))
 		return result;
 
@@ -792,12 +819,12 @@ std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, const
 	if (!dstArchive)
 		return result;
 
-	auto dstEntry = dstArchive->CreateEntry(book.FileName.toStdString());
+	auto dstEntry = dstArchive->CreateEntry(QString::fromStdString(fileName.generic_string()).toUtf8().data());
 	if (!dstEntry)
 		return result;
 
-	Bzip2Method::Ptr ctx = Bzip2Method::Create();
-	ctx->SetBlockSize(Bzip2Method::BlockSize::Best);
+	DeflateMethod::Ptr ctx = DeflateMethod::Create();
+	ctx->SetCompressionLevel(DeflateMethod::CompressionLevel::Best);
 	if (!dstEntry->SetCompressionStream(stream, ctx))
 		return result;
 
@@ -842,7 +869,7 @@ void BooksModelController::Save(QString path, const long long id)
 			StreamBuf streamBuf(*archiveSrc.stream, *progress);
 			std::istream stream(&streamBuf);
 
-			const auto writeResult = WriteArchive(stream, path.toUtf8().data(), book);
+			const auto writeResult = WriteArchive(stream, path.toStdWString(), book);
 
 			if (!writeResult.first)
 				progress->progress += book.Size;
