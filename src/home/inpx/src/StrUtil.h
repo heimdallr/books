@@ -4,8 +4,6 @@
 #include <Windows.h>
 #pragma warning(pop)
 
-const std::locale g_utf8("ru_RU.UTF-8");
-
 template<typename SizeType, typename StringType>
 SizeType StrSize(const StringType & str)
 {
