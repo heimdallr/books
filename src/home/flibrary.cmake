@@ -1,19 +1,22 @@
 CreateMap(UI_SETTING_NAMES
 	VARIABLES
-		showDeleted               0
-		showBookInfo              1
-		mainWindowHeight          720
-		mainWindowWidth           1024
-		mainWindowPosX           -1
-		mainWindowPosY           -1
-		navigationWidth           0.25
-		bookInfoHeight            0.25
-		delegateHeight            20
-		fontSize                  9
-		borderColor             \"lightgray\"
-		highlightColor          \"lightsteelblue\"
-		highlightColorUnfocused \"lavender\"
-		progressBarColor        \"lightsteelblue\"
+		showDeleted                     0
+		showBookInfo                    1
+		mainWindowHeight                720
+		mainWindowWidth                 1024
+		mainWindowPosX                 -1
+		mainWindowPosY                 -1
+		navigationWidth                 0.25
+		bookInfoHeight                  0.25
+		delegateHeight                  20
+		fontSize                        9
+		borderColor                   \"lightgray\"
+		highlightColor                \"lightsteelblue\"
+		highlightColorUnfocused       \"lavender\"
+		progressBarColor              \"lightsteelblue\"
+		recentExportPath              \"\"
+		resentCollectionArchiveFolder \"\"
+		recentCollectionDatabase      \"\"
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)

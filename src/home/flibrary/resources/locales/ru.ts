@@ -19,7 +19,7 @@
         <translation>Файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="73"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="76"/>
         <source>Collection archive folder</source>
         <translation>Папка с архивами</translation>
     </message>
@@ -52,12 +52,22 @@
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="52"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="56"/>
+        <source>In zip archive</source>
+        <translation>Архиворовать в zip</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="62"/>
+        <source>In original format</source>
+        <translation>В исходном формате</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="70"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="59"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="77"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
@@ -81,18 +91,18 @@ Restart now?</source>
     <name>Common</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="57"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="86"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="104"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="110"/>
         <source>Ok</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="58"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="114"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>

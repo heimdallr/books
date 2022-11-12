@@ -41,11 +41,14 @@ Menu
 
 		function save(archivate)
 		{
-			const folder = fileDialog.SelectFolder("")
-			if (folder !== "")
-				archivate
-					? controller.WriteToArchive(folder, menuID.bookId)
-					: controller.WriteToFile(folder, menuID.bookId)
+			const folder = fileDialog.SelectFolder(uiSettings.recentExportPath)
+			if (folder === "")
+				return
+
+			uiSettings.recentExportPath = folder
+			archivate
+				? controller.WriteToArchive(folder, menuID.bookId)
+				: controller.WriteToFile(folder, menuID.bookId)
 		}
 
 		MenuItem

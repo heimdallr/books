@@ -57,9 +57,12 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = fileDialog.SelectFile(collectionDatabaseID.text)
-					if (fileName != "")
-						collectionDatabaseID.text = fileName
+					const fileName = fileDialog.SelectFile(collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.recentCollectionDatabase)
+					if (fileName === "")
+						return
+
+					uiSettings.recentCollectionDatabase = fileName
+					collectionDatabaseID.text = fileName
 				}
 			}
 		}
@@ -83,9 +86,12 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = fileDialog.SelectFolder(collectionArchiveFolderID.text)
-					if (fileName != "")
-						collectionArchiveFolderID.text = fileName
+					const folder = fileDialog.SelectFolder(collectionArchiveFolderID.text !== "" ? collectionArchiveFolderID.text : uiSettings.resentCollectionArchiveFolder)
+					if (folder === "")
+						return
+
+					uiSettings.resentCollectionArchiveFolder = folder
+					collectionArchiveFolderID.text = folder
 				}
 			}
 		}
