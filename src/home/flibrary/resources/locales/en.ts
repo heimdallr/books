@@ -133,17 +133,22 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="26"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
         <source>SeriesTitle</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="32"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="39"/>
         <source>Title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="38"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="56"/>
+        <source>No</source>
+        <translation>№</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="74"/>
         <source>GenreAlias</source>
         <translation>Genre</translation>
     </message>

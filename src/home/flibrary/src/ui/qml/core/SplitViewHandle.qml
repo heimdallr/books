@@ -5,12 +5,12 @@ Rectangle
 {
 	id: handleDelegate
 
-	implicitWidth: 4
-	implicitHeight: 4
+	implicitWidth: uiSettings.splitViewHandleSize
+	implicitHeight: uiSettings.splitViewHandleSize
 	color
-		: SplitHandle.pressed ?	"#81e889"
-		: SplitHandle.hovered ?	Qt.lighter("#c2f4c6", 1.2)
-		:						"#c2f4c6"
+		: SplitHandle.pressed ?	uiSettings.splitViewHandlePressedColor
+		: SplitHandle.hovered ?	Qt.lighter(uiSettings.splitViewHandleColor, 1.2)
+		:						uiSettings.splitViewHandleColor
 
 /*	containmentMask: Item
 	{

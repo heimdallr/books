@@ -17,6 +17,15 @@ CreateMap(UI_SETTING_NAMES
 		recentExportPath              \"\"
 		resentCollectionArchiveFolder \"\"
 		recentCollectionDatabase      \"\"
+		authorWidth                     0.125
+		seriesWidth                     0.125
+		seqNoWidth                      30
+		titleWidth                      0.5
+		genreWidth                      0.0625
+		languageWidth                   36
+		splitViewHandleSize 4
+		splitViewHandleColor          \"\#c2f4c6\"
+		splitViewHandlePressedColor   \"\#81e889\"
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
