@@ -93,7 +93,6 @@ private: // XSPHandler
 
 		if (m_mode == XmlParseMode::binary)
 			ProcessBinary(value);
-
 	}
 
 	void OnAttribute(const std::string & name, const std::string & value) override
