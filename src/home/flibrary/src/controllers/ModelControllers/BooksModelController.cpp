@@ -1,3 +1,4 @@
+#include <fstream>
 #include <numeric>
 #include <set>
 #include <shared_mutex>
@@ -502,6 +503,238 @@ constexpr std::pair<BooksViewType, ItemsCreator> g_itemCreators[]
 	{ BooksViewType::Tree, &CreateItemsTree },
 };
 
+struct Progress
+	: virtual ProgressController::Progress
+{
+	const size_t total;
+	std::atomic<size_t> progress { 0 };
+	std::atomic_bool stop { false };
+
+	explicit Progress(const size_t total_)
+		: total(total_)
+	{
+	}
+
+private: // ProgressController::Progress
+	size_t GetTotal() const override
+	{
+		return total;
+	}
+
+	size_t GetProgress() const override
+	{
+		return progress;
+	}
+
+	void Stop() override
+	{
+		progress = total;
+		stop = true;
+	}
+};
+
+class StreamBuf
+	: public std::streambuf
+{
+public:
+	StreamBuf(std::istream & src, Progress & progress)
+		: m_src(src)
+		, m_progress(progress)
+	{
+		setg(m_buf.get(), m_buf.get() + m_bufSize, m_buf.get() + m_bufSize);
+	}
+
+public:
+	bool Finished() const noexcept
+	{
+		return m_finished;
+	}
+
+private: // std::streambuf
+	std::streambuf * setbuf(char_type * /*s*/, std::streamsize /*n*/) override
+	{
+		assert(false && "implement me");
+		return this;
+	}
+
+	pos_type seekoff(off_type /*off*/, std::ios_base::seekdir /*dir*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
+	{
+		assert(false && "implement me");
+		return 100;
+	}
+
+	pos_type seekpos(pos_type /*pos*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
+	{
+		assert(false && "implement me");
+		return 200;
+	}
+
+	int sync() override
+	{
+		assert(false && "implement me");
+		return -1;
+	}
+
+	std::streamsize showmanyc() override
+	{
+		assert(false && "implement me");
+		return 300;
+	}
+
+	int_type underflow() override
+	{
+		if (m_src.eof())
+			return traits_type::eof();
+
+		if (m_progress.stop)
+		{
+			m_finished = false;
+			return traits_type::eof();
+		}
+
+		m_src.read(m_buf.get(), m_bufSize);
+		const auto count = m_src.gcount();
+		setg(m_buf.get(), m_buf.get(), m_buf.get() + count);
+		m_progress.progress += count;
+
+		return static_cast<traits_type::int_type>(m_buf[0]);
+	}
+
+	int_type uflow() override
+	{
+		assert(false && "implement me");
+		return 500;
+	}
+
+	std::streamsize xsgetn(char_type * s, std::streamsize count) override
+	{
+		if (m_progress.stop)
+		{
+			m_finished = false;
+			return 0;
+		}
+
+		m_src.read(s, count);
+		count = m_src.gcount();
+		m_progress.progress += count;
+
+		return count;
+	}
+
+	std::streamsize xsputn(const char_type * /*s*/, std::streamsize /*count*/) override
+	{
+		assert(false && "implement me");
+		return 700;
+	}
+
+	int_type overflow(int_type /*ch*/) override
+	{
+		assert(false && "implement me");
+		return 800;
+	}
+
+	int_type pbackfail(int_type /*c*/) override
+	{
+		assert(false && "implement me");
+		return 900;
+	}
+
+private:
+	std::istream & m_src;
+	Progress & m_progress;
+	bool m_finished { true };
+	const size_t m_bufSize { 1024ull * 32 };
+	const std::unique_ptr<char[]> m_buf { new char[m_bufSize] };
+};
+
+struct ArchiveSrc
+{
+	ZipArchive::Ptr archive;
+	ZipArchiveEntry::Ptr entry;
+	std::istream * stream { nullptr };
+};
+
+ArchiveSrc GetDecompressedStream(const std::filesystem::path & archiveFolder, const Book & book)
+{
+	ArchiveSrc result;
+	const auto archivePath = archiveFolder / book.Folder.toStdString();
+	if (!exists(archivePath))
+		return result;
+
+	result.archive = ZipFile::Open(archivePath.generic_string());
+	if (!result.archive)
+		return {};
+
+	result.entry = result.archive->GetEntry(book.FileName.toStdString());
+	if (!result.entry)
+		return {};
+
+	if (!result.entry->CanExtract())
+		return {};
+
+	result.stream = result.entry->GetDecompressionStream();
+
+	return result;
+}
+
+bool Archive(std::istream & stream, const std::filesystem::path & path, const std::wstring & fileName)
+{
+	const auto dstArchive = ZipFile::Open(path.generic_string());
+	if (!dstArchive)
+		return false;
+
+	auto dstEntry = dstArchive->CreateEntry(QTextCodec::codecForName("IBM 866")->fromUnicode(fileName).toStdString());
+	if (!dstEntry)
+		return false;
+
+	DeflateMethod::Ptr ctx = DeflateMethod::Create();
+	ctx->SetCompressionLevel(DeflateMethod::CompressionLevel::Best);
+	if (!dstEntry->SetCompressionStream(stream, ctx))
+		return false;
+
+	ZipFile::SaveAndClose(dstArchive, path.generic_string());
+	return true;
+}
+
+bool Copy(std::istream & stream, const std::filesystem::path & path)
+{
+	std::ofstream file(path);
+	file << stream.rdbuf();
+	return true;
+}
+
+std::pair<bool, std::filesystem::path> Write(std::istream & stream, std::filesystem::path path, const Book & book, const bool archive)
+{
+	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
+	if (!(exists(path) || create_directory(path)))
+		return result;
+
+	path /= book.AuthorFull.toStdWString();
+	if (!(exists(path) || create_directory(path)))
+		return result;
+
+	if (!book.SeriesTitle.isEmpty())
+	{
+		path /= book.SeriesTitle.toStdWString();
+		if (!(exists(path) || create_directory(path)))
+			return result;
+	}
+
+	const auto ext = std::filesystem::path(book.FileName.toStdWString()).extension();
+	const auto fileName = ((book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data()).toStdWString();
+
+	result.second = (path / fileName).make_preferred();
+	if (archive)
+		result.second.replace_extension("zip");
+
+	if (exists(result.second) && !remove(result.second))
+		return result;
+
+	result.first = archive ? Archive(stream, result.second, fileName) : Copy(stream, result.second);
+
+	return result;
+}
+
 }
 
 QAbstractItemModel * CreateBooksListModel(Books & items, QObject * parent = nullptr);
@@ -516,23 +749,20 @@ constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
 struct BooksModelController::Impl
 	: virtual Observable<BooksModelControllerObserver>
 {
-	Util::Executor & executor;
-	ProgressController & progressController;
-	const BooksViewType booksViewType;
-	const std::filesystem::path archiveFolder;
-
 	Books books;
 	QTimer setNavigationIdTimer;
 	NavigationSource navigationSource{ NavigationSource::Undefined };
 	QString navigationId;
+	const BooksViewType booksViewType;
 
+public:
 	Impl(BooksModelController & self, Util::Executor & executor_, DB::Database & db, ProgressController & progressController_, const BooksViewType booksViewType_, std::filesystem::path archiveFolder_)
-		: executor(executor_)
-		, progressController(progressController_)
-		, booksViewType(booksViewType_)
-		, archiveFolder(std::move(archiveFolder_))
+		: booksViewType(booksViewType_)
 		, m_self(self)
+		, executor(executor_)
 		, m_db(db)
+		, progressController(progressController_)
+		, archiveFolder(std::move(archiveFolder_))
 		, m_itemsCreator(FindSecond(g_itemCreators, booksViewType))
 	{
 		setNavigationIdTimer.setSingleShot(true);
@@ -571,12 +801,66 @@ struct BooksModelController::Impl
 		}, 2);
 	}
 
+	void Save(QString path, const long long id, const bool archive)
+	{
+		std::vector<Book> booksCopy;
+		for (const auto & book : books)
+			if (!book.IsDictionary && book.Checked)
+				booksCopy.push_back(book);
+		if (booksCopy.empty())
+			if (const auto it = std::ranges::find_if(std::as_const(books), [id] (const Book & book) { return book.Id == id; }); it != std::cend(books))
+				booksCopy.push_back(*it);
+		assert(!books.empty());
+
+		executor([path = std::move(path), books = std::move(booksCopy), archiveFolder = archiveFolder, &progressController = progressController, archive]
+		{
+			const auto totalSize = std::accumulate(std::cbegin(books), std::cend(books), 0ull, [] (const size_t init, const Book & book) { return init + book.Size; });
+			const auto progress = std::make_shared<Progress>(totalSize);
+			progressController.Add(progress);
+
+			for (const auto & book : books)
+			{
+				if (progress->stop)
+				{
+					progress->progress = totalSize;
+					break;
+				}
+
+				const auto archiveSrc = GetDecompressedStream(archiveFolder, book);
+				if (!archiveSrc.stream)
+				{
+					progress->progress += book.Size;
+					continue;
+				}
+
+				StreamBuf streamBuf(*archiveSrc.stream, *progress);
+				std::istream stream(&streamBuf);
+
+				const auto writeResult = Write(stream, path.toStdWString(), book, archive);
+
+				if (!writeResult.first)
+					progress->progress += book.Size;
+
+				if (!streamBuf.Finished())
+					remove(writeResult.second);
+			}
+
+			progress->progress = totalSize;
+
+			return []{};
+		});
+	}
+
 private:
 	BooksModelController & m_self;
+	Util::Executor & executor;
 	DB::Database & m_db;
-	const ItemsCreator m_itemsCreator;
+	ProgressController & progressController;
 	NavigationSource m_navigationSource{ NavigationSource::Undefined };
 	QString m_navigationId;
+
+	const std::filesystem::path archiveFolder;
+	const ItemsCreator m_itemsCreator;
 };
 
 BooksModelController::BooksModelController(Util::Executor & executor, DB::Database & db, ProgressController & progressController, const BooksViewType booksViewType, std::filesystem::path archiveFolder)
@@ -636,254 +920,14 @@ void BooksModelController::Restore(const long long id)
 	(void)GetCurrentModel()->setData({}, id, Role::Restore);
 }
 
-struct Progress
-	: virtual ProgressController::Progress
+void BooksModelController::WriteToArchive(QString path, long long id)
 {
-	const size_t total;
-	std::atomic<size_t> progress { 0 };
-	std::atomic_bool stop { false };
-
-	explicit Progress(const size_t total_)
-		: total(total_)
-	{
-	}
-
-private: // ProgressController::Progress
-	size_t GetTotal() const override
-	{
-		return total;
-	}
-
-	size_t GetProgress() const override
-	{
-		return progress;
-	}
-
-	void Stop() override
-	{
-		progress = total;
-		stop = true;
-	}
-};
-
-class StreamBuf
-	: public std::streambuf
-{
-public:
-	StreamBuf(std::istream & src, Progress & progress)
-		: m_src(src)
-		, m_progress(progress)
-	{
-	}
-
-public:
-	bool Finished() const noexcept
-	{
-		return m_finished;
-	}
-
-private: // std::streambuf
-	std::streambuf * setbuf(char_type * /*s*/, std::streamsize /*n*/) override
-	{
-		assert(false && "implement me");
-		return this;
-	}
-
-	pos_type seekoff(off_type /*off*/, std::ios_base::seekdir /*dir*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
-	{
-		assert(false && "implement me");
-		return 100;
-	}
-
-	pos_type seekpos(pos_type /*pos*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
-	{
-		assert(false && "implement me");
-		return 200;
-	}
-
-	int sync() override
-	{
-		assert(false && "implement me");
-		return -1;
-	}
-
-	std::streamsize showmanyc() override
-	{
-		assert(false && "implement me");
-		return 300;
-	}
-
-	int_type underflow() override
-	{
-		assert(false && "implement me");
-		return 400;
-	}
-
-	int_type uflow() override
-	{
-		assert(false && "implement me");
-		return 500;
-	}
-
-	std::streamsize xsgetn(char_type * s, std::streamsize count) override
-	{
-		if (m_progress.stop)
-		{
-			m_finished = false;
-			return 0;
-		}
-
-		m_src.read(s, count);
-		count = m_src.gcount();
-		m_progress.progress += count;
-		return count;
-	}
-
-	std::streamsize xsputn(const char_type * /*s*/, std::streamsize /*count*/) override
-	{
-		assert(false && "implement me");
-		return 700;
-	}
-
-	int_type overflow(int_type /*ch*/) override
-	{
-		assert(false && "implement me");
-		return 800;
-	}
-
-	int_type pbackfail(int_type /*c*/) override
-	{
-		assert(false && "implement me");
-		return 900;
-	}
-
-private:
-	std::istream & m_src;
-	Progress & m_progress;
-	bool m_finished { true };
-};
-
-struct ArchiveSrc
-{
-	ZipArchive::Ptr archive;
-	ZipArchiveEntry::Ptr entry;
-	std::istream * stream { nullptr };
-};
-
-ArchiveSrc GetDecompressedStream(const std::filesystem::path & archiveFolder, const Book & book)
-{
-	ArchiveSrc result;
-	const auto archivePath = archiveFolder / book.Folder.toStdString();
-	if (!exists(archivePath))
-		return result;
-
-	result.archive = ZipFile::Open(archivePath.generic_string());
-	if (!result.archive)
-		return {};
-
-	result.entry = result.archive->GetEntry(book.FileName.toStdString());
-	if (!result.entry)
-		return {};
-
-	if (!result.entry->CanExtract())
-		return {};
-
-	result.stream = result.entry->GetDecompressionStream();
-
-	return result;
+	m_impl->Save(std::move(path), id, true);
 }
 
-std::pair<bool, std::filesystem::path> WriteArchive(std::istream & stream, std::filesystem::path path, const Book & book)
+void BooksModelController::WriteToFile(QString path, const long long id)
 {
-	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
-	if (!(exists(path) || create_directory(path)))
-		return result;
-
-	path /= book.AuthorFull.toStdWString();
-	if (!(exists(path) || create_directory(path)))
-		return result;
-
-	if (!book.SeriesTitle.isEmpty())
-	{
-		path /= book.SeriesTitle.toStdWString();
-		if (!(exists(path) || create_directory(path)))
-			return result;
-	}
-
-	const auto ext = std::filesystem::path(book.FileName.toStdWString()).extension();
-	const auto fileName = ((book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data()).toStdWString();
-
-	result.second = (path / fileName).make_preferred().replace_extension("zip");
-	if (exists(result.second) && !remove(result.second))
-		return result;
-
-	const auto dstArchive = ZipFile::Open(result.second.generic_string());
-	if (!dstArchive)
-		return result;
-
-	auto dstEntry = dstArchive->CreateEntry(QTextCodec::codecForName("IBM 866")->fromUnicode(fileName).toStdString());
-	if (!dstEntry)
-		return result;
-
-	DeflateMethod::Ptr ctx = DeflateMethod::Create();
-	ctx->SetCompressionLevel(DeflateMethod::CompressionLevel::Best);
-	if (!dstEntry->SetCompressionStream(stream, ctx))
-		return result;
-
-	ZipFile::SaveAndClose(dstArchive, result.second.generic_string());
-	result.first = true;
-
-	return result;
-}
-
-void BooksModelController::Save(QString path, const long long id)
-{
-	std::vector<Book> books;
-	for (const auto & book : m_impl->books)
-		if (!book.IsDictionary && book.Checked)
-			books.push_back(book);
-	if (books.empty())
-		if (const auto it = std::ranges::find_if(std::as_const(m_impl->books), [id] (const Book & book) { return book.Id == id; }); it != std::cend(m_impl->books))
-			books.push_back(*it);
-	assert(!books.empty());
-
-	m_impl->executor([path = std::move(path), books = std::move(books), archiveFolder = m_impl->archiveFolder, &progressController = m_impl->progressController]
-	{
-		const auto totalSize = std::accumulate(std::cbegin(books), std::cend(books), 0ull, [] (const size_t init, const Book & book) { return init + book.Size; });
-		const auto progress = std::make_shared<Progress>(totalSize);
-		progressController.Add(progress);
-
-		for (const auto & book : books)
-		{
-			if (progress->stop)
-			{
-				progress->progress = totalSize;
-				break;
-			}
-
-			const auto archiveSrc = GetDecompressedStream(archiveFolder, book);
-			if (!archiveSrc.stream)
-			{
-				progress->progress += book.Size;
-				continue;
-			}
-
-			StreamBuf streamBuf(*archiveSrc.stream, *progress);
-			std::istream stream(&streamBuf);
-
-			const auto writeResult = WriteArchive(stream, path.toStdWString(), book);
-
-			if (!writeResult.first)
-				progress->progress += book.Size;
-
-			if (!streamBuf.Finished())
-				remove(writeResult.second);
-		}
-
-		progress->progress = totalSize;
-
-		return []{};
-	});
+	m_impl->Save(std::move(path), id, false);
 }
 
 void BooksModelController::SetNavigationState(NavigationSource navigationSource, const QString & navigationId)

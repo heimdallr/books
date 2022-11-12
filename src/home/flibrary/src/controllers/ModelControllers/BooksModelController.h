@@ -42,7 +42,8 @@ public:
 	Q_INVOKABLE bool InvertSelection();
 	Q_INVOKABLE void Remove(long long id);
 	Q_INVOKABLE void Restore(long long id);
-	Q_INVOKABLE void Save(QString path, long long id);
+	Q_INVOKABLE void WriteToArchive(QString path, long long id);
+	Q_INVOKABLE void WriteToFile(QString path, long long id);
 
 public:
 	BooksModelController(Util::Executor & executor, DB::Database & db, ProgressController & progressController, BooksViewType booksViewType, std::filesystem::path archiveFolder);

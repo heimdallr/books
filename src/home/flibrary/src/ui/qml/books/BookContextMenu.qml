@@ -34,15 +34,30 @@ Menu
 		}
 	}
 
-	MenuItem
+	Menu
 	{
-		id: sendID
-		text: qsTranslate("BookContextMenu", "Send to device")
-        onTriggered:
+		id: sendToDeviceMenuID
+		title: qsTranslate("BookContextMenu", "Send to device")
+
+		function save(archivate)
 		{
 			const folder = fileDialog.SelectFolder("")
 			if (folder !== "")
-				controller.Save(folder, menuID.bookId)
+				archivate
+					? controller.WriteToArchive(folder, menuID.bookId)
+					: controller.WriteToFile(folder, menuID.bookId)
+		}
+
+		MenuItem
+		{
+			text: qsTranslate("BookContextMenu", "In zip archive")
+			onTriggered: sendToDeviceMenuID.save(true)
+		}
+
+		MenuItem
+		{
+			text: qsTranslate("BookContextMenu", "In original format")
+			onTriggered: sendToDeviceMenuID.save(false)
 		}
 	}
 
