@@ -9,6 +9,8 @@
 
 namespace HomeCompa {
 
+class SettingsObserver;
+
 class UTIL_API Settings
 {
 public:
@@ -29,6 +31,9 @@ public:
 
 	void BeginGroup(const QString & group);
 	void EndGroup();
+
+	void RegisterObserver(SettingsObserver * observer);
+	void UnregisterObserver(SettingsObserver * observer);
 
 private:
 	struct Impl;
