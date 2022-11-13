@@ -155,7 +155,7 @@ public:
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)
 	{
-		if (m_booksViewType == type)
+		if (m_navigationSourceProvider.GetBookViewType() == type)
 			return m_booksModelController.get();
 
 		if (m_booksModelController)
@@ -165,7 +165,7 @@ public:
 			m_booksModelController->UnregisterObserver(m_localeController.GetBooksModelControllerObserver());
 		}
 
-		m_booksViewType = type;
+		m_navigationSourceProvider.SetBookViewType(type);
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString())).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
@@ -282,7 +282,6 @@ private:
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
 	ModelController * m_activeModelController { nullptr };
 
-	BooksViewType m_booksViewType { BooksViewType::Undefined };
 	int m_currentNavigationIndex { -1 };
 
 	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };

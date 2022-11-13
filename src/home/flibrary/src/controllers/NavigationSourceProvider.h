@@ -7,6 +7,7 @@
 
 namespace HomeCompa::Flibrary {
 
+enum class BooksViewType;
 enum class NavigationSource;
 class BooksModelControllerObserver;
 
@@ -29,7 +30,10 @@ public:
 	~NavigationSourceProvider() override;
 
 	NavigationSource GetSource() const noexcept;
-	void SetSource(NavigationSource source) noexcept;
+	void SetSource(NavigationSource source);
+
+	BooksViewType GetBookViewType() const noexcept;
+	void SetBookViewType(BooksViewType type);
 
 private: // property getters
 	bool IsAuthorsVisible() const noexcept;
