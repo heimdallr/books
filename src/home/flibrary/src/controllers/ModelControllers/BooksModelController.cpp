@@ -390,6 +390,49 @@ Books CreateBookTreeForAuthor(Books & items, const Series & series)
 	return result;
 }
 
+Books CreateBookTreeForSeries(Books & items, const Authors & authors)
+{
+	Books result;
+	result.reserve(items.size() + authors.size() + 1);
+
+	QString parentAuthor;
+	size_t parentPosition = 0;
+	bool deleted = true;
+	std::set<QString> languages;
+
+	for (auto & item : items)
+	{
+		if (parentAuthor != item.AuthorFull)
+		{
+			PostProcess(parentAuthor, deleted, languages, result, parentPosition);
+			deleted = true;
+			parentAuthor = item.AuthorFull;
+			parentPosition = std::size(result);
+			if (!parentAuthor.isEmpty())
+			{
+				auto & r = result.emplace_back();
+				r.Title = parentAuthor;
+				r.IsDictionary = true;
+			}
+		}
+
+		if (!item.IsDeleted)
+			deleted = false;
+
+		auto & r = result.emplace_back(std::move(item));
+		if (!parentAuthor.isEmpty())
+		{
+			r.TreeLevel = 1;
+			r.ParentId = parentPosition;
+			languages.insert(r.Lang);
+		}
+	}
+
+	PostProcess(parentAuthor, deleted, languages, result, parentPosition);
+
+	return result;
+}
+
 Books CreateBookTree(Books & items, const Index & index, const Authors & authorsIndex, const Series & seriesIndex)
 {
 	Books result;
@@ -487,7 +530,7 @@ Books CreateItemsTree(DB::Database & db, const NavigationSource navigationSource
 
 	switch (navigationSource)
 	{
-		case NavigationSource::Series: return books;
+		case NavigationSource::Series: return CreateBookTreeForSeries(books, authors);
 		case NavigationSource::Authors: return CreateBookTreeForAuthor(books, series);
 		default:
 			break;
