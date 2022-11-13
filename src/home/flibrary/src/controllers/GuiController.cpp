@@ -285,7 +285,8 @@ private:
 	int m_currentNavigationIndex { -1 };
 
 	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
-	UiSettings m_uiSettings { CreateUiSettings() };
+	std::shared_ptr<Settings> m_uiSettingsSrc { CreateUiSettings() };
+	UiSettings m_uiSettings { m_uiSettingsSrc };
 	Collection m_currentCollection;
 
 	NavigationSourceProvider m_navigationSourceProvider;
