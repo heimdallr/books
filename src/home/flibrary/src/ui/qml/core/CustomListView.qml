@@ -19,9 +19,9 @@ Item
 			Rectangle
 			{
 				width: customListViewID.width
-				height: uiSettings.delegateHeight
+				height: uiSettings.heightDelegate
 
-				color: modelController.focused ? uiSettings.highlightColor : uiSettings.highlightColorUnfocused
+				color: modelController.focused ? uiSettings.colorHighlight : uiSettings.colorHighlightUnfocused
 				y: listViewID.currentItem ? listViewID.currentItem.y : 0
 				Behavior on y
 				{
@@ -54,7 +54,7 @@ Item
 			highlight: highlightID
 			highlightFollowsCurrentItem: false
 
-			onHeightChanged: modelController.SetPageSize(height / uiSettings.delegateHeight)
+			onHeightChanged: modelController.SetPageSize(height / uiSettings.heightDelegate)
 		}
 	}
 }

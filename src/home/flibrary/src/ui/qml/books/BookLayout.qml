@@ -53,7 +53,7 @@ Item
 			CustomText
 			{
 				id: authorID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.authorWidth - uiSettings.splitViewHandleSize
+				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle
 				Layout.fillWidth: visible
 				visible: delegateID.authorVisible
 				color: textColor
@@ -63,7 +63,8 @@ Item
 
 			CustomText
 			{
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.titleWidth - uiSettings.splitViewHandleSize
+				id: titleID
+				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthTitle - uiSettings.sizeSplitViewHandle
 				Layout.fillWidth: !authorID.visible
 				color: textColor
 				text: Title
@@ -73,7 +74,7 @@ Item
 			CustomText
 			{
 				id: seriesID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.seriesWidth - uiSettings.splitViewHandleSize
+				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle
 				visible: delegateID.seriesVisible
 				color: textColor
 				text: SeriesTitle
@@ -82,8 +83,9 @@ Item
 
 			CustomText
 			{
+				id: seqNoID
 				readonly property int seqNumber: SeqNumber
-				Layout.preferredWidth: uiSettings.seqNoWidth - uiSettings.splitViewHandleSize
+				Layout.preferredWidth: uiSettings.widthSeqNo - uiSettings.sizeSplitViewHandle
 				color: textColor
 				text: seqNumber > 0 ? seqNumber : ""
 //				onWidthChanged:	console.log(`bool seqNo width: ${width}`)
@@ -92,7 +94,7 @@ Item
 			CustomText
 			{
 				id: genreID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.genreWidth - uiSettings.splitViewHandleSize
+				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle
 				color: textColor
 				text: GenreAlias
 //				onWidthChanged:	console.log(`bool genre width: ${width}`)
@@ -100,7 +102,8 @@ Item
 
 			CustomText
 			{
-				Layout.preferredWidth: uiSettings.languageWidth - uiSettings.splitViewHandleSize
+				id: langID
+				Layout.preferredWidth: uiSettings.widthLanguage - uiSettings.sizeSplitViewHandle
 				color: textColor
 				text: Lang
 //				onWidthChanged:	console.log(`bool language width: ${width}`)

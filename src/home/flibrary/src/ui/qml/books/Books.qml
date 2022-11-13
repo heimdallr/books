@@ -31,10 +31,10 @@ Rectangle
 
 			SplitView.minimumHeight: booksID.height / 8
 			SplitView.maximumHeight: 3 * booksID.height / 4
-			SplitView.preferredHeight: ready ? uiSettings.bookInfoHeight * booksID.height : applicationWindowID.height / 4
+			SplitView.preferredHeight: ready ? uiSettings.heightBookInfo * booksID.height : applicationWindowID.height / 4
 
 			onHeightChanged: if (applicationWindowID.completed)
-				uiSettings.bookInfoHeight = height / booksID.height
+				uiSettings.heightBookInfo = height / booksID.height
 
 			visible: uiSettings.showBookInfo != 0
 		}

@@ -11,7 +11,7 @@ Item
 
 		delegate: NavigationListDelegate
 		{
-			height: uiSettings.delegateHeight
+			height: uiSettings.heightDelegate
 			width: authorsID.width
 		}
 	}

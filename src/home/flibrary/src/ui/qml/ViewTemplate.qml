@@ -39,7 +39,7 @@ Rectangle
 			{
 				Layout.leftMargin: 4
 				Layout.preferredWidth: 100
-				Layout.preferredHeight: uiSettings.delegateHeight
+				Layout.preferredHeight: uiSettings.heightDelegate
 				id: viewSourceComboBoxID
 				currentIndex: -1
 				onCurrentIndexChanged: onSourceChanged()
@@ -49,7 +49,7 @@ Rectangle
 			{
 				id: viewModeTextID
 				Layout.fillWidth: true
-				font.pointSize: uiSettings.fontSize
+				font.pointSize: uiSettings.sizeFont
 				onTextChanged: findLayoutID.setViewMode()
 			}
 

@@ -1,31 +1,31 @@
 CreateMap(UI_SETTING_NAMES
 	VARIABLES
-		showDeleted                     0
+		colorBorder                   \"lightgray\"
+		colorHighlight                \"lightsteelblue\"
+		colorHighlightUnfocused       \"lavender\"
+		colorProgressBar              \"lightsteelblue\"
+		colorSplitViewHandle          \"\#c2f4c6\"
+		colorSplitViewHandlePressed   \"\#81e889\"
+		heightBookInfo                  0.25
+		heightDelegate                  20
+		heightMainWindow                720
+		pathRecentCollectionDatabase  \"\"
+		pathRecentExport              \"\"
+		pathResentCollectionArchive   \"\"
+		posXMainWindow                 -1
+		posYMainWindow                 -1
 		showBookInfo                    1
-		mainWindowHeight                720
-		mainWindowWidth                 1024
-		mainWindowPosX                 -1
-		mainWindowPosY                 -1
-		navigationWidth                 0.25
-		bookInfoHeight                  0.25
-		delegateHeight                  20
-		fontSize                        9
-		borderColor                   \"lightgray\"
-		highlightColor                \"lightsteelblue\"
-		highlightColorUnfocused       \"lavender\"
-		progressBarColor              \"lightsteelblue\"
-		recentExportPath              \"\"
-		resentCollectionArchiveFolder \"\"
-		recentCollectionDatabase      \"\"
-		authorWidth                     0.125
-		seriesWidth                     0.125
-		seqNoWidth                      30
-		titleWidth                      0.5
-		genreWidth                      0.0625
-		languageWidth                   36
-		splitViewHandleSize 4
-		splitViewHandleColor          \"\#c2f4c6\"
-		splitViewHandlePressedColor   \"\#81e889\"
+		showDeleted                     0
+		sizeFont                        9
+		sizeSplitViewHandle             4
+		widthAuthor                     0.125
+		widthGenre                      0.0625
+		widthLanguage                   36
+		widthMainWindow                 1024
+		widthNavigation                 0.25
+		widthSeqNo                      30
+		widthSeries                     0.125
+		widthTitle                      0.5
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)

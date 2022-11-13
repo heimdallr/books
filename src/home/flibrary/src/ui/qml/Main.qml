@@ -13,23 +13,23 @@ ApplicationWindow
 	property alias focus: splitViewID.focus
 	property bool completed: false
 
-	width: uiSettings.mainWindowWidth
-	height: uiSettings.mainWindowHeight
+	width: uiSettings.widthMainWindow
+	height: uiSettings.heightMainWindow
 
 	title: guiController.title
 
 	visible: true
 
-	onWidthChanged: if (completed) uiSettings.mainWindowWidth = width
-	onHeightChanged: if (completed) uiSettings.mainWindowHeight = height
-	onXChanged: if (completed) uiSettings.mainWindowPosX = x
-	onYChanged: if (completed) uiSettings.mainWindowPosY = y
+	onWidthChanged: if (completed) uiSettings.widthMainWindow = width
+	onHeightChanged: if (completed) uiSettings.heightMainWindow = height
+	onXChanged: if (completed) uiSettings.posXMainWindow = x
+	onYChanged: if (completed) uiSettings.posYMainWindow = y
 
 	Component.onCompleted:
 	{
-		if ((x = uiSettings.mainWindowPosX) < 0)
+		if ((x = uiSettings.posXMainWindow) < 0)
 			x = (screen.width - width) / 2
-		if ((y = uiSettings.mainWindowPosY) < 0)
+		if ((y = uiSettings.posYMainWindow) < 0)
 			y = (screen.height - height) / 2
 
 		completed = true;
@@ -55,10 +55,10 @@ ApplicationWindow
 			{
 				SplitView.minimumWidth: applicationWindowID.width / 6
 				SplitView.maximumWidth: applicationWindowID.width / 2
-				SplitView.preferredWidth: uiSettings.navigationWidth * applicationWindowID.width
+				SplitView.preferredWidth: uiSettings.widthNavigation * applicationWindowID.width
 
 				onWidthChanged: if (applicationWindowID.completed)
-					uiSettings.navigationWidth = width / applicationWindowID.width
+					uiSettings.widthNavigation = width / applicationWindowID.width
 			}
 
 			Books

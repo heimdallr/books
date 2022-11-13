@@ -5,7 +5,7 @@ Item
 	Rectangle
 	{
 		height: 1
-		color: uiSettings.borderColor
+		color: uiSettings.colorBorder
 		anchors
 		{
 			left: parent.left
@@ -17,7 +17,7 @@ Item
 	Rectangle
 	{
 		height: 1
-		color: uiSettings.borderColor
+		color: uiSettings.colorBorder
 		anchors
 		{
 			left: parent.left

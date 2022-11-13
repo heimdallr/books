@@ -34,7 +34,7 @@ Window
 			{
 				id: collectionNameID
 				Layout.fillWidth: true
-				font.pointSize: uiSettings.fontSize
+				font.pointSize: uiSettings.sizeFont
 			}
 		}
 
@@ -50,18 +50,18 @@ Window
 			{
 				id: collectionDatabaseID
 				Layout.fillWidth: true
-				font.pointSize: uiSettings.fontSize
+				font.pointSize: uiSettings.sizeFont
 			}
 			Button
 			{
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = fileDialog.SelectFile(collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.recentCollectionDatabase)
+					const fileName = fileDialog.SelectFile(collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.pathRecentCollectionDatabase)
 					if (fileName === "")
 						return
 
-					uiSettings.recentCollectionDatabase = fileName
+					uiSettings.pathRecentCollectionDatabase = fileName
 					collectionDatabaseID.text = fileName
 				}
 			}
@@ -79,18 +79,18 @@ Window
 			{
 				id: collectionArchiveFolderID
 				Layout.fillWidth: true
-				font.pointSize: uiSettings.fontSize
+				font.pointSize: uiSettings.sizeFont
 			}
 			Button
 			{
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const folder = fileDialog.SelectFolder(collectionArchiveFolderID.text !== "" ? collectionArchiveFolderID.text : uiSettings.resentCollectionArchiveFolder)
+					const folder = fileDialog.SelectFolder(collectionArchiveFolderID.text !== "" ? collectionArchiveFolderID.text : uiSettings.pathResentCollectionArchive)
 					if (folder === "")
 						return
 
-					uiSettings.resentCollectionArchiveFolder = folder
+					uiSettings.pathResentCollectionArchive = folder
 					collectionArchiveFolderID.text = folder
 				}
 			}

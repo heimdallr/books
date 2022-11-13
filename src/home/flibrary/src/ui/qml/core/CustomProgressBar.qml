@@ -4,7 +4,7 @@ import QtQuick.Controls 1.4
 Rectangle
 {
 	color: "transparent"
-	border { width: 1; color: uiSettings.borderColor }
+	border { width: 1; color: uiSettings.colorBorder }
 
 	Rectangle
 	{
@@ -29,7 +29,7 @@ Rectangle
 				margins: 4
 			}
 
-			color: uiSettings.progressBarColor
+			color: uiSettings.colorProgressBar
 			radius: 5
 
 			width: parent.width * progressController.progress

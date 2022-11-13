@@ -11,7 +11,7 @@ Item
 
 		delegate: NavigationTreeDelegate
 		{
-			height: uiSettings.delegateHeight
+			height: uiSettings.heightDelegate
 			width: genresID.width
 		}
 	}

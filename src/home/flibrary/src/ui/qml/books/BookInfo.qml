@@ -65,7 +65,7 @@ Rectangle
 			selectByKeyboard: true
 			selectByMouse: true
 			wrapMode: TextEdit.WordWrap
-			font.pointSize: uiSettings.fontSize
+			font.pointSize: uiSettings.sizeFont
 			text: annotationController.annotation
 	    }
 	}
