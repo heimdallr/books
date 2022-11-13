@@ -53,12 +53,12 @@ void NavigationSourceProvider::SetBookViewType(const BooksViewType type)
 
 bool NavigationSourceProvider::IsAuthorsVisible() const noexcept
 {
-	return m_impl->navigationSource != NavigationSource::Authors;
+	return m_impl->booksViewType == BooksViewType::List && m_impl->navigationSource != NavigationSource::Authors;
 }
 
 bool NavigationSourceProvider::IsSeriesVisible() const noexcept
 {
-	return m_impl->navigationSource != NavigationSource::Series;
+	return m_impl->booksViewType == BooksViewType::List && m_impl->navigationSource != NavigationSource::Series;
 }
 
 bool NavigationSourceProvider::IsGenresVisible() const noexcept
