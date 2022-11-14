@@ -62,6 +62,7 @@ Item
 		anchors
 		{
 			left: checkBoxID.visible ? checkBoxID.right : expanderID.right
+			right: parent.right
 			leftMargin: 4
 			bottom: parent.bottom
 			bottomMargin: 2

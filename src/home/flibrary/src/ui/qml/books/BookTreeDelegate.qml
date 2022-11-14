@@ -14,6 +14,7 @@ Item
 		Expandable
 		{
 			height: delegateID.height
+			width: delegateID.width
 
 			text: Title
 			textColor: IsDeleted ? "gray" : "black"
