@@ -16,4 +16,10 @@ Menu
         text: uiSettings.showBookInfo == 0 ? qsTranslate("Tray", "Show annotation") : qsTranslate("Tray", "Hide annotation")
         onTriggered: uiSettings.showBookInfo = uiSettings.showBookInfo == 0 ? 1 : 0
     }
+
+    MenuItem
+    {
+        text: logController.logMode ? qsTranslate("Tray", "Hide log") : qsTranslate("Tray", "Show log")
+        onTriggered: logController.logMode = ! logController.logMode
+    }
 }

@@ -101,7 +101,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="58"/>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
@@ -129,27 +129,27 @@ Restart now?</source>
 <context>
     <name>Header</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="23"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="24"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="46"/>
         <source>SeriesTitle</source>
         <translation>Серия</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="34"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="63"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="76"/>
         <source>GenreAlias</source>
         <translation>Жанр</translation>
     </message>
@@ -321,6 +321,16 @@ Restart now?</source>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
         <source>Hide annotation</source>
         <translation>Скрыть аннотацию</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
+        <source>Hide log</source>
+        <translation>Скрыть журнал</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
+        <source>Show log</source>
+        <translation>Показать журнал</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="6"/>

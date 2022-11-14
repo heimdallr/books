@@ -2,8 +2,6 @@
 
 #include <QObject>
 
-#include "fnd/NonCopyMovable.h"
-
 namespace HomeCompa {
 class Settings;
 }

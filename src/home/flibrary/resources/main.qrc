@@ -3,6 +3,7 @@
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
 		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate.qml</file>
 		<file alias="ViewModeCombobox.qml">../src/ui/qml/ViewModeCombobox.qml</file>
+		<file alias="Log.qml">../src/ui/qml/Log.qml</file>
 	</qresource>
 
 	<qresource prefix="Navigation">

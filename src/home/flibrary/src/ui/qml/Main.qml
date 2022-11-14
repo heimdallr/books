@@ -68,10 +68,20 @@ ApplicationWindow
 		}
 	}
 
+	Component
+	{
+		id: logViewID
+
+		Log
+		{
+			anchors.fill: parent
+		}
+	}
+
 	Loader
 	{
 		id: splitViewID
 		anchors.fill: parent
-		sourceComponent: guiController.opened ? splitViewComponentID : undefined
+		sourceComponent: logController.logMode ? logViewID : guiController.opened ? splitViewComponentID : undefined
 	}
 }

@@ -31,6 +31,7 @@
 #include "CollectionController.h"
 #include "FileDialogProvider.h"
 #include "LocaleController.h"
+#include "LogController.h"
 #include "NavigationSourceProvider.h"
 #include "ProgressController.h"
 
@@ -97,6 +98,7 @@ public:
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("collectionController", new CollectionController(*this, &m_self));
+		qmlContext->setContextProperty("logController", new LogController(&m_self));
 		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 

@@ -100,7 +100,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="58"/>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
         <source>Cancel</source>
         <translation></translation>
@@ -128,27 +128,27 @@ Restart now?</source>
 <context>
     <name>Header</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="23"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="24"/>
         <source>Author</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="46"/>
         <source>SeriesTitle</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="34"/>
         <source>Title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="63"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="76"/>
         <source>GenreAlias</source>
         <translation>Genre</translation>
     </message>
@@ -319,6 +319,16 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
         <source>Hide annotation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
+        <source>Hide log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
+        <source>Show log</source>
         <translation></translation>
     </message>
     <message>

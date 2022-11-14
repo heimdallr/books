@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		PLOGD << "App started";
+		PLOGI << "App started";
 
 		while (true)
 		{
@@ -23,11 +23,11 @@ int main(int argc, char * argv[])
 
 			if (const auto code = QApplication::exec(); code != 1234)
 			{
-				PLOGD << "App finished with " << code;
+				PLOGI << "App finished with " << code;
 				return code;
 			}
 
-			PLOGD << "App restarted";
+			PLOGI << "App restarted";
 		}
 	}
 	catch(const std::exception & ex)
