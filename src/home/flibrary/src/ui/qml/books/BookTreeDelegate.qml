@@ -18,7 +18,7 @@ Item
 			text: Title
 			textColor: IsDeleted ? "gray" : "black"
 			expanded: Expanded
-			treeMargin: height * TreeLevel / 2
+			treeMargin: height * TreeLevel * uiSettings.widthTreeMargin
 
 			expanderVisible: true
 			onExpanderClicked: Expanded = !expanded
@@ -36,7 +36,7 @@ Item
 		id: bookID
 		BookLayout
 		{
-			treeMargin: height * (TreeLevel + 1) / 2
+			treeMargin: height * (TreeLevel + 1) * uiSettings.widthTreeMargin
 		}
 	}
 

@@ -32,6 +32,7 @@ CreateMap(UI_SETTING_NAMES
 		widthSeqNo                      30
 		widthSeries                     0.125
 		widthTitle                      0.3
+		widthTreeMargin                 0.75
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
