@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import "qrc:/Core"
+import "qrc:/Util/Functions.js" as Functions
 
 SplitView
 {
@@ -13,73 +14,86 @@ SplitView
 	CustomText
 	{
 		id: authorID
-		text: qsTranslate("Header", "Author")
-		SplitView.preferredWidth: SplitView.fillWidth ? 0 : viewID.width * uiSettings.widthAuthor
-		SplitView.fillWidth: visible
+		function getIndex() { return uiSettings.indexAuthor }
+		property bool ready: false
+		SplitView.preferredWidth: ready ?  viewID.width * uiSettings.widthAuthor : -1
 		visible: fieldsVisibilityProvider.authorsVisible
-		onWidthChanged:
-		{
-//			console.log(`head author width: ${width}`)
-			if (viewID.width > 1) uiSettings.widthAuthor = width / viewID.width
-		}
+		onVisibleChanged: viewID.setWidths()
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthAuthor = width / viewID.width
+		text: qsTranslate("Header", "Author")
 	}
 
 	CustomText
 	{
-		SplitView.preferredWidth: viewID.width * uiSettings.widthTitle
-		SplitView.fillWidth: !authorID.visible
-		onWidthChanged:
-		{
-//			console.log(`book title width: ${width}`)
-			if (viewID.width > 1) uiSettings.widthTitle = width / viewID.width
-		}
+		id: titleID
+		function getIndex() { return uiSettings.indexTitle }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? viewID.width * uiSettings.widthTitle : -1
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthTitle = width / viewID.width
 		text: qsTranslate("Header", "Title")
 	}
 
 	CustomText
 	{
 		id: seriesID
-		text: qsTranslate("Header", "SeriesTitle")
-		SplitView.preferredWidth: viewID.width * uiSettings.widthSeries
+		function getIndex() { return uiSettings.indexSeries }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? viewID.width * uiSettings.widthSeries : -1
 		visible: fieldsVisibilityProvider.seriesVisible
-		onWidthChanged:
-		{
-//			console.log(`head series width: ${width}`)
-			if (viewID.width > 1) uiSettings.widthSeries = width / viewID.width
-		}
+		onVisibleChanged: viewID.setWidths()
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSeries = width / viewID.width
+		text: qsTranslate("Header", "SeriesTitle")
+	}
+
+	TextMetrics
+	{
+		id: seqNoMetricsID
+		font.pointSize: uiSettings.sizeFont
+		text: "9999"
 	}
 
 	CustomText
 	{
+		id: seqNoID
+		function getIndex() { return uiSettings.indexSeqNo }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? uiSettings.widthSeqNo : -1
+		SplitView.minimumWidth: seqNoMetricsID.width + uiSettings.sizeSplitViewHandle
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSeqNo = width
 		text: qsTranslate("Header", "No")
-		SplitView.preferredWidth: uiSettings.widthSeqNo
-		onWidthChanged:
-		{
-//			console.log(`head seqNo width: ${width}`)
-			uiSettings.widthSeqNo = width
-		}
 	}
 
 	CustomText
 	{
 		id: genreID
-		SplitView.preferredWidth: viewID.width * uiSettings.widthGenre
+		function getIndex() { return uiSettings.indexGenre }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? viewID.width * uiSettings.widthGenre : -1
 		visible: fieldsVisibilityProvider.genresVisible
-		onWidthChanged:
-		{
-//			console.log(`head genre width: ${width}`)
-			if (viewID.width > 1) uiSettings.widthGenre = width / viewID.width
-		}
+		onVisibleChanged: viewID.setWidths()
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthGenre = width / viewID.width
 		text: qsTranslate("Header", "GenreAlias")
+	}
+
+	TextMetrics
+	{
+		id: langMetricsID
+		font.pointSize: uiSettings.sizeFont
+		text: "en"
 	}
 
 	LanguageFilter
 	{
-		SplitView.preferredWidth: uiSettings.widthLanguage
-		onWidthChanged:
-		{
-//			console.log(`head language width: ${width}`)
-			uiSettings.widthLanguage = width
-		}
+		id: langID
+		function getIndex() { return uiSettings.indexLanguage }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? uiSettings.widthLanguage : -1
+		SplitView.minimumWidth: 2 * langMetricsID.width
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthLanguage = width
+	}
+
+	function setWidths()
+	{
+		Functions.SetWidths([authorID, titleID, seriesID, seqNoID, genreID, langID], viewID, function(item, value){ item.SplitView.fillWidth = value })
 	}
 }

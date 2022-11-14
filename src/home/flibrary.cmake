@@ -9,6 +9,12 @@ CreateMap(UI_SETTING_NAMES
 		heightBookInfo                  0.25
 		heightDelegate                  20
 		heightMainWindow                720
+		indexAuthor                     0
+		indexTitle                      1
+		indexSeries                     2
+		indexSeqNo                      3
+		indexGenre                      4
+		indexLanguage                   5
 		pathRecentCollectionDatabase  \"\"
 		pathRecentExport              \"\"
 		pathResentCollectionArchive   \"\"
@@ -25,7 +31,7 @@ CreateMap(UI_SETTING_NAMES
 		widthNavigation                 0.25
 		widthSeqNo                      30
 		widthSeries                     0.125
-		widthTitle                      0.5
+		widthTitle                      0.3
 	)
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)

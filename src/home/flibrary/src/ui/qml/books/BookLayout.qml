@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 import "qrc:/Core"
+import "qrc:/Util/Functions.js" as Functions
 
 Item
 {
@@ -50,62 +51,68 @@ Item
 			CustomText
 			{
 				id: authorID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle
-				Layout.fillWidth: visible
+				function getIndex() { return uiSettings.indexAuthor }
+				property bool ready: false
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle : -1
 				visible: fieldsVisibilityProvider.authorsVisible
 				color: textColor
 				text: Author
-//				onWidthChanged:	console.log(`bool author width: ${width}`)
 			}
 
 			CustomText
 			{
 				id: titleID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthTitle - uiSettings.sizeSplitViewHandle
-				Layout.fillWidth: !authorID.visible
+				function getIndex() { return uiSettings.indexTitle }
+				property bool ready: false
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthTitle - uiSettings.sizeSplitViewHandle : -1
 				color: textColor
 				text: Title
-//				onWidthChanged:	console.log(`bool title width: ${width}`)
 			}
 
 			CustomText
 			{
 				id: seriesID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle
+				function getIndex() { return uiSettings.indexSeries }
+				property bool ready: false
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle : -1
 				visible: fieldsVisibilityProvider.seriesVisible
 				color: textColor
 				text: SeriesTitle
-//				onWidthChanged:	console.log(`bool series width: ${width}`)
 			}
 
 			CustomText
 			{
 				id: seqNoID
+				function getIndex() { return uiSettings.indexSeqNo }
+				property bool ready: false
 				readonly property int seqNumber: SeqNumber
-				Layout.preferredWidth: uiSettings.widthSeqNo - uiSettings.sizeSplitViewHandle
+				Layout.preferredWidth: ready ? uiSettings.widthSeqNo - uiSettings.sizeSplitViewHandle : -1
 				color: textColor
 				text: seqNumber > 0 ? seqNumber : ""
-//				onWidthChanged:	console.log(`bool seqNo width: ${width}`)
 			}
 
 			CustomText
 			{
 				id: genreID
-				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle
+				function getIndex() { return uiSettings.indexGenre }
+				property bool ready: false
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle : -1
 				visible: fieldsVisibilityProvider.genresVisible
 				color: textColor
 				text: GenreAlias
-//				onWidthChanged:	console.log(`bool genre width: ${width}`)
 			}
 
 			CustomText
 			{
 				id: langID
-				Layout.preferredWidth: uiSettings.widthLanguage - uiSettings.sizeSplitViewHandle
+				function getIndex() { return uiSettings.indexLanguage }
+				property bool ready: false
+				Layout.preferredWidth: ready ? uiSettings.widthLanguage - uiSettings.sizeSplitViewHandle : -1
 				color: textColor
 				text: Lang
-//				onWidthChanged:	console.log(`bool language width: ${width}`)
 			}
+
+			Component.onCompleted: Functions.SetWidths([authorID, titleID, seriesID, seqNoID, genreID, langID], layoutID, function(item, value){ item.Layout.fillWidth = value })
 		}
 
 		MouseArea

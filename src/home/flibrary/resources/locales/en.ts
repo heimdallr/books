@@ -128,27 +128,27 @@ Restart now?</source>
 <context>
     <name>Header</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="20"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="26"/>
         <source>Author</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="56"/>
         <source>SeriesTitle</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="39"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="40"/>
         <source>Title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="56"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="78"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="74"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="94"/>
         <source>GenreAlias</source>
         <translation>Genre</translation>
     </message>

@@ -29,6 +29,10 @@
 		<file alias="BookContextMenu.qml">../src/ui/qml/books/BookContextMenu.qml</file>
 	</qresource>
 
+	<qresource prefix="Util">
+		<file alias="Functions.js">../src/ui/qml/util/Functions.js</file>
+	</qresource>
+
 	<qresource prefix="Core">
 		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
 		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
