@@ -7,10 +7,6 @@ SplitView
 {
 	id: viewID
 
-	property alias authorsVisible: authorID.visible
-	property alias seriesVisible: seriesID.visible
-	property alias genresVisible: genreID.visible
-
 	orientation: Qt.Horizontal
 	handle: SplitViewHandle {}
 
@@ -20,6 +16,7 @@ SplitView
 		text: qsTranslate("Header", "Author")
 		SplitView.preferredWidth: SplitView.fillWidth ? 0 : viewID.width * uiSettings.widthAuthor
 		SplitView.fillWidth: visible
+		visible: fieldsVisibilityProvider.authorsVisible
 		onWidthChanged:
 		{
 //			console.log(`head author width: ${width}`)
@@ -44,6 +41,7 @@ SplitView
 		id: seriesID
 		text: qsTranslate("Header", "SeriesTitle")
 		SplitView.preferredWidth: viewID.width * uiSettings.widthSeries
+		visible: fieldsVisibilityProvider.seriesVisible
 		onWidthChanged:
 		{
 //			console.log(`head series width: ${width}`)
@@ -66,6 +64,7 @@ SplitView
 	{
 		id: genreID
 		SplitView.preferredWidth: viewID.width * uiSettings.widthGenre
+		visible: fieldsVisibilityProvider.genresVisible
 		onWidthChanged:
 		{
 //			console.log(`head genre width: ${width}`)

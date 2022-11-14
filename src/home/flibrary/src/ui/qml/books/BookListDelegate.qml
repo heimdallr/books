@@ -7,16 +7,10 @@ import "qrc:/Core"
 Item
 {
 	id: delegateID
-	property bool authorsVisible: true
-	property bool seriesVisible: true
-	property bool genresVisible: true
 
 	BookLayout
 	{
 		id: bookID
 		anchors.fill: parent
-		authorsVisible: delegateID.authorsVisible
-		seriesVisible: delegateID.seriesVisible
-		genresVisible: delegateID.genresVisible
 	}
 }

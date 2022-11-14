@@ -6,10 +6,6 @@ Item
 {
 	id: booksViewID
 
-	readonly property bool authorsVisible: fieldsVisibilityProvider.authorsVisible
-	readonly property bool seriesVisible: fieldsVisibilityProvider.seriesVisible
-	readonly property bool genresVisible: fieldsVisibilityProvider.genresVisible
-
 	BooksHeader
 	{
 		id: headerID
@@ -21,10 +17,6 @@ Item
 			right: parent.right
 			top: parent.top
 		}
-
-		authorsVisible: booksViewID.authorsVisible
-		seriesVisible: booksViewID.seriesVisible
-		genresVisible: booksViewID.genresVisible
 	}
 
 	CustomListView
@@ -41,10 +33,6 @@ Item
 		{
 			height: uiSettings.heightDelegate
 			width: booksViewID.width
-
-			authorsVisible: booksViewID.authorsVisible
-			seriesVisible: booksViewID.seriesVisible
-			genresVisible: booksViewID.genresVisible
 		}
 	}
 

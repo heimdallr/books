@@ -7,9 +7,6 @@ import "qrc:/Core"
 Item
 {
 	id: delegateID
-	property bool authorsVisible: true
-	property bool seriesVisible: true
-	property bool genresVisible: true
 
 	Component
 	{
@@ -39,9 +36,6 @@ Item
 		id: bookID
 		BookLayout
 		{
-			authorsVisible: delegateID.authorsVisible
-			seriesVisible: delegateID.seriesVisible
-			genresVisible: delegateID.genresVisible
 			treeMargin: height * (TreeLevel + 1) / 2
 		}
 	}

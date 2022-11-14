@@ -8,9 +8,6 @@ Item
 {
 	id: bookLayoutID
 
-	property alias authorsVisible: authorID.visible
-	property alias seriesVisible: seriesID.visible
-	property alias genresVisible: genreID.visible
 	property int treeMargin: 0
 
 	property color textColor: IsDeleted ? "gray" : "black"
@@ -55,7 +52,7 @@ Item
 				id: authorID
 				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle
 				Layout.fillWidth: visible
-				visible: delegateID.authorVisible
+				visible: fieldsVisibilityProvider.authorsVisible
 				color: textColor
 				text: Author
 //				onWidthChanged:	console.log(`bool author width: ${width}`)
@@ -75,7 +72,7 @@ Item
 			{
 				id: seriesID
 				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle
-				visible: delegateID.seriesVisible
+				visible: fieldsVisibilityProvider.seriesVisible
 				color: textColor
 				text: SeriesTitle
 //				onWidthChanged:	console.log(`bool series width: ${width}`)
@@ -95,6 +92,7 @@ Item
 			{
 				id: genreID
 				Layout.preferredWidth: bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle
+				visible: fieldsVisibilityProvider.genresVisible
 				color: textColor
 				text: GenreAlias
 //				onWidthChanged:	console.log(`bool genre width: ${width}`)
