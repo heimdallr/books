@@ -10,7 +10,7 @@ Item
 	{
 		id: headerID
 
-		height: uiSettings.heightDelegate
+		height: uiSettings.heightRow
 		anchors
 		{
 			left: parent.left
@@ -31,7 +31,7 @@ Item
 
 		delegate: BookTreeDelegate
 		{
-			height: uiSettings.heightDelegate
+			height: uiSettings.heightRow
 			width: booksViewID.width
 		}
 	}

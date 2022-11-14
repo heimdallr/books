@@ -7,7 +7,7 @@ Rectangle
 
 	property string value
 
-	height: uiSettings.heightDelegate
+	height: uiSettings.heightRow
 	width: height
 
 	ExclusiveGroup { id: menuExclusiveGroup }

@@ -7,8 +7,8 @@ CreateMap(UI_SETTING_NAMES
 		colorSplitViewHandle          \"\#c2f4c6\"
 		colorSplitViewHandlePressed   \"\#81e889\"
 		heightBookInfo                  0.25
-		heightDelegate                  20
 		heightMainWindow                720
+		heightRow                       20
 		indexAuthor                     0
 		indexTitle                      1
 		indexSeries                     2

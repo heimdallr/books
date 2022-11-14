@@ -36,6 +36,6 @@ Item
 		}
 
 		visible: progressController.started
-		height: visible ? uiSettings.heightDelegate * 3 / 2 : 0
+		height: visible ? uiSettings.heightRow * 3 / 2 : 0
 	}
 }
