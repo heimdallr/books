@@ -26,7 +26,7 @@ Item
 	Expander
 	{
 		id: expanderID
-		height: parent.height / 2
+		height: parent.height * uiSettings.sizeExpander
 		width: height
 
 		anchors

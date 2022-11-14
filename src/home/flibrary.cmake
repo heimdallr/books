@@ -22,6 +22,7 @@ CreateMap(UI_SETTING_NAMES
 		posYMainWindow                 -1
 		showBookInfo                    1
 		showDeleted                     0
+		sizeExpander                    0.4
 		sizeFont                        9
 		sizeSplitViewHandle             4
 		widthAuthor                     0.125
