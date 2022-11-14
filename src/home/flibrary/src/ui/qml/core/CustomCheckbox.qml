@@ -9,7 +9,7 @@ Item
 	property int checkedState: 0
 	signal clicked()
 
-	height: uiSettings.heightRow * 9 / 10
+	height: uiSettings.heightRow * uiSettings.sizeCheckbox
 	width: height
 	Image
 	{
