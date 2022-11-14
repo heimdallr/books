@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 1.4
 
+import "qrc:/Util/Functions.js" as Functions
+
 Rectangle
 {
 	color: "transparent"
@@ -16,7 +18,7 @@ Rectangle
 			top: parent.top
 			bottom: parent.bottom
 			right: buttonStopID.left
-			rightMargin: 6
+			rightMargin: 3 * Functions.GetMargin() / 2
 		}
 
 		Rectangle
@@ -26,7 +28,7 @@ Rectangle
 				left: parent.left
 				top: parent.top
 				bottom: parent.bottom
-				margins: 4
+				margins: Functions.GetMargin()
 			}
 
 			color: uiSettings.colorProgressBar
@@ -51,10 +53,10 @@ Rectangle
 			right: parent.right
 			top: parent.top
 			bottom: parent.bottom
-			margins: 4
+			margins: Functions.GetMargin()
 		}
 
-		width: 80
+		width: Functions.GetMargin() * 4
 		text: qsTranslate("Common", "Cancel")
 		onClicked: progressController.started = false
 	}

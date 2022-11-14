@@ -28,3 +28,8 @@ function SetWidths(items, parent, fillWidthSetter)
 	if (firstIndex >= 0)
 		fillWidthSetter(items[firstIndex], true)
 }
+
+function GetMargin()
+{
+	return uiSettings.heightRow / 10
+}

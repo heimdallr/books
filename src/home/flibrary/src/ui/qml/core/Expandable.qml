@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import "qrc:/Core"
+import "qrc:/Util/Functions.js" as Functions
 
 Item
 {
@@ -33,7 +34,7 @@ Item
 		{
 			verticalCenter: parent.verticalCenter
 			left: parent.left
-			leftMargin: 4 + treeMargin
+			leftMargin: Functions.GetMargin() + treeMargin
 		}
 
 		expanded: expandableID.expanded
@@ -48,7 +49,7 @@ Item
 		{
 			verticalCenter: parent.verticalCenter
 			left: expanderID.right
-			leftMargin: 4
+			leftMargin: Functions.GetMargin()
 		}
 
 		visible: false
@@ -63,9 +64,9 @@ Item
 		{
 			left: checkBoxID.visible ? checkBoxID.right : expanderID.right
 			right: parent.right
-			leftMargin: 4
+			leftMargin: Functions.GetMargin() * 2
 			bottom: parent.bottom
-			bottomMargin: 2
+			bottomMargin: Functions.GetMargin()
 		}
 	}
 

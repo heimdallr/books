@@ -41,7 +41,7 @@ Item
 
 	Item
 	{
-		anchors { left: checkBoxID.right; top: parent.top; bottom: parent.bottom; right: parent.right }
+		anchors { left: checkBoxID.right; leftMargin: uiSettings.heightRow / 5; top: parent.top; bottom: parent.bottom; right: parent.right }
 
 		RowLayout
 		{

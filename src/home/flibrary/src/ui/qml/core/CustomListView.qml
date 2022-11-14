@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
+import "qrc:/Util/Functions.js" as Functions
+
 Item
 {
 	id: customListViewID
@@ -11,7 +13,7 @@ Item
 	ColumnLayout
 	{
 		anchors.fill: parent
-		spacing: 4
+		spacing: Functions.GetMargin()
 
 		Component
 		{

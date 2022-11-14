@@ -1,6 +1,7 @@
 import QtQuick 2.15
 
 import "qrc:/Core"
+import "qrc:/Util/Functions.js" as Functions
 
 Item
 {
@@ -15,9 +16,9 @@ Item
 		anchors
 		{
 			left: parent.left
-			leftMargin: 4
+			leftMargin: Functions.GetMargin()
 			bottom: parent.bottom
-			bottomMargin: 4
+			bottomMargin: Functions.GetMargin()
 		}
 
 		text: Title

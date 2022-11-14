@@ -3,6 +3,7 @@ import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.15
 
 import "Core"
+import "qrc:/Util/Functions.js" as Functions
 
 Rectangle
 {
@@ -22,12 +23,12 @@ Rectangle
 	ColumnLayout
 	{
 		anchors.fill: parent
-		spacing: 4
+		spacing: Functions.GetMargin()
 
 		RowLayout
 		{
 			id: findLayoutID
-			spacing: 4
+			spacing: Functions.GetMargin()
 			Layout.fillWidth: true
 
 			function setViewMode()
@@ -37,8 +38,8 @@ Rectangle
 
 			CustomCombobox
 			{
-				Layout.leftMargin: 4
-				Layout.preferredWidth: 100
+				Layout.leftMargin: Functions.GetMargin()
+				Layout.preferredWidth: uiSettings.heightRow * 5 / 2
 				Layout.preferredHeight: uiSettings.heightRow
 				id: viewSourceComboBoxID
 				currentIndex: -1
@@ -61,7 +62,7 @@ Rectangle
 
 			CustomText
 			{
-				Layout.rightMargin: 4
+				Layout.rightMargin: Functions.GetMargin()
 				text: modelController ? modelController.count : ""
 			}
 		}
