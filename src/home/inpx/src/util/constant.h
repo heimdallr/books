@@ -1,3 +1,5 @@
+#include <string_view>
+
 [[maybe_unused]] constexpr wchar_t COMMENT_START     = '#';
 [[maybe_unused]] constexpr wchar_t DATE_SEPARATOR   = '-';
 [[maybe_unused]] constexpr wchar_t FIELDS_SEPARATOR = '\x04';

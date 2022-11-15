@@ -5,9 +5,10 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <numeric>
+
+#include <plog/Log.h>
 
 #include "fmt/core.h"
 #include "sqlite/shell/sqlite_shell.h"
@@ -20,6 +21,8 @@
 
 #include "constant.h"
 #include "types.h"
+
+#include "inpx.h"
 
 #include "Configuration.h"
 
@@ -41,11 +44,11 @@ public:
 		: t(std::chrono::high_resolution_clock::now())
 		, process(std::move(process_))
 	{
-		std::wcout << process << " started" << std::endl;
+		PLOGI << process << " started";
 	}
 	~Timer()
 	{
-		std::wcout << process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count() << " ms" << std::endl;
+		PLOGI << process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count() << " ms";
 	}
 
 	// rule 5
@@ -69,31 +72,6 @@ Dictionary::const_iterator FindDefault(const Dictionary & container, std::wstrin
 	return container.find(value);
 }
 
-std::ostream & operator<<(std::ostream & stream, const Dictionary::value_type & value)
-{
-	return stream << value.second << ": " << ToMultiByte(value.first);
-}
-
-std::ostream & operator<<(std::ostream & stream, const Links::value_type & value)
-{
-	return stream << value.first << ": " << value.second;
-}
-
-std::ostream & operator<<(std::ostream & stream, const SettingsTableData::value_type & value)
-{
-	return stream << value.first << ": " << value.second;
-}
-
-std::ostream & operator<<(std::ostream & stream, const Genre & value)
-{
-	return stream << ToMultiByte(value.dbCode) << ", " << ToMultiByte(value.code) << ": " << ToMultiByte(value.name);
-}
-
-std::ostream & operator<<(std::ostream & stream, const Book & value)
-{
-	return stream << ToMultiByte(value.folder) << ", " << value.insideNo << ", " << ToMultiByte(value.libId) << ": " << value.id << ", " << ToMultiByte(value.title);
-}
-
 bool IsComment(std::wstring_view line)
 {
 	return false
@@ -105,6 +83,11 @@ bool IsComment(std::wstring_view line)
 class Ini
 {
 public:
+	explicit Ini(std::map<std::wstring, std::wstring> data)
+		: _data(std::move(data))
+	{
+	}
+
 	explicit Ini(const std::filesystem::path & path)
 	{
 		if (!exists(path))
@@ -145,7 +128,7 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 		throw std::invalid_argument(fmt::format("Cannot open '{}'", ToMultiByte(genresIniFileName)));
 
 	genres.emplace_back(L"0");
-	index.emplace(genres.front().code, size_t{0});
+	index.emplace(genres.front().code, size_t { 0 });
 
 	std::string buf;
 	while (std::getline(iniStream, buf))
@@ -158,7 +141,7 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 		const auto codes = Next(it, std::cend(line), GENRE_SEPARATOR);
 		auto itCode = std::cbegin(codes);
 		std::wstring code;
-		while(itCode != std::cend(codes))
+		while (itCode != std::cend(codes))
 		{
 			const auto & added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
@@ -170,7 +153,7 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 		genres.emplace_back(code, parent, title);
 	}
 
-	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre & genre)
+	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres] (Genre & genre)
 	{
 		const auto it = index.find(genre.parentCore);
 		assert(it != index.end());
@@ -285,7 +268,7 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 			}
 		);
 		{
-			const auto add = [&index = genresIndex, &genres = data.genres] (std::wstring_view code, std::wstring_view name, const auto parentIt)
+			const auto add = [&index = genresIndex, &genres = data.genres](std::wstring_view code, std::wstring_view name, const auto parentIt)
 			{
 				assert(parentIt != index.end() && parentIt->second < std::size(genres));
 				const auto it = index.insert(std::make_pair(code, std::size(genres))).first;
@@ -318,7 +301,7 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 		data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
 
 		if ((++n % LOG_INTERVAL) == 0)
-			std::cout << n << " rows parsed" << std::endl;
+			PLOGI << n << " rows parsed";
 	}
 
 	const auto archive = ZipFile::Open(ToMultiByte(rootFolder.wstring() + L"/" + folder));
@@ -330,7 +313,7 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 		if (files.contains(fileName))
 			continue;
 
-		std::cerr << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName << std::endl;
+		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 	}
 }
 
@@ -358,7 +341,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 		auto folder = ToWide(entry->GetFullName());
 		auto * const stream = entry->GetDecompressionStream();
 
-		std::wcout << folder << std::endl;
+		PLOGI << folder;
 
 		if (folder == COLLECTION_INFO)
 			ProcessCollectionInfo(*stream, data.settings);
@@ -367,23 +350,19 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 		else if (folder.ends_with(INP_EXT))
 			ProcessInpx(*stream, rootFolder, folder, genresIndex, data, unknownGenres, n);
 		else
-			std::wcout << folder << L" skipped" << std::endl;
+			PLOGI << folder << L" skipped";
 	}
 
-	std::cout << n << " rows parsed" << std::endl;
+	PLOGI << n << " rows parsed";
 
 	if (!std::empty(unknownGenres))
 	{
-		std::cerr << "Unknown genres" << std::endl;
-		std::ranges::transform(std::as_const(unknownGenres), std::ostream_iterator<std::string>(std::cerr, "\n"), &ToMultiByte<std::wstring>);
+		PLOGW << "Unknown genres:";
+		for (const auto & genre : unknownGenres)
+			PLOGW << genre;
 	}
 
 	return data;
-}
-
-Ini ParseConfig(int argc, char * argv[])
-{
-	return Ini(argc < 2 ? std::filesystem::path(argv[0]).replace_extension(INI_EXT) : std::filesystem::path(argv[1]));
 }
 
 bool TableExists(sqlite3pp::database & db, const std::string & table)
@@ -402,7 +381,7 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 
 	sqlite3pp::query query(db, "select SettingID, SettingValue from Settings");
 
-	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [](const auto & row)
+	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [] (const auto & row)
 	{
 		int64_t id;
 		const char * value;
@@ -462,10 +441,10 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 
 	const auto log = [rowsTotal, &rowsInserted]
 	{
-		std::cout << fmt::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal) << std::endl;
+		PLOGI << fmt::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
-	const auto result = std::accumulate(beg, end, size_t{ 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
+	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
 	{
 		f(cmd, value);
 		const auto result = 0
@@ -480,7 +459,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 		}
 		else
 		{
-			std::cerr << db.error_code() << ": " << db.error_msg() << std::endl << value << std::endl;
+			PLOGE << db.error_code() << ": " << db.error_msg() << std::endl << value;
 		}
 
 		return init + result;
@@ -488,7 +467,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 
 	log();
 	if (rowsTotal != rowsInserted)
-		std::cerr << rowsTotal - rowsInserted << " rows lost" << std::endl;
+		PLOGE << rowsTotal - rowsInserted << " rows lost";
 	{
 		Timer tc(L"commit");
 		tr.commit();
@@ -500,7 +479,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 size_t Store(std::wstring_view dbFileName, const Data & data)
 {
 	size_t result = 0;
-	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
@@ -510,7 +489,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 		cmd.binder() << id << ToMultiByte(last) << ToMultiByte(first) << ToMultiByte(middle);
 	});
 
-	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [](sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		cmd.binder() << item.second << ToMultiByte(item.first);
 	});
@@ -526,7 +505,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 		"Folder   , FileName  , InsideNo , Ext     , "
 		"BookSize , IsLocal   , IsDeleted, KeyWords"
 		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	result += StoreRange(dbFileName, "Books", queryText, std::cbegin(data.books), std::cend(data.books), [](sqlite3pp::command & cmd, const Book & book)
+	result += StoreRange(dbFileName, "Books", queryText, std::cbegin(data.books), std::cend(data.books), [] (sqlite3pp::command & cmd, const Book & book)
 	{
 																		   cmd.bind( 1, book.id);
 																		   cmd.bind( 2, ToMultiByte(book.libId), sqlite3pp::copy);
@@ -546,7 +525,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, ToMultiByte(book.keywords), sqlite3pp::copy);
 	});
 
-	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [](sqlite3pp::command & cmd, const Links::value_type & item)
+	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
 	}, false);
@@ -557,7 +536,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
 	}, false);
 
-	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", std::cbegin(data.settings), std::cend(data.settings), [](sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
+	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", std::cbegin(data.settings), std::cend(data.settings), [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
 	{
 		cmd.binder() << static_cast<size_t>(item.first) << item.second;
 	}, false);
@@ -565,11 +544,9 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 	return result;
 }
 
-}
-
-void mainImpl(int argc, char * argv[])
+void Process(const Ini & ini)
 {
-	const auto ini = ParseConfig(argc, argv);
+	Timer t(L"work");
 
 	g_mhlTriggersOn = _wtoi(ini(MHL_TRIGGERS_ON, std::to_wstring(g_mhlTriggersOn)).data());
 	const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
@@ -579,26 +556,43 @@ void mainImpl(int argc, char * argv[])
 
 	const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData));
 	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
-		std::cerr << "Something went wrong" << std::endl;
+		PLOGE << "Something went wrong";
 
 	ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
 }
 
-int main(int argc, char* argv[])
+template<typename T>
+int ParseInpxImpl(T t)
 {
 	try
 	{
-		Timer t(L"work");
-		mainImpl(argc, argv);
+		const Ini ini(std::forward<T>(t));
+		Process(ini);
 		return 0;
 	}
 	catch (const std::exception & ex)
 	{
-		std::cerr << ex.what();
+		PLOGE << ex.what();
 	}
-	catch(...)
+	catch (...)
 	{
-		std::cerr << "unknown error";
+		PLOGE << "unknown error";
 	}
 	return 1;
+}
+
+}
+
+namespace HomeCompa::Inpx {
+
+int ParseInpx(const std::filesystem::path & iniFile)
+{
+	return ParseInpxImpl(iniFile);
+}
+
+int ParseInpx(std::map<std::wstring, std::wstring> data)
+{
+	return ParseInpxImpl(std::move(data));
+}
+
 }

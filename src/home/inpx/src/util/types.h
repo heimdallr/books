@@ -102,3 +102,13 @@ struct Data
 	Links booksAuthors, booksGenres;
 	SettingsTableData settings;
 };
+
+inline std::ostream & operator<<(std::ostream & stream, const Book & book)
+{
+	return stream << ToMultiByte(book.folder) << ", " << book.insideNo << ", " << ToMultiByte(book.libId) << ": " << book.id << ", " << ToMultiByte(book.title);
+}
+
+inline std::ostream & operator<<(std::ostream & stream, const Genre & genre)
+{
+	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
+}
