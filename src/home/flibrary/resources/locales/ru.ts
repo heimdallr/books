@@ -9,17 +9,17 @@
         <translation>Добавить новую коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="32"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="34"/>
         <source>Collection name</source>
         <translation>Имя коллекци</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="48"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="52"/>
         <source>Collection database file</source>
         <translation>Файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="77"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
         <source>Collection archive folder</source>
         <translation>Папка с архивами</translation>
     </message>
@@ -90,19 +90,19 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="58"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="87"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="62"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="93"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="111"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="119"/>
         <source>Ok</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="121"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="129"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
