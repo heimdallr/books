@@ -3,8 +3,9 @@
 #include <memory>
 #include <mutex>
 
+#include <plog/Log.h>
+
 #include "fnd/NonCopyMovable.h"
-#include "plog/Log.h"
 
 #include "executor.h"
 #include "FunctorExecutionForwarder.h"
