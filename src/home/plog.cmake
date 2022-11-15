@@ -4,6 +4,7 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/plog"
 	PROJECT_GROUP Util
 	INCLUDE_DIRS
+		"${CMAKE_CURRENT_LIST_DIR}"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
 		"${CMAKE_CURRENT_LIST_DIR}/flibrary/src/constants"
 	COMPILE_DEFINITIONS

@@ -1,6 +1,8 @@
 #include <QAbstractListModel>
 
-#include <plog/Log.h>
+#include <plog/Appenders/IAppender.h>
+
+#include "plog/LogAppender.h"
 
 #include "LogModel.h"
 
@@ -16,7 +18,6 @@ public:
 	explicit Model(QObject * parent)
 		: QAbstractListModel(parent)
 	{
-		plog::get()->addAppender(this);
 	}
 
 private: // QAbstractListModel
@@ -48,6 +49,7 @@ private: // plog::IAppender
 	}
 
 private:
+	const Log::LogAppender m_logAppender {this};
 	std::vector<QString> m_items;
 };
 

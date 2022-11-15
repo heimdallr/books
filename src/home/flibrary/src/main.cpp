@@ -1,16 +1,26 @@
 #include <QApplication>
 #include <QIcon>
+#include <QStandardPaths>
 
-#include "plog/Log.h"
+#include <plog/Appenders/RollingFileAppender.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Log.h>
 
 #include "controllers/GuiController.h"
+#include "constants/ProductConstant.h"
 
-using namespace HomeCompa::Flibrary;
+#include "plog/LogAppender.h"
+
+using namespace HomeCompa;
+using namespace Flibrary;
 
 int main(int argc, char * argv[])
 {
 	try
 	{
+		plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender(QString("%1/%2_%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString().data());
+		Log::LogAppender logAppender(&rollingFileAppender);
+
 		PLOGI << "App started";
 
 		while (true)
