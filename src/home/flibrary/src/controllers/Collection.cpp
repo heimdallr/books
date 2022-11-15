@@ -15,13 +15,6 @@ constexpr auto DATABASE = "database";
 constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
 
-QString GenerateId(const QString & database)
-{
-	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
-	hash.addData(database.toUtf8());
-	return hash.result().toHex();
-}
-
 Collection DeserializeImpl(Settings & settings, QString id)
 {
 	Collection collection;
@@ -94,6 +87,13 @@ void Collection::Remove(Settings & settings, const QString & id)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Remove(id);
+}
+
+QString Collection::GenerateId(const QString & database)
+{
+	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+	hash.addData(database.toUtf8());
+	return hash.result().toHex();
 }
 
 }

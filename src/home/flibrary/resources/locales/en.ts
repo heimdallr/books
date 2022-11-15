@@ -4,23 +4,36 @@
 <context>
     <name>AddCollection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="18"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="23"/>
         <source>Add new collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="34"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="39"/>
         <source>Collection name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="52"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="58"/>
         <source>Collection database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="93"/>
         <source>Collection archive folder</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>AddCollectionDialog</name>
+    <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="157"/>
+        <source>Create new</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="166"/>
+        <source>Add</source>
         <translation></translation>
     </message>
 </context>
@@ -89,19 +102,14 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="62"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="93"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="72"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="107"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="119"/>
-        <source>Ok</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="129"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
@@ -109,6 +117,49 @@ Restart now?</source>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>Error</name>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="69"/>
+        <source>Name cannot be empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="71"/>
+        <source>Database file name cannot be empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="75"/>
+        <source>Database file already exists</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="80"/>
+        <source>Database file not found</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="83"/>
+        <source>Archive folder name cannot be empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="85"/>
+        <source>Archive folder not found</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="87"/>
+        <source>Archive folder cannot be empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="89"/>
+        <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
 </context>

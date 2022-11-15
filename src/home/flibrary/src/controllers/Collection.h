@@ -28,6 +28,7 @@ struct Collection
 	static Collections Deserialize(Settings & settings);
 	static void SetActive(Settings & settings, const QString & id);
 	static void Remove(Settings & settings, const QString & id);
+	static QString GenerateId(const QString & db);
 };
 
 }

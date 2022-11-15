@@ -1,6 +1,7 @@
 CreateMap(UI_SETTING_NAMES
 	VARIABLES
 		colorBorder                   \"lightgray\"
+		colorErrorText                \"red\"
 		colorHighlight                \"lightsteelblue\"
 		colorHighlightUnfocused       \"lavender\"
 		colorProgressBar              \"lightsteelblue\"
@@ -25,6 +26,7 @@ CreateMap(UI_SETTING_NAMES
 		sizeCheckbox                    0.8
 		sizeExpander                    0.4
 		sizeFont                        9
+		sizeFontError                   0.9
 		sizeSplitViewHandle             4
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125

@@ -50,6 +50,7 @@ Rectangle
 			{
 				id: viewModeTextID
 				Layout.fillWidth: true
+				Layout.preferredHeight: uiSettings.heightRow
 				font.pointSize: uiSettings.sizeFont
 				onTextChanged: findLayoutID.setViewMode()
 			}

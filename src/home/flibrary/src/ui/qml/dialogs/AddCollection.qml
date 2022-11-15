@@ -10,7 +10,12 @@ Window
 {
 	id: dialogID
 	width: uiSettings.heightRow * 30
-	minimumHeight: collectionNameLayoutID.height + databaseFileNameLayoutID.height + collectionArchiveFolderLayoutID.height + buttonsLayoutID.height + 15 * Functions.GetMargin() + guiController.GetTitleBarHeight()
+	minimumHeight: guiController.GetTitleBarHeight()
+		+ collectionNameLayoutID.height
+		+ databaseFileNameLayoutID.height
+		+ collectionArchiveFolderLayoutID.height
+		+ buttonsLayoutID.height
+		+ 16 * Functions.GetMargin()
 	maximumHeight: minimumHeight
 
 	flags: Qt.Dialog
@@ -19,7 +24,7 @@ Window
 
 	ColumnLayout
 	{
-		id: layoutID
+		id: columnLayoutID
 
 		anchors.fill: parent
 
@@ -38,6 +43,7 @@ Window
 				id: collectionNameID
 				Layout.fillWidth: true
 				font.pointSize: uiSettings.sizeFont
+				onTextChanged: collectionController.error = ""
 			}
 		}
 
@@ -54,11 +60,15 @@ Window
 			TextField
 			{
 				id: collectionDatabaseID
+				Layout.preferredHeight: uiSettings.heightRow
 				Layout.fillWidth: true
 				font.pointSize: uiSettings.sizeFont
+				text: uiSettings.pathRecentCollectionDatabase
+				onTextChanged: collectionController.error = ""
 			}
 			Button
 			{
+				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
@@ -85,11 +95,15 @@ Window
 			TextField
 			{
 				id: collectionArchiveFolderID
+				Layout.preferredHeight: uiSettings.heightRow
 				Layout.fillWidth: true
 				font.pointSize: uiSettings.sizeFont
+				text: uiSettings.pathResentCollectionArchive
+				onTextChanged: collectionController.error = ""
 			}
 			Button
 			{
+				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
@@ -108,32 +122,59 @@ Window
 			id: buttonsLayoutID
 
 			Layout.margins: Functions.GetMargin() * 2
+			Layout.fillWidth: true
+
+			function closeDialog()
+			{
+				uiSettings.pathRecentCollectionDatabase = collectionDatabaseID.text
+				uiSettings.pathResentCollectionArchive = collectionArchiveFolderID.text
+				dialogID.close()
+			}
 
 			Item
 			{
 				Layout.fillWidth: true
 			}
 
-			Button
+			CustomText
 			{
-			    text: qsTranslate("Common", "Ok")
-				onClicked:
-				{
-					collectionController.AddCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
-					dialogID.close()
-				}
+				Layout.preferredHeight: uiSettings.heightRow
+				Layout.maximumWidth: buttonsLayoutID.width
+					- btnCreateID.width
+					- btnAddID.width
+					- btnCancelID.width
+					- Functions.GetMargin() * 10
+
+				font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontError
+				color: uiSettings.colorErrorText
+				text: collectionController.error
 			}
 
 			Button
 			{
+				id: btnCreateID
+				Layout.preferredHeight: uiSettings.heightRow
+			    text: qsTranslate("AddCollectionDialog", "Create new")
+				onClicked: if (collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
+					closeDialog()
+			}
+
+			Button
+			{
+				id: btnAddID
+				Layout.preferredHeight: uiSettings.heightRow
+			    text: qsTranslate("AddCollectionDialog", "Add")
+				onClicked: if (collectionController.AddCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
+					closeDialog()
+			}
+
+			Button
+			{
+				id: btnCancelID
+				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "Cancel")
 				onClicked: dialogID.close()
 			}
-		}
-
-		Item
-		{
-			Layout.fillHeight: true
 		}
 	}
 }
