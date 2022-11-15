@@ -4,13 +4,14 @@ import QtQuick.Layouts 1.15
 import QtQuick.Window 2.12
 
 import "qrc:/Core"
+import "qrc:/Util/Functions.js" as Functions
 
 Window
 {
 	id: dialogID
-	width: 600
-	minimumHeight: 180
-	maximumHeight: 180
+	width: uiSettings.heightRow * 30
+	minimumHeight: collectionNameLayoutID.height + databaseFileNameLayoutID.height + collectionArchiveFolderLayoutID.height + buttonsLayoutID.height + 15 * Functions.GetMargin() + guiController.GetTitleBarHeight()
+	maximumHeight: minimumHeight
 
 	flags: Qt.Dialog
 
@@ -24,10 +25,12 @@ Window
 
 		RowLayout
 		{
-			Layout.margins: 8
+			id: collectionNameLayoutID
+
+			Layout.margins: Functions.GetMargin() * 2
 			CustomText
 			{
-				Layout.preferredWidth: 150
+				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection name")
 			}
 			TextField
@@ -40,10 +43,12 @@ Window
 
 		RowLayout
 		{
-			Layout.margins: 8
+			id: databaseFileNameLayoutID
+
+			Layout.margins: Functions.GetMargin() * 2
 			CustomText
 			{
-				Layout.preferredWidth: 150
+				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection database file")
 			}
 			TextField
@@ -69,10 +74,12 @@ Window
 
 		RowLayout
 		{
-			Layout.margins: 8
+			id: collectionArchiveFolderLayoutID
+
+			Layout.margins: Functions.GetMargin() * 2
 			CustomText
 			{
-				Layout.preferredWidth: 150
+				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection archive folder")
 			}
 			TextField
@@ -98,7 +105,9 @@ Window
 
 		RowLayout
 		{
-			Layout.margins: 8
+			id: buttonsLayoutID
+
+			Layout.margins: Functions.GetMargin() * 2
 
 			Item
 			{

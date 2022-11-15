@@ -35,6 +35,7 @@ public:
 	Q_INVOKABLE BooksModelController * GetBooksModelControllerList();
 	Q_INVOKABLE BooksModelController * GetBooksModelControllerTree();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();
+	Q_INVOKABLE int GetTitleBarHeight();
 
 signals:
 	void OpenedChanged() const;

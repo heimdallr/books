@@ -26,6 +26,7 @@ CreateMap(UI_SETTING_NAMES
 		sizeExpander                    0.4
 		sizeFont                        9
 		sizeSplitViewHandle             4
+		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125
 		widthGenre                      0.0625
 		widthLanguage                   36

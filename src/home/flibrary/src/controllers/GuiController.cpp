@@ -1,9 +1,10 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QStyle>
 #include <QSystemTrayIcon>
-#include <QApplication>
 #pragma warning(pop)
 
 #include "database/factory/Factory.h"
@@ -344,6 +345,11 @@ BooksModelController * GuiController::GetBooksModelControllerTree()
 BooksModelController * GuiController::GetBooksModelController()
 {
 	return m_impl->GetBooksModelController();
+}
+
+int GuiController::GetTitleBarHeight()
+{
+	return QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
 }
 
 bool GuiController::GetOpened() const noexcept
