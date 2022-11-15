@@ -4,22 +4,22 @@
 <context>
     <name>AddCollection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="17"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="18"/>
         <source>Add new collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="31"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="32"/>
         <source>Collection name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="47"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="48"/>
         <source>Collection database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="76"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="77"/>
         <source>Collection archive folder</source>
         <translation></translation>
     </message>
@@ -89,19 +89,19 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="57"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="86"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="58"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="87"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="110"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="111"/>
         <source>Ok</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="121"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
@@ -128,27 +128,27 @@ Restart now?</source>
 <context>
     <name>Header</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="24"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="23"/>
         <source>Author</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="46"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
         <source>SeriesTitle</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="34"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="33"/>
         <source>Title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="63"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="76"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
         <source>GenreAlias</source>
         <translation>Genre</translation>
     </message>
