@@ -63,6 +63,7 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
+		"${CMAKE_CURRENT_LIST_DIR}/inpx/src"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QRC
@@ -87,18 +88,19 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/main.qrc"
 	LINK_TARGETS
 		bzip2
+		lzma
+		ziplib
+		zlib
+		sqlite
+		sqlite3pp
 		DatabaseFactory
 		DatabaseInt
 		Fnd
-		lzma
+		InpxLib
 		MyHomeLibSQLIteExt
-		SimpleSaxParser
-		sqlite
-		sqlite3pp
-		Util
-		ziplib
-		zlib
 		plog
+		SimpleSaxParser
+		Util
 	MODULES
 		qt
 	COMPILE_DEFINITIONS

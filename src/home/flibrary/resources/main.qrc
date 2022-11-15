@@ -76,4 +76,10 @@
 		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
 		<file alias="partially.png">icons/checkbox/partially.png</file>
 	</qresource>
+
+	<qresource prefix="data">
+		<file alias="genres.ini">data/genres.ini</file>
+		<file alias="CreateCollection.sql">data/CreateCollection.sql</file>
+		<file alias="UpdateCollection.sql">data/UpdateCollection.sql</file>
+	</qresource>
 </RCC>

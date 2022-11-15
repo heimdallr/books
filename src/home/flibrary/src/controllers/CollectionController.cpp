@@ -3,9 +3,17 @@
 #include <QDir>
 #include <QFile>
 #include <QQmlEngine>
+#include <QTemporaryDir>
+
+#include <plog/Log.h>
 
 #include "fnd/algorithm.h"
 #include "models/SimpleModel.h"
+#include "util/inpx.h"
+#include "util/constant.h"
+
+#include "util/executor.h"
+#include "util/executor/factory.h"
 
 #include "Collection.h"
 #include "CollectionController.h"
@@ -24,6 +32,12 @@ SimpleModeItems GetSimpleModeItems(const Collections & collections)
 	return items;
 }
 
+QString GetInpx(const QString & folder)
+{
+	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
+	return inpxList.isEmpty() ? QString() : QString("%1/%2").arg(folder, inpxList.front());
+}
+
 struct CollectionController::Impl
 {
 	Observer & observer;
@@ -31,6 +45,7 @@ struct CollectionController::Impl
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
+	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) };
 
 	explicit Impl(const CollectionController & self, Observer & observer_)
 		: observer(observer_)
@@ -73,6 +88,9 @@ struct CollectionController::Impl
 		{
 			if (QFile(db).exists())
 				return Util::Set(error, QApplication::translate("Error", "Database file already exists"), m_self, &CollectionController::ErrorChanged), false;
+
+			if (GetInpx(folder).isEmpty())
+				return Util::Set(error, QApplication::translate("Error", "Index file (*.inpx) not found"), m_self, &CollectionController::ErrorChanged), false;
 		}
 		else
 		{
@@ -123,6 +141,42 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 {
 	if (!m_impl->CheckNewCollection(name, db, folder, true))
 		return false;
+
+	(*m_impl->executor)([name = std::move(name), db = std::move(db), folder = std::move(folder)]
+	{
+		const auto result = [] {};
+
+		QTemporaryDir tempDir;
+		const auto getFile = [&tempDir] (const QString & name)
+		{
+			auto result = QApplication::applicationDirPath() + name;
+			if (QFile(result).exists())
+				return result;
+
+			result = tempDir.filePath(name);
+			QFile::copy(":/data/" + name, result);
+			return result;
+		};
+
+		const auto inpx = GetInpx(folder);
+		if (inpx.isEmpty())
+		{
+			PLOGE << "Index file (*.inpx) not found";
+			return result;
+		}
+
+		std::map<std::wstring, std::wstring> ini
+		{
+			{ DB_PATH, db.toStdWString() },
+			{ GENRES, getFile("genres.ini").toStdWString() },
+			{ DB_CREATE_SCRIPT, getFile("CreateCollection.sql").toStdWString() },
+			{ DB_UPDATE_SCRIPT, getFile("UpdateCollection.sql").toStdWString() },
+			{ INPX, inpx.toStdWString() },
+		};
+
+		Inpx::ParseInpx(std::move(ini));
+		return result;
+	});
 
 	return true;
 }

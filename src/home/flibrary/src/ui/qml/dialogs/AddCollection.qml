@@ -156,7 +156,7 @@ Window
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("AddCollectionDialog", "Create new")
 				onClicked: if (collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
-					closeDialog()
+					buttonsLayoutID.closeDialog()
 			}
 
 			Button
@@ -165,7 +165,7 @@ Window
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("AddCollectionDialog", "Add")
 				onClicked: if (collectionController.AddCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
-					closeDialog()
+					buttonsLayoutID.closeDialog()
 			}
 
 			Button
