@@ -1,10 +1,10 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-import "Book"
-import "Core"
-import "Navigation"
-import "Tray"
+import "qrc:/Book"
+import "qrc:/Core"
+import "qrc:/Navigation"
+import "qrc:/Tray"
 
 ApplicationWindow
 {
@@ -41,40 +41,34 @@ ApplicationWindow
 	{
 		id: splitViewComponentID
 
-		SplitView
+		Item
 		{
-			focus: true
-			Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
-
-			anchors.fill: parent
-			orientation: Qt.Horizontal
-
-			handle: SplitViewHandle {}
-
-			Navigation
+			SplitView
 			{
-				SplitView.minimumWidth: applicationWindowID.width / 6
-				SplitView.maximumWidth: applicationWindowID.width / 2
-				SplitView.preferredWidth: uiSettings.widthNavigation * applicationWindowID.width
+				focus: true
 
-				onWidthChanged: if (applicationWindowID.completed)
-					uiSettings.widthNavigation = width / applicationWindowID.width
+				Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
+
+				anchors.fill: parent
+				orientation: Qt.Horizontal
+
+				handle: SplitViewHandle {}
+
+				Navigation
+				{
+					SplitView.minimumWidth: applicationWindowID.width / 6
+					SplitView.maximumWidth: applicationWindowID.width / 2
+					SplitView.preferredWidth: uiSettings.widthNavigation * applicationWindowID.width
+
+					onWidthChanged: if (applicationWindowID.completed)
+						uiSettings.widthNavigation = width / applicationWindowID.width
+				}
+
+				Books
+				{
+					SplitView.fillWidth: true
+				}
 			}
-
-			Books
-			{
-				SplitView.fillWidth: true
-			}
-		}
-	}
-
-	Component
-	{
-		id: logViewID
-
-		Log
-		{
-			anchors.fill: parent
 		}
 	}
 
@@ -82,6 +76,12 @@ ApplicationWindow
 	{
 		id: splitViewID
 		anchors.fill: parent
-		sourceComponent: logController.logMode ? logViewID : guiController.opened ? splitViewComponentID : undefined
+		sourceComponent: guiController.opened ? splitViewComponentID : undefined
+	}
+
+	Log
+	{
+		anchors.fill: parent
+		visible: logController.logMode
 	}
 }

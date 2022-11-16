@@ -123,47 +123,42 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="84"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="86"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="86"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="88"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="90"/>
-        <source>Database file already exists</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="93"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="92"/>
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="98"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="97"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="101"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="100"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="103"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="102"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="105"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="104"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="107"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="106"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>

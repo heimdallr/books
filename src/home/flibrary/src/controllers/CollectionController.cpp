@@ -1,6 +1,5 @@
 #include <QAbstractItemModel>
 #include <QApplication>
-#include <QDir>
 #include <QFile>
 #include <QQmlEngine>
 #include <QTemporaryDir>
@@ -46,12 +45,14 @@ struct CollectionController::Impl
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
-	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, Util::ExecutorInitializer{[]{}, [&]{ emit m_self.ShowLog(true); }, [&]{emit m_self.ShowLog(true);}}) };
+	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, Util::ExecutorInitializer{[]{}, [&]{ emit m_self.ShowLog(true); }, [&]{emit m_self.ShowLog(false);}}) };
 
 	explicit Impl(const CollectionController & self, Observer & observer_)
 		: observer(observer_)
 		, m_self(self)
 	{
+		collections.erase(std::ranges::remove_if(collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), collections.end());
+
 		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
 		OnCollectionsChanged();
 	}
@@ -87,9 +88,6 @@ struct CollectionController::Impl
 			return Util::Set(error, QApplication::translate("Error", "Database file name cannot be empty"), m_self, &CollectionController::ErrorChanged), false;
 		if (create)
 		{
-			if (QFile(db).exists())
-				return Util::Set(error, QApplication::translate("Error", "Database file already exists"), m_self, &CollectionController::ErrorChanged), false;
-
 			if (GetInpx(folder).isEmpty())
 				return Util::Set(error, QApplication::translate("Error", "Index file (*.inpx) not found"), m_self, &CollectionController::ErrorChanged), false;
 		}

@@ -1,5 +1,6 @@
 CreateMap(UI_SETTING_NAMES
 	VARIABLES
+		colorBackground               \"white\"
 		colorBorder                   \"lightgray\"
 		colorErrorText                \"red\"
 		colorHighlight                \"lightsteelblue\"
