@@ -7,8 +7,6 @@ Rectangle
 {
 	id: booksID
 
-	property bool ready: false
-
 	SplitView
 	{
 		id: splitViewID
@@ -31,17 +29,12 @@ Rectangle
 
 			SplitView.minimumHeight: booksID.height / 8
 			SplitView.maximumHeight: 3 * booksID.height / 4
-			SplitView.preferredHeight: ready ? uiSettings.heightBookInfo * booksID.height : applicationWindowID.height / 4
+			SplitView.preferredHeight: booksID.height > 0 ? uiSettings.heightBookInfo * booksID.height : applicationWindowID.height / 4
 
 			onHeightChanged: if (applicationWindowID.completed)
 				uiSettings.heightBookInfo = height / booksID.height
 
 			visible: uiSettings.showBookInfo != 0
 		}
-	}
-	onHeightChanged:
-	{
-		if (ready)
-			return
 	}
 }
