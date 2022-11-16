@@ -144,7 +144,7 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 	if (!m_impl->CheckNewCollection(name, db, folder, true))
 		return false;
 
-	(*m_impl->executor)([this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)] () mutable
+	(*m_impl->executor)({"Create collection", [this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 	{
 		auto result = std::function([] {});
 
@@ -183,7 +183,7 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 			});
 
 		return result;
-	});
+	}});
 
 	return true;
 }

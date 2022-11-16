@@ -177,7 +177,7 @@ private:
 	QAbstractItemModel * CreateModelImpl(NavigationItemsCreator<T> creator, std::vector<T> & navigationItems) const
 	{
 		auto * model = CreateNavigationModel(navigationItems);
-		m_executor([&, model = QPointer(model), creator]() mutable
+		m_executor({ "Get navigation", [&, model = QPointer(model), creator]() mutable
 		{
 			auto items = creator(m_db);
 			return[&, items = std::move(items), model = std::move(model)]() mutable
@@ -189,7 +189,7 @@ private:
 				navigationItems = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
 			};
-		}, 1);
+		} }, 1);
 		return model;
 	}
 

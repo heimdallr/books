@@ -38,9 +38,13 @@
 
 #include "GuiController.h"
 
+#include <set>
+
+
 #include "Settings/UiSettings.h"
 
 #include "Configuration.h"
+#include "database/interface/Query.h"
 
 Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 
@@ -273,7 +277,16 @@ private:
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
-		emit m_self.OpenedChanged();
+
+		(*m_executor)({ "Get folder list", [&db = m_db, &self = m_self]
+		{
+			auto query = db->CreateQuery("select DISTINCT b.Folder from Books b");
+			std::set<std::string> folders;
+			for (query->Execute(); !query->Eof(); query->Next())
+				folders.emplace(query->Get<std::string>(0));
+
+			return [&self] { emit self.OpenedChanged(); };
+		} });
 	}
 
 private:

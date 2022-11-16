@@ -824,7 +824,7 @@ public:
 
 	void UpdateItems()
 	{
-		executor([&, navigationSource = m_navigationSource, navigationId = m_navigationId]
+		executor({ "Get books", [&, navigationSource = m_navigationSource, navigationId = m_navigationId]
 		{
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
 			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
@@ -841,7 +841,7 @@ public:
 
 				Perform(&BooksModelControllerObserver::HandleModelReset);
 			};
-		}, 2);
+		} }, 2);
 	}
 
 	void Save(QString path, const long long id, const bool archive)
@@ -855,7 +855,7 @@ public:
 				booksCopy.push_back(*it);
 		assert(!books.empty());
 
-		executor([path = std::move(path), books = std::move(booksCopy), archiveFolder = archiveFolder, &progressController = progressController, archive]
+		executor({"Extract books", [path = std::move(path), books = std::move(booksCopy), archiveFolder = archiveFolder, &progressController = progressController, archive]
 		{
 			const auto totalSize = std::accumulate(std::cbegin(books), std::cend(books), 0ull, [] (const size_t init, const Book & book) { return init + book.Size; });
 			const auto progress = std::make_shared<Progress>(totalSize);
@@ -891,7 +891,7 @@ public:
 			progress->progress = totalSize;
 
 			return []{};
-		});
+		}});
 	}
 
 private:

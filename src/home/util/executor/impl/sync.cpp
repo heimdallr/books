@@ -1,5 +1,7 @@
 #include <memory>
 
+#include <plog/Log.h>
+
 #include "executor.h"
 #include "executor/factory.h"
 
@@ -26,7 +28,9 @@ private: // Util::Executor
 	void operator()(Task && task, int /*priority*/) override
 	{
 		m_initializer.beforeExecute();
-		const auto taskResult = task();
+		PLOGD << task.name << " started";
+		const auto taskResult = task.task();
+		PLOGD << task.name << " finished";
 		taskResult();
 		m_initializer.afterExecute();
 	}

@@ -224,7 +224,7 @@ private:
 		m_folder = m_folderTmp;
 		m_file = m_fileTmp;
 
-		(*m_executor)([&, folder = (m_rootFolder / m_folder).make_preferred(), file = m_file]
+		(*m_executor)({ "Get annotation", [&, folder = (m_rootFolder / m_folder).make_preferred(), file = m_file]
 		{
 			auto stub = [&]
 			{
@@ -265,17 +265,17 @@ private:
 				m_annotation = QString::fromStdString(handler.annotation);
 				m_covers = std::move(handler.covers);
 				m_coverIndex
-					= m_covers.empty()			? -1
-					: handler.coverIndex >= 0	? handler.coverIndex
-					:							  0
+					= m_covers.empty() ? -1
+					: handler.coverIndex >= 0 ? handler.coverIndex
+					: 0
 					;
 			}
-			catch(SaxParserException &)
+			catch (SaxParserException &)
 			{
 			}
 
 			return stub;
-		}, 3);
+		} }, 3);
 	}
 
 private:

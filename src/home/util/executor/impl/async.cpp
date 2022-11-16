@@ -80,7 +80,7 @@ private:
 			{
 				std::lock_guard lock(m_tasksGuard);
 				if (m_tasks.empty())
-					return Task([] { return []{}; });
+					return Task{};
 
 				const auto it = m_tasks.begin();
 				auto task = std::move(it->second);
@@ -89,9 +89,9 @@ private:
 			}();
 
 			m_forwarder.Forward(m_initializer.beforeExecute);
-			PLOGD << "Task started";
-			auto taskResult = task();
-			PLOGD << "Task finished";
+			PLOGD << task.name << " started";
+			auto taskResult = task.task();
+			PLOGD << task.name << " finished";
 			m_forwarder.Forward(std::move(taskResult));
 			m_forwarder.Forward(m_initializer.afterExecute);
 		}
