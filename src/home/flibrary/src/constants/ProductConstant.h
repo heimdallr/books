@@ -1,4 +1,5 @@
 #pragma once
+
 namespace HomeCompa::Flibrary::Constant {
 
 constexpr auto COMPANY_ID = "HomeCompa";
