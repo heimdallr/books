@@ -28,13 +28,17 @@
 
 namespace {
 
-
 int g_mhlTriggersOn = 1;
 
 size_t g_id = 0;
 size_t GetId()
 {
 	return ++g_id;
+}
+
+void Log(char * str)
+{
+	PLOGI << str;
 }
 
 class Timer
@@ -416,7 +420,7 @@ void ExecuteScript(const std::wstring & action, std::wstring_view dbFileName, st
 		readScript.data(),
 	};
 
-	if (SQLiteShellExecute(static_cast<int>(std::size(v)), v) != 0)
+	if (SQLiteShellExecute(static_cast<int>(std::size(v)), v, &Log) != 0)
 		throw std::runtime_error(fmt::format("Cannot {}", ToMultiByte(action)));
 }
 
