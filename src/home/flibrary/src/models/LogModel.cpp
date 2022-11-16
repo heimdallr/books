@@ -46,7 +46,8 @@ private: // plog::IAppender
 	{
 		m_forwarder.Forward([&, message = QString::fromStdWString(record.getMessage())] () mutable
 		{
-			emit beginInsertRows({}, 0, 0);
+			const auto pos = rowCount();
+			emit beginInsertRows({}, pos, pos);
 			m_items.push_back(std::move(message));
 			emit endInsertRows();
 		});
