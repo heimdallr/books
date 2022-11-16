@@ -15,6 +15,7 @@
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
+#include "constants/ObjectConnectorConstant.h"
 #include "Collection.h"
 #include "CollectionController.h"
 
@@ -45,7 +46,7 @@ struct CollectionController::Impl
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
-	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) };
+	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, Util::ExecutorInitializer{[]{}, [&]{ emit m_self.ShowLog(true); }, [&]{emit m_self.ShowLog(true);}}) };
 
 	explicit Impl(const CollectionController & self, Observer & observer_)
 		: observer(observer_)
@@ -117,6 +118,7 @@ CollectionController::CollectionController(Observer & observer, QObject * parent
 	: QObject(parent)
 	, m_impl(*this, observer)
 {
+	Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, this, SIGNAL(ShowLog(bool)));
 }
 
 CollectionController::~CollectionController() = default;
@@ -142,9 +144,9 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 	if (!m_impl->CheckNewCollection(name, db, folder, true))
 		return false;
 
-	(*m_impl->executor)([name = std::move(name), db = std::move(db), folder = std::move(folder)]
+	(*m_impl->executor)([this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)] () mutable
 	{
-		const auto result = [] {};
+		auto result = std::function([] {});
 
 		QTemporaryDir tempDir;
 		const auto getFile = [&tempDir] (const QString & name)
@@ -174,7 +176,12 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 			{ INPX, inpx.toStdWString() },
 		};
 
-		Inpx::ParseInpx(std::move(ini));
+		if (Inpx::ParseInpx(std::move(ini)) == 0)
+			result = std::function([this_, name = std::move(name), db = std::move(db), folder = std::move(folder)] () mutable
+			{
+				this_->AddCollection(std::move(name), std::move(db), std::move(folder));
+			});
+
 		return result;
 	});
 

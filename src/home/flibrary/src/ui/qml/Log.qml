@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.15
 
 import "qrc:/Core"
 
@@ -10,10 +10,12 @@ ListView
 	model: logController.GetModel()
 
 	flickableDirection: Flickable.VerticalFlick
-//	ScrollBar.vertical: ScrollBar {}
+	ScrollBar.vertical: ScrollBar { id: scrollBarID }
 	delegate: CustomText
 	{
 		height: uiSettings.heightRow
 		text: display
 	}
+
+//	onCountChanged:  scrollBarID.position = 1.0 - scrollBarID.size
 }

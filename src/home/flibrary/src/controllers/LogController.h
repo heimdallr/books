@@ -24,7 +24,7 @@ public:
 private: // property getters
 	bool IsLogMode() const noexcept;
 
-private: // property setters
+private slots: // property setters
 	void SetLogMode(bool value);
 
 private:

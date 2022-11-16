@@ -25,6 +25,7 @@ class CollectionController
 signals:
 	void CurrentCollectionIdChanged() const;
 	void ErrorChanged() const;
+	void ShowLog(bool) const;
 
 public:
 	class Observer

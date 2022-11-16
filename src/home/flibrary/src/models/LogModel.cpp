@@ -3,6 +3,7 @@
 #include <plog/Appenders/IAppender.h>
 
 #include "plog/LogAppender.h"
+#include "util/FunctorExecutionForwarder.h"
 
 #include "LogModel.h"
 
@@ -43,12 +44,16 @@ private: // QAbstractListModel
 private: // plog::IAppender
 	void write(const plog::Record & record) override
 	{
-		emit beginInsertRows({}, rowCount(), rowCount());
-		m_items.push_back(QString::fromStdWString(record.getMessage()));
-		emit endInsertRows();
+		m_forwarder.Forward([&, message = QString::fromStdWString(record.getMessage())] () mutable
+		{
+			emit beginInsertRows({}, 0, 0);
+			m_items.push_back(std::move(message));
+			emit endInsertRows();
+		});
 	}
 
 private:
+	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender {this};
 	std::vector<QString> m_items;
 };

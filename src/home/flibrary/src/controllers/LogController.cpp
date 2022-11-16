@@ -2,6 +2,8 @@
 #include <QQmlEngine>
 
 #include "models/LogModel.h"
+#include "constants/ObjectConnectorConstant.h"
+
 #include "LogController.h"
 
 namespace HomeCompa::Flibrary {
@@ -11,6 +13,8 @@ LogController::LogController(QObject * parent)
 	, m_model(CreateLogModel(this))
 {
 	QQmlEngine::setObjectOwnership(m_model, QQmlEngine::CppOwnership);
+
+	Util::ObjectsConnector::registerReceiver(ObjConn::SHOW_LOG, this, SLOT(SetLogMode(bool)));
 }
 
 QAbstractItemModel * LogController::GetModel() const
