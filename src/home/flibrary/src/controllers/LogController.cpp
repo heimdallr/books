@@ -17,6 +17,15 @@ LogController::LogController(QObject * parent)
 	Util::ObjectsConnector::registerReceiver(ObjConn::SHOW_LOG, this, SLOT(SetLogMode(bool)));
 }
 
+void LogController::OnKeyPressed(int key, int modifiers)
+{
+	if (key != Qt::Key_Escape || modifiers != Qt::NoModifier)
+		return;
+
+	m_logMode = !m_logMode;
+	emit LogModeChanged();
+}
+
 QAbstractItemModel * LogController::GetModel() const
 {
 	return m_model;

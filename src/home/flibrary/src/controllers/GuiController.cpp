@@ -99,7 +99,7 @@ public:
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("collectionController", new CollectionController(*this, &m_self));
-		qmlContext->setContextProperty("logController", new LogController(&m_self));
+		qmlContext->setContextProperty("logController", &m_logController);
 		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
@@ -113,13 +113,15 @@ public:
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
-	void OnKeyPressed(int key, int modifiers) const
+	void OnKeyPressed(const int key, const int modifiers)
 	{
 		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
 			return QCoreApplication::exit(0);
 
 		if (m_activeModelController)
 			m_activeModelController->OnKeyPressed(key, modifiers);
+
+		m_logController.OnKeyPressed(key, modifiers);
 	}
 
 	bool GetOpened() const noexcept
@@ -295,6 +297,7 @@ private:
 	NavigationSourceProvider m_navigationSourceProvider;
 	LocaleController m_localeController { *this };
 	ProgressController m_progressController;
+	LogController m_logController;
 
 	QQmlApplicationEngine m_qmlEngine;
 };

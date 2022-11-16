@@ -20,6 +20,7 @@ public:
 
 public:
 	explicit LogController(QObject * parent = nullptr);
+	void OnKeyPressed(int key, int modifiers);
 
 private: // property getters
 	bool IsLogMode() const noexcept;
