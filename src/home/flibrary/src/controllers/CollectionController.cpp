@@ -1,6 +1,5 @@
 #include <QAbstractItemModel>
 #include <QApplication>
-#include <QFile>
 #include <QQmlEngine>
 #include <QTemporaryDir>
 
@@ -41,20 +40,20 @@ QString GetInpx(const QString & folder)
 struct CollectionController::Impl
 {
 	Observer & observer;
+	bool addMode { false };
 	QString error;
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
 	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, Util::ExecutorInitializer{[]{}, [&]{ emit m_self.ShowLog(true); }, [&]{emit m_self.ShowLog(false);}}) };
 
-	explicit Impl(const CollectionController & self, Observer & observer_)
+	explicit Impl(CollectionController & self, Observer & observer_)
 		: observer(observer_)
 		, m_self(self)
 	{
-		collections.erase(std::ranges::remove_if(collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), collections.end());
-
 		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
-		OnCollectionsChanged();
+
+		collections.erase(std::ranges::remove_if(collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), collections.end());
 	}
 
 	void OnCollectionsChanged()
@@ -63,6 +62,8 @@ struct CollectionController::Impl
 		{
 			currentCollectionId.clear();
 			observer.HandleCurrentCollectionChanged(Collection());
+
+			m_self.SetAddMode(true);
 			return;
 		}
 
@@ -109,7 +110,7 @@ struct CollectionController::Impl
 	}
 
 private:
-	const CollectionController & m_self;
+	CollectionController & m_self;
 };
 
 CollectionController::CollectionController(Observer & observer, QObject * parent)
@@ -117,6 +118,7 @@ CollectionController::CollectionController(Observer & observer, QObject * parent
 	, m_impl(*this, observer)
 {
 	Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, this, SIGNAL(ShowLog(bool)));
+	m_impl->OnCollectionsChanged();
 }
 
 CollectionController::~CollectionController() = default;
@@ -197,6 +199,11 @@ void CollectionController::RemoveCurrentCollection()
 	QApplication::exit(1234);
 }
 
+bool CollectionController::GetAddMode() const noexcept
+{
+	return m_impl->addMode;
+}
+
 const QString & CollectionController::GetCurrentCollectionId() const noexcept
 {
 	return m_impl->currentCollectionId;
@@ -205,6 +212,12 @@ const QString & CollectionController::GetCurrentCollectionId() const noexcept
 const QString & CollectionController::GetError() const noexcept
 {
 	return m_impl->error;
+}
+
+void CollectionController::SetAddMode(const bool value)
+{
+	m_impl->addMode = value;
+	emit AddModeChanged();
 }
 
 void CollectionController::SetCurrentCollectionId(const QString & id)

@@ -21,8 +21,11 @@ class CollectionController
 
 	Q_PROPERTY(QString currentCollectionId READ GetCurrentCollectionId WRITE SetCurrentCollectionId NOTIFY CurrentCollectionIdChanged)
 	Q_PROPERTY(QString error READ GetError WRITE SetError NOTIFY ErrorChanged)
+	Q_PROPERTY(bool addMode READ GetAddMode WRITE SetAddMode NOTIFY AddModeChanged)
+
 
 signals:
+	void AddModeChanged() const;
 	void CurrentCollectionIdChanged() const;
 	void ErrorChanged() const;
 	void ShowLog(bool) const;
@@ -46,10 +49,12 @@ public:
 	Q_INVOKABLE void RemoveCurrentCollection();
 
 private: // property getters
+	bool GetAddMode() const noexcept;
 	const QString & GetCurrentCollectionId() const noexcept;
 	const QString & GetError() const noexcept;
 
 private: // property setters
+	void SetAddMode(bool value);
 	void SetCurrentCollectionId(const QString & id);
 	void SetError(const QString & error);
 

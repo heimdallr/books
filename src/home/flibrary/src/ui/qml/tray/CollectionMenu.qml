@@ -21,12 +21,13 @@ Menu
 	AddCollection
 	{
 		id: addCollectionID
+		visible: collectionController.addMode
 	}
 
     MenuItem
 	{
         text: qsTranslate("Tray", "Add new collection...")
-        onTriggered: addCollectionID.show()
+        onTriggered: collectionController.addMode = true
     }
 
 	DynamicMenu

@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.15
-import QtQuick.Window 2.12
+import QtQuick.Window 2.15
 
 import "qrc:/Core"
 import "qrc:/Util/Functions.js" as Functions
@@ -9,6 +9,8 @@ import "qrc:/Util/Functions.js" as Functions
 Window
 {
 	id: dialogID
+	transientParent: applicationWindowID
+
 	width: uiSettings.heightRow * 30
 	minimumHeight: guiController.GetTitleBarHeight()
 		+ collectionNameLayoutID.height
@@ -128,7 +130,7 @@ Window
 			{
 				uiSettings.pathRecentCollectionDatabase = collectionDatabaseID.text
 				uiSettings.pathResentCollectionArchive = collectionArchiveFolderID.text
-				dialogID.close()
+				collectionController.addMode = false
 			}
 
 			Item
@@ -173,7 +175,7 @@ Window
 				id: btnCancelID
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "Cancel")
-				onClicked: dialogID.close()
+				onClicked: collectionController.addMode = false
 			}
 		}
 	}
