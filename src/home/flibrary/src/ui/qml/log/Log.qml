@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
+import Style 1.0
+
 import "qrc:/Core"
 import "qrc:/Tray"
 import "qrc:/Util/Functions.js" as Functions
@@ -13,6 +15,8 @@ Rectangle
 	{
 		id: logViewID
 
+		readonly property alias scrollBarWidth: scrollBarID.width
+
 		anchors
 		{
 			fill: parent
@@ -24,7 +28,7 @@ Rectangle
 		clip: true
 		flickableDirection: Flickable.VerticalFlick
 
-		ScrollBar.vertical: ScrollBar { id: scrollBarID }
+		ScrollBar.vertical: ScrollBar { id: scrollBarID; width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar }
 		delegate: Item
 		{
 			height: uiSettings.heightRow
@@ -47,7 +51,12 @@ Rectangle
 			id: logContextMenuID
 		}
 
-		anchors.fill: parent
+		anchors
+		{
+			fill: parent
+			rightMargin: Functions.GetMargin() + logViewID.scrollBarWidth
+		}
+
 		acceptedButtons: Qt.LeftButton | Qt.RightButton
 		onClicked:
 		(mouse) =>

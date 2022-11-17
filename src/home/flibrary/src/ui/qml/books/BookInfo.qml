@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
+import Style 1.0
+
 import "qrc:/Core"
 
 Rectangle
@@ -51,6 +53,9 @@ Rectangle
 
 	ScrollView
 	{
+		clip: true
+		ScrollBar.vertical.width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar
+
 		anchors
 		{
 			left: imageID.right

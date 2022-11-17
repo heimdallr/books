@@ -1,9 +1,9 @@
 #pragma warning(push, 0)
 #include <QAbstractItemModel>
 #include <QApplication>
+#include <QCommonStyle>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QStyle>
 #include <QSystemTrayIcon>
 #pragma warning(pop)
 
@@ -119,6 +119,8 @@ public:
 		qRegisterMetaType<ModelController *>("ModelController*");
 		qRegisterMetaType<BooksModelController *>("BooksModelController*");
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
+
+		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
@@ -374,9 +376,10 @@ BooksModelController * GuiController::GetBooksModelController()
 	return m_impl->GetBooksModelController();
 }
 
-int GuiController::GetTitleBarHeight()
+int GuiController::GetPixelMetric(const QVariant & metric)
 {
-	return QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight);
+	const auto value = QApplication::style()->pixelMetric(metric.value<QStyle::PixelMetric>());
+	return value;
 }
 
 bool GuiController::GetOpened() const noexcept

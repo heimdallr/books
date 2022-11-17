@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
+import Style 1.0
+
 import "qrc:/Util/Functions.js" as Functions
 
 Item
@@ -51,7 +53,7 @@ Item
 			snapMode: ListView.SnapToItem
 
 			flickableDirection: Flickable.VerticalFlick
-			ScrollBar.vertical: ScrollBar {}
+			ScrollBar.vertical: ScrollBar { width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar }
 
 			highlight: highlightID
 			highlightFollowsCurrentItem: false

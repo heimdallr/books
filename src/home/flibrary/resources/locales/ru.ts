@@ -4,22 +4,22 @@
 <context>
     <name>AddCollection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="25"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="27"/>
         <source>Add new collection</source>
         <translation>Добавить новую коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="41"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="43"/>
         <source>Collection name</source>
         <translation>Имя коллекци</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="60"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="62"/>
         <source>Collection database file</source>
         <translation>Файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="95"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="97"/>
         <source>Collection archive folder</source>
         <translation>Папка с архивами</translation>
     </message>
@@ -27,12 +27,12 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="159"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="161"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="168"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="170"/>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
@@ -108,14 +108,14 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="74"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="109"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="76"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="111"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="177"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="179"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
@@ -130,42 +130,42 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="148"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="150"/>
         <source>Name cannot be empty</source>
         <translation>Имя не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="150"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="152"/>
         <source>Database file name cannot be empty</source>
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="154"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="156"/>
         <source>Index file (*.inpx) not found</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="159"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="163"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="162"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="166"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="164"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="168"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="166"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="170"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="168"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="172"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена: %1</translation>
     </message>

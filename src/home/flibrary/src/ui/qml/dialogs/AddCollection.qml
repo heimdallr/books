@@ -3,6 +3,8 @@ import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 
+import Style 1.0
+
 import "qrc:/Core"
 import "qrc:/Util/Functions.js" as Functions
 
@@ -12,7 +14,7 @@ Window
 	transientParent: applicationWindowID
 
 	width: uiSettings.heightRow * 30
-	minimumHeight: guiController.GetTitleBarHeight()
+	minimumHeight: guiController.GetPixelMetric(Style.PM_TitleBarHeight)
 		+ collectionNameLayoutID.height
 		+ databaseFileNameLayoutID.height
 		+ collectionArchiveFolderLayoutID.height

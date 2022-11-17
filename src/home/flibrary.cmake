@@ -7,7 +7,7 @@ CreateMap(UI_SETTING_NAMES
 		colorHighlightUnfocused       \"lavender\"
 		colorLogFatal                 \"darkred\"
 		colorLogError                 \"red\"
-		colorLogWarning               \"yellow\"
+		colorLogWarning               \"magenta\"
 		colorLogInfo                  \"black\"
 		colorLogDebug                 \"darkgrey\"
 		colorLogVerbose               \"lightgray\"
@@ -37,6 +37,7 @@ CreateMap(UI_SETTING_NAMES
 		sizeFont                        9
 		sizeFontError                   0.9
 		sizeLogMaximum                  10000
+		sizeScrollbar                   0.8
 		sizeSplitViewHandle             4
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125
