@@ -1,5 +1,4 @@
 #include <QCryptographicHash>
-#include <QVariant>
 
 #include "util/Settings.h"
 
@@ -12,6 +11,7 @@ namespace {
 constexpr auto COLLECTIONS = "Collections";
 constexpr auto CURRENT = "current";
 constexpr auto DATABASE = "database";
+constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
 
@@ -35,7 +35,9 @@ Collection DeserializeImpl(Settings & settings, QString id)
 	if ((collection.folder = settings.Get(FOLDER, {}).toString()).isEmpty())
 		return collection;
 
+	collection.discardedUpdate = settings.Get(DISCARDED_UPDATE, {}).toString();
 	collection.id = std::move(id);
+
 	return collection;
 }
 
@@ -63,6 +65,7 @@ void Collection::Serialize(Settings & settings) const
 	settings.Set(NAME, name);
 	settings.Set(DATABASE, database);
 	settings.Set(FOLDER, folder);
+	settings.Set(DISCARDED_UPDATE, discardedUpdate);
 }
 
 Collections Collection::Deserialize(Settings & settings)

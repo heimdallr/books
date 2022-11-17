@@ -93,6 +93,11 @@
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="25"/>
+        <source>Looks like the collection has been updated. Apply changes?</source>
+        <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
+    </message>
+    <message>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="18"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
@@ -116,6 +121,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="24"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation>Внимание</translation>
@@ -124,42 +130,42 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="87"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="139"/>
         <source>Name cannot be empty</source>
         <translation>Имя не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="89"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="141"/>
         <source>Database file name cannot be empty</source>
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="93"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="145"/>
         <source>Index file (*.inpx) not found</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="98"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="150"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="101"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="153"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="103"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="155"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="105"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="157"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="107"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="159"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена: %1</translation>
     </message>
@@ -334,17 +340,17 @@ Restart now?</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="29"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="40"/>
         <source>Add new collection...</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="39"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="50"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="54"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="65"/>
         <source>Remove collection</source>
         <translation>Удалить коллекцию</translation>
     </message>

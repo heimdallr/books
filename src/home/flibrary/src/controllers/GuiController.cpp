@@ -38,13 +38,9 @@
 
 #include "GuiController.h"
 
-#include <set>
-
-
 #include "Settings/UiSettings.h"
 
 #include "Configuration.h"
-#include "database/interface/Query.h"
 
 Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 
@@ -102,7 +98,7 @@ public:
 		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
-		qmlContext->setContextProperty("collectionController", new CollectionController(*this, &m_self));
+		qmlContext->setContextProperty("collectionController", &m_collectionController);
 		qmlContext->setContextProperty("logController", &m_logController);
 		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
@@ -264,6 +260,8 @@ private: // CollectionController::Observer
 		});
 
 		emit m_self.TitleChanged();
+
+		m_collectionController.CheckForUpdate(collection);
 	}
 
 private:
@@ -277,16 +275,7 @@ private:
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
-
-		(*m_executor)({ "Get folder list", [&db = m_db, &self = m_self]
-		{
-			auto query = db->CreateQuery("select DISTINCT b.Folder from Books b");
-			std::set<std::string> folders;
-			for (query->Execute(); !query->Eof(); query->Next())
-				folders.emplace(query->Get<std::string>(0));
-
-			return [&self] { emit self.OpenedChanged(); };
-		} });
+		emit m_self.OpenedChanged();
 	}
 
 private:
@@ -311,6 +300,7 @@ private:
 	LocaleController m_localeController { *this };
 	ProgressController m_progressController;
 	LogController m_logController;
+	CollectionController m_collectionController { *this, &m_self };
 
 	QQmlApplicationEngine m_qmlEngine;
 };

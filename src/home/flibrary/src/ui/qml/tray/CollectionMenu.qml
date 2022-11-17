@@ -18,6 +18,18 @@ Menu
 	    onYes: collectionController.RemoveCurrentCollection()
 	}
 
+	MessageDialog
+	{
+	    id: updateConfirmDialogID
+	    title: qsTranslate("Common", "Warning")
+	    text: qsTranslate("Collection", "Looks like the collection has been updated. Apply changes?")
+		standardButtons: StandardButton.Yes | StandardButton.Cancel | StandardButton.Discard
+		visible: collectionController.hasUpdate
+	    onYes: collectionController.ApplyUpdate()
+		onRejected: collectionController.hasUpdate = false
+		onDiscard: collectionController.DiscardUpdate()
+	}
+
 	AddCollection
 	{
 		id: addCollectionID

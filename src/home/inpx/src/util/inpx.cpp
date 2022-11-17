@@ -321,6 +321,45 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 	}
 }
 
+struct InpxContent
+{
+	std::vector<std::wstring> collectionInfo;
+	std::vector<std::wstring> versionInfo;
+	std::vector<std::wstring> inpx;
+};
+
+InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
+{
+	InpxContent inpxContent;
+
+	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
+	const auto entriesCount = archive->GetEntriesCount();
+	for (size_t i = 0; i < entriesCount; ++i)
+	{
+		const auto entry = archive->GetEntry(static_cast<int>(i));
+		auto folder = ToWide(entry->GetFullName());
+
+		if (folder == COLLECTION_INFO)
+			inpxContent.collectionInfo.push_back(std::move(folder));
+		else if (folder == VERSION_INFO)
+			inpxContent.versionInfo.push_back(std::move(folder));
+		else if (folder.ends_with(INP_EXT))
+			inpxContent.inpx.push_back(std::move(folder));
+		else
+			PLOGI << folder << L" skipped";
+	}
+
+	return inpxContent;
+}
+
+std::pair<ZipArchiveEntry::Ptr, std::istream *> GetEntry(ZipArchive & archive, const std::wstring & name)
+{
+	PLOGI << name;
+	auto entry = archive.GetEntry(ToMultiByte(name));
+	auto * stream = entry->GetDecompressionStream();
+	return std::make_pair(std::move(entry), stream);
+}
+
 Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
 {
 	Timer t(L"parsing archives");
@@ -333,28 +372,27 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 
 	std::vector<std::wstring> unknownGenres;
 
+	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
 	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
-	const auto entriesCount = archive->GetEntriesCount();
-	size_t n = 0;
+
+	for (const auto & fileName : inpxContent.collectionInfo)
+	{
+		auto [_, stream] = GetEntry(*archive, fileName);
+		ProcessCollectionInfo(*stream, data.settings);
+	}
+
+	for (const auto & fileName : inpxContent.versionInfo)
+	{
+		auto [_, stream] = GetEntry(*archive, fileName);
+		ProcessVersionInfo(*stream, data.settings);
+	}
 
 	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
-
-	for (size_t i = 0; i < entriesCount; ++i)
+	size_t n = 0;
+	for (const auto & fileName : inpxContent.inpx)
 	{
-		const auto entry = archive->GetEntry(static_cast<int>(i));
-		auto folder = ToWide(entry->GetFullName());
-		auto * const stream = entry->GetDecompressionStream();
-
-		PLOGI << folder;
-
-		if (folder == COLLECTION_INFO)
-			ProcessCollectionInfo(*stream, data.settings);
-		else if (folder == VERSION_INFO)
-			ProcessVersionInfo(*stream, data.settings);
-		else if (folder.ends_with(INP_EXT))
-			ProcessInpx(*stream, rootFolder, folder, genresIndex, data, unknownGenres, n);
-		else
-			PLOGI << folder << L" skipped";
+		auto [_, stream] = GetEntry(*archive, fileName);
+		ProcessInpx(*stream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
 	}
 
 	PLOGI << n << " rows parsed";
@@ -379,7 +417,7 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 {
 	SettingsTableData data;
 
-	sqlite3pp::database db(ToMultiByte(dbFileName).data());
+	sqlite3pp::database db(ToMultiByte(dbFileName).data(), SQLITE_OPEN_READONLY);
 	if (!TableExists(db, "Settings"))
 		return {};
 
@@ -548,7 +586,7 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 	return result;
 }
 
-void Process(const Ini & ini)
+bool Process(const Ini & ini)
 {
 	Timer t(L"work");
 
@@ -563,6 +601,49 @@ void Process(const Ini & ini)
 		PLOGE << "Something went wrong";
 
 	ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
+
+	return true;
+}
+
+void RemoveExt(std::string & str)
+{
+	const auto dotPos = str.find_last_of('.');
+	assert(dotPos != std::string::npos);
+	str.resize(dotPos);
+}
+
+std::vector<std::string> GetNewInpxFolders(const Ini & ini)
+{
+	std::vector<std::string> result;
+	std::set<std::string> dbFolders;
+
+	{
+		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+		sqlite3pp::database db(ToMultiByte(dbFileName).data(), SQLITE_OPEN_READONLY);
+		db.load_extension(MHL_SQLITE_EXTENSION);
+		if (!TableExists(db, "Books"))
+			return result;
+
+		sqlite3pp::query query(db, "select distinct Folder from Books");
+		std::transform(std::begin(query), std::end(query), std::inserter(dbFolders, std::end(dbFolders)), [] (const auto & row)
+		{
+			auto folder = row.template get<std::string>(0);
+			RemoveExt(folder);
+			return folder;
+		});
+	}
+
+	std::set<std::string> inpxFolders;
+	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [] (const std::wstring & item)
+	{
+		auto folder = ToMultiByte(item);
+		RemoveExt(folder);
+		return folder;
+	});
+
+	std::ranges::set_difference(inpxFolders, dbFolders, std::back_inserter(result));
+
+	return result;
 }
 
 template<typename T>
@@ -571,8 +652,7 @@ int ParseInpxImpl(T t)
 	try
 	{
 		const Ini ini(std::forward<T>(t));
-		Process(ini);
-		return 0;
+		return Process(ini);
 	}
 	catch (const std::exception & ex)
 	{
@@ -582,21 +662,32 @@ int ParseInpxImpl(T t)
 	{
 		PLOGE << "unknown error";
 	}
-	return 1;
+	return false;
 }
 
 }
 
 namespace HomeCompa::Inpx {
 
-int ParseInpx(const std::filesystem::path & iniFile)
+bool CreateNewCollection(const std::filesystem::path & iniFile)
 {
 	return ParseInpxImpl(iniFile);
 }
 
-int ParseInpx(std::map<std::wstring, std::wstring> data)
+bool CreateNewCollection(std::map<std::wstring, std::wstring> data)
 {
 	return ParseInpxImpl(std::move(data));
+}
+
+bool CheckUpdateCollection(std::map<std::wstring, std::wstring> data)
+{
+	const Ini ini(std::move(data));
+	return !GetNewInpxFolders(ini).empty();
+}
+
+bool UpdateCollection(std::map<std::wstring, std::wstring> data)
+{
+	return true;
 }
 
 }

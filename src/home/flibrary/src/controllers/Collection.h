@@ -18,6 +18,7 @@ struct Collection
 	QString name;
 	QString database;
 	QString folder;
+	QString discardedUpdate;
 
 	Collection() = default;
 	Collection(QString name, QString database, QString folder);

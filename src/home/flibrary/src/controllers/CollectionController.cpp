@@ -1,5 +1,8 @@
+#include <set>
+
 #include <QAbstractItemModel>
 #include <QApplication>
+#include <QCryptographicHash>
 #include <QQmlEngine>
 #include <QTemporaryDir>
 
@@ -7,8 +10,10 @@
 
 #include "fnd/algorithm.h"
 #include "models/SimpleModel.h"
-#include "util/inpx.h"
+
 #include "util/constant.h"
+#include "util/inpx.h"
+#include "util/StrUtil.h"
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
@@ -31,16 +36,72 @@ SimpleModeItems GetSimpleModeItems(const Collections & collections)
 	return items;
 }
 
+QString GetFileHash(const QString & fileName)
+{
+	QFile file(fileName);
+	file.open(QIODevice::ReadOnly);
+	constexpr auto size = 1024ll * 32;
+	const std::unique_ptr<char[]> buf(new char[size]);
+
+	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+
+	while (const auto readSize = file.read(buf.get(), size))
+		hash.addData(buf.get(), static_cast<int>(readSize));
+
+	return hash.result().toHex();
+}
+
 QString GetInpx(const QString & folder)
 {
 	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
-	return inpxList.isEmpty() ? QString() : QString("%1/%2").arg(folder, inpxList.front());
+	auto result = inpxList.isEmpty() ? QString() : QString("%1/%2").arg(folder, inpxList.front());
+	if (result.isEmpty())
+		PLOGE << "Cannot find inpx in " << folder;
+
+	return result;
 }
+
+using IniMap = std::map<std::wstring, std::wstring>;
+using IniMapPair = std::pair<std::unique_ptr<QTemporaryDir>, IniMap>;
+IniMapPair GetIniMap(const QString & db, const QString & folder)
+{
+	IniMapPair result { std::make_unique<QTemporaryDir>(), IniMap{} };
+	const auto getFile = [&tempDir = *result.first] (const QString & name)
+	{
+		auto result = QApplication::applicationDirPath() + name;
+		if (QFile(result).exists())
+			return result;
+
+		result = tempDir.filePath(name);
+		QFile::copy(":/data/" + name, result);
+		return result;
+	};
+
+	const auto inpx = GetInpx(folder);
+	if (inpx.isEmpty())
+	{
+		PLOGE << "Index file (*.inpx) not found";
+		return result;
+	}
+
+	result.second = IniMap
+	{
+		{ DB_PATH, db.toStdWString() },
+		{ GENRES, getFile("genres.ini").toStdWString() },
+		{ DB_CREATE_SCRIPT, getFile("CreateCollection.sql").toStdWString() },
+		{ DB_UPDATE_SCRIPT, getFile("UpdateCollection.sql").toStdWString() },
+		{ INPX, inpx.toStdWString() },
+	};
+
+	return result;
+}
+
 
 struct CollectionController::Impl
 {
 	Observer & observer;
 	bool addMode { false };
+	bool hasUpdate { false };
 	QString error;
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
@@ -123,6 +184,34 @@ CollectionController::CollectionController(Observer & observer, QObject * parent
 
 CollectionController::~CollectionController() = default;
 
+void CollectionController::CheckForUpdate(const Collection & collection)
+{
+	(*m_impl->executor)({ "Check inpx for update",[&this_ = *this, collection = collection]() mutable
+	{
+		auto result = std::function([] {});
+
+		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+		if (!collection.discardedUpdate.isEmpty())
+		{
+			const auto it = ini.find(INPX);
+			assert(it != ini.end());
+			if (GetFileHash(QString::fromStdWString(it->second)) == collection.discardedUpdate)
+				return result;
+		}
+
+		result = [&this_, hasUpdate = Inpx::CheckUpdateCollection(std::move(ini))]
+		{
+			if (this_.m_impl->hasUpdate == hasUpdate)
+				return;
+
+			this_.m_impl->hasUpdate = hasUpdate;
+			emit this_.HasUpdateChanged();
+		};
+
+		return result;
+	} });
+}
+
 bool CollectionController::AddCollection(QString name, QString db, QString folder)
 {
 	if (!m_impl->CheckNewCollection(name, db, folder, false))
@@ -148,39 +237,14 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 	{
 		auto result = std::function([] {});
 
-		QTemporaryDir tempDir;
-		const auto getFile = [&tempDir] (const QString & name)
+		auto [_, ini] = GetIniMap(db, folder);
+		if (Inpx::CreateNewCollection(std::move(ini)))
 		{
-			auto result = QApplication::applicationDirPath() + name;
-			if (QFile(result).exists())
-				return result;
-
-			result = tempDir.filePath(name);
-			QFile::copy(":/data/" + name, result);
-			return result;
-		};
-
-		const auto inpx = GetInpx(folder);
-		if (inpx.isEmpty())
-		{
-			PLOGE << "Index file (*.inpx) not found";
-			return result;
-		}
-
-		std::map<std::wstring, std::wstring> ini
-		{
-			{ DB_PATH, db.toStdWString() },
-			{ GENRES, getFile("genres.ini").toStdWString() },
-			{ DB_CREATE_SCRIPT, getFile("CreateCollection.sql").toStdWString() },
-			{ DB_UPDATE_SCRIPT, getFile("UpdateCollection.sql").toStdWString() },
-			{ INPX, inpx.toStdWString() },
-		};
-
-		if (Inpx::ParseInpx(std::move(ini)) == 0)
-			result = std::function([this_, name = std::move(name), db = std::move(db), folder = std::move(folder)] () mutable
+			result = std::function([this_, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 			{
 				this_->AddCollection(std::move(name), std::move(db), std::move(folder));
 			});
+		}
 
 		return result;
 	}});
@@ -193,15 +257,56 @@ QAbstractItemModel * CollectionController::GetModel()
 	return m_impl->model.get();
 }
 
+void CollectionController::ApplyUpdate()
+{
+	SetHasUpdate(false);
+	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
+
+	(*m_impl->executor)({ "Update collection",[&impl = *m_impl, collection = *collection]() mutable
+	{
+		auto result = std::function([] {});
+
+		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+
+		if (Inpx::CheckUpdateCollection(std::move(ini)))
+		{
+			result = std::function([] { QCoreApplication::exit(1234); });
+		}
+
+		return result;
+	} });
+}
+
+void CollectionController::DiscardUpdate()
+{
+	SetHasUpdate(false);
+	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
+
+	(*m_impl->executor)({ "Update collection",[&impl = *m_impl, collection = *collection]() mutable
+	{
+		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+		const auto it = ini.find(INPX);
+		assert(it != ini.end());
+		collection.discardedUpdate = GetFileHash(QString::fromStdWString(it->second));
+		collection.Serialize(impl.observer.GetSettings());
+		return []{};
+	} });
+}
+
 void CollectionController::RemoveCurrentCollection()
 {
 	Collection::Remove(m_impl->observer.GetSettings(), m_impl->currentCollectionId);
-	QApplication::exit(1234);
+	QCoreApplication::exit(1234);
 }
 
 bool CollectionController::GetAddMode() const noexcept
 {
 	return m_impl->addMode;
+}
+
+bool CollectionController::HasUpdate() const noexcept
+{
+	return m_impl->hasUpdate;
 }
 
 const QString & CollectionController::GetCurrentCollectionId() const noexcept
@@ -218,6 +323,12 @@ void CollectionController::SetAddMode(const bool value)
 {
 	m_impl->addMode = value;
 	emit AddModeChanged();
+}
+
+void CollectionController::SetHasUpdate(bool value)
+{
+	m_impl->hasUpdate = value;
+	emit HasUpdateChanged();
 }
 
 void CollectionController::SetCurrentCollectionId(const QString & id)

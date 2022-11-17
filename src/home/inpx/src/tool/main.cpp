@@ -23,6 +23,6 @@ private: // plog::IAppender
 int main(int argc, char* argv[])
 {
 	Appender appender;
-	plog::init(plog::verbose, &appender);
-	return HomeCompa::Inpx::ParseInpx(argc < 2 ? std::filesystem::path(argv[0]).replace_extension(INI_EXT) : std::filesystem::path(argv[1]));
+	init(plog::verbose, &appender);
+	return !HomeCompa::Inpx::CreateNewCollection(argc < 2 ? std::filesystem::path(argv[0]).replace_extension(INI_EXT) : std::filesystem::path(argv[1]));
 }
