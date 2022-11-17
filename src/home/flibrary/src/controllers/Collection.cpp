@@ -87,13 +87,14 @@ void Collection::SetActive(Settings & settings, const QString & id)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Set(CURRENT, id);
+	PLOGI << "Collection " << id << " is active now";
 }
 
 void Collection::Remove(Settings & settings, const QString & id)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Remove(id);
-	PLOGW << "Collection " << id << "removed";
+	PLOGW << "Collection " << id << " removed";
 }
 
 QString Collection::GenerateId(const QString & database)
