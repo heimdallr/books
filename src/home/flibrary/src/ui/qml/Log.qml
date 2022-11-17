@@ -30,7 +30,8 @@ Rectangle
 			width: logViewID.width
 			CustomText
 			{
-				text: display
+				text: Message
+				color: Color
 			}
 		}
 
