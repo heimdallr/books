@@ -1,4 +1,7 @@
 #include <QCryptographicHash>
+#include <QString>
+
+#include <plog/Log.h>
 
 #include "util/Settings.h"
 
@@ -90,6 +93,7 @@ void Collection::Remove(Settings & settings, const QString & id)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Remove(id);
+	PLOGW << "Collection " << id << "removed";
 }
 
 QString Collection::GenerateId(const QString & database)

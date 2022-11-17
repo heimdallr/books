@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QQmlEngine>
 #include <QTemporaryDir>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -152,6 +153,8 @@ struct CollectionController::Impl
 		{
 			if (GetInpx(folder).isEmpty())
 				return Util::Set(error, QApplication::translate("Error", "Index file (*.inpx) not found"), m_self, &CollectionController::ErrorChanged), false;
+			if (QFile(db).exists())
+				PLOGW << db << " will be rewritten";
 		}
 		else
 		{
@@ -296,7 +299,7 @@ void CollectionController::DiscardUpdate()
 void CollectionController::RemoveCurrentCollection()
 {
 	Collection::Remove(m_impl->observer.GetSettings(), m_impl->currentCollectionId);
-	QCoreApplication::exit(1234);
+	QTimer::singleShot(std::chrono::milliseconds(200), [] { QCoreApplication::exit(1234); });
 }
 
 bool CollectionController::GetAddMode() const noexcept
