@@ -1,5 +1,3 @@
-#include <set>
-
 #include <QSortFilterProxyModel>
 #include <QColor>
 
@@ -97,7 +95,7 @@ private: // plog::IAppender
 			, tId = record.getTid()
 		] () mutable
 		{
-			if (std::size(s_items) > m_sizeLogMaximum)
+			if (static_cast<int>(std::size(s_items)) > m_sizeLogMaximum)
 			{
 				emit beginRemoveRows({}, 0, m_sizeLogMaximum / 2 - 1);
 				s_items.erase(std::begin(s_items), std::next(std::begin(s_items), m_sizeLogMaximum / 2));
