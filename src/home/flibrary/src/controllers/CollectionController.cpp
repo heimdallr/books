@@ -189,7 +189,7 @@ CollectionController::~CollectionController() = default;
 
 void CollectionController::CheckForUpdate(const Collection & collection)
 {
-	(*m_impl->executor)({ "Check inpx for update",[&this_ = *this, collection = collection]() mutable
+	(*m_impl->executor)({ "Check inpx for update", [&this_ = *this, collection = collection]() mutable
 	{
 		auto result = std::function([] {});
 
@@ -265,7 +265,7 @@ void CollectionController::ApplyUpdate()
 	SetHasUpdate(false);
 	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
 
-	(*m_impl->executor)({ "Update collection",[&impl = *m_impl, collection = *collection]() mutable
+	(*m_impl->executor)({ "Update collection", [&impl = *m_impl, collection = *collection]() mutable
 	{
 		auto result = std::function([] {});
 
@@ -285,7 +285,7 @@ void CollectionController::DiscardUpdate()
 	SetHasUpdate(false);
 	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
 
-	(*m_impl->executor)({ "Update collection",[&impl = *m_impl, collection = *collection]() mutable
+	(*m_impl->executor)({ "Update collection", [&impl = *m_impl, collection = *collection]() mutable
 	{
 		auto [_, ini] = GetIniMap(collection.database, collection.folder);
 		const auto it = ini.find(INPX);
@@ -337,7 +337,7 @@ void CollectionController::SetHasUpdate(bool value)
 void CollectionController::SetCurrentCollectionId(const QString & id)
 {
 	Collection::SetActive(m_impl->observer.GetSettings(), id);
-	QApplication::exit(1234);
+	QTimer::singleShot(std::chrono::milliseconds(200), [] { QCoreApplication::exit(1234); });
 }
 
 void CollectionController::SetError(const QString & error)
