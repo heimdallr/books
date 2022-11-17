@@ -7,6 +7,8 @@
 #include <QSystemTrayIcon>
 #pragma warning(pop)
 
+#include <plog/Log.h>
+
 #include "database/factory/Factory.h"
 #include "database/interface/Database.h"
 
@@ -17,6 +19,7 @@
 #include "util/executor/factory.h"
 
 #include "util/Settings.h"
+#include "util/SettingsObserver.h"
 
 #include "ModelControllers/BooksModelController.h"
 #include "ModelControllers/BooksViewType.h"
@@ -57,7 +60,7 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 auto CreateUiSettings()
 {
 	auto settings = std::make_unique<Settings>(Constant::COMPANY_ID, Constant::PRODUCT_ID);
-	settings->BeginGroup("ui");
+	settings->BeginGroup(Constant::UI);
 	return settings;
 }
 
@@ -67,17 +70,24 @@ class GuiController::Impl
 	: virtual ModelControllerObserver
 	, LocaleController::LanguageProvider
 	, CollectionController::Observer
+	, SettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
+		m_settings.RegisterObserver(this);
+		m_uiSettingsSrc->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
 		m_qmlEngine.clearComponentCache();
+
+		m_settings.UnregisterObserver(this);
+		m_uiSettingsSrc->UnregisterObserver(this);
+
 		for (auto & [_, controller] : m_navigationModelControllers)
 			controller->UnregisterObserver(this);
 
@@ -220,6 +230,11 @@ private: // SettingsProvider
 		return m_settings;
 	}
 
+	Settings & GetUiSettings() override
+	{
+		return *m_uiSettingsSrc;
+	}
+
 private: // LocaleController::LanguageProvider
 	QStringList GetLanguages() override
 	{
@@ -264,6 +279,12 @@ private: // CollectionController::Observer
 		m_collectionController.CheckForUpdate(collection);
 	}
 
+private: // SettingsObserver
+	void HandleValueChanged(const QString & key, const QVariant & value) override
+	{
+		PLOGV << "Set " << key << " = " << value.toString();
+	}
+
 private:
 	void CreateExecutor(const std::string & databaseName)
 	{
@@ -299,8 +320,8 @@ private:
 	NavigationSourceProvider m_navigationSourceProvider;
 	LocaleController m_localeController { *this };
 	ProgressController m_progressController;
-	LogController m_logController;
-	CollectionController m_collectionController { *this, &m_self };
+	LogController m_logController { *this };
+	CollectionController m_collectionController { *this };
 
 	QQmlApplicationEngine m_qmlEngine;
 };

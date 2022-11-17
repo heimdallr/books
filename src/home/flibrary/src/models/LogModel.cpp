@@ -1,12 +1,22 @@
-#include <QAbstractListModel>
+#include <set>
+
+#include <QSortFilterProxyModel>
 #include <QColor>
 
 #include <plog/Appenders/IAppender.h>
 
+#include "fnd/NonCopyMovable.h"
+
 #include "plog/LogAppender.h"
+
 #include "util/FunctorExecutionForwarder.h"
+#include "util/Settings.h"
+#include "util/SettingsObserver.h"
 
 #include "LogModel.h"
+
+#include "Settings/UiSettings_keys.h"
+#include "Settings/UiSettings_values.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -19,24 +29,6 @@ struct Item
 };
 
 std::vector<Item> s_items;
-const QColor s_colors[]
-{
-	QColorConstants::Svg::black,
-	QColorConstants::Svg::darkred,
-	QColorConstants::Svg::red,
-	QColorConstants::Svg::yellow,
-	QColorConstants::Svg::black,
-	QColorConstants::Svg::darkgrey,
-	QColorConstants::Svg::gray,
-};
-
-static_assert(plog::Severity::none == 0);
-static_assert(plog::Severity::fatal == 1);
-static_assert(plog::Severity::error == 2);
-static_assert(plog::Severity::warning == 3);
-static_assert(plog::Severity::info == 4);
-static_assert(plog::Severity::debug == 5);
-static_assert(plog::Severity::verbose == 6);
 
 struct Role
 {
@@ -52,8 +44,8 @@ class Model final
 	, virtual public plog::IAppender
 {
 public:
-	explicit Model(QObject * parent)
-		: QAbstractListModel(parent)
+	explicit Model(LogModelController & controller)
+		: m_controller(controller)
 	{
 	}
 
@@ -85,7 +77,7 @@ private: // QAbstractListModel
 				return item.message;
 
 			case Role::Color:
-				return s_colors[item.severity];
+				return m_controller.GetColor(item.severity);
 
 			default:
 				break;
@@ -97,28 +89,98 @@ private: // QAbstractListModel
 private: // plog::IAppender
 	void write(const plog::Record & record) override
 	{
-		if (record.getSeverity() > plog::Severity::info)
-			return;
-
-		m_forwarder.Forward([&, message = QString::fromStdWString(record.getMessage()), severity = record.getSeverity()] () mutable
+		m_forwarder.Forward([&
+			, message = QString::fromStdWString(record.getMessage())
+			, severity = record.getSeverity()
+			, time = record.getTime().time
+			, millieTime = record.getTime().millitm
+			, tId = record.getTid()
+		] () mutable
 		{
+			if (std::size(s_items) > m_sizeLogMaximum)
+			{
+				emit beginRemoveRows({}, 0, m_sizeLogMaximum / 2 - 1);
+				s_items.erase(std::begin(s_items), std::next(std::begin(s_items), m_sizeLogMaximum / 2));
+				emit endRemoveRows();
+			}
+
+			tm t{};
+			plog::util::localtime_s(&t, &time);
 			const auto pos = rowCount();
 			emit beginInsertRows({}, pos, pos);
-			s_items.emplace_back(std::move(message), severity);
+			auto str = QString("%1:%2:%3.%4 [%5] %6")
+				.arg(t.tm_hour, 2, 10, QChar('0'))
+				.arg(t.tm_min, 2, 10, QChar('0'))
+				.arg(t.tm_sec, 2, 10, QChar('0'))
+				.arg(millieTime, 3, 10, QChar('0'))
+				.arg(tId, 6, 10, QChar('0'))
+				.arg(message)
+				;
+
+			s_items.emplace_back(std::move(str), severity);
 			emit endInsertRows();
 		});
 	}
 
 private:
+	LogModelController & m_controller;
 	Util::FunctorExecutionForwarder m_forwarder;
-	[[maybe_unused]] const Log::LogAppender m_logAppender {this};
+	[[maybe_unused]] const Log::LogAppender m_logAppender { this };
+	int m_sizeLogMaximum { m_controller.GetUiSettings().Get(Constant::UiSettings_ns::sizeLogMaximum, Constant::UiSettings_ns::sizeLogMaximum_default).toInt() };
+};
+
+class FilterProxyModel final
+	: public QSortFilterProxyModel
+	, virtual SettingsObserver
+{
+	NON_COPY_MOVABLE(FilterProxyModel)
+
+public:
+	FilterProxyModel(LogModelController & controller, QObject * parent)
+		: QSortFilterProxyModel(parent)
+		, m_settings(controller.GetUiSettings())
+		, m_model(controller)
+	{
+		QSortFilterProxyModel::setSourceModel(&m_model);
+		m_settings.RegisterObserver(this);
+	}
+
+	~FilterProxyModel() override
+	{
+		m_settings.UnregisterObserver(this);
+	}
+
+private: // QSortFilterProxyModel
+	bool filterAcceptsRow(const int row, const QModelIndex & /*parent*/) const override
+	{
+		assert(row < static_cast<const QAbstractItemModel&>(m_model).rowCount());
+		return static_cast<int>(s_items[row].severity) <= m_logLevel;
+	}
+
+private: // SettingsObserver
+	void HandleValueChanged(const QString & key, const QVariant & value) override
+	{
+		if (key != Constant::UiSettings_ns::logLevel)
+			return;
+
+		assert(value.isValid());
+		bool ok = false;
+		m_logLevel = value.toInt(&ok);
+		assert(ok);
+		invalidateFilter();
+	}
+
+private:
+	Settings & m_settings;
+	Model m_model;
+	int m_logLevel { m_settings.Get(Constant::UiSettings_ns::logLevel, Constant::UiSettings_ns::logLevel_default).toInt() };
 };
 
 }
 
-QAbstractItemModel * CreateLogModel(QObject * parent)
+QAbstractItemModel * CreateLogModel(LogModelController & controller, QObject * parent)
 {
-	return new Model(parent);
+	return new FilterProxyModel(controller, parent);
 }
 
 }

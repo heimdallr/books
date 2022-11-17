@@ -2,13 +2,18 @@
 
 #include <QObject>
 
+#include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
+
 class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class LogController
+class SettingsProvider;
+class LogController final
 	: public QObject
 {
+	NON_COPY_MOVABLE(LogController)
 	Q_OBJECT
 	Q_PROPERTY(bool logMode READ IsLogMode WRITE SetLogMode NOTIFY LogModeChanged)
 
@@ -16,10 +21,14 @@ signals:
 	void LogModeChanged() const;
 
 public:
-	Q_INVOKABLE QAbstractItemModel * GetModel() const;
+	Q_INVOKABLE QAbstractItemModel * GetLogModel() const;
+	Q_INVOKABLE QAbstractItemModel * GetSeverityModel() const;
 
 public:
-	explicit LogController(QObject * parent = nullptr);
+	explicit LogController(SettingsProvider & settingsProvider, QObject * parent = nullptr);
+	~LogController() override;
+
+public:
 	void OnKeyPressed(int key, int modifiers);
 
 private: // property getters
@@ -29,8 +38,8 @@ private slots: // property setters
 	void SetLogMode(bool value);
 
 private:
-	bool m_logMode { false };
-	QAbstractItemModel * m_model;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }

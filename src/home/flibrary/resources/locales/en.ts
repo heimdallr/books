@@ -129,42 +129,42 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="139"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="148"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="141"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="150"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="145"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="154"/>
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="150"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="159"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="153"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="162"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="155"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="164"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="157"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="166"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="159"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="168"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
@@ -221,6 +221,59 @@ Restart now?</source>
         <location filename="../../../../../build64/Resources/flibrary_locales.h" line="8"/>
         <source>ru</source>
         <translation>Русский</translation>
+    </message>
+</context>
+<context>
+    <name>Logging</name>
+    <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="6"/>
+        <source>Log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
+        <source>Hide log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
+        <source>Show log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/log/SeverityLevel.qml" line="12"/>
+        <source>Log level</source>
+        <translation>Log verbosity level</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="4"/>
+        <source>FATAL</source>
+        <translation>Fatal</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="5"/>
+        <source>ERROR</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="6"/>
+        <source>WARN</source>
+        <translation>Warning</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="7"/>
+        <source>INFO</source>
+        <translation>Info</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="8"/>
+        <source>DEBUG</source>
+        <translation>Debug</translation>
+    </message>
+    <message>
+        <location filename="../../src/constants/PLogSeverityLocalization.h" line="9"/>
+        <source>VERB</source>
+        <translation>Verbose</translation>
     </message>
 </context>
 <context>
@@ -339,53 +392,43 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="40"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="41"/>
         <source>Add new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="50"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="51"/>
         <source>Select collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="65"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="66"/>
         <source>Remove collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="6"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="8"/>
         <source>View</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="10"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
         <source>Show deleted books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="10"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
         <source>Hide deleted books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
         <source>Show annotation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="16"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
         <source>Hide annotation</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
-        <source>Hide log</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="22"/>
-        <source>Show log</source>
         <translation></translation>
     </message>
     <message>

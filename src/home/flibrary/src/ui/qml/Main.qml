@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 
 import "qrc:/Book"
 import "qrc:/Core"
+import "qrc:/Log"
 import "qrc:/Navigation"
 import "qrc:/Tray"
 

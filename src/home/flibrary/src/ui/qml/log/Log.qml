@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import "qrc:/Core"
+import "qrc:/Tray"
 import "qrc:/Util/Functions.js" as Functions
 
 Rectangle
@@ -18,7 +19,7 @@ Rectangle
 			margins: Functions.GetMargin()
 		}
 
-		model: logController.GetModel()
+		model: logController.GetLogModel()
 
 		clip: true
 		flickableDirection: Flickable.VerticalFlick
@@ -37,5 +38,22 @@ Rectangle
 
 		onCountChanged: Qt.callLater( function(){ scrollBarID.position = 1.0 - scrollBarID.size } )
 		Component.onCompleted: logViewID.positionViewAtEnd()
+	}
+
+	MouseArea
+	{
+		LogContextMenu
+		{
+			id: logContextMenuID
+		}
+
+		anchors.fill: parent
+		acceptedButtons: Qt.LeftButton | Qt.RightButton
+		onClicked:
+		(mouse) =>
+		{
+			if (mouse.button == Qt.RightButton)
+				logContextMenuID.popup()
+		}
 	}
 }

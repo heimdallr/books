@@ -5,6 +5,13 @@ CreateMap(UI_SETTING_NAMES
 		colorErrorText                \"red\"
 		colorHighlight                \"lightsteelblue\"
 		colorHighlightUnfocused       \"lavender\"
+		colorLogFatal                 \"darkred\"
+		colorLogError                 \"red\"
+		colorLogWarning               \"yellow\"
+		colorLogInfo                  \"black\"
+		colorLogDebug                 \"darkgrey\"
+		colorLogVerbose               \"lightgray\"
+		colorLogDefault               \"blue\"
 		colorProgressBar              \"lightsteelblue\"
 		colorSplitViewHandle          \"\#c2f4c6\"
 		colorSplitViewHandlePressed   \"\#81e889\"
@@ -17,6 +24,7 @@ CreateMap(UI_SETTING_NAMES
 		indexSeqNo                      3
 		indexGenre                      4
 		indexLanguage                   5
+		logLevel                      \"4\"
 		pathRecentCollectionDatabase  \"\"
 		pathRecentExport              \"\"
 		pathResentCollectionArchive   \"\"
@@ -28,6 +36,7 @@ CreateMap(UI_SETTING_NAMES
 		sizeExpander                    0.4
 		sizeFont                        9
 		sizeFontError                   0.9
+		sizeLogMaximum                  10000
 		sizeSplitViewHandle             4
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125

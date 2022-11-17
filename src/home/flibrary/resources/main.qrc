@@ -3,7 +3,6 @@
 		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
 		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate.qml</file>
 		<file alias="ViewModeCombobox.qml">../src/ui/qml/ViewModeCombobox.qml</file>
-		<file alias="Log.qml">../src/ui/qml/Log.qml</file>
 	</qresource>
 
 	<qresource prefix="Navigation">
@@ -61,6 +60,12 @@
 		<file alias="SettingsMenu.qml">../src/ui/qml/tray/SettingsMenu.qml</file>
 		<file alias="SystemMenu.qml">../src/ui/qml/tray/SystemMenu.qml</file>
 		<file alias="Help.qml">../src/ui/qml/tray/Help.qml</file>
+	</qresource>
+
+	<qresource prefix="Log/">
+		<file alias="Log.qml">../src/ui/qml/log/Log.qml</file>
+		<file alias="SeverityLevel.qml">../src/ui/qml/log/SeverityLevel.qml</file>
+		<file alias="LogContextMenu.qml">../src/ui/qml/log/LogContextMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="icons/">
