@@ -42,6 +42,7 @@ Window
 				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection name")
 			}
+
 			TextField
 			{
 				id: collectionNameID
@@ -61,6 +62,7 @@ Window
 				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection database file")
 			}
+
 			TextField
 			{
 				id: collectionDatabaseID
@@ -70,6 +72,7 @@ Window
 				text: uiSettings.pathRecentCollectionDatabase
 				onTextChanged: collectionController.error = ""
 			}
+
 			Button
 			{
 				Layout.preferredHeight: uiSettings.heightRow
@@ -96,6 +99,7 @@ Window
 				Layout.preferredWidth: dialogID.width * uiSettings.widthAddCollectionDialogText
 				text: qsTranslate("AddCollection", "Collection archive folder")
 			}
+
 			TextField
 			{
 				id: collectionArchiveFolderID
@@ -105,6 +109,7 @@ Window
 				text: uiSettings.pathResentCollectionArchive
 				onTextChanged: collectionController.error = ""
 			}
+
 			Button
 			{
 				Layout.preferredHeight: uiSettings.heightRow

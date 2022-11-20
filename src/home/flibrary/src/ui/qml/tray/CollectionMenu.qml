@@ -11,21 +11,21 @@ Menu
 
 	MessageDialog
 	{
-	    id: removeConfirmDialogID
-	    title: qsTranslate("Common", "Warning")
-	    text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
+		id: removeConfirmDialogID
+		title: qsTranslate("Common", "Warning")
+		text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
 		standardButtons: StandardButton.Yes | StandardButton.No
-	    onYes: collectionController.RemoveCurrentCollection()
+		onYes: collectionController.RemoveCurrentCollection()
 	}
 
 	MessageDialog
 	{
-	    id: updateConfirmDialogID
-	    title: qsTranslate("Common", "Warning")
-	    text: qsTranslate("Collection", "Looks like the collection has been updated. Apply changes?")
+		id: updateConfirmDialogID
+		title: qsTranslate("Common", "Warning")
+		text: qsTranslate("Collection", "Looks like the collection has been updated. Apply changes?")
 		standardButtons: StandardButton.Yes | StandardButton.Cancel | StandardButton.Discard
 		visible: collectionController.hasUpdate
-	    onYes: collectionController.ApplyUpdate()
+		onYes: collectionController.ApplyUpdate()
 		onRejected: collectionController.hasUpdate = false
 		onDiscard: collectionController.DiscardUpdate()
 	}
@@ -38,9 +38,9 @@ Menu
 
     MenuItem
 	{
-        text: qsTranslate("Tray", "Add new collection...")
-        onTriggered: collectionController.addMode = true
-    }
+		text: qsTranslate("Tray", "Add new collection...")
+		onTriggered: collectionController.addMode = true
+	}
 
 	DynamicMenu
 	{
@@ -48,7 +48,7 @@ Menu
 
 		readonly property string currentId: collectionController.currentCollectionId
 
-        title: qsTranslate("Tray", "Select collection")
+		title: qsTranslate("Tray", "Select collection")
 
 		model: collectionController.GetModel()
 		delegate: MenuItem
@@ -60,10 +60,10 @@ Menu
 		}
 	}
 
-    MenuItem
+	MenuItem
 	{
 		enabled: collectionsMenuID.enabled
-        text: qsTranslate("Tray", "Remove collection")
-        onTriggered: removeConfirmDialogID.open()
+		text: qsTranslate("Tray", "Remove collection")
+		onTriggered: removeConfirmDialogID.open()
     }
 }
