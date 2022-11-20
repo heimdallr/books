@@ -22,4 +22,9 @@ QString FileDialogProvider::SelectFolder(const QString & folderName)
 	return QFileDialog::getExistingDirectory(nullptr, QCoreApplication::translate("FileDialog", "Select archives folder"), folderName);
 }
 
+bool FileDialogProvider::FileExists(const QString & fileName)
+{
+	return QFile::exists(fileName);
+}
+
 }

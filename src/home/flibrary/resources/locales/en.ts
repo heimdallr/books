@@ -4,22 +4,22 @@
 <context>
     <name>AddCollection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="27"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="28"/>
         <source>Add new collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="43"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="44"/>
         <source>Collection name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="62"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="64"/>
         <source>Collection database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="97"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="101"/>
         <source>Collection archive folder</source>
         <translation></translation>
     </message>
@@ -27,12 +27,17 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="161"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
+        <source>Database file already exists. Owerride?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="170"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -107,18 +112,19 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="76"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="111"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="80"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="117"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="179"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="168"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="24"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>

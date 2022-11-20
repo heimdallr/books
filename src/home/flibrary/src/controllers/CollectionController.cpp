@@ -231,11 +231,8 @@ bool CollectionController::AddCollection(QString name, QString db, QString folde
 	return true;
 }
 
-bool CollectionController::CreateCollection(QString name, QString db, QString folder)
+void CollectionController::CreateCollection(QString name, QString db, QString folder)
 {
-	if (!m_impl->CheckNewCollection(name, db, folder, true))
-		return false;
-
 	(*m_impl->executor)({"Create collection", [this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 	{
 		auto result = std::function([] {});
@@ -251,8 +248,11 @@ bool CollectionController::CreateCollection(QString name, QString db, QString fo
 
 		return result;
 	}});
+}
 
-	return true;
+bool CollectionController::CheckCreateCollection(QString name, QString db, QString folder)
+{
+	return m_impl->CheckNewCollection(name, db, folder, true);
 }
 
 QAbstractItemModel * CollectionController::GetModel()

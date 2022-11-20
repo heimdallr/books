@@ -50,7 +50,8 @@ public:
 
 public:
 	Q_INVOKABLE bool AddCollection(QString name, QString db, QString folder);
-	Q_INVOKABLE bool CreateCollection(QString name, QString db, QString folder);
+	Q_INVOKABLE void CreateCollection(QString name, QString db, QString folder);
+	Q_INVOKABLE bool CheckCreateCollection(QString name, QString db, QString folder);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void ApplyUpdate();
 	Q_INVOKABLE void DiscardUpdate();

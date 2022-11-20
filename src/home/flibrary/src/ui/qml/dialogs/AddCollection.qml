@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 1.4
+import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 
@@ -161,11 +162,26 @@ Window
 
 			Button
 			{
+				MessageDialog
+				{
+				    id: overrideConfirmDialogID
+				    title: qsTranslate("Common", "Warning")
+				    text: qsTranslate("AddCollectionDialog", "Database file already exists. Owerride?")
+					standardButtons: StandardButton.Yes | StandardButton.No
+				    onYes: collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
+				}
+
 				id: btnCreateID
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("AddCollectionDialog", "Create new")
-				onClicked: if (collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
+				onClicked: if (collectionController.CheckCreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text))
+				{
 					buttonsLayoutID.closeDialog()
+					if (fileDialog.FileExists(collectionDatabaseID.text))
+						overrideConfirmDialogID.open()
+					else
+						collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
+				}
 			}
 
 			Button
