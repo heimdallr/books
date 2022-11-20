@@ -271,7 +271,7 @@ void CollectionController::ApplyUpdate()
 
 		auto [_, ini] = GetIniMap(collection.database, collection.folder);
 
-		if (Inpx::CheckUpdateCollection(std::move(ini)))
+		if (Inpx::UpdateCollection(std::move(ini)))
 		{
 			result = std::function([] { QCoreApplication::exit(1234); });
 		}
