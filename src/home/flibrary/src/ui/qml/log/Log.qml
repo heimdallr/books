@@ -31,12 +31,13 @@ Rectangle
 		ScrollBar.vertical: ScrollBar { id: scrollBarID; width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar }
 		delegate: Item
 		{
-			height: uiSettings.heightRow
+			height: childrenRect.height
 			width: logViewID.width
 			CustomText
 			{
 				text: Message
 				color: Color
+				wrapMode: Text.Wrap
 			}
 		}
 

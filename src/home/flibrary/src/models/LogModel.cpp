@@ -95,6 +95,10 @@ private: // plog::IAppender
 			, tId = record.getTid()
 		] () mutable
 		{
+			auto splitted = message.split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
+			if (splitted.isEmpty())
+				return;
+
 			if (static_cast<int>(std::size(s_items)) > m_sizeLogMaximum)
 			{
 				emit beginRemoveRows({}, 0, m_sizeLogMaximum / 2 - 1);
@@ -105,17 +109,24 @@ private: // plog::IAppender
 			tm t{};
 			plog::util::localtime_s(&t, &time);
 			const auto pos = rowCount();
-			emit beginInsertRows({}, pos, pos);
-			auto str = QString("%1:%2:%3.%4 [%5] %6")
-				.arg(t.tm_hour, 2, 10, QChar('0'))
-				.arg(t.tm_min, 2, 10, QChar('0'))
-				.arg(t.tm_sec, 2, 10, QChar('0'))
-				.arg(millieTime, 3, 10, QChar('0'))
-				.arg(tId, 6, 10, QChar('0'))
-				.arg(message)
+			emit beginInsertRows({}, pos, pos + splitted.size() - 1);
+
+			{
+				auto str = QString("%1:%2:%3.%4 [%5] %6")
+					.arg(t.tm_hour, 2, 10, QChar('0'))
+					.arg(t.tm_min, 2, 10, QChar('0'))
+					.arg(t.tm_sec, 2, 10, QChar('0'))
+					.arg(millieTime, 3, 10, QChar('0'))
+					.arg(tId, 6, 10, QChar('0'))
+					.arg(splitted.front());
 				;
 
-			s_items.emplace_back(std::move(str), severity);
+				s_items.emplace_back(std::move(str), severity);
+			}
+			splitted.erase(splitted.begin());
+			for (auto && str : splitted)
+				s_items.emplace_back(std::move(str), severity);
+
 			emit endInsertRows();
 		});
 	}
