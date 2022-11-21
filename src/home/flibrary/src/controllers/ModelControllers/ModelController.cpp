@@ -2,6 +2,8 @@
 #include <QQmlEngine>
 #include <QTimer>
 
+#include <plog/Log.h>
+
 #include "fnd/algorithm.h"
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
@@ -62,9 +64,14 @@ public:
 		findTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&findTimer, &QTimer::timeout, [&]
 		{
+			const auto viewMode = m_self.GetViewMode();
+			const auto viewModeValue = m_self.GetViewModeValue();
+			const auto viewModeRole = FindSecond(g_viewModes, viewMode.toUtf8().data(), PszComparer {});
+
 			assert(model);
-			const auto viewModeRole = FindSecond(g_viewModes, m_self.GetViewMode().toUtf8().data(), PszComparer {});
-			(void)model->setData({}, m_self.GetViewModeValue(), viewModeRole);
+			(void)model->setData({}, viewModeValue, viewModeRole);
+
+			PLOGD << "View mode changed: " << viewMode << " '" << viewModeValue << "'";
 		});
 	}
 
@@ -134,6 +141,8 @@ ModelController::ModelController(Settings & uiSettings
 	: QObject(parent)
 	, m_impl(*this, uiSettings, viewModeKey, viewModeDefaultValue, viewModeValueKey)
 {
+	if (!GetViewModeValue().isEmpty())
+		m_impl->findTimer.start();
 }
 
 ModelController::~ModelController() = default;
