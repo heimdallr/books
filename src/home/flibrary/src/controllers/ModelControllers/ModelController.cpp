@@ -285,6 +285,11 @@ void ModelController::SetViewModeValue(const QString & text)
 	m_impl->findTimer.start();
 }
 
+void ModelController::UpdateViewMode()
+{
+	m_impl->findTimer.start();
+}
+
 const char * ModelController::GetTypeName(const Type type)
 {
 	return FindSecond(g_typeNames, type);

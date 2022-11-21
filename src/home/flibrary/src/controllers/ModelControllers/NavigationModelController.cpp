@@ -152,8 +152,9 @@ QAbstractItemModel * CreateNavigationModel(NavigationTreeItems & items, QObject 
 class NavigationModelController::Impl
 {
 public:
-	Impl(Util::Executor & executor, DB::Database & db, const NavigationSource navigationSource)
-		: m_executor(executor)
+	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db, const NavigationSource navigationSource)
+		: m_self(self)
+		, m_executor(executor)
 		, m_db(db)
 		, m_navigationSource(navigationSource)
 	{
@@ -191,12 +192,15 @@ private:
 				(void)model->setData({}, true, Role::ResetBegin);
 				navigationItems = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
+
+				m_self.UpdateViewMode();
 			};
 		} }, 1);
 		return model;
 	}
 
 private:
+	NavigationModelController & m_self;
 	Util::Executor & m_executor;
 	DB::Database & m_db;
 	const NavigationSource m_navigationSource;

@@ -91,6 +91,7 @@ private: // property setters
 	void SetViewModeValue(const QString & text);
 
 protected:
+	void UpdateViewMode();
 	static const char * GetTypeName(Type type);
 
 	virtual QAbstractItemModel * CreateModel() = 0;

@@ -843,6 +843,8 @@ public:
 				(void)model->setData({}, true, Role::ResetEnd);
 
 				Perform(&BooksModelControllerObserver::HandleModelReset);
+
+				m_self.UpdateViewMode();
 			};
 		} }, 2);
 	}
