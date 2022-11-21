@@ -7,8 +7,8 @@ Menu
 
 	MenuItem
 	{
-		text: logController.logMode ? qsTranslate("Logging", "Hide log") : qsTranslate("Logging", "Show log")
-		onTriggered: logController.logMode = ! logController.logMode
+		text: log.logMode ? qsTranslate("Logging", "Hide log") : qsTranslate("Logging", "Show log")
+		onTriggered: log.logMode = ! log.logMode
 	}
 
 	SeverityLevel{}

@@ -211,8 +211,8 @@ NavigationModelController::NavigationModelController(Util::Executor & executor
 	, const NavigationSource navigationSource
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings, Constant::UiSettings_ns::viewModeNavigation, Constant::UiSettings_ns::viewModeNavigation_default, Constant::UiSettings_ns::viewModeValueNavigation)
-	, m_impl(executor, db, navigationSource)
+	: ModelController(uiSettings, GetTypeName(Type::Navigation), Constant::UiSettings_ns::viewModeNavigation, Constant::UiSettings_ns::viewModeNavigation_default, Constant::UiSettings_ns::viewModeValueNavigation)
+	, m_impl(*this, executor, db, navigationSource)
 {
 }
 

@@ -24,7 +24,7 @@ class ProgressController;
 enum class BooksViewType;
 enum class NavigationSource;
 
-class BooksModelController
+class BooksModelController final
 	: public ModelController
 	, public BookModelObserver
 	, public ConvertibleT<BooksModelController>

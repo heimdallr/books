@@ -23,7 +23,7 @@ Rectangle
 			margins: Functions.GetMargin()
 		}
 
-		model: logController.GetLogModel()
+		model: log.GetLogModel()
 
 		clip: true
 		flickableDirection: Flickable.VerticalFlick

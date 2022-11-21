@@ -83,6 +83,6 @@ ApplicationWindow
 	Log
 	{
 		anchors.fill: parent
-		visible: logController.logMode
+		visible: log.logMode
 	}
 }

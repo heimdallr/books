@@ -19,7 +19,7 @@ class Database;
 
 namespace HomeCompa::Flibrary {
 
-class NavigationModelController
+class NavigationModelController final
 	: public ModelController
 	, public NavigationModelObserver
 	, public ConvertibleT<NavigationModelController>

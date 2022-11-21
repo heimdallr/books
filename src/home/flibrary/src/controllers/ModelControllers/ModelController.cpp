@@ -32,6 +32,14 @@ constexpr std::pair<const char *, int> g_viewModes[]
 #undef  VIEW_MODE_ITEM
 };
 
+constexpr std::pair<ModelController::Type, const char *> g_typeNames[]
+{
+#define ITEM(NAME) { ModelController::Type::NAME, #NAME }
+		ITEM(Navigation),
+		ITEM(Books),
+#undef	ITEM
+};
+
 }
 
 struct ModelController::Impl
@@ -49,13 +57,16 @@ public:
 	QTimer findTimer;
 
 	Settings & uiSettings;
+
+	const char * const typeName;
 	const char * const viewModeKey;
 	const QVariant & viewModeDefaultValue;
 	const char * const viewModeValueKey;
 
-	Impl(ModelController & self, Settings & uiSettings_, const char * viewModeKey_, const QVariant & viewModeDefaultValue_, const char * viewModeValueKey_)
+	Impl(ModelController & self, Settings & uiSettings_, const char * typeName_, const char * viewModeKey_, const QVariant & viewModeDefaultValue_, const char * viewModeValueKey_)
 		: m_self(self)
 		, uiSettings(uiSettings_)
+		, typeName(typeName_)
 		, viewModeKey(viewModeKey_)
 		, viewModeDefaultValue(viewModeDefaultValue_)
 		, viewModeValueKey(viewModeValueKey_)
@@ -66,12 +77,11 @@ public:
 		{
 			const auto viewMode = m_self.GetViewMode();
 			const auto viewModeValue = m_self.GetViewModeValue();
-			const auto viewModeRole = FindSecond(g_viewModes, viewMode.toUtf8().data(), PszComparer {});
+			PLOGV << typeName << ": view mode changed: " << viewMode << " '" << viewModeValue << "'";
 
 			assert(model);
+			const auto viewModeRole = FindSecond(g_viewModes, viewMode.toUtf8().data(), PszComparer {});
 			(void)model->setData({}, viewModeValue, viewModeRole);
-
-			PLOGD << "View mode changed: " << viewMode << " '" << viewModeValue << "'";
 		});
 	}
 
@@ -133,13 +143,14 @@ private:
 };
 
 ModelController::ModelController(Settings & uiSettings
+	, const char * typeName
 	, const char * viewModeKey
 	, const QVariant & viewModeDefaultValue
 	, const char * viewModeValueKey
 	, QObject * parent
 )
 	: QObject(parent)
-	, m_impl(*this, uiSettings, viewModeKey, viewModeDefaultValue, viewModeValueKey)
+	, m_impl(*this, uiSettings, typeName, viewModeKey, viewModeDefaultValue, viewModeValueKey)
 {
 	if (!GetViewModeValue().isEmpty())
 		m_impl->findTimer.start();
@@ -274,8 +285,14 @@ void ModelController::SetViewModeValue(const QString & text)
 	m_impl->findTimer.start();
 }
 
+const char * ModelController::GetTypeName(const Type type)
+{
+	return FindSecond(g_typeNames, type);
+}
+
 bool ModelController::SetCurrentIndex(const int index)
 {
+	PLOGV << m_impl->typeName << ": set current index: " << index;
 	return true
 		&& Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged)
 		&& (m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index), true)

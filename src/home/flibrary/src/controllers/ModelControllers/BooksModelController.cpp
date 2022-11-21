@@ -916,7 +916,7 @@ BooksModelController::BooksModelController(Util::Executor & executor
 	, std::filesystem::path archiveFolder
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings, HomeCompa::Constant::UiSettings_ns::viewModeBooks, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks)
+	: ModelController(uiSettings, GetTypeName(Type::Books), HomeCompa::Constant::UiSettings_ns::viewModeBooks, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
 }

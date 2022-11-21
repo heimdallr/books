@@ -2,6 +2,7 @@
 #include <QColor>
 #include <QQmlEngine>
 
+#include <plog/Log.h>
 #include <plog/Severity.h>
 
 #include "constants/ObjectConnectorConstant.h"
@@ -114,6 +115,32 @@ QAbstractItemModel * LogController::GetSeverityModel() const
 {
 	return m_impl->modelSeverity;
 }
+
+void LogController::Error(const QString & message)
+{
+	PLOGE << message;
+}
+
+void LogController::Warning(const QString & message)
+{
+	PLOGW << message;
+}
+
+void LogController::Info(const QString & message)
+{
+	PLOGI << message;
+}
+
+void LogController::Debug(const QString & message)
+{
+	PLOGD << message;
+}
+
+void LogController::Verbose(const QString & message)
+{
+	PLOGV << message;
+}
+
 
 bool LogController::IsLogMode() const noexcept
 {

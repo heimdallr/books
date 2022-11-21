@@ -11,7 +11,7 @@ DynamicMenu
 
 	title: qsTranslate("Logging", "Log level")
 
-	model: logController.GetSeverityModel()
+	model: log.GetSeverityModel()
 	delegate: MenuItem
 	{
 		text: qsTranslate("Logging", Title)

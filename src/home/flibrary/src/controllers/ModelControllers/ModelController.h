@@ -55,6 +55,7 @@ public:
 
 public:
 	ModelController(Settings & uiSettings
+		, const char * typeName
 		, const char * viewModeKey
 		, const QVariant & viewModeDefaultValue
 		, const char * viewModeValueKey
@@ -90,6 +91,8 @@ private: // property setters
 	void SetViewModeValue(const QString & text);
 
 protected:
+	static const char * GetTypeName(Type type);
+
 	virtual QAbstractItemModel * CreateModel() = 0;
 	virtual bool SetCurrentIndex(int index);
 

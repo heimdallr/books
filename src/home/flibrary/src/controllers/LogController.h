@@ -23,6 +23,11 @@ signals:
 public:
 	Q_INVOKABLE QAbstractItemModel * GetLogModel() const;
 	Q_INVOKABLE QAbstractItemModel * GetSeverityModel() const;
+	Q_INVOKABLE static void Error(const QString & message);
+	Q_INVOKABLE static void Warning(const QString & message);
+	Q_INVOKABLE static void Info(const QString & message);
+	Q_INVOKABLE static void Debug(const QString & message);
+	Q_INVOKABLE static void Verbose(const QString & message);
 
 public:
 	explicit LogController(SettingsProvider & settingsProvider, QObject * parent = nullptr);

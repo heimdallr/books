@@ -109,7 +109,7 @@ public:
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("collectionController", &m_collectionController);
-		qmlContext->setContextProperty("logController", &m_logController);
+		qmlContext->setContextProperty("log", &m_logController);
 		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
 
