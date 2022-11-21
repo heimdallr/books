@@ -481,12 +481,12 @@ Restart now?</source>
 <context>
     <name>ViewMode</name>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="18"/>
+        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="16"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="32"/>
+        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="28"/>
         <source>Filter</source>
         <translation></translation>
     </message>

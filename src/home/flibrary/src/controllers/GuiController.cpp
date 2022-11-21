@@ -157,7 +157,7 @@ public:
 		if (it != m_navigationModelControllers.end())
 			return it->second.get();
 
-		auto & controller = m_navigationModelControllers.emplace(navigationSource, std::make_unique<NavigationModelController>(*m_executor, *m_db, navigationSource)).first->second;
+		auto & controller = m_navigationModelControllers.emplace(navigationSource, std::make_unique<NavigationModelController>(*m_executor, *m_db, navigationSource, *m_uiSettingsSrc)).first->second;
 		QQmlEngine::setObjectOwnership(controller.get(), QQmlEngine::CppOwnership);
 		controller->RegisterObserver(this);
 
@@ -183,7 +183,7 @@ public:
 		}
 
 		m_navigationSourceProvider.SetBookViewType(type);
-		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString())).swap(m_booksModelController);
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString(), *m_uiSettingsSrc)).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_localeController.GetBooksModelControllerObserver());

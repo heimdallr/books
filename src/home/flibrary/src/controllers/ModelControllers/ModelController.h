@@ -9,6 +9,10 @@
 
 class QAbstractItemModel;
 
+namespace HomeCompa {
+class Settings;
+}
+
 namespace HomeCompa::DB {
 class Database;
 }
@@ -26,12 +30,12 @@ class ModelController
 	Q_OBJECT
 
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE UpdateCurrentIndex NOTIFY CurrentIndexChanged)
-	Q_PROPERTY(QString viewMode READ GetViewMode CONSTANT)
+	Q_PROPERTY(QString viewMode READ GetViewMode WRITE SetViewMode NOTIFY ViewModeChanged)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
 	Q_PROPERTY(int count READ GetCount NOTIFY CountChanged)
 
 public:
-	Q_INVOKABLE void SetViewMode(const QString & mode, const QString & text);
+	Q_INVOKABLE void SetViewModeValue(const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
@@ -40,6 +44,7 @@ signals:
 	void CurrentIndexChanged() const;
 	void FocusedChanged() const;
 	void CountChanged() const;
+	void ViewModeChanged() const;
 
 public:
 	enum class Type
@@ -49,7 +54,7 @@ public:
 	};
 
 public:
-	explicit ModelController(QObject * parent = nullptr);
+	ModelController(Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue, QObject * parent = nullptr);
 	~ModelController() override;
 
 	void RegisterObserver(ModelControllerObserver * observer);
@@ -75,6 +80,7 @@ private: // property getters
 
 private: // property setters
 	void UpdateCurrentIndex(int globalIndex);
+	void SetViewMode(const QString & viewMode);
 
 protected:
 	virtual QAbstractItemModel * CreateModel() = 0;

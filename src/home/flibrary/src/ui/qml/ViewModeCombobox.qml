@@ -1,43 +1,37 @@
 import QtQuick 2.15
-import QtQuick.Controls 1.2
+import QtQuick.Controls 2.15
 
 Rectangle
 {
 	id: viewModeComboBoxID
 
-	property string value
+	property var controller
 
 	height: uiSettings.heightRow
 	width: height
-
-	ExclusiveGroup { id: menuExclusiveGroup }
 
 	Action
 	{
 		id: actionFindID
 		text: qsTranslate("ViewMode", "Find")
-		iconSource: "icons/find.png"
+		icon.source: "icons/find.png"
 		checkable: true
-		exclusiveGroup: menuExclusiveGroup
-		onTriggered:
-		{
-			viewModeComboBoxID.value = "Find"
-			imageID.source = iconSource
-		}
+		checked: controller.viewMode === "Find"
+		onTriggered: controller.viewMode = "Find"
+		onCheckedChanged: if (checked)
+			imageID.source = icon.source
 	}
 
 	Action
 	{
 		id: actionFilterID
 		text: qsTranslate("ViewMode", "Filter")
-		iconSource: "icons/filter.png"
+		icon.source: "icons/filter.png"
 		checkable: true
-		exclusiveGroup: menuExclusiveGroup
-		onTriggered:
-		{
-			viewModeComboBoxID.value = "Filter"
-			imageID.source = iconSource
-		}
+		checked: controller.viewMode === "Filter"
+		onTriggered: controller.viewMode = "Filter"
+		onCheckedChanged: if (checked)
+			imageID.source = icon.source
     }
 
 	Menu
@@ -58,11 +52,5 @@ Rectangle
 	{
 		anchors.fill: parent
 		onClicked: menuID.popup()
-	}
-
-	Component.onCompleted:
-	{
-		actionFindID.checked = true
-		actionFindID.triggered()
 	}
 }

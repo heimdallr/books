@@ -31,11 +31,6 @@ Rectangle
 			spacing: Functions.GetMargin()
 			Layout.fillWidth: true
 
-			function setViewMode()
-			{
-				modelController.SetViewMode(viewModeComboBoxID.value, viewModeTextID.text)
-			}
-
 			CustomCombobox
 			{
 				Layout.leftMargin: Functions.GetMargin()
@@ -52,13 +47,13 @@ Rectangle
 				Layout.fillWidth: true
 				Layout.preferredHeight: uiSettings.heightRow
 				font.pointSize: uiSettings.sizeFont
-				onTextChanged: findLayoutID.setViewMode()
+				onTextChanged: modelController.SetViewModeValue(viewModeTextID.text)
 			}
 
 			ViewModeCombobox
 			{
 				id: viewModeComboBoxID
-				onValueChanged: findLayoutID.setViewMode()
+				controller: modelController
 			}
 
 			CustomText

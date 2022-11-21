@@ -39,6 +39,8 @@ CreateMap(UI_SETTING_NAMES
 		sizeLogMaximum                  10000
 		sizeScrollbar                   0.8
 		sizeSplitViewHandle             4
+		viewModeBooks                 \"Find\"
+		viewModeNavigation            \"Find\"
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125
 		widthGenre                      0.0625

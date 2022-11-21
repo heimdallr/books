@@ -33,6 +33,9 @@
 #include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
 
+#include "Settings/UiSettings_keys.h"
+#include "Settings/UiSettings_values.h"
+
 namespace HomeCompa::Flibrary {
 
 namespace {
@@ -906,8 +909,14 @@ private:
 	const ItemsCreator m_itemsCreator;
 };
 
-BooksModelController::BooksModelController(Util::Executor & executor, DB::Database & db, ProgressController & progressController, const BooksViewType booksViewType, std::filesystem::path archiveFolder)
-	: ModelController()
+BooksModelController::BooksModelController(Util::Executor & executor
+	, DB::Database & db
+	, ProgressController & progressController
+	, const BooksViewType booksViewType
+	, std::filesystem::path archiveFolder
+	, Settings & uiSettings
+)
+	: ModelController(uiSettings, HomeCompa::Constant::UiSettings_ns::viewModeBooks, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
 }

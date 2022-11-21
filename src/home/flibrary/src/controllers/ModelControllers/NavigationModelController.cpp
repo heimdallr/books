@@ -16,6 +16,9 @@
 
 #include "NavigationModelController.h"
 
+#include "Settings/UiSettings_keys.h"
+#include "Settings/UiSettings_values.h"
+
 namespace HomeCompa::Flibrary {
 
 namespace {
@@ -203,8 +206,13 @@ private:
 	NavigationTreeItems m_genres;
 };
 
-NavigationModelController::NavigationModelController(Util::Executor & executor, DB::Database & db, const NavigationSource navigationSource)
-	: m_impl(executor, db, navigationSource)
+NavigationModelController::NavigationModelController(Util::Executor & executor
+	, DB::Database & db
+	, const NavigationSource navigationSource
+	, Settings & uiSettings
+)
+	: ModelController(uiSettings, Constant::UiSettings_ns::viewModeNavigation, Constant::UiSettings_ns::viewModeNavigation_default)
+	, m_impl(executor, db, navigationSource)
 {
 }
 

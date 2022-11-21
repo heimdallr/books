@@ -6,6 +6,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
+#include "util/Settings.h"
+
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
 
@@ -35,25 +37,31 @@ struct ModelController::Impl
 {
 private:
 	ModelController & m_self;
-	QTimer m_findTimer;
+	Settings & m_uiSettings;
+	const char * const m_viewModeKey;
+	const QVariant & m_viewModeDefaultValue;
 
+	QTimer m_findTimer;
 	QString m_viewModeText;
 
 public:
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>() };
 	int currentIndex { -1 };
-	int viewModeRole { Role::Find };
 	int pageSize { 10 };
 	bool focused { false };
 
-	explicit Impl(ModelController & self)
+	Impl(ModelController & self, Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue)
 		: m_self(self)
+		, m_uiSettings(uiSettings)
+		, m_viewModeKey(viewModeKey)
+		, m_viewModeDefaultValue(viewModeDefaultValue)
 	{
 		m_findTimer.setSingleShot(true);
 		m_findTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&m_findTimer, &QTimer::timeout, [&]
 		{
 			assert(model);
+			const auto viewModeRole = FindSecond(g_viewModes, GetViewMode().toUtf8().data(), PszComparer {});
 			(void)model->setData({}, m_viewModeText, viewModeRole);
 		});
 	}
@@ -106,9 +114,19 @@ public:
 		}
 	}
 
-	void SetViewMode(const QString & mode, const QString & text)
+	QString GetViewMode() const
 	{
-		viewModeRole = FindSecond(g_viewModes, mode.toStdString().data(), PszComparer{});
+		return m_uiSettings.Get(m_viewModeKey, m_viewModeDefaultValue).toString();
+	}
+
+	void SetViewMode(const QString & viewMode)
+	{
+		m_uiSettings.Set(m_viewModeKey, viewMode);
+		m_findTimer.start();
+	}
+
+	void SetViewModeValue(const QString & text)
+	{
 		m_viewModeText = text;
 		m_findTimer.start();
 	}
@@ -129,9 +147,9 @@ private:
 	}
 };
 
-ModelController::ModelController(QObject * parent)
+ModelController::ModelController(Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue, QObject * parent)
 	: QObject(parent)
-	, m_impl(*this)
+	, m_impl(*this, uiSettings, viewModeKey, viewModeDefaultValue)
 {
 }
 
@@ -200,9 +218,9 @@ void ModelController::HandleInvalidated()
 	emit CountChanged();
 }
 
-void ModelController::SetViewMode(const QString & mode, const QString & text)
+void ModelController::SetViewModeValue(const QString & text)
 {
-	m_impl->SetViewMode(mode, text);
+	m_impl->SetViewModeValue(text);
 }
 
 void ModelController::SetPageSize(const int pageSize)
@@ -236,7 +254,7 @@ QAbstractItemModel * ModelController::GetModel()
 
 QString ModelController::GetViewMode() const
 {
-	return FindFirst(g_viewModes, m_impl->viewModeRole);
+	return m_impl->GetViewMode();
 }
 
 int ModelController::GetCount() const
@@ -247,6 +265,12 @@ int ModelController::GetCount() const
 void ModelController::UpdateCurrentIndex(const int globalIndex)
 {
 	m_impl->UpdateCurrentIndex(globalIndex);
+}
+
+void ModelController::SetViewMode(const QString & viewMode)
+{
+	m_impl->SetViewMode(viewMode);
+	emit ViewModeChanged();
 }
 
 bool ModelController::SetCurrentIndex(const int index)

@@ -46,7 +46,13 @@ public:
 	Q_INVOKABLE void WriteToFile(QString path, long long id);
 
 public:
-	BooksModelController(Util::Executor & executor, DB::Database & db, ProgressController & progressController, BooksViewType booksViewType, std::filesystem::path archiveFolder);
+	BooksModelController(Util::Executor & executor
+		, DB::Database & db
+		, ProgressController & progressController
+		, BooksViewType booksViewType
+		, std::filesystem::path archiveFolder
+		, Settings & uiSettings
+	);
 	~BooksModelController() override;
 
 	void SetNavigationState(NavigationSource navigationSource, const QString & navigationId);

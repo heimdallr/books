@@ -28,7 +28,11 @@ class NavigationModelController
 	Q_OBJECT
 
 public:
-	NavigationModelController(Util::Executor & executor, DB::Database & db, NavigationSource navigationSource);
+	NavigationModelController(Util::Executor & executor
+		, DB::Database & db
+		, NavigationSource navigationSource
+		, Settings & uiSettings
+	);
 
 	~NavigationModelController() override;
 
