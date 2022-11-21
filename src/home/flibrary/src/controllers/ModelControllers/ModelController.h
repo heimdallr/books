@@ -31,11 +31,11 @@ class ModelController
 
 	Q_PROPERTY(int currentIndex READ GetCurrentLocalIndex WRITE UpdateCurrentIndex NOTIFY CurrentIndexChanged)
 	Q_PROPERTY(QString viewMode READ GetViewMode WRITE SetViewMode NOTIFY ViewModeChanged)
+	Q_PROPERTY(QString viewModeValue READ GetViewModeValue WRITE SetViewModeValue)
 	Q_PROPERTY(bool focused READ GetFocused NOTIFY FocusedChanged)
 	Q_PROPERTY(int count READ GetCount NOTIFY CountChanged)
 
 public:
-	Q_INVOKABLE void SetViewModeValue(const QString & text);
 	Q_INVOKABLE void SetPageSize(int pageSize);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
@@ -54,7 +54,12 @@ public:
 	};
 
 public:
-	ModelController(Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue, QObject * parent = nullptr);
+	ModelController(Settings & uiSettings
+		, const char * viewModeKey
+		, const QVariant & viewModeDefaultValue
+		, const char * viewModeValueKey
+		, QObject * parent = nullptr
+	);
 	~ModelController() override;
 
 	void RegisterObserver(ModelControllerObserver * observer);
@@ -76,11 +81,13 @@ private: // property getters
 	bool GetFocused() const noexcept;
 	int GetCurrentLocalIndex();
 	QString GetViewMode() const;
+	QString GetViewModeValue() const;
 	int GetCount() const;
 
 private: // property setters
 	void UpdateCurrentIndex(int globalIndex);
 	void SetViewMode(const QString & viewMode);
+	void SetViewModeValue(const QString & text);
 
 protected:
 	virtual QAbstractItemModel * CreateModel() = 0;

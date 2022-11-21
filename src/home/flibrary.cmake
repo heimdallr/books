@@ -41,6 +41,8 @@ CreateMap(UI_SETTING_NAMES
 		sizeSplitViewHandle             4
 		viewModeBooks                 \"Find\"
 		viewModeNavigation            \"Find\"
+		viewModeValueBooks            \"\"
+		viewModeValueNavigation       \"\"
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125
 		widthGenre                      0.0625

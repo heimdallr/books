@@ -37,12 +37,6 @@ struct ModelController::Impl
 {
 private:
 	ModelController & m_self;
-	Settings & m_uiSettings;
-	const char * const m_viewModeKey;
-	const QVariant & m_viewModeDefaultValue;
-
-	QTimer m_findTimer;
-	QString m_viewModeText;
 
 public:
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>() };
@@ -50,19 +44,27 @@ public:
 	int pageSize { 10 };
 	bool focused { false };
 
-	Impl(ModelController & self, Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue)
+	QTimer findTimer;
+
+	Settings & uiSettings;
+	const char * const viewModeKey;
+	const QVariant & viewModeDefaultValue;
+	const char * const viewModeValueKey;
+
+	Impl(ModelController & self, Settings & uiSettings_, const char * viewModeKey_, const QVariant & viewModeDefaultValue_, const char * viewModeValueKey_)
 		: m_self(self)
-		, m_uiSettings(uiSettings)
-		, m_viewModeKey(viewModeKey)
-		, m_viewModeDefaultValue(viewModeDefaultValue)
+		, uiSettings(uiSettings_)
+		, viewModeKey(viewModeKey_)
+		, viewModeDefaultValue(viewModeDefaultValue_)
+		, viewModeValueKey(viewModeValueKey_)
 	{
-		m_findTimer.setSingleShot(true);
-		m_findTimer.setInterval(std::chrono::milliseconds(250));
-		connect(&m_findTimer, &QTimer::timeout, [&]
+		findTimer.setSingleShot(true);
+		findTimer.setInterval(std::chrono::milliseconds(250));
+		connect(&findTimer, &QTimer::timeout, [&]
 		{
 			assert(model);
-			const auto viewModeRole = FindSecond(g_viewModes, GetViewMode().toUtf8().data(), PszComparer {});
-			(void)model->setData({}, m_viewModeText, viewModeRole);
+			const auto viewModeRole = FindSecond(g_viewModes, m_self.GetViewMode().toUtf8().data(), PszComparer {});
+			(void)model->setData({}, m_self.GetViewModeValue(), viewModeRole);
 		});
 	}
 
@@ -114,30 +116,6 @@ public:
 		}
 	}
 
-	QString GetViewMode() const
-	{
-		return m_uiSettings.Get(m_viewModeKey, m_viewModeDefaultValue).toString();
-	}
-
-	void SetViewMode(const QString & viewMode)
-	{
-		m_uiSettings.Set(m_viewModeKey, viewMode);
-		m_findTimer.start();
-	}
-
-	void SetViewModeValue(const QString & text)
-	{
-		m_viewModeText = text;
-		m_findTimer.start();
-	}
-
-	void UpdateCurrentIndex(const int globalIndex)
-	{
-		const auto index = globalIndex == -1 ? currentIndex : globalIndex;
-		currentIndex = -1;
-		m_self.HandleItemClicked(index);
-	}
-
 private:
 	int IncreaseNavigationIndex(const int increment)
 	{
@@ -147,9 +125,14 @@ private:
 	}
 };
 
-ModelController::ModelController(Settings & uiSettings, const char * viewModeKey, const QVariant & viewModeDefaultValue, QObject * parent)
+ModelController::ModelController(Settings & uiSettings
+	, const char * viewModeKey
+	, const QVariant & viewModeDefaultValue
+	, const char * viewModeValueKey
+	, QObject * parent
+)
 	: QObject(parent)
-	, m_impl(*this, uiSettings, viewModeKey, viewModeDefaultValue)
+	, m_impl(*this, uiSettings, viewModeKey, viewModeDefaultValue, viewModeValueKey)
 {
 }
 
@@ -218,11 +201,6 @@ void ModelController::HandleInvalidated()
 	emit CountChanged();
 }
 
-void ModelController::SetViewModeValue(const QString & text)
-{
-	m_impl->SetViewModeValue(text);
-}
-
 void ModelController::SetPageSize(const int pageSize)
 {
 	m_impl->pageSize = pageSize;
@@ -254,7 +232,12 @@ QAbstractItemModel * ModelController::GetModel()
 
 QString ModelController::GetViewMode() const
 {
-	return m_impl->GetViewMode();
+	return m_impl->uiSettings.Get(m_impl->viewModeKey, m_impl->viewModeDefaultValue).toString();
+}
+
+QString ModelController::GetViewModeValue() const
+{
+	return m_impl->uiSettings.Get(m_impl->viewModeValueKey, {}).toString();
 }
 
 int ModelController::GetCount() const
@@ -264,13 +247,22 @@ int ModelController::GetCount() const
 
 void ModelController::UpdateCurrentIndex(const int globalIndex)
 {
-	m_impl->UpdateCurrentIndex(globalIndex);
+	const auto index = globalIndex == -1 ? m_impl->currentIndex : globalIndex;
+	m_impl->currentIndex = -1;
+	HandleItemClicked(index);
 }
 
 void ModelController::SetViewMode(const QString & viewMode)
 {
-	m_impl->SetViewMode(viewMode);
+	m_impl->uiSettings.Set(m_impl->viewModeKey, viewMode);
+	m_impl->findTimer.start();
 	emit ViewModeChanged();
+}
+
+void ModelController::SetViewModeValue(const QString & text)
+{
+	m_impl->uiSettings.Set(m_impl->viewModeValueKey, text);
+	m_impl->findTimer.start();
 }
 
 bool ModelController::SetCurrentIndex(const int index)
