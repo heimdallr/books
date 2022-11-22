@@ -29,9 +29,9 @@ static_assert(plog::Severity::info == 4);
 static_assert(plog::Severity::debug == 5);
 static_assert(plog::Severity::verbose == 6);
 
-SimpleModeItems CreateSeverityItems(int levelsCount)
+SimpleModelItems CreateSeverityItems(int levelsCount)
 {
-	SimpleModeItems result;
+	SimpleModelItems result;
 	for (int i = 1; i < levelsCount; ++i)
 		result.emplace_back(QString::number(i), severityToString(static_cast<plog::Severity>(i)));
 	return result;

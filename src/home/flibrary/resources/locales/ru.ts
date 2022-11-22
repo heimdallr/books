@@ -490,12 +490,12 @@ Restart now?</source>
 <context>
     <name>ViewMode</name>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="16"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="16"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="28"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="28"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>
@@ -503,27 +503,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="22"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="85"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="23"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="12"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="13"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="14"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>

@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.15
 
-import "Core"
+import "qrc:/Core"
 import "qrc:/Util/Functions.js" as Functions
 
 Rectangle
@@ -11,12 +11,13 @@ Rectangle
 
 	property var modelController
 	property string loadPath
-	property alias viewSourceComboBox: viewSourceComboBoxID
+	property alias viewSourceController: viewSourceComboBoxID.viewSourceController
+	property alias viewSourceValue: viewSourceComboBoxID.value
 
-	function onSourceChanged()
+	onViewSourceValueChanged:
 	{
 		viewModeTextID.text = ""
-		loaderID.setSource(loadPath + viewSourceComboBox.model.get(viewSourceComboBox.currentIndex).value + ".qml")
+		loaderID.setSource(loadPath + viewSourceValue + ".qml")
 		applicationWindowID.focus = true
 	}
 
@@ -31,14 +32,12 @@ Rectangle
 			spacing: Functions.GetMargin()
 			Layout.fillWidth: true
 
-			CustomCombobox
+			ViewSourceCombobox
 			{
 				id: viewSourceComboBoxID
 				Layout.leftMargin: Functions.GetMargin()
-				Layout.preferredWidth: uiSettings.heightRow * 5 / 2
 				Layout.preferredHeight: uiSettings.heightRow
-				currentIndex: -1
-				onCurrentIndexChanged: onSourceChanged()
+				Layout.preferredWidth: width
 			}
 
 			TextField

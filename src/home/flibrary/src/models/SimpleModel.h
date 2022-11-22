@@ -11,14 +11,14 @@ namespace HomeCompa::Flibrary {
 		SIMPLE_MODEL_ITEM(Value)  \
 		SIMPLE_MODEL_ITEM(Title)  \
 
-struct SimpleModeItem
+struct SimpleModelItem
 {
 #define SIMPLE_MODEL_ITEM(NAME) QString NAME;
 		SIMPLE_MODEL_ITEMS_XMACRO
 #undef	SIMPLE_MODEL_ITEM
 };
-using SimpleModeItems = std::vector<SimpleModeItem>;
+using SimpleModelItems = std::vector<SimpleModelItem>;
 
-QAbstractItemModel * CreateSimpleModel(SimpleModeItems items, QObject * parent = nullptr);
+QAbstractItemModel * CreateSimpleModel(SimpleModelItems items, QObject * parent = nullptr);
 
 }

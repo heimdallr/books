@@ -25,13 +25,13 @@
 
 namespace HomeCompa::Flibrary {
 
-SimpleModeItems GetSimpleModeItems(const Collections & collections)
+SimpleModelItems GetSimpleModeItems(const Collections & collections)
 {
-	SimpleModeItems items;
+	SimpleModelItems items;
 	items.reserve(collections.size());
 	std::ranges::transform(collections, std::back_inserter(items), [] (const Collection & collection)
 	{
-		return SimpleModeItem { collection.id, collection.name };
+		return SimpleModelItem { collection.id, collection.name };
 	});
 
 	return items;

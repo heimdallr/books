@@ -7,8 +7,12 @@ Menu
 
 	property alias model: instantiatorID.model
 	property alias delegate: instantiatorID.delegate
+	property bool popuped: false
 
 	enabled: false
+
+	onAboutToShow: popuped = true
+	onAboutToHide: popuped = false
 
 	ExclusiveGroup
 	{

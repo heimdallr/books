@@ -10,8 +10,9 @@ class QAbstractItemModel;
 namespace HomeCompa::Flibrary {
 
 class AnnotationController;
-class ModelController;
 class BooksModelController;
+class ModelController;
+class ViewSourceController;
 
 class GuiController
 	: public QObject
@@ -36,6 +37,8 @@ public:
 	Q_INVOKABLE BooksModelController * GetBooksModelControllerTree();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();
 	Q_INVOKABLE static int GetPixelMetric(const QVariant & metric);
+	Q_INVOKABLE ViewSourceController * GetViewSourceNavigationController() noexcept;
+	Q_INVOKABLE ViewSourceController * GetViewSourceBooksController() noexcept;
 
 signals:
 	void OpenedChanged() const;

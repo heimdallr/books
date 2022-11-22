@@ -481,12 +481,12 @@ Restart now?</source>
 <context>
     <name>ViewMode</name>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="16"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="16"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/ViewModeCombobox.qml" line="28"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="28"/>
         <source>Filter</source>
         <translation></translation>
     </message>
@@ -494,29 +494,29 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="22"/>
-        <source>List</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/qml/books/BooksList.qml" line="23"/>
-        <source>Tree</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="12"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
         <source>Authors</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="13"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
         <source>Series</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/Navigation.qml" line="14"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
         <source>Genres</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="85"/>
+        <source>List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
+        <source>Tree</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

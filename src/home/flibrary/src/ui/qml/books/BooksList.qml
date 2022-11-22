@@ -1,6 +1,6 @@
 import QtQuick 2.15
 
-import "qrc:/"
+import "qrc:/ViewTemplate"
 import "qrc:/Core"
 
 Item
@@ -16,13 +16,8 @@ Item
 			bottom: progressBarID.top
 		}
 
-		loadPath: "Book/"
-		Component.onCompleted:
-		{
-			viewSourceComboBox.add(qsTranslate("ViewSource", "List"), "BooksListView")
-			viewSourceComboBox.add(qsTranslate("ViewSource", "Tree"), "BooksTreeView")
-			viewSourceComboBox.currentIndex = 0
-		}
+		loadPath: "qrc:/Book/"
+		viewSourceController: guiController.GetViewSourceBooksController()
 	}
 
 	CustomProgressBar

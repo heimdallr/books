@@ -38,10 +38,13 @@
 #include "LogController.h"
 #include "NavigationSourceProvider.h"
 #include "ProgressController.h"
+#include "ViewSourceController.h"
 
 #include "GuiController.h"
 
 #include "Settings/UiSettings.h"
+#include "Settings/UiSettings_keys.h"
+#include "Settings/UiSettings_values.h"
 
 #include "Configuration.h"
 
@@ -64,6 +67,25 @@ auto CreateUiSettings()
 	return settings;
 }
 
+SimpleModelItems GetViewSourceNavigationModelItems()
+{
+	return SimpleModelItems
+	{
+		{ "Authors", QT_TRANSLATE_NOOP("ViewSource", "Authors") },
+		{ "Series", QT_TRANSLATE_NOOP("ViewSource", "Series") },
+		{ "Genres", QT_TRANSLATE_NOOP("ViewSource", "Genres") },
+	};
+}
+
+SimpleModelItems GetViewSourceBooksModelItems()
+{
+	return SimpleModelItems
+	{
+		{ "BooksListView", QT_TRANSLATE_NOOP("ViewSource", "List") },
+		{ "BooksTreeView", QT_TRANSLATE_NOOP("ViewSource", "Tree") },
+	};
+}
+
 }
 
 class GuiController::Impl
@@ -77,6 +99,9 @@ public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
+		QQmlEngine::setObjectOwnership(m_viewSourceNavigationController.get(), QQmlEngine::CppOwnership);
+		QQmlEngine::setObjectOwnership(m_viewSourceBooksController.get(), QQmlEngine::CppOwnership);
+
 		m_settings.RegisterObserver(this);
 		m_uiSettingsSrc->RegisterObserver(this);
 	}
@@ -119,6 +144,7 @@ public:
 		qRegisterMetaType<ModelController *>("ModelController*");
 		qRegisterMetaType<BooksModelController *>("BooksModelController*");
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
+		qRegisterMetaType<ViewSourceController *>("ViewSourceController*");
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
@@ -168,6 +194,18 @@ public:
 	{
 		assert(m_booksModelController);
 		return m_booksModelController.get();
+	}
+
+	ViewSourceController * GetViewSourceNavigationController() noexcept
+	{
+		assert(m_viewSourceNavigationController);
+		return m_viewSourceNavigationController.get();
+	}
+
+	ViewSourceController * GetViewSourceBooksController() noexcept
+	{
+		assert(m_viewSourceBooksController);
+		return m_viewSourceBooksController.get();
 	}
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)
@@ -325,6 +363,9 @@ private:
 	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };
 
+	PropagateConstPtr<ViewSourceController> m_viewSourceNavigationController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems(), &m_self) };
+	PropagateConstPtr<ViewSourceController> m_viewSourceBooksController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems(), &m_self) };
+
 	QQmlApplicationEngine m_qmlEngine;
 };
 
@@ -380,6 +421,16 @@ int GuiController::GetPixelMetric(const QVariant & metric)
 {
 	const auto value = QApplication::style()->pixelMetric(metric.value<QStyle::PixelMetric>());
 	return value;
+}
+
+ViewSourceController * GuiController::GetViewSourceNavigationController() noexcept
+{
+	return m_impl->GetViewSourceNavigationController();
+}
+
+ViewSourceController * GuiController::GetViewSourceBooksController() noexcept
+{
+	return m_impl->GetViewSourceBooksController();
 }
 
 bool GuiController::GetOpened() const noexcept

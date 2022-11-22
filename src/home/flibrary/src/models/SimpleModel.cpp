@@ -22,7 +22,7 @@ class Model final
 	: public QAbstractListModel
 {
 public:
-	Model(SimpleModeItems items, QObject * parent)
+	Model(SimpleModelItems items, QObject * parent)
 		: QAbstractListModel(parent)
 		, m_items(std::move(items))
 	{
@@ -63,12 +63,12 @@ private: // QAbstractListModel
 	}
 
 private:
-	SimpleModeItems m_items;
+	SimpleModelItems m_items;
 };
 
 }
 
-QAbstractItemModel * CreateSimpleModel(SimpleModeItems items, QObject * parent)
+QAbstractItemModel * CreateSimpleModel(SimpleModelItems items, QObject * parent)
 {
 	return new Model(std::move(items), parent);
 }

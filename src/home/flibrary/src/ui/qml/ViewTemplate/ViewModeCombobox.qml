@@ -14,7 +14,7 @@ Rectangle
 	{
 		id: actionFindID
 		text: qsTranslate("ViewMode", "Find")
-		icon.source: "icons/find.png"
+		icon.source: "qrc:/icons/find.png"
 		checkable: true
 		checked: controller.viewMode === "Find"
 		onTriggered: controller.viewMode = "Find"
@@ -26,7 +26,7 @@ Rectangle
 	{
 		id: actionFilterID
 		text: qsTranslate("ViewMode", "Filter")
-		icon.source: "icons/filter.png"
+		icon.source: "qrc:/icons/filter.png"
 		checkable: true
 		checked: controller.viewMode === "Filter"
 		onTriggered: controller.viewMode = "Filter"
