@@ -33,10 +33,10 @@ Rectangle
 
 			CustomCombobox
 			{
+				id: viewSourceComboBoxID
 				Layout.leftMargin: Functions.GetMargin()
 				Layout.preferredWidth: uiSettings.heightRow * 5 / 2
 				Layout.preferredHeight: uiSettings.heightRow
-				id: viewSourceComboBoxID
 				currentIndex: -1
 				onCurrentIndexChanged: onSourceChanged()
 			}
