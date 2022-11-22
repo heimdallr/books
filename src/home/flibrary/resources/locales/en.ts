@@ -247,6 +247,11 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
+        <source>Clear log</source>
+        <translation></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/qml/log/SeverityLevel.qml" line="12"/>
         <source>Log level</source>
         <translation>Log verbosity level</translation>
@@ -494,29 +499,29 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="74"/>
         <source>Authors</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
+        <source>Series</source>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/controllers/GuiController.cpp" line="76"/>
-        <source>Series</source>
-        <translation type="unfinished"></translation>
+        <source>Genres</source>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
-        <source>Genres</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../src/controllers/GuiController.cpp" line="84"/>
+        <source>List</source>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/controllers/GuiController.cpp" line="85"/>
-        <source>List</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
         <source>Tree</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 </TS>

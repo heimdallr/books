@@ -21,6 +21,7 @@ signals:
 	void LogModeChanged() const;
 
 public:
+	Q_INVOKABLE void Clear();
 	Q_INVOKABLE QAbstractItemModel * GetLogModel() const;
 	Q_INVOKABLE QAbstractItemModel * GetSeverityModel() const;
 	Q_INVOKABLE static void Error(const QString & message);

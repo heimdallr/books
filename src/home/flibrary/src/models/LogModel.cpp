@@ -28,14 +28,7 @@ struct Item
 
 std::vector<Item> s_items;
 
-struct Role
-{
-	enum Value
-	{
-		Message = Qt::UserRole + 1,
-		Color,
-	};
-};
+using Role = LogModelRole;
 
 class Model final
 	: public QAbstractListModel
@@ -82,6 +75,27 @@ private: // QAbstractListModel
 		}
 		assert(false && "unexpected role");
 		return {};
+	}
+
+	bool setData(const QModelIndex & index, const QVariant & /*value*/, const int role) override
+	{
+		if (index.isValid())
+			return false;
+
+		switch (role)
+		{
+			case Role::Clear:
+				emit beginRemoveRows({}, 0, rowCount() - 1);
+				s_items.clear();
+				emit endRemoveRows();
+				return true;
+
+			default:
+				break;
+		}
+
+		assert(false && "unexpected role");
+		return false;
 	}
 
 private: // plog::IAppender

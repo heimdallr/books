@@ -11,5 +11,11 @@ Menu
 		onTriggered: log.logMode = ! log.logMode
 	}
 
+	MenuItem
+	{
+		text: qsTranslate("Logging", "Clear log")
+		onTriggered: log.Clear()
+	}
+
 	SeverityLevel{}
 }

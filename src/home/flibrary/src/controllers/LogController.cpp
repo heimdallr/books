@@ -106,6 +106,11 @@ void LogController::OnKeyPressed(int key, int modifiers)
 	emit LogModeChanged();
 }
 
+void LogController::Clear()
+{
+	m_impl->modelLog->setData({}, {}, LogModelRole::Clear);
+}
+
 QAbstractItemModel * LogController::GetLogModel() const
 {
 	return m_impl->modelLog;

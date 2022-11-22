@@ -248,6 +248,11 @@ Restart now?</source>
         <translation>Показать журнал</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
+        <source>Clear log</source>
+        <translation>Очистить журнал</translation>
+    </message>
+    <message>
         <location filename="../../src/ui/qml/log/SeverityLevel.qml" line="12"/>
         <source>Log level</source>
         <translation>Уровень детализации журнала</translation>
@@ -503,27 +508,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="85"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="84"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="85"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="74"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>

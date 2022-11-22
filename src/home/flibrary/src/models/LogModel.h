@@ -8,6 +8,16 @@ class QObject;
 
 namespace HomeCompa::Flibrary {
 
+struct LogModelRole
+{
+	enum Value
+	{
+		Message = Qt::UserRole + 1,
+		Color,
+		Clear,
+	};
+};
+
 class LogModelController
 	: virtual public SettingsProvider
 {
