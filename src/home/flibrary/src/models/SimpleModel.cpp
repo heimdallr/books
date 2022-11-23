@@ -6,17 +6,7 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-struct Role
-{
-	enum ValueBase
-	{
-		FakeFirst = Qt::UserRole + 1,
-#define SIMPLE_MODEL_ITEM(NAME) NAME,
-		SIMPLE_MODEL_ITEMS_XMACRO
-#undef	SIMPLE_MODEL_ITEM
-	};
-
-};
+using Role = SimpleModelRole;
 
 class Model final
 	: public QAbstractListModel
@@ -60,6 +50,25 @@ private: // QAbstractListModel
 		}
 
 		return {};
+	}
+
+	bool setData([[maybe_unused]]const QModelIndex & index, const QVariant & value, int role) override
+	{
+		assert(!index.isValid());
+		switch (role)
+		{
+			case Role::SetItems:
+				emit beginResetModel();
+				m_items = *value.value<SimpleModelItems *>();
+				emit endResetModel();
+				return true;
+
+			default:
+				break;
+		}
+
+		assert(false && "Unexpected role");
+		return false;
 	}
 
 private:

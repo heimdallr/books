@@ -17,7 +17,7 @@ Item
 		}
 
 		loadPath: "qrc:/Book/"
-		viewSourceController: guiController.GetViewSourceBooksController()
+		viewSourceComboBoxController: guiController.GetViewSourceComboBoxBooksController()
 	}
 
 	CustomProgressBar

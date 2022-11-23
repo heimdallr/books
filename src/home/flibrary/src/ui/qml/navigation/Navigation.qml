@@ -6,5 +6,5 @@ ViewTemplate
 {
 	id: listViewID
 	loadPath: "qrc:/Navigation/"
-	viewSourceController: guiController.GetViewSourceNavigationController()
+	viewSourceComboBoxController: guiController.GetViewSourceComboBoxNavigationController()
 }

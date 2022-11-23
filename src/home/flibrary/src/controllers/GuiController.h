@@ -12,7 +12,7 @@ namespace HomeCompa::Flibrary {
 class AnnotationController;
 class BooksModelController;
 class ModelController;
-class ViewSourceController;
+class ComboBoxController;
 
 class GuiController
 	: public QObject
@@ -37,8 +37,8 @@ public:
 	Q_INVOKABLE BooksModelController * GetBooksModelControllerTree();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();
 	Q_INVOKABLE static int GetPixelMetric(const QVariant & metric);
-	Q_INVOKABLE ViewSourceController * GetViewSourceNavigationController() noexcept;
-	Q_INVOKABLE ViewSourceController * GetViewSourceBooksController() noexcept;
+	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept;
+	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxBooksController() noexcept;
 
 signals:
 	void OpenedChanged() const;

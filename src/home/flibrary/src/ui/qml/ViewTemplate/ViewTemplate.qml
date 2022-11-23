@@ -11,13 +11,13 @@ Rectangle
 
 	property var modelController
 	property string loadPath
-	property alias viewSourceController: viewSourceComboBoxID.viewSourceController
-	property alias viewSourceValue: viewSourceComboBoxID.value
+	property alias viewSourceComboBoxController: viewSourceComboBoxID.comboBoxController
+	property alias viewSourceComboBoxValue: viewSourceComboBoxID.comboBoxValue
 
-	onViewSourceValueChanged:
+	onViewSourceComboBoxValueChanged:
 	{
 		viewModeTextID.text = ""
-		loaderID.setSource(loadPath + viewSourceValue + ".qml")
+		loaderID.setSource(loadPath + viewSourceComboBoxValue + ".qml")
 		applicationWindowID.focus = true
 	}
 
@@ -37,7 +37,7 @@ Rectangle
 				id: viewSourceComboBoxID
 				Layout.leftMargin: Functions.GetMargin()
 				Layout.preferredHeight: uiSettings.heightRow
-				Layout.preferredWidth: width
+				Layout.preferredWidth: preferredWidth
 			}
 
 			TextField

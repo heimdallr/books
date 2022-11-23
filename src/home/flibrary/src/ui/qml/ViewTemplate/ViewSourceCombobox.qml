@@ -8,42 +8,51 @@ Item
 {
 	id: comboBoxID
 
-	property var viewSourceController
-	property string value: viewSourceController.value
+	property var comboBoxController
+	readonly property string comboBoxValue: comboBoxController.value
 
-	width: textID.width + imageID.width + Functions.GetMargin()
+	readonly property int preferredWidth: textID.width + imageID.width + 3 * Functions.GetMargin()
 
-	CustomText
+	Row
 	{
-		id: textID
-		text: qsTranslate("ViewSource", viewSourceController.title)
-	}
+		height: parent.height
+		anchors.top: parent.top
+		spacing: Functions.GetMargin()
+		padding: spacing
 
-	Image
-	{
-		id: imageID
-		height: parent.height * 0.5
-		fillMode: Image.PreserveAspectFit
-		anchors
+		CustomText
 		{
-			left: textID.right
-			leftMargin: Functions.GetMargin()
-			verticalCenter: parent.verticalCenter
+			id: textID
+			anchors
+			{
+				bottom: parent.bottom
+				bottomMargin: Functions.GetMargin()
+			}
+			text: qsTranslate("ViewSource", comboBoxController.title)
 		}
-		source: "qrc:/icons/expander.png"
-		rotation: popupID.popuped ? 0 : 90
+
+		Image
+		{
+			id: imageID
+			height: parent.height * 0.5
+			width: height
+			fillMode: Image.PreserveAspectFit
+			anchors.verticalCenter: parent.verticalCenter
+			source: "qrc:/icons/expander.png"
+			rotation: popupID.popuped ? 0 : 90
+		}
 	}
 
 	DynamicMenu
 	{
 		id: popupID
-		model: viewSourceController.GetModel()
+		model: comboBoxController.GetModel()
 		delegate: MenuItem
 		{
 			text: qsTranslate("ViewSource", Title)
-			checked: Value === comboBoxID.value
-			onTriggered: if (Value !== comboBoxID.value)
-				viewSourceController.value = Value
+			checked: Value === comboBoxID.comboBoxValue
+			onTriggered: if (Value !== comboBoxID.comboBoxValue)
+				comboBoxController.value = Value
 		}
 	}
 

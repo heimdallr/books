@@ -33,6 +33,7 @@
 #include "AnnotationController.h"
 #include "Collection.h"
 #include "CollectionController.h"
+#include "ComboBoxController.h"
 #include "FileDialogProvider.h"
 #include "LocaleController.h"
 #include "LogController.h"
@@ -99,9 +100,6 @@ public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
-		QQmlEngine::setObjectOwnership(m_viewSourceNavigationController.get(), QQmlEngine::CppOwnership);
-		QQmlEngine::setObjectOwnership(m_viewSourceBooksController.get(), QQmlEngine::CppOwnership);
-
 		m_settings.RegisterObserver(this);
 		m_uiSettingsSrc->RegisterObserver(this);
 	}
@@ -144,7 +142,7 @@ public:
 		qRegisterMetaType<ModelController *>("ModelController*");
 		qRegisterMetaType<BooksModelController *>("BooksModelController*");
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
-		qRegisterMetaType<ViewSourceController *>("ViewSourceController*");
+		qRegisterMetaType<ComboBoxController *>("ComboBoxController*");
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
@@ -196,16 +194,16 @@ public:
 		return m_booksModelController.get();
 	}
 
-	ViewSourceController * GetViewSourceNavigationController() noexcept
+	ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept
 	{
 		assert(m_viewSourceNavigationController);
-		return m_viewSourceNavigationController.get();
+		return m_viewSourceNavigationController->GetComboBoxController();
 	}
 
-	ViewSourceController * GetViewSourceBooksController() noexcept
+	ComboBoxController * GetViewSourceComboBoxBooksController() noexcept
 	{
 		assert(m_viewSourceBooksController);
-		return m_viewSourceBooksController.get();
+		return m_viewSourceBooksController->GetComboBoxController();
 	}
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)
@@ -363,8 +361,8 @@ private:
 	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };
 
-	PropagateConstPtr<ViewSourceController> m_viewSourceNavigationController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems(), &m_self) };
-	PropagateConstPtr<ViewSourceController> m_viewSourceBooksController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems(), &m_self) };
+	PropagateConstPtr<ViewSourceController> m_viewSourceNavigationController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems()) };
+	PropagateConstPtr<ViewSourceController> m_viewSourceBooksController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems()) };
 
 	QQmlApplicationEngine m_qmlEngine;
 };
@@ -423,14 +421,14 @@ int GuiController::GetPixelMetric(const QVariant & metric)
 	return value;
 }
 
-ViewSourceController * GuiController::GetViewSourceNavigationController() noexcept
+ComboBoxController * GuiController::GetViewSourceComboBoxNavigationController() noexcept
 {
-	return m_impl->GetViewSourceNavigationController();
+	return m_impl->GetViewSourceComboBoxNavigationController();
 }
 
-ViewSourceController * GuiController::GetViewSourceBooksController() noexcept
+ComboBoxController * GuiController::GetViewSourceComboBoxBooksController() noexcept
 {
-	return m_impl->GetViewSourceBooksController();
+	return m_impl->GetViewSourceComboBoxBooksController();
 }
 
 bool GuiController::GetOpened() const noexcept
