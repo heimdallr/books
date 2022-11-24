@@ -60,12 +60,12 @@ void ComboBoxController::UnregisterObserver(ComboBoxObserver * observer)
 
 const QString & ComboBoxController::GetTitle() const
 {
-	const auto it = std::ranges::find_if(std::as_const(m_impl->simpleModelItems), [value = GetValue()](const SimpleModelItem & item)
+	const auto value = GetValue();
+	const auto it = std::ranges::find_if(std::as_const(m_impl->simpleModelItems), [&value](const SimpleModelItem & item)
 	{
 		return item.Value == value;
 	});
-	assert(it != std::cend(m_impl->simpleModelItems));
-	return it->Title;
+	return it != std::cend(m_impl->simpleModelItems) ? it->Title : m_impl->dataProvider.GetTitleDefault(value);
 }
 
 QString ComboBoxController::GetValue() const

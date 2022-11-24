@@ -35,6 +35,7 @@ Rectangle
 			CustomComboBox
 			{
 				id: viewSourceComboBoxID
+				translationContext: "ViewSource"
 				Layout.leftMargin: Functions.GetMargin()
 				Layout.preferredHeight: uiSettings.heightRow
 				Layout.preferredWidth: preferredWidth

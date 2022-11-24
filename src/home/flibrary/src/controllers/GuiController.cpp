@@ -129,7 +129,6 @@ public:
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
-		qmlContext->setContextProperty("languageController", &m_languageController);
 		qmlContext->setContextProperty("localeController", new LocaleController(*m_uiSettingsSrc, &m_self));
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
@@ -198,14 +197,17 @@ public:
 
 	ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept
 	{
-		assert(m_viewSourceNavigationController);
-		return m_viewSourceNavigationController->GetComboBoxController();
+		return m_viewSourceNavigationController.GetComboBoxController();
 	}
 
 	ComboBoxController * GetViewSourceComboBoxBooksController() noexcept
 	{
-		assert(m_viewSourceBooksController);
-		return m_viewSourceBooksController->GetComboBoxController();
+		return m_viewSourceBooksController.GetComboBoxController();
+	}
+
+	ComboBoxController * GetLanguageComboBoxBooksController() noexcept
+	{
+		return m_languageController.GetComboBoxController();
 	}
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)
@@ -363,8 +365,8 @@ private:
 	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };
 
-	PropagateConstPtr<ViewSourceController> m_viewSourceNavigationController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems()) };
-	PropagateConstPtr<ViewSourceController> m_viewSourceBooksController { std::make_unique<ViewSourceController>(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems()) };
+	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems() };
+	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems() };
 
 	QQmlApplicationEngine m_qmlEngine;
 };
@@ -431,6 +433,11 @@ ComboBoxController * GuiController::GetViewSourceComboBoxNavigationController() 
 ComboBoxController * GuiController::GetViewSourceComboBoxBooksController() noexcept
 {
 	return m_impl->GetViewSourceComboBoxBooksController();
+}
+
+ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcept
+{
+	return m_impl->GetLanguageComboBoxBooksController();
 }
 
 bool GuiController::GetOpened() const noexcept

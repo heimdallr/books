@@ -82,7 +82,7 @@ SplitView
 		text: "en"
 	}
 
-	LanguageFilter
+	CustomComboBox
 	{
 		id: langID
 		function getIndex() { return uiSettings.indexLanguage }
@@ -90,6 +90,8 @@ SplitView
 		SplitView.preferredWidth: ready ? uiSettings.widthLanguage : -1
 		SplitView.minimumWidth: 2 * langMetricsID.width
 		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthLanguage = width
+		comboBoxController: guiController.GetLanguageComboBoxBooksController()
+		translationContext: "DoNotTranslate"
 	}
 
 	function setWidths()

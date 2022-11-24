@@ -51,6 +51,12 @@ private: // ComboBoxDataProvider
 		return m_uiSetting.Get(m_keyName, m_defaultValue).toString();
 	}
 
+	const QString & GetTitleDefault(const QString & /*value*/) const override
+	{
+		static const QString defaultTitle;
+		return defaultTitle;
+	}
+
 private: // ComboBoxObserver
 	void SetValue(const QString & value) override
 	{

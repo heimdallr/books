@@ -9,8 +9,8 @@ Item
 	id: comboBoxID
 
 	property var comboBoxController
+	property string translationContext
 	readonly property string comboBoxValue: comboBoxController.value
-
 	readonly property int preferredWidth: textID.width + imageID.width + 3 * Functions.GetMargin()
 
 	Row
@@ -28,7 +28,7 @@ Item
 				bottom: parent.bottom
 				bottomMargin: Functions.GetMargin()
 			}
-			text: qsTranslate("ViewSource", comboBoxController.title)
+			text: qsTranslate(translationContext, comboBoxController.title)
 		}
 
 		Image
@@ -53,7 +53,7 @@ Item
 		model: comboBoxController.GetModel()
 		delegate: MenuItem
 		{
-			text: qsTranslate("ViewSource", Title)
+			text: qsTranslate(translationContext, Title)
 			checked: Value === comboBoxID.comboBoxValue
 			onTriggered: if (Value !== comboBoxID.comboBoxValue)
 				comboBoxController.value = Value

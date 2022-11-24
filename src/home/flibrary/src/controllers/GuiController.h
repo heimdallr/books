@@ -39,6 +39,7 @@ public:
 	Q_INVOKABLE static int GetPixelMetric(const QVariant & metric);
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept;
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxBooksController() noexcept;
+	Q_INVOKABLE ComboBoxController * GetLanguageComboBoxBooksController() noexcept;
 
 signals:
 	void OpenedChanged() const;

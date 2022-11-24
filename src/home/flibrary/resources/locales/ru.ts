@@ -508,27 +508,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="85"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="87"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="75"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>

@@ -17,6 +17,7 @@ class ComboBoxDataProvider
 public:
 	virtual ~ComboBoxDataProvider() = default;
 	virtual QString GetValue() const = 0;
+	virtual const QString & GetTitleDefault(const QString & value) const = 0;
 };
 
 class ComboBoxObserver : public Observer
