@@ -37,7 +37,11 @@ Item
 			height: parent.height * 0.5
 			width: height
 			fillMode: Image.PreserveAspectFit
-			anchors.verticalCenter: parent.verticalCenter
+			anchors
+			{
+				bottom: parent.bottom
+				bottomMargin: uiSettings.sizeFont / 2
+			}
 			source: "qrc:/icons/expander.png"
 			rotation: popupID.popuped ? 0 : 90
 		}

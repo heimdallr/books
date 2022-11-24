@@ -32,7 +32,7 @@ Rectangle
 			spacing: Functions.GetMargin()
 			Layout.fillWidth: true
 
-			ViewSourceCombobox
+			CustomComboBox
 			{
 				id: viewSourceComboBoxID
 				Layout.leftMargin: Functions.GetMargin()

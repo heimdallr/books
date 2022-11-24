@@ -4,33 +4,32 @@
 	</qresource>
 
 	<qresource prefix="ViewTemplate">
-		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate/ViewTemplate.qml</file>
 		<file alias="ViewModeCombobox.qml">../src/ui/qml/ViewTemplate/ViewModeCombobox.qml</file>
-		<file alias="ViewSourceCombobox.qml">../src/ui/qml/ViewTemplate/ViewSourceCombobox.qml</file>
+		<file alias="ViewTemplate.qml">../src/ui/qml/ViewTemplate/ViewTemplate.qml</file>
 	</qresource>
 
 	<qresource prefix="Navigation">
 		<file alias="Authors.qml">../src/ui/qml/navigation/Authors.qml</file>
-		<file alias="Series.qml">../src/ui/qml/navigation/Series.qml</file>
 		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
-		<file alias="SearchPanel.qml">../src/ui/qml/navigation/SearchPanel.qml</file>
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
 		<file alias="NavigationListDelegate.qml">../src/ui/qml/navigation/NavigationListDelegate.qml</file>
 		<file alias="NavigationTreeDelegate.qml">../src/ui/qml/navigation/NavigationTreeDelegate.qml</file>
+		<file alias="SearchPanel.qml">../src/ui/qml/navigation/SearchPanel.qml</file>
+		<file alias="Series.qml">../src/ui/qml/navigation/Series.qml</file>
 	</qresource>
 
 	<qresource prefix="Book">
-		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
-		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
-		<file alias="BooksHeader.qml">../src/ui/qml/books/BooksHeader.qml</file>
+		<file alias="BookContextMenu.qml">../src/ui/qml/books/BookContextMenu.qml</file>
+		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>
 		<file alias="BookLayout.qml">../src/ui/qml/books/BookLayout.qml</file>
 		<file alias="BookListDelegate.qml">../src/ui/qml/books/BookListDelegate.qml</file>
-		<file alias="BookTreeDelegate.qml">../src/ui/qml/books/BookTreeDelegate.qml</file>
-		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>
+		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
+		<file alias="BooksHeader.qml">../src/ui/qml/books/BooksHeader.qml</file>
+		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
 		<file alias="BooksListView.qml">../src/ui/qml/books/BooksListView.qml</file>
 		<file alias="BooksTreeView.qml">../src/ui/qml/books/BooksTreeView.qml</file>
+		<file alias="BookTreeDelegate.qml">../src/ui/qml/books/BookTreeDelegate.qml</file>
 		<file alias="LanguageFilter.qml">../src/ui/qml/books/LanguageFilter.qml</file>
-		<file alias="BookContextMenu.qml">../src/ui/qml/books/BookContextMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="Util">
@@ -38,16 +37,17 @@
 	</qresource>
 
 	<qresource prefix="Core">
-		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
-		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
 		<file alias="CustomCheckbox.qml">../src/ui/qml/core/CustomCheckbox.qml</file>
+		<file alias="CustomComboBox.qml">../src/ui/qml/core/CustomComboBox.qml</file>
+		<file alias="CustomListView.qml">../src/ui/qml/core/CustomListView.qml</file>
+		<file alias="CustomProgressBar.qml">../src/ui/qml/core/CustomProgressBar.qml</file>
 		<file alias="CustomText.qml">../src/ui/qml/core/CustomText.qml</file>
 		<file alias="CustomToolTip.qml">../src/ui/qml/core/CustomToolTip.qml</file>
-		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
-		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
-		<file alias="TopBottomLines.qml">../src/ui/qml/core/TopBottomLines.qml</file>
 		<file alias="DynamicMenu.qml">../src/ui/qml/core/DynamicMenu.qml</file>
-		<file alias="CustomProgressBar.qml">../src/ui/qml/core/CustomProgressBar.qml</file>
+		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
+		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
+		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
+		<file alias="TopBottomLines.qml">../src/ui/qml/core/TopBottomLines.qml</file>
 	</qresource>
 
 	<qresource prefix="Dialogs/">
@@ -55,39 +55,39 @@
 	</qresource>
 
 	<qresource prefix="Tray/">
-		<file alias="Tray.qml">../src/ui/qml/tray/Tray.qml</file>
-		<file alias="MainMenu.qml">../src/ui/qml/tray/MainMenu.qml</file>
-		<file alias="LanguageMenu.qml">../src/ui/qml/tray/LanguageMenu.qml</file>
 		<file alias="CollectionMenu.qml">../src/ui/qml/tray/CollectionMenu.qml</file>
-		<file alias="ViewMenu.qml">../src/ui/qml/tray/ViewMenu.qml</file>
+		<file alias="Help.qml">../src/ui/qml/tray/Help.qml</file>
+		<file alias="LanguageMenu.qml">../src/ui/qml/tray/LanguageMenu.qml</file>
+		<file alias="MainMenu.qml">../src/ui/qml/tray/MainMenu.qml</file>
 		<file alias="SettingsMenu.qml">../src/ui/qml/tray/SettingsMenu.qml</file>
 		<file alias="SystemMenu.qml">../src/ui/qml/tray/SystemMenu.qml</file>
-		<file alias="Help.qml">../src/ui/qml/tray/Help.qml</file>
+		<file alias="Tray.qml">../src/ui/qml/tray/Tray.qml</file>
+		<file alias="ViewMenu.qml">../src/ui/qml/tray/ViewMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="Log/">
 		<file alias="Log.qml">../src/ui/qml/log/Log.qml</file>
-		<file alias="SeverityLevel.qml">../src/ui/qml/log/SeverityLevel.qml</file>
 		<file alias="LogContextMenu.qml">../src/ui/qml/log/LogContextMenu.qml</file>
+		<file alias="SeverityLevel.qml">../src/ui/qml/log/SeverityLevel.qml</file>
 	</qresource>
 
 	<qresource prefix="icons/">
+		<file alias="expander.png">icons/expander.png</file>
+		<file alias="filter.png">icons/filter.png</file>
+		<file alias="find.png">icons/find.png</file>
 		<file alias="main.png">icons/main.png</file>
 		<file alias="tray.png">icons/tray.png</file>
-		<file alias="find.png">icons/find.png</file>
-		<file alias="filter.png">icons/filter.png</file>
-		<file alias="expander.png">icons/expander.png</file>
 	</qresource>
 
 	<qresource prefix="icons/checkbox">
 		<file alias="checked.png">icons/checkbox/checked.png</file>
-		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
 		<file alias="partially.png">icons/checkbox/partially.png</file>
+		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
 	</qresource>
 
 	<qresource prefix="data">
-		<file alias="genres.ini">data/genres.ini</file>
 		<file alias="CreateCollection.sql">data/CreateCollection.sql</file>
+		<file alias="genres.ini">data/genres.ini</file>
 		<file alias="UpdateCollection.sql">data/UpdateCollection.sql</file>
 	</qresource>
 </RCC>
