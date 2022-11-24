@@ -3,7 +3,7 @@ import QtQuick.Controls 1.4
 
 ComboBox
 {
-	model: localeController.languages
-	onCurrentIndexChanged: localeController.language = currentText
-	onModelChanged: currentIndex = find(localeController.language)
+	model: languageController.languages
+	onCurrentIndexChanged: languageController.language = currentText
+	onModelChanged: currentIndex = find(languageController.language)
 }

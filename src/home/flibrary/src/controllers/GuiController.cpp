@@ -35,6 +35,7 @@
 #include "CollectionController.h"
 #include "ComboBoxController.h"
 #include "FileDialogProvider.h"
+#include "LanguageController.h"
 #include "LocaleController.h"
 #include "LogController.h"
 #include "NavigationSourceProvider.h"
@@ -91,7 +92,7 @@ SimpleModelItems GetViewSourceBooksModelItems()
 
 class GuiController::Impl
 	: virtual ModelControllerObserver
-	, LocaleController::LanguageProvider
+	, LanguageController::LanguageProvider
 	, CollectionController::Observer
 	, SettingsObserver
 {
@@ -118,7 +119,7 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
-			m_booksModelController->UnregisterObserver(m_localeController.GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 	}
 
@@ -128,7 +129,8 @@ public:
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
-		qmlContext->setContextProperty("localeController", &m_localeController);
+		qmlContext->setContextProperty("languageController", &m_languageController);
+		qmlContext->setContextProperty("localeController", new LocaleController(*m_uiSettingsSrc, &m_self));
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("collectionController", &m_collectionController);
@@ -215,14 +217,14 @@ public:
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
 			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
-			m_booksModelController->UnregisterObserver(m_localeController.GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 
 		m_navigationSourceProvider.SetBookViewType(type);
 		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString(), *m_uiSettingsSrc)).swap(m_booksModelController);
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
-		m_booksModelController->RegisterObserver(m_localeController.GetBooksModelControllerObserver());
+		m_booksModelController->RegisterObserver(m_languageController.GetBooksModelControllerObserver());
 		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
@@ -356,7 +358,7 @@ private:
 	Collection m_currentCollection;
 
 	NavigationSourceProvider m_navigationSourceProvider;
-	LocaleController m_localeController { *this };
+	LanguageController m_languageController { *this };
 	ProgressController m_progressController;
 	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };

@@ -24,6 +24,7 @@ CreateMap(UI_SETTING_NAMES
 		indexSeqNo                      3
 		indexGenre                      4
 		indexLanguage                   5
+		locale                        \"\"
 		logLevel                      \"4\"
 		pathRecentCollectionDatabase  \"\"
 		pathRecentExport              \"\"

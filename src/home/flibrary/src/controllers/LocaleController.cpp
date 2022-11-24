@@ -5,68 +5,33 @@
 
 #include "util/Settings.h"
 
-#include "ModelControllers/BooksModelControllerObserver.h"
-
 #include "LocaleController.h"
 
 #include "Resources/flibrary_locales.h"
+#include "Settings/UiSettings_keys.h"
 
 namespace HomeCompa::Flibrary {
 
-namespace {
-
-constexpr auto LANGUAGE = "Language";
-
-}
-
 struct LocaleController::Impl
-	: BooksModelControllerObserver
 {
-	Impl(LocaleController & self, LanguageProvider & languageProvider_)
-		: languageProvider(languageProvider_)
-		, m_self(self)
+	explicit Impl(Settings & uiSettings_)
+		: uiSettings(uiSettings_)
 	{
 	}
 
-	LanguageProvider & languageProvider;
+	Settings & uiSettings;
 	QTranslator translator;
-	bool preventSetLanguageFilter { false };
-
-private: //BooksModelControllerObserver
-	void HandleBookChanged(const std::string & /*folder*/, const std::string & /*file*/) override
-	{
-	}
-
-	void HandleModelReset() override
-	{
-		preventSetLanguageFilter = true;
-		emit m_self.LanguagesChanged();
-		preventSetLanguageFilter = false;
-	}
-
-private:
-	LocaleController & m_self;
 };
 
-LocaleController::LocaleController(LanguageProvider & languageProvider, QObject * parent)
+LocaleController::LocaleController(Settings & uiSettings, QObject * parent)
 	: QObject(parent)
-	, m_impl(*this, languageProvider)
+	, m_impl(uiSettings)
 {
 	m_impl->translator.load(QString(":/resources/%1.qm").arg(GetLocale()));
 	QCoreApplication::installTranslator(&m_impl->translator);
 }
 
 LocaleController::~LocaleController() = default;
-
-BooksModelControllerObserver * LocaleController::GetBooksModelControllerObserver()
-{
-	return m_impl.get();
-}
-
-QStringList LocaleController::GetLanguages()
-{
-	return m_impl->languageProvider.GetLanguages();
-}
 
 QStringList LocaleController::GetLocales() const
 {
@@ -76,14 +41,9 @@ QStringList LocaleController::GetLocales() const
 	return result;
 }
 
-QString LocaleController::GetLanguage()
-{
-	return m_impl->languageProvider.GetLanguage();
-}
-
 QString LocaleController::GetLocale() const
 {
-	auto locale = m_impl->languageProvider.GetSettings().Get(LANGUAGE, "").toString();
+	auto locale = m_impl->uiSettings.Get(Constant::UiSettings_ns::locale).toString();
 	if (!locale.isEmpty())
 		return locale;
 
@@ -94,15 +54,9 @@ QString LocaleController::GetLocale() const
 	return LOCALES[0];
 }
 
-void LocaleController::SetLanguage(const QString & language)
-{
-	if (!m_impl->preventSetLanguageFilter)
-		m_impl->languageProvider.SetLanguage(language);
-}
-
 void LocaleController::SetLocale(const QString & locale)
 {
-	m_impl->languageProvider.GetSettings().Set(LANGUAGE, locale);
+	m_impl->uiSettings.Set(Constant::UiSettings_ns::locale, locale);
 	emit LocaleChanged();
 }
 
