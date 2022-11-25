@@ -89,6 +89,26 @@ SimpleModelItems GetViewSourceBooksModelItems()
 	};
 }
 
+void UpdateSettings(Settings & settings, const char * settingsKey, const QVariant & defaultValue, const int key)
+{
+	const auto update = [&] (int increment)
+	{
+		const auto value = settings.Get(settingsKey, defaultValue).toInt();
+		settings.Set(settingsKey, value + increment);
+	};
+	switch (key)
+	{
+		case Qt::Key_Up:
+			update(1);
+			break;
+		case Qt::Key_Down:
+			update(-1);
+			break;
+		default:
+			break;
+	}
+}
+
 }
 
 class GuiController::Impl
@@ -162,6 +182,14 @@ public:
 
 		if (keyEvent.nativeVirtualKey() == Qt::Key_X && modifiers == Qt::AltModifier)
 			return QCoreApplication::exit(0);
+
+		if (!(modifiers & Qt::AltModifier))
+		{
+			if (modifiers & Qt::ControlModifier)
+				UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::heightRow, HomeCompa::Constant::UiSettings_ns::heightRow_default, key);
+			if (modifiers & Qt::ShiftModifier)
+				UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::sizeFont, HomeCompa::Constant::UiSettings_ns::sizeFont_default, key);
+		}
 
 		if (m_activeModelController)
 			m_activeModelController->OnKeyPressed(key, modifiers);
