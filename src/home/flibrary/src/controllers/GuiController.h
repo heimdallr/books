@@ -29,7 +29,6 @@ public:
 	void Start();
 
 public:
-	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
 	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
 	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
@@ -44,6 +43,9 @@ public:
 signals:
 	void OpenedChanged() const;
 	void TitleChanged() const;
+
+private:
+	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private: // property getters
 	bool GetOpened() const noexcept;

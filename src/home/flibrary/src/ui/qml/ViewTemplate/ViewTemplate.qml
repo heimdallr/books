@@ -18,7 +18,6 @@ Rectangle
 	{
 		viewModeTextID.text = ""
 		loaderID.setSource(loadPath + viewSourceComboBoxValue + ".qml")
-		applicationWindowID.focus = true
 	}
 
 	ColumnLayout

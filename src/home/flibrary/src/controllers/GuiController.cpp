@@ -2,6 +2,7 @@
 #include <QAbstractItemModel>
 #include <QApplication>
 #include <QCommonStyle>
+#include <QKeyEvent>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
@@ -97,6 +98,7 @@ class GuiController::Impl
 	, SettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
+
 public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
@@ -150,9 +152,15 @@ public:
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
-	void OnKeyPressed(const int key, const int modifiers)
+	void OnKeyEvent(const QKeyEvent & keyEvent)
 	{
-		if (key == Qt::Key_X && modifiers == Qt::AltModifier)
+		if (!keyEvent.spontaneous())
+			return;
+
+		const auto key = keyEvent.key();
+		const auto modifiers = keyEvent.modifiers();
+
+		if (keyEvent.nativeVirtualKey() == Qt::Key_X && modifiers == Qt::AltModifier)
 			return QCoreApplication::exit(0);
 
 		if (m_activeModelController)
@@ -384,11 +392,6 @@ void GuiController::Start()
 	m_impl->Start();
 }
 
-void GuiController::OnKeyPressed(int key, int modifiers)
-{
-	m_impl->OnKeyPressed(key, modifiers);
-}
-
 ModelController * GuiController::GetNavigationModelControllerAuthors()
 {
 	return m_impl->GetNavigationModelController(NavigationSource::Authors);
@@ -438,6 +441,14 @@ ComboBoxController * GuiController::GetViewSourceComboBoxBooksController() noexc
 ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcept
 {
 	return m_impl->GetLanguageComboBoxBooksController();
+}
+
+bool GuiController::eventFilter(QObject * obj, QEvent * event)
+{
+	if (event->type() == QEvent::KeyPress)
+		m_impl->OnKeyEvent(*static_cast<QKeyEvent *>(event));
+
+	return QObject::eventFilter(obj, event);
 }
 
 bool GuiController::GetOpened() const noexcept

@@ -11,7 +11,6 @@ ApplicationWindow
 {
 	id: applicationWindowID
 
-	property alias focus: splitViewID.focus
 	property bool completed: false
 
 	width: uiSettings.widthMainWindow
@@ -46,10 +45,6 @@ ApplicationWindow
 		{
 			SplitView
 			{
-				focus: true
-
-				Keys.onPressed: guiController.OnKeyPressed(event.key, event.modifiers)
-
 				anchors.fill: parent
 				orientation: Qt.Horizontal
 
