@@ -24,8 +24,9 @@ CreateMap(UI_SETTING_NAMES
 		indexTitle                      1
 		indexSeries                     2
 		indexSeqNo                      3
-		indexGenre                      4
-		indexLanguage                   5
+		indexSize                       4
+		indexGenre                      5
+		indexLanguage                   6
 		locale                        \"\"
 		logLevel                      \"4\"
 		pathRecentCollectionDatabase  \"\"
@@ -56,6 +57,7 @@ CreateMap(UI_SETTING_NAMES
 		widthNavigation                 0.25
 		widthSeqNo                      30
 		widthSeries                     0.125
+		widthSize                       0.2
 		widthTitle                      0.3
 		widthTreeMargin                 0.75
 	)

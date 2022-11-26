@@ -65,6 +65,16 @@ SplitView
 
 	CustomText
 	{
+		id: sizeID
+		function getIndex() { return uiSettings.indexSize }
+		property bool ready: false
+		SplitView.preferredWidth: ready ? viewID.width * uiSettings.widthSize : -1
+		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSize = width / viewID.width
+		text: qsTranslate("Header", "Size")
+	}
+
+	CustomText
+	{
 		id: genreID
 		function getIndex() { return uiSettings.indexGenre }
 		property bool ready: false
@@ -96,6 +106,6 @@ SplitView
 
 	function setWidths()
 	{
-		Functions.SetWidths([authorID, titleID, seriesID, seqNoID, genreID, langID], viewID, function(item, value){ item.SplitView.fillWidth = value })
+		Functions.SetWidths([authorID, titleID, seriesID, seqNoID, sizeID, genreID, langID], viewID, function(item, value){ item.SplitView.fillWidth = value })
 	}
 }

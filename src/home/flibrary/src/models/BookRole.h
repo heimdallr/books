@@ -13,6 +13,7 @@ namespace HomeCompa::Flibrary {
 		BOOK_ROLE_ITEM(Lang)          \
 		BOOK_ROLE_ITEM(Folder)        \
 		BOOK_ROLE_ITEM(FileName)      \
+		BOOK_ROLE_ITEM(Size)          \
 		BOOK_ROLE_ITEM(IsDeleted)     \
 		BOOK_ROLE_ITEM(Author)        \
 		BOOK_ROLE_ITEM(GenreAlias)    \

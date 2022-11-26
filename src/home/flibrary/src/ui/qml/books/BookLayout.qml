@@ -93,6 +93,17 @@ Item
 
 			CustomText
 			{
+				id: sizeID
+				function getIndex() { return uiSettings.indexSize }
+				property bool ready: false
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSize - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredHeight: bookLayoutID.height
+				color: textColor
+				text: Size
+			}
+
+			CustomText
+			{
 				id: genreID
 				function getIndex() { return uiSettings.indexGenre }
 				property bool ready: false
@@ -112,7 +123,7 @@ Item
 				text: Lang
 			}
 
-			Component.onCompleted: Functions.SetWidths([authorID, titleID, seriesID, seqNoID, genreID, langID], layoutID, function(item, value){ item.Layout.fillWidth = value })
+			Component.onCompleted: Functions.SetWidths([authorID, titleID, seriesID, seqNoID, sizeID, genreID, langID], layoutID, function(item, value){ item.Layout.fillWidth = value })
 		}
 
 		MouseArea

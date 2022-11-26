@@ -212,7 +212,12 @@ Restart now?</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="73"/>
+        <source>Size</source>
+        <translation>Размер</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="85"/>
         <source>GenreAlias</source>
         <translation>Жанр</translation>
     </message>
@@ -508,27 +513,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="86"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="87"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="87"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="88"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="76"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
