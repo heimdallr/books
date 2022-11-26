@@ -11,7 +11,7 @@ Item
 
 	property int treeMargin: 0
 
-	property color textColor: IsDeleted ? "gray" : "black"
+	property color textColor: IsDeleted ? uiSettings.colorBookTextDeleted : uiSettings.colorBookText
 
 	TopBottomLines
 	{
