@@ -16,6 +16,7 @@ Rectangle
 		id: logViewID
 
 		readonly property alias scrollBarWidth: scrollBarID.width
+		readonly property int heightRow: uiSettings.heightRow
 
 		anchors
 		{
@@ -29,16 +30,13 @@ Rectangle
 		flickableDirection: Flickable.VerticalFlick
 
 		ScrollBar.vertical: ScrollBar { id: scrollBarID; width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar }
-		delegate: Item
+		delegate: CustomText
 		{
-			height: childrenRect.height
+			wrapMode: Text.Wrap
+			height: logViewID.heightRow
 			width: logViewID.width
-			CustomText
-			{
-				text: Message
-				color: Color
-				wrapMode: Text.Wrap
-			}
+			text: Message
+			color: Color
 		}
 
 		onCountChanged: Qt.callLater( function(){ scrollBarID.position = 1.0 - scrollBarID.size } )

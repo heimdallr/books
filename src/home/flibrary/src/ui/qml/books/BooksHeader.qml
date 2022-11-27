@@ -48,7 +48,7 @@ SplitView
 	TextMetrics
 	{
 		id: seqNoMetricsID
-		font.pointSize: uiSettings.sizeFont
+		font: seqNoID.font
 		text: "9999"
 	}
 
@@ -59,6 +59,7 @@ SplitView
 		property bool ready: false
 		SplitView.preferredWidth: ready ? uiSettings.widthSeqNo : -1
 		SplitView.minimumWidth: seqNoMetricsID.width + uiSettings.sizeSplitViewHandle
+		horizontalAlignment: Text.AlignRight
 		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSeqNo = width
 		text: qsTranslate("Header", "No")
 	}
@@ -69,6 +70,7 @@ SplitView
 		function getIndex() { return uiSettings.indexSize }
 		property bool ready: false
 		SplitView.preferredWidth: ready ? viewID.width * uiSettings.widthSize : -1
+		horizontalAlignment: Text.AlignRight
 		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSize = width / viewID.width
 		text: qsTranslate("Header", "Size")
 	}
@@ -85,20 +87,13 @@ SplitView
 		text: qsTranslate("Header", "GenreAlias")
 	}
 
-	TextMetrics
-	{
-		id: langMetricsID
-		font.pointSize: uiSettings.sizeFont
-		text: "en"
-	}
-
 	CustomComboBox
 	{
 		id: langID
 		function getIndex() { return uiSettings.indexLanguage }
 		property bool ready: false
 		SplitView.preferredWidth: ready ? uiSettings.widthLanguage : -1
-		SplitView.minimumWidth: 2 * langMetricsID.width
+		SplitView.minimumWidth: preferredWidth
 		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthLanguage = width
 		comboBoxController: guiController.GetLanguageComboBoxBooksController()
 		translationContext: "DoNotTranslate"

@@ -35,7 +35,6 @@ Rectangle
 			{
 				id: viewSourceComboBoxID
 				translationContext: "ViewSource"
-				Layout.leftMargin: Functions.GetMargin()
 				Layout.preferredHeight: uiSettings.heightRow
 				Layout.preferredWidth: preferredWidth
 			}
@@ -59,6 +58,7 @@ Rectangle
 			CustomText
 			{
 				Layout.rightMargin: Functions.GetMargin()
+				Layout.preferredWidth: preferredWidth + Functions.GetMargin()
 				text: modelController ? modelController.count : ""
 			}
 		}

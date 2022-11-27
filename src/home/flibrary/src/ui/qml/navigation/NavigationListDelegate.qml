@@ -13,14 +13,7 @@ Item
 	CustomText
 	{
 		id: textID
-		anchors
-		{
-			left: parent.left
-			leftMargin: Functions.GetMargin()
-			bottom: parent.bottom
-			bottomMargin: Functions.GetMargin()
-		}
-
+		anchors.fill: parent
 		text: Title
 	}
 

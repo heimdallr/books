@@ -11,23 +11,18 @@ Item
 	property var comboBoxController
 	property string translationContext
 	readonly property string comboBoxValue: comboBoxController.value
-	readonly property int preferredWidth: textID.width + imageID.width + 3 * Functions.GetMargin()
+	readonly property int preferredWidth: textID.width + imageID.width + Functions.GetMargin()
 
 	Row
 	{
 		height: parent.height
 		anchors.top: parent.top
-		spacing: Functions.GetMargin()
-		padding: spacing
 
 		CustomText
 		{
 			id: textID
-			anchors
-			{
-				bottom: parent.bottom
-				bottomMargin: Functions.GetMargin()
-			}
+			height: comboBoxID.height
+			width: preferredWidth + Functions.GetMargin()
 			text: qsTranslate(translationContext, comboBoxController.title)
 		}
 

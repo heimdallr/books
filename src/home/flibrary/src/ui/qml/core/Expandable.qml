@@ -60,13 +60,13 @@ Item
 	CustomText
 	{
 		id: textID
+		height: parent.height
 		anchors
 		{
+			top: parent.top
 			left: checkBoxID.visible ? checkBoxID.right : expanderID.right
 			right: parent.right
 			leftMargin: Functions.GetMargin() * 2
-			bottom: parent.bottom
-			bottomMargin: Functions.GetMargin()
 		}
 	}
 

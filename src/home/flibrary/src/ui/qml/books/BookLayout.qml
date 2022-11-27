@@ -54,6 +54,7 @@ Item
 				function getIndex() { return uiSettings.indexAuthor }
 				property bool ready: false
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle : -1
+				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.authorsVisible
 				color: textColor
 				text: Author
@@ -65,6 +66,7 @@ Item
 				function getIndex() { return uiSettings.indexTitle }
 				property bool ready: false
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthTitle - uiSettings.sizeSplitViewHandle : -1
+				Layout.fillHeight: true
 				color: textColor
 				text: Title
 			}
@@ -75,6 +77,7 @@ Item
 				function getIndex() { return uiSettings.indexSeries }
 				property bool ready: false
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle : -1
+				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.seriesVisible
 				color: textColor
 				text: SeriesTitle
@@ -87,6 +90,8 @@ Item
 				property bool ready: false
 				readonly property int seqNumber: SeqNumber
 				Layout.preferredWidth: ready ? uiSettings.widthSeqNo - uiSettings.sizeSplitViewHandle : -1
+				Layout.fillHeight: true
+				horizontalAlignment: Text.AlignRight
 				color: textColor
 				text: seqNumber > 0 ? seqNumber : ""
 			}
@@ -97,7 +102,8 @@ Item
 				function getIndex() { return uiSettings.indexSize }
 				property bool ready: false
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSize - uiSettings.sizeSplitViewHandle : -1
-				Layout.preferredHeight: bookLayoutID.height
+				Layout.fillHeight: true
+				horizontalAlignment: Text.AlignRight
 				color: textColor
 				text: measure.GetSize(Size)
 			}
@@ -108,6 +114,7 @@ Item
 				function getIndex() { return uiSettings.indexGenre }
 				property bool ready: false
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle : -1
+				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.genresVisible
 				color: textColor
 				text: GenreAlias
@@ -118,6 +125,7 @@ Item
 				id: langID
 				function getIndex() { return uiSettings.indexLanguage }
 				property bool ready: false
+				Layout.fillHeight: true
 				Layout.preferredWidth: ready ? uiSettings.widthLanguage - uiSettings.sizeSplitViewHandle : -1
 				color: textColor
 				text: Lang
