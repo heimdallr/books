@@ -39,6 +39,7 @@
 #include "LanguageController.h"
 #include "LocaleController.h"
 #include "LogController.h"
+#include "Measure.h"
 #include "NavigationSourceProvider.h"
 #include "ProgressController.h"
 #include "ViewSourceController.h"
@@ -154,6 +155,7 @@ public:
 		qmlContext->setContextProperty("localeController", new LocaleController(*m_uiSettingsSrc, &m_self));
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
+		qmlContext->setContextProperty("measure", new Measure(&m_self));
 		qmlContext->setContextProperty("collectionController", &m_collectionController);
 		qmlContext->setContextProperty("log", &m_logController);
 		qmlContext->setContextProperty("progressController", &m_progressController);

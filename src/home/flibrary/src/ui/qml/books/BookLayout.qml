@@ -99,7 +99,7 @@ Item
 				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSize - uiSettings.sizeSplitViewHandle : -1
 				Layout.preferredHeight: bookLayoutID.height
 				color: textColor
-				text: Size
+				text: measure.GetSize(Size)
 			}
 
 			CustomText

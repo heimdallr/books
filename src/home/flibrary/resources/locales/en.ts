@@ -293,6 +293,29 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>Measure</name>
+    <message>
+        <location filename="../../src/controllers/Measure.cpp" line="11"/>
+        <source>%1 Gb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/Measure.cpp" line="12"/>
+        <source>%1 Mb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/Measure.cpp" line="13"/>
+        <source>%1 Kb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/Measure.cpp" line="14"/>
+        <source>%1 b</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>QPlatformTheme</name>
     <message>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
@@ -504,27 +527,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="77"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="87"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="88"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="88"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="89"/>
         <source>Tree</source>
         <translation></translation>
     </message>
