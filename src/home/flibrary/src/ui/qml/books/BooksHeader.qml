@@ -49,7 +49,7 @@ SplitView
 	{
 		id: seqNoMetricsID
 		font: seqNoID.font
-		text: "9999"
+		text: "99999"
 	}
 
 	CustomText
@@ -58,7 +58,7 @@ SplitView
 		function getIndex() { return uiSettings.indexSeqNo }
 		property bool ready: false
 		SplitView.preferredWidth: ready ? uiSettings.widthSeqNo : -1
-		SplitView.minimumWidth: seqNoMetricsID.width + uiSettings.sizeSplitViewHandle
+		SplitView.minimumWidth: seqNoMetricsID.width
 		horizontalAlignment: Text.AlignRight
 		onWidthChanged: if (ready && viewID.width > 0 && width > 0) uiSettings.widthSeqNo = width
 		text: qsTranslate("Header", "No")

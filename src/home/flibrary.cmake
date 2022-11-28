@@ -7,6 +7,7 @@ CreateMap(UI_SETTING_NAMES
 		colorErrorText                \"red\"
 		colorHighlight                \"lightsteelblue\"
 		colorHighlightUnfocused       \"lavender\"
+		colorLine                     \"black\"
 		colorLogDebug                 \"darkgrey\"
 		colorLogDefault               \"blue\"
 		colorLogError                 \"red\"
@@ -15,7 +16,7 @@ CreateMap(UI_SETTING_NAMES
 		colorLogVerbose               \"lightgray\"
 		colorLogWarning               \"magenta\"
 		colorProgressBar              \"lightsteelblue\"
-		colorSplitViewHandle          \"\#e0e0e0\"
+		colorSplitViewHandle          \"white\"
 		colorSplitViewHandleHovered   \"\#d0d0d0\"
 		colorSplitViewHandlePressed   \"\#c0c0c0\"
 		heightBookInfo                  0.25

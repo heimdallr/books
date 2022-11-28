@@ -5,6 +5,8 @@ Rectangle
 {
 	id: handleDelegate
 
+	border { width: 1; color: uiSettings.colorLine }
+
 	implicitWidth: uiSettings.sizeSplitViewHandle
 	implicitHeight: uiSettings.sizeSplitViewHandle
 	color

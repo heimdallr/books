@@ -1,33 +1,29 @@
 import QtQuick 2.15
+import QtQuick.Layouts 1.15
 
 import "qrc:/Core"
 
-Item
+ColumnLayout
 {
 	id: booksViewID
 
+	spacing: 0
+
 	BooksHeader
 	{
-		id: headerID
+		Layout.preferredHeight: uiSettings.heightRow
+		Layout.fillWidth: true
+	}
 
-		height: uiSettings.heightRow
-		anchors
-		{
-			left: parent.left
-			right: parent.right
-			top: parent.top
-		}
+	Line
+	{
+		Layout.fillWidth: true
 	}
 
 	CustomListView
 	{
-		anchors
-		{
-			left: parent.left
-			right: parent.right
-			top: headerID.bottom
-			bottom: parent.bottom
-		}
+		Layout.fillHeight: true
+		Layout.fillWidth: true
 
 		delegate: BookTreeDelegate
 		{

@@ -45,6 +45,7 @@
 		<file alias="DynamicMenu.qml">../src/ui/qml/core/DynamicMenu.qml</file>
 		<file alias="Expandable.qml">../src/ui/qml/core/Expandable.qml</file>
 		<file alias="Expander.qml">../src/ui/qml/core/Expander.qml</file>
+		<file alias="Line.qml">../src/ui/qml/core/Line.qml</file>
 		<file alias="SplitViewHandle.qml">../src/ui/qml/core/SplitViewHandle.qml</file>
 		<file alias="TopBottomLines.qml">../src/ui/qml/core/TopBottomLines.qml</file>
 	</qresource>

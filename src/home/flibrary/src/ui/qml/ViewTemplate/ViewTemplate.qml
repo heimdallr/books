@@ -23,7 +23,18 @@ Rectangle
 	ColumnLayout
 	{
 		anchors.fill: parent
-		spacing: Functions.GetMargin()
+		spacing: 0
+
+		Line
+		{
+			Layout.fillWidth: true
+		}
+
+		Item
+		{
+			Layout.fillWidth: true
+			height: 2 * Functions.GetMargin()
+		}
 
 		RowLayout
 		{
@@ -60,6 +71,17 @@ Rectangle
 				Layout.preferredWidth: preferredWidth + Functions.GetMargin()
 				text: modelController ? modelController.count : ""
 			}
+		}
+
+		Item
+		{
+			Layout.fillWidth: true
+			height: 2 * Functions.GetMargin()
+		}
+
+		Line
+		{
+			Layout.fillWidth: true
 		}
 
 		Loader
