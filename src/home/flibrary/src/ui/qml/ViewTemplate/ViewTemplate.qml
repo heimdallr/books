@@ -43,7 +43,6 @@ Rectangle
 			{
 				id: viewModeTextID
 				Layout.fillWidth: true
-				Layout.preferredHeight: uiSettings.heightRow
 				font.pointSize: uiSettings.sizeFont
 				onTextChanged: modelController.viewModeValue = text
 				Component.onCompleted: text = modelController.viewModeValue

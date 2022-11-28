@@ -47,13 +47,14 @@ Item
 		{
 			id: layoutID
 			anchors.fill: parent
+			spacing: uiSettings.sizeSplitViewHandle
 
 			CustomText
 			{
 				id: authorID
 				function getIndex() { return uiSettings.indexAuthor }
 				property bool ready: false
-				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthAuthor - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthAuthor : -1
 				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.authorsVisible
 				color: textColor
@@ -65,7 +66,7 @@ Item
 				id: titleID
 				function getIndex() { return uiSettings.indexTitle }
 				property bool ready: false
-				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthTitle - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthTitle : -1
 				Layout.fillHeight: true
 				color: textColor
 				text: Title
@@ -76,7 +77,7 @@ Item
 				id: seriesID
 				function getIndex() { return uiSettings.indexSeries }
 				property bool ready: false
-				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSeries - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSeries : -1
 				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.seriesVisible
 				color: textColor
@@ -89,7 +90,7 @@ Item
 				function getIndex() { return uiSettings.indexSeqNo }
 				property bool ready: false
 				readonly property int seqNumber: SeqNumber
-				Layout.preferredWidth: ready ? uiSettings.widthSeqNo - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? uiSettings.widthSeqNo : -1
 				Layout.fillHeight: true
 				horizontalAlignment: Text.AlignRight
 				color: textColor
@@ -101,7 +102,7 @@ Item
 				id: sizeID
 				function getIndex() { return uiSettings.indexSize }
 				property bool ready: false
-				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSize - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthSize : -1
 				Layout.fillHeight: true
 				horizontalAlignment: Text.AlignRight
 				color: textColor
@@ -113,7 +114,7 @@ Item
 				id: genreID
 				function getIndex() { return uiSettings.indexGenre }
 				property bool ready: false
-				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthGenre - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? bookLayoutID.width * uiSettings.widthGenre -1 : -1
 				Layout.fillHeight: true
 				visible: fieldsVisibilityProvider.genresVisible
 				color: textColor
@@ -126,7 +127,7 @@ Item
 				function getIndex() { return uiSettings.indexLanguage }
 				property bool ready: false
 				Layout.fillHeight: true
-				Layout.preferredWidth: ready ? uiSettings.widthLanguage - uiSettings.sizeSplitViewHandle : -1
+				Layout.preferredWidth: ready ? uiSettings.widthLanguage - 1 : -1
 				color: textColor
 				text: Lang
 			}
