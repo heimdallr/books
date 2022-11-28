@@ -9,7 +9,7 @@ Rectangle
 	implicitHeight: uiSettings.sizeSplitViewHandle
 	color
 		: SplitHandle.pressed ?	uiSettings.colorSplitViewHandlePressed
-		: SplitHandle.hovered ?	Qt.lighter(uiSettings.colorSplitViewHandle, 1.2)
+		: SplitHandle.hovered ?	uiSettings.colorSplitViewHandleHovered
 		:						uiSettings.colorSplitViewHandle
 
 /*	containmentMask: Item

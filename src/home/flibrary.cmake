@@ -15,8 +15,9 @@ CreateMap(UI_SETTING_NAMES
 		colorLogVerbose               \"lightgray\"
 		colorLogWarning               \"magenta\"
 		colorProgressBar              \"lightsteelblue\"
-		colorSplitViewHandle          \"\#c2f4c6\"
-		colorSplitViewHandlePressed   \"\#81e889\"
+		colorSplitViewHandle          \"\#e0e0e0\"
+		colorSplitViewHandleHovered   \"\#d0d0d0\"
+		colorSplitViewHandlePressed   \"\#c0c0c0\"
 		heightBookInfo                  0.25
 		heightMainWindow                720
 		heightRow                       20

@@ -207,17 +207,17 @@ Restart now?</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="63"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="73"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
         <source>Size</source>
         <translation>Размер</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="85"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="87"/>
         <source>GenreAlias</source>
         <translation>Жанр</translation>
     </message>

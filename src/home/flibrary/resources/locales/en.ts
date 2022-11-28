@@ -206,17 +206,17 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="63"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="73"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
         <source>Size</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="85"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="87"/>
         <source>GenreAlias</source>
         <translation>Genre</translation>
     </message>
