@@ -243,6 +243,17 @@ protected:
 		Observable<Observer>::Perform(&Observer::HandleInvalidated);
 	}
 
+	bool FindIncremented(const QModelIndex & index, const int increment)
+	{
+		int incrementedIndex = index.row() + increment;
+		const IncreaseLocalIndexRequest request { index.row(), &incrementedIndex };
+		if (!SetDataGlobal(QVariant::fromValue(request), Role::IncreaseLocalIndex))
+			return false;
+
+		this->Perform(&Observer::HandleModelItemFound, incrementedIndex);
+		return true;
+	}
+
 private:
 	template <typename Member>
 	static RoleGetter CreateGetter(Member member)

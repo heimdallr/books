@@ -174,11 +174,9 @@ private:
 					if (!item.IsDictionary)
 						return false;
 
-					if (!item.Expanded)
-						return SetDataLocal(index, true, Role::Expanded, item);
-
-					Perform(&Observer::HandleModelItemFound, index.row() + 1);
-					return true;
+					return item.Expanded
+						? FindIncremented(index, 1)
+						: SetDataLocal(index, true, Role::Expanded, item);
 
 				default:
 					break;
