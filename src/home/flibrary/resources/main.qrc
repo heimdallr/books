@@ -75,7 +75,6 @@
 		<file alias="expander.png">icons/expander.png</file>
 		<file alias="filter.png">icons/filter.png</file>
 		<file alias="find.png">icons/find.png</file>
-		<file alias="main.png">icons/main.png</file>
 		<file alias="tray.png">icons/tray.png</file>
 	</qresource>
 

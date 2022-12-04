@@ -83,6 +83,7 @@ GenerateTranslations(
 AddTarget(
 	NAME flibrary
 	TYPE app_bundle
+	WIN_APP_ICON "${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/icons/main.ico"
 	PROJECT_GROUP App
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary/src"
 	INCLUDE_DIRS

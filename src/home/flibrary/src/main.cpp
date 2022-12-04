@@ -26,7 +26,6 @@ int main(int argc, char * argv[])
 		while (true)
 		{
 			QApplication app(argc, argv);
-			QApplication::setWindowIcon(QIcon(":/icons/main.png"));
 
 			GuiController guiController;
 			app.installEventFilter(&guiController);
