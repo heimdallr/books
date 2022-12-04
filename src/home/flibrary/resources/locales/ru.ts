@@ -472,14 +472,6 @@ Restart now?</source>
         <translation>Скрыть аннотацию</translation>
     </message>
     <message>
-        <source>Hide log</source>
-        <translation type="vanished">Скрыть журнал</translation>
-    </message>
-    <message>
-        <source>Show log</source>
-        <translation type="vanished">Показать журнал</translation>
-    </message>
-    <message>
         <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="6"/>
         <source>Settings</source>
         <translation>Настройки</translation>
@@ -511,11 +503,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
-        <source>Another e-library book classifier</source>
-        <translation>Ещё один классификатор книг электронной библиотеки</translation>
+        <source>Another e-library book cataloger</source>
+        <translation>Ещё один каталогизатор книг электронной библиотеки</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Help.qml" line="19"/>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="21"/>
         <source>About Flibrary...</source>
         <translation>О Flibrary...</translation>
     </message>

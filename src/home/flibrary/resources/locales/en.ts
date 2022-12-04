@@ -502,11 +502,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
-        <source>Another e-library book classifier</source>
+        <source>Another e-library book cataloger</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Help.qml" line="19"/>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="21"/>
         <source>About Flibrary...</source>
         <translation></translation>
     </message>
