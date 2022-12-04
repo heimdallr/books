@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 import "qrc:/Util/Functions.js" as Functions
 
@@ -26,6 +27,15 @@ Item
 			rightMargin: Functions.GetMargin()
 			verticalCenter: parent.verticalCenter
 		}
+
+		ToolTip
+		{
+			delay: uiSettings.toolTipDelay
+			timeout: uiSettings.toolTipTimeout
+			visible: textID.truncated && mouseAreaID.containsMouse
+			font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontToolTip
+			text: textID.text
+		}
 	}
 
 	TextMetrics
@@ -33,5 +43,12 @@ Item
 		id: textMetricsID
 		font: textID.font
 		text: textID.text
+	}
+
+	MouseArea
+	{
+		id: mouseAreaID
+		anchors.fill: parent
+		hoverEnabled: true
 	}
 }

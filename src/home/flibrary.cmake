@@ -42,9 +42,12 @@ CreateMap(UI_SETTING_NAMES
 		sizeExpander                    0.4
 		sizeFont                        9
 		sizeFontError                   0.9
+		sizeFontToolTip                 0.9
 		sizeLogMaximum                  10000
 		sizeScrollbar                   0.8
 		sizeSplitViewHandle             4
+		toolTipDelay                    400
+		toolTipTimeout                  4000
 		viewModeBooks                 \"Find\"
 		viewModeNavigation            \"Find\"
 		viewModeValueBooks            \"\"
