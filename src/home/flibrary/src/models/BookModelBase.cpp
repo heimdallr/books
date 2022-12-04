@@ -16,7 +16,7 @@ std::set<QString> GetLanguages(const Books & books)
 {
 	std::set<QString> uniqueLanguages;
 	for (const auto & item : books)
-		if (!item.IsDictionary)
+		if (!item.IsDictionary && !item.Lang.isEmpty())
 			uniqueLanguages.insert(item.Lang);
 
 	return uniqueLanguages;
