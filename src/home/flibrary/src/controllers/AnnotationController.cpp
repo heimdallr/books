@@ -47,6 +47,14 @@ constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 #undef	XML_PARSE_MODE_ITEM
 };
 
+bool IsNewLine(const std::string & name)
+{
+	return false
+		|| name == "p"
+		|| name == "empty-line"
+		;
+}
+
 struct SaxHandler : XSPHandler
 {
 	std::string annotation;
@@ -61,9 +69,9 @@ private: // XSPHandler
 
 	void OnElementBegin(const std::string & name) override
 	{
-		if (name == "p")
+		if (m_mode == XmlParseMode::annotation)
 		{
-			if (m_mode == XmlParseMode::annotation)
+			if (IsNewLine(name))
 				annotation.append("    ");
 			return;
 		}
@@ -77,10 +85,13 @@ private: // XSPHandler
 
 	void OnElementEnd(const std::string & name) override
 	{
-		if (name == "p" && m_mode == XmlParseMode::annotation)
+		if (m_mode == XmlParseMode::annotation)
 		{
-			annotation.append("\n\n");
-			return;
+			if (IsNewLine(name))
+				annotation.append("\n\n");
+
+			if (name != "annotation")
+				return;
 		}
 
 		m_mode = XmlParseMode::unknown;
