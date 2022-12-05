@@ -168,6 +168,7 @@ Window
 				    title: qsTranslate("Common", "Warning")
 				    text: qsTranslate("AddCollectionDialog", "Database file already exists. Owerride?")
 					standardButtons: StandardButton.Yes | StandardButton.No
+					icon: StandardIcon.Warning
 				    onYes: collectionController.CreateCollection(collectionNameID.text, collectionDatabaseID.text, collectionArchiveFolderID.text)
 				}
 

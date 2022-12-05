@@ -17,6 +17,7 @@ DynamicMenu
 	    title: qsTranslate("Common", "Warning")
 	    text: qsTranslate("Collection", "You must restart the application to apply the changes.\nRestart now?")
 		standardButtons: StandardButton.Yes | StandardButton.No
+		icon: StandardIcon.Question
 	    onYes: Qt.exit(1234)
 	}
 

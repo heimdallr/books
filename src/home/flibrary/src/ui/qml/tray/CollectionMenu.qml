@@ -15,6 +15,7 @@ Menu
 		title: qsTranslate("Common", "Warning")
 		text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
 		standardButtons: StandardButton.Yes | StandardButton.No
+		icon: StandardIcon.Warning
 		onYes: collectionController.RemoveCurrentCollection()
 	}
 
@@ -24,6 +25,7 @@ Menu
 		title: qsTranslate("Common", "Warning")
 		text: qsTranslate("Collection", "Looks like the collection has been updated. Apply changes?")
 		standardButtons: StandardButton.Yes | StandardButton.Cancel | StandardButton.Discard
+		icon: StandardIcon.Question
 		visible: collectionController.hasUpdate
 		onYes: collectionController.ApplyUpdate()
 		onRejected: collectionController.hasUpdate = false
