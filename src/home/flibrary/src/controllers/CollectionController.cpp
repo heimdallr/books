@@ -250,7 +250,7 @@ void CollectionController::CreateCollection(QString name, QString db, QString fo
 	}});
 }
 
-bool CollectionController::CheckCreateCollection(QString name, QString db, QString folder)
+bool CollectionController::CheckCreateCollection(const QString & name, const QString & db, const QString & folder)
 {
 	return m_impl->CheckNewCollection(name, db, folder, true);
 }
