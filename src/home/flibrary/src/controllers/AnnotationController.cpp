@@ -4,6 +4,8 @@
 #include <QGuiApplication>
 #include <QTextCodec>
 #include <QTimer>
+#include <QXmlStreamReader>
+
 
 #include "fnd/FindPair.h"
 
@@ -12,11 +14,13 @@
 
 #include "ZipLib/ZipFile.h"
 
-#include "SimpleSaxParser/SaxParser.h"
-
 #include "ModelControllers/BooksModelControllerObserver.h"
 
+#include "models/Book.h"
+
 #include "AnnotationController.h"
+
+#include <plog/Log.h>
 
 namespace HomeCompa::Flibrary {
 
@@ -34,7 +38,7 @@ constexpr auto L_HREF = "l:href";
 
 enum class XmlParseMode
 {
-	unknown = -1,
+		unknown = -1,
 #define XML_PARSE_MODE_ITEM(NAME) NAME,
 		XML_PARSE_MODE_ITEMS_XMACRO
 #undef	XML_PARSE_MODE_ITEM
@@ -47,111 +51,225 @@ constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 #undef	XML_PARSE_MODE_ITEM
 };
 
-bool IsNewLine(const std::string & name)
+class IODeviceStdStreamWrapper final
+	: public QIODevice
 {
-	return false
-		|| name == "p"
-		|| name == "empty-line"
-		;
-}
+public:
+	explicit IODeviceStdStreamWrapper(std::istream & stream)
+		: m_stream(stream)
+	{
+	}
 
-struct SaxHandler : XSPHandler
+private: // QIODevice
+	qint64 readData(char * const data, const qint64 maxLength) override
+	{
+		m_stream.read(data, maxLength);
+		return m_stream.gcount();
+	}
+	qint64 readLineData(char * const data, const qint64 maxLength) override
+	{
+		m_stream.getline(data, maxLength);
+		return m_stream.gcount();
+	}
+	qint64 writeData(const char *, const qint64) override
+	{
+		throw std::runtime_error("Cannot write to read only stream");
+	}
+
+	bool atEnd() const override
+	{
+		return m_stream.eof();
+	}
+	qint64 bytesAvailable() const override
+	{
+		return size() - pos();
+	}
+	qint64 bytesToWrite() const override
+	{
+		return 0;
+	}
+	bool canReadLine() const override
+	{
+		return false;
+	}
+	void close() override
+	{
+		QIODevice::close();
+	}
+	bool isSequential() const override
+	{
+		return false;
+	}
+	bool open(OpenMode mode) override
+	{
+		if (mode & (WriteOnly | Append | Truncate | NewOnly))
+			throw std::runtime_error("Read only expected");
+
+		return m_stream.good() && QIODevice::open(mode);
+	}
+	qint64 pos() const override
+	{
+		return m_stream.tellg();
+	}
+	bool reset() override
+	{
+		return seek(0);
+	}
+	bool seek(qint64 pos) override
+	{
+		m_stream.seekg(pos);
+		if (m_stream.eof())
+			return false;
+
+		return QIODevice::seek(pos);
+	}
+	qint64 size() const override
+	{
+		if (m_size < 0)
+		{
+			const auto currentPosition = pos();
+			m_stream.seekg(0, std::ios_base::end);
+			m_size = pos();
+			m_stream.seekg(currentPosition, std::ios_base::beg);
+		}
+
+		return m_size;
+	}
+
+	bool waitForBytesWritten(int) override
+	{
+		return true;
+	}
+	bool waitForReadyRead(int) override
+	{
+		return true;
+	}
+
+private:
+	std::istream & m_stream;
+	mutable qint64 m_size { -1 };
+};
+
+struct XmlParser final
+	: QXmlStreamReader
 {
-	std::string annotation;
+	QString annotation;
 	std::vector<QString> covers;
 	int coverIndex { -1 };
 
-private: // XSPHandler
-	void OnEncoding([[maybe_unused]] const std::string & name) override
+	explicit XmlParser(QIODevice & ioDevice)
+		: QXmlStreamReader(&ioDevice)
 	{
-		m_textCodec = QTextCodec::codecForName(name.data());
 	}
 
-	void OnElementBegin(const std::string & name) override
+	void Parse()
 	{
+		using ParseType = void(XmlParser:: *)();
+		static constexpr std::pair<TokenType, ParseType> s_parsers[]
+		{
+			{ StartElement, &XmlParser::OnStartElement },
+			{ EndElement, &XmlParser::OnEndElement },
+			{ Characters, &XmlParser::OnCharacters },
+		};
+
+		while (!atEnd() && !hasError())
+		{
+			const auto token = readNext();
+			const auto parser = FindSecond(s_parsers, token, &XmlParser::Stub, std::equal_to<>{});
+			std::invoke(parser, this);
+		}
+	}
+
+private:
+	void Stub()
+	{
+	}
+
+	void OnStartElement()
+	{
+		const auto nodeName = name();
 		if (m_mode == XmlParseMode::annotation)
 		{
-			if (IsNewLine(name))
-				annotation.append("    ");
+			annotation.append(QString("<%1>").arg(nodeName));
 			return;
 		}
 
-		const auto mode = FindSecond(g_parseModes, name.data(), XmlParseMode::unknown, PszComparer {});
+		const auto mode = FindSecond(g_parseModes, nodeName.toUtf8(), XmlParseMode::unknown, PszComparer {});
 		if (mode == XmlParseMode::image && m_mode != XmlParseMode::coverpage)
 			return;
 
 		m_mode = mode;
+
+		using ParseType = void(XmlParser:: *)();
+		static constexpr std::pair<XmlParseMode, ParseType> s_parsers[]
+		{
+			{ XmlParseMode::image, &XmlParser::OnStartElementCoverPageImage },
+			{ XmlParseMode::binary, &XmlParser::OnStartElementBinary },
+		};
+
+		const auto parser = FindSecond(s_parsers, m_mode, &XmlParser::Stub, std::equal_to<>{});
+		std::invoke(parser, this);
 	}
 
-	void OnElementEnd(const std::string & name) override
+	void OnEndElement()
 	{
+		const auto nodeName = name();
 		if (m_mode == XmlParseMode::annotation)
 		{
-			if (IsNewLine(name))
-				annotation.append("\n\n");
-
-			if (name != "annotation")
+			if (nodeName != "annotation")
+			{
+				annotation.append(QString("</%1>").arg(nodeName));
 				return;
+			}
 		}
 
 		m_mode = XmlParseMode::unknown;
 	}
 
-	void OnText(const std::string & value) override
+	void OnCharacters()
 	{
-		if (m_mode == XmlParseMode::annotation)
-			annotation.append(m_textCodec->toUnicode(value.data(), static_cast<int>(value.size())).toStdString());
-
-		if (m_mode == XmlParseMode::binary)
-			ProcessBinary(value);
-	}
-
-	void OnAttribute(const std::string & name, const std::string & value) override
-	{
-		switch (m_mode)
+		using ParseType = void(XmlParser:: *)();
+		static constexpr std::pair<XmlParseMode, ParseType> s_parsers[]
 		{
-			case XmlParseMode::binary:
-				if (name == CONTENT_TYPE)
-				{
-					m_binaryContentType = value;
-					break;
-				}
-				if (name == ID)
-				{
-					m_binaryId = value;
-					break;
-				}
-				break;
+			{ XmlParseMode::annotation, &XmlParser::OnCharactersAnnotation },
+			{ XmlParseMode::binary, &XmlParser::OnCharactersBinary },
+		};
 
-			case XmlParseMode::image:
-				if (name == L_HREF)
-				{
-					m_coverPageId = value;
-					if (const auto pos = m_coverPageId.find_first_not_of('#'); pos != std::string::npos)
-						m_coverPageId.erase(m_coverPageId.cbegin(), std::next(m_coverPageId.cbegin(), pos));
-				}
-				break;
-
-			default:
-				break;
-		}
+		const auto parser = FindSecond(s_parsers, m_mode, &XmlParser::Stub, std::equal_to<>{});
+		std::invoke(parser, this);
 	}
 
-private:
-	void ProcessBinary(const std::string & value)
+	void OnStartElementCoverPageImage()
 	{
-		if (m_binaryId == m_coverPageId)
+		auto coverPageId = attributes().value(L_HREF);
+		while (!coverPageId.isEmpty() && coverPageId.startsWith('#'))
+			coverPageId = coverPageId.right(coverPageId.length() - 1);
+		m_coverPageId = coverPageId.toString();
+	}
+
+	void OnStartElementBinary()
+	{
+		const auto attrs = attributes();
+		const auto binaryId = attrs.value(ID), contentType = attrs.value(CONTENT_TYPE);
+		if (m_coverPageId == binaryId)
 			coverIndex = static_cast<int>(covers.size());
 
-		covers.emplace_back(QString("data:%1;base64,").arg(m_binaryContentType.data()).append(value.data()));
+		covers.emplace_back(QString("data:%1;base64,").arg(contentType));
+	}
+
+	void OnCharactersAnnotation()
+	{
+		annotation.append(text());
+	}
+
+	void OnCharactersBinary()
+	{
+		covers.back().append(text());
 	}
 
 private:
 	XmlParseMode m_mode { XmlParseMode::unknown };
-	std::string m_binaryContentType;
-	std::string m_coverPageId;
-	std::string m_binaryId;
-	QTextCodec * m_textCodec { QTextCodec::codecForLocale() };
+	QString m_coverPageId;
 };
 
 }
@@ -195,7 +313,7 @@ public:
 		m_rootFolder = std::move(rootFolder);
 	}
 
-	const QString & GetAnnotation() const
+	QString GetAnnotation() const
 	{
 		std::lock_guard lock(m_guard);
 		return m_annotation;
@@ -228,8 +346,14 @@ private: // BooksModelControllerObserver
 private:
 	void ExtractAnnotation()
 	{
-		(*m_executor)({ "Get annotation", [&, folder = (m_rootFolder / m_book.Folder.toStdWString()).make_preferred(), file = m_book.FileName.toStdString()]
+		if (m_book.IsDictionary || m_book.Id < 0)
+			return;
+
+		(*m_executor)({ "Get annotation", [&, book = std::move(m_book)]
 		{
+			const auto folder = (m_rootFolder / book.Folder.toStdWString()).make_preferred();
+			const auto file = book.FileName.toStdString();
+
 			auto stub = [&]
 			{
 				emit m_self.AnnotationChanged();
@@ -259,23 +383,26 @@ private:
 			if (!stream)
 				return stub;
 
-			SaxParser parser;
-			SaxHandler handler;
+			std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(*stream);
+			ioDevice->open(QIODevice::ReadOnly);
+			XmlParser parser(*ioDevice);
+
 			try
 			{
-				parser.Parse(stream, &handler);
+				parser.Parse();
 
 				std::lock_guard lock(m_guard);
-				m_annotation = QString::fromStdString(handler.annotation);
-				m_covers = std::move(handler.covers);
+				m_annotation = std::move(parser.annotation);
+				m_covers = std::move(parser.covers);
 				m_coverIndex
 					= m_covers.empty() ? -1
-					: handler.coverIndex >= 0 ? handler.coverIndex
+					: parser.coverIndex >= 0 ? parser.coverIndex
 					: 0
 					;
 			}
-			catch (SaxParserException &)
+			catch (const std::exception & ex)
 			{
+				PLOGE << ex.what();
 			}
 
 			return stub;
@@ -323,7 +450,7 @@ void AnnotationController::SetRootFolder(std::filesystem::path rootFolder)
 	m_impl->SetRootFolder(std::move(rootFolder));
 }
 
-const QString & AnnotationController::GetAnnotation() const
+QString AnnotationController::GetAnnotation() const
 {
 	return m_impl->GetAnnotation();
 }

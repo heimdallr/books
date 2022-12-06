@@ -39,7 +39,7 @@ public:
 	void SetRootFolder(std::filesystem::path rootFolder);
 
 private: // property getters
-	const QString & GetAnnotation() const;
+	QString GetAnnotation() const;
 	bool GetHasCover() const;
 	const QString & GetCover() const;
 
