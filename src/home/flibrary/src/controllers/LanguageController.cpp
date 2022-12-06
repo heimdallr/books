@@ -53,7 +53,7 @@ private: // ComboBoxObserver
 	}
 
 private: //BooksModelControllerObserver
-	void HandleBookChanged(const std::string & /*folder*/, const std::string & /*file*/) override
+	void HandleBookChanged(const Book &) override
 	{
 	}
 

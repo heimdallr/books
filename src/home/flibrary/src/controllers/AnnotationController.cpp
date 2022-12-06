@@ -215,10 +215,9 @@ public:
 
 
 private: // BooksModelControllerObserver
-	void HandleBookChanged(const std::string & folder, const std::string & file) override
+	void HandleBookChanged(const Book & book) override
 	{
-		m_folderTmp = folder;
-		m_fileTmp = file;
+		m_book = book;
 		m_annotationTimer.start();
 	}
 
@@ -229,13 +228,7 @@ private: // BooksModelControllerObserver
 private:
 	void ExtractAnnotation()
 	{
-		if (m_folder == m_folderTmp && m_file == m_fileTmp)
-			return;
-
-		m_folder = m_folderTmp;
-		m_file = m_fileTmp;
-
-		(*m_executor)({ "Get annotation", [&, folder = (m_rootFolder / m_folder).make_preferred(), file = m_file]
+		(*m_executor)({ "Get annotation", [&, folder = (m_rootFolder / m_book.Folder.toStdWString()).make_preferred(), file = m_book.FileName.toStdString()]
 		{
 			auto stub = [&]
 			{
@@ -295,8 +288,7 @@ private:
 	QTimer m_annotationTimer;
 	std::filesystem::path m_rootFolder;
 
-	std::string m_folder, m_folderTmp;
-	std::string m_file, m_fileTmp;
+	Book m_book;
 
 	mutable std::mutex m_guard;
 	QString m_annotation;

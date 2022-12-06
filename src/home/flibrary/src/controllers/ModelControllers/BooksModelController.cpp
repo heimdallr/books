@@ -1025,7 +1025,7 @@ bool BooksModelController::SetCurrentIndex(const int index)
 	assert(index < static_cast<int>(std::size(m_impl->books)));
 	const auto & book = m_impl->books[index];
 	if (!book.IsDictionary)
-		m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, book.Folder.toStdString(), book.FileName.toStdString());
+		m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, std::cref(book));
 
 	return ModelController::SetCurrentIndex(index);
 }
