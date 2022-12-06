@@ -68,6 +68,7 @@ Rectangle
 		{
 			readOnly: true
 			selectByKeyboard: true
+			textFormat: TextEdit.RichText
 			selectByMouse: true
 			wrapMode: TextEdit.WordWrap
 			font.pointSize: uiSettings.sizeFont
