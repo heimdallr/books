@@ -127,7 +127,6 @@ AddTarget(
 		InpxLib
 		MyHomeLibSQLIteExt
 		plog
-		SimpleSaxParser
 		Util
 	MODULES
 		qt
