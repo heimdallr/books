@@ -1,6 +1,7 @@
 #include <mutex>
 
 #include <QCursor>
+#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QTextCodec>
 #include <QTimer>
@@ -50,6 +51,15 @@ constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 		XML_PARSE_MODE_ITEMS_XMACRO
 #undef	XML_PARSE_MODE_ITEM
 };
+
+QString GetBookInfoTable(const Book & book)
+{
+	return QString("<table>")
+		+ QCoreApplication::translate("Annotation", "<tr><td>Archive: </td><td>%1</td></tr>").arg(book.Folder)
+		+ QCoreApplication::translate("Annotation", "<tr><td>File: </td><td>%1</td></tr>").arg(book.FileName)
+		+ QCoreApplication::translate("Annotation", "<tr><td>Updated: </td><td>%1</td></tr>").arg(book.UpdateDate)
+		+ QString("</table>");
+}
 
 class IODeviceStdStreamWrapper final
 	: public QIODevice
@@ -393,6 +403,7 @@ private:
 
 				std::lock_guard lock(m_guard);
 				m_annotation = std::move(parser.annotation);
+				m_annotation += QString("%1%2%3").arg(m_annotation.isEmpty() ? "" : "<p>").arg(GetBookInfoTable(book)).arg(m_annotation.isEmpty() ? "" : "</p>");
 				m_covers = std::move(parser.covers);
 				m_coverIndex
 					= m_covers.empty() ? -1

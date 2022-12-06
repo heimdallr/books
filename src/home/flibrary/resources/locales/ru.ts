@@ -32,14 +32,32 @@
         <translation>Файл базы данных уже существует. Перезаписать?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="177"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="192"/>
         <source>Add</source>
         <translation>Добавить</translation>
+    </message>
+</context>
+<context>
+    <name>Annotation</name>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="57"/>
+        <source>&lt;tr&gt;&lt;td&gt;Archive: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation>&lt;tr&gt;&lt;td&gt;Архив: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="58"/>
+        <source>&lt;tr&gt;&lt;td&gt;File: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation>&lt;tr&gt;&lt;td&gt;Файл: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="59"/>
+        <source>&lt;tr&gt;&lt;td&gt;Updated: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation>&lt;tr&gt;&lt;td&gt;Обновлён: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
 </context>
 <context>
@@ -98,7 +116,7 @@
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="25"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="26"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
@@ -120,14 +138,14 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="201"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="168"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="24"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="25"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation>Внимание</translation>
@@ -432,17 +450,17 @@ Restart now?</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="41"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="43"/>
         <source>Add new collection...</source>
         <translation>Добавить коллкцию...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="51"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="53"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="66"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="68"/>
         <source>Remove collection</source>
         <translation>Удалить коллекцию</translation>
     </message>
