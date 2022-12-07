@@ -60,4 +60,7 @@ include("src/home/database.cmake")
 include("src/home/inpx.cmake")
 include("src/home/flibrary.cmake")
 
+file(GLOB THIRDPARTY_BINARIES "${CMAKE_CURRENT_BINARY_DIR}-thirdparty/bin/*.dll")
+append(PREPARE_WORKSPACE_FILES ${THIRDPARTY_BINARIES})
+
 include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")
