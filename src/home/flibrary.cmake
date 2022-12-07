@@ -90,8 +90,12 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/include"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
 		"${CMAKE_CURRENT_LIST_DIR}/inpx/src"
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include"
+	INCLUDE_LIB_DIRS
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/lib"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 	QRC

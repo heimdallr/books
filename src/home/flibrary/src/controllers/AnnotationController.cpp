@@ -1,27 +1,26 @@
+#include <fstream>
 #include <mutex>
 
 #include <QCursor>
-#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QTextCodec>
 #include <QTimer>
 #include <QXmlStreamReader>
 
+#include <plog/Log.h>
+
+#include "Poco/Zip.h"
 
 #include "fnd/FindPair.h"
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
-#include "ZipLib/ZipFile.h"
-
 #include "ModelControllers/BooksModelControllerObserver.h"
 
 #include "models/Book.h"
 
 #include "AnnotationController.h"
-
-#include <plog/Log.h>
 
 namespace HomeCompa::Flibrary {
 
@@ -381,19 +380,18 @@ private:
 			if (!exists(folder))
 				return stub;
 
-			const auto archive = ZipFile::Open(folder.generic_string());
-			if (!archive)
+			std::ifstream zipStream(folder.generic_string(), std::ios::binary);
+			Poco::Zip::ZipArchive zipArchive(zipStream);
+			const auto headerIt = zipArchive.findHeader(file);
+			if (headerIt == zipArchive.headerEnd())
+			{
+				PLOGE << "Cannot find '" << file << "' in '" << folder << "'";
 				return stub;
+			}
 
-			const auto entry = archive->GetEntry(file);
-			if (!entry)
-				return stub;
+			Poco::Zip::ZipInputStream decodedStream(zipStream, headerIt->second);
 
-			auto * const stream = entry->GetDecompressionStream();
-			if (!stream)
-				return stub;
-
-			std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(*stream);
+			std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(decodedStream);
 			ioDevice->open(QIODevice::ReadOnly);
 			XmlParser parser(*ioDevice);
 

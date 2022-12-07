@@ -45,17 +45,17 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="57"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="62"/>
         <source>&lt;tr&gt;&lt;td&gt;Archive: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="58"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="63"/>
         <source>&lt;tr&gt;&lt;td&gt;File: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="59"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="64"/>
         <source>&lt;tr&gt;&lt;td&gt;Updated: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
