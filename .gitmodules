@@ -25,3 +25,6 @@
 [submodule "src/ext/plog"]
 	path = src/ext/plog
 	url = ../plog.git
+[submodule "src/ext/poco"]
+	path = src/ext/poco
+	url = ../poco.git
