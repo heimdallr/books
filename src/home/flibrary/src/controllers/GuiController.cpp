@@ -6,12 +6,14 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSystemTrayIcon>
+#include <QTimer>
 #pragma warning(pop)
 
 #include <plog/Log.h>
 
 #include "database/factory/Factory.h"
 #include "database/interface/Database.h"
+#include "database/interface/Query.h"
 
 #include "models/RoleBase.h"
 #include "models/BookRole.h"
@@ -152,7 +154,7 @@ public:
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
-		qmlContext->setContextProperty("localeController", new LocaleController(*m_uiSettingsSrc, &m_self));
+		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("annotationController", &m_annotationController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("measure", new Measure(&m_self));
@@ -246,6 +248,40 @@ public:
 	ComboBoxController * GetLanguageComboBoxBooksController() noexcept
 	{
 		return m_languageController.GetComboBoxController();
+	}
+
+	void LogCollectionStatistics()
+	{
+		(*m_executor)({ "Get collection statistics", [&]
+		{
+			static constexpr auto dbStatQueryText =
+				"select '%1', count(42) from Authors union all "
+				"select '%2', count(42) from Series union all "
+				"select '%3', count(42) from Books union all "
+				"select '%4', count(42) from Books where IsDeleted != 0"
+				;
+
+			QStringList stats;
+			stats << QCoreApplication::translate("CollectionStatistics", "Collection statistics:");
+			auto bookQuery = m_db->CreateQuery(QString(dbStatQueryText).arg
+			(
+				  QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:")
+				, QT_TRANSLATE_NOOP("CollectionStatistics", "Series:")
+				, QT_TRANSLATE_NOOP("CollectionStatistics", "Books:")
+				, QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:")
+			).toStdString());
+			for (bookQuery->Execute(); !bookQuery->Eof(); bookQuery->Next())
+			{
+				[[maybe_unused]] const auto * name = bookQuery->Get<const char *>(0);
+				[[maybe_unused]] const auto translated = QCoreApplication::translate("CollectionStatistics", bookQuery->Get<const char *>(0));
+				stats << QString("%1 %2").arg(translated).arg(bookQuery->Get<long long>(1));
+			}
+
+			return[stats = stats.join("\n")]
+			{
+				PLOGI << std::endl << stats;
+			};
+		} });
 	}
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)
@@ -357,6 +393,8 @@ private: // CollectionController::Observer
 		emit m_self.TitleChanged();
 
 		m_collectionController.CheckForUpdate(collection);
+
+		LogCollectionStatistics();
 	}
 
 private: // SettingsObserver
@@ -398,6 +436,7 @@ private:
 	Collection m_currentCollection;
 
 	NavigationSourceProvider m_navigationSourceProvider;
+	LocaleController m_localeController { *m_uiSettingsSrc, &m_self };
 	LanguageController m_languageController { *this };
 	ProgressController m_progressController;
 	LogController m_logController { *this };
@@ -471,6 +510,11 @@ ComboBoxController * GuiController::GetViewSourceComboBoxBooksController() noexc
 ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcept
 {
 	return m_impl->GetLanguageComboBoxBooksController();
+}
+
+void GuiController::LogCollectionStatistics()
+{
+	m_impl->LogCollectionStatistics();
 }
 
 bool GuiController::eventFilter(QObject * obj, QEvent * event)

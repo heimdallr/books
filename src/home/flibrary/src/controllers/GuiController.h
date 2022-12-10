@@ -39,6 +39,7 @@ public:
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept;
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxBooksController() noexcept;
 	Q_INVOKABLE ComboBoxController * GetLanguageComboBoxBooksController() noexcept;
+	Q_INVOKABLE void LogCollectionStatistics();
 
 signals:
 	void OpenedChanged() const;

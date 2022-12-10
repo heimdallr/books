@@ -129,6 +129,34 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>CollectionStatistics</name>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="264"/>
+        <source>Collection statistics:</source>
+        <translation>Статистика коллекции:</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="267"/>
+        <source>Authors:</source>
+        <translation>Авторы:</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="268"/>
+        <source>Series:</source>
+        <translation>Серии:</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="269"/>
+        <source>Books:</source>
+        <translation>Книги:</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="270"/>
+        <source>Deleted books:</source>
+        <translation>Удалённые книги:</translation>
+    </message>
+</context>
+<context>
     <name>Common</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="80"/>
@@ -272,6 +300,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
+        <source>Show collection statistics</source>
+        <translation>Показать статистику коллекции</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="22"/>
         <source>Clear log</source>
         <translation>Очистить журнал</translation>
     </message>
@@ -546,27 +579,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="88"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="89"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="89"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="90"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="78"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="81"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>

@@ -17,5 +17,15 @@ Menu
 		onTriggered: log.Clear()
 	}
 
+	MenuItem
+	{
+		text: qsTranslate("Logging", "Show collection statistics")
+		onTriggered:
+		{
+			log.logMode = true
+			guiController.LogCollectionStatistics()
+		}
+	}
+
 	SeverityLevel{}
 }
