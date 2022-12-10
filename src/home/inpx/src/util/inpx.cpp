@@ -10,10 +10,11 @@
 
 #include <plog/Log.h>
 
+#include "Poco/Zip.h"
+
 #include "fmt/core.h"
 #include "sqlite/shell/sqlite_shell.h"
 #include "sqlite3ppext.h"
-#include "ZipLib/ZipFile.h"
 
 #pragma warning(pop)
 
@@ -308,16 +309,14 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 			PLOGI << n << " rows parsed";
 	}
 
-	const auto archive = ZipFile::Open(ToMultiByte(rootFolder.wstring() + L"/" + folder));
-	const auto entriesCount = archive->GetEntriesCount();
-	for (size_t i = 0; i < entriesCount; ++i)
+	std::ifstream zipStream(rootFolder / folder, std::ios::binary);
+	Poco::Zip::ZipArchive zipArchive(zipStream);
+	for (auto it = zipArchive.fileInfoBegin(), end = zipArchive.fileInfoEnd(); it != end; ++it)
 	{
-		const auto entry = archive->GetEntry(static_cast<int>(i));
-		const auto fileName = entry->GetFullName();
-		if (files.contains(fileName))
+		if (files.contains(it->first))
 			continue;
 
-		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
+		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << it->first;
 	}
 }
 
@@ -332,12 +331,11 @@ InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
 {
 	InpxContent inpxContent;
 
-	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
-	const auto entriesCount = archive->GetEntriesCount();
-	for (size_t i = 0; i < entriesCount; ++i)
+	std::ifstream zipStream(inpxFileName, std::ios::binary);
+	Poco::Zip::ZipArchive zipArchive(zipStream);
+	for (auto it = zipArchive.fileInfoBegin(), end = zipArchive.fileInfoEnd(); it != end; ++it)
 	{
-		const auto entry = archive->GetEntry(static_cast<int>(i));
-		auto folder = ToWide(entry->GetFullName());
+		auto folder = ToWide(it->first);
 
 		if (folder == COLLECTION_INFO)
 			inpxContent.collectionInfo.push_back(std::move(folder));
@@ -352,25 +350,26 @@ InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
 	return inpxContent;
 }
 
-std::pair<ZipArchiveEntry::Ptr, std::istream *> GetEntry(ZipArchive & archive, const std::wstring & name)
+std::unique_ptr<std::istream> GetDecodedStream(std::istream & stream, Poco::Zip::ZipArchive & zipArchive, const std::wstring & file)
 {
-	PLOGI << name;
-	auto entry = archive.GetEntry(ToMultiByte(name));
-	auto * stream = entry->GetDecompressionStream();
-	return std::make_pair(std::move(entry), stream);
+	PLOGI << file;
+	const auto headerIt = zipArchive.findHeader(ToMultiByte(file));
+	if (headerIt != zipArchive.headerEnd())
+		return std::make_unique<Poco::Zip::ZipInputStream>(stream, headerIt->second);
+
+	PLOGW << "Cannot find '" << file << "' in archive";
+	return {};
 }
 
-void ParseInpxFiles(std::wstring_view inpxFileName, ZipArchive & archive, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
+void ParseInpxFiles(std::wstring_view inpxFileName, std::istream & stream, Poco::Zip::ZipArchive & archive, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
 {
 	std::vector<std::wstring> unknownGenres;
 
 	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
 	size_t n = 0;
 	for (const auto & fileName : inpxFiles)
-	{
-		auto [_, stream] = GetEntry(archive, fileName);
-		ProcessInpx(*stream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
-	}
+		if (auto zipDecodedStream = GetDecodedStream(stream, archive, fileName))
+			ProcessInpx(*zipDecodedStream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
 
 	PLOGI << n << " rows parsed";
 
@@ -393,21 +392,18 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 	data.genres = std::move(genresData);
 
 	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
+	std::ifstream zipStream(inpxFileName, std::ios::binary);
+	Poco::Zip::ZipArchive zipArchive(zipStream);
 
 	for (const auto & fileName : inpxContent.collectionInfo)
-	{
-		auto [_, stream] = GetEntry(*archive, fileName);
-		ProcessCollectionInfo(*stream, data.settings);
-	}
+		if (auto zipDecodedStream = GetDecodedStream(zipStream, zipArchive, fileName))
+			ProcessCollectionInfo(*zipDecodedStream, data.settings);
 
 	for (const auto & fileName : inpxContent.versionInfo)
-	{
-		auto [_, stream] = GetEntry(*archive, fileName);
-		ProcessVersionInfo(*stream, data.settings);
-	}
+		if (auto zipDecodedStream = GetDecodedStream(zipStream, zipArchive, fileName))
+			ProcessVersionInfo(*zipDecodedStream, data.settings);
 
-	ParseInpxFiles(inpxFileName, *archive, inpxContent.inpx, genresIndex, data);
+	ParseInpxFiles(inpxFileName, zipStream, zipArchive, inpxContent.inpx, genresIndex, data);
 
 	return data;
 }
@@ -795,8 +791,9 @@ bool UpdateDatabase(const Ini & ini)
 	Data newData = oldData;
 	Dictionary newGenresIndex = oldGenresIndex;
 	auto inpxFileName = ini(INPX, DEFAULT_INPX);
-	const auto archive = ZipFile::Open(ToMultiByte(inpxFileName));
-	ParseInpxFiles(inpxFileName, *archive, GetNewInpxFolders(ini), newGenresIndex, newData);
+	std::ifstream zipStream(inpxFileName, std::ios::binary);
+	Poco::Zip::ZipArchive zipArchive(zipStream);
+	ParseInpxFiles(inpxFileName, zipStream, zipArchive, GetNewInpxFolders(ini), newGenresIndex, newData);
 
 	const auto filter = [] (Dictionary & dst, const Dictionary & src)
 	{

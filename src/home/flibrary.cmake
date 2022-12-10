@@ -89,7 +89,6 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
-		"${CMAKE_CURRENT_LIST_DIR}/../ext/ziplib/Source"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/include"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"

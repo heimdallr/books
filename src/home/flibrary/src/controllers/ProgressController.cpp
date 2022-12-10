@@ -62,6 +62,11 @@ void ProgressController::Add(std::shared_ptr<Progress> progress)
 	m_impl->progress.push_back(std::move(progress));
 	m_impl->forwarder.Forward([&]
 	{
+		if (m_impl->progress.size() == 1)
+		{
+			m_impl->value = 0.0;
+			emit ProgressChanged();
+		}
 		m_impl->timer.start();
 		emit StartedChanged();
 	});

@@ -9,11 +9,12 @@
 #include <QTextCodec>
 #include <QTimer>
 
+#include <plog/Log.h>
+
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
-#include "ZipLib/ZipFile.h"
-#include "ZipLib/methods/DeflateMethod.h"
+#include "Poco/Zip.h"
 
 #include "constants/ProductConstant.h"
 
@@ -29,6 +30,7 @@
 
 #include "util/executor.h"
 #include "util/Settings.h"
+#include "util/StrUtil.h"
 
 #include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
@@ -603,10 +605,15 @@ private: // std::streambuf
 		return this;
 	}
 
-	pos_type seekoff(off_type /*off*/, std::ios_base::seekdir /*dir*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
+	pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
 	{
-		assert(false && "implement me");
-		return 100;
+		if (dir == std::ios_base::cur && off == 0)
+		{
+			return m_src.tellg();
+		}
+		m_src.seekg(off, dir);
+		setg(m_buf.get(), m_buf.get() + m_bufSize, m_buf.get() + m_bufSize);
+		return m_src.tellg();
 	}
 
 	pos_type seekpos(pos_type /*pos*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
@@ -693,52 +700,57 @@ private:
 	const std::unique_ptr<char[]> m_buf { new char[m_bufSize] };
 };
 
-struct ArchiveSrc
+class ArchiveSrc
 {
-	ZipArchive::Ptr archive;
-	ZipArchiveEntry::Ptr entry;
-	std::istream * stream { nullptr };
+public:
+	ArchiveSrc(const std::filesystem::path & archiveFolder, const Book & book)
+	{
+		const auto archivePath = archiveFolder / book.Folder.toStdString();
+		if (!exists(archivePath))
+			throw std::runtime_error("Cannot find " + archivePath.generic_string());
+
+		m_zipEncodedStream = std::make_unique<std::ifstream>(archivePath.generic_string(), std::ios::binary);
+		if (m_zipEncodedStream->bad() || m_zipEncodedStream->eof())
+			throw std::runtime_error("Cannot open " + archivePath.generic_string());
+
+		m_archive = std::make_unique<Poco::Zip::ZipArchive>(*m_zipEncodedStream);
+		const auto headerIt = m_archive->findHeader(book.FileName.toStdString());
+		if (headerIt == m_archive->headerEnd())
+			throw std::runtime_error("Cannot find " + book.FileName.toStdString() + " in " + archivePath.generic_string());
+
+		m_decodedStream = std::make_unique<Poco::Zip::ZipInputStream>(*m_zipEncodedStream, headerIt->second);
+	}
+
+	std::istream & GetDecodedStream() const noexcept
+	{
+		return *m_decodedStream;
+	}
+
+private:
+	std::unique_ptr<std::ifstream> m_zipEncodedStream;
+	std::unique_ptr<Poco::Zip::ZipArchive> m_archive;
+	std::unique_ptr<Poco::Zip::ZipInputStream> m_decodedStream;
 };
-
-ArchiveSrc GetDecompressedStream(const std::filesystem::path & archiveFolder, const Book & book)
-{
-	ArchiveSrc result;
-	const auto archivePath = archiveFolder / book.Folder.toStdString();
-	if (!exists(archivePath))
-		return result;
-
-	result.archive = ZipFile::Open(archivePath.generic_string());
-	if (!result.archive)
-		return {};
-
-	result.entry = result.archive->GetEntry(book.FileName.toStdString());
-	if (!result.entry)
-		return {};
-
-	if (!result.entry->CanExtract())
-		return {};
-
-	result.stream = result.entry->GetDecompressionStream();
-
-	return result;
-}
 
 bool Archive(std::istream & stream, const std::filesystem::path & path, const std::wstring & fileName)
 {
-	const auto dstArchive = ZipFile::Open(path.generic_string());
-	if (!dstArchive)
-		return false;
+	std::vector<char> memory;
+	{
+		constexpr size_t bufSize = 16 * 1024;
+		const std::unique_ptr<char[]> buf(new char[bufSize]);
+		while (!stream.eof())
+		{
+			stream.read(buf.get(), bufSize);
+			memory.insert(memory.end(), buf.get(), buf.get() + stream.gcount());
+		}
+	}
+	Poco::MemoryInputStream memoryStream(memory.data(), memory.size());
 
-	auto dstEntry = dstArchive->CreateEntry(QTextCodec::codecForName("IBM 866")->fromUnicode(fileName).toStdString());
-	if (!dstEntry)
-		return false;
+	std::ofstream destination(path, std::ios::binary);
+	Poco::Zip::Compress c(destination, false);
+	c.addFile(memoryStream, Poco::DateTime {}, ToMultiByte(fileName));
+	c.close();
 
-	DeflateMethod::Ptr ctx = DeflateMethod::Create();
-	ctx->SetCompressionLevel(DeflateMethod::CompressionLevel::Best);
-	if (!dstEntry->SetCompressionStream(stream, ctx))
-		return false;
-
-	ZipFile::SaveAndClose(dstArchive, path.generic_string());
 	return true;
 }
 
@@ -874,23 +886,26 @@ public:
 					break;
 				}
 
-				const auto archiveSrc = GetDecompressedStream(archiveFolder, book);
-				if (!archiveSrc.stream)
+				try
 				{
-					progress->progress += book.Size;
-					continue;
+					const ArchiveSrc archiveSrc(archiveFolder, book);
+
+					StreamBuf streamBuf(archiveSrc.GetDecodedStream(), *progress);
+					std::istream stream(&streamBuf);
+
+					const auto writeResult = Write(stream, path.toStdWString(), book, archive);
+
+					if (!writeResult.first)
+						progress->progress += book.Size;
+
+					if (!streamBuf.Finished())
+						remove(writeResult.second);
 				}
-
-				StreamBuf streamBuf(*archiveSrc.stream, *progress);
-				std::istream stream(&streamBuf);
-
-				const auto writeResult = Write(stream, path.toStdWString(), book, archive);
-
-				if (!writeResult.first)
+				catch(const std::exception & ex)
+				{
+					PLOGE << ex.what();
 					progress->progress += book.Size;
-
-				if (!streamBuf.Finished())
-					remove(writeResult.second);
+				}
 			}
 
 			progress->progress = totalSize;
