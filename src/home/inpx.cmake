@@ -32,15 +32,11 @@ AddTarget(
 	INCLUDE_LIB_DIRS
 		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/lib"
 	LINK_TARGETS
-		bzip2
 		fmt
-		lzma
 		plog
 		sqlite
 		sqlite3pp
 		sqlite3shell_lib
-		ziplib
-		zlib
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

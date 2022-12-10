@@ -119,10 +119,6 @@ AddTarget(
 	QRC
 		"${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/main.qrc"
 	LINK_TARGETS
-		bzip2
-		lzma
-		ziplib
-		zlib
 		sqlite
 		sqlite3pp
 		DatabaseFactory
