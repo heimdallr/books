@@ -137,7 +137,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="60"/>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="201"/>
         <source>Cancel</source>
         <translation>Отмена</translation>

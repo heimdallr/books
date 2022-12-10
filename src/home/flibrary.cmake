@@ -41,6 +41,7 @@ CreateMap(UI_SETTING_NAMES
 		sizeCheckbox                    0.8
 		sizeExpander                    0.4
 		sizeFont                        9
+		sizeFontButton                  0.9
 		sizeFontError                   0.9
 		sizeFontToolTip                 0.9
 		sizeLogMaximum                  10000

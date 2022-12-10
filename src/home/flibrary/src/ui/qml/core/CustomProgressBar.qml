@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.15
 
 import "qrc:/Util/Functions.js" as Functions
 
@@ -39,6 +39,8 @@ Rectangle
 
 		CustomText
 		{
+			height: parent.height
+			width: 2 * preferredWidth
 			anchors.centerIn: parent
 			text: Math.ceil(100 * progressController.progress) + " %"
 		}
@@ -56,7 +58,17 @@ Rectangle
 			margins: Functions.GetMargin()
 		}
 
-		width: Functions.GetMargin() * 4
+	    contentItem: Text
+		{
+	        text: buttonStopID.text
+	        font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontButton
+	        opacity: enabled ? 1.0 : 0.3
+	        horizontalAlignment: Text.AlignHCenter
+	        verticalAlignment: Text.AlignVCenter
+	        elide: Text.ElideRight
+	    }
+
+		width: height * 8
 		text: qsTranslate("Common", "Cancel")
 		onClicked: progressController.started = false
 	}
