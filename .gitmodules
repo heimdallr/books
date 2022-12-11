@@ -25,3 +25,6 @@
 [submodule "src/ext/poco"]
 	path = src/ext/poco
 	url = ../poco.git
+[submodule "src/ext/minizip"]
+	path = src/ext/minizip
+	url = ../minizip.git
