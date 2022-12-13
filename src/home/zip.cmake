@@ -1,0 +1,44 @@
+AddTarget(
+	NAME Zip
+	TYPE shared_lib
+	PROJECT_GROUP Util
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/zip"
+	EXCLUDE_SOURCES "${CMAKE_CURRENT_LIST_DIR}/zip/test/*.*"
+	INCLUDE_DIRS
+		"${CMAKE_CURRENT_LIST_DIR}"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include"
+	INCLUDE_LIB_DIRS
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/lib"
+	LINK_TARGETS
+		plog
+	MODULES
+		qt
+	LINK_LIBRARIES
+		libminizip
+		bzip2
+		liblzma
+		zlibstatic
+		zstd_static
+	COMPILE_DEFINITIONS
+		[ WIN32 PLOG_IMPORT ]
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
+)
+
+AddTarget(
+	NAME ZipTest
+	TYPE app_console
+	PROJECT_GROUP Tool
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/zip/test"
+	INCLUDE_DIRS
+		"${CMAKE_CURRENT_LIST_DIR}"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
+	LINK_TARGETS
+		Zip
+		plog
+	COMPILE_DEFINITIONS
+		[ WIN32 PLOG_IMPORT ]
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
+)
