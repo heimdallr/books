@@ -9,12 +9,12 @@
 
 #include <plog/Log.h>
 
-#include "Poco/Zip.h"
-
 #include "fnd/FindPair.h"
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
+
+#include "zip/ZipArchive.h"
 
 #include "ModelControllers/BooksModelControllerObserver.h"
 
@@ -380,23 +380,15 @@ private:
 			if (!exists(folder))
 				return stub;
 
-			std::ifstream zipStream(folder.generic_string(), std::ios::binary);
-			Poco::Zip::ZipArchive zipArchive(zipStream);
-			const auto headerIt = zipArchive.findHeader(file);
-			if (headerIt == zipArchive.headerEnd())
-			{
-				PLOGE << "Cannot find '" << file << "' in '" << folder << "'";
-				return stub;
-			}
-
-			Poco::Zip::ZipInputStream decodedStream(zipStream, headerIt->second);
-
-			std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(decodedStream);
-			ioDevice->open(QIODevice::ReadOnly);
-			XmlParser parser(*ioDevice);
-
 			try
 			{
+				std::ifstream zipStream(folder.generic_string(), std::ios::binary);
+				Util::ZipArchive zipArchive(zipStream);
+
+				std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(zipArchive.Read(book.FileName.toStdString()));
+				ioDevice->open(QIODevice::ReadOnly);
+				XmlParser parser(*ioDevice);
+
 				parser.Parse();
 
 				std::lock_guard lock(m_guard);

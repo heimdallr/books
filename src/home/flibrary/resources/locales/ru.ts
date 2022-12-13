@@ -131,27 +131,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="264"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="265"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="267"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="268"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="268"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="269"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="269"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="270"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="270"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="271"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -299,12 +299,12 @@ Restart now?</source>
         <translation>Показать журнал</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="22"/>
         <source>Show collection statistics</source>
         <translation>Показать статистику коллекции</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="22"/>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
         <source>Clear log</source>
         <translation>Очистить журнал</translation>
     </message>
@@ -579,27 +579,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="89"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="90"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="90"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="91"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="79"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="81"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="81"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="82"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>

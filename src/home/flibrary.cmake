@@ -128,6 +128,7 @@ AddTarget(
 		MyHomeLibSQLIteExt
 		plog
 		Util
+		Zip
 	MODULES
 		qt
 	COMPILE_DEFINITIONS
