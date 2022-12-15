@@ -30,8 +30,8 @@ public:
 	explicit ZipArchive(std::ostream & stream);
 	~ZipArchive();
 
-	ZipEntries GetZipEntries() const;
-	std::istream & Read(std::string_view name);
+	[[nodiscard]] ZipEntries GetZipEntries() const;
+	[[nodiscard]] std::istream & Read(std::string_view name);
 	int64_t Write(std::string_view name, std::istream & stream);
 
 private:

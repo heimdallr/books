@@ -16,15 +16,6 @@ using namespace Util;
 
 namespace {
 
-int64_t GetSize(std::istream & stream)
-{
-	const auto pos = stream.tellg();
-	stream.seekg(0, std::ios_base::end);
-	const auto size = stream.tellg();
-	stream.seekg(pos, std::ios_base::beg);
-	return size;
-}
-
 class InputStreamBuf
 	: public std::streambuf
 {
@@ -389,12 +380,12 @@ public:
 		info.filename = fileName.data();
 		info.version_madeby = MZ_VERSION_MADEBY;
 		info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
-		info.uncompressed_size = GetSize(stream);
 		info.flag = MZ_ZIP_FLAG_UTF8;
+		info.accessed_date = info.creation_date = info.modified_date = mz_os_ms_time();
 
 		const uint8_t srcSys = MZ_HOST_SYSTEM(info.version_madeby);
 		const uint32_t srcAttribute = 0x20;
-		if (srcSys == MZ_HOST_SYSTEM_MSDOS || srcSys != MZ_HOST_SYSTEM_WINDOWS_NTFS)
+		if (srcSys == MZ_HOST_SYSTEM_MSDOS || srcSys == MZ_HOST_SYSTEM_WINDOWS_NTFS)
 		{
 			info.external_fa = srcAttribute;
 		}

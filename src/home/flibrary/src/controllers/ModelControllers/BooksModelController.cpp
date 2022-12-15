@@ -14,7 +14,11 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
-#include "Poco/Zip.h"
+#include "util/executor.h"
+#include "util/Settings.h"
+#include "util/StrUtil.h"
+
+#include "zip/ZipArchive.h"
 
 #include "constants/ProductConstant.h"
 
@@ -27,10 +31,6 @@
 
 #include "models/Book.h"
 #include "models/BookRole.h"
-
-#include "util/executor.h"
-#include "util/Settings.h"
-#include "util/StrUtil.h"
 
 #include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
@@ -713,12 +713,8 @@ public:
 		if (m_zipEncodedStream->bad() || m_zipEncodedStream->eof())
 			throw std::runtime_error("Cannot open " + archivePath.generic_string());
 
-		m_archive = std::make_unique<Poco::Zip::ZipArchive>(*m_zipEncodedStream);
-		const auto headerIt = m_archive->findHeader(book.FileName.toStdString());
-		if (headerIt == m_archive->headerEnd())
-			throw std::runtime_error("Cannot find " + book.FileName.toStdString() + " in " + archivePath.generic_string());
-
-		m_decodedStream = std::make_unique<Poco::Zip::ZipInputStream>(*m_zipEncodedStream, headerIt->second);
+		m_archive = std::make_unique<Util::ZipArchive>(*m_zipEncodedStream);
+		m_decodedStream = &m_archive->Read(book.FileName.toStdString());
 	}
 
 	std::istream & GetDecodedStream() const noexcept
@@ -728,8 +724,8 @@ public:
 
 private:
 	std::unique_ptr<std::ifstream> m_zipEncodedStream;
-	std::unique_ptr<Poco::Zip::ZipArchive> m_archive;
-	std::unique_ptr<Poco::Zip::ZipInputStream> m_decodedStream;
+	std::unique_ptr<Util::ZipArchive> m_archive;
+	std::istream * m_decodedStream { nullptr };
 };
 
 bool Archive(std::istream & stream, const std::filesystem::path & path, const std::wstring & fileName)
@@ -744,12 +740,9 @@ bool Archive(std::istream & stream, const std::filesystem::path & path, const st
 			memory.insert(memory.end(), buf.get(), buf.get() + stream.gcount());
 		}
 	}
-	Poco::MemoryInputStream memoryStream(memory.data(), memory.size());
-
 	std::ofstream destination(path, std::ios::binary);
-	Poco::Zip::Compress c(destination, false);
-	c.addFile(memoryStream, Poco::DateTime {}, ToMultiByte(fileName));
-	c.close();
+	Util::ZipArchive zipArchive(destination);
+	zipArchive.Write(ToMultiByte(fileName), stream);
 
 	return true;
 }
