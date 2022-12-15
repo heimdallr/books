@@ -22,12 +22,6 @@
 [submodule "src/ext/plog"]
 	path = src/ext/plog
 	url = ../plog.git
-[submodule "src/ext/poco"]
-	path = src/ext/poco
-	url = ../poco.git
-[submodule "src/ext/minizip"]
-	path = src/ext/minizip
-	url = ../minizip.git
 [submodule "src/ext/zlib"]
 	path = src/ext/zlib
 	url = ../zlib.git
