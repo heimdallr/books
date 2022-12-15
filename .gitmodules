@@ -28,3 +28,9 @@
 [submodule "src/ext/minizip"]
 	path = src/ext/minizip
 	url = ../minizip.git
+[submodule "src/ext/zlib"]
+	path = src/ext/zlib
+	url = ../zlib.git
+[submodule "src/ext/quazip"]
+	path = src/ext/quazip
+	url = ../quazip.git
