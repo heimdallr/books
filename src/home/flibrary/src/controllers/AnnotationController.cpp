@@ -1,6 +1,7 @@
 #include <fstream>
 #include <mutex>
 
+#include <QBuffer>
 #include <QCursor>
 #include <QGuiApplication>
 #include <QTextCodec>
@@ -8,13 +9,13 @@
 #include <QXmlStreamReader>
 
 #include <plog/Log.h>
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
 
 #include "fnd/FindPair.h"
 
 #include "util/executor.h"
 #include "util/executor/factory.h"
-
-#include "zip/ZipArchive.h"
 
 #include "ModelControllers/BooksModelControllerObserver.h"
 
@@ -59,105 +60,6 @@ QString GetBookInfoTable(const Book & book)
 		+ QCoreApplication::translate("Annotation", "<tr><td>Updated: </td><td>%1</td></tr>").arg(book.UpdateDate)
 		+ QString("</table>");
 }
-
-class IODeviceStdStreamWrapper final
-	: public QIODevice
-{
-public:
-	explicit IODeviceStdStreamWrapper(std::istream & stream)
-		: m_stream(stream)
-	{
-	}
-
-private: // QIODevice
-	qint64 readData(char * const data, const qint64 maxLength) override
-	{
-		m_stream.read(data, maxLength);
-		return m_stream.gcount();
-	}
-	qint64 readLineData(char * const data, const qint64 maxLength) override
-	{
-		m_stream.getline(data, maxLength);
-		return m_stream.gcount();
-	}
-	qint64 writeData(const char *, const qint64) override
-	{
-		throw std::runtime_error("Cannot write to read only stream");
-	}
-
-	bool atEnd() const override
-	{
-		return m_stream.eof();
-	}
-	qint64 bytesAvailable() const override
-	{
-		return size() - pos();
-	}
-	qint64 bytesToWrite() const override
-	{
-		return 0;
-	}
-	bool canReadLine() const override
-	{
-		return false;
-	}
-	void close() override
-	{
-		QIODevice::close();
-	}
-	bool isSequential() const override
-	{
-		return false;
-	}
-	bool open(OpenMode mode) override
-	{
-		if (mode & (WriteOnly | Append | Truncate | NewOnly))
-			throw std::runtime_error("Read only expected");
-
-		return m_stream.good() && QIODevice::open(mode);
-	}
-	qint64 pos() const override
-	{
-		return m_stream.tellg();
-	}
-	bool reset() override
-	{
-		return seek(0);
-	}
-	bool seek(qint64 pos) override
-	{
-		m_stream.seekg(pos);
-		if (m_stream.eof())
-			return false;
-
-		return QIODevice::seek(pos);
-	}
-	qint64 size() const override
-	{
-		if (m_size < 0)
-		{
-			const auto currentPosition = pos();
-			m_stream.seekg(0, std::ios_base::end);
-			m_size = pos();
-			m_stream.seekg(currentPosition, std::ios_base::beg);
-		}
-
-		return m_size;
-	}
-
-	bool waitForBytesWritten(int) override
-	{
-		return true;
-	}
-	bool waitForReadyRead(int) override
-	{
-		return true;
-	}
-
-private:
-	std::istream & m_stream;
-	mutable qint64 m_size { -1 };
-};
 
 struct XmlParser final
 	: QXmlStreamReader
@@ -382,13 +284,14 @@ private:
 
 			try
 			{
-				std::ifstream zipStream(folder.generic_string(), std::ios::binary);
-				Util::ZipArchive zipArchive(zipStream);
+				QuaZip zip(QString::fromStdWString(folder));
+				zip.open(QuaZip::Mode::mdUnzip);
+				zip.setCurrentFile(book.FileName);
 
-				std::unique_ptr<QIODevice> ioDevice = std::make_unique<IODeviceStdStreamWrapper>(zipArchive.Read(book.FileName.toStdString()));
-				ioDevice->open(QIODevice::ReadOnly);
-				XmlParser parser(*ioDevice);
+				QuaZipFile m_zipFile(&zip);
+				m_zipFile.open(QIODevice::ReadOnly);
 
+				XmlParser parser(m_zipFile);
 				parser.Parse();
 
 				std::lock_guard lock(m_guard);

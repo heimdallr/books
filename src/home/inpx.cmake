@@ -29,14 +29,22 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/fmt/include"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
 		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include"
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include/zlib"
+		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include/QuaZip-Qt5-1.3"
 	INCLUDE_LIB_DIRS
 		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/lib"
+	QT_USE
+		Core
 	LINK_TARGETS
 		fmt
 		plog
 		sqlite
 		sqlite3pp
 		sqlite3shell_lib
+	MODULES
+		qt
+	LINK_LIBRARIES
+		quazip1-qt5
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

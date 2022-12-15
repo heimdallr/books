@@ -6,10 +6,12 @@
 
 #include <QAbstractItemModel>
 #include <QPointer>
-#include <QTextCodec>
 #include <QTimer>
 
 #include <plog/Log.h>
+
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
@@ -17,8 +19,6 @@
 #include "util/executor.h"
 #include "util/Settings.h"
 #include "util/StrUtil.h"
-
-#include "zip/ZipArchive.h"
 
 #include "constants/ProductConstant.h"
 
@@ -183,9 +183,9 @@ using Appender = void(*)(QString & title, const QString & str, std::string_view 
 
 struct IndexValue
 {
-	[[maybe_unused]] size_t index;
-	std::set<long long int> authors;
-	std::set<QString> genres;
+	[[maybe_unused]] size_t index {};
+	std::set<long long int> authors {};
+	std::set<QString> genres {};
 };
 
 using Index = std::unordered_map<long long int, IndexValue>;
@@ -202,11 +202,11 @@ using Genres = std::unordered_map<QString, QString>;
 
 struct Data
 {
-	Books books;
-	Index index;
-	Authors authors;
-	Series series;
-	Genres genres;
+	Books books {};
+	Index index {};
+	Authors authors {};
+	Series series {};
+	Genres genres {};
 };
 
 QString CreateAuthors(const Authors & authors, const std::set<long long int> & authorsIndex, Appender f, std::string_view separator1, std::string_view separator2)
@@ -581,180 +581,88 @@ private: // ProgressController::Progress
 	}
 };
 
-class StreamBuf
-	: public std::streambuf
-{
-public:
-	StreamBuf(std::istream & src, Progress & progress)
-		: m_src(src)
-		, m_progress(progress)
-	{
-		setg(m_buf.get(), m_buf.get() + m_bufSize, m_buf.get() + m_bufSize);
-	}
-
-public:
-	bool Finished() const noexcept
-	{
-		return m_finished;
-	}
-
-private: // std::streambuf
-	std::streambuf * setbuf(char_type * /*s*/, std::streamsize /*n*/) override
-	{
-		assert(false && "implement me");
-		return this;
-	}
-
-	pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
-	{
-		if (dir == std::ios_base::cur && off == 0)
-		{
-			return m_src.tellg();
-		}
-		m_src.seekg(off, dir);
-		setg(m_buf.get(), m_buf.get() + m_bufSize, m_buf.get() + m_bufSize);
-		return m_src.tellg();
-	}
-
-	pos_type seekpos(pos_type /*pos*/, std::ios_base::openmode /*which*/ = std::ios_base::in | std::ios_base::out) override
-	{
-		assert(false && "implement me");
-		return 200;
-	}
-
-	int sync() override
-	{
-		assert(false && "implement me");
-		return -1;
-	}
-
-	std::streamsize showmanyc() override
-	{
-		assert(false && "implement me");
-		return 300;
-	}
-
-	int_type underflow() override
-	{
-		if (m_src.eof())
-			return traits_type::eof();
-
-		if (m_progress.stop)
-		{
-			m_finished = false;
-			return traits_type::eof();
-		}
-
-		m_src.read(m_buf.get(), m_bufSize);
-		const auto count = m_src.gcount();
-		setg(m_buf.get(), m_buf.get(), m_buf.get() + count);
-		m_progress.progress += count;
-
-		return static_cast<traits_type::int_type>(m_buf[0]);
-	}
-
-	int_type uflow() override
-	{
-		assert(false && "implement me");
-		return 500;
-	}
-
-	std::streamsize xsgetn(char_type * s, std::streamsize count) override
-	{
-		if (m_progress.stop)
-		{
-			m_finished = false;
-			return 0;
-		}
-
-		m_src.read(s, count);
-		count = m_src.gcount();
-		m_progress.progress += count;
-
-		return count;
-	}
-
-	std::streamsize xsputn(const char_type * /*s*/, std::streamsize /*count*/) override
-	{
-		assert(false && "implement me");
-		return 700;
-	}
-
-	int_type overflow(int_type /*ch*/) override
-	{
-		assert(false && "implement me");
-		return 800;
-	}
-
-	int_type pbackfail(int_type /*c*/) override
-	{
-		assert(false && "implement me");
-		return 900;
-	}
-
-private:
-	std::istream & m_src;
-	Progress & m_progress;
-	bool m_finished { true };
-	const size_t m_bufSize { 1024ull * 32 };
-	const std::unique_ptr<char[]> m_buf { new char[m_bufSize] };
-};
-
 class ArchiveSrc
 {
 public:
 	ArchiveSrc(const std::filesystem::path & archiveFolder, const Book & book)
+		: m_zip(CreateZip(archiveFolder, book))
+		, m_zipFile(CreateZipFile(m_zip.get(), book))
+	{
+	}
+
+	QIODevice & GetDecoded() const noexcept
+	{
+		return *m_zipFile;
+	}
+
+private:
+	static std::unique_ptr<QuaZip> CreateZip(const std::filesystem::path & archiveFolder, const Book & book)
 	{
 		const auto archivePath = archiveFolder / book.Folder.toStdString();
 		if (!exists(archivePath))
 			throw std::runtime_error("Cannot find " + archivePath.generic_string());
 
-		m_zipEncodedStream = std::make_unique<std::ifstream>(archivePath.generic_string(), std::ios::binary);
-		if (m_zipEncodedStream->bad() || m_zipEncodedStream->eof())
+		auto zip = std::make_unique<QuaZip>(QString::fromStdWString(archivePath));
+		if (!zip->open(QuaZip::Mode::mdUnzip))
 			throw std::runtime_error("Cannot open " + archivePath.generic_string());
 
-		m_archive = std::make_unique<Util::ZipArchive>(*m_zipEncodedStream);
-		m_decodedStream = &m_archive->Read(book.FileName.toStdString());
+		return zip;
 	}
 
-	std::istream & GetDecodedStream() const noexcept
+	static std::unique_ptr<QuaZipFile> CreateZipFile(QuaZip * zip, const Book & book)
 	{
-		return *m_decodedStream;
+		if (!zip->setCurrentFile(book.FileName))
+			throw std::runtime_error("Cannot extract " + book.FileName.toStdString());
+
+		auto zipFile = std::make_unique<QuaZipFile>(zip);
+		if (!zipFile->open(QIODevice::ReadOnly))
+			throw std::runtime_error("Cannot open " + book.FileName.toStdString());
+
+		return zipFile;
 	}
 
 private:
-	std::unique_ptr<std::ifstream> m_zipEncodedStream;
-	std::unique_ptr<Util::ZipArchive> m_archive;
-	std::istream * m_decodedStream { nullptr };
+	const std::unique_ptr<QuaZip> m_zip{};
+	const std::unique_ptr<QuaZipFile> m_zipFile{};
 };
 
-bool Archive(std::istream & stream, const std::filesystem::path & path, const std::wstring & fileName)
+bool Copy(QIODevice & input, QIODevice & output, Progress & progress)
 {
-	std::vector<char> memory;
+	static constexpr auto bufferSize = 16 * 1024ll;
+	const std::unique_ptr<char[]> buffer(new char[bufferSize]);
+	while (const auto size = input.read(buffer.get(), bufferSize))
 	{
-		constexpr size_t bufSize = 16 * 1024;
-		const std::unique_ptr<char[]> buf(new char[bufSize]);
-		while (!stream.eof())
-		{
-			stream.read(buf.get(), bufSize);
-			memory.insert(memory.end(), buf.get(), buf.get() + stream.gcount());
-		}
+		if (output.write(buffer.get(), size) != size)
+			return false;
+
+		progress.progress += size;
 	}
-	std::ofstream destination(path, std::ios::binary);
-	Util::ZipArchive zipArchive(destination);
-	zipArchive.Write(ToMultiByte(fileName), stream);
 
 	return true;
 }
 
-bool Copy(std::istream & stream, const std::filesystem::path & path)
+bool Write(QIODevice & input, const std::filesystem::path & path, Progress & progress)
 {
-	std::ofstream file(path);
-	file << stream.rdbuf();
-	return true;
+	QFile output(QString::fromStdWString(path));
+	output.open(QIODevice::WriteOnly);
+	return Copy(input, output, progress);
 }
 
-std::pair<bool, std::filesystem::path> Write(std::istream & stream, std::filesystem::path path, const Book & book, const bool archive)
+bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, Progress & progress)
+{
+	QuaZip zip(QString::fromStdWString(path));
+//	zip.setFileNameCodec("IBM 866");
+	if (!zip.open(QuaZip::mdCreate))
+		throw std::runtime_error("Cannot create " + path.string());
+
+	QuaZipFile zipFile(&zip);
+	if (!zipFile.open(QIODevice::WriteOnly, fileName, nullptr, 0, Z_DEFLATED, Z_BEST_COMPRESSION))
+		throw std::runtime_error("Cannot add file to archive " + path.string());
+
+	return Copy(input, zipFile, progress);
+}
+
+std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path path, const Book & book, Progress & progress, const bool archive)
 {
 	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(path) || create_directory(path)))
@@ -772,16 +680,16 @@ std::pair<bool, std::filesystem::path> Write(std::istream & stream, std::filesys
 	}
 
 	const auto ext = std::filesystem::path(book.FileName.toStdWString()).extension();
-	const auto fileName = ((book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data()).toStdWString();
+	const auto fileName = (book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data();
 
-	result.second = (path / fileName).make_preferred();
+	result.second = (path / fileName.toStdWString()).make_preferred();
 	if (archive)
 		result.second.replace_extension("zip");
 
 	if (exists(result.second) && !remove(result.second))
 		return result;
 
-	result.first = archive ? Archive(stream, result.second, fileName) : Copy(stream, result.second);
+	result.first = archive ? Archive(input, result.second, fileName, progress) : Write(input, result.second, progress);
 
 	return result;
 }
@@ -800,7 +708,7 @@ constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
 struct BooksModelController::Impl
 	: virtual Observable<BooksModelControllerObserver>
 {
-	Books books;
+	Books books {};
 	QTimer setNavigationIdTimer;
 	NavigationSource navigationSource{ NavigationSource::Undefined };
 	QString navigationId;
@@ -882,17 +790,10 @@ public:
 				try
 				{
 					const ArchiveSrc archiveSrc(archiveFolder, book);
-
-					StreamBuf streamBuf(archiveSrc.GetDecodedStream(), *progress);
-					std::istream stream(&streamBuf);
-
-					const auto writeResult = Write(stream, path.toStdWString(), book, archive);
+					const auto writeResult = Write(archiveSrc.GetDecoded(), path.toStdWString(), book, *progress, archive);
 
 					if (!writeResult.first)
 						progress->progress += book.Size;
-
-					if (!streamBuf.Finished())
-						remove(writeResult.second);
 				}
 				catch(const std::exception & ex)
 				{
@@ -916,7 +817,7 @@ private:
 	QString m_navigationId;
 
 	const std::filesystem::path archiveFolder;
-	const ItemsCreator m_itemsCreator;
+	const ItemsCreator m_itemsCreator {};
 };
 
 BooksModelController::BooksModelController(Util::Executor & executor

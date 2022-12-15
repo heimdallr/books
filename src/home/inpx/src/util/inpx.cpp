@@ -7,10 +7,12 @@
 #include <functional>
 #include <map>
 #include <numeric>
+#include <set>
+
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
 
 #include <plog/Log.h>
-
-#include "Poco/Zip.h"
 
 #include "fmt/core.h"
 #include "sqlite/shell/sqlite_shell.h"
@@ -18,13 +20,10 @@
 
 #pragma warning(pop)
 
-#include <set>
-
 #include "constant.h"
 #include "types.h"
 
 #include "inpx.h"
-
 #include "Configuration.h"
 
 namespace {
@@ -201,22 +200,31 @@ std::string & TrimRight(std::string & line)
 	return line;
 }
 
-void ProcessCollectionInfo(std::istream & stream, SettingsTableData & settingsTableData)
+void ProcessCollectionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
 {
-	std::string line;
-	for (size_t i = 0, sz = std::size(g_collectionInfoSettings); i < sz && std::getline(stream, line); ++i)
+	for (size_t i = 0, sz = std::size(g_collectionInfoSettings); i < sz; ++i)
+	{
 		if (g_collectionInfoSettings[i] != 0)
-			settingsTableData[g_collectionInfoSettings[i]] = TrimRight(line);
+		{
+			if (const auto bytes = stream.readLine(); !bytes.isEmpty())
+			{
+				auto line = bytes.toStdString();
+				settingsTableData[g_collectionInfoSettings[i]] = TrimRight(line);
+			}
+		}
+	}
 }
 
-void ProcessVersionInfo(std::istream & stream, SettingsTableData & settingsTableData)
+void ProcessVersionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
 {
-	std::string line;
-	if (std::getline(stream, line))
+	if (const auto bytes = stream.readLine(); !bytes.isEmpty())
+	{
+		auto line = bytes.toStdString();
 		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
+	}
 }
 
-void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
+void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
 {
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 	auto & unknownGenre = data.genres[unknownGenreId];
@@ -226,12 +234,16 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 	std::set<std::string> files;
 
 	size_t insideNo = 0;
-	std::string buf;
-	while (std::getline(stream, buf))
+
+	while (true)
 	{
+		const auto byteArray = stream.readLine();
+		if (byteArray.isEmpty())
+			break;
+
 		const auto id = GetId();
 
-		const auto line = ToWide(buf);
+		const auto line = ToWide(byteArray.constData());
 		auto it = std::cbegin(line);
 		const auto end = std::cend(line);
 
@@ -309,14 +321,14 @@ void ProcessInpx(std::istream & stream, const std::filesystem::path & rootFolder
 			PLOGI << n << " rows parsed";
 	}
 
-	std::ifstream zipStream(rootFolder / folder, std::ios::binary);
-	Poco::Zip::ZipArchive zipArchive(zipStream);
-	for (auto it = zipArchive.fileInfoBegin(), end = zipArchive.fileInfoEnd(); it != end; ++it)
+	QuaZip zip(QString::fromStdWString(rootFolder / folder));
+	zip.open(QuaZip::mdUnzip);
+	for (const auto & fileName : zip.getFileNameList())
 	{
-		if (files.contains(it->first))
+		if (files.contains(fileName.toStdString()))
 			continue;
 
-		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << it->first;
+		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 	}
 }
 
@@ -331,11 +343,13 @@ InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
 {
 	InpxContent inpxContent;
 
+	QuaZip zip(QString::fromStdWString(inpxFileName.data()));
+
 	std::ifstream zipStream(inpxFileName, std::ios::binary);
-	Poco::Zip::ZipArchive zipArchive(zipStream);
-	for (auto it = zipArchive.fileInfoBegin(), end = zipArchive.fileInfoEnd(); it != end; ++it)
+	zip.open(QuaZip::mdUnzip);
+	for (const auto & fileName : zip.getFileNameList())
 	{
-		auto folder = ToWide(it->first);
+		auto folder = ToWide(fileName.toStdString());
 
 		if (folder == COLLECTION_INFO)
 			inpxContent.collectionInfo.push_back(std::move(folder));
@@ -350,25 +364,25 @@ InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
 	return inpxContent;
 }
 
-std::unique_ptr<std::istream> GetDecodedStream(std::istream & stream, Poco::Zip::ZipArchive & zipArchive, const std::wstring & file)
+std::unique_ptr<QIODevice> GetDecodedStream(QuaZip & zip, const std::wstring & file)
 {
 	PLOGI << file;
-	const auto headerIt = zipArchive.findHeader(ToMultiByte(file));
-	if (headerIt != zipArchive.headerEnd())
-		return std::make_unique<Poco::Zip::ZipInputStream>(stream, headerIt->second);
+	zip.setCurrentFile(QString::fromStdWString(file));
+	auto zipFile = std::make_unique<QuaZipFile>(&zip);
+	if (!zipFile->open(QIODevice::ReadOnly))
+		throw std::runtime_error("Cannot open " + ToMultiByte(file));
 
-	PLOGW << "Cannot find '" << file << "' in archive";
-	return {};
+	return zipFile;
 }
 
-void ParseInpxFiles(std::wstring_view inpxFileName, std::istream & stream, Poco::Zip::ZipArchive & archive, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
+void ParseInpxFiles(std::wstring_view inpxFileName, QuaZip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
 {
 	std::vector<std::wstring> unknownGenres;
 
 	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
 	size_t n = 0;
 	for (const auto & fileName : inpxFiles)
-		if (auto zipDecodedStream = GetDecodedStream(stream, archive, fileName))
+		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
 			ProcessInpx(*zipDecodedStream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
 
 	PLOGI << n << " rows parsed";
@@ -392,18 +406,18 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 	data.genres = std::move(genresData);
 
 	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	std::ifstream zipStream(inpxFileName, std::ios::binary);
-	Poco::Zip::ZipArchive zipArchive(zipStream);
+	QuaZip zip(QString::fromStdWString(inpxFileName.data()));
+	zip.open(QuaZip::mdUnzip);
 
 	for (const auto & fileName : inpxContent.collectionInfo)
-		if (auto zipDecodedStream = GetDecodedStream(zipStream, zipArchive, fileName))
+		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
 			ProcessCollectionInfo(*zipDecodedStream, data.settings);
 
 	for (const auto & fileName : inpxContent.versionInfo)
-		if (auto zipDecodedStream = GetDecodedStream(zipStream, zipArchive, fileName))
+		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
 			ProcessVersionInfo(*zipDecodedStream, data.settings);
 
-	ParseInpxFiles(inpxFileName, zipStream, zipArchive, inpxContent.inpx, genresIndex, data);
+	ParseInpxFiles(inpxFileName, zip, inpxContent.inpx, genresIndex, data);
 
 	return data;
 }
@@ -791,9 +805,9 @@ bool UpdateDatabase(const Ini & ini)
 	Data newData = oldData;
 	Dictionary newGenresIndex = oldGenresIndex;
 	auto inpxFileName = ini(INPX, DEFAULT_INPX);
-	std::ifstream zipStream(inpxFileName, std::ios::binary);
-	Poco::Zip::ZipArchive zipArchive(zipStream);
-	ParseInpxFiles(inpxFileName, zipStream, zipArchive, GetNewInpxFolders(ini), newGenresIndex, newData);
+	QuaZip zip(QString::fromStdWString(inpxFileName));
+	zip.open(QuaZip::mdUnzip);
+	ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini), newGenresIndex, newData);
 
 	const auto filter = [] (Dictionary & dst, const Dictionary & src)
 	{
