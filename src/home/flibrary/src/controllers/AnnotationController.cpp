@@ -257,9 +257,6 @@ private: // BooksModelControllerObserver
 private:
 	void ExtractAnnotation()
 	{
-		if (m_book.IsDictionary || m_book.Id < 0)
-			return;
-
 		(*m_executor)({ "Get annotation", [&, book = std::move(m_book)]
 		{
 			const auto folder = (m_rootFolder / book.Folder.toStdWString()).make_preferred();
@@ -278,6 +275,9 @@ private:
 				m_covers.clear();
 				m_coverIndex = -1;
 			}
+
+			if (book.IsDictionary || book.Id < 0)
+				return stub;
 
 			if (!exists(folder))
 				return stub;
