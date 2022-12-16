@@ -195,6 +195,15 @@ public:
 				UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::sizeFont, HomeCompa::Constant::UiSettings_ns::sizeFont_default, key);
 		}
 
+		if (modifiers == Qt::NoModifier && key == Qt::Key_Tab)
+		{
+			if (m_activeModelController != m_booksModelController.get())
+				HandleClicked(m_booksModelController.get());
+			else
+				if (const auto it = m_navigationModelControllers.find(m_navigationSourceProvider.GetSource()); it != m_navigationModelControllers.end())
+					HandleClicked(it->second.get());
+		}
+
 		if (m_activeModelController)
 			m_activeModelController->OnKeyPressed(key, modifiers);
 
