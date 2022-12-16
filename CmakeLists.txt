@@ -28,8 +28,12 @@ set(WARN_DISABLE_DEPRECATED	ON)
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(SCRIPTS_PATH "src/ext/scripts")
-include("${SCRIPTS_PATH}/cmake/map.cmake")
-include("${SCRIPTS_PATH}/cmake/utils.cmake")
+
+include("${SCRIPTS_PATH}/cmake/initialize.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/ThirdpartyModule.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/quazip.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/qt/qt.cmake")
+
 include("${SCRIPTS_PATH}/cmake/target.cmake")
 include("${SCRIPTS_PATH}/cmake/GenerateSettingsClass.cmake")
 include("${SCRIPTS_PATH}/cmake/GenerateTranslations.cmake")
