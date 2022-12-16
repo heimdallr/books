@@ -113,23 +113,27 @@ public:
 
 		if (modifiers == Qt::NoModifier)
 		{
+			auto newIndex = currentIndex;
 			switch (key)
 			{
 				case Qt::Key_Up:
-					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(-1));
+					newIndex = IncreaseNavigationIndex(-1); break;
 
 				case Qt::Key_Down:
-					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(1));
+					newIndex = IncreaseNavigationIndex(1); break;
 
 				case Qt::Key_PageUp:
-					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(-pageSize));
+					newIndex = IncreaseNavigationIndex(-pageSize); break;
 
 				case Qt::Key_PageDown:
-					return (void)m_self.SetCurrentIndex(IncreaseNavigationIndex(pageSize));
+					newIndex = IncreaseNavigationIndex(pageSize); break;
 
 				default:
 					break;
 			}
+
+			if (newIndex != currentIndex)
+				(void)m_self.SetCurrentIndex(newIndex);
 		}
 	}
 
