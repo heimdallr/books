@@ -103,4 +103,6 @@ SplitView
 	{
 		Functions.SetWidths([authorID, titleID, seriesID, seqNoID, sizeID, genreID, langID], viewID, function(item, value){ item.SplitView.fillWidth = value })
 	}
+
+	Component.onCompleted: setWidths()
 }
