@@ -25,8 +25,8 @@ namespace {
 
 using Role = RoleBase;
 
-constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors order by LastName || FirstName || MiddleName";
-constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series order by SeriesTitle";
+constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
+constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias from Genres g where exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode) or exists (select 42 from Genres p where p.ParentCode = g.GenreCode)";
 
 void AppendTitle(QString & title, std::string_view str)
@@ -54,6 +54,11 @@ NavigationListItems CreateAuthors(DB::Database & db)
 		items.back().Title = CreateAuthorTitle(*query);
 	}
 
+	std::ranges::sort(items, [] (const NavigationListItem & lhs, const NavigationListItem & rhs)
+	{
+		return QString::compare(lhs.Title, rhs.Title, Qt::CaseInsensitive) < 0;
+	});
+
 	return items;
 }
 
@@ -67,6 +72,11 @@ NavigationListItems CreateSeries(DB::Database & db)
 		items.back().Id = QString::number(query->Get<int>(0));
 		items.back().Title = query->Get<const char *>(1);
 	}
+
+	std::ranges::sort(items, [] (const NavigationListItem & lhs, const NavigationListItem & rhs)
+	{
+		return QString::compare(lhs.Title, rhs.Title, Qt::CaseInsensitive) < 0;
+	});
 
 	return items;
 }
