@@ -715,13 +715,19 @@ struct BooksModelController::Impl
 	const BooksViewType booksViewType;
 
 public:
-	Impl(BooksModelController & self, Util::Executor & executor_, DB::Database & db, ProgressController & progressController_, const BooksViewType booksViewType_, std::filesystem::path archiveFolder_)
+	Impl(BooksModelController & self
+		, Util::Executor & executor_
+		, DB::Database & db
+		, ProgressController & progressController
+		, const BooksViewType booksViewType_
+		, std::filesystem::path archiveFolder
+	)
 		: booksViewType(booksViewType_)
 		, m_self(self)
 		, executor(executor_)
 		, m_db(db)
-		, progressController(progressController_)
-		, archiveFolder(std::move(archiveFolder_))
+		, m_progressController(progressController)
+		, m_archiveFolder(std::move(archiveFolder))
 		, m_itemsCreator(FindSecond(g_itemCreators, booksViewType))
 	{
 		setNavigationIdTimer.setSingleShot(true);
@@ -773,7 +779,7 @@ public:
 				booksCopy.push_back(*it);
 		assert(!books.empty());
 
-		executor({"Extract books", [path = std::move(path), books = std::move(booksCopy), archiveFolder = archiveFolder, &progressController = progressController, archive]
+		executor({"Extract books", [path = std::move(path), books = std::move(booksCopy), archiveFolder = m_archiveFolder, &progressController = m_progressController, archive]
 		{
 			const auto totalSize = std::accumulate(std::cbegin(books), std::cend(books), 0ull, [] (const size_t init, const Book & book) { return init + book.Size; });
 			const auto progress = std::make_shared<Progress>(totalSize);
@@ -812,11 +818,11 @@ private:
 	BooksModelController & m_self;
 	Util::Executor & executor;
 	DB::Database & m_db;
-	ProgressController & progressController;
+	ProgressController & m_progressController;
 	NavigationSource m_navigationSource{ NavigationSource::Undefined };
 	QString m_navigationId;
 
-	const std::filesystem::path archiveFolder;
+	const std::filesystem::path m_archiveFolder;
 	const ItemsCreator m_itemsCreator {};
 };
 
