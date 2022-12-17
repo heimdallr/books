@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender(QString("%1/%2_%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString().data());
+		plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString().data());
 		Log::LogAppender logAppender(&rollingFileAppender);
 
 		PLOGI << "App started";
