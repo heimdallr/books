@@ -80,7 +80,7 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = fileDialog.SelectFile(collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.pathRecentCollectionDatabase)
+					const fileName = fileDialog.SelectFile(qsTranslate("FileDialog", "Select database file"), collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.pathRecentCollectionDatabase)
 					if (fileName === "")
 						return
 
@@ -117,7 +117,7 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const folder = fileDialog.SelectFolder(collectionArchiveFolderID.text !== "" ? collectionArchiveFolderID.text : uiSettings.pathResentCollectionArchive)
+					const folder = fileDialog.SelectFolder(qsTranslate("FileDialog", "Select archives folder"), collectionArchiveFolderID.text !== "" ? collectionArchiveFolderID.text : uiSettings.pathResentCollectionArchive)
 					if (folder === "")
 						return
 

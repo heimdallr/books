@@ -12,14 +12,14 @@ FileDialogProvider::FileDialogProvider(QObject * parent)
 {
 }
 
-QString FileDialogProvider::SelectFile(const QString & fileName)
+QString FileDialogProvider::SelectFile(const QString & title, const QString & fileName, const QString & filter)
 {
-	return QFileDialog::getOpenFileName(nullptr, QCoreApplication::translate("FileDialog", "Select database file"), fileName);
+	return QFileDialog::getOpenFileName(nullptr, title, fileName, filter);
 }
 
-QString FileDialogProvider::SelectFolder(const QString & folderName)
+QString FileDialogProvider::SelectFolder(const QString & title, const QString & folderName)
 {
-	return QFileDialog::getExistingDirectory(nullptr, QCoreApplication::translate("FileDialog", "Select archives folder"), folderName);
+	return QFileDialog::getExistingDirectory(nullptr, title, folderName);
 }
 
 bool FileDialogProvider::FileExists(const QString & fileName)

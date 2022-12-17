@@ -41,7 +41,7 @@ Menu
 
 		function save(archivate)
 		{
-			const folder = fileDialog.SelectFolder(uiSettings.pathRecentExport)
+			const folder = fileDialog.SelectFolder(qsTranslate("FileDialog", "Select destination folder"), uiSettings.pathRecentExport)
 			if (folder === "")
 				return
 

@@ -14,8 +14,8 @@ class FileDialogProvider
 	Q_OBJECT
 
 public:
-	Q_INVOKABLE static QString SelectFile(const QString & fileName);
-	Q_INVOKABLE static QString SelectFolder(const QString & folderName);
+	Q_INVOKABLE static QString SelectFile(const QString & title, const QString & fileName, const QString & filter = {});
+	Q_INVOKABLE static QString SelectFolder(const QString & title, const QString & folderName);
 	Q_INVOKABLE static bool FileExists(const QString & fileName);
 
 public:
