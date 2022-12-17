@@ -27,6 +27,7 @@ protected:
 		, m_roleNames(QAbstractListModel::roleNames())
 	{
 		AddRole(Role::Click);
+		AddRole(Role::DoubleClick);
 	}
 
 public:
@@ -73,6 +74,9 @@ protected:
 
 			case Role::Click:
 				return Observable<Observer>::Perform(&Observer::HandleItemClicked, index.row()), true;
+
+			case Role::DoubleClick:
+				return Observable<Observer>::Perform(&Observer::HandleItemDoubleClicked, index.row()), true;
 
 			case Role::KeyPressed:
 				return true;

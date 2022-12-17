@@ -19,6 +19,7 @@ public:
 
 		// запись локальная
 		Click,
+		DoubleClick,
 		KeyPressed,
 
 		// чтение глобальное

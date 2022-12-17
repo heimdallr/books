@@ -76,6 +76,7 @@ public:
 private: // ModelObserver
 	void HandleModelItemFound(int index) override;
 	void HandleItemClicked(int index) override;
+	void HandleItemDoubleClicked(int index) override;
 	void HandleInvalidated() override;
 
 private: // property getters

@@ -156,6 +156,12 @@ Item
 					bookContextMenuID.popup()
 				}
 			}
+
+			onDoubleClicked: (mouse)=>
+			{
+				if (mouse.button == Qt.LeftButton)
+					DoubleClick = true
+			}
 		}
 	}
 }

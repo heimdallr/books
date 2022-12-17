@@ -215,6 +215,10 @@ void ModelController::HandleItemClicked(const int index)
 	m_impl->Perform(&ModelControllerObserver::HandleClicked, this);
 }
 
+void ModelController::HandleItemDoubleClicked(const int)
+{
+}
+
 void ModelController::HandleInvalidated()
 {
 	auto toIndex = m_impl->currentIndex;
