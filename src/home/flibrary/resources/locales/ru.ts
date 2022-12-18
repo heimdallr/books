@@ -45,19 +45,34 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="58"/>
-        <source>&lt;tr&gt;&lt;td&gt;Archive: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation>&lt;tr&gt;&lt;td&gt;Архив: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="59"/>
-        <source>&lt;tr&gt;&lt;td&gt;File: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation>&lt;tr&gt;&lt;td&gt;Файл: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
-    </message>
-    <message>
         <location filename="../../src/controllers/AnnotationController.cpp" line="60"/>
-        <source>&lt;tr&gt;&lt;td&gt;Updated: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation>&lt;tr&gt;&lt;td&gt;Обновлён: &lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
+        <source>Archive</source>
+        <translation>Архив</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="61"/>
+        <source>File</source>
+        <translation>Файл</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="62"/>
+        <source>Updated</source>
+        <translation>Обновлён</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="82"/>
+        <source>Authors</source>
+        <translation>Авторы</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="83"/>
+        <source>Series</source>
+        <translation>Серии</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="84"/>
+        <source>Genres</source>
+        <translation>Жанры</translation>
     </message>
 </context>
 <context>

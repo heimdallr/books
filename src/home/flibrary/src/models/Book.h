@@ -1,10 +1,15 @@
 #pragma once
 
+#include <map>
+
 #include <QString>
 
 #include "BookDecl.h"
 
 namespace HomeCompa::Flibrary {
+
+template<typename T>
+using Dictionary = std::map<T, QString>;
 
 struct Book
 {
@@ -27,6 +32,9 @@ struct Book
 	bool IsDictionary { false };
 	bool Expanded { false };
 	int TreeLevel { 0 };
+	Dictionary<long long int> Authors;
+	Dictionary<long long int> Series;
+	Dictionary<QString> Genres;
 };
 
 }

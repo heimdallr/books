@@ -49,7 +49,7 @@ constexpr auto QUERY =
 "select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, b.IsDeleted "
 ", a.LastName, a.FirstName, a.MiddleName "
 ", g.GenreAlias, s.SeriesTitle "
-", a.AuthorID, b.SeriesID, g.GenreCode "
+", a.AuthorID, coalesce(b.SeriesID, -1), g.GenreCode "
 "from Books b "
 "join Author_List al on al.BookID = b.BookID "
 "join Authors a on a.AuthorID = al.AuthorID "
@@ -186,6 +186,7 @@ struct IndexValue
 {
 	[[maybe_unused]] size_t index {};
 	std::set<long long int> authors {};
+	std::set<long long int> series {};
 	std::set<QString> genres {};
 };
 
@@ -260,6 +261,8 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 		const auto updateIndexValue = [&] (IndexValue & value)
 		{
 			value.authors.emplace(query->Get<long long int>(15));
+			if (const auto seriesId = query->Get<long long int>(16); seriesId >= 0)
+				value.series.emplace(seriesId);
 			value.genres.emplace(query->Get<const char *>(17));
 		};
 
@@ -295,6 +298,33 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 
 		item.Author = CreateAuthors(authors, indexValue.authors, &AppendAuthorName, " ", "");
 		item.AuthorFull = CreateAuthors(authors, indexValue.authors, &AppendTitle, " ", " ");
+
+		std::ranges::transform(it->second.authors, std::inserter(item.Authors, item.Authors.end()), [&authors] (const long long int id)
+		{
+			const auto it = authors.find(id);
+			assert(it != authors.end());
+			const auto & author = it->second;
+
+			auto result = author.last;
+			AppendAuthorName(result, author.first, " ");
+			AppendAuthorName(result, author.middle, "");
+
+			return std::make_pair(id, result);
+		});
+
+		std::ranges::transform(it->second.series, std::inserter(item.Series, item.Series.end()), [&series] (const long long int id)
+		{
+			const auto it = series.find(id);
+			assert(it != series.end());
+			return std::make_pair(id, it->second);
+		});
+
+		std::ranges::transform(it->second.genres, std::inserter(item.Genres, item.Genres.end()), [&genres] (const QString & id)
+		{
+			const auto it = genres.find(id);
+			assert(it != genres.end());
+			return std::make_pair(id, it->second);
+		});
 
 		for (const auto & genreId : indexValue.genres)
 		{
@@ -964,6 +994,11 @@ void BooksModelController::HandleBookRemoved(const Book & book)
 {
 	std::unique_lock w(g_guardFolders);
 	g_folders.insert(book.Folder);
+}
+
+void BooksModelController::HandleItemDoubleClicked(const int index)
+{
+	m_impl->StartReader(index);
 }
 
 }

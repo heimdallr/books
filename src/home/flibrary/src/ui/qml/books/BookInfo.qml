@@ -73,6 +73,14 @@ Rectangle
 			wrapMode: TextEdit.WordWrap
 			font.pointSize: uiSettings.sizeFont
 			text: annotationController.annotation
+			onLinkActivated: (link) => { console.log(link) }
+
+			MouseArea
+			{
+				anchors.fill: parent
+				acceptedButtons: Qt.NoButton
+				cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+			}
 	    }
 	}
 }

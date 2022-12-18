@@ -52,12 +52,36 @@ constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 #undef	XML_PARSE_MODE_ITEM
 };
 
+constexpr auto TABLE_STRING_TEMPLATE = "<tr><td>%1: </td><td>%2</td></tr>";
+
 QString GetBookInfoTable(const Book & book)
 {
 	return QString("<table>")
-		+ QCoreApplication::translate("Annotation", "<tr><td>Archive: </td><td>%1</td></tr>").arg(book.Folder)
-		+ QCoreApplication::translate("Annotation", "<tr><td>File: </td><td>%1</td></tr>").arg(book.FileName)
-		+ QCoreApplication::translate("Annotation", "<tr><td>Updated: </td><td>%1</td></tr>").arg(book.UpdateDate)
+		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Annotation", "Archive")).arg(book.Folder)
+		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Annotation", "File")).arg(book.FileName)
+		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Annotation", "Updated")).arg(book.UpdateDate)
+		+ QString("</table>");
+}
+
+QString GetBookLinksTable(const Book & book)
+{
+	const auto addLinks = [&] (const auto & container, const char * name)
+	{
+		if (container.empty())
+			return QString();
+
+		QStringList list;
+		std::ranges::transform(container, std::back_inserter(list), [name] (const auto & item)
+		{
+			return QString(R"(<a href="%1:%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
+		});
+		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Annotation", name)).arg(list.join(", "));
+	};
+
+	return QString("<table>")
+		+ addLinks(book.Authors, QT_TRANSLATE_NOOP("Annotation", "Authors"))
+		+ addLinks(book.Series, QT_TRANSLATE_NOOP("Annotation", "Series"))
+		+ addLinks(book.Genres, QT_TRANSLATE_NOOP("Annotation", "Genres"))
 		+ QString("</table>");
 }
 
@@ -296,7 +320,10 @@ private:
 
 				std::lock_guard lock(m_guard);
 				m_annotation = std::move(parser.annotation);
-				m_annotation += QString("%1%2%3").arg(m_annotation.isEmpty() ? "" : "<p>").arg(GetBookInfoTable(book)).arg(m_annotation.isEmpty() ? "" : "</p>");
+
+				m_annotation += QString("%1%2%3").arg(m_annotation.isEmpty() ? "" : "<p>").arg(GetBookLinksTable(book)).arg(m_annotation.isEmpty() ? "" : "</p>");
+				m_annotation += QString("<p>%1</p>").arg(GetBookInfoTable(book));
+
 				m_covers = std::move(parser.covers);
 				m_coverIndex
 					= m_covers.empty() ? -1
