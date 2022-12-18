@@ -66,6 +66,7 @@ private: // ModelController
 
 private: // BookModelObserver
 	void HandleBookRemoved(const Book & book) override;
+	void HandleItemDoubleClicked(int index) override;
 
 private:
 	struct Impl;

@@ -25,6 +25,7 @@
 #include "controllers/ModelControllers/BooksViewType.h"
 #include "controllers/ModelControllers/NavigationSource.h"
 #include "controllers/ProgressController.h"
+#include "controllers/ReaderController.h"
 
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
@@ -814,6 +815,20 @@ public:
 		}});
 	}
 
+	void StartReader(const int index)
+	{
+		auto * model = m_self.GetCurrentModel();
+		const auto modelIndex = model->index(index, 0);
+		if (model->data(modelIndex, BookRole::IsDictionary).toBool())
+			return;
+
+		const auto folder = model->data(modelIndex, BookRole::Folder).toString();
+		const auto file = model->data(modelIndex, BookRole::FileName).toString();
+
+		m_readerController.StartReader(m_archiveFolder / folder.toStdWString(), file.toStdString());
+	}
+
+
 private:
 	BooksModelController & m_self;
 	Util::Executor & executor;
@@ -824,6 +839,7 @@ private:
 
 	const std::filesystem::path m_archiveFolder;
 	const ItemsCreator m_itemsCreator {};
+	ReaderController m_readerController;
 };
 
 BooksModelController::BooksModelController(Util::Executor & executor

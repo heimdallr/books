@@ -131,27 +131,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="265"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="274"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="268"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="269"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="270"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="279"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="271"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -225,14 +225,29 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/controllers/FileDialogProvider.cpp" line="17"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/FileDialogProvider.cpp" line="22"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="44"/>
+        <source>Select destination folder</source>
+        <translation>Укажите путь назначения на устройстве</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/ReaderController.cpp" line="167"/>
+        <source>Select %1 reader</source>
+        <translation>Укажите читалку для %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/ReaderController.cpp" line="167"/>
+        <source>Applications (*.exe)</source>
+        <translation>Приложения (*.exe)</translation>
     </message>
 </context>
 <context>
