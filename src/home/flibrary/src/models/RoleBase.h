@@ -2,6 +2,7 @@
 
 #include <qnamespace.h>
 #include <QObject>
+#include <QVariant>
 
 namespace HomeCompa::Flibrary {
 
@@ -37,6 +38,7 @@ public:
 		TranslateIndexFromGlobal,
 		CheckIndexVisible,
 		IncreaseLocalIndex,
+		FindItem,
 
 		FakeRoleLast
 	};
@@ -59,8 +61,15 @@ struct IncreaseLocalIndexRequest
 	int * incrementedIndex;
 };
 
+struct FindItemRequest
+{
+	QVariant itemId;
+	int * itemIndex;
+};
+
 }
 
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::TranslateIndexFromGlobalRequest);
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::CheckIndexVisibleRequest);
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::IncreaseLocalIndexRequest);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::FindItemRequest);

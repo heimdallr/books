@@ -165,6 +165,19 @@ protected:
 				return true;
 			}
 
+			case Role::FindItem:
+			{
+				const auto request = value.value<FindItemRequest>();
+				const auto itemId = request.itemId.value<decltype(Item::Id)>();
+				const auto it = std::ranges::find_if(std::as_const(m_items), [&] (const Item & item) { return item.Id == itemId; });
+				if (it == m_items.cend())
+					return false;
+
+				*request.itemIndex = static_cast<int>(std::distance(m_items.cbegin(), it));
+				CheckVisible(*request.itemIndex);
+				return true;
+			}
+
 			default:
 				break;
 		}
@@ -173,6 +186,10 @@ protected:
 	}
 
 	virtual void Reset()
+	{
+	}
+
+	virtual void CheckVisible(const int)
 	{
 	}
 
