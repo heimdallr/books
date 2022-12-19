@@ -130,27 +130,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="275"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="279"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -608,12 +608,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="91"/>
+        <location filename="../../src/constants/SimpleModelItems.h" line="33"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="92"/>
+        <location filename="../../src/constants/SimpleModelItems.h" line="34"/>
         <source>Tree</source>
         <translation></translation>
     </message>
