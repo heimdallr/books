@@ -45,17 +45,17 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="60"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="61"/>
         <source>Archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="61"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="62"/>
         <source>File</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="62"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="63"/>
         <source>Updated</source>
         <translation></translation>
     </message>
@@ -130,27 +130,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="284"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -593,27 +593,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/constants/SimpleModelItems.h" line="6"/>
+        <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="8"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/constants/SimpleModelItems.h" line="7"/>
+        <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="9"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/constants/SimpleModelItems.h" line="8"/>
+        <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="10"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/constants/SimpleModelItems.h" line="33"/>
+        <location filename="../../src/controllers/ModelControllers/BooksViewType.h" line="6"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/constants/SimpleModelItems.h" line="34"/>
+        <location filename="../../src/controllers/ModelControllers/BooksViewType.h" line="7"/>
         <source>Tree</source>
         <translation></translation>
     </message>

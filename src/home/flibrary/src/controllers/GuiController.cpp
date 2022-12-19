@@ -33,7 +33,6 @@
 #include "ModelControllers/NavigationSource.h"
 
 #include "constants/ProductConstant.h"
-#include "constants/SimpleModelItems.h"
 
 #include "AnnotationController.h"
 #include "Collection.h"
@@ -88,10 +87,10 @@ SimpleModelItems GetViewSourceNavigationModelItems()
 SimpleModelItems GetViewSourceBooksModelItems()
 {
 	SimpleModelItems items;
-	items.reserve(std::size(Constant::g_viewSourceBooksModelItems));
-	std::ranges::transform(Constant::g_viewSourceBooksModelItems, std::back_inserter(items), [] (const auto & item)
+	items.reserve(std::size(g_viewSourceBooksModelItems));
+	std::ranges::transform(g_viewSourceBooksModelItems, std::back_inserter(items), [] (const auto & item)
 	{
-		return SimpleModelItem { item.first, item.second };
+		return SimpleModelItem { item.second.first, item.second.second };
 	});
 	return items;
 }
@@ -309,8 +308,8 @@ public:
 		const auto navigationPair = navigationPairString.split('|');
 		assert(navigationPair.size() == 2);
 		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idBooks, bookId);
-		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idNavigation, navigationPair.back());
 		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, navigationPair.front());
+		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idNavigation, navigationPair.back());
 	}
 
 	BooksModelController * GetBooksModelController(const BooksViewType type)

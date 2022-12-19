@@ -17,8 +17,9 @@
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
-#include "constants/SimpleModelItems.h"
 #include "ModelControllers/BooksModelControllerObserver.h"
+#include "ModelControllers/NavigationSource.h"
+
 #include "models/Book.h"
 
 #include "AnnotationController.h"
@@ -75,7 +76,7 @@ QString GetBookLinksTable(const Book & book)
 		{
 			return QString(R"(<a href="%1|%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
 		});
-		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate(Constant::ViewSourceNavigationModelItemContext, name)).arg(list.join(", "));
+		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate(Constant::NavigationSourceTranslationContext, name)).arg(list.join(", "));
 	};
 
 	return QString("<table>")
