@@ -881,10 +881,12 @@ BooksModelController::BooksModelController(Util::Executor & executor
 )
 	: ModelController(uiSettings
 		, GetTypeName(Type::Books)
+		, FindSecond(g_viewSourceBooksModelItems, booksViewType).first
 		, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default
 		, HomeCompa::Constant::UiSettings_ns::viewModeBooks
 		, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks
 		, HomeCompa::Constant::UiSettings_ns::idBooks
+		, HomeCompa::Constant::UiSettings_ns::viewSourceBooks
 	)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {

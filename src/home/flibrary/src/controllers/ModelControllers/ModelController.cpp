@@ -63,26 +63,32 @@ public:
 	Settings & uiSettings;
 
 	const char * const typeName;
+	const char * const viewSourceName;
 	const QVariant & viewModeDefaultValue;
 	const char * const viewModeKey;
 	const char * const viewModeValueKey;
 	const char * const currentItemIdKey;
+	const char * const viewSourceKey;
 
 	Impl(ModelController & self
 		, Settings & uiSettings_
 		, const char * typeName_
+		, const char * sourceName_
 		, const QVariant & viewModeDefaultValue_
 		, const char * viewModeKey_
 		, const char * viewModeValueKey_
 		, const char * currentItemIdKey_
+		, const char * viewSourceKey_
 	)
 		: m_self(self)
 		, uiSettings(uiSettings_)
 		, typeName(typeName_)
+		, viewSourceName(sourceName_)
 		, viewModeDefaultValue(viewModeDefaultValue_)
 		, viewModeKey(viewModeKey_)
 		, viewModeValueKey(viewModeValueKey_)
 		, currentItemIdKey(currentItemIdKey_)
+		, viewSourceKey(viewSourceKey_)
 	{
 		uiSettings.RegisterObserver(this);
 
@@ -165,6 +171,9 @@ public:
 private: // SettingsObserver
 	void HandleValueChanged(const QString & key, const QVariant & value) override
 	{
+		if (uiSettings.Get(viewSourceKey).toString() != viewSourceName)
+			return;
+
 		if (key == viewModeKey)
 		{
 			findTimer.start();
@@ -202,14 +211,25 @@ private:
 
 ModelController::ModelController(Settings & uiSettings
 	, const char * typeName
+	, const char * sourceName
 	, const QVariant & viewModeDefaultValue
 	, const char * viewModeKey
 	, const char * viewModeValueKey
 	, const char * currentItemIdKey
+	, const char * viewSourceKey
 	, QObject * parent
 )
 	: QObject(parent)
-	, m_impl(*this, uiSettings, typeName, viewModeDefaultValue, viewModeKey, viewModeValueKey, currentItemIdKey)
+	, m_impl(*this
+		, uiSettings
+		, typeName
+		, sourceName
+		, viewModeDefaultValue
+		, viewModeKey
+		, viewModeValueKey
+		, currentItemIdKey
+		, viewSourceKey
+	)
 {
 }
 

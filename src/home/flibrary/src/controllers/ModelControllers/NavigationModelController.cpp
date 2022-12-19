@@ -227,10 +227,12 @@ NavigationModelController::NavigationModelController(Util::Executor & executor
 )
 	: ModelController(uiSettings
 		, GetTypeName(Type::Navigation)
-		, Constant::UiSettings_ns::viewModeNavigation_default
-		, Constant::UiSettings_ns::viewModeNavigation
-		, Constant::UiSettings_ns::viewModeValueNavigation
-		, Constant::UiSettings_ns::idNavigation
+		, FindSecond(g_viewSourceNavigationModelItems, navigationSource)
+		, HomeCompa::Constant::UiSettings_ns::viewModeNavigation_default
+		, HomeCompa::Constant::UiSettings_ns::viewModeNavigation
+		, HomeCompa::Constant::UiSettings_ns::viewModeValueNavigation
+		, HomeCompa::Constant::UiSettings_ns::idNavigation
+		, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation
 	)
 	, m_impl(*this, executor, db, navigationSource)
 {

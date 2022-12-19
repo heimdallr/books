@@ -56,10 +56,12 @@ public:
 public:
 	ModelController(Settings & uiSettings
 		, const char * typeName
+		, const char * sourceName
 		, const QVariant & viewModeDefaultValue
 		, const char * viewModeKey
 		, const char * viewModeValueKey
 		, const char * currentItemIdKey
+		, const char * viewSourceKey
 		, QObject * parent = nullptr
 	);
 	~ModelController() override;
