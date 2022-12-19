@@ -223,7 +223,7 @@ protected: // QAbstractListModel
 protected:
 	Item & GetItem(int n)
 	{
-		assert(n < rowCount());
+		assert(n >= 0 && n < rowCount());
 		return m_items[n];
 	}
 
