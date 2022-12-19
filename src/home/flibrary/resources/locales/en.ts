@@ -59,21 +59,6 @@
         <source>Updated</source>
         <translation></translation>
     </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="82"/>
-        <source>Authors</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="83"/>
-        <source>Series</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="84"/>
-        <source>Genres</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>BookContextMenu</name>
@@ -145,27 +130,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="274"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="275"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="279"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="279"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -608,27 +593,27 @@ Restart now?</source>
 <context>
     <name>ViewSource</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="80"/>
+        <location filename="../../src/constants/SimpleModelItems.h" line="6"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="81"/>
+        <location filename="../../src/constants/SimpleModelItems.h" line="7"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="82"/>
+        <location filename="../../src/constants/SimpleModelItems.h" line="8"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="90"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="91"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="91"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="92"/>
         <source>Tree</source>
         <translation></translation>
     </message>

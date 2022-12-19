@@ -32,6 +32,7 @@
 #include "ModelControllers/NavigationSource.h"
 
 #include "constants/ProductConstant.h"
+#include "constants/SimpleModelItems.h"
 
 #include "AnnotationController.h"
 #include "Collection.h"
@@ -77,19 +78,21 @@ SimpleModelItems GetViewSourceNavigationModelItems()
 {
 	return SimpleModelItems
 	{
-		{ "Authors", QT_TRANSLATE_NOOP("ViewSource", "Authors") },
-		{ "Series", QT_TRANSLATE_NOOP("ViewSource", "Series") },
-		{ "Genres", QT_TRANSLATE_NOOP("ViewSource", "Genres") },
+#define VIEW_SOURCE_NAVIGATION_MODEL_ITEM(NAME) { #NAME, #NAME },
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO
+#undef	VIEW_SOURCE_NAVIGATION_MODEL_ITEM
 	};
 }
 
 SimpleModelItems GetViewSourceBooksModelItems()
 {
-	return SimpleModelItems
+	SimpleModelItems items;
+	items.reserve(std::size(Constant::g_viewSourceBooksModelItems));
+	std::ranges::transform(Constant::g_viewSourceBooksModelItems, std::back_inserter(items), [] (const auto & item)
 	{
-		{ "BooksListView", QT_TRANSLATE_NOOP("ViewSource", "List") },
-		{ "BooksTreeView", QT_TRANSLATE_NOOP("ViewSource", "Tree") },
-	};
+		return SimpleModelItem { item.first, item.second };
+	});
+	return items;
 }
 
 void UpdateSettings(Settings & settings, const char * settingsKey, const QVariant & defaultValue, const int key)

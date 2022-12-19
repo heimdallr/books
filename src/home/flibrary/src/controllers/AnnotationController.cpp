@@ -4,11 +4,11 @@
 #include <QBuffer>
 #include <QCursor>
 #include <QGuiApplication>
-#include <QTextCodec>
 #include <QTimer>
 #include <QXmlStreamReader>
 
 #include <plog/Log.h>
+
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
@@ -17,8 +17,8 @@
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
+#include "constants/SimpleModelItems.h"
 #include "ModelControllers/BooksModelControllerObserver.h"
-
 #include "models/Book.h"
 
 #include "AnnotationController.h"
@@ -75,13 +75,13 @@ QString GetBookLinksTable(const Book & book)
 		{
 			return QString(R"(<a href="%1:%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
 		});
-		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Annotation", name)).arg(list.join(", "));
+		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate(Constant::ViewSourceNavigationModelItemContext, name)).arg(list.join(", "));
 	};
 
 	return QString("<table>")
-		+ addLinks(book.Authors, QT_TRANSLATE_NOOP("Annotation", "Authors"))
-		+ addLinks(book.Series, QT_TRANSLATE_NOOP("Annotation", "Series"))
-		+ addLinks(book.Genres, QT_TRANSLATE_NOOP("Annotation", "Genres"))
+#define VIEW_SOURCE_NAVIGATION_MODEL_ITEM(NAME) + addLinks(book.NAME, #NAME)
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO
+#undef	VIEW_SOURCE_NAVIGATION_MODEL_ITEM
 		+ QString("</table>");
 }
 
