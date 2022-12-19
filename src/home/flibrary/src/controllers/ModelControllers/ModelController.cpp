@@ -9,6 +9,7 @@
 #include "fnd/observable.h"
 
 #include "util/Settings.h"
+#include "util/SettingsObserver.h"
 
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
@@ -44,7 +45,10 @@ constexpr std::pair<ModelController::Type, const char *> g_typeNames[]
 
 struct ModelController::Impl
 	: Observable<ModelControllerObserver>
+	, SettingsObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 private:
 	ModelController & m_self;
 
@@ -71,6 +75,8 @@ public:
 		, viewModeDefaultValue(viewModeDefaultValue_)
 		, viewModeValueKey(viewModeValueKey_)
 	{
+		uiSettings.RegisterObserver(this);
+
 		findTimer.setSingleShot(true);
 		findTimer.setInterval(std::chrono::milliseconds(250));
 		connect(&findTimer, &QTimer::timeout, [&]
@@ -83,6 +89,11 @@ public:
 			const auto viewModeRole = FindSecond(g_viewModes, viewMode.toUtf8().data(), PszComparer {});
 			(void)model->setData({}, viewModeValue, viewModeRole);
 		});
+	}
+
+	~Impl() override
+	{
+		uiSettings.UnregisterObserver(this);
 	}
 
 	void OnKeyPressed(const int key, const int modifiers)
@@ -134,6 +145,23 @@ public:
 
 			if (newIndex != currentIndex)
 				(void)m_self.SetCurrentIndex(newIndex);
+		}
+	}
+
+private: // SettingsObserver
+	void HandleValueChanged(const QString & key, const QVariant & value) override
+	{
+		if (key == viewModeKey)
+		{
+			findTimer.start();
+			emit m_self.ViewModeChanged();
+			return;
+		}
+
+		if (key == viewModeValueKey)
+		{
+			findTimer.start();
+			return;
 		}
 	}
 
@@ -283,14 +311,11 @@ void ModelController::UpdateCurrentIndex(const int globalIndex)
 void ModelController::SetViewMode(const QString & viewMode)
 {
 	m_impl->uiSettings.Set(m_impl->viewModeKey, viewMode);
-	m_impl->findTimer.start();
-	emit ViewModeChanged();
 }
 
 void ModelController::SetViewModeValue(const QString & text)
 {
 	m_impl->uiSettings.Set(m_impl->viewModeValueKey, text);
-	m_impl->findTimer.start();
 }
 
 void ModelController::UpdateViewMode()
