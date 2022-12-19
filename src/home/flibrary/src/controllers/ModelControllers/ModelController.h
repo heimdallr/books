@@ -56,9 +56,10 @@ public:
 public:
 	ModelController(Settings & uiSettings
 		, const char * typeName
-		, const char * viewModeKey
 		, const QVariant & viewModeDefaultValue
+		, const char * viewModeKey
 		, const char * viewModeValueKey
+		, const char * currentItemIdKey
 		, QObject * parent = nullptr
 	);
 	~ModelController() override;
@@ -92,7 +93,7 @@ private: // property setters
 	void SetViewModeValue(const QString & text);
 
 protected:
-	void UpdateViewMode();
+	void FindCurrentItem();
 	static const char * GetTypeName(Type type);
 
 	virtual QAbstractItemModel * CreateModel() = 0;

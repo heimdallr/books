@@ -794,7 +794,7 @@ public:
 
 				Perform(&BooksModelControllerObserver::HandleModelReset);
 
-				m_self.UpdateViewMode();
+				m_self.FindCurrentItem();
 			};
 		} }, 2);
 	}
@@ -879,7 +879,13 @@ BooksModelController::BooksModelController(Util::Executor & executor
 	, std::filesystem::path archiveFolder
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings, GetTypeName(Type::Books), HomeCompa::Constant::UiSettings_ns::viewModeBooks, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks)
+	: ModelController(uiSettings
+		, GetTypeName(Type::Books)
+		, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default
+		, HomeCompa::Constant::UiSettings_ns::viewModeBooks
+		, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks
+		, HomeCompa::Constant::UiSettings_ns::idBooks
+	)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
 }

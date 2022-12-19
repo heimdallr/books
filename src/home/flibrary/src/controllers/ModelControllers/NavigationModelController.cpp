@@ -203,7 +203,7 @@ private:
 				navigationItems = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
 
-				m_self.UpdateViewMode();
+				m_self.FindCurrentItem();
 			};
 		} }, 1);
 		return model;
@@ -225,7 +225,13 @@ NavigationModelController::NavigationModelController(Util::Executor & executor
 	, const NavigationSource navigationSource
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings, GetTypeName(Type::Navigation), Constant::UiSettings_ns::viewModeNavigation, Constant::UiSettings_ns::viewModeNavigation_default, Constant::UiSettings_ns::viewModeValueNavigation)
+	: ModelController(uiSettings
+		, GetTypeName(Type::Navigation)
+		, Constant::UiSettings_ns::viewModeNavigation_default
+		, Constant::UiSettings_ns::viewModeNavigation
+		, Constant::UiSettings_ns::viewModeValueNavigation
+		, Constant::UiSettings_ns::idNavigation
+	)
 	, m_impl(*this, executor, db, navigationSource)
 {
 }

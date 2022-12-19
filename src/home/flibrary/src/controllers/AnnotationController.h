@@ -24,6 +24,7 @@ class AnnotationController
 public:
 	Q_INVOKABLE void CoverNext();
 	Q_INVOKABLE void CoverPrev();
+	Q_INVOKABLE long long GetCurrentBookId() const noexcept;
 
 signals:
 	void AnnotationChanged() const;

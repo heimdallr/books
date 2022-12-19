@@ -63,17 +63,26 @@ public:
 	Settings & uiSettings;
 
 	const char * const typeName;
-	const char * const viewModeKey;
 	const QVariant & viewModeDefaultValue;
+	const char * const viewModeKey;
 	const char * const viewModeValueKey;
+	const char * const currentItemIdKey;
 
-	Impl(ModelController & self, Settings & uiSettings_, const char * typeName_, const char * viewModeKey_, const QVariant & viewModeDefaultValue_, const char * viewModeValueKey_)
+	Impl(ModelController & self
+		, Settings & uiSettings_
+		, const char * typeName_
+		, const QVariant & viewModeDefaultValue_
+		, const char * viewModeKey_
+		, const char * viewModeValueKey_
+		, const char * currentItemIdKey_
+	)
 		: m_self(self)
 		, uiSettings(uiSettings_)
 		, typeName(typeName_)
-		, viewModeKey(viewModeKey_)
 		, viewModeDefaultValue(viewModeDefaultValue_)
+		, viewModeKey(viewModeKey_)
 		, viewModeValueKey(viewModeValueKey_)
+		, currentItemIdKey(currentItemIdKey_)
 	{
 		uiSettings.RegisterObserver(this);
 
@@ -148,6 +157,11 @@ public:
 		}
 	}
 
+	void FindCurrentItem()
+	{
+		HandleValueChanged(currentItemIdKey, uiSettings.Get(currentItemIdKey));
+	}
+
 private: // SettingsObserver
 	void HandleValueChanged(const QString & key, const QVariant & value) override
 	{
@@ -163,6 +177,18 @@ private: // SettingsObserver
 			findTimer.start();
 			return;
 		}
+
+		if (key == currentItemIdKey)
+		{
+			if (value.isNull() || !value.isValid())
+				return;
+
+			int itemIndex = -1;
+			if (model->setData({}, QVariant::fromValue(FindItemRequest { value, &itemIndex }), Role::FindItem))
+				(void)m_self.SetCurrentIndex(itemIndex);
+
+			return;
+		}
 	}
 
 private:
@@ -176,16 +202,15 @@ private:
 
 ModelController::ModelController(Settings & uiSettings
 	, const char * typeName
-	, const char * viewModeKey
 	, const QVariant & viewModeDefaultValue
+	, const char * viewModeKey
 	, const char * viewModeValueKey
+	, const char * currentItemIdKey
 	, QObject * parent
 )
 	: QObject(parent)
-	, m_impl(*this, uiSettings, typeName, viewModeKey, viewModeDefaultValue, viewModeValueKey)
+	, m_impl(*this, uiSettings, typeName, viewModeDefaultValue, viewModeKey, viewModeValueKey, currentItemIdKey)
 {
-	if (!GetViewModeValue().isEmpty())
-		m_impl->findTimer.start();
 }
 
 ModelController::~ModelController() = default;
@@ -318,9 +343,9 @@ void ModelController::SetViewModeValue(const QString & text)
 	m_impl->uiSettings.Set(m_impl->viewModeValueKey, text);
 }
 
-void ModelController::UpdateViewMode()
+void ModelController::FindCurrentItem()
 {
-	m_impl->findTimer.start();
+	m_impl->FindCurrentItem();
 }
 
 const char * ModelController::GetTypeName(const Type type)

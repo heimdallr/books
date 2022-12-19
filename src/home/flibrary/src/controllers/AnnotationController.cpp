@@ -73,7 +73,7 @@ QString GetBookLinksTable(const Book & book)
 		QStringList list;
 		std::ranges::transform(container, std::back_inserter(list), [name] (const auto & item)
 		{
-			return QString(R"(<a href="%1:%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
+			return QString(R"(<a href="%1|%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
 		});
 		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate(Constant::ViewSourceNavigationModelItemContext, name)).arg(list.join(", "));
 	};
@@ -266,6 +266,10 @@ public:
 		return m_covers[m_coverIndex];
 	}
 
+	const Book & GetCurrentBook() const noexcept
+	{
+		return m_book;
+	}
 
 private: // BooksModelControllerObserver
 	void HandleBookChanged(const Book & book) override
@@ -369,6 +373,11 @@ void AnnotationController::CoverNext()
 void AnnotationController::CoverPrev()
 {
 	m_impl->CoverPrev();
+}
+
+long long AnnotationController::GetCurrentBookId() const noexcept
+{
+	return m_impl->GetCurrentBook().Id;
 }
 
 BooksModelControllerObserver * AnnotationController::GetBooksModelControllerObserver()

@@ -2,6 +2,7 @@
 #include <QAbstractItemModel>
 #include <QApplication>
 #include <QCommonStyle>
+#include <QDesktopServices>
 #include <QKeyEvent>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -296,6 +297,22 @@ public:
 		} });
 	}
 
+	void SetNavigation(const QString & navigationPairString, const long long bookId) const
+	{
+		const QUrl url(navigationPairString);
+		if (url.isValid() && !url.scheme().isEmpty() && !url.host().isEmpty())
+		{
+			QDesktopServices::openUrl(url);
+			return;
+		}
+
+		const auto navigationPair = navigationPairString.split('|');
+		assert(navigationPair.size() == 2);
+		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idBooks, bookId);
+		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idNavigation, navigationPair.back());
+		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, navigationPair.front());
+	}
+
 	BooksModelController * GetBooksModelController(const BooksViewType type)
 	{
 		if (m_navigationSourceProvider.GetBookViewType() == type)
@@ -435,17 +452,17 @@ private:
 	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
 	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
 
-	AnnotationController m_annotationController;
-	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
-	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
-	ModelController * m_activeModelController { nullptr };
-
-	int m_currentNavigationIndex { -1 };
-
 	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
 	std::shared_ptr<Settings> m_uiSettingsSrc { CreateUiSettings() };
 	UiSettings m_uiSettings { m_uiSettingsSrc };
+
+	int m_currentNavigationIndex { -1 };
+	AnnotationController m_annotationController;
 	Collection m_currentCollection;
+
+	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
+	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
+	ModelController * m_activeModelController { nullptr };
 
 	NavigationSourceProvider m_navigationSourceProvider;
 	LocaleController m_localeController { *m_uiSettingsSrc, &m_self };
@@ -527,6 +544,11 @@ ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcep
 void GuiController::LogCollectionStatistics()
 {
 	m_impl->LogCollectionStatistics();
+}
+
+void GuiController::SetNavigation(const QString & navigationPairString, const long long bookId)
+{
+	m_impl->SetNavigation(navigationPairString, bookId);
 }
 
 bool GuiController::eventFilter(QObject * obj, QEvent * event)

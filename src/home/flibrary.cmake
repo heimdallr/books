@@ -22,6 +22,8 @@ CreateMap(UI_SETTING_NAMES
 		heightBookInfo                  0.25
 		heightMainWindow                720
 		heightRow                       20
+		idBooks                       \"\"
+		idNavigation                  \"\"
 		indexAuthor                     0
 		indexTitle                      1
 		indexSeries                     2
