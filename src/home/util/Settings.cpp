@@ -32,6 +32,9 @@ QVariant Settings::Get(const QString & key, const QVariant & defaultValue) const
 
 void Settings::Set(const QString & key, const QVariant & value)
 {
+	if (Get(key) == value)
+		return;
+
 	m_impl->settings.setValue(key, value);
 	m_impl->settings.sync();
 	m_impl->Perform(&SettingsObserver::HandleValueChanged, std::cref(key), std::cref(value));
