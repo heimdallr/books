@@ -141,6 +141,21 @@ private:
 		}
 	}
 
+	void CheckVisible(const int n) override
+	{
+		bool found = false;
+		for (const auto parentIndex : m_parents[n])
+		{
+			const auto m = static_cast<int>(parentIndex);
+			auto & parent = GetItem(m);
+			if (!parent.Expanded)
+				found = parent.Expanded = true;
+		}
+
+		if (found)
+			Invalidate();
+	}
+
 private:
 	std::unordered_map<QString, size_t> m_index;
 	std::vector<std::vector<size_t>> m_parents;

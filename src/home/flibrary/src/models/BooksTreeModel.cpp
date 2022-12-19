@@ -228,6 +228,22 @@ private:
 				m_children[m_items[i].ParentId].push_back(i);
 	}
 
+	void CheckVisible(int n) override
+	{
+		bool found = false;
+		while(n >= 0)
+		{
+			auto & item = GetItem(n);
+			if (item.IsDictionary && !item.Expanded)
+				found = item.Expanded = true;
+
+			n = static_cast<int>(item.ParentId);
+		}
+
+		if (found)
+			Invalidate();
+	}
+
 private:
 	std::vector<std::vector<size_t>> m_children;
 };
