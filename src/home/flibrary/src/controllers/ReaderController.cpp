@@ -98,9 +98,11 @@ public:
 
 		QObject::connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [&] (int exitCode, QProcess::ExitStatus exitStatus)
 		{
-			PLOGI << "Reader finished with " << exitCode << ": " << (exitStatus == QProcess::NormalExit ? "normal" : "crash");
+			PLOGD << "Reader finished with " << exitCode << ": " << (exitStatus == QProcess::NormalExit ? "normal" : "crash");
 			m_observer.HandleReaderSessionFinished(this);
 		});
+
+		QObject::connect(&m_process, &QProcess::started, [] { PLOGD << "Reader started"; });
 
 		m_process.start(readerPath, { m_tempFile.name });
 
