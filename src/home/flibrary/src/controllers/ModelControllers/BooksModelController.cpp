@@ -845,9 +845,12 @@ public:
 		}});
 	}
 
-	void StartReader(const int index)
+	void StartReader(int index)
 	{
 		auto * model = m_self.GetCurrentModel();
+		if (!model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), Role::TranslateIndexFromGlobal))
+			return;
+
 		const auto modelIndex = model->index(index, 0);
 		if (model->data(modelIndex, BookRole::IsDictionary).toBool())
 			return;
