@@ -20,6 +20,7 @@ class Database;
 namespace HomeCompa::Flibrary {
 
 class ModelControllerObserver;
+class ModelControllerSettings;
 struct Book;
 
 class ModelController
@@ -54,14 +55,9 @@ public:
 	};
 
 public:
-	ModelController(Settings & uiSettings
+	ModelController(std::unique_ptr<ModelControllerSettings> modelControllerSettings
 		, const char * typeName
 		, const char * sourceName
-		, const QVariant & viewModeDefaultValue
-		, const char * viewModeKey
-		, const char * viewModeValueKey
-		, const char * currentItemIdKey
-		, const char * viewSourceKey
 		, QObject * parent = nullptr
 	);
 	~ModelController() override;
@@ -96,6 +92,7 @@ private: // property setters
 
 protected:
 	void FindCurrentItem();
+	void SaveCurrentItemId();
 	static const char * GetTypeName(Type type);
 
 	virtual QAbstractItemModel * CreateModel() = 0;

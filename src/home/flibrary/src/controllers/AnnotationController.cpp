@@ -325,8 +325,7 @@ private:
 
 				std::lock_guard lock(m_guard);
 				m_annotation = std::move(parser.annotation);
-
-				m_annotation += QString("%1%2%3").arg(m_annotation.isEmpty() ? "" : "<p>").arg(GetBookLinksTable(book)).arg(m_annotation.isEmpty() ? "" : "</p>");
+				m_annotation += QString("<p>%1</p>").arg(GetBookLinksTable(book));
 				m_annotation += QString("<p>%1</p>").arg(GetBookInfoTable(book));
 
 				m_covers = std::move(parser.covers);

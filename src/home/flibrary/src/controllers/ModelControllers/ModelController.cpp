@@ -8,13 +8,13 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
+#include "models/RoleBase.h"
+
 #include "util/Settings.h"
-#include "util/SettingsObserver.h"
 
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
-
-#include "models/RoleBase.h"
+#include "ModelControllerSettings.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -45,7 +45,7 @@ constexpr std::pair<ModelController::Type, const char *> g_typeNames[]
 
 struct ModelController::Impl
 	: Observable<ModelControllerObserver>
-	, SettingsObserver
+	, ModelControllerSettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -60,37 +60,22 @@ public:
 
 	QTimer findTimer;
 
-	Settings & uiSettings;
+	std::unique_ptr<ModelControllerSettings> modelControllerSettings;
 
 	const char * const typeName;
 	const char * const viewSourceName;
-	const QVariant & viewModeDefaultValue;
-	const char * const viewModeKey;
-	const char * const viewModeValueKey;
-	const char * const currentItemIdKey;
-	const char * const viewSourceKey;
 
 	Impl(ModelController & self
-		, Settings & uiSettings_
+		, std::unique_ptr<ModelControllerSettings> modelControllerSettings_
 		, const char * typeName_
 		, const char * sourceName_
-		, const QVariant & viewModeDefaultValue_
-		, const char * viewModeKey_
-		, const char * viewModeValueKey_
-		, const char * currentItemIdKey_
-		, const char * viewSourceKey_
 	)
 		: m_self(self)
-		, uiSettings(uiSettings_)
+		, modelControllerSettings(std::move(modelControllerSettings_))
 		, typeName(typeName_)
 		, viewSourceName(sourceName_)
-		, viewModeDefaultValue(viewModeDefaultValue_)
-		, viewModeKey(viewModeKey_)
-		, viewModeValueKey(viewModeValueKey_)
-		, currentItemIdKey(currentItemIdKey_)
-		, viewSourceKey(viewSourceKey_)
 	{
-		uiSettings.RegisterObserver(this);
+		modelControllerSettings->Register(this);
 
 		findTimer.setSingleShot(true);
 		findTimer.setInterval(std::chrono::milliseconds(250));
@@ -108,7 +93,7 @@ public:
 
 	~Impl() override
 	{
-		uiSettings.UnregisterObserver(this);
+		modelControllerSettings->Unregister(this);
 	}
 
 	void OnKeyPressed(const int key, const int modifiers)
@@ -165,39 +150,42 @@ public:
 
 	void FindCurrentItem()
 	{
-		HandleValueChanged(currentItemIdKey, uiSettings.Get(currentItemIdKey));
+		handle_idChanged(modelControllerSettings->id());
 	}
 
-private: // SettingsObserver
-	void HandleValueChanged(const QString & key, const QVariant & value) override
+private: // ModelControllerSettingsObserver
+	void handle_viewModeChanged(const QVariant & /*value*/) override
 	{
-		if (uiSettings.Get(viewSourceKey).toString() != viewSourceName)
+		if (modelControllerSettings->viewSource().toString() != viewSourceName)
 			return;
 
-		if (key == viewModeKey)
-		{
-			findTimer.start();
-			emit m_self.ViewModeChanged();
+		findTimer.start();
+		emit m_self.ViewModeChanged();
+	}
+
+	void handle_viewModeValueChanged(const QVariant & /*value*/) override
+	{
+		if (modelControllerSettings->viewSource().toString() != viewSourceName)
 			return;
-		}
 
-		if (key == viewModeValueKey)
-		{
-			findTimer.start();
+		findTimer.start();
+	}
+
+	void handle_viewSourceChanged(const QVariant & /*value*/) override
+	{
+	}
+
+	void handle_idChanged(const QVariant & value) override
+	{
+		if (modelControllerSettings->viewSource().toString() != viewSourceName)
 			return;
-		}
 
-		if (key == currentItemIdKey)
-		{
-			if (value.isNull() || !value.isValid())
-				return;
-
-			int itemIndex = -1;
-			if (model->setData({}, QVariant::fromValue(FindItemRequest { value, &itemIndex }), Role::FindItem))
-				(void)m_self.SetCurrentIndex(itemIndex);
-
+		if (value.isNull() || !value.isValid())
 			return;
-		}
+
+		int itemIndex = -1;
+		if (model->setData({}, QVariant::fromValue(FindItemRequest { value, &itemIndex }), Role::FindItem))
+			(void)m_self.SetCurrentIndex(itemIndex);
 	}
 
 private:
@@ -209,26 +197,16 @@ private:
 	}
 };
 
-ModelController::ModelController(Settings & uiSettings
+ModelController::ModelController(std::unique_ptr<ModelControllerSettings> modelControllerSettings
 	, const char * typeName
 	, const char * sourceName
-	, const QVariant & viewModeDefaultValue
-	, const char * viewModeKey
-	, const char * viewModeValueKey
-	, const char * currentItemIdKey
-	, const char * viewSourceKey
 	, QObject * parent
 )
 	: QObject(parent)
 	, m_impl(*this
-		, uiSettings
+		, std::move(modelControllerSettings)
 		, typeName
 		, sourceName
-		, viewModeDefaultValue
-		, viewModeKey
-		, viewModeValueKey
-		, currentItemIdKey
-		, viewSourceKey
 	)
 {
 }
@@ -283,6 +261,9 @@ void ModelController::HandleModelItemFound(const int index)
 
 void ModelController::HandleItemClicked(const int index)
 {
+	if (m_impl->currentIndex == index)
+		return;
+
 	SetCurrentIndex(index);
 	emit FocusedChanged();
 	m_impl->Perform(&ModelControllerObserver::HandleClicked, this);
@@ -333,12 +314,12 @@ QAbstractItemModel * ModelController::GetModel()
 
 QString ModelController::GetViewMode() const
 {
-	return m_impl->uiSettings.Get(m_impl->viewModeKey, m_impl->viewModeDefaultValue).toString();
+	return m_impl->modelControllerSettings->viewMode().toString();
 }
 
 QString ModelController::GetViewModeValue() const
 {
-	return m_impl->uiSettings.Get(m_impl->viewModeValueKey, {}).toString();
+	return m_impl->modelControllerSettings->viewModeValue().toString();
 }
 
 int ModelController::GetCount() const
@@ -355,17 +336,31 @@ void ModelController::UpdateCurrentIndex(const int globalIndex)
 
 void ModelController::SetViewMode(const QString & viewMode)
 {
-	m_impl->uiSettings.Set(m_impl->viewModeKey, viewMode);
+	m_impl->modelControllerSettings->set_viewMode(viewMode);
 }
 
 void ModelController::SetViewModeValue(const QString & text)
 {
-	m_impl->uiSettings.Set(m_impl->viewModeValueKey, text);
+	m_impl->modelControllerSettings->set_viewModeValue(text);
 }
 
 void ModelController::FindCurrentItem()
 {
 	m_impl->FindCurrentItem();
+}
+
+void ModelController::SaveCurrentItemId()
+{
+	if (m_impl->modelControllerSettings->viewSource().toString() != m_impl->viewSourceName)
+		return;
+
+	const int localIndex = GetCurrentLocalIndex();
+	if (localIndex < 0)
+		return;
+
+	const auto modelIndex = m_impl->model->index(localIndex, 0);
+	const auto id = m_impl->model->data(modelIndex, Role::Id);
+	m_impl->modelControllerSettings->set_id(id);
 }
 
 const char * ModelController::GetTypeName(const Type type)

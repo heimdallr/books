@@ -14,6 +14,7 @@
 
 #include "util/executor.h"
 
+#include "ModelControllerSettings.h"
 #include "NavigationModelController.h"
 
 #include "Settings/UiSettings_keys.h"
@@ -27,7 +28,7 @@ using Role = RoleBase;
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias from Genres g where exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode) or exists (select 42 from Genres p where p.ParentCode = g.GenreCode)";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias from Genres g";
 
 void AppendTitle(QString & title, std::string_view str)
 {
@@ -154,6 +155,15 @@ NavigationTreeItems CreateGenres(DB::Database & db)
 template<typename T>
 using NavigationItemsCreator = std::vector<T>(*)(DB::Database & db);
 
+std::unique_ptr<ModelControllerSettings> CreateModelControllerSettings(Settings & uiSettings)
+{
+	return std::make_unique<ModelControllerSettings>(uiSettings
+#define	MODEL_CONTROLLER_SETTINGS_ITEM(NAME) , HomeCompa::Constant::UiSettings_ns::NAME##Navigation, HomeCompa::Constant::UiSettings_ns::NAME##Navigation_default
+		MODEL_CONTROLLER_SETTINGS_ITEMS_XMACRO
+#undef  MODEL_CONTROLLER_SETTINGS_ITEM
+	);
+}
+
 }
 
 QAbstractItemModel * CreateNavigationModel(NavigationListItems & items, QObject * parent = nullptr);
@@ -161,6 +171,8 @@ QAbstractItemModel * CreateNavigationModel(NavigationTreeItems & items, QObject 
 
 class NavigationModelController::Impl
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db, const NavigationSource navigationSource)
 		: m_self(self)
@@ -168,6 +180,11 @@ public:
 		, m_db(db)
 		, m_navigationSource(navigationSource)
 	{
+	}
+
+	~Impl()
+	{
+		m_self.SaveCurrentItemId();
 	}
 
 	QAbstractItemModel * CreateModel()
@@ -225,14 +242,9 @@ NavigationModelController::NavigationModelController(Util::Executor & executor
 	, const NavigationSource navigationSource
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings
+	: ModelController(CreateModelControllerSettings(uiSettings)
 		, GetTypeName(Type::Navigation)
 		, FindSecond(g_viewSourceNavigationModelItems, navigationSource)
-		, HomeCompa::Constant::UiSettings_ns::viewModeNavigation_default
-		, HomeCompa::Constant::UiSettings_ns::viewModeNavigation
-		, HomeCompa::Constant::UiSettings_ns::viewModeValueNavigation
-		, HomeCompa::Constant::UiSettings_ns::idNavigation
-		, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation
 	)
 	, m_impl(*this, executor, db, navigationSource)
 {

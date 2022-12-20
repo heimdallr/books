@@ -131,27 +131,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="278"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="284"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -240,12 +240,12 @@ Restart now?</source>
         <translation>Укажите путь назначения на устройстве</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ReaderController.cpp" line="167"/>
+        <location filename="../../src/controllers/ReaderController.cpp" line="177"/>
         <source>Select %1 reader</source>
         <translation>Укажите читалку для %1</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ReaderController.cpp" line="167"/>
+        <location filename="../../src/controllers/ReaderController.cpp" line="177"/>
         <source>Applications (*.exe)</source>
         <translation>Приложения (*.exe)</translation>
     </message>

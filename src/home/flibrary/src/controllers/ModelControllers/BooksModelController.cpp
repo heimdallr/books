@@ -36,6 +36,8 @@
 #include "BooksModelControllerObserver.h"
 #include "BooksModelController.h"
 
+#include "ModelControllerSettings.h"
+
 #include "Settings/UiSettings_keys.h"
 #include "Settings/UiSettings_values.h"
 
@@ -725,6 +727,15 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem:
 	return result;
 }
 
+std::unique_ptr<ModelControllerSettings> CreateModelControllerSettings(Settings & uiSettings)
+{
+	return std::make_unique<ModelControllerSettings>(uiSettings
+#define	MODEL_CONTROLLER_SETTINGS_ITEM(NAME) , HomeCompa::Constant::UiSettings_ns::NAME##Books, HomeCompa::Constant::UiSettings_ns::NAME##Books_default
+		MODEL_CONTROLLER_SETTINGS_ITEMS_XMACRO
+#undef  MODEL_CONTROLLER_SETTINGS_ITEM
+	);
+}
+
 }
 
 QAbstractItemModel * CreateBooksListModel(Books & items, QObject * parent = nullptr);
@@ -739,6 +750,9 @@ constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
 struct BooksModelController::Impl
 	: virtual Observable<BooksModelControllerObserver>
 {
+	NON_COPY_MOVABLE(Impl)
+
+public:
 	Books books {};
 	QTimer setNavigationIdTimer;
 	NavigationSource navigationSource{ NavigationSource::Undefined };
@@ -773,6 +787,11 @@ public:
 
 			UpdateItems();
 		});
+	}
+
+	~Impl()
+	{
+		m_self.SaveCurrentItemId();
 	}
 
 	void UpdateItems()
@@ -882,14 +901,9 @@ BooksModelController::BooksModelController(Util::Executor & executor
 	, std::filesystem::path archiveFolder
 	, Settings & uiSettings
 )
-	: ModelController(uiSettings
+	: ModelController(CreateModelControllerSettings(uiSettings)
 		, GetTypeName(Type::Books)
 		, FindSecond(g_viewSourceBooksModelItems, booksViewType).first
-		, HomeCompa::Constant::UiSettings_ns::viewModeBooks_default
-		, HomeCompa::Constant::UiSettings_ns::viewModeBooks
-		, HomeCompa::Constant::UiSettings_ns::viewModeValueBooks
-		, HomeCompa::Constant::UiSettings_ns::idBooks
-		, HomeCompa::Constant::UiSettings_ns::viewSourceBooks
 	)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
