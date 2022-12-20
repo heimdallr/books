@@ -3,6 +3,8 @@
 #include <QMetaEnum>
 #include <QSortFilterProxyModel>
 
+#include <plog/Log.h>
+
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
@@ -73,9 +75,11 @@ protected:
 				break;
 
 			case Role::Click:
+				PLOGV << "row " << index.row() << " clicked";
 				return Observable<Observer>::Perform(&Observer::HandleItemClicked, index.row()), true;
 
 			case Role::DoubleClick:
+				PLOGV << "row " << index.row() << " double clicked";
 				return Observable<Observer>::Perform(&Observer::HandleItemDoubleClicked, index.row()), true;
 
 			case Role::KeyPressed:

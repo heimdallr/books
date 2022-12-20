@@ -103,12 +103,16 @@ public:
 		});
 
 		m_process.start(readerPath, { m_tempFile.name });
+
+		PLOGV << "Reader session created";
 	}
 
 	~ReaderSession()
 	{
 		m_process.close();
 		m_process.waitForFinished();
+
+		PLOGV << "Reader session destroyed";
 	}
 
 private:
@@ -130,10 +134,16 @@ public:
 
 	void StartReader(const std::filesystem::path & archive, const std::string & file)
 	{
+		PLOGV << "Start reader for " << archive.string() << "#" << file;
 		const auto ext = QFileInfo(QString::fromStdString(file)).suffix();
 		const auto readerPath = GetReaderPath(ext);
 		if (readerPath.isEmpty())
+		{
+			PLOGD << "Reader not found";
 			return;
+		}
+
+		PLOGV << "Reader found: " << readerPath;
 
 		assert(QFile::exists(readerPath));
 		try
