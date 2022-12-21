@@ -163,7 +163,7 @@ auto LoadGenres(std::wstring_view genresIniFileName)
 		assert(it != index.end());
 		auto & parent = genres[it->second];
 		genre.parentId = it->second;
-		genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(parent.dbCode), ++parent.childrenCount));
+		genre.dbCode = ToWide(fmt::format("{:s}.{:03d}", ToMultiByte(parent.dbCode), ++parent.childrenCount));
 	});
 
 	return std::make_pair(std::move(genres), std::move(index));
