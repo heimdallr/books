@@ -309,7 +309,7 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 				if (itIndexYear == genresIndex.end())
 					itIndexYear = add(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
 
-				itIndexDate = add(dateCode, month, itIndexYear);
+				itIndexDate = add(dateCode, std::wstring(year).append(L".").append(month), itIndexYear);
 			}
 
 			data.booksGenres.emplace_back(id, itIndexDate->second);
