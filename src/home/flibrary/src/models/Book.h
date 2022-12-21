@@ -16,13 +16,13 @@ struct Book
 	long long int Id { -1 };
 	size_t ParentId { static_cast<size_t>(-1) };
 	QString Title;
-	int SeqNumber;
+	int SeqNumber { 0 };
 	QString UpdateDate;
-	int LibRate;
+	int LibRate { 0 };
 	QString Lang;
 	QString Folder;
 	QString FileName;
-	size_t Size;
+	size_t Size { 0 };
 	bool IsDeleted { true };
 	QString Author;
 	QString AuthorFull;
