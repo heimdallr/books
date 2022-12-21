@@ -237,6 +237,7 @@ public:
 		auto & controller = m_navigationModelControllers.emplace(navigationSource, std::make_unique<NavigationModelController>(*m_executor, *m_db, navigationSource, *m_uiSettingsSrc)).first->second;
 		QQmlEngine::setObjectOwnership(controller.get(), QQmlEngine::CppOwnership);
 		controller->RegisterObserver(this);
+		HandleClicked(controller.get());
 
 		return controller.get();
 	}
