@@ -333,10 +333,8 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 			assert(genres.contains(genreId));
 			auto genre = genres[genreId];
 
-			bool isNumber = false;
-			(void)genre.toInt(&isNumber);
-			if (isNumber)
-				genre.clear();
+			if (std::ranges::all_of(genre, [] (const QChar ch) { return ch.isDigit() || ch == '.'; }))
+				continue;
 
 			AppendTitle(item.GenreAlias, genre, " / ");
 		}
