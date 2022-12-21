@@ -346,18 +346,18 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 	std::ranges::sort(items, [&] (const Book & lhs, const Book & rhs)
 	{
 		if (lhs.Author != rhs.Author)
-			return lhs.Author < rhs.Author;
+			return QString::compare(lhs.Author, rhs.Author, Qt::CaseInsensitive) < 0;
 
 		if (lhs.SeriesTitle == rhs.SeriesTitle)
 			return
 				  lhs.SeqNumber != rhs.SeqNumber   ? correctSeqNumber(lhs.SeqNumber) < correctSeqNumber(rhs.SeqNumber)
-				: lhs.Title != rhs.Title           ? lhs.Title < rhs.Title
+				: lhs.Title != rhs.Title           ? QString::compare(lhs.Title, rhs.Title, Qt::CaseInsensitive) < 0
 				: lhs.UpdateDate != rhs.UpdateDate ? lhs.UpdateDate < rhs.UpdateDate
 				:									 lhs.Id < rhs.Id
 				;
 
 		if (!lhs.SeriesTitle.isEmpty() && !rhs.SeriesTitle.isEmpty())
-			return lhs.SeriesTitle < rhs.SeriesTitle;
+			return QString::compare(lhs.SeriesTitle, rhs.SeriesTitle, Qt::CaseInsensitive) < 0;
 
 		return rhs.SeriesTitle.isEmpty();
 	});
