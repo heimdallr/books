@@ -244,6 +244,24 @@ private:
 			Invalidate();
 	}
 
+	bool ChangeCheckedDictionary(int index, const std::function<bool(const Book &)> & f, std::set<int> & changed) override
+	{
+		bool result = false;
+		for (const auto i : m_children[index])
+		{
+			const auto n = static_cast<int>(i);
+			const auto book = GetItem(n);
+			result = (book.IsDictionary
+				? ChangeCheckedDictionary(n, f, changed)
+				: ChangeCheckedBook(n, f, changed)
+				) || result;
+		}
+		if (result)
+			changed.insert(index);
+
+		return result;
+	}
+
 private:
 	std::vector<std::vector<size_t>> m_children;
 };

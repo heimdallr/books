@@ -19,6 +19,9 @@ protected:
 	BookModelBase(QSortFilterProxyModel & proxyModel, Items & items);
 	~BookModelBase() override;
 
+protected:
+	bool ChangeCheckedBook(int index, const std::function<bool(const Book &)> & f, std::set<int> & changed);
+
 protected: // ProxyModelBaseT
 	bool FilterAcceptsRow(const int row, const QModelIndex & parent = {}) const override;
 	QVariant GetDataGlobal(int role) const override;
@@ -28,6 +31,9 @@ protected: // ProxyModelBaseT
 private:
 	bool RemoveImpl(long long id, bool remove);
 	bool ChangeCheckedAll(const std::function<bool(const Book &)> & f);
+
+private:
+	virtual bool ChangeCheckedDictionary(int index, const std::function<bool(const Book &)> & f, std::set<int> & changed);
 
 protected:
 	bool m_showDeleted { false };

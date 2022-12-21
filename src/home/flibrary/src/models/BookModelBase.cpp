@@ -197,22 +197,38 @@ bool BookModelBase::ChangeCheckedAll(const std::function<bool(const Book &)> & f
 	std::set<int> changed;
 	for (int i = 0, sz = static_cast<int>(std::size(m_items)); i < sz; ++i)
 	{
-		auto & book = m_items[i];
-		if (!book.IsDictionary && FilterAcceptsRow(i))
-		{
-			const bool checked = f(book);
-			if (book.Checked != checked)
-			{
-				book.Checked = checked;
-				changed.insert(i);
-			}
-		}
+		if (!FilterAcceptsRow(i))
+			continue;
+
+		auto & book = GetItem(i);
+		book.IsDictionary
+			? ChangeCheckedDictionary(i, f, changed)
+			: ChangeCheckedBook(i, f, changed)
+			;
 	}
 
 	for (const auto & range : Util::CreateRanges(changed))
 		emit dataChanged(index(range.first), index(range.second - 1), { Role::Checked });
 
 	return !changed.empty();
+}
+
+bool BookModelBase::ChangeCheckedBook(const int index, const std::function<bool(const Book &)> & f, std::set<int> & changed)
+{
+	auto & book = GetItem(index);
+	const bool checked = f(book);
+	if (book.Checked == checked)
+		return false;
+
+	book.Checked = checked;
+	changed.insert(index);
+
+	return true;
+}
+
+bool BookModelBase::ChangeCheckedDictionary(const int /*index*/, const std::function<bool(const Book &)> & /*f*/, std::set<int> & /*changed*/)
+{
+	return false;
 }
 
 }
