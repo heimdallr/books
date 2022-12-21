@@ -29,6 +29,32 @@ Item
 			onCheckboxClicked: Checked = true
 
 			onClicked: Click = true
+
+			MouseArea
+			{
+				BookContextMenu
+				{
+					id: bookContextMenuID
+				}
+
+				anchors.fill: parent
+				acceptedButtons: Qt.LeftButton | Qt.RightButton
+				z: 0
+
+				onClicked: (mouse)=>
+				{
+					if (mouse.button == Qt.LeftButton)
+					{
+						Click = true
+					}
+					else
+					{
+						bookContextMenuID.isDirectory = true
+						bookContextMenuID.bookId = Id
+						bookContextMenuID.popup()
+					}
+				}
+			}
 		}
 	}
 

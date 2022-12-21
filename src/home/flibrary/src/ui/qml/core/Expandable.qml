@@ -29,7 +29,7 @@ Item
 		id: expanderID
 		height: parent.height * uiSettings.sizeExpander
 		width: height
-
+		z: 1000
 		anchors
 		{
 			verticalCenter: parent.verticalCenter
@@ -51,6 +51,7 @@ Item
 			left: expanderID.right
 			leftMargin: Functions.GetMargin()
 		}
+		z: 1000
 
 		visible: false
 

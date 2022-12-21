@@ -7,9 +7,11 @@ Menu
 
 	readonly property var controller: guiController.GetBooksModelController()
 	property int bookId: 0
+	property bool isDirectory: false
 
 	MenuItem
 	{
+		visible: !menuID.isDirectory
 		text: qsTranslate("BookContextMenu", "Read")
         onTriggered: controller.Read(menuID.bookId)
 	}
@@ -44,6 +46,7 @@ Menu
 	{
 		id: sendToDeviceMenuID
 		title: qsTranslate("BookContextMenu", "Send to device")
+		visible: !menuID.isDirectory
 
 		function save(archivate)
 		{
