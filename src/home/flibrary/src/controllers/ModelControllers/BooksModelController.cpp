@@ -970,6 +970,15 @@ void BooksModelController::WriteToFile(QString path, const long long id)
 	m_impl->Save(std::move(path), id, false);
 }
 
+void BooksModelController::Read(long long id)
+{
+	int index = -1;
+	if (GetCurrentModel()->setData({}, QVariant::fromValue(FindItemRequest { id, &index }), Role::FindItem) && index >= 0)
+		return m_impl->StartReader(index);
+
+	PLOGE << "Cannot find book #" << id;
+}
+
 void BooksModelController::SetNavigationState(NavigationSource navigationSource, const QString & navigationId)
 {
 	m_impl->navigationSource = navigationSource;

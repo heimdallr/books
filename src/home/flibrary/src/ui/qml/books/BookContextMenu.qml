@@ -8,6 +8,12 @@ Menu
 	readonly property var controller: guiController.GetBooksModelController()
 	property int bookId: 0
 
+	MenuItem
+	{
+		text: qsTranslate("BookContextMenu", "Read")
+        onTriggered: controller.Read(menuID.bookId)
+	}
+
 	Menu
 	{
 		title: qsTranslate("BookContextMenu", "Selection")

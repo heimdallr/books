@@ -44,6 +44,7 @@ public:
 	Q_INVOKABLE void Restore(long long id);
 	Q_INVOKABLE void WriteToArchive(QString path, long long id);
 	Q_INVOKABLE void WriteToFile(QString path, long long id);
+	Q_INVOKABLE void Read(long long id);
 
 public:
 	BooksModelController(Util::Executor & executor
