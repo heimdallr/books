@@ -266,10 +266,9 @@ void ModelController::HandleModelItemFound(const int index)
 
 void ModelController::HandleItemClicked(const int index)
 {
-	if (m_impl->currentIndex == index)
-		return;
+	if (m_impl->currentIndex != index)
+		SetCurrentIndex(index);
 
-	SetCurrentIndex(index);
 	emit FocusedChanged();
 	m_impl->Perform(&ModelControllerObserver::HandleClicked, this);
 }
