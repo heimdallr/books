@@ -7,6 +7,11 @@ import "qrc:/Core"
 
 Item
 {
+	BookContextMenu
+	{
+		id: bookContextMenuID
+	}
+
 	ViewTemplate
 	{
 		id: listViewID

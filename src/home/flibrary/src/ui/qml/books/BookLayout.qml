@@ -137,11 +137,6 @@ Item
 
 		MouseArea
 		{
-			BookContextMenu
-			{
-				id: bookContextMenuID
-			}
-
 			anchors.fill: parent
 			acceptedButtons: Qt.LeftButton | Qt.RightButton
 			onClicked: (mouse)=>
@@ -152,6 +147,7 @@ Item
 				}
 				else
 				{
+					bookContextMenuID.controller = guiController.GetCurrentBooksModelController()
 					bookContextMenuID.bookId = Id
 					bookContextMenuID.popup()
 				}

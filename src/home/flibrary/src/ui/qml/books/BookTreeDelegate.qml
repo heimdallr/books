@@ -32,11 +32,6 @@ Item
 
 			MouseArea
 			{
-				BookContextMenu
-				{
-					id: bookContextMenuID
-				}
-
 				anchors.fill: parent
 				acceptedButtons: Qt.LeftButton | Qt.RightButton
 				z: 0
@@ -49,7 +44,8 @@ Item
 					}
 					else
 					{
-						bookContextMenuID.isDirectory = true
+						bookContextMenuID.controller = guiController.GetCurrentBooksModelController()
+						bookContextMenuID.isDictionary = IsDictionary
 						bookContextMenuID.bookId = Id
 						bookContextMenuID.popup()
 					}
