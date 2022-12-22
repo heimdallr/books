@@ -1,5 +1,7 @@
 import QtQuick 2.15
 
+import HomeCompa.Flibrary.ModelControllerType 1.0
+
 import "qrc:/ViewTemplate"
 import "qrc:/Core"
 
@@ -16,6 +18,7 @@ Item
 			bottom: progressBarID.top
 		}
 
+		modelControllerType: ModelControllerType.Books
 		loadPath: "qrc:/Book/"
 		viewSourceComboBoxController: guiController.GetViewSourceComboBoxBooksController()
 	}

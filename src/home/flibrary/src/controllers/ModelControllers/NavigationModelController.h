@@ -37,7 +37,7 @@ public:
 	~NavigationModelController() override;
 
 private: // ModelController
-	Type GetType() const noexcept override;
+	ModelControllerType GetType() const noexcept override;
 	QAbstractItemModel * CreateModel() override;
 
 private:

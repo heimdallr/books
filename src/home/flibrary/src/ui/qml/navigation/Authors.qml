@@ -15,10 +15,4 @@ Item
 			width: authorsID.width
 		}
 	}
-
-	Component.onCompleted:
-	{
-		viewTemplateID.modelController = guiController.GetNavigationModelControllerAuthors()
-		viewTemplateID.modelController.currentIndex = -1
-	}
 }

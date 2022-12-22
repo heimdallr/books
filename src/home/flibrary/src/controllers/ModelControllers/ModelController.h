@@ -6,6 +6,7 @@
 #include "fnd/NonCopyMovable.h"
 
 #include "models/ModelObserver.h"
+#include "ModelControllerType.h"
 
 class QAbstractItemModel;
 
@@ -40,19 +41,13 @@ public:
 	Q_INVOKABLE void SetPageSize(int pageSize);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void OnKeyPressed(int key, int modifiers);
+	Q_INVOKABLE QString GetViewSource() const;
 
 signals:
 	void CurrentIndexChanged() const;
 	void FocusedChanged() const;
 	void CountChanged() const;
 	void ViewModeChanged() const;
-
-public:
-	enum class Type
-	{
-		Navigation,
-		Books,
-	};
 
 public:
 	ModelController(std::unique_ptr<ModelControllerSettings> modelControllerSettings
@@ -70,7 +65,7 @@ public:
 	QString GetId(int index);
 
 public:
-	virtual Type GetType() const noexcept = 0;
+	virtual ModelControllerType GetType() const noexcept = 0;
 
 private: // ModelObserver
 	void HandleModelItemFound(int index) override;
@@ -93,7 +88,7 @@ private: // property setters
 protected:
 	void FindCurrentItem();
 	void SaveCurrentItemId();
-	static const char * GetTypeName(Type type);
+	static const char * GetTypeName(ModelControllerType type);
 
 	virtual QAbstractItemModel * CreateModel() = 0;
 	virtual bool SetCurrentIndex(int index);

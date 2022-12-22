@@ -63,52 +63,52 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="13"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="15"/>
         <source>Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="19"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="21"/>
         <source>Selection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="24"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
         <source>Select all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="31"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
         <source>Deselect all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="38"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="40"/>
         <source>Invert selection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="46"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="48"/>
         <source>Send to device</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="62"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="65"/>
         <source>In zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="68"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="71"/>
         <source>In original format</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="76"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="79"/>
         <source>Remove book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="83"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="86"/>
         <source>Undo book deletion</source>
         <translation></translation>
     </message>
@@ -135,27 +135,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="304"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="307"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="308"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="309"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="310"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -239,7 +239,7 @@ Restart now?</source>
         <translation>select folder with archives</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="50"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="53"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>

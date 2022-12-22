@@ -33,9 +33,9 @@ constexpr std::pair<const char *, int> g_viewModes[]
 #undef  VIEW_MODE_ITEM
 };
 
-constexpr std::pair<ModelController::Type, const char *> g_typeNames[]
+constexpr std::pair<ModelControllerType, const char *> g_typeNames[]
 {
-#define ITEM(NAME) { ModelController::Type::NAME, #NAME }
+#define ITEM(NAME) { ModelControllerType::NAME, #NAME }
 		ITEM(Navigation),
 		ITEM(Books),
 #undef	ITEM
@@ -221,6 +221,11 @@ void ModelController::OnKeyPressed(const int key, const int modifiers)
 	});
 }
 
+QString ModelController::GetViewSource() const
+{
+	return m_impl->modelControllerSettings->viewSource().toString();
+}
+
 void ModelController::RegisterObserver(ModelControllerObserver * observer)
 {
 	m_impl->Register(observer);
@@ -363,7 +368,7 @@ void ModelController::SaveCurrentItemId()
 	m_impl->modelControllerSettings->set_id(id);
 }
 
-const char * ModelController::GetTypeName(const Type type)
+const char * ModelController::GetTypeName(const ModelControllerType type)
 {
 	return FindSecond(g_typeNames, type);
 }

@@ -15,10 +15,4 @@ Item
 			width: genresID.width
 		}
 	}
-
-	Component.onCompleted:
-	{
-		viewTemplateID.modelController = guiController.GetNavigationModelControllerGenres()
-		viewTemplateID.modelController.currentIndex = -1
-	}
 }

@@ -14,10 +14,10 @@ enum class BooksViewType
 	Tree,
 };
 
-[[maybe_unused]] constexpr std::pair<BooksViewType, std::pair<const char *, const char *>> g_viewSourceBooksModelItems[]
+[[maybe_unused]] constexpr std::pair<BooksViewType, const char *> g_viewSourceBooksModelItems[]
 {
-	{ BooksViewType::List, { "BooksListView", "List" } },
-	{ BooksViewType::Tree, { "BooksTreeView", "Tree" } },
+	{ BooksViewType::List, "List" },
+	{ BooksViewType::Tree, "Tree" },
 };
 
 }

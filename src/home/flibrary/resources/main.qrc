@@ -26,8 +26,8 @@
 		<file alias="Books.qml">../src/ui/qml/books/Books.qml</file>
 		<file alias="BooksHeader.qml">../src/ui/qml/books/BooksHeader.qml</file>
 		<file alias="BooksList.qml">../src/ui/qml/books/BooksList.qml</file>
-		<file alias="BooksListView.qml">../src/ui/qml/books/BooksListView.qml</file>
-		<file alias="BooksTreeView.qml">../src/ui/qml/books/BooksTreeView.qml</file>
+		<file alias="List.qml">../src/ui/qml/books/BooksListView.qml</file>
+		<file alias="Tree.qml">../src/ui/qml/books/BooksTreeView.qml</file>
 		<file alias="BookTreeDelegate.qml">../src/ui/qml/books/BookTreeDelegate.qml</file>
 	</qresource>
 

@@ -63,52 +63,52 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="13"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="15"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="19"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="21"/>
         <source>Selection</source>
         <translation>Выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="24"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
         <source>Select all</source>
         <translation>Выделить все</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="31"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
         <source>Deselect all</source>
         <translation>Отменить выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="38"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="40"/>
         <source>Invert selection</source>
         <translation>Инвертировать выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="46"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="48"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="62"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="65"/>
         <source>In zip archive</source>
         <translation>Архиворовать в zip</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="68"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="71"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="76"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="79"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="83"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="86"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
@@ -136,27 +136,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="277"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="304"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="280"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="307"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="281"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="308"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="282"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="309"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="283"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="310"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -240,7 +240,7 @@ Restart now?</source>
         <translation>Выберите папку с архивами</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="50"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="53"/>
         <source>Select destination folder</source>
         <translation>Укажите путь назначения на устройстве</translation>
     </message>

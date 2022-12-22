@@ -243,7 +243,7 @@ NavigationModelController::NavigationModelController(Util::Executor & executor
 	, Settings & uiSettings
 )
 	: ModelController(CreateModelControllerSettings(uiSettings)
-		, GetTypeName(Type::Navigation)
+		, GetTypeName(ModelControllerType::Navigation)
 		, FindSecond(g_viewSourceNavigationModelItems, navigationSource)
 	)
 	, m_impl(*this, executor, db, navigationSource)
@@ -256,9 +256,9 @@ NavigationModelController::~NavigationModelController()
 		(void)model->setData({}, QVariant::fromValue(To<NavigationModelObserver>()), Role::ObserverUnregister);
 }
 
-ModelController::Type NavigationModelController::GetType() const noexcept
+ModelControllerType NavigationModelController::GetType() const noexcept
 {
-	return Type::Navigation;
+	return ModelControllerType::Navigation;
 }
 
 QAbstractItemModel * NavigationModelController::CreateModel()

@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.15
 
+import HomeCompa.Flibrary.ModelControllerType 1.0
+
 import "qrc:/Core"
 import "qrc:/Util/Functions.js" as Functions
 
@@ -9,6 +11,7 @@ Rectangle
 {
 	id: viewTemplateID
 
+	property var modelControllerType
 	property var modelController
 	property string loadPath
 	property alias viewSourceComboBoxController: viewSourceComboBoxID.comboBoxController
@@ -16,8 +19,15 @@ Rectangle
 
 	onViewSourceComboBoxValueChanged:
 	{
+		loaderID.setSource("")
+
+		modelController
+			= modelControllerType == ModelControllerType.Navigation ? guiController.GetNavigationModelController()
+			: modelControllerType == ModelControllerType.Books ? guiController.GetBooksModelController()
+			: undefined
+
 		viewModeTextID.text = ""
-		loaderID.setSource(loadPath + viewSourceComboBoxValue + ".qml")
+		loaderID.setSource(loadPath + modelController.GetViewSource() + ".qml")
 	}
 
 	ColumnLayout

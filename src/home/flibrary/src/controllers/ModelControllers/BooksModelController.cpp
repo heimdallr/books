@@ -900,8 +900,8 @@ BooksModelController::BooksModelController(Util::Executor & executor
 	, Settings & uiSettings
 )
 	: ModelController(CreateModelControllerSettings(uiSettings)
-		, GetTypeName(Type::Books)
-		, FindSecond(g_viewSourceBooksModelItems, booksViewType).first
+		, GetTypeName(ModelControllerType::Books)
+		, FindSecond(g_viewSourceBooksModelItems, booksViewType)
 	)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
@@ -994,9 +994,9 @@ void BooksModelController::UnregisterObserver(BooksModelControllerObserver * obs
 	m_impl->Unregister(observer);
 }
 
-ModelController::Type BooksModelController::GetType() const noexcept
+ModelControllerType BooksModelController::GetType() const noexcept
 {
-	return Type::Books;
+	return ModelControllerType::Books;
 }
 
 QAbstractItemModel * BooksModelController::CreateModel()

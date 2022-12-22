@@ -15,10 +15,4 @@ Item
 			width: seriesID.width
 		}
 	}
-
-	Component.onCompleted:
-	{
-		viewTemplateID.modelController = guiController.GetNavigationModelControllerSeries()
-		viewTemplateID.modelController.currentIndex = -1
-	}
 }

@@ -29,6 +29,7 @@
 #include "ModelControllers/BooksViewType.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
+#include "ModelControllers/ModelControllerType.h"
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
 
@@ -74,23 +75,14 @@ auto CreateUiSettings()
 	return settings;
 }
 
-SimpleModelItems GetViewSourceNavigationModelItems()
-{
-	return SimpleModelItems
-	{
-#define VIEW_SOURCE_NAVIGATION_MODEL_ITEM(NAME) { #NAME, #NAME },
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO
-#undef	VIEW_SOURCE_NAVIGATION_MODEL_ITEM
-	};
-}
-
-SimpleModelItems GetViewSourceBooksModelItems()
+template<typename T>
+SimpleModelItems GetViewSourceModelItems(const T & container)
 {
 	SimpleModelItems items;
-	items.reserve(std::size(g_viewSourceBooksModelItems));
-	std::ranges::transform(g_viewSourceBooksModelItems, std::back_inserter(items), [] (const auto & item)
+	items.reserve(std::size(container));
+	std::ranges::transform(container, std::back_inserter(items), [] (const auto & item)
 	{
-		return SimpleModelItem { item.second.first, item.second.second };
+		return SimpleModelItem { item.second, item.second};
 	});
 	return items;
 }
@@ -176,6 +168,9 @@ public:
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
+		qRegisterMetaType<ModelControllerType>("ModelControllerType");
+		qmlRegisterUncreatableType<ModelControllerTypeClass>("HomeCompa.Flibrary.ModelControllerType", 1, 0, "ModelControllerType", "Not creatable as it is an enum type");
+
 		m_qmlEngine.load("qrc:/Main.qml");
 	}
 
@@ -223,8 +218,9 @@ public:
 		return QString("Flibrary - %1").arg(m_currentCollection.name);
 	}
 
-	ModelController * GetNavigationModelController(const NavigationSource navigationSource)
+	ModelController * GetNavigationModelController()
 	{
+		const auto navigationSource = FindFirst(g_viewSourceNavigationModelItems, m_uiSettings.viewSourceNavigation().toByteArray().data(), NavigationSource::Authors, PszComparer {});
 		if (m_navigationSourceProvider.GetSource() != navigationSource)
 			m_currentNavigationIndex = -1;
 
@@ -242,7 +238,37 @@ public:
 		return controller.get();
 	}
 
-	BooksModelController * GetBooksModelController() noexcept
+	BooksModelController * GetBooksModelController()
+	{
+		const BooksViewType type = FindFirst(g_viewSourceBooksModelItems, m_uiSettings.viewSourceBooks().toString().toUtf8().data(), BooksViewType::List, PszComparer {});
+		if (m_navigationSourceProvider.GetBookViewType() == type)
+			return m_booksModelController.get();
+
+		if (m_booksModelController)
+		{
+			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
+			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
+		}
+
+		m_navigationSourceProvider.SetBookViewType(type);
+		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString(), *m_uiSettingsSrc)).swap(m_booksModelController);
+		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
+		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
+		m_booksModelController->RegisterObserver(m_languageController.GetBooksModelControllerObserver());
+		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
+		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
+
+		if (m_navigationSourceProvider.GetSource() != NavigationSource::Undefined && m_currentNavigationIndex != -1)
+		{
+			if (const auto it = m_navigationModelControllers.find(m_navigationSourceProvider.GetSource()); it != m_navigationModelControllers.end())
+				m_booksModelController->SetNavigationState(m_navigationSourceProvider.GetSource(), it->second->GetId(m_currentNavigationIndex));
+		}
+
+		return m_booksModelController.get();
+	}
+
+	BooksModelController * GetCurrentBooksModelController() noexcept
 	{
 		assert(m_booksModelController);
 		return m_booksModelController.get();
@@ -313,39 +339,10 @@ public:
 		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idNavigation, navigationPair.back());
 	}
 
-	BooksModelController * GetBooksModelController(const BooksViewType type)
-	{
-		if (m_navigationSourceProvider.GetBookViewType() == type)
-			return m_booksModelController.get();
-
-		if (m_booksModelController)
-		{
-			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
-			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
-		}
-
-		m_navigationSourceProvider.SetBookViewType(type);
-		PropagateConstPtr<BooksModelController>(std::make_unique<BooksModelController>(*m_executor, *m_db, m_progressController, type, m_currentCollection.folder.toStdWString(), *m_uiSettingsSrc)).swap(m_booksModelController);
-		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
-		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
-		m_booksModelController->RegisterObserver(m_languageController.GetBooksModelControllerObserver());
-		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
-		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
-
-		if (m_navigationSourceProvider.GetSource() != NavigationSource::Undefined && m_currentNavigationIndex != -1)
-		{
-			if (const auto it = m_navigationModelControllers.find(m_navigationSourceProvider.GetSource()); it != m_navigationModelControllers.end())
-				m_booksModelController->SetNavigationState(m_navigationSourceProvider.GetSource(), it->second->GetId(m_currentNavigationIndex));
-		}
-
-		return m_booksModelController.get();
-	}
-
 private: // ModelControllerObserver
 	void HandleCurrentIndexChanged(ModelController * const controller, const int index) override
 	{
-		if (controller->GetType() == ModelController::Type::Navigation)
+		if (controller->GetType() == ModelControllerType::Navigation)
 		{
 			m_currentNavigationIndex = index;
 			if (m_booksModelController)
@@ -471,8 +468,8 @@ private:
 	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };
 
-	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceNavigationModelItems() };
-	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceBooksModelItems() };
+	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceModelItems(g_viewSourceNavigationModelItems) };
+	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceModelItems(g_viewSourceBooksModelItems) };
 
 	QQmlApplicationEngine m_qmlEngine;
 };
@@ -490,34 +487,19 @@ void GuiController::Start()
 	m_impl->Start();
 }
 
-ModelController * GuiController::GetNavigationModelControllerAuthors()
+ModelController * GuiController::GetNavigationModelController()
 {
-	return m_impl->GetNavigationModelController(NavigationSource::Authors);
-}
-
-ModelController * GuiController::GetNavigationModelControllerSeries()
-{
-	return m_impl->GetNavigationModelController(NavigationSource::Series);
-}
-
-ModelController * GuiController::GetNavigationModelControllerGenres()
-{
-	return m_impl->GetNavigationModelController(NavigationSource::Genres);
-}
-
-BooksModelController * GuiController::GetBooksModelControllerList()
-{
-	return m_impl->GetBooksModelController(BooksViewType::List);
-}
-
-BooksModelController * GuiController::GetBooksModelControllerTree()
-{
-	return m_impl->GetBooksModelController(BooksViewType::Tree);
+	return m_impl->GetNavigationModelController();
 }
 
 BooksModelController * GuiController::GetBooksModelController()
 {
 	return m_impl->GetBooksModelController();
+}
+
+BooksModelController * GuiController::GetCurrentBooksModelController()
+{
+	return m_impl->GetCurrentBooksModelController();
 }
 
 int GuiController::GetPixelMetric(const QVariant & metric)

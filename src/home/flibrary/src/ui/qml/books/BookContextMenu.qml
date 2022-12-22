@@ -5,7 +5,7 @@ Menu
 {
 	id: menuID
 
-	readonly property var controller: guiController.GetBooksModelController()
+	readonly property var controller: guiController.GetCurrentBooksModelController()
 	property int bookId: 0
 	property bool isDirectory: false
 

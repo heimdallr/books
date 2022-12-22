@@ -29,12 +29,9 @@ public:
 	void Start();
 
 public:
-	Q_INVOKABLE ModelController * GetNavigationModelControllerAuthors();
-	Q_INVOKABLE ModelController * GetNavigationModelControllerSeries();
-	Q_INVOKABLE ModelController * GetNavigationModelControllerGenres();
-	Q_INVOKABLE BooksModelController * GetBooksModelControllerList();
-	Q_INVOKABLE BooksModelController * GetBooksModelControllerTree();
+	Q_INVOKABLE ModelController * GetNavigationModelController();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();
+	Q_INVOKABLE BooksModelController * GetCurrentBooksModelController();
 	Q_INVOKABLE static int GetPixelMetric(const QVariant & metric);
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxNavigationController() noexcept;
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxBooksController() noexcept;

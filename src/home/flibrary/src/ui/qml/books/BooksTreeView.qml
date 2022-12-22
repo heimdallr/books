@@ -31,6 +31,4 @@ ColumnLayout
 			width: booksViewID.width
 		}
 	}
-
-	Component.onCompleted: viewTemplateID.modelController = guiController.GetBooksModelControllerTree()
 }

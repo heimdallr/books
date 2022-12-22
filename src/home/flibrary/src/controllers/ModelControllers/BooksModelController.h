@@ -61,7 +61,7 @@ public:
 	void UnregisterObserver(BooksModelControllerObserver * observer);
 
 private: // ModelController
-	Type GetType() const noexcept override;
+	ModelControllerType GetType() const noexcept override;
 	QAbstractItemModel * CreateModel() override;
 	bool SetCurrentIndex(int index) override;
 
