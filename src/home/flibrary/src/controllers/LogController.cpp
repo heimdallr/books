@@ -37,6 +37,52 @@ SimpleModelItems CreateSeverityItems(int levelsCount)
 	return result;
 }
 
+class QtLogHandler;
+QtLogHandler * g_qtLogHandler = nullptr;
+
+class QtLogHandler
+{
+	NON_COPY_MOVABLE(QtLogHandler)
+
+public:
+	QtLogHandler()
+	{
+		m_previousHandler = qInstallMessageHandler(&QtLogHandler::HandlerStatic);
+		g_qtLogHandler = this;
+	}
+
+	~QtLogHandler()
+	{
+		g_qtLogHandler = nullptr;
+		qInstallMessageHandler(m_previousHandler);
+	}
+
+private:
+	void Handler(QtMsgType type, const QMessageLogContext & ctx, const QString & message) const
+	{
+		const auto context = QString("qt: %1(%2) ").arg(ctx.file ? ctx.file : "undefined").arg(ctx.line);
+
+		switch (type)
+		{
+			case QtDebugMsg: PLOGD << context << message; break;
+			case QtInfoMsg: PLOGI << context << message; break;
+			case QtWarningMsg: PLOGW << context << message; break;
+			case QtCriticalMsg: PLOGE << context << message; break;
+			case QtFatalMsg: PLOGF << context << message; break;
+			default:
+				assert(false);
+		}
+	}
+
+	static void HandlerStatic(QtMsgType type, const QMessageLogContext & ctx, const QString & message)
+	{
+		assert(g_qtLogHandler);
+		g_qtLogHandler->Handler(type, ctx, message);
+	}
+private:
+	QtMessageHandler m_previousHandler { qInstallMessageHandler(&QtLogHandler::HandlerStatic) };
+};
+
 }
 
 struct LogController::Impl final
@@ -44,6 +90,7 @@ struct LogController::Impl final
 {
 private:
 	SettingsProvider & m_settingsProvider;
+	QtLogHandler m_qtLogHandler;
 
 public:
 	bool logMode { false };
@@ -83,7 +130,7 @@ private: // SettingsProvider
 private: // LogModelController
 	const QColor & GetColor(const plog::Severity severity) const override
 	{
-		const auto index = static_cast<int>(severity);
+		const auto index = static_cast<size_t>(severity);
 		return index < 1 || index >= std::size(colors) ? assert(false && "unexpected severity"), colors[0] : colors[index];
 	}
 };
