@@ -58,6 +58,8 @@ Rectangle
 				id: viewSourceComboBoxID
 				translationContext: "ViewSource"
 				Layout.preferredWidth: preferredWidth
+				Layout.minimumHeight: findLayoutID.height
+				Layout.maximumHeight: findLayoutID.height
 			}
 
 			TextField
