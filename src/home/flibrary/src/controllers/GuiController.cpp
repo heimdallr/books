@@ -87,24 +87,25 @@ SimpleModelItems GetViewSourceModelItems(const T & container)
 	return items;
 }
 
-void UpdateSettings(Settings & settings, const char * settingsKey, const QVariant & defaultValue, const int key)
+int UpdateSettings(Settings & settings, const char * settingsKey, const QVariant & defaultValue, const int key)
 {
 	const auto update = [&] (int increment)
 	{
 		const auto value = settings.Get(settingsKey, defaultValue).toInt();
+		const auto result = value + increment;
 		settings.Set(settingsKey, value + increment);
+		return result;
 	};
 	switch (key)
 	{
 		case Qt::Key_Up:
-			update(1);
-			break;
+			return update(1);
 		case Qt::Key_Down:
-			update(-1);
-			break;
+			return update(-1);
 		default:
 			break;
 	}
+	return 0;
 }
 
 }
@@ -188,9 +189,12 @@ public:
 		if (!(modifiers & Qt::AltModifier))
 		{
 			if (modifiers & Qt::ControlModifier)
-				UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::heightRow, HomeCompa::Constant::UiSettings_ns::heightRow_default, key);
+			{
+				const auto value = UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::heightRow, HomeCompa::Constant::UiSettings_ns::heightRow_default, key);
+				m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::sizeFont, 9 + (value - 27) * (64 - 9) / (150 - 27));
+			}
 			if (modifiers & Qt::ShiftModifier)
-				UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::sizeFont, HomeCompa::Constant::UiSettings_ns::sizeFont_default, key);
+				(void)UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::sizeFont, HomeCompa::Constant::UiSettings_ns::sizeFont_default, key);
 		}
 
 		if (modifiers == Qt::NoModifier && key == Qt::Key_Tab)
