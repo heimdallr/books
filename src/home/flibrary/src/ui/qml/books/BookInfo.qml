@@ -73,7 +73,7 @@ Rectangle
 			wrapMode: TextEdit.WordWrap
 			font.pointSize: uiSettings.sizeFont
 			text: annotationController.annotation
-			onLinkActivated: (link) => { guiController.SetNavigation(link, annotationController.GetCurrentBookId()) }
+			onLinkActivated: (link) => { guiController.HandleLink(link, annotationController.GetCurrentBookId()) }
 
 			MouseArea
 			{

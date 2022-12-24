@@ -323,16 +323,16 @@ public:
 		} });
 	}
 
-	void SetNavigation(const QString & navigationPairString, const long long bookId) const
+	void HandleLink(const QString & link, const long long bookId) const
 	{
-		const QUrl url(navigationPairString);
+		const QUrl url(link);
 		if (url.isValid() && !url.scheme().isEmpty() && !url.host().isEmpty())
 		{
 			QDesktopServices::openUrl(url);
 			return;
 		}
 
-		const auto navigationPair = navigationPairString.split('|');
+		const auto navigationPair = link.split('|');
 		assert(navigationPair.size() == 2);
 		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::idBooks, bookId);
 		m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, navigationPair.front());
@@ -528,9 +528,9 @@ void GuiController::LogCollectionStatistics()
 	m_impl->LogCollectionStatistics();
 }
 
-void GuiController::SetNavigation(const QString & navigationPairString, const long long bookId)
+void GuiController::HandleLink(const QString & link, const long long bookId)
 {
-	m_impl->SetNavigation(navigationPairString, bookId);
+	m_impl->HandleLink(link, bookId);
 }
 
 bool GuiController::eventFilter(QObject * obj, QEvent * event)
