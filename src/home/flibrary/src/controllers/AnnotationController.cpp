@@ -54,6 +54,7 @@ constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
 };
 
 constexpr auto TABLE_STRING_TEMPLATE = "<tr><td>%1: </td><td>%2</td></tr>";
+constexpr auto LINK_TEMPLATE = R"(<a href="%1|%2">%3</a>)";
 
 QString GetBookInfoTable(const Book & book)
 {
@@ -74,7 +75,7 @@ QString GetBookLinksTable(const Book & book)
 		QStringList list;
 		std::ranges::transform(container, std::back_inserter(list), [name] (const auto & item)
 		{
-			return QString(R"(<a href="%1|%2">%3</a>)").arg(name).arg(item.first).arg(item.second);
+			return QString(LINK_TEMPLATE).arg(name).arg(item.first).arg(item.second);
 		});
 		return QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate(Constant::NavigationSourceTranslationContext, name)).arg(list.join(", "));
 	};
