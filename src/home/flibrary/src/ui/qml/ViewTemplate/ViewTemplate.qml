@@ -51,12 +51,12 @@ Rectangle
 			id: findLayoutID
 			spacing: Functions.GetMargin()
 			Layout.fillWidth: true
+			height: uiSettings.heightRow
 
 			CustomComboBox
 			{
 				id: viewSourceComboBoxID
 				translationContext: "ViewSource"
-				Layout.preferredHeight: uiSettings.heightRow
 				Layout.preferredWidth: preferredWidth
 			}
 
@@ -72,6 +72,10 @@ Rectangle
 			ViewModeCombobox
 			{
 				id: viewModeComboBoxID
+				Layout.minimumWidth: findLayoutID.height
+				Layout.maximumWidth: findLayoutID.height
+				Layout.minimumHeight: findLayoutID.height
+				Layout.maximumHeight: findLayoutID.height
 				controller: modelController
 			}
 

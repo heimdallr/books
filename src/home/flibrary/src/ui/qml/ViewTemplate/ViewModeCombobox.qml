@@ -7,9 +7,6 @@ Rectangle
 
 	property var controller
 
-	height: uiSettings.heightRow
-	width: height
-
 	Action
 	{
 		id: actionFindID
@@ -45,7 +42,7 @@ Rectangle
 	{
 		id: imageID
 		anchors.fill: parent
-		fillMode: Image.PreserveAspectFit
+		fillMode: Image.Stretch
 	}
 
 	MouseArea
