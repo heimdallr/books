@@ -37,6 +37,7 @@ constexpr auto L_HREF = "l:href";
 		XML_PARSE_MODE_ITEM(binary)     \
 		XML_PARSE_MODE_ITEM(coverpage)  \
 		XML_PARSE_MODE_ITEM(image)      \
+		XML_PARSE_MODE_ITEM(keywords)   \
 
 enum class XmlParseMode
 {
@@ -91,6 +92,7 @@ struct XmlParser final
 	: QXmlStreamReader
 {
 	QString annotation;
+	QStringList keywords;
 	std::vector<QString> covers;
 	int coverIndex { -1 };
 
@@ -170,6 +172,7 @@ private:
 		{
 			{ XmlParseMode::annotation, &XmlParser::OnCharactersAnnotation },
 			{ XmlParseMode::binary, &XmlParser::OnCharactersBinary },
+			{ XmlParseMode::keywords, &XmlParser::OnCharactersKeywords },
 		};
 
 		const auto parser = FindSecond(s_parsers, m_mode, &XmlParser::Stub, std::equal_to<>{});
@@ -202,6 +205,11 @@ private:
 	void OnCharactersBinary()
 	{
 		covers.back().append(text());
+	}
+
+	void OnCharactersKeywords()
+	{
+		keywords << text().toString().split(",", Qt::SkipEmptyParts);
 	}
 
 private:
@@ -326,6 +334,8 @@ private:
 
 				std::lock_guard lock(m_guard);
 				m_annotation = std::move(parser.annotation);
+				if (!parser.keywords.isEmpty())
+					m_annotation += QString("<p>%1: %2</p>").arg(QCoreApplication::translate("Annotation", "Keywords")).arg(parser.keywords.join(", "));
 				m_annotation += QString("<p>%1</p>").arg(GetBookLinksTable(book));
 				m_annotation += QString("<p>%1</p>").arg(GetBookInfoTable(book));
 
