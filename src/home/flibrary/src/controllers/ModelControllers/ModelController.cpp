@@ -185,7 +185,10 @@ private: // ModelControllerSettingsObserver
 
 		int itemIndex = -1;
 		if (model->setData({}, QVariant::fromValue(FindItemRequest { value, &itemIndex }), Role::FindItem))
+		{
+			currentIndex = -1;
 			(void)m_self.SetCurrentIndex(itemIndex);
+		}
 	}
 
 private:
