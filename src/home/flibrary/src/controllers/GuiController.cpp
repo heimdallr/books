@@ -189,10 +189,9 @@ public:
 		if (!(modifiers & Qt::AltModifier))
 		{
 			if (modifiers & Qt::ControlModifier)
-			{
-				const auto value = UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::heightRow, HomeCompa::Constant::UiSettings_ns::heightRow_default, key);
-				m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::sizeFont, 9 + (value - 27) * (64 - 9) / (150 - 27));
-			}
+				if (const auto value = UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::heightRow, HomeCompa::Constant::UiSettings_ns::heightRow_default, key))
+					m_uiSettingsSrc->Set(HomeCompa::Constant::UiSettings_ns::sizeFont, 9 + (value - 27) * (64 - 9) / (150 - 27));
+
 			if (modifiers & Qt::ShiftModifier)
 				(void)UpdateSettings(*m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::sizeFont, HomeCompa::Constant::UiSettings_ns::sizeFont_default, key);
 		}
