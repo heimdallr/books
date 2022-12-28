@@ -45,19 +45,9 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="61"/>
-        <source>Archive</source>
-        <translation>Архив</translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="62"/>
-        <source>File</source>
-        <translation>Файл</translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="63"/>
-        <source>Updated</source>
-        <translation>Обновлён</translation>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="339"/>
+        <source>Keywords</source>
+        <translation>Ключевые слова</translation>
     </message>
 </context>
 <context>
@@ -136,27 +126,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="304"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="308"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="307"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="311"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="308"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="312"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="309"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="313"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="310"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="314"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -279,6 +269,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="65"/>
         <source>Size</source>
         <translation>Размер</translation>
     </message>
@@ -286,6 +277,21 @@ Restart now?</source>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="87"/>
         <source>GenreAlias</source>
         <translation>Жанр</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="63"/>
+        <source>Archive</source>
+        <translation>Архив</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="64"/>
+        <source>File</source>
+        <translation>Файл</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
+        <source>Updated</source>
+        <translation>Обновлён</translation>
     </message>
 </context>
 <context>
@@ -586,12 +592,12 @@ Restart now?</source>
 <context>
     <name>ViewMode</name>
     <message>
-        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="16"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="13"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="28"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="25"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

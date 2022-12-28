@@ -787,7 +787,7 @@ public:
 		});
 	}
 
-	~Impl()
+	~Impl() override
 	{
 		m_self.SaveCurrentItemId();
 	}
