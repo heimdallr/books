@@ -10,8 +10,6 @@
 
 #include "models/RoleBase.h"
 
-#include "util/Settings.h"
-
 #include "ModelController.h"
 #include "ModelControllerObserver.h"
 #include "ModelControllerSettings.h"
@@ -22,8 +20,8 @@ namespace {
 
 using Role = RoleBase;
 
-#define VIEW_MODE_ITEMS_MACRO \
-		VIEW_MODE_ITEM(Find) \
+#define VIEW_MODE_ITEMS_MACRO  \
+		VIEW_MODE_ITEM(Find)   \
 		VIEW_MODE_ITEM(Filter)
 
 constexpr std::pair<const char *, int> g_viewModes[]
@@ -89,11 +87,15 @@ public:
 			const auto viewModeRole = FindSecond(g_viewModes, viewMode.toUtf8().data(), PszComparer {});
 			(void)model->setData({}, viewModeValue, viewModeRole);
 		});
+
+		PLOGD << typeName << " model controller created";
 	}
 
 	~Impl() override
 	{
 		modelControllerSettings->Unregister(this);
+
+		PLOGD << typeName << " model controller destroyed";
 	}
 
 	void OnKeyPressed(const int key, const int modifiers)

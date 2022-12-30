@@ -193,7 +193,6 @@ void LogController::Verbose(const QString & message)
 	PLOGV << message;
 }
 
-
 bool LogController::IsLogMode() const noexcept
 {
 	return m_impl->logMode;

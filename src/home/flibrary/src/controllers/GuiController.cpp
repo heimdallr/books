@@ -172,7 +172,9 @@ public:
 		qRegisterMetaType<ModelControllerType>("ModelControllerType");
 		qmlRegisterUncreatableType<ModelControllerTypeClass>("HomeCompa.Flibrary.ModelControllerType", 1, 0, "ModelControllerType", "Not creatable as it is an enum type");
 
+		PLOGD << "Loading UI";
 		m_qmlEngine.load("qrc:/Main.qml");
+		PLOGD << "UI loaded";
 	}
 
 	void OnKeyEvent(const QKeyEvent & keyEvent)

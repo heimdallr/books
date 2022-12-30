@@ -17,6 +17,7 @@ ApplicationWindow
 	height: uiSettings.heightMainWindow
 
 	title: guiController.title
+	color: uiSettings.colorBackground
 
 	visible: true
 
@@ -33,6 +34,8 @@ ApplicationWindow
 			y = (screen.height - height) / 2
 
 		completed = true;
+
+		log.Debug(`ApplicationWindow created`)
 	}
 
 	Tray {}
@@ -72,7 +75,7 @@ ApplicationWindow
 	{
 		id: splitViewID
 		anchors.fill: parent
-		sourceComponent: guiController.opened ? splitViewComponentID : undefined
+		sourceComponent: guiController.opened && !log.logMode ? splitViewComponentID : undefined
 	}
 
 	Log

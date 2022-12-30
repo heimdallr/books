@@ -26,10 +26,14 @@ int main(int argc, char * argv[])
 		while (true)
 		{
 			QApplication app(argc, argv);
+			PLOGD << "QApp created";
 
 			GuiController guiController;
 			app.installEventFilter(&guiController);
+			PLOGD << "guiController created";
+
 			guiController.Start();
+			PLOGD << "guiController started";
 
 			if (const auto code = QApplication::exec(); code != 1234)
 			{
