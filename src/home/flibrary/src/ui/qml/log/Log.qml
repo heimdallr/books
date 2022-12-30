@@ -16,7 +16,7 @@ Rectangle
 		id: logViewID
 
 		readonly property alias scrollBarWidth: scrollBarID.width
-		readonly property int heightRow: uiSettings.heightRow
+		readonly property int fontPointSize: uiSettings.sizeFont
 
 		anchors
 		{
@@ -30,10 +30,10 @@ Rectangle
 		flickableDirection: Flickable.VerticalFlick
 
 		ScrollBar.vertical: ScrollBar { id: scrollBarID; width: guiController.GetPixelMetric(Style.PM_ScrollBarExtent) * uiSettings.sizeScrollbar }
-		delegate: CustomText
+		delegate: Text
 		{
+			font.pointSize: logViewID.fontPointSize
 			wrapMode: Text.Wrap
-			height: logViewID.heightRow
 			width: logViewID.width
 			text: Message
 			color: Color

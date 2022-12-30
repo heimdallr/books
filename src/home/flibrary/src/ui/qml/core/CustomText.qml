@@ -10,7 +10,6 @@ Item
 	property alias text: textID.text
 	property alias font: textID.font
 	property alias color: textID.color
-	property alias wrapMode: textID.wrapMode
 	property alias horizontalAlignment: textID.horizontalAlignment
 	property int preferredWidth: textMetricsID.width + 2 * Functions.GetMargin()
 
