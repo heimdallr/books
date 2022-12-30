@@ -7,6 +7,7 @@
 
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
+#include "fnd/NonCopyMovable.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -15,6 +16,8 @@ class ProxyModelBaseT
 	: public QAbstractListModel
 	, public Observable<ObserverType>
 {
+	NON_COPY_MOVABLE(ProxyModelBaseT)
+
 protected:
 	using Item = ItemType;
 	using Items = std::vector<Item>;
@@ -31,6 +34,8 @@ protected:
 		AddRole(Role::Click);
 		AddRole(Role::DoubleClick);
 	}
+
+	~ProxyModelBaseT() override = default;
 
 public:
 	virtual bool FilterAcceptsRow(int row, const QModelIndex & /*parent*/ = {}) const
