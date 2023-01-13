@@ -75,7 +75,7 @@ ApplicationWindow
 	{
 		id: splitViewID
 		anchors.fill: parent
-		sourceComponent: guiController.opened && !log.logMode ? splitViewComponentID : undefined
+		sourceComponent: guiController.opened ? splitViewComponentID : undefined
 	}
 
 	Log
