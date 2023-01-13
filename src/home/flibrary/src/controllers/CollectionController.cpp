@@ -64,13 +64,13 @@ QString GetInpx(const QString & folder)
 
 using IniMap = std::map<std::wstring, std::wstring>;
 using IniMapPair = std::pair<std::unique_ptr<QTemporaryDir>, IniMap>;
-IniMapPair GetIniMap(const QString & db, const QString & folder)
+IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFiles)
 {
-	IniMapPair result { std::make_unique<QTemporaryDir>(), IniMap{} };
-	const auto getFile = [&tempDir = *result.first] (const QString & name)
+	IniMapPair result { createFiles ? std::make_unique<QTemporaryDir>() : nullptr, IniMap{} };
+	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
 	{
 		auto result = QApplication::applicationDirPath() + name;
-		if (QFile(result).exists())
+		if (!createFiles || QFile(result).exists())
 			return result;
 
 		result = tempDir.filePath(name);
@@ -193,7 +193,7 @@ void CollectionController::CheckForUpdate(const Collection & collection)
 	{
 		auto result = std::function([] {});
 
-		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+		auto [_, ini] = GetIniMap(collection.database, collection.folder, false);
 		if (!collection.discardedUpdate.isEmpty())
 		{
 			const auto it = ini.find(INPX);
@@ -237,7 +237,7 @@ void CollectionController::CreateCollection(QString name, QString db, QString fo
 	{
 		auto result = std::function([] {});
 
-		auto [_, ini] = GetIniMap(db, folder);
+		auto [_, ini] = GetIniMap(db, folder, true);
 		if (Inpx::CreateNewCollection(std::move(ini)))
 		{
 			result = std::function([this_, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
@@ -269,7 +269,7 @@ void CollectionController::ApplyUpdate()
 	{
 		auto result = std::function([] {});
 
-		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+		auto [_, ini] = GetIniMap(collection.database, collection.folder, true);
 
 		if (Inpx::UpdateCollection(std::move(ini)))
 		{
@@ -287,7 +287,7 @@ void CollectionController::DiscardUpdate()
 
 	(*m_impl->executor)({ "Update collection", [&impl = *m_impl, collection = *collection]() mutable
 	{
-		auto [_, ini] = GetIniMap(collection.database, collection.folder);
+		auto [_, ini] = GetIniMap(collection.database, collection.folder, false);
 		const auto it = ini.find(INPX);
 		assert(it != ini.end());
 		collection.discardedUpdate = GetFileHash(QString::fromStdWString(it->second));
