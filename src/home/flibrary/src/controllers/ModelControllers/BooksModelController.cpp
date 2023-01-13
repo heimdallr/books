@@ -693,19 +693,27 @@ bool Archive(QIODevice & input, const std::filesystem::path & path, const QStrin
 	return Copy(input, zipFile, progress);
 }
 
+QString RemoveIllegalCharacters(QString str)
+{
+	if (str.remove(QRegExp(R"([/\\<>:"\|\?\*])")).isEmpty())
+		str = "_";
+
+	return str;
+}
+
 std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path path, const Book & book, Progress & progress, const bool archive)
 {
 	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(path) || create_directory(path)))
 		return result;
 
-	path /= book.AuthorFull.toStdWString();
+	path /= RemoveIllegalCharacters(book.AuthorFull).toStdWString();
 	if (!(exists(path) || create_directory(path)))
 		return result;
 
 	if (!book.SeriesTitle.isEmpty())
 	{
-		path /= book.SeriesTitle.toStdWString();
+		path /= RemoveIllegalCharacters(book.SeriesTitle).toStdWString();
 		if (!(exists(path) || create_directory(path)))
 			return result;
 	}
@@ -713,7 +721,7 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem:
 	const auto ext = std::filesystem::path(book.FileName.toStdWString()).extension();
 	const auto fileName = (book.SeqNumber > 0 ? QString::number(book.SeqNumber) + "-" : "") + book.Title + ext.generic_string().data();
 
-	result.second = (path / fileName.toStdWString()).make_preferred();
+	result.second = (path / RemoveIllegalCharacters(fileName).toStdWString()).make_preferred();
 	if (archive)
 		result.second.replace_extension("zip");
 
