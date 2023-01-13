@@ -32,6 +32,12 @@ constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias fr
 
 void AppendTitle(QString & title, std::string_view str)
 {
+	if (title.isEmpty())
+	{
+		title = str.data();
+		return;
+	}
+
 	if (!str.empty())
 		title.append(" ").append(str.data());
 }
