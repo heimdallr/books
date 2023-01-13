@@ -1,4 +1,5 @@
 #include <shared_mutex>
+#include <sstream>
 #include <string>
 
 #include "database/interface/Database.h"
