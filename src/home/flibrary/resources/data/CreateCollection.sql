@@ -33,6 +33,9 @@ DROP TABLE IF EXISTS Genres;
 DROP TABLE IF EXISTS Authors;
 --@@
 
+DROP TABLE IF EXISTS Books_User;
+--@@
+
 DROP TABLE IF EXISTS Books;
 --@@
 

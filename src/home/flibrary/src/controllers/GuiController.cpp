@@ -15,6 +15,7 @@
 #include "database/factory/Factory.h"
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
+#include "database/interface/Transaction.h"
 
 #include "models/RoleBase.h"
 #include "models/BookRole.h"
@@ -65,7 +66,11 @@ namespace {
 PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
 	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
-	return PropagateConstPtr<DB::Database>(Create(DB::Factory::Impl::Sqlite, connectionString));
+	PropagateConstPtr<DB::Database> db(Create(DB::Factory::Impl::Sqlite, connectionString));
+	const auto transaction = db->CreateTransaction();
+	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER PRIMARY KEY, IsDeleted INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
+	transaction->Commit();
+	return db;
 }
 
 auto CreateUiSettings()
