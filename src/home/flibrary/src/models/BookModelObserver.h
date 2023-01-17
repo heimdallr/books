@@ -11,7 +11,7 @@ struct Book;
 class BookModelObserver : virtual public ModelObserver
 {
 public:
-	virtual void HandleBookRemoved(const Book & book) = 0;
+	virtual void HandleBookRemoved(const std::vector<std::reference_wrapper<const Book>> & books) = 0;
 };
 
 }

@@ -38,8 +38,6 @@ private:
 protected:
 	bool m_showDeleted { false };
 	QString m_languageFilter;
-	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
 };
 
 }

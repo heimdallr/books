@@ -2,7 +2,6 @@
 #include <numeric>
 #include <set>
 #include <shared_mutex>
-#include <unordered_set>
 
 #include <QAbstractItemModel>
 #include <QPointer>
@@ -37,6 +36,7 @@
 #include "BooksModelController.h"
 
 #include "ModelControllerSettings.h"
+#include "database/interface/Transaction.h"
 
 #include "Settings/UiSettings_keys.h"
 #include "Settings/UiSettings_values.h"
@@ -48,7 +48,7 @@ namespace {
 using Role = BookRole;
 
 constexpr auto QUERY =
-"select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, b.IsDeleted "
+"select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted, 0) "
 ", a.LastName, a.FirstName, a.MiddleName "
 ", g.GenreAlias, s.SeriesTitle "
 ", a.AuthorID, coalesce(b.SeriesID, -1), g.GenreCode "
@@ -58,99 +58,12 @@ constexpr auto QUERY =
 "join Genre_List gl on gl.BookID = b.BookID "
 "join Genres g on g.GenreCode = gl.GenreCode "
 "left join Series s on s.SeriesID = b.SeriesID "
+"left join Books_User bu on bu.BookID = b.BookID "
 ;
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
-
-std::unordered_set<QString> g_folders;  // NOLINT(clang-diagnostic-exit-time-destructors)
-std::shared_mutex g_guardFolders;       // NOLINT(clang-diagnostic-exit-time-destructors)
-
-bool UserSettingsEmpty()
-{
-	std::shared_lock r(g_guardFolders);
-	return g_folders.empty();
-}
-
-void CollectUserSettings(Settings & settings)
-{
-	if (!UserSettingsEmpty())
-		return;
-
-	auto folders = settings.GetGroups();
-	std::unordered_set<QString> foldersSet { std::make_move_iterator(std::begin(folders)), std::make_move_iterator(std::end(folders)) };
-
-	std::unique_lock w(g_guardFolders);
-	foldersSet.swap(g_folders);
-}
-
-bool CheckFileObsolete(Settings & settings, Book & item)
-{
-	if (!settings.HasGroup(item.FileName))
-		return true;
-
-	bool keyRemoved = false;
-	SettingsGroup fileGroup(settings, item.FileName);
-	if (settings.HasKey(Constant::IS_DELETED))
-	{
-		if (const bool isDeleted = settings.Get(Constant::IS_DELETED, item.IsDeleted ? 1 : 0).toInt(); isDeleted != item.IsDeleted)
-		{
-			item.IsDeleted = isDeleted;
-		}
-		else
-		{
-			settings.Remove(Constant::IS_DELETED);
-			keyRemoved = true;
-		}
-	}
-
-	return keyRemoved && settings.GetKeys().isEmpty();
-}
-
-bool CheckFolderObsolete(Settings & settings, Book & item)
-{
-	if (!settings.HasGroup(item.Folder))
-		return true;
-
-	SettingsGroup folderGroup(settings, item.Folder);
-	if (!CheckFileObsolete(settings, item))
-		return false;
-
-	settings.Remove(item.FileName);
-	return settings.GetGroups().isEmpty();
-}
-
-std::set<QString> GetObsoleteSettings(Settings & settings, Books & items)
-{
-	std::set<QString> toRemove;
-	std::shared_lock r(g_guardFolders);
-	for (auto & item : items)
-	{
-		if (!(true
-			&& g_folders.contains(item.Folder)
-			&& CheckFolderObsolete(settings, item)
-		))
-			continue;
-
-		settings.Remove(item.Folder);
-		toRemove.insert(item.Folder);
-	}
-
-	return toRemove;
-}
-
-void CheckUserSettings(Settings & settings, Books & items)
-{
-	CollectUserSettings(settings);
-	const auto toRemove = GetObsoleteSettings(settings, items);
-	if (toRemove.empty())
-		return;
-
-	std::unique_lock w(g_guardFolders);
-	for (const auto & folder : toRemove)
-		g_folders.erase(folder);
-}
 
 using Binder = int(*)(DB::Query &, const QString &);
 int BindInt(DB::Query & query, const QString & id)
@@ -775,7 +688,7 @@ public:
 	)
 		: booksViewType(booksViewType_)
 		, m_self(self)
-		, executor(executor_)
+		, m_executor(executor_)
 		, m_db(db)
 		, m_progressController(progressController)
 		, m_archiveFolder(std::move(archiveFolder))
@@ -802,12 +715,9 @@ public:
 
 	void UpdateItems()
 	{
-		executor({ "Get books", [&, navigationSource = m_navigationSource, navigationId = m_navigationId]
+		m_executor({ "Get books", [&, navigationSource = m_navigationSource, navigationId = m_navigationId]
 		{
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
-			Settings settings(Constant::COMPANY_ID, Constant::PRODUCT_ID);
-			settings.BeginGroup(Constant::BOOKS);
-			CheckUserSettings(settings, items);
 
 			return[&, items = std::move(items)]() mutable
 			{
@@ -835,7 +745,7 @@ public:
 				booksCopy.push_back(*it);
 		assert(!books.empty());
 
-		executor({"Extract books", [path = std::move(path), books = std::move(booksCopy), archiveFolder = m_archiveFolder, &progressController = m_progressController, archive]
+		m_executor({"Extract books", [path = std::move(path), books = std::move(booksCopy), archiveFolder = m_archiveFolder, &progressController = m_progressController, archive]
 		{
 			const auto totalSize = std::accumulate(std::cbegin(books), std::cend(books), 0ull, [] (const size_t init, const Book & book) { return init + book.Size; });
 			const auto progress = std::make_shared<Progress>(totalSize);
@@ -886,10 +796,27 @@ public:
 		m_readerController.StartReader(m_archiveFolder / folder.toStdWString(), file.toStdString());
 	}
 
+	void Remove(std::vector<std::reference_wrapper<const Book>> removed)
+	{
+		m_executor({ "Remove books", [this, removed = std::move(removed)]
+		{
+			const auto transaction = m_db.CreateTransaction();
+			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted) values(:id, :is_deleted)");
+			for (const auto & book : removed)
+			{
+				command->Bind(":id", book.get().Id);
+				command->Bind(":is_deleted", book.get().IsDeleted ? 1 : 0);
+				command->Execute();
+			}
+			transaction->Commit();
+
+			return [] {};
+		} });
+	}
 
 private:
 	BooksModelController & m_self;
-	Util::Executor & executor;
+	Util::Executor & m_executor;
 	DB::Database & m_db;
 	ProgressController & m_progressController;
 	NavigationSource m_navigationSource{ NavigationSource::Undefined };
@@ -1030,10 +957,9 @@ bool BooksModelController::SetCurrentIndex(const int index)
 	return ModelController::SetCurrentIndex(index);
 }
 
-void BooksModelController::HandleBookRemoved(const Book & book)
+void BooksModelController::HandleBookRemoved(const std::vector<std::reference_wrapper<const Book>> & books)
 {
-	std::unique_lock w(g_guardFolders);
-	g_folders.insert(book.Folder);
+	m_impl->Remove(books);
 }
 
 void BooksModelController::HandleItemDoubleClicked(const int index)

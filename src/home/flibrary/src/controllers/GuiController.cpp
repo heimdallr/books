@@ -307,7 +307,7 @@ public:
 				"select '%1', count(42) from Authors union all "
 				"select '%2', count(42) from Series union all "
 				"select '%3', count(42) from Books union all "
-				"select '%4', count(42) from Books where IsDeleted != 0"
+				"select '%4', count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0"
 				;
 
 			QStringList stats;

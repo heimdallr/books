@@ -1,7 +1,5 @@
 #include <set>
 
-#include "constants/ProductConstant.h"
-
 #include "fnd/algorithm.h"
 
 #include "util/Settings.h"
@@ -52,16 +50,6 @@ bool RemoveRestoreAvailableImpl(const Books & books, const long long id, const b
 }
 
 }
-
-struct BookModelBase::Impl
-{
-	Impl()
-	{
-		settings.BeginGroup(Constant::BOOKS);
-	}
-
-	Settings settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
-};
 
 BookModelBase::BookModelBase(QSortFilterProxyModel & proxyModel, Items & items)
 	: ProxyModelBaseT<Item, Role, Observer>(proxyModel, items)
@@ -171,6 +159,8 @@ bool BookModelBase::RemoveImpl(const long long id, const bool remove)
 		if (const auto it = std::ranges::find_if(std::as_const(m_items), [id] (const Book & book) { return book.Id == id; }); it != std::cend(m_items))
 			changed.emplace(static_cast<int>(std::distance(std::cbegin(m_items), it)));
 
+	std::vector<std::reference_wrapper<const Book>> books;
+
 	for (const auto & range : Util::CreateRanges(changed))
 	{
 		for (auto i = range.first; i < range.second; ++i)
@@ -178,16 +168,13 @@ bool BookModelBase::RemoveImpl(const long long id, const bool remove)
 			auto & item = m_items[i];
 			assert(item.IsDeleted != remove);
 			item.IsDeleted = remove;
-
-			SettingsGroup folderGroup(m_impl->settings, item.Folder);
-			SettingsGroup fileGroup(m_impl->settings, item.FileName);
-			m_impl->settings.Set(Constant::IS_DELETED, item.IsDeleted ? 1 : 0);
-
-			Perform(&Observer::HandleBookRemoved, std::cref(item));
+			books.push_back(item);
 		}
 
 		emit dataChanged(index(range.first, 0), index(range.second - 1, 0), { BookRole::IsDeleted });
 	}
+
+	Perform(&Observer::HandleBookRemoved, std::cref(books));
 
 	return true;
 }

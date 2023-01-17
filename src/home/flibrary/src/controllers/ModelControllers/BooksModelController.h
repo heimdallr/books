@@ -66,7 +66,7 @@ private: // ModelController
 	bool SetCurrentIndex(int index) override;
 
 private: // BookModelObserver
-	void HandleBookRemoved(const Book & book) override;
+	void HandleBookRemoved(const std::vector<std::reference_wrapper<const Book>> & books) override;
 	void HandleItemDoubleClicked(int index) override;
 
 private:
