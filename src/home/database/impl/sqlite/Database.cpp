@@ -12,7 +12,7 @@
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex &);
+std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
 std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string & query);
 
 namespace {
@@ -63,7 +63,7 @@ class Database
 public:
 	explicit Database(const std::string & connection)
 		: m_connectionParameters(ParseConnectionString(connection))
-		, m_db(GetValue(m_connectionParameters, PATH).data(), SQLITE_OPEN_READONLY)
+		, m_db(GetValue(m_connectionParameters, PATH).data(), SQLITE_OPEN_READWRITE)
 	{
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)
 			m_db.load_extension(begin->second.data());
@@ -72,7 +72,7 @@ public:
 private: // Database
 	[[nodiscard]] std::unique_ptr<Transaction> CreateTransaction() override
 	{
-		return CreateTransactionImpl(m_guard);
+		return CreateTransactionImpl(m_guard, m_db);
 	}
 
 	[[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string & query) override

@@ -9,7 +9,7 @@ namespace HomeCompa::DB::Impl::Sqlite {
 
 namespace {
 
-inline int Index(const size_t index)
+int Index(const size_t index)
 {
 	return static_cast<int>(index);
 }
