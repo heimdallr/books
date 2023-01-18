@@ -28,7 +28,8 @@ using Role = RoleBase;
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.ParentCode, g.GenreAlias from Genres g";
+constexpr auto GENRES_QUERY = "select GenreCode, ParentCode, GenreAlias from Genres";
+constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 
 void AppendTitle(QString & title, std::string_view str)
 {
@@ -69,10 +70,10 @@ NavigationListItems CreateAuthors(DB::Database & db)
 	return items;
 }
 
-NavigationListItems CreateSeries(DB::Database & db)
+NavigationListItems CreateDictionary(DB::Database & db, std::string_view queryText)
 {
 	NavigationListItems items;
-	const auto query = db.CreateQuery(SERIES_QUERY);
+	const auto query = db.CreateQuery(queryText);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		items.emplace_back();
@@ -86,6 +87,16 @@ NavigationListItems CreateSeries(DB::Database & db)
 	});
 
 	return items;
+}
+
+NavigationListItems CreateSeries(DB::Database & db)
+{
+	return CreateDictionary(db, SERIES_QUERY);
+}
+
+NavigationListItems CreateGroups(DB::Database & db)
+{
+	return CreateDictionary(db, GROUPS_QUERY);
 }
 
 namespace GenresDetails {
@@ -201,6 +212,8 @@ public:
 				return CreateModelImpl<NavigationListItem>(&CreateAuthors, m_authors);
 			case NavigationSource::Series:
 				return CreateModelImpl<NavigationListItem>(&CreateSeries, m_series);
+			case NavigationSource::Groups:
+				return CreateModelImpl<NavigationListItem>(&CreateGroups, m_groups);
 			case NavigationSource::Genres:
 				return CreateModelImpl<NavigationTreeItem>(&CreateGenres, m_genres);
 			default:
@@ -240,6 +253,7 @@ private:
 
 	NavigationListItems m_authors;
 	NavigationListItems m_series;
+	NavigationListItems m_groups;
 	NavigationTreeItems m_genres;
 };
 

@@ -45,7 +45,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="339"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="341"/>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>
@@ -126,27 +126,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="308"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="316"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="311"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="319"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="312"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="320"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="313"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="321"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="314"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="322"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -628,6 +628,11 @@ Restart now?</source>
         <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="10"/>
         <source>Genres</source>
         <translation>Жанры</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="11"/>
+        <source>Groups</source>
+        <translation>Группы</translation>
     </message>
 </context>
 </TS>

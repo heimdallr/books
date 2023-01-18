@@ -11,6 +11,7 @@
 	<qresource prefix="Navigation">
 		<file alias="Authors.qml">../src/ui/qml/navigation/Authors.qml</file>
 		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
+		<file alias="Groups.qml">../src/ui/qml/navigation/Groups.qml</file>
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
 		<file alias="NavigationListDelegate.qml">../src/ui/qml/navigation/NavigationListDelegate.qml</file>
 		<file alias="NavigationTreeDelegate.qml">../src/ui/qml/navigation/NavigationTreeDelegate.qml</file>

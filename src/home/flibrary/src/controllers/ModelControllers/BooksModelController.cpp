@@ -57,13 +57,16 @@ constexpr auto QUERY =
 "join Authors a on a.AuthorID = al.AuthorID "
 "join Genre_List gl on gl.BookID = b.BookID "
 "join Genres g on g.GenreCode = gl.GenreCode "
+"%1 "
 "left join Series s on s.SeriesID = b.SeriesID "
 "left join Books_User bu on bu.BookID = b.BookID "
+"%2"
 ;
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
+constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 
 using Binder = int(*)(DB::Query &, const QString &);
 int BindInt(DB::Query & query, const QString & id)
@@ -76,11 +79,12 @@ int BindString(DB::Query & query, const QString & id)
 	return query.Bind(":id", id.toStdString());
 }
 
-constexpr std::pair<NavigationSource, std::pair<const char *, Binder>> g_joins[]
+constexpr std::pair<NavigationSource, std::tuple<const char *, const char *, Binder>> g_joins[]
 {
-	{ NavigationSource::Authors, { WHERE_AUTHOR, &BindInt    } },
-	{ NavigationSource::Series , { WHERE_SERIES, &BindInt    } },
-	{ NavigationSource::Genres , { WHERE_GENRE , &BindString } },
+	{ NavigationSource::Authors, { WHERE_AUTHOR, nullptr, &BindInt    } },
+	{ NavigationSource::Genres , { WHERE_GENRE , nullptr, &BindString } },
+	{ NavigationSource::Groups , { nullptr, JOIN_GROUPS , &BindInt    } },
+	{ NavigationSource::Series , { WHERE_SERIES, nullptr, &BindInt    } },
 };
 
 void AppendTitle(QString & title, const QString & str, std::string_view separator)
@@ -159,8 +163,8 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 	Data data;
 	auto & [items, index, authors, series, genres] = data;
 
-	const auto [whereClause, bind] = FindSecond(g_joins, navigationSource);
-	const auto query = db.CreateQuery(std::string(QUERY) + whereClause);
+	const auto & [whereClause, joinClause, bind] = FindSecond(g_joins, navigationSource);
+	const auto query = db.CreateQuery(QString(QUERY).arg(joinClause, whereClause).toStdString());
 	[[maybe_unused]] const auto result = bind(*query, navigationId);
 	assert(result == 0);
 
