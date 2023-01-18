@@ -18,7 +18,7 @@ class Query
 	: virtual public DB::Query
 {
 public:
-	Query(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string & query)
+	Query(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string_view & query)
 		: m_lock(mutex)
 		, m_query(db, query.data())
 	{
@@ -127,7 +127,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string & query)
+std::unique_ptr<DB::Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string_view & query)
 {
 	return std::make_unique<Query>(mutex, db, query);
 }

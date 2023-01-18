@@ -13,7 +13,7 @@
 namespace HomeCompa::DB::Impl::Sqlite {
 
 std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
-std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string & query);
+std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string_view & query);
 
 namespace {
 
@@ -75,7 +75,7 @@ private: // Database
 		return CreateTransactionImpl(m_guard, m_db);
 	}
 
-	[[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string & query) override
+	[[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string_view & query) override
 	{
 		return CreateQueryImpl(m_guard, m_db, query);
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <string_view>
 
 namespace HomeCompa::DB {
 
@@ -13,7 +13,7 @@ class Database
 public:
 	virtual ~Database() = default;
 	virtual [[nodiscard]] std::unique_ptr<Transaction> CreateTransaction() = 0;
-	virtual [[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string & query) = 0;
+	virtual [[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string_view & query) = 0;
 };
 
 }

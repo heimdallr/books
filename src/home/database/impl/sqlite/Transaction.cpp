@@ -7,7 +7,7 @@
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<Command> CreateCommandImpl(sqlite3pp::database & db, const std::string & command);
+std::unique_ptr<Command> CreateCommandImpl(sqlite3pp::database & db, const std::string_view & command);
 
 namespace {
 
@@ -41,7 +41,7 @@ private: // Transaction
 		m_transaction.rollback();
 	}
 
-	std::unique_ptr<Command> CreateCommand(const std::string & command) override
+	std::unique_ptr<Command> CreateCommand(const std::string_view & command) override
 	{
 		return CreateCommandImpl(m_db, command);
 	}
