@@ -26,6 +26,7 @@ Rectangle
 			: modelControllerType == ModelControllerType.Books ? guiController.GetBooksModelController()
 			: undefined
 
+		modelController.currentIndex = -1
 		viewModeTextID.text = ""
 		loaderID.setSource(loadPath + modelController.GetViewSource() + ".qml")
 	}
