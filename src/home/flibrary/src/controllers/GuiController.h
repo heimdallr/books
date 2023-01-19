@@ -11,8 +11,9 @@ namespace HomeCompa::Flibrary {
 
 class AnnotationController;
 class BooksModelController;
-class ModelController;
 class ComboBoxController;
+class GroupsModelController;
+class ModelController;
 
 class GuiController
 	: public QObject
@@ -29,6 +30,7 @@ public:
 	void Start();
 
 public:
+	Q_INVOKABLE GroupsModelController * GetGroupsModelController();
 	Q_INVOKABLE ModelController * GetNavigationModelController();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();
 	Q_INVOKABLE BooksModelController * GetCurrentBooksModelController();

@@ -53,6 +53,7 @@
 
 	<qresource prefix="Dialogs/">
 		<file alias="AddCollection.qml">../src/ui/qml/dialogs/AddCollection.qml</file>
+		<file alias="InputStringDialog.qml">../src/ui/qml/dialogs/InputStringDialog.qml</file>
 	</qresource>
 
 	<qresource prefix="Tray/">

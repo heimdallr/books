@@ -53,52 +53,82 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="15"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="19"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="21"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="25"/>
         <source>Selection</source>
         <translation>Выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="26"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="30"/>
         <source>Select all</source>
         <translation>Выделить все</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="37"/>
         <source>Deselect all</source>
         <translation>Отменить выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="40"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="44"/>
         <source>Invert selection</source>
         <translation>Инвертировать выделение</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="48"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="52"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="65"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="69"/>
         <source>In zip archive</source>
         <translation>Архиворовать в zip</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="71"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="75"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="79"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="83"/>
+        <source>Groups</source>
+        <translation>Группы</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="90"/>
+        <source>Input new group name</source>
+        <translation>Укажите имя новой группы</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="91"/>
+        <source>Group name</source>
+        <translation>Имя группы</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="92"/>
+        <source>New group</source>
+        <translation>Новая группа</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="101"/>
+        <source>Add to</source>
+        <translation>Добавить в</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="121"/>
+        <source>Remove from</source>
+        <translation>Удалить из</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="138"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="86"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="145"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
@@ -126,27 +156,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="316"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="330"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="319"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="333"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="320"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="334"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="321"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="335"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="322"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="336"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -230,7 +260,7 @@ Restart now?</source>
         <translation>Выберите папку с архивами</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="53"/>
+        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="57"/>
         <source>Select destination folder</source>
         <translation>Укажите путь назначения на устройстве</translation>
     </message>
@@ -243,6 +273,19 @@ Restart now?</source>
         <location filename="../../src/controllers/ReaderController.cpp" line="179"/>
         <source>Applications (*.exe)</source>
         <translation>Приложения (*.exe)</translation>
+    </message>
+</context>
+<context>
+    <name>GroupsModel</name>
+    <message>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="90"/>
+        <source>New group...</source>
+        <translation>Новая группа...</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="92"/>
+        <source>All</source>
+        <translation>Все</translation>
     </message>
 </context>
 <context>
@@ -396,6 +439,7 @@ Restart now?</source>
 <context>
     <name>QPlatformTheme</name>
     <message>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="90"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
         <source>OK</source>
         <translation>OK</translation>
@@ -456,6 +500,7 @@ Restart now?</source>
         <translation>Закрыть</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="103"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="16"/>
         <source>Cancel</source>
         <translation>Отмена</translation>

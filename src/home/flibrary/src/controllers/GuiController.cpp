@@ -28,6 +28,7 @@
 
 #include "ModelControllers/BooksModelController.h"
 #include "ModelControllers/BooksViewType.h"
+#include "ModelControllers/GroupsModelController.h"
 #include "ModelControllers/ModelController.h"
 #include "ModelControllers/ModelControllerObserver.h"
 #include "ModelControllers/ModelControllerType.h"
@@ -69,7 +70,7 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 	PropagateConstPtr<DB::Database> db(Create(DB::Factory::Impl::Sqlite, connectionString));
 	const auto transaction = db->CreateTransaction();
 	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
-	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY, Title VARCHAR(150) NOT NULL UNIQUE)")->Execute();
+	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE)")->Execute();
 	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
 	transaction->Commit();
 	return db;
@@ -173,6 +174,7 @@ public:
 		qRegisterMetaType<BooksModelController *>("BooksModelController*");
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
 		qRegisterMetaType<ComboBoxController *>("ComboBoxController*");
+		qRegisterMetaType<GroupsModelController *>("GroupsModelController*");
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
@@ -228,6 +230,18 @@ public:
 	QString GetTitle() const
 	{
 		return QString("Flibrary - %1").arg(m_currentCollection.name);
+	}
+
+	GroupsModelController * GetGroupsModelController()
+	{
+		if (m_groupsModelController)
+			return m_groupsModelController.get();
+
+		PropagateConstPtr<GroupsModelController>(std::make_unique<GroupsModelController>(*m_executor, *m_db)).swap(m_groupsModelController);
+		QQmlEngine::setObjectOwnership(m_groupsModelController.get(), QQmlEngine::CppOwnership);
+
+		return m_groupsModelController.get();
+
 	}
 
 	ModelController * GetNavigationModelController()
@@ -471,6 +485,7 @@ private:
 
 	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
+	PropagateConstPtr<GroupsModelController> m_groupsModelController { std::unique_ptr<GroupsModelController>() };
 	ModelController * m_activeModelController { nullptr };
 
 	NavigationSourceProvider m_navigationSourceProvider;
@@ -497,6 +512,11 @@ GuiController::~GuiController() = default;
 void GuiController::Start()
 {
 	m_impl->Start();
+}
+
+GroupsModelController * GuiController::GetGroupsModelController()
+{
+	return m_impl->GetGroupsModelController();
 }
 
 ModelController * GuiController::GetNavigationModelController()
