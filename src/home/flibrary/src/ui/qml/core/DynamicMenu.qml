@@ -8,6 +8,7 @@ Menu
 	property alias model: instantiatorID.model
 	property alias delegate: instantiatorID.delegate
 	property bool popuped: false
+	property bool checkable: true
 
 	enabled: false
 
@@ -26,14 +27,15 @@ Menu
 		{
 			dynamicMenuID.insertItem(index, object)
 			dynamicMenuID.enabled = true
-			object.exclusiveGroup = exclusiveGroupID
-			object.checkable = true
+			object.checkable = dynamicMenuID.checkable
+			if (dynamicMenuID.checkable)
+				object.exclusiveGroup = exclusiveGroupID
 		}
 
 		onObjectRemoved:
 		{
 			dynamicMenuID.removeItem(object)
-			if (dynamicMenuID.items.count == 0)
+			if (!dynamicMenuID.items.count)
 				dynamicMenuID.enabled = false
 		}
 	}
