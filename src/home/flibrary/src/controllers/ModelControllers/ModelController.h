@@ -14,10 +14,6 @@ namespace HomeCompa {
 class Settings;
 }
 
-namespace HomeCompa::DB {
-class Database;
-}
-
 namespace HomeCompa::Flibrary {
 
 class ModelControllerObserver;
