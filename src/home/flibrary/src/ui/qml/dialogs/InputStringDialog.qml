@@ -15,6 +15,7 @@ Window
 
 	property alias inputStringTitle: inputStringTitleID.text
 	property alias text: inputStringTextID.text
+	property alias errorText: errorTextID.text
 	property alias okEnabled: btnOkID.enabled
 
 	signal accepted()
@@ -53,7 +54,6 @@ Window
 				id: inputStringTextID
 				Layout.fillWidth: true
 				font.pointSize: uiSettings.sizeFont
-//				onTextChanged: collectionController.error = ""
 			}
 		}
 
@@ -72,7 +72,9 @@ Window
 
 			CustomText
 			{
+				id: errorTextID
 				Layout.preferredHeight: uiSettings.heightRow
+				Layout.preferredWidth: preferredWidth + Functions.GetMargin()
 				Layout.maximumWidth: buttonsLayoutID.width
 					- btnOkID.width
 					- btnCancelID.width
@@ -80,7 +82,6 @@ Window
 
 				font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontError
 				color: uiSettings.colorErrorText
-				text: collectionController.error
 			}
 
 			Button

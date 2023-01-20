@@ -19,7 +19,7 @@
 #include "util/Settings.h"
 #include "util/StrUtil.h"
 
-#include "constants/ProductConstant.h"
+#include "constants/ObjectConnectorConstant.h"
 
 #include "controllers/ModelControllers/BooksViewType.h"
 #include "controllers/ModelControllers/NavigationSource.h"
@@ -741,9 +741,7 @@ public:
 	void Save(QString path, const long long id, const bool archive)
 	{
 		std::vector<Book> booksCopy;
-		for (const auto & book : books)
-			if (!book.IsDictionary && book.Checked)
-				booksCopy.push_back(book);
+		m_self.OnGetCheckedBooksRequest(booksCopy);
 		if (booksCopy.empty())
 			if (const auto it = std::ranges::find_if(std::as_const(books), [id] (const Book & book) { return book.Id == id; }); it != std::cend(books))
 				booksCopy.push_back(*it);
@@ -844,6 +842,7 @@ BooksModelController::BooksModelController(Util::Executor & executor
 	)
 	, m_impl(*this, executor, db, progressController, booksViewType, std::move(archiveFolder))
 {
+	Util::ObjectsConnector::registerReceiver(ObjConn::GET_CHECKED_BOOKS, this, SLOT(OnGetCheckedBooksRequest(std::vector<Book> &)));
 }
 
 BooksModelController::~BooksModelController()
@@ -974,6 +973,13 @@ void BooksModelController::HandleBookRemoved(const std::vector<std::reference_wr
 void BooksModelController::HandleItemDoubleClicked(const int index)
 {
 	m_impl->StartReader(index);
+}
+
+void BooksModelController::OnGetCheckedBooksRequest(std::vector<Book> & books)
+{
+	for (const auto & book : m_impl->books)
+		if (!book.IsDictionary && book.Checked)
+			books.push_back(book);
 }
 
 }

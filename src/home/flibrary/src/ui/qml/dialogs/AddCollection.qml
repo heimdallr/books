@@ -149,6 +149,7 @@ Window
 			CustomText
 			{
 				Layout.preferredHeight: uiSettings.heightRow
+				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: buttonsLayoutID.width
 					- btnCreateID.width
 					- btnAddID.width

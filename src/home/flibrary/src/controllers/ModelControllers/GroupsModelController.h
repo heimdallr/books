@@ -17,11 +17,22 @@ class Database;
 
 namespace HomeCompa::Flibrary {
 
+struct Book;
+
 class GroupsModelController
 	: public QObject
 {
 	NON_COPY_MOVABLE(GroupsModelController)
 	Q_OBJECT
+
+	Q_PROPERTY(bool checkNewNameInProgress READ IsCheckNewNameInProgress NOTIFY CheckNewNameInProgressChanged)
+	Q_PROPERTY(QString errorText READ GetErrorText NOTIFY ErrorTextChanged)
+
+signals:
+	void CheckNewNameInProgressChanged() const;
+	void ErrorTextChanged() const;
+
+	void GetCheckedBooksRequest(std::vector<Book> & books) const;
 
 public:
 	Q_INVOKABLE QAbstractItemModel * GetAddToModel();
@@ -30,10 +41,17 @@ public:
 	Q_INVOKABLE void AddTo(const QString & id);
 	Q_INVOKABLE void AddToNew(const QString & name);
 	Q_INVOKABLE void RemoveFrom(const QString & id);
+	Q_INVOKABLE void CheckNewName(const QString & name);
 
 public:
 	GroupsModelController(Util::Executor & executor, DB::Database & db, QObject * parent = nullptr);
 	~GroupsModelController() override;
+
+private: // property getters
+	bool IsCheckNewNameInProgress() const noexcept;
+	const QString & GetErrorText() const noexcept;
+
+private: // property setters
 
 private:
 	struct Impl;

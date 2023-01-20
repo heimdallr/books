@@ -90,9 +90,10 @@ Menu
 			title: qsTranslate("BookContextMenu", "Input new group name")
 			inputStringTitle: qsTranslate("BookContextMenu", "Group name")
 			text: qsTranslate("BookContextMenu", "New group")
-			okEnabled: text != ""
+			errorText: groupID.controller.errorText
+			okEnabled: text !== "" && errorText === "" && !groupID.controller.checkNewNameInProgress
 			onAccepted: groupID.controller.AddToNew(text)
-//			onTextChanged:
+			onTextChanged: groupID.controller.CheckNewName(text)
 		}
 
 		DynamicMenu

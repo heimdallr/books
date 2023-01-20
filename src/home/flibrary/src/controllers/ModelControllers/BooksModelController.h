@@ -70,6 +70,9 @@ private: // BookModelObserver
 	void HandleBookRemoved(const std::vector<std::reference_wrapper<const Book>> & books) override;
 	void HandleItemDoubleClicked(int index) override;
 
+private slots:
+	void OnGetCheckedBooksRequest(std::vector<Book> & books);
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

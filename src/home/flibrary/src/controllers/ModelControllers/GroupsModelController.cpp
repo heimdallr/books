@@ -1,30 +1,52 @@
 #include <QAbstractItemModel>
+#include <QCoreApplication>
 #include <QQmlEngine>
+#include <QTimer>
 
 #include "database/interface/Command.h"
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
 #include "database/interface/Transaction.h"
 
+#include "constants/ObjectConnectorConstant.h"
+
 #include "util/executor.h"
 
+#include "models/Book.h"
 #include "models/SimpleModel.h"
 
 #include "GroupsModelController.h"
-
-#include <QCoreApplication>
 
 namespace HomeCompa::Flibrary {
 
 namespace {
 
-void AddBookToGroup(DB::Transaction & transaction, const long long bookId, const long long groupId)
+void AddBookToGroup(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
 {
 	static constexpr auto queryText = "insert into Groups_List_User(BookID, GroupID) values(?, ?)";
 	const auto command = transaction.CreateCommand(queryText);
-	command->Bind(1, bookId);
-	command->Bind(2, groupId);
-	command->Execute();
+	for (const auto bookId : bookIds)
+	{
+		command->Bind(1, bookId);
+		command->Bind(2, groupId);
+		command->Execute();
+	}
+}
+
+std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, long long id)
+{
+	Books books;
+	emit controller.GetCheckedBooksRequest(books);
+
+	std::vector<long long> ids;
+	std::ranges::transform(std::as_const(books), std::back_inserter(ids), [] (const Book & book)
+	{
+		return book.Id;
+	});
+	if (ids.empty())
+		ids.push_back(id);
+
+	return ids;
 }
 
 }
@@ -39,19 +61,55 @@ struct GroupsModelController::Impl
 
 	long long bookId { -1 };
 
-	Impl(Util::Executor & executor_, DB::Database & db_)
+	QTimer checkTimer;
+	bool checkNewNameInProgress { false };
+	QString checkName;
+
+	QString errorText;
+
+	Impl(GroupsModelController & self, Util::Executor & executor_, DB::Database & db_)
 		: executor(executor_)
 		, db(db_)
+		, m_self(self)
 	{
 		QQmlEngine::setObjectOwnership(addToModel.get(), QQmlEngine::CppOwnership);
 		QQmlEngine::setObjectOwnership(removeFromModel.get(), QQmlEngine::CppOwnership);
+
+		checkTimer.setSingleShot(true);
+		checkTimer.setInterval(std::chrono::milliseconds(300));
+		connect(&checkTimer, &QTimer::timeout, [&] { Check(); });
 	}
+
+private:
+	void Check()
+	{
+		executor({ "Check new group name",[this, name = checkName.toUpper().toStdString()]
+		{
+			const auto query = db.CreateQuery("select GroupID from Groups_User where Title = ?");
+			query->Bind(1, name);
+			query->Execute();
+			const auto id = query->Get<int>(0);
+
+			return [this, id]
+			{
+				errorText = id > 0 ? QCoreApplication::translate("GroupsModel", "A group with the same name already exists") : "";
+				emit m_self.ErrorTextChanged();
+
+				checkNewNameInProgress = false;
+				emit m_self.CheckNewNameInProgressChanged();
+			};
+		} });
+	}
+
+private:
+	GroupsModelController & m_self;
 };
 
 GroupsModelController::GroupsModelController(Util::Executor & executor, DB::Database & db, QObject * parent)
 	: QObject(parent)
-	, m_impl(executor, db)
+	, m_impl(*this, executor, db)
 {
+	Util::ObjectsConnector::registerEmitter(ObjConn::GET_CHECKED_BOOKS, this, SIGNAL(GetCheckedBooksRequest(std::vector<Book> &)));
 }
 
 GroupsModelController::~GroupsModelController() = default;
@@ -101,7 +159,7 @@ void GroupsModelController::Reset(long long bookId)
 
 void GroupsModelController::AddToNew(const QString & name)
 {
-	m_impl->executor({ "Add to new group", [this, name]
+	m_impl->executor({ "Add to new group", [this, name, bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
 	{
 		static constexpr auto getMaxIdQueryText = "select last_insert_rowid()";
 		static constexpr auto insertText = "insert into Groups_User(Title) values(?)";
@@ -116,7 +174,7 @@ void GroupsModelController::AddToNew(const QString & name)
 		query->Execute();
 		const auto id = query->Get<long long>(0);
 
-		AddBookToGroup(*transaction, m_impl->bookId, id);
+		AddBookToGroup(*transaction, bookIds, id);
 
 		transaction->Commit();
 
@@ -126,10 +184,10 @@ void GroupsModelController::AddToNew(const QString & name)
 
 void GroupsModelController::AddTo(const QString & id)
 {
-	m_impl->executor({ "Add to group", [this, id = id.toLongLong()]
+	m_impl->executor({ "Add to group", [this, id = id.toLongLong(), bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
 	{
 		const auto transaction = m_impl->db.CreateTransaction();
-		AddBookToGroup(*transaction, m_impl->bookId, id);
+		AddBookToGroup(*transaction, bookIds, id);
 		transaction->Commit();
 		return [] {};
 	} });
@@ -137,18 +195,55 @@ void GroupsModelController::AddTo(const QString & id)
 
 void GroupsModelController::RemoveFrom(const QString & id)
 {
-	m_impl->executor({ "Remove from group", [this, id = id.toInt()]
+	m_impl->executor({ "Remove from group", [this, id = id.toInt(), bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
 	{
-		std::string queryText = "delete from Groups_List_User where BookID = " + std::to_string(m_impl->bookId);
+		std::string queryText = "delete from Groups_List_User where BookID = ?";
 		if (id > 0)
-			queryText.append(" and GroupID = ").append(std::to_string(id));
+			queryText.append(" and GroupID = ?");
 
 		const auto transaction = m_impl->db.CreateTransaction();
-		transaction->CreateCommand(queryText)->Execute();
+		const auto command = transaction->CreateCommand(queryText);
+		for (const auto bookId : bookIds)
+		{
+			command->Bind(1, bookId);
+			if (id > 0)
+				command->Bind(2, id);
+
+			command->Execute();
+		}
+
 		transaction->Commit();
 
 		return [] { };
 	} });
+}
+
+void GroupsModelController::CheckNewName(const QString & name)
+{
+	if (name.isEmpty())
+		return;
+
+	if (name.length() > 50)
+	{
+		m_impl->errorText = QCoreApplication::translate("GroupsModel", "Group name too long");
+		return emit ErrorTextChanged();
+	}
+
+	m_impl->checkNewNameInProgress = true;
+	emit CheckNewNameInProgressChanged();
+
+	m_impl->checkName = name;
+	m_impl->checkTimer.start();
+}
+
+bool GroupsModelController::IsCheckNewNameInProgress() const noexcept
+{
+	return m_impl->checkNewNameInProgress;
+}
+
+const QString & GroupsModelController::GetErrorText() const noexcept
+{
+	return m_impl->errorText;
 }
 
 }
