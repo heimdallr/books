@@ -155,27 +155,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="330"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="351"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="333"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="354"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="334"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="355"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="335"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="356"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="336"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="357"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
