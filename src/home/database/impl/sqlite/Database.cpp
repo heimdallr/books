@@ -72,6 +72,24 @@ const std::string & GetValue(const ConnectionParameters & parameters, const std:
 	return begin->second;
 }
 
+class DatabaseFunctionContext
+	: virtual public DB::DatabaseFunctionContext
+{
+public:
+	explicit DatabaseFunctionContext(sqlite3pp::ext::context & ctx)
+		: m_ctx(ctx)
+	{
+	}
+
+	void SetResult(const int value) override
+	{
+		m_ctx.result(value);
+	}
+
+private:
+	sqlite3pp::ext::context & m_ctx;
+};
+
 class Database
 	: virtual public DB::Database
 	, public Observable<DatabaseObserver>
@@ -129,6 +147,16 @@ private: // Database
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
 
+	void CreateFunction(std::string_view name, DatabaseFunction function) override
+	{
+		m_functions.emplace(name, std::make_unique<sqlite3pp::ext::function>(m_db)).first->second
+			->create(name.data(), [function = std::move(function)] (sqlite3pp::ext::context & ctx)
+		{
+			DatabaseFunctionContext context(ctx);
+			function(context);
+		});
+	}
+
 	void RegisterObserver(DatabaseObserver * observer) override
 	{
 		Register(observer);
@@ -144,6 +172,7 @@ private:
 	std::shared_mutex m_guard;
 	sqlite3pp::database m_db;
 	ObserverImpl m_observer;
+	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>> m_functions;
 };
 
 }
