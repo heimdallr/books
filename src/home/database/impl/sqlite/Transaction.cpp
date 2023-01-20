@@ -8,8 +8,8 @@
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<Command> CreateCommandImpl(sqlite3pp::database & db, const std::string_view & command);
-std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string_view & query);
+std::unique_ptr<Command> CreateCommandImpl(sqlite3pp::database & db, std::string_view command);
+std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
 
 namespace {
 
@@ -43,12 +43,12 @@ private: // Transaction
 		m_transaction.rollback();
 	}
 
-	std::unique_ptr<Command> CreateCommand(const std::string_view & command) override
+	std::unique_ptr<Command> CreateCommand(std::string_view command) override
 	{
 		return CreateCommandImpl(m_db, command);
 	}
 
-	std::unique_ptr<Query> CreateQuery(const std::string_view & query) override
+	std::unique_ptr<Query> CreateQuery(std::string_view query) override
 	{
 		return CreateQueryImpl(m_queryMutex, m_db, query);
 	}

@@ -2,7 +2,10 @@
 #include <sstream>
 #include <string>
 
+#include <plog/Log.h>
+
 #include "fnd/FindPair.h"
+#include "fnd/NonCopyMovable.h"
 #include "fnd/observable.h"
 
 #include "database/interface/Database.h"
@@ -16,7 +19,7 @@
 namespace HomeCompa::DB::Impl::Sqlite {
 
 std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
-std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, const std::string_view & query);
+std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
 
 namespace {
 
@@ -25,7 +28,7 @@ constexpr auto EXTENSION = "extension";
 
 using ConnectionParameters = std::multimap<std::string, std::string>;
 
-using ObserverMethod = void(DatabaseObserver:: *)(char const * dbName, char const * tableName, int64_t rowId);
+using ObserverMethod = void(DatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
 constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
 {
@@ -73,6 +76,8 @@ class Database
 	: virtual public DB::Database
 	, public Observable<DatabaseObserver>
 {
+	NON_COPY_MOVABLE(Database)
+
 private:
 	struct ObserverImpl
 	{
@@ -81,7 +86,7 @@ private:
 		{
 		}
 
-		void OnUpdate(int opCode, char const * dbName, char const * tableName, int64_t rowId) const
+		void OnUpdate(const int opCode, std::string_view dbName, std::string_view tableName, const int64_t rowId) const
 		{
 			const auto method = FindSecond(g_opCodeToObserverMethod, opCode);
 			m_self.Perform(method, dbName, tableName, rowId);
@@ -104,6 +109,13 @@ public:
 		{
 			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
 		});
+
+		PLOGD << "database created";
+	}
+
+	~Database() override
+	{
+		PLOGD << "database destroyed";
 	}
 
 private: // Database
@@ -112,19 +124,19 @@ private: // Database
 		return CreateTransactionImpl(m_guard, m_db);
 	}
 
-	[[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string_view & query) override
+	[[nodiscard]] std::unique_ptr<Query> CreateQuery(std::string_view query) override
 	{
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
 
-	void RegisterObserver(DatabaseObserver * observer)
+	void RegisterObserver(DatabaseObserver * observer) override
 	{
 		Register(observer);
 	}
 
-	void UnregisterObserver(DatabaseObserver * observer)
+	void UnregisterObserver(DatabaseObserver * observer) override
 	{
-		UnregisterObserver(observer);
+		Unregister(observer);
 	}
 
 private:

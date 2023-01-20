@@ -13,9 +13,9 @@ class Query;
 class DatabaseObserver : public Observer
 {
 public:
-	virtual void OnInsert(char const * dbName, char const * tableName, int64_t rowId) = 0;
-	virtual void OnUpdate(char const * dbName, char const * tableName, int64_t rowId) = 0;
-	virtual void OnDelete(char const * dbName, char const * tableName, int64_t rowId) = 0;
+	virtual void OnInsert(std::string_view dbName, std::string_view tableName, int64_t rowId) = 0;
+	virtual void OnUpdate(std::string_view dbName, std::string_view tableName, int64_t rowId) = 0;
+	virtual void OnDelete(std::string_view dbName, std::string_view tableName, int64_t rowId) = 0;
 };
 
 class Database
@@ -23,7 +23,7 @@ class Database
 public:
 	virtual ~Database() = default;
 	virtual [[nodiscard]] std::unique_ptr<Transaction> CreateTransaction() = 0;
-	virtual [[nodiscard]] std::unique_ptr<Query> CreateQuery(const std::string_view & query) = 0;
+	virtual [[nodiscard]] std::unique_ptr<Query> CreateQuery(std::string_view query) = 0;
 
 	virtual void RegisterObserver(DatabaseObserver * observer) = 0;
 	virtual void UnregisterObserver(DatabaseObserver * observer) = 0;

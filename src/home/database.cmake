@@ -25,13 +25,17 @@ AddTarget(
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/database/impl/sqlite"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
+		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext/sqlite/sqlite3pp/src"
 	PROJECT_GROUP Database/Impl
 	LINK_TARGETS
 		DatabaseInt
+		plog
 		sqlite
 		sqlite3pp
+	COMPILE_DEFINITIONS
+		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
 )

@@ -15,7 +15,7 @@ class Command
 	: virtual public DB::Command
 {
 public:
-	Command(sqlite3pp::database & db, const std::string_view & command)
+	Command(sqlite3pp::database & db, std::string_view command)
 		: m_command(db, command.data())
 	{
 	}
@@ -73,7 +73,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Command> CreateCommandImpl(sqlite3pp::database & db, const std::string_view & command)
+std::unique_ptr<DB::Command> CreateCommandImpl(sqlite3pp::database & db, std::string_view command)
 {
 	return std::make_unique<Command>(db, command);
 }
