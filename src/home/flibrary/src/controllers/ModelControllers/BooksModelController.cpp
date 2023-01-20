@@ -938,6 +938,11 @@ ModelControllerType BooksModelController::GetType() const noexcept
 	return ModelControllerType::Books;
 }
 
+void BooksModelController::UpdateModelData()
+{
+	m_impl->UpdateItems();
+}
+
 QAbstractItemModel * BooksModelController::CreateModel()
 {
 	if (auto * model = GetCurrentModel())

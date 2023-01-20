@@ -23,6 +23,8 @@
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
+#include "util/FunctorExecutionForwarder.h"
+
 #include "util/Settings.h"
 #include "util/SettingsObserver.h"
 
@@ -116,6 +118,11 @@ int UpdateSettings(Settings & settings, const char * settingsKey, const QVariant
 	return 0;
 }
 
+void UpdateModelData(ModelController & controller)
+{
+	controller.UpdateModelData();
+}
+
 }
 
 class GuiController::Impl
@@ -123,6 +130,7 @@ class GuiController::Impl
 	, LanguageController::LanguageProvider
 	, CollectionController::Observer
 	, SettingsObserver
+	, DB::DatabaseObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -130,6 +138,9 @@ public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
+		m_groupsChangedTimer.setSingleShot(true);
+		m_groupsChangedTimer.setInterval(std::chrono::milliseconds(200));
+		connect(&m_groupsChangedTimer, &QTimer::timeout, [&] { OnGroupChanged(); });
 		m_settings.RegisterObserver(this);
 		m_uiSettingsSrc->RegisterObserver(this);
 	}
@@ -220,6 +231,15 @@ public:
 			m_activeModelController->OnKeyPressed(key, modifiers);
 
 		m_logController.OnKeyPressed(key, modifiers);
+	}
+
+	void OnGroupChanged()
+	{
+		if (m_groupsChanged)
+			OnGroupChangedImpl();
+
+		if (m_groupsContentChanged)
+			OnGroupContentChangedImpl();
 	}
 
 	bool GetOpened() const noexcept
@@ -455,18 +475,90 @@ private: // SettingsObserver
 		PLOGV << "Set " << key << " = " << value.toString();
 	}
 
+private: // DB::DatabaseObserver
+	void OnInsert(std::string_view /*dbName*/, std::string_view tableName, const int64_t /*rowId*/) override
+	{
+		OnDatabaseChanged(tableName);
+	}
+
+	void OnUpdate(std::string_view /*dbName*/, std::string_view /*tableName*/, const int64_t /*rowId*/) override
+	{
+	}
+
+	void OnDelete(std::string_view /*dbName*/, std::string_view tableName, const int64_t /*rowId*/) override
+	{
+		OnDatabaseChanged(tableName);
+	}
+
 private:
+	void OnDatabaseChanged(std::string_view tableName)
+	{
+		m_forwarder.Forward([this, tableName = std::string(tableName)] { OnDatabaseChangedImpl(tableName); });
+	}
+
+	void OnDatabaseChangedImpl(std::string_view tableName)
+	{
+		const std::pair<std::string_view, bool &> groupsSettings[]
+		{
+			{ "Groups_User", m_groupsChanged },
+			{ "Groups_List_User", m_groupsContentChanged },
+		};
+
+		const auto it = FindPairIteratorByFirst(groupsSettings, tableName);
+		if (it == std::cend(groupsSettings))
+			return;
+
+		it->second = true;
+		m_groupsChangedTimer.start();
+	}
+
 	void CreateExecutor(const std::string & databaseName)
 	{
+		const auto createDatabase = [this, databaseName]
+		{
+			CreateDatabase(databaseName).swap(m_db);
+			m_db->RegisterObserver(this);
+		};
+
+		const auto destroyDatabase = [this]
+		{
+			m_db->UnregisterObserver(this);
+			PropagateConstPtr<DB::Database>(std::unique_ptr<DB::Database>()).swap(m_db);
+		};
+
 		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {
-			  [databaseName, &db = m_db] { CreateDatabase(databaseName).swap(db); }
+			  [=] { createDatabase(); }
 			, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
 			, []{ QGuiApplication::restoreOverrideCursor(); }
-			, [&db = m_db] { PropagateConstPtr<DB::Database>(std::unique_ptr<DB::Database>()).swap(db); }
+			, [=] { destroyDatabase(); }
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
 		emit m_self.OpenedChanged();
+	}
+
+	void OnGroupChangedImpl()
+	{
+		m_groupsChanged = false;
+
+		const auto it = m_navigationModelControllers.find(NavigationSource::Groups);
+		if (it == m_navigationModelControllers.end())
+			return;
+
+		if (m_navigationSourceProvider.GetSource() != NavigationSource::Groups)
+		{
+			it->second->UnregisterObserver(this);
+			return (void)m_navigationModelControllers.erase(it);
+		}
+
+		UpdateModelData(*it->second);
+	}
+
+	void OnGroupContentChangedImpl()
+	{
+		m_groupsContentChanged = false;
+		if (m_navigationSourceProvider.GetSource() == NavigationSource::Groups)
+			UpdateModelData(*m_booksModelController);
 	}
 
 private:
@@ -499,6 +591,10 @@ private:
 	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceModelItems(g_viewSourceBooksModelItems) };
 
 	QQmlApplicationEngine m_qmlEngine;
+
+	QTimer m_groupsChangedTimer;
+	bool m_groupsChanged { false }, m_groupsContentChanged { false };
+	Util::FunctorExecutionForwarder m_forwarder;
 };
 
 GuiController::GuiController(QObject * parent)

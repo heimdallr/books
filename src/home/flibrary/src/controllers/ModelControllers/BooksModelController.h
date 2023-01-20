@@ -62,6 +62,7 @@ public:
 
 private: // ModelController
 	ModelControllerType GetType() const noexcept override;
+	void UpdateModelData() override;
 	QAbstractItemModel * CreateModel() override;
 	bool SetCurrentIndex(int index) override;
 

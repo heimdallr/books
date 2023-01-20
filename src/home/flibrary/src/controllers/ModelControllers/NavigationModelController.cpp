@@ -204,6 +204,24 @@ public:
 		m_self.SaveCurrentItemId();
 	}
 
+	void UpdateModelData(QAbstractItemModel * model)
+	{
+		switch (m_navigationSource)
+		{
+			case NavigationSource::Authors:
+				return ReloadModelDataImpl<NavigationListItem>(model, &CreateAuthors, m_authors);
+			case NavigationSource::Series:
+				return ReloadModelDataImpl<NavigationListItem>(model, &CreateSeries, m_series);
+			case NavigationSource::Groups:
+				return ReloadModelDataImpl<NavigationListItem>(model, &CreateGroups, m_groups);
+			case NavigationSource::Genres:
+				return ReloadModelDataImpl<NavigationTreeItem>(model, &CreateGenres, m_genres);
+			default:
+				break;
+		}
+		throw std::invalid_argument("unexpected model source");
+	}
+
 	QAbstractItemModel * CreateModel()
 	{
 		switch(m_navigationSource)
@@ -224,10 +242,9 @@ public:
 
 private:
 	template<typename T>
-	QAbstractItemModel * CreateModelImpl(NavigationItemsCreator<T> creator, std::vector<T> & navigationItems) const
+	void ReloadModelDataImpl(QAbstractItemModel * model, NavigationItemsCreator<T> creator, std::vector<T> & navigationItems) const
 	{
-		auto * model = CreateNavigationModel(navigationItems);
-		m_executor({ "Get navigation", [&, model = QPointer(model), creator]() mutable
+		m_executor({ "Get navigation",[&, model = QPointer(model), creator]() mutable
 		{
 			auto items = creator(m_db);
 			return[&, items = std::move(items), model = std::move(model)]() mutable
@@ -242,6 +259,13 @@ private:
 				m_self.FindCurrentItem();
 			};
 		} }, 1);
+	}
+
+	template<typename T>
+	QAbstractItemModel * CreateModelImpl(NavigationItemsCreator<T> creator, std::vector<T> & navigationItems) const
+	{
+		auto * model = CreateNavigationModel(navigationItems);
+		ReloadModelDataImpl<T>(model, creator, navigationItems);
 		return model;
 	}
 
@@ -279,6 +303,13 @@ NavigationModelController::~NavigationModelController()
 ModelControllerType NavigationModelController::GetType() const noexcept
 {
 	return ModelControllerType::Navigation;
+}
+
+void NavigationModelController::UpdateModelData()
+{
+	auto * const model = GetCurrentModel();
+	assert(model);
+	m_impl->UpdateModelData(model);
 }
 
 QAbstractItemModel * NavigationModelController::CreateModel()

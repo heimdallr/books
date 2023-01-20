@@ -62,6 +62,7 @@ public:
 
 public:
 	virtual ModelControllerType GetType() const noexcept = 0;
+	virtual void UpdateModelData() = 0;
 
 private: // ModelObserver
 	void HandleModelItemFound(int index) override;

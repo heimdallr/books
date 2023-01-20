@@ -38,6 +38,7 @@ public:
 
 private: // ModelController
 	ModelControllerType GetType() const noexcept override;
+	void UpdateModelData() override;
 	QAbstractItemModel * CreateModel() override;
 
 private:
