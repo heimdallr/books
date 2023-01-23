@@ -13,7 +13,9 @@ class Query
 public:
 	virtual bool Eof() = 0;
 	virtual void Next() = 0;
+
 	virtual size_t ColumnCount() const = 0;
+	virtual std::string ColumnName(size_t index) const = 0;
 
 	virtual int GetInt(size_t index) const = 0;
 	virtual long long int GetLong(size_t index) const = 0;

@@ -47,6 +47,11 @@ private: // Query
 		return static_cast<size_t>(m_query.column_count());
 	}
 
+	std::string ColumnName(size_t index) const override
+	{
+		return m_query.column_name(Index(index));
+	}
+
 	int GetInt(const size_t index) const override
 	{
 		return Get<int>(index);
