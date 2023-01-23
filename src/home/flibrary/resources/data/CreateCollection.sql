@@ -21,6 +21,15 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP TABLE IF EXISTS Books_User;
+--@@
+
+DROP TABLE IF EXISTS Groups_List_User;
+--@@
+
+DROP TABLE IF EXISTS Groups_User;
+--@@
+
 DROP TABLE IF EXISTS Settings;
 --@@
 
@@ -31,9 +40,6 @@ DROP TABLE IF EXISTS Genres;
 --@@
 
 DROP TABLE IF EXISTS Authors;
---@@
-
-DROP TABLE IF EXISTS Books_User;
 --@@
 
 DROP TABLE IF EXISTS Books;
