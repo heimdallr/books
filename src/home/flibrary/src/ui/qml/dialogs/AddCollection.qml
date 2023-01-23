@@ -27,6 +27,12 @@ Window
 
 	title: qsTranslate("AddCollection", "Add new collection")
 
+	onVisibleChanged: if (visible)
+	{
+		collectionNameID.focus = true
+		collectionNameID.selectAll()
+	}
+
 	ColumnLayout
 	{
 		id: columnLayoutID
@@ -141,21 +147,12 @@ Window
 				collectionController.addMode = false
 			}
 
-			Item
-			{
-				Layout.fillWidth: true
-			}
-
 			CustomText
 			{
 				Layout.preferredHeight: uiSettings.heightRow
-				Layout.preferredWidth: preferredWidth
-				Layout.maximumWidth: buttonsLayoutID.width
-					- btnCreateID.width
-					- btnAddID.width
-					- btnCancelID.width
-					- Functions.GetMargin() * 10
+				Layout.fillWidth: true
 
+				horizontalAlignment: Text.AlignRight
 				font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontError
 				color: uiSettings.colorErrorText
 				text: collectionController.error

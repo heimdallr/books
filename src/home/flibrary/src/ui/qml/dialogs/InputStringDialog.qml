@@ -32,6 +32,12 @@ Window
 
 	flags: Qt.Dialog
 
+	onVisibleChanged: if (visible)
+	{
+		inputStringTextID.focus = true
+		inputStringTextID.selectAll()
+	}
+
 	ColumnLayout
 	{
 		id: columnLayoutID
@@ -65,21 +71,13 @@ Window
 			Layout.margins: Functions.GetMargin() * 2
 			Layout.fillWidth: true
 
-			Item
-			{
-				Layout.fillWidth: true
-			}
-
 			CustomText
 			{
 				id: errorTextID
 				Layout.preferredHeight: uiSettings.heightRow
-				Layout.preferredWidth: preferredWidth + Functions.GetMargin()
-				Layout.maximumWidth: buttonsLayoutID.width
-					- btnOkID.width
-					- btnCancelID.width
-					- Functions.GetMargin() * 10
+				Layout.fillWidth: true
 
+				horizontalAlignment: Text.AlignRight
 				font.pointSize: uiSettings.sizeFont * uiSettings.sizeFontError
 				color: uiSettings.colorErrorText
 			}

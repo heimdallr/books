@@ -109,9 +109,14 @@ Menu
 				onTriggered:
 				{
 					if (parseInt(Value) < 0)
+					{
 						inputStringDialogID.visible = true
+						groupID.controller.CheckNewName(inputStringDialogID.text)
+					}
 					else
+					{
 						groupID.controller.AddTo(Value)
+					}
 				}
 			}
 		}
