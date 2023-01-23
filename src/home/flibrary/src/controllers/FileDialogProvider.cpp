@@ -1,5 +1,4 @@
 #pragma warning(push, 0)
-#include <QCoreApplication>
 #include <QFileDialog>
 #pragma warning(pop)
 
@@ -15,6 +14,11 @@ FileDialogProvider::FileDialogProvider(QObject * parent)
 QString FileDialogProvider::SelectFile(const QString & title, const QString & fileName, const QString & filter)
 {
 	return QFileDialog::getOpenFileName(nullptr, title, fileName, filter);
+}
+
+QString FileDialogProvider::SaveFile(const QString & title, const QString & fileName, const QString & filter)
+{
+	return QFileDialog::getSaveFileName(nullptr, title, fileName, filter);
 }
 
 QString FileDialogProvider::SelectFolder(const QString & title, const QString & folderName)
