@@ -20,6 +20,7 @@ class AnnotationController
 	Q_PROPERTY(QString annotation READ GetAnnotation NOTIFY AnnotationChanged)
 	Q_PROPERTY(bool hasCover READ GetHasCover NOTIFY HasCoverChanged)
 	Q_PROPERTY(QString cover READ GetCover NOTIFY CoverChanged)
+	Q_PROPERTY(int coverCount READ GetCoverCount NOTIFY CoverCountChanged)
 
 public:
 	Q_INVOKABLE void CoverNext();
@@ -28,8 +29,9 @@ public:
 
 signals:
 	void AnnotationChanged() const;
-	void HasCoverChanged() const;
 	void CoverChanged() const;
+	void CoverCountChanged() const;
+	void HasCoverChanged() const;
 
 public:
 	AnnotationController();
@@ -43,6 +45,7 @@ private: // property getters
 	QString GetAnnotation() const;
 	bool GetHasCover() const;
 	const QString & GetCover() const;
+	int GetCoverCount() const noexcept;
 
 private:
 	class Impl;

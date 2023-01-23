@@ -239,7 +239,7 @@ public:
 		if (m_covers.size() < 2)
 			return;
 
-		if (++m_coverIndex >= static_cast<int>(m_covers.size()))
+		if (++m_coverIndex >= GetCoverCount())
 			m_coverIndex = 0;
 
 		emit m_self.CoverChanged();
@@ -251,9 +251,14 @@ public:
 			return;
 
 		if (--m_coverIndex < 0)
-			m_coverIndex = static_cast<int>(m_covers.size()) - 1;
+			m_coverIndex = GetCoverCount() - 1;
 
 		emit m_self.CoverChanged();
+	}
+
+	int GetCoverCount() const noexcept
+	{
+		return static_cast<int>(m_covers.size());
 	}
 
 	void SetRootFolder(std::filesystem::path rootFolder)
@@ -308,6 +313,7 @@ private:
 				emit m_self.AnnotationChanged();
 				emit m_self.HasCoverChanged();
 				emit m_self.CoverChanged();
+				emit m_self.CoverCountChanged();
 			};
 
 			{
@@ -417,6 +423,11 @@ bool AnnotationController::GetHasCover() const
 const QString & AnnotationController::GetCover() const
 {
 	return m_impl->GetCover();
+}
+
+int AnnotationController::GetCoverCount() const noexcept
+{
+	return m_impl->GetCoverCount();
 }
 
 }

@@ -7,6 +7,8 @@ import "qrc:/Core"
 
 Rectangle
 {
+	id: bookInfoID
+	readonly property int coverCount: annotationController.coverCount
 	Image
 	{
 		id: imageID
@@ -33,8 +35,9 @@ Rectangle
 				bottom: parent.bottom
 			}
 
-			width: parent.width / 2
+			width: parent.width / 3
 			onClicked: annotationController.CoverPrev()
+			cursorShape: bookInfoID.coverCount > 1 ? Qt.PointingHandCursor : Qt.ArrowCursor
 		}
 
 		MouseArea
@@ -46,8 +49,9 @@ Rectangle
 				bottom: parent.bottom
 			}
 
-			width: parent.width / 2
+			width: parent.width / 3
 			onClicked: annotationController.CoverNext()
+			cursorShape: bookInfoID.coverCount > 1 ? Qt.PointingHandCursor : Qt.ArrowCursor
 		}
 	}
 
