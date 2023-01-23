@@ -33,6 +33,7 @@ CreateMap(UI_SETTING_NAMES
 		indexLanguage                   6
 		locale                        \"\"
 		logLevel                      \"4\"
+		pathRecentBackup              \"\"
 		pathRecentCollectionDatabase  \"\"
 		pathRecentExport              \"\"
 		pathResentCollectionArchive   \"\"

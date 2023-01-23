@@ -20,7 +20,6 @@
 	</qresource>
 
 	<qresource prefix="Book">
-		<file alias="BookContextMenu.qml">../src/ui/qml/books/BookContextMenu.qml</file>
 		<file alias="BookInfo.qml">../src/ui/qml/books/BookInfo.qml</file>
 		<file alias="BookLayout.qml">../src/ui/qml/books/BookLayout.qml</file>
 		<file alias="BookListDelegate.qml">../src/ui/qml/books/BookListDelegate.qml</file>
@@ -30,6 +29,11 @@
 		<file alias="List.qml">../src/ui/qml/books/BooksListView.qml</file>
 		<file alias="Tree.qml">../src/ui/qml/books/BooksTreeView.qml</file>
 		<file alias="BookTreeDelegate.qml">../src/ui/qml/books/BookTreeDelegate.qml</file>
+	</qresource>
+
+	<qresource prefix="Book/ContextMenu">
+		<file alias="ContextMenu.qml">../src/ui/qml/books/ContextMenu/ContextMenu.qml</file>
+		<file alias="GroupsMenu.qml">../src/ui/qml/books/ContextMenu/GroupsMenu.qml</file>
 	</qresource>
 
 	<qresource prefix="Util">

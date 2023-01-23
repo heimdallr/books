@@ -9,17 +9,17 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="44"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="50"/>
         <source>Collection name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="64"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="70"/>
         <source>Collection database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="101"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="107"/>
         <source>Collection archive folder</source>
         <translation></translation>
     </message>
@@ -27,17 +27,17 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="170"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="167"/>
         <source>Database file already exists. Owerride?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="178"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="193"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="190"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -45,7 +45,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="341"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="347"/>
         <source>Keywords</source>
         <translation></translation>
     </message>
@@ -53,82 +53,82 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="19"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="18"/>
         <source>Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="25"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="24"/>
         <source>Selection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="30"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="29"/>
         <source>Select all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="37"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="36"/>
         <source>Deselect all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="44"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="43"/>
         <source>Invert selection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="52"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="51"/>
         <source>Send to device</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="69"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="68"/>
         <source>In zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="75"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="74"/>
         <source>In original format</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="83"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="10"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="90"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="17"/>
         <source>Input new group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="91"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="18"/>
         <source>Group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="92"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="19"/>
         <source>New group</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="102"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="29"/>
         <source>Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="122"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="54"/>
         <source>Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="139"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="84"/>
         <source>Remove book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="146"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="91"/>
         <source>Undo book deletion</source>
         <translation></translation>
     </message>
@@ -155,27 +155,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="350"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="352"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="353"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="355"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="354"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="356"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="355"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="357"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="356"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="358"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -183,19 +183,19 @@ Restart now?</source>
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="80"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="117"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="86"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="123"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="202"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="199"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="166"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="15"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="25"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
@@ -249,17 +249,17 @@ Restart now?</source>
 <context>
     <name>FileDialog</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="83"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="120"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="126"/>
         <source>Select archives folder</source>
         <translation>select folder with archives</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/BookContextMenu.qml" line="57"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="56"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
@@ -273,28 +273,44 @@ Restart now?</source>
         <source>Applications (*.exe)</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="392"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
+        <source>Flibrary export files (*.flibk)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="392"/>
+        <source>Specify a file to export user data</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
+        <source>Select a file to import user data</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="73"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="95"/>
         <source>A group with the same name already exists</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="125"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="149"/>
         <source>New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="127"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="153"/>
         <source>All</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="196"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="232"/>
         <source>Group name too long</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -448,7 +464,7 @@ Restart now?</source>
 <context>
     <name>QPlatformTheme</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="91"/>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="89"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
         <source>OK</source>
         <translation></translation>
@@ -509,7 +525,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="104"/>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="102"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="16"/>
         <source>Cancel</source>
         <translation></translation>
@@ -575,6 +591,21 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="68"/>
         <source>Remove collection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="74"/>
+        <source>User data</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="78"/>
+        <source>Export</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="84"/>
+        <source>Import</source>
         <translation></translation>
     </message>
     <message>

@@ -68,4 +68,21 @@ Menu
 		text: qsTranslate("Tray", "Remove collection")
 		onTriggered: removeConfirmDialogID.open()
     }
+
+	Menu
+	{
+		title: qsTranslate("Tray", "User data")
+
+	    MenuItem
+		{
+			text: qsTranslate("Tray", "Export")
+			onTriggered: guiController.BackupUserData()
+		}
+
+	    MenuItem
+		{
+			text: qsTranslate("Tray", "Import")
+			onTriggered: guiController.RestoreUserData()
+		}
+	}
 }

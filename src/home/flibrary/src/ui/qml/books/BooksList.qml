@@ -4,10 +4,11 @@ import HomeCompa.Flibrary.ModelControllerType 1.0
 
 import "qrc:/ViewTemplate"
 import "qrc:/Core"
+import "qrc:/Book/ContextMenu"
 
 Item
 {
-	BookContextMenu
+	ContextMenu
 	{
 		id: bookContextMenuID
 	}

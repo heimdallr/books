@@ -40,6 +40,8 @@ public:
 	Q_INVOKABLE ComboBoxController * GetLanguageComboBoxBooksController() noexcept;
 	Q_INVOKABLE void LogCollectionStatistics();
 	Q_INVOKABLE void HandleLink(const QString & link, long long bookId);
+	Q_INVOKABLE void BackupUserData();
+	Q_INVOKABLE void RestoreUserData();
 
 signals:
 	void OpenedChanged() const;
