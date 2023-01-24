@@ -27,23 +27,25 @@ Menu
 	{
 		id: groupAddID
 		title: qsTranslate("BookContextMenu", "Add to")
+		enabled: true
 		checkable: false
 
 		model: groupID.controller.GetAddToModel()
 		delegate: MenuItem
 		{
 			text: Title
+			onTriggered: groupID.controller.AddTo(Value)
+		}
+
+		MenuSeparator {}
+
+		MenuItem
+		{
+			text: qsTranslate("BookContextMenu", "New group...")
 			onTriggered:
 			{
-				if (parseInt(Value) < 0)
-				{
-					inputStringDialogID.visible = true
-					groupID.controller.CheckNewName(inputStringDialogID.text)
-				}
-				else
-				{
-					groupID.controller.AddTo(Value)
-				}
+				inputStringDialogID.visible = true
+				groupID.controller.CheckNewName(inputStringDialogID.text)
 			}
 		}
 	}
@@ -59,6 +61,14 @@ Menu
 		{
 			text: Title
 			onTriggered: groupID.controller.RemoveFrom(Value)
+		}
+
+		MenuSeparator {}
+
+		MenuItem
+		{
+			text: qsTranslate("BookContextMenu", "All")
+			onTriggered: groupID.controller.RemoveFromAll()
 		}
 	}
 

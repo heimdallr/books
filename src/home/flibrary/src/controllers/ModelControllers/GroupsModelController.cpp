@@ -21,18 +21,6 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-void AddBookToGroup(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
-{
-	static constexpr auto queryText = "insert into Groups_List_User(BookID, GroupID) values(?, ?)";
-	const auto command = transaction.CreateCommand(queryText);
-	for (const auto bookId : bookIds)
-	{
-		command->Bind(1, bookId);
-		command->Bind(2, groupId);
-		command->Execute();
-	}
-}
-
 std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, long long id)
 {
 	Books books;
@@ -47,6 +35,43 @@ std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, lo
 		ids.push_back(id);
 
 	return ids;
+}
+
+void AddBookToGroup(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
+{
+	static constexpr auto queryText = "insert into Groups_List_User(BookID, GroupID) values(?, ?)";
+	const auto command = transaction.CreateCommand(queryText);
+	for (const auto bookId : bookIds)
+	{
+		command->Bind(1, bookId);
+		command->Bind(2, groupId);
+		command->Execute();
+	}
+}
+
+void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, long long groupId, Util::Executor & executor, DB::Database & db)
+{
+	executor({ "Remove from group", [&db, groupId, bookIds = GetCheckedBooksIds(controller, bookId)]
+	{
+		std::string queryText = "delete from Groups_List_User where BookID = ?";
+		if (groupId >= 0)
+			queryText.append(" and GroupID = ?");
+
+		const auto transaction = db.CreateTransaction();
+		const auto command = transaction->CreateCommand(queryText);
+		for (const auto bookId : bookIds)
+		{
+			command->Bind(1, bookId);
+			if (groupId >= 0)
+				command->Bind(2, groupId);
+
+			command->Execute();
+		}
+
+		transaction->Commit();
+
+		return [] { };
+	} });
 }
 
 }
@@ -145,10 +170,6 @@ void GroupsModelController::Reset(long long bookId)
 			(query->Get<int>(2) < 0 ? addTo : removeFrom).push_back(std::move(item));
 		}
 
-		addTo.emplace_back("-1", QCoreApplication::translate("GroupsModel", "New group..."));
-		if (!removeFrom.empty())
-			removeFrom.emplace_back("-1", QCoreApplication::translate("GroupsModel", "All"));
-
 		return [addTo = std::move(addTo), removeFrom = std::move(removeFrom), &impl = *m_impl] () mutable
 		{
 			impl.addToModel->setData({}, QVariant::fromValue(&addTo), SimpleModelRole::SetItems);
@@ -195,27 +216,12 @@ void GroupsModelController::AddTo(const QString & id)
 
 void GroupsModelController::RemoveFrom(const QString & id)
 {
-	m_impl->executor({ "Remove from group", [this, id = id.toInt(), bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
-	{
-		std::string queryText = "delete from Groups_List_User where BookID = ?";
-		if (id > 0)
-			queryText.append(" and GroupID = ?");
+	RemoveBookFromGroup(*this, m_impl->bookId, id.toLongLong(), m_impl->executor, m_impl->db);
+}
 
-		const auto transaction = m_impl->db.CreateTransaction();
-		const auto command = transaction->CreateCommand(queryText);
-		for (const auto bookId : bookIds)
-		{
-			command->Bind(1, bookId);
-			if (id > 0)
-				command->Bind(2, id);
-
-			command->Execute();
-		}
-
-		transaction->Commit();
-
-		return [] { };
-	} });
+void GroupsModelController::RemoveFromAll()
+{
+	RemoveBookFromGroup(*this, m_impl->bookId, -1, m_impl->executor, m_impl->db);
 }
 
 void GroupsModelController::CheckNewName(const QString & name)

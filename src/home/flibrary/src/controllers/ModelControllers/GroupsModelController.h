@@ -41,6 +41,7 @@ public:
 	Q_INVOKABLE void AddTo(const QString & id);
 	Q_INVOKABLE void AddToNew(const QString & name);
 	Q_INVOKABLE void RemoveFrom(const QString & id);
+	Q_INVOKABLE void RemoveFromAll();
 	Q_INVOKABLE void CheckNewName(const QString & name);
 
 public:

@@ -118,8 +118,18 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="54"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="44"/>
+        <source>New group...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="56"/>
         <source>Remove from</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="70"/>
+        <source>All</source>
         <translation></translation>
     </message>
     <message>
@@ -293,22 +303,12 @@ Restart now?</source>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="95"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="120"/>
         <source>A group with the same name already exists</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="149"/>
-        <source>New group...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="153"/>
-        <source>All</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="232"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="234"/>
         <source>Group name too long</source>
         <translation></translation>
     </message>

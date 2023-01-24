@@ -118,9 +118,19 @@
         <translation>Добавить в</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="54"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="44"/>
+        <source>New group...</source>
+        <translation>Новая группа...</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="56"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="70"/>
+        <source>All</source>
+        <translation>Все</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="84"/>
@@ -294,22 +304,12 @@ Restart now?</source>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="95"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="120"/>
         <source>A group with the same name already exists</source>
         <translation>Группа с таким именем уже существует</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="149"/>
-        <source>New group...</source>
-        <translation>Новая группа...</translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="153"/>
-        <source>All</source>
-        <translation>Все</translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="232"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="234"/>
         <source>Group name too long</source>
         <translation>Слишком длинное имя для группы</translation>
     </message>
