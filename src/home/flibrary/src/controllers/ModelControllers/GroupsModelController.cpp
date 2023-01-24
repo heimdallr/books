@@ -156,7 +156,8 @@ void GroupsModelController::Reset(long long bookId)
 	{
 		static constexpr auto queryText =
 			"select g.GroupID, g.Title, coalesce(gl.BookID, -1) "
-			"from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?"
+			"from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ? "
+			"order by g.Title"
 			;
 
 		const auto query = m_impl->db.CreateQuery(queryText);
