@@ -26,11 +26,13 @@ class GroupsModelController
 	Q_OBJECT
 
 	Q_PROPERTY(bool checkNewNameInProgress READ IsCheckNewNameInProgress NOTIFY CheckNewNameInProgressChanged)
+	Q_PROPERTY(bool toAddExists READ IsToAddExists NOTIFY ToAddExistsChanged)
 	Q_PROPERTY(QString errorText READ GetErrorText NOTIFY ErrorTextChanged)
 
 signals:
 	void CheckNewNameInProgressChanged() const;
 	void ErrorTextChanged() const;
+	void ToAddExistsChanged() const;
 
 	void GetCheckedBooksRequest(std::vector<Book> & books) const;
 
@@ -50,6 +52,7 @@ public:
 
 private: // property getters
 	bool IsCheckNewNameInProgress() const noexcept;
+	bool IsToAddExists() const noexcept;
 	const QString & GetErrorText() const noexcept;
 
 private: // property setters

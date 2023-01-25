@@ -86,8 +86,10 @@ struct GroupsModelController::Impl
 
 	long long bookId { -1 };
 
-	QTimer checkTimer;
 	bool checkNewNameInProgress { false };
+	bool toAddExists { false };
+
+	QTimer checkTimer;
 	QString checkName;
 
 	QString errorText;
@@ -171,10 +173,13 @@ void GroupsModelController::Reset(long long bookId)
 			(query->Get<int>(2) < 0 ? addTo : removeFrom).push_back(std::move(item));
 		}
 
-		return [addTo = std::move(addTo), removeFrom = std::move(removeFrom), &impl = *m_impl] () mutable
+		return [this, addTo = std::move(addTo), removeFrom = std::move(removeFrom)]() mutable
 		{
-			impl.addToModel->setData({}, QVariant::fromValue(&addTo), SimpleModelRole::SetItems);
-			impl.removeFromModel->setData({}, QVariant::fromValue(&removeFrom), SimpleModelRole::SetItems);
+			m_impl->addToModel->setData({}, QVariant::fromValue(&addTo), SimpleModelRole::SetItems);
+			m_impl->removeFromModel->setData({}, QVariant::fromValue(&removeFrom), SimpleModelRole::SetItems);
+
+			m_impl->toAddExists = !addTo.empty();
+			emit ToAddExistsChanged();
 		};
 	} });
 }
@@ -246,6 +251,11 @@ void GroupsModelController::CheckNewName(const QString & name)
 bool GroupsModelController::IsCheckNewNameInProgress() const noexcept
 {
 	return m_impl->checkNewNameInProgress;
+}
+
+bool GroupsModelController::IsToAddExists() const noexcept
+{
+	return m_impl->toAddExists;
 }
 
 const QString & GroupsModelController::GetErrorText() const noexcept

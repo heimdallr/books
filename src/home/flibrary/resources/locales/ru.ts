@@ -98,37 +98,37 @@
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="17"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="21"/>
         <source>Input new group name</source>
         <translation>Укажите имя новой группы</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="18"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="22"/>
         <source>Group name</source>
         <translation>Имя группы</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="19"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="23"/>
         <source>New group</source>
         <translation>Новая группа</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="29"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="33"/>
         <source>Add to</source>
         <translation>Добавить в</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="44"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="50"/>
         <source>New group...</source>
         <translation>Новая группа...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="56"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="62"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="70"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="76"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
@@ -304,12 +304,12 @@ Restart now?</source>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="120"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="123"/>
         <source>A group with the same name already exists</source>
         <translation>Группа с таким именем уже существует</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="235"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="247"/>
         <source>Group name too long</source>
         <translation>Слишком длинное имя для группы</translation>
     </message>

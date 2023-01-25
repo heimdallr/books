@@ -9,6 +9,7 @@ Menu
 	property alias delegate: instantiatorID.delegate
 	property bool popuped: false
 	property bool checkable: true
+	property bool alwaysEnabled: false
 
 	enabled: false
 
@@ -35,7 +36,7 @@ Menu
 		onObjectRemoved:
 		{
 			dynamicMenuID.removeItem(object)
-			if (!dynamicMenuID.items.count)
+			if (!dynamicMenuID.items.count && !alwaysEnabled)
 				dynamicMenuID.enabled = false
 		}
 	}

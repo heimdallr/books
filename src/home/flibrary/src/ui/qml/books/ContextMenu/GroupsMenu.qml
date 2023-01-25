@@ -27,8 +27,8 @@ Menu
 	{
 		id: groupAddID
 		title: qsTranslate("BookContextMenu", "Add to")
-		enabled: true
 		checkable: false
+		alwaysEnabled: true
 
 		model: groupID.controller.GetAddToModel()
 		delegate: MenuItem
@@ -37,7 +37,10 @@ Menu
 			onTriggered: groupID.controller.AddTo(Value)
 		}
 
-		MenuSeparator {}
+		MenuSeparator
+		{
+			visible: groupID.controller.toAddExists
+		}
 
 		MenuItem
 		{
