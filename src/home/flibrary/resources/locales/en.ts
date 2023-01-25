@@ -308,7 +308,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="234"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="235"/>
         <source>Group name too long</source>
         <translation></translation>
     </message>

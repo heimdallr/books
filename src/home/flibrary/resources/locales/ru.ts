@@ -309,7 +309,7 @@ Restart now?</source>
         <translation>Группа с таким именем уже существует</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="234"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="235"/>
         <source>Group name too long</source>
         <translation>Слишком длинное имя для группы</translation>
     </message>
