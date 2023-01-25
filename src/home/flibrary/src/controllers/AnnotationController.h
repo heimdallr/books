@@ -7,6 +7,9 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+namespace HomeCompa::DB {
+class Database;
+}
 namespace HomeCompa::Flibrary {
 
 class BooksModelControllerObserver;
@@ -34,12 +37,11 @@ signals:
 	void HasCoverChanged() const;
 
 public:
-	AnnotationController();
+	AnnotationController(DB::Database & db, std::filesystem::path rootFolder);
 	~AnnotationController() override;
 
 public:
 	BooksModelControllerObserver * GetBooksModelControllerObserver();
-	void SetRootFolder(std::filesystem::path rootFolder);
 
 private: // property getters
 	QString GetAnnotation() const;

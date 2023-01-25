@@ -160,19 +160,21 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 	}
 
 	void Start()
 	{
+		PropagateConstPtr<AnnotationController>(std::make_unique<AnnotationController>(*m_db, m_currentCollection.folder.toStdWString())).swap(m_annotationController);
+
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
 		qmlContext->setContextProperty("localeController", &m_localeController);
-		qmlContext->setContextProperty("annotationController", &m_annotationController);
+		qmlContext->setContextProperty("annotationController", m_annotationController.get());
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("measure", new Measure(&m_self));
 		qmlContext->setContextProperty("collectionController", &m_collectionController);
@@ -295,7 +297,7 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController.GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 
@@ -304,7 +306,7 @@ public:
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_languageController.GetBooksModelControllerObserver());
-		m_booksModelController->RegisterObserver(m_annotationController.GetBooksModelControllerObserver());
+		m_booksModelController->RegisterObserver(m_annotationController->GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
 		if (m_navigationSourceProvider.GetSource() != NavigationSource::Undefined && m_currentNavigationIndex != -1)
@@ -473,9 +475,7 @@ private: // CollectionController::Observer
 		}
 
 		m_currentCollection = collection;
-		CreateExecutor(collection.database.toStdString());
-
-		m_annotationController.SetRootFolder(std::filesystem::path(collection.folder.toStdWString()));
+		CreateExecutor();
 
 		connect(&m_uiSettings, &UiSettings::showDeletedChanged, [&]
 		{
@@ -533,11 +533,11 @@ private:
 		m_groupsChangedTimer.start();
 	}
 
-	void CreateExecutor(const std::string & databaseName)
+	void CreateExecutor()
 	{
-		const auto createDatabase = [this, databaseName]
+		const auto createDatabase = [this]
 		{
-			CreateDatabase(databaseName).swap(m_db);
+			CreateDatabase(m_currentCollection.database.toStdString()).swap(m_db);
 			m_db->RegisterObserver(this);
 		};
 
@@ -593,7 +593,7 @@ private:
 	UiSettings m_uiSettings { m_uiSettingsSrc };
 
 	int m_currentNavigationIndex { -1 };
-	AnnotationController m_annotationController;
+	PropagateConstPtr<AnnotationController> m_annotationController { std::unique_ptr<AnnotationController>() };
 	Collection m_currentCollection;
 
 	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;

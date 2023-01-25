@@ -34,6 +34,7 @@ struct Book
 	int TreeLevel { 0 };
 	Dictionary<long long int> Authors;
 	Dictionary<long long int> Series;
+	Dictionary<long long int> Groups;
 	Dictionary<QString> Genres;
 };
 

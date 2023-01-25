@@ -14,6 +14,9 @@
 
 #include "fnd/FindPair.h"
 
+#include "database/interface/Database.h"
+#include "database/interface/Query.h"
+
 #include "util/executor.h"
 #include "util/executor/factory.h"
 
@@ -84,20 +87,23 @@ QString GetBookLinksTable(const Book & book)
 
 	return QString("<table>")
 #define VIEW_SOURCE_NAVIGATION_MODEL_ITEM(NAME) + addLinks(book.NAME, #NAME)
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Authors)
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Series)
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Genres)
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO
 #undef	VIEW_SOURCE_NAVIGATION_MODEL_ITEM
 		+ QString("</table>");
 }
 
-struct XmlParser final
-	: QXmlStreamReader
+struct AnnotationData
 {
 	QString annotation;
 	QStringList keywords;
 	std::vector<QString> covers;
 	int coverIndex { -1 };
+};
+
+struct XmlParser final
+	: QXmlStreamReader
+{
+	AnnotationData data;
 
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
@@ -132,7 +138,7 @@ private:
 		const auto nodeName = name();
 		if (m_mode == XmlParseMode::annotation)
 		{
-			annotation.append(QString("<%1>").arg(nodeName));
+			data.annotation.append(QString("<%1>").arg(nodeName));
 			return;
 		}
 
@@ -160,7 +166,7 @@ private:
 		{
 			if (nodeName != "annotation")
 			{
-				annotation.append(QString("</%1>").arg(nodeName));
+				data.annotation.append(QString("</%1>").arg(nodeName));
 				return;
 			}
 		}
@@ -195,24 +201,24 @@ private:
 		const auto attrs = attributes();
 		const auto binaryId = attrs.value(ID), contentType = attrs.value(CONTENT_TYPE);
 		if (m_coverPageId == binaryId)
-			coverIndex = static_cast<int>(covers.size());
+			data.coverIndex = static_cast<int>(data.covers.size());
 
-		covers.emplace_back(QString("data:%1;base64,").arg(contentType));
+		data.covers.emplace_back(QString("data:%1;base64,").arg(contentType));
 	}
 
 	void OnCharactersAnnotation()
 	{
-		annotation.append(text());
+		data.annotation.append(text());
 	}
 
 	void OnCharactersBinary()
 	{
-		covers.back().append(text());
+		data.covers.back().append(text());
 	}
 
 	void OnCharactersKeywords()
 	{
-		keywords << text().toString().split(",", Qt::SkipEmptyParts);
+		data.keywords << text().toString().split(",", Qt::SkipEmptyParts);
 	}
 
 private:
@@ -220,14 +226,44 @@ private:
 	QString m_coverPageId;
 };
 
+void GetGroupInfo(DB::Database & db, Book & book)
+{
+	constexpr auto queryText =
+		"select g.GroupID, g.Title "
+		"from Groups_User g "
+		"join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ? "
+		;
+	const auto query = db.CreateQuery(queryText);
+	query->Bind(1, book.Id);
+	for (query->Execute(); !query->Eof(); query->Next())
+		book.Groups.emplace(query->Get<long long>(0), query->Get<const char *>(1));
+}
+
+AnnotationData ParseAnnotation(const std::filesystem::path & folder, const Book & book)
+{
+	QuaZip zip(QString::fromStdWString(folder));
+	zip.open(QuaZip::Mode::mdUnzip);
+	zip.setCurrentFile(book.FileName);
+
+	QuaZipFile zipFile(&zip);
+	zipFile.open(QIODevice::ReadOnly);
+
+	XmlParser parser(zipFile);
+	parser.Parse();
+
+	return std::move(parser.data);
+}
+
 }
 
 class AnnotationController::Impl
 	: virtual public BooksModelControllerObserver
 {
 public:
-	explicit Impl(const AnnotationController & self)
+	explicit Impl(const AnnotationController & self, DB::Database & db, std::filesystem::path rootFolder)
 		: m_self(self)
+		, m_db(db)
+		, m_rootFolder(std::move(rootFolder))
 	{
 		m_annotationTimer.setSingleShot(true);
 		m_annotationTimer.setInterval(std::chrono::milliseconds(250));
@@ -259,11 +295,6 @@ public:
 	int GetCoverCount() const noexcept
 	{
 		return static_cast<int>(m_covers.size());
-	}
-
-	void SetRootFolder(std::filesystem::path rootFolder)
-	{
-		m_rootFolder = std::move(rootFolder);
 	}
 
 	QString GetAnnotation() const
@@ -303,7 +334,7 @@ private: // BooksModelControllerObserver
 private:
 	void ExtractAnnotation()
 	{
-		(*m_executor)({ "Get annotation", [&, book = std::move(m_book)]
+		(*m_executor)({ "Get annotation", [&, book = std::move(m_book)]() mutable
 		{
 			const auto folder = (m_rootFolder / book.Folder.toStdWString()).make_preferred();
 			const auto file = book.FileName.toStdString();
@@ -331,29 +362,9 @@ private:
 
 			try
 			{
-				QuaZip zip(QString::fromStdWString(folder));
-				zip.open(QuaZip::Mode::mdUnzip);
-				zip.setCurrentFile(book.FileName);
-
-				QuaZipFile m_zipFile(&zip);
-				m_zipFile.open(QIODevice::ReadOnly);
-
-				XmlParser parser(m_zipFile);
-				parser.Parse();
-
-				std::lock_guard lock(m_guard);
-				m_annotation = std::move(parser.annotation);
-				if (!parser.keywords.isEmpty())
-					m_annotation += QString("<p>%1: %2</p>").arg(QCoreApplication::translate("Annotation", "Keywords")).arg(parser.keywords.join(", "));
-				m_annotation += QString("<p>%1</p>").arg(GetBookLinksTable(book));
-				m_annotation += QString("<p>%1</p>").arg(GetBookInfoTable(book));
-
-				m_covers = std::move(parser.covers);
-				m_coverIndex
-					= m_covers.empty() ? -1
-					: parser.coverIndex >= 0 ? parser.coverIndex
-					: 0
-					;
+				GetGroupInfo(m_db, book);
+				auto annotationData = ParseAnnotation(folder, book);
+				UpdateAnnotation(std::move(annotationData), book);
 			}
 			catch (const std::exception & ex)
 			{
@@ -364,11 +375,29 @@ private:
 		} }, 3);
 	}
 
+	void UpdateAnnotation(AnnotationData annotationData, const Book & book)
+	{
+		std::lock_guard lock(m_guard);
+		m_annotation = std::move(annotationData.annotation);
+		if (!annotationData.keywords.isEmpty())
+			m_annotation += QString("<p>%1: %2</p>").arg(QCoreApplication::translate("Annotation", "Keywords")).arg(annotationData.keywords.join(", "));
+		m_annotation += QString("<p>%1</p>").arg(GetBookLinksTable(book));
+		m_annotation += QString("<p>%1</p>").arg(GetBookInfoTable(book));
+
+		m_covers = std::move(annotationData.covers);
+		m_coverIndex
+			= m_covers.empty() ? -1
+			: annotationData.coverIndex >= 0 ? annotationData.coverIndex
+			: 0
+			;
+	}
+
 private:
 	const AnnotationController & m_self;
+	DB::Database & m_db;
+	const std::filesystem::path m_rootFolder;
 	PropagateConstPtr<Util::Executor> m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {[]{}, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }, [] { QGuiApplication::restoreOverrideCursor(); }}) };
 	QTimer m_annotationTimer;
-	std::filesystem::path m_rootFolder;
 
 	Book m_book;
 
@@ -378,8 +407,8 @@ private:
 	int m_coverIndex { -1 };
 };
 
-AnnotationController::AnnotationController()
-	: m_impl(*this)
+AnnotationController::AnnotationController(DB::Database & db, std::filesystem::path rootFolder)
+	: m_impl(*this, db, std::move(rootFolder))
 {
 }
 
@@ -403,11 +432,6 @@ long long AnnotationController::GetCurrentBookId() const noexcept
 BooksModelControllerObserver * AnnotationController::GetBooksModelControllerObserver()
 {
 	return m_impl.get();
-}
-
-void AnnotationController::SetRootFolder(std::filesystem::path rootFolder)
-{
-	m_impl->SetRootFolder(std::move(rootFolder));
 }
 
 QString AnnotationController::GetAnnotation() const
