@@ -45,7 +45,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="347"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="383"/>
         <source>Keywords</source>
         <translation></translation>
     </message>
@@ -165,27 +165,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="352"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="354"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="355"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="357"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="356"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="358"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="357"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="359"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="358"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="360"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -284,18 +284,18 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="392"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="394"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="404"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="392"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="394"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="404"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
@@ -337,7 +337,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="65"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="68"/>
         <source>Size</source>
         <translation></translation>
     </message>
@@ -347,17 +347,17 @@ Restart now?</source>
         <translation>Genre</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="63"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
         <source>Archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="64"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="67"/>
         <source>File</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="69"/>
         <source>Updated</source>
         <translation></translation>
     </message>
