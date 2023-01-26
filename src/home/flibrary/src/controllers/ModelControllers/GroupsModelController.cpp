@@ -37,7 +37,7 @@ std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, lo
 	return ids;
 }
 
-void AddBookToGroup(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
+void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
 {
 	static constexpr auto queryText = "insert into Groups_List_User(BookID, GroupID) values(?, ?)";
 	const auto command = transaction.CreateCommand(queryText);
@@ -47,6 +47,19 @@ void AddBookToGroup(DB::Transaction & transaction, const std::vector<long long> 
 		command->Bind(2, groupId);
 		command->Execute();
 	}
+}
+
+long long CreateNewGroupImpl(DB::Transaction & transaction, const QString & name)
+{
+	static constexpr auto insertText = "insert into Groups_User(Title) values(?)";
+	const auto command = transaction.CreateCommand(insertText);
+	command->Bind(1, name.toStdString());
+	command->Execute();
+
+	static constexpr auto getLastRowId = "select last_insert_rowid()";
+	const auto query = transaction.CreateQuery(getLastRowId);
+	query->Execute();
+	return query->Get<long long>(0);
 }
 
 void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, long long groupId, Util::Executor & executor, DB::Database & db)
@@ -188,23 +201,10 @@ void GroupsModelController::AddToNew(const QString & name)
 {
 	m_impl->executor({ "Add to new group", [this, name, bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
 	{
-		static constexpr auto getMaxIdQueryText = "select last_insert_rowid()";
-		static constexpr auto insertText = "insert into Groups_User(Title) values(?)";
-
 		const auto transaction = m_impl->db.CreateTransaction();
-
-		const auto command = transaction->CreateCommand(insertText);
-		command->Bind(1, name.toStdString());
-		command->Execute();
-
-		const auto query = transaction->CreateQuery(getMaxIdQueryText);
-		query->Execute();
-		const auto id = query->Get<long long>(0);
-
-		AddBookToGroup(*transaction, bookIds, id);
-
+		const auto id = CreateNewGroupImpl(*transaction, name);
+		AddBookToGroupImpl(*transaction, bookIds, id);
 		transaction->Commit();
-
 		return [] {};
 	} });
 }
@@ -214,7 +214,7 @@ void GroupsModelController::AddTo(const QString & id)
 	m_impl->executor({ "Add to group", [this, id = id.toLongLong(), bookIds = GetCheckedBooksIds(*this, m_impl->bookId)]
 	{
 		const auto transaction = m_impl->db.CreateTransaction();
-		AddBookToGroup(*transaction, bookIds, id);
+		AddBookToGroupImpl(*transaction, bookIds, id);
 		transaction->Commit();
 		return [] {};
 	} });
@@ -246,6 +246,30 @@ void GroupsModelController::CheckNewName(const QString & name)
 
 	m_impl->checkName = name;
 	m_impl->checkTimer.start();
+}
+
+void GroupsModelController::CreateNewGroup(const QString & name)
+{
+	m_impl->executor({ "Create new group", [this, name]
+	{
+		const auto transaction = m_impl->db.CreateTransaction();
+		CreateNewGroupImpl(*transaction, name);
+		transaction->Commit();
+		return [] {};
+	} });
+}
+
+void GroupsModelController::RemoveGroup(long long groupId)
+{
+	m_impl->executor({ "Remove group", [this, groupId]
+	{
+		const auto transaction = m_impl->db.CreateTransaction();
+		const auto command = transaction->CreateCommand("delete from Groups_User where GroupId = ?");
+		command->Bind(1, groupId);
+		command->Execute();
+		transaction->Commit();
+		return [] {};
+	} });
 }
 
 bool GroupsModelController::IsCheckNewNameInProgress() const noexcept

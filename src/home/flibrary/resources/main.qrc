@@ -12,6 +12,7 @@
 		<file alias="Authors.qml">../src/ui/qml/navigation/Authors.qml</file>
 		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
 		<file alias="Groups.qml">../src/ui/qml/navigation/Groups.qml</file>
+		<file alias="GroupsContextMenu.qml">../src/ui/qml/navigation/GroupsContextMenu.qml</file>
 		<file alias="Navigation.qml">../src/ui/qml/navigation/Navigation.qml</file>
 		<file alias="NavigationListDelegate.qml">../src/ui/qml/navigation/NavigationListDelegate.qml</file>
 		<file alias="NavigationTreeDelegate.qml">../src/ui/qml/navigation/NavigationTreeDelegate.qml</file>
@@ -57,6 +58,7 @@
 
 	<qresource prefix="Dialogs/">
 		<file alias="AddCollection.qml">../src/ui/qml/dialogs/AddCollection.qml</file>
+		<file alias="InputNewGroupName.qml">../src/ui/qml/dialogs/InputNewGroupName.qml</file>
 		<file alias="InputStringDialog.qml">../src/ui/qml/dialogs/InputStringDialog.qml</file>
 	</qresource>
 

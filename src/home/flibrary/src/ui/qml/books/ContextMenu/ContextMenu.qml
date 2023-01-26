@@ -12,6 +12,8 @@ Menu
 	property int bookId: 0
 	property bool isDictionary: false
 
+	onBookIdChanged: groupsMenuID.bookId = bookId
+
 	MenuItem
 	{
 		visible: !menuID.isDictionary
@@ -76,7 +78,10 @@ Menu
 		}
 	}
 
-	GroupsMenu{}
+	GroupsMenu
+	{
+		id: groupsMenuID
+	}
 
 	MenuItem
 	{

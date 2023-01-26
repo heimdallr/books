@@ -11,7 +11,7 @@ Menu
 	property bool checkable: true
 	property bool alwaysEnabled: false
 
-	enabled: false
+	enabled: alwaysEnabled
 
 	onAboutToShow: popuped = true
 	onAboutToHide: popuped = false

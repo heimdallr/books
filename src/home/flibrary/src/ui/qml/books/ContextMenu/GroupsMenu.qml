@@ -6,49 +6,45 @@ import "qrc:/Dialogs"
 
 Menu
 {
-	id: groupID
-	title: qsTranslate("BookContextMenu", "Groups")
+	id: menuID
+	title: qsTranslate("GroupsMenu", "Groups")
 
 	readonly property var controller: guiController.GetGroupsModelController()
+	property int bookId: 0
 
-	InputStringDialog
+	InputNewGroupName
 	{
-		id: inputStringDialogID
-		title: qsTranslate("BookContextMenu", "Input new group name")
-		inputStringTitle: qsTranslate("BookContextMenu", "Group name")
-		text: qsTranslate("BookContextMenu", "New group")
-		errorText: groupID.controller.errorText
-		okEnabled: text !== "" && errorText === "" && !groupID.controller.checkNewNameInProgress
-		onAccepted: groupID.controller.AddToNew(text)
-		onTextChanged: groupID.controller.CheckNewName(text)
+		id: inputGroupNameDialogID
+		controller: menuID.controller
+		onAccepted: controller.AddToNew(text)
 	}
 
 	DynamicMenu
 	{
 		id: groupAddID
-		title: qsTranslate("BookContextMenu", "Add to")
+		title: qsTranslate("GroupsMenu", "Add to")
 		checkable: false
 		alwaysEnabled: true
 
-		model: groupID.controller.GetAddToModel()
+		model: menuID.controller.GetAddToModel()
 		delegate: MenuItem
 		{
 			text: Title
-			onTriggered: groupID.controller.AddTo(Value)
+			onTriggered: menuID.controller.AddTo(Value)
 		}
 
 		MenuSeparator
 		{
-			visible: groupID.controller.toAddExists
+			visible: menuID.controller.toAddExists
 		}
 
 		MenuItem
 		{
-			text: qsTranslate("BookContextMenu", "New group...")
+			text: qsTranslate("GroupsMenu", "New group...")
 			onTriggered:
 			{
-				inputStringDialogID.visible = true
-				groupID.controller.CheckNewName(inputStringDialogID.text)
+				inputGroupNameDialogID.visible = true
+				menuID.controller.CheckNewName(inputStringDialogID.text)
 			}
 		}
 	}
@@ -56,22 +52,22 @@ Menu
 	DynamicMenu
 	{
 		id: groupRemoveID
-		title: qsTranslate("BookContextMenu", "Remove from")
+		title: qsTranslate("GroupsMenu", "Remove from")
 		checkable: false
 
-		model: groupID.controller.GetRemoveFromModel()
+		model: menuID.controller.GetRemoveFromModel()
 		delegate: MenuItem
 		{
 			text: Title
-			onTriggered: groupID.controller.RemoveFrom(Value)
+			onTriggered: menuID.controller.RemoveFrom(Value)
 		}
 
 		MenuSeparator {}
 
 		MenuItem
 		{
-			text: qsTranslate("BookContextMenu", "All")
-			onTriggered: groupID.controller.RemoveFromAll()
+			text: qsTranslate("GroupsMenu", "All")
+			onTriggered: menuID.controller.RemoveFromAll()
 		}
 	}
 

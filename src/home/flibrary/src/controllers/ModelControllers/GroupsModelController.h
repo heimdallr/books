@@ -45,6 +45,8 @@ public:
 	Q_INVOKABLE void RemoveFrom(const QString & id);
 	Q_INVOKABLE void RemoveFromAll();
 	Q_INVOKABLE void CheckNewName(const QString & name);
+	Q_INVOKABLE void CreateNewGroup(const QString & name);
+	Q_INVOKABLE void RemoveGroup(long long groupId);
 
 public:
 	GroupsModelController(Util::Executor & executor, DB::Database & db, QObject * parent = nullptr);
