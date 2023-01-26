@@ -72,6 +72,14 @@ PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
 {
 	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
 	PropagateConstPtr<DB::Database> db(Create(DB::Factory::Impl::Sqlite, connectionString));
+	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
+
+	{
+		const auto query = db->CreateQuery("select sqlite_version();");
+		query->Execute();
+		PLOGI << "sqlite version: " << query->Get<std::string>(0);
+	}
+
 	const auto transaction = db->CreateTransaction();
 	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
 	transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
