@@ -17,13 +17,13 @@ Rectangle
 		{
 			left: parent.left
 			top: parent.top
-			bottom: parent.bottom
 		}
 
 		visible: annotationController.hasCover
+		height: visible ? Math.min(bookInfoID.height, bookInfoID.width * sourceSize.height / sourceSize.width / 2) : 0
 		width: visible ? height * sourceSize.width / sourceSize.height : 0
 
-		fillMode: Image.PreserveAspectFit
+		fillMode: Image.Stretch
 		source: visible ? annotationController.cover : ""
 
 		MouseArea
