@@ -630,6 +630,7 @@ GuiController::GuiController(QObject * parent)
 	: QObject(parent)
 	, m_impl(*this)
 {
+	PLOGI << "commit hash: " << GIT_HASH;
 }
 
 GuiController::~GuiController() = default;

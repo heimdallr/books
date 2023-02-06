@@ -7,3 +7,5 @@ constexpr const char * MHL_SQLITE_EXTENSION =
 	"@RUNTIME_FILE_MyHomeLibSQLIteExt_Debug@"
 #endif
 ;
+
+constexpr const char * GIT_HASH = "@GIT_HASH@";
