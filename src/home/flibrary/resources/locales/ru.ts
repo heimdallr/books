@@ -45,7 +45,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="383"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="386"/>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>
