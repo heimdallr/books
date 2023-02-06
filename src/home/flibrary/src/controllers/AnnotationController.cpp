@@ -241,6 +241,12 @@ void GetGroupInfo(DB::Database & db, Book & book)
 
 AnnotationData ParseAnnotation(const std::filesystem::path & folder, const Book & book)
 {
+	if (!exists(folder))
+	{
+		PLOGW << folder.generic_string() << " not found";
+		return {};
+	}
+
 	QuaZip zip(QString::fromStdWString(folder));
 	zip.open(QuaZip::Mode::mdUnzip);
 	zip.setCurrentFile(book.FileName);
@@ -355,9 +361,6 @@ private:
 			}
 
 			if (book.IsDictionary || book.Id < 0)
-				return stub;
-
-			if (!exists(folder))
 				return stub;
 
 			try
