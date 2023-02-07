@@ -12,6 +12,9 @@
 
 #include "util/executor.h"
 
+#include "constants/UserData/groups.h"
+#include "constants/UserData/UserData.h"
+
 #include "models/Book.h"
 #include "models/SimpleModel.h"
 
@@ -39,8 +42,7 @@ std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, lo
 
 void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
 {
-	static constexpr auto queryText = "insert into Groups_List_User(BookID, GroupID) values(?, ?)";
-	const auto command = transaction.CreateCommand(queryText);
+	const auto command = transaction.CreateCommand(Constant::UserData::Groups::AddBookToGroupCommandText);
 	for (const auto bookId : bookIds)
 	{
 		command->Bind(1, bookId);
@@ -51,13 +53,11 @@ void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long lo
 
 long long CreateNewGroupImpl(DB::Transaction & transaction, const QString & name)
 {
-	static constexpr auto insertText = "insert into Groups_User(Title) values(?)";
-	const auto command = transaction.CreateCommand(insertText);
+	const auto command = transaction.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 	command->Bind(1, name.toStdString());
 	command->Execute();
 
-	static constexpr auto getLastRowId = "select last_insert_rowid()";
-	const auto query = transaction.CreateQuery(getLastRowId);
+	const auto query = transaction.CreateQuery(Constant::UserData::SelectLastIdQueryText);
 	query->Execute();
 	return query->Get<long long>(0);
 }

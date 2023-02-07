@@ -40,6 +40,7 @@
 #include "constants/ProductConstant.h"
 
 #include "userdata/backup.h"
+#include "userdata/restore.h"
 
 #include "AnnotationController.h"
 #include "Collection.h"
@@ -399,21 +400,22 @@ public:
 
 	void BackupUserData()
 	{
-		const auto fileName = FileDialogProvider::SaveFile(QCoreApplication::translate("FileDialog", "Specify a file to export user data"), m_uiSettings.pathRecentBackup().toString(), QCoreApplication::translate("FileDialog", "Flibrary export files (*.flibk)"));
+		auto fileName = FileDialogProvider::SaveFile(QCoreApplication::translate("FileDialog", "Specify a file to export user data"), m_uiSettings.pathRecentBackup().toString(), QCoreApplication::translate("FileDialog", "Flibrary export files (*.flibk)"));
 		if (fileName.isEmpty())
 			return;
 
 		m_uiSettings.set_pathRecentBackup(fileName);
-		Backup(*m_executor, *m_db, fileName);
+		Backup(*m_executor, *m_db, std::move(fileName));
 	}
 
 	void RestoreUserData()
 	{
-		const auto fileName = FileDialogProvider::SelectFile(QCoreApplication::translate("FileDialog", "Select a file to import user data"), m_uiSettings.pathRecentBackup().toString(), QCoreApplication::translate("FileDialog", "Flibrary export files (*.flibk)"));
+		auto fileName = FileDialogProvider::SelectFile(QCoreApplication::translate("FileDialog", "Select a file to import user data"), m_uiSettings.pathRecentBackup().toString(), QCoreApplication::translate("FileDialog", "Flibrary export files (*.flibk)"));
 		if (fileName.isEmpty())
 			return;
 
 		m_uiSettings.set_pathRecentBackup(fileName);
+		Restore(*m_executor, *m_db, std::move(fileName));
 	}
 
 private: // ModelControllerObserver

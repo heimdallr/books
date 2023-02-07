@@ -12,6 +12,6 @@ class Executor;
 
 namespace HomeCompa::Flibrary {
 
-void Backup(Util::Executor & executor, DB::Database & db, QString fileName);
+void Restore(Util::Executor & executor, DB::Database & db, QString fileName);
 
 }

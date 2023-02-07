@@ -2,6 +2,8 @@
 #include <QString>
 #include <QXmlStreamWriter>
 
+#include <plog/Log.h>
+
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/Database.h"
@@ -10,6 +12,8 @@
 #include "util/executor.h"
 
 #include "constants/ProductConstant.h"
+#include "constants/UserData/books.h"
+#include "constants/UserData/groups.h"
 
 #include "backup.h"
 
@@ -29,9 +33,9 @@ void BackupUserDataBooks(DB::Database & db, QXmlStreamWriter & stream)
 
 	static constexpr const char * fields[] =
 	{
-		"Folder",
-		"FileName",
-		"IsDeleted",
+		Constant::UserData::Books::Folder,
+		Constant::UserData::Books::FileName,
+		Constant::UserData::Books::IsDeleted,
 	};
 
 	const auto query = db.CreateQuery(text);
@@ -63,13 +67,13 @@ void BackupUserDataGroups(DB::Database & db, QXmlStreamWriter & stream)
 		{
 			currentTitle = title;
 			group.reset();
-			std::make_unique<ScopedCall>([&] { stream.writeStartElement("Group"); }, [&] { stream.writeEndElement(); }).swap(group);
+			std::make_unique<ScopedCall>([&] { stream.writeStartElement(Constant::UserData::Groups::GroupNode); }, [&] { stream.writeEndElement(); }).swap(group);
 			stream.writeAttribute(Constant::TITLE, currentTitle.data());
 		}
 
 		ScopedCall item([&] { stream.writeStartElement(Constant::ITEM); }, [&] { stream.writeEndElement(); });
-		stream.writeAttribute("Folder", query->Get<const char *>(1));
-		stream.writeAttribute("FileName", query->Get<const char *>(2));
+		stream.writeAttribute(Constant::UserData::Books::Folder, query->Get<const char *>(1));
+		stream.writeAttribute(Constant::UserData::Books::FileName, query->Get<const char *>(2));
 	}
 }
 
@@ -83,12 +87,18 @@ constexpr std::pair<const char *, BackupFunction> g_backupers[]
 
 }
 
-void Backup(Util::Executor & executor, DB::Database & db, const QString & fileName)
+void Backup(Util::Executor & executor, DB::Database & db, QString fileName)
 {
-	executor({ "Backup user data", [&db, fileName]
+	executor({ "Backup user data", [&db, fileName = std::move(fileName)]
 	{
+		auto stub = [] {};
+
 		QFile outp(fileName);
-		outp.open(QIODevice::WriteOnly);
+		if (!outp.open(QIODevice::WriteOnly))
+		{
+			PLOGE << "Cannot write to " << fileName;
+			return stub;
+		}
 
 		QXmlStreamWriter stream(&outp);
 		stream.setAutoFormatting(true);
@@ -102,7 +112,7 @@ void Backup(Util::Executor & executor, DB::Database & db, const QString & fileNa
 			functor(db, stream);
 		}
 
-		return [] {};
+		return stub;
 	} });
 }
 
