@@ -29,22 +29,22 @@ private: // DB::Command
 
 	int BindInt(size_t index, int value) override
 	{
-		return m_command.bind(Index(index), value);
+		return m_command.bind(Index(index) + 1, value);
 	}
 
 	int BindLong(size_t index, long long int value) override
 	{
-		return m_command.bind(Index(index), value);
+		return m_command.bind(Index(index) + 1, value);
 	}
 
 	int BindDouble(size_t index, double value) override
 	{
-		return m_command.bind(Index(index), value);
+		return m_command.bind(Index(index) + 1, value);
 	}
 
 	int BindString(size_t index, const std::string & value) override
 	{
-		return m_command.bind(Index(index), value, sqlite3pp::copy);
+		return m_command.bind(Index(index) + 1, value, sqlite3pp::copy);
 	}
 
 	int BindInt(std::string_view name, int value) override

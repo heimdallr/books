@@ -45,8 +45,8 @@ void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long lo
 	const auto command = transaction.CreateCommand(Constant::UserData::Groups::AddBookToGroupCommandText);
 	for (const auto bookId : bookIds)
 	{
-		command->Bind(1, bookId);
-		command->Bind(2, groupId);
+		command->Bind(0, bookId);
+		command->Bind(1, groupId);
 		command->Execute();
 	}
 }
@@ -54,7 +54,7 @@ void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long lo
 long long CreateNewGroupImpl(DB::Transaction & transaction, const QString & name)
 {
 	const auto command = transaction.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
-	command->Bind(1, name.toStdString());
+	command->Bind(0, name.toStdString());
 	command->Execute();
 
 	const auto query = transaction.CreateQuery(Constant::UserData::SelectLastIdQueryText);
@@ -74,9 +74,9 @@ void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, l
 		const auto command = transaction->CreateCommand(queryText);
 		for (const auto bookId : bookIds)
 		{
-			command->Bind(1, bookId);
+			command->Bind(0, bookId);
 			if (groupId >= 0)
-				command->Bind(2, groupId);
+				command->Bind(1, groupId);
 
 			command->Execute();
 		}
@@ -126,7 +126,7 @@ private:
 		executor({ "Check new group name",[this, name = checkName.toUpper().toStdString()]
 		{
 			const auto query = db.CreateQuery("select GroupID from Groups_User where Title = ?");
-			query->Bind(1, name);
+			query->Bind(0, name);
 			query->Execute();
 			const auto id = query->Get<int>(0);
 
@@ -176,7 +176,7 @@ void GroupsModelController::Reset(long long bookId)
 			;
 
 		const auto query = m_impl->db.CreateQuery(queryText);
-		query->Bind(1, m_impl->bookId);
+		query->Bind(0, m_impl->bookId);
 
 		SimpleModelItems addTo, removeFrom;
 
@@ -265,7 +265,7 @@ void GroupsModelController::RemoveGroup(long long groupId)
 	{
 		const auto transaction = m_impl->db.CreateTransaction();
 		const auto command = transaction->CreateCommand("delete from Groups_User where GroupId = ?");
-		command->Bind(1, groupId);
+		command->Bind(0, groupId);
 		command->Execute();
 		transaction->Commit();
 		return [] {};

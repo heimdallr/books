@@ -45,9 +45,9 @@ void RestoreBooks1(class DB::Database & db, class QXmlStreamReader & reader)
 			&& attributes.hasAttribute(FileName)
 			&& attributes.hasAttribute(IsDeleted)
 		);
-		command->Bind(1, attributes.value(IsDeleted).toString().toInt());
-		command->Bind(2, attributes.value(Folder).toString().toStdString());
-		command->Bind(3, attributes.value(FileName).toString().toStdString());
+		command->Bind(0, attributes.value(IsDeleted).toString().toInt());
+		command->Bind(1, attributes.value(Folder).toString().toStdString());
+		command->Bind(2, attributes.value(FileName).toString().toStdString());
 
 		command->Execute();
 	}
@@ -89,7 +89,7 @@ void RestoreGroups1(class DB::Database & db, class QXmlStreamReader & reader)
 		{
 			assert(attributes.hasAttribute(Constant::TITLE));
 			const auto title = attributes.value(Constant::TITLE).toString().toStdString();
-			createGroupCommand->Bind(1, title);
+			createGroupCommand->Bind(0, title);
 			createGroupCommand->Execute();
 			const auto getLastIdQuery = transaction->CreateQuery(SelectLastIdQueryText);
 			getLastIdQuery->Execute();
@@ -101,9 +101,9 @@ void RestoreGroups1(class DB::Database & db, class QXmlStreamReader & reader)
 		{
 			assert(groupId >= 0);
 			assert(attributes.hasAttribute(Books::Folder) && attributes.hasAttribute(Books::FileName));
-			addBookToGroupCommand->Bind(1, groupId);
-			addBookToGroupCommand->Bind(2, attributes.value(Books::Folder).toString().toStdString());
-			addBookToGroupCommand->Bind(3, attributes.value(Books::FileName).toString().toStdString());
+			addBookToGroupCommand->Bind(0, groupId);
+			addBookToGroupCommand->Bind(1, attributes.value(Books::Folder).toString().toStdString());
+			addBookToGroupCommand->Bind(2, attributes.value(Books::FileName).toString().toStdString());
 
 			addBookToGroupCommand->Execute();
 		}

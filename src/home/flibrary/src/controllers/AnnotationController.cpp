@@ -234,7 +234,7 @@ void GetGroupInfo(DB::Database & db, Book & book)
 		"join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ? "
 		;
 	const auto query = db.CreateQuery(queryText);
-	query->Bind(1, book.Id);
+	query->Bind(0, book.Id);
 	for (query->Execute(); !query->Eof(); query->Next())
 		book.Groups.emplace(query->Get<long long>(0), query->Get<const char *>(1));
 }
