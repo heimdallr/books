@@ -178,52 +178,52 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="149"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="152"/>
         <source>Name cannot be empty</source>
         <translation>Имя не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="151"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="154"/>
         <source>Database file name cannot be empty</source>
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="155"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="158"/>
         <source>Index file (*.inpx) not found</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="157"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="160"/>
         <source>Bad database file extension (.inpx)</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="164"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="170"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="172"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="174"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="173"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="176"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена: %1</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="240"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="243"/>
         <source>No write access to %1</source>
         <translation>Нет достапа на запись в %1</translation>
     </message>
