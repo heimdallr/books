@@ -69,7 +69,7 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 	IniMapPair result { createFiles ? std::make_unique<QTemporaryDir>() : nullptr, IniMap{} };
 	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
 	{
-		auto result = QApplication::applicationDirPath() + name;
+		auto result = QDir::fromNativeSeparators(QApplication::applicationDirPath() + QDir::separator() + name);
 		if (!createFiles || QFile(result).exists())
 			return result;
 
