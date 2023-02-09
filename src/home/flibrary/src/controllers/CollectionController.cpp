@@ -153,6 +153,8 @@ struct CollectionController::Impl
 		{
 			if (GetInpx(folder).isEmpty())
 				return Util::Set(error, QApplication::translate("Error", "Index file (*.inpx) not found"), m_self, &CollectionController::ErrorChanged), false;
+			if (QFileInfo(db).suffix().toLower() == "inpx")
+				return Util::Set(error, QApplication::translate("Error", "Bad database file extension (.inpx)"), m_self, &CollectionController::ErrorChanged), false;
 			if (QFile(db).exists())
 				PLOGW << db << " will be rewritten";
 		}
@@ -233,6 +235,12 @@ bool CollectionController::AddCollection(QString name, QString db, QString folde
 
 void CollectionController::CreateCollection(QString name, QString db, QString folder)
 {
+	if (!QFile(db).open(QIODevice::WriteOnly))
+	{
+		Util::Set(m_impl->error, QApplication::translate("Error", "No write access to %1").arg(db), *this, &CollectionController::ErrorChanged);
+		return SetAddMode(true);
+	}
+
 	(*m_impl->executor)({"Create collection", [this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 	{
 		auto result = std::function([] {});

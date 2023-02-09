@@ -32,12 +32,12 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="190"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -160,7 +160,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="199"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
@@ -192,28 +192,38 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="162"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="157"/>
+        <source>Bad database file extension (.inpx)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="164"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="165"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="173"/>
         <source>This collection has already been added: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="240"/>
+        <source>No write access to %1</source>
         <translation></translation>
     </message>
 </context>
@@ -222,6 +232,11 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
         <source>Select database file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
+        <source>Flibrary database files (*.db .db3 .s3db .sl3 .sqlite .sqlite3)</source>
         <translation></translation>
     </message>
     <message>

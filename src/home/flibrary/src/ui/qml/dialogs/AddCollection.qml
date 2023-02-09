@@ -86,7 +86,7 @@ Window
 			    text: qsTranslate("Common", "...")
 				onClicked:
 				{
-					const fileName = fileDialog.SaveFile(qsTranslate("FileDialog", "Select database file"), collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.pathRecentCollectionDatabase)
+					const fileName = fileDialog.SaveFile(qsTranslate("FileDialog", "Select database file"), collectionDatabaseID.text !== "" ? collectionDatabaseID.text : uiSettings.pathRecentCollectionDatabase, qsTranslate("FileDialog", "Flibrary database files (*.db .db3 .s3db .sl3 .sqlite .sqlite3)"))
 					if (fileName === "")
 						return
 

@@ -11,7 +11,7 @@
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="50"/>
         <source>Collection name</source>
-        <translation>Имя коллекци</translation>
+        <translation>Имя коллекции</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="70"/>
@@ -32,12 +32,12 @@
         <translation>Файл базы данных уже существует. Перезаписать?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="190"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
@@ -161,7 +161,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="199"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
@@ -193,29 +193,39 @@ Restart now?</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="162"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="157"/>
+        <source>Bad database file extension (.inpx)</source>
+        <translation>Плохое расширение для файла базы данных (.inpx)</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="164"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="165"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="173"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена: %1</translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/CollectionController.cpp" line="240"/>
+        <source>No write access to %1</source>
+        <translation>Нет достапа на запись в %1</translation>
     </message>
 </context>
 <context>
@@ -224,6 +234,11 @@ Restart now?</source>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
+        <source>Flibrary database files (*.db .db3 .s3db .sl3 .sqlite .sqlite3)</source>
+        <translation>Базы данных Flibrary (*.db .db3 .s3db .sl3 .sqlite .sqlite3)</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="126"/>
