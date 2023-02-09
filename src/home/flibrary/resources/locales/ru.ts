@@ -32,12 +32,12 @@
         <translation>Файл базы данных уже существует. Перезаписать?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="190"/>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
@@ -161,7 +161,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="199"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>

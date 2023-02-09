@@ -32,12 +32,12 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="176"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="175"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="191"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="190"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -160,7 +160,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
-        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="200"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="199"/>
         <source>Cancel</source>
         <translation></translation>
     </message>

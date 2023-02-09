@@ -94,6 +94,9 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 		{ INPX, inpx.toStdWString() },
 	};
 
+	for (const auto & [key, value] : result.second)
+		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
+
 	return result;
 }
 
