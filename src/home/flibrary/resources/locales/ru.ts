@@ -238,7 +238,7 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Базы данных Flibrary (*.db .db3 .s3db .sl3 .sqlite .sqlite3)</translation>
+        <translation>Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
         <source>Flibrary database files (*.db .db3 .s3db .sl3 .sqlite .sqlite3)</source>
