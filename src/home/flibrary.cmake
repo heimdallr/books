@@ -56,7 +56,7 @@ CreateMap(UI_SETTING_NAMES
 		viewModeNavigation            \"Find\"
 		viewModeValueBooks            \"\"
 		viewModeValueNavigation       \"\"
-		viewSourceBooks               \"BooksListView\"
+		viewSourceBooks               \"List\"
 		viewSourceNavigation          \"Authors\"
 		widthAddCollectionDialogText    0.3
 		widthAuthor                     0.125
