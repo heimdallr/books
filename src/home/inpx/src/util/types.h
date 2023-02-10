@@ -38,20 +38,20 @@ struct Book
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
 
-	size_t      id;
+	size_t       id;
 	std::wstring libId;
 	std::wstring title;
-	int         seriesId;
-	int         seriesNum;
+	int          seriesId;
+	int          seriesNum;
 	std::wstring date;
-	int         rate;
+	int          rate;
 	std::wstring language;
 	std::wstring folder;
 	std::wstring fileName;
-	size_t      insideNo;
+	size_t       insideNo;
 	std::wstring format;
-	size_t      size;
-	bool        isDeleted;
+	size_t       size;
+	bool         isDeleted;
 	std::wstring keywords;
 
 private:
