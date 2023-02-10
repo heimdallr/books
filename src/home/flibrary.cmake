@@ -73,7 +73,6 @@ CreateMap(UI_SETTING_NAMES
 
 GenerateSettingsClass(UiSettings UI_SETTING_NAMES)
 
-
 set(LOCALES
 	"en"
 	"ru"
@@ -137,3 +136,6 @@ AddTarget(
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
 )
+
+file(GLOB resources ${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/data/*.*)
+file(COPY ${resources} DESTINATION "${BIN_DIR}")

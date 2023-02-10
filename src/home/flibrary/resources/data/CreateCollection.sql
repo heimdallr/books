@@ -1,21 +1,4 @@
 -------------------------------------------------------------------------------
---
--- MyHomeLib
---
--- Copyright (C) 2008-2010 Aleksey Penkov
---
--- Author(s)           eg
---                     Nick Rymanov    nrymanov@gmail.com
--- Created             04.09.2010
--- Description
---
--- $Id: CreateCollectionDB_SQLite.sql 1064 2011-09-02 11:33:04Z eg_ $
---
--- History
---
--- Notes
---   При изменении схемы базы данных необходимо изменить значение константы TBookCollection_SQLite.DATABASE_VERSION
--------------------------------------------------------------------------------
 
 PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
