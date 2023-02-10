@@ -15,7 +15,6 @@
 #include <plog/Log.h>
 
 #include "fmt/core.h"
-#include "sqlite/shell/sqlite_shell.h"
 #include "sqlite3ppext.h"
 
 #pragma warning(pop)

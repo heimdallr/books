@@ -36,7 +36,6 @@ AddTarget(
 		plog
 		sqlite
 		sqlite3pp
-		sqlite3shell_lib
 	MODULES
 		qt
 		quazip
