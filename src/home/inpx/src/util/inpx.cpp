@@ -33,11 +33,6 @@ size_t GetId()
 	return ++g_id;
 }
 
-void Log(char * str)
-{
-	PLOGI << str;
-}
-
 class Timer
 {
 public:

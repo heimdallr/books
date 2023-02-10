@@ -35,6 +35,7 @@ struct Book
 		, isDeleted(isDeleted_)
 		, keywords(keywords_)
 	{
+		std::ranges::transform(language, std::begin(language), towlower);
 	}
 
 	size_t      id;
