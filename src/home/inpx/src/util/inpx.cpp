@@ -28,8 +28,6 @@
 
 namespace {
 
-int g_mhlTriggersOn = 1;
-
 size_t g_id = 0;
 size_t GetId()
 {
@@ -87,7 +85,7 @@ bool IsComment(std::wstring_view line)
 class Ini
 {
 public:
-	explicit Ini(std::map<std::wstring, std::wstring> data)
+	explicit Ini(std::map<std::wstring, std::filesystem::path> data)
 		: _data(std::move(data))
 	{
 	}
@@ -112,24 +110,53 @@ public:
 		}
 	}
 
-	const std::wstring & operator()(const wchar_t * key, const std::wstring & defaultValue) const
+	const std::filesystem::path & operator()(const wchar_t * key, const std::filesystem::path & defaultValue) const
 	{
 		const auto it = _data.find(key);
 		return it != _data.end() ? it->second : defaultValue;
 	}
 
 private:
-	std::map<std::wstring, std::wstring> _data;
+	std::map<std::wstring, std::filesystem::path> _data;
 };
 
-auto LoadGenres(std::wstring_view genresIniFileName)
+class DatabaseWrapper
+{
+public:
+	explicit DatabaseWrapper(const std::filesystem::path & dbFileName, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
+		: m_db(dbFileName.generic_string().data(), flags)
+		, m_func(m_db)
+	{
+		m_db.load_extension(MHL_SQLITE_EXTENSION);
+		m_func.create("MHL_TRIGGERS_ON", [] (sqlite3pp::ext::context & ctx)
+		{
+			ctx.result(1);
+		});
+	}
+public:
+	operator sqlite3pp::database & ()
+	{
+		return m_db;
+	}
+
+	sqlite3pp::database * operator->()
+	{
+		return &m_db;
+	}
+
+private:
+	sqlite3pp::database m_db;
+	sqlite3pp::ext::function m_func;
+};
+
+auto LoadGenres(const std::filesystem::path & genresIniFileName)
 {
 	Genres genres;
 	Dictionary index;
 
-	std::ifstream iniStream(ToMultiByte(genresIniFileName));
+	std::ifstream iniStream(genresIniFileName);
 	if (!iniStream.is_open())
-		throw std::invalid_argument(fmt::format("Cannot open '{}'", ToMultiByte(genresIniFileName)));
+		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName.generic_string()));
 
 	genres.emplace_back(L"0");
 	index.emplace(genres.front().code, size_t { 0 });
@@ -339,11 +366,11 @@ struct InpxContent
 	std::vector<std::wstring> inpx;
 };
 
-InpxContent ExtractInpxFileNames(std::wstring_view inpxFileName)
+InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 {
 	InpxContent inpxContent;
 
-	QuaZip zip(QString::fromStdWString(inpxFileName.data()));
+	QuaZip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 
 	std::ifstream zipStream(inpxFileName, std::ios::binary);
 	zip.open(QuaZip::mdUnzip);
@@ -375,7 +402,7 @@ std::unique_ptr<QIODevice> GetDecodedStream(QuaZip & zip, const std::wstring & f
 	return zipFile;
 }
 
-void ParseInpxFiles(std::wstring_view inpxFileName, QuaZip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
+void ParseInpxFiles(const std::filesystem::path & inpxFileName, QuaZip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
 {
 	std::vector<std::wstring> unknownGenres;
 
@@ -395,7 +422,7 @@ void ParseInpxFiles(std::wstring_view inpxFileName, QuaZip & zip, const std::vec
 	}
 }
 
-Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, SettingsTableData && settingsTableData)
+Data Parse(const std::filesystem::path & genresFileName, const std::filesystem::path & inpxFileName, SettingsTableData && settingsTableData)
 {
 	Timer t(L"parsing archives");
 
@@ -406,7 +433,7 @@ Data Parse(std::wstring_view genresFileName, std::wstring_view inpxFileName, Set
 	data.genres = std::move(genresData);
 
 	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	QuaZip zip(QString::fromStdWString(inpxFileName.data()));
+	QuaZip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 	zip.open(QuaZip::mdUnzip);
 
 	for (const auto & fileName : inpxContent.collectionInfo)
@@ -435,7 +462,7 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 	if (!std::filesystem::exists(dbFileName))
 		return data;
 
-	sqlite3pp::database db(ToMultiByte(dbFileName).data(), SQLITE_OPEN_READONLY);
+	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
 	if (!TableExists(db, "Settings"))
 		return data;
 
@@ -459,29 +486,51 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 	return data;
 }
 
-void ExecuteScript(const std::wstring & action, std::wstring_view dbFileName, std::wstring_view scriptFileName)
+void ExecuteScript(const std::wstring & action, const std::filesystem::path & dbFileName, const std::filesystem::path & scriptFileName)
 {
 	Timer t(action);
 
-	char stubExe[] = "stub.exe";
-	auto readScript = fmt::format(".read {}.", ToMultiByte(scriptFileName));
-	auto loadExt = fmt::format(".load {}", MHL_SQLITE_EXTENSION);
-	auto dbFileNameStr = ToMultiByte(dbFileName);
+	DatabaseWrapper db(dbFileName);
 
-	char * v[]
+	std::string command;
+	std::string str;
+	str.resize(1024);
+	std::ifstream inp(scriptFileName);
+	if (!inp.is_open())
+		throw std::runtime_error(fmt::format("Cannot open {}", scriptFileName.generic_string()));
+
+	while(!inp.eof())
 	{
-		stubExe,
-		dbFileNameStr.data(),
-		loadExt.data(),
-		readScript.data(),
-	};
+		command.clear();
+		while (!inp.eof())
+		{
+			inp.getline(str.data(), str.size());
+			assert(inp.good() || inp.eof());
+			if (str.starts_with("--@@"))
+				break;
 
-	if (SQLiteShellExecute(static_cast<int>(std::size(v)), v, &Log) != 0)
-		throw std::runtime_error(fmt::format("Cannot {}", ToMultiByte(action)));
+			if (str.front())
+				command.append(str.data()).append("\n");
+		}
+
+		if (command.empty() || !command.front())
+			continue;
+
+		PLOGI << command;
+		if (command.starts_with("PRAGMA"))
+		{
+			sqlite3pp::query(db, command.data()).begin();
+		}
+		else
+		{
+			[[maybe_unused]] const auto rc = sqlite3pp::command(db, command.data()).execute();
+			assert(rc == 0);
+		}
+	}
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::string_view query, It beg, It end, Functor && f, bool addExt = true)
+size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view process, std::string_view query, It beg, It end, Functor && f)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
 	if (rowsTotal == 0)
@@ -490,15 +539,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 	Timer t(ToWide(fmt::format("store {0} {1}", process, rowsTotal)));
 	size_t rowsInserted = 0;
 
-	sqlite3pp::database db(ToMultiByte(dbFileName).data());
-	std::unique_ptr<sqlite3pp::ext::function> func;
-	if (addExt)
-	{
-		db.load_extension(MHL_SQLITE_EXTENSION);
-		std::make_unique<sqlite3pp::ext::function>(db).swap(func);
-		func->create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context & ctx) { ctx.result(g_mhlTriggersOn); });
-	}
-
+	DatabaseWrapper db(dbFileName);
 	sqlite3pp::transaction tr(db);
 	sqlite3pp::command cmd(db, query.data());
 
@@ -522,7 +563,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 		}
 		else
 		{
-			PLOGE << db.error_code() << ": " << db.error_msg() << std::endl << value;
+			PLOGE << db->error_code() << ": " << db->error_msg() << std::endl << value;
 		}
 
 		return init + result;
@@ -539,7 +580,7 @@ size_t StoreRange(std::wstring_view dbFileName, std::string_view process, std::s
 	return result;
 }
 
-size_t Store(std::wstring_view dbFileName, const Data & data)
+size_t Store(const std::filesystem::path & dbFileName, const Data & data)
 {
 	size_t result = 0;
 	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
@@ -595,18 +636,18 @@ size_t Store(std::wstring_view dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
-	}, false);
+	});
 
 	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
-	}, false);
+	});
 
 	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", std::cbegin(data.settings), std::cend(data.settings), [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
 	{
 		cmd.binder() << static_cast<size_t>(item.first) << item.second;
-	}, false);
+	});
 
 	return result;
 }
@@ -615,8 +656,7 @@ bool Process(const Ini & ini)
 {
 	Timer t(L"work");
 
-	g_mhlTriggersOn = _wtoi(ini(MHL_TRIGGERS_ON, std::to_wstring(g_mhlTriggersOn)).data());
-	const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+	const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
 
 	auto settingsTableData = ReadSettings(dbFileName);
 	ExecuteScript(L"create database", dbFileName, ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
@@ -645,9 +685,8 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini)
 	std::set<std::wstring> dbFolders;
 
 	{
-		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
-		sqlite3pp::database db(ToMultiByte(dbFileName).data(), SQLITE_OPEN_READONLY);
-		db.load_extension(MHL_SQLITE_EXTENSION);
+		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH).generic_string();
+		DatabaseWrapper db(dbFileName.data(), SQLITE_OPEN_READONLY);
 		if (!TableExists(db, "Books"))
 			return result;
 
@@ -695,7 +734,7 @@ Dictionary ReadDictionary(std::string_view name, sqlite3pp::database & db, const
 	return data;
 }
 
-std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, std::wstring_view genresFileName)
+std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, const std::filesystem::path & genresFileName)
 {
 	PLOGI << "Read genres";
 	std::pair<Genres, Dictionary> result;
@@ -781,12 +820,12 @@ void SetNextId(sqlite3pp::database & db)
 	PLOGI << "Next Id: " << g_id;
 }
 
-std::pair<Data, Dictionary> ReadData(std::wstring_view dbFileName, std::wstring_view genresFileName)
+std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, const std::filesystem::path & genresFileName)
 {
 	std::pair<Data, Dictionary> result;
 	auto & [data, index] = result;
 
-	sqlite3pp::database db(ToMultiByte(dbFileName).data(), SQLITE_OPEN_READONLY);
+	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
 	SetNextId(db);
 	data.authors = ReadDictionary("authors", db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors");
 	data.series = ReadDictionary("series", db, "select SeriesID, SeriesTitle from Series");
@@ -799,7 +838,7 @@ std::pair<Data, Dictionary> ReadData(std::wstring_view dbFileName, std::wstring_
 
 bool UpdateDatabase(const Ini & ini)
 {
-	const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+	const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
 	const auto [oldData, oldGenresIndex] = ReadData(dbFileName, ini(GENRES, DEFAULT_GENRES));
 
 	Data newData = oldData;
@@ -855,18 +894,18 @@ bool CreateNewCollection(const std::filesystem::path & iniFile)
 	return ParseInpxImpl(iniFile);
 }
 
-bool CreateNewCollection(std::map<std::wstring, std::wstring> data)
+bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data)
 {
 	return ParseInpxImpl(std::move(data));
 }
 
-bool CheckUpdateCollection(std::map<std::wstring, std::wstring> data)
+bool CheckUpdateCollection(std::map<std::wstring, std::filesystem::path> data)
 {
 	const Ini ini(std::move(data));
 	return !GetNewInpxFolders(ini).empty();
 }
 
-bool UpdateCollection(std::map<std::wstring, std::wstring> data)
+bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data)
 {
 	const Ini ini(std::move(data));
 	return UpdateDatabase(ini);

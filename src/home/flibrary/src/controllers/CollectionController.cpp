@@ -62,7 +62,7 @@ QString GetInpx(const QString & folder)
 	return result;
 }
 
-using IniMap = std::map<std::wstring, std::wstring>;
+using IniMap = std::map<std::wstring, std::filesystem::path>;
 using IniMapPair = std::pair<std::unique_ptr<QTemporaryDir>, IniMap>;
 IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFiles)
 {
