@@ -18,7 +18,7 @@ QString FileDialogProvider::SelectFile(const QString & title, const QString & fi
 
 QString FileDialogProvider::SaveFile(const QString & title, const QString & fileName, const QString & filter)
 {
-	return QFileDialog::getSaveFileName(nullptr, title, fileName, filter);
+	return QFileDialog::getSaveFileName(nullptr, title, fileName, filter, nullptr, QFileDialog::DontConfirmOverwrite);
 }
 
 QString FileDialogProvider::SelectFolder(const QString & title, const QString & folderName)
