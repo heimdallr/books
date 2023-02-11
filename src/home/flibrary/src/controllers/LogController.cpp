@@ -93,7 +93,7 @@ private:
 	QtLogHandler m_qtLogHandler;
 
 public:
-	bool logMode { false };
+	bool logMode { true };
 	std::vector<QColor> colors
 	{
 		QColor(m_settingsProvider.GetUiSettings().Get(Constant::UiSettings_ns::colorLogDefault, Constant::UiSettings_ns::colorLogDefault_default).toString()),

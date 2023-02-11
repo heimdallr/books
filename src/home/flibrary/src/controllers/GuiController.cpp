@@ -37,6 +37,7 @@
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
 
+#include "constants/ObjectConnectorConstant.h"
 #include "constants/ProductConstant.h"
 
 #include "userdata/backup.h"
@@ -154,6 +155,8 @@ public:
 		connect(&m_groupsChangedTimer, &QTimer::timeout, [&] { OnGroupChanged(); });
 		m_settings.RegisterObserver(this);
 		m_uiSettingsSrc->RegisterObserver(this);
+
+		Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, &m_self, SIGNAL(ShowLog(bool)));
 	}
 
 	~Impl() override
@@ -257,6 +260,7 @@ public:
 
 	bool GetOpened() const noexcept
 	{
+		emit m_self.ShowLog(!m_db);
 		return !!m_db;
 	}
 
@@ -548,6 +552,7 @@ private:
 		const auto createDatabase = [this]
 		{
 			CreateDatabase(m_currentCollection.database.toStdString()).swap(m_db);
+			emit m_self.OpenedChanged();
 			m_db->RegisterObserver(this);
 		};
 
@@ -555,6 +560,7 @@ private:
 		{
 			m_db->UnregisterObserver(this);
 			PropagateConstPtr<DB::Database>(std::unique_ptr<DB::Database>()).swap(m_db);
+			emit m_self.OpenedChanged();
 		};
 
 		auto executor = Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {
@@ -565,7 +571,6 @@ private:
 		});
 
 		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
-		emit m_self.OpenedChanged();
 	}
 
 	void OnGroupChangedImpl()
@@ -595,12 +600,14 @@ private:
 private:
 	GuiController & m_self;
 
-	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
-	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
-
 	Settings m_settings { Constant::COMPANY_ID, Constant::PRODUCT_ID };
 	std::shared_ptr<Settings> m_uiSettingsSrc { CreateUiSettings() };
 	UiSettings m_uiSettings { m_uiSettingsSrc };
+
+	LogController m_logController { *this };
+
+	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
+	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
 
 	int m_currentNavigationIndex { -1 };
 	PropagateConstPtr<AnnotationController> m_annotationController { std::unique_ptr<AnnotationController>() };
@@ -615,7 +622,6 @@ private:
 	LocaleController m_localeController { *m_uiSettingsSrc, &m_self };
 	LanguageController m_languageController { *this };
 	ProgressController m_progressController;
-	LogController m_logController { *this };
 	CollectionController m_collectionController { *this };
 
 	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceModelItems(g_viewSourceNavigationModelItems) };

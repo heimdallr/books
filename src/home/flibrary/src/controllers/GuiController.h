@@ -47,6 +47,8 @@ signals:
 	void OpenedChanged() const;
 	void TitleChanged() const;
 
+	void ShowLog(bool) const;
+
 private:
 	bool eventFilter(QObject * obj, QEvent * event) override;
 
