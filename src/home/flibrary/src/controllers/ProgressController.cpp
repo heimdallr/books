@@ -3,6 +3,8 @@
 
 #include <QTimer>
 
+#include <plog/Log.h>
+
 #include "util/FunctorExecutionForwarder.h"
 
 #include "ProgressController.h"
@@ -52,9 +54,14 @@ ProgressController::ProgressController(QObject * parent)
 
 		emit ProgressChanged();
 	});
+
+	PLOGD << "ProgressController created";
 }
 
-ProgressController::~ProgressController() = default;
+ProgressController::~ProgressController()
+{
+	PLOGD << "ProgressController destroyed";
+}
 
 void ProgressController::Add(std::shared_ptr<Progress> progress)
 {

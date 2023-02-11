@@ -110,7 +110,7 @@ struct CollectionController::Impl
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
-	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, Util::ExecutorInitializer{[]{}, [&]{ emit m_self.ShowLog(true); }, [&]{emit m_self.ShowLog(false);}}) };
+	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
 
 	explicit Impl(CollectionController & self, Observer & observer_)
 		: observer(observer_)
@@ -188,9 +188,14 @@ CollectionController::CollectionController(Observer & observer, QObject * parent
 {
 	Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, this, SIGNAL(ShowLog(bool)));
 	m_impl->OnCollectionsChanged();
+
+	PLOGD << "CollectionController created";
 }
 
-CollectionController::~CollectionController() = default;
+CollectionController::~CollectionController()
+{
+	PLOGD << "CollectionController destroyed";
+}
 
 void CollectionController::CheckForUpdate(const Collection & collection)
 {
@@ -244,9 +249,11 @@ void CollectionController::CreateCollection(QString name, QString db, QString fo
 		return SetAddMode(true);
 	}
 
+	emit ShowLog(true);
+
 	(*m_impl->executor)({"Create collection", [this_ = this, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 	{
-		auto result = std::function([] {});
+		auto result = std::function([this_] { emit this_->ShowLog(true); });
 
 		auto [_, ini] = GetIniMap(db, folder, true);
 		if (Inpx::CreateNewCollection(std::move(ini)))
@@ -276,9 +283,11 @@ void CollectionController::ApplyUpdate()
 	SetHasUpdate(false);
 	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
 
-	(*m_impl->executor)({ "Update collection", [&impl = *m_impl, collection = *collection]() mutable
+	emit ShowLog(true);
+
+	(*m_impl->executor)({ "Update collection", [this_ = this, &impl = *m_impl, collection = *collection]() mutable
 	{
-		auto result = std::function([] {});
+		auto result = std::function([this_] { emit this_->ShowLog(true); });
 
 		auto [_, ini] = GetIniMap(collection.database, collection.folder, true);
 

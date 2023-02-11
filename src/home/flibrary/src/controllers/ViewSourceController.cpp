@@ -1,5 +1,7 @@
 #include <QQmlEngine>
 
+#include <plog/Log.h>
+
 #include "util/Settings.h"
 #include "util/SettingsObserver.h"
 
@@ -30,12 +32,16 @@ public:
 		comboBoxController.RegisterObserver(this);
 		comboBoxController.SetData(std::move(simpleModelItems));
 		m_uiSetting.RegisterObserver(this);
+
+		PLOGD << "ViewSourceController created: " << m_keyName;
 	}
 
 	~Impl() override
 	{
 		comboBoxController.UnregisterObserver(this);
 		m_uiSetting.UnregisterObserver(this);
+
+		PLOGD << "ViewSourceController destroyed: " << m_keyName;
 	}
 
 private: // SettingsObserver

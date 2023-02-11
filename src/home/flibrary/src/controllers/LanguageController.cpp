@@ -1,5 +1,7 @@
 #include <QQmlEngine>
 
+#include <plog/Log.h>
+
 #include "ModelControllers/BooksModelControllerObserver.h"
 
 #include "ComboBoxController.h"
@@ -80,9 +82,13 @@ LanguageController::LanguageController(LanguageProvider & languageProvider, QObj
 	: QObject(parent)
 	, m_impl(languageProvider)
 {
+	PLOGD << "LanguageController created";
 }
 
-LanguageController::~LanguageController() = default;
+LanguageController::~LanguageController()
+{
+	PLOGD << "LanguageController destroyed";
+}
 
 BooksModelControllerObserver * LanguageController::GetBooksModelControllerObserver() noexcept
 {

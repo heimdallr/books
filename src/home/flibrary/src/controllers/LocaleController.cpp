@@ -3,6 +3,8 @@
 #include <QTranslator>
 #include <QVariant>
 
+#include <plog/Log.h>
+
 #include "util/Settings.h"
 
 #include "LocaleController.h"
@@ -29,9 +31,14 @@ LocaleController::LocaleController(Settings & uiSettings, QObject * parent)
 {
 	m_impl->translator.load(QString(":/resources/%1.qm").arg(GetLocale()));
 	QCoreApplication::installTranslator(&m_impl->translator);
+
+	PLOGD << "LocaleController created";
 }
 
-LocaleController::~LocaleController() = default;
+LocaleController::~LocaleController()
+{
+	PLOGD << "LocaleController destroyed";
+}
 
 QStringList LocaleController::GetLocales() const
 {

@@ -413,9 +413,13 @@ private:
 AnnotationController::AnnotationController(DB::Database & db, std::filesystem::path rootFolder)
 	: m_impl(*this, db, std::move(rootFolder))
 {
+	PLOGD << "AnnotationController created";
 }
 
-AnnotationController::~AnnotationController() = default;
+AnnotationController::~AnnotationController()
+{
+	PLOGD << "AnnotationController destroyed";
+}
 
 void AnnotationController::CoverNext()
 {
