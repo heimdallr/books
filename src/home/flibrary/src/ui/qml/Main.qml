@@ -38,14 +38,14 @@ ApplicationWindow
 		log.Debug(`ApplicationWindow created`)
 	}
 
-	Tray {}
-
 	Component
 	{
 		id: splitViewComponentID
 
 		Item
 		{
+			Tray {}
+
 			SplitView
 			{
 				anchors.fill: parent
