@@ -125,27 +125,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="363"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="367"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="366"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="370"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="367"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="371"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="368"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="372"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="369"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="373"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -222,7 +222,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="243"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="248"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
@@ -260,18 +260,18 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="403"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="413"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="407"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="417"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="403"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="407"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="413"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="417"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
