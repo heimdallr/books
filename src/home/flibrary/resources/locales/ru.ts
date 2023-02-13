@@ -623,7 +623,7 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="43"/>
         <source>Add new collection...</source>
-        <translation>Добавить коллкцию...</translation>
+        <translation>Добавить коллекцию...</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="53"/>
@@ -638,7 +638,7 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="74"/>
         <source>User data</source>
-        <translation>Ползовательские данные</translation>
+        <translation>Пользовательские данные</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="78"/>
