@@ -157,6 +157,8 @@ public:
 		m_uiSettingsSrc->RegisterObserver(this);
 
 		Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, &m_self, SIGNAL(ShowLog(bool)));
+
+		PLOGD << "GuiController created";
 	}
 
 	~Impl() override
@@ -175,10 +177,14 @@ public:
 			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
+
+		PLOGD << "GuiController destroyed";
 	}
 
 	void Start()
 	{
+		PLOGD << "GuiController started";
+
 		PropagateConstPtr<AnnotationController>(std::make_unique<AnnotationController>(*m_db, m_currentCollection.folder.toStdWString())).swap(m_annotationController);
 
 		auto * const qmlContext = m_qmlEngine.rootContext();
@@ -638,7 +644,7 @@ GuiController::GuiController(QObject * parent)
 	: QObject(parent)
 	, m_impl(*this)
 {
-	PLOGI << "commit hash: " << GIT_HASH;
+	PLOGD << "GuiController created";
 }
 
 GuiController::~GuiController() = default;

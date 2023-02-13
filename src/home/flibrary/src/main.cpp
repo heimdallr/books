@@ -11,6 +11,8 @@
 
 #include "plog/LogAppender.h"
 
+#include "Configuration.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -22,6 +24,7 @@ int main(int argc, char * argv[])
 		Log::LogAppender logAppender(&rollingFileAppender);
 
 		PLOGI << "App started";
+		PLOGI << "Commit hash: " << GIT_HASH;
 
 		while (true)
 		{
@@ -30,10 +33,8 @@ int main(int argc, char * argv[])
 
 			GuiController guiController;
 			app.installEventFilter(&guiController);
-			PLOGD << "guiController created";
 
 			guiController.Start();
-			PLOGD << "guiController started";
 
 			if (const auto code = QApplication::exec(); code != 1234)
 			{

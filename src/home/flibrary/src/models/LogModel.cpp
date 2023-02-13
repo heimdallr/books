@@ -1,9 +1,13 @@
-#include <QSortFilterProxyModel>
 #include <QColor>
+#include <QSortFilterProxyModel>
+#include <QTimer>
+
+#include <mutex>
 
 #include <plog/Appenders/IAppender.h>
 
 #include "fnd/NonCopyMovable.h"
+#include "fnd/observable.h"
 
 #include "plog/LogAppender.h"
 
@@ -28,16 +32,119 @@ struct Item
 
 std::vector<Item> s_items;
 
+class LogAppenderObserver
+	: public Observer
+{
+public:
+	virtual void OnInsertBegin(size_t begin, size_t end) = 0;
+	virtual void OnInsertEnd() = 0;
+	virtual void OnRemoveBegin(size_t begin, size_t end) = 0;
+	virtual void OnRemoveEnd() = 0;
+};
+
+class LogAppenderImpl
+	: virtual public plog::IAppender
+	, public Observable<LogAppenderObserver>
+{
+public:
+	LogAppenderImpl()
+	{
+		m_timer.setSingleShot(true);
+		m_timer.setInterval(std::chrono::milliseconds(100));
+		QObject::connect(&m_timer, &QTimer::timeout, [&]{ OnLogUpdated(); });
+	}
+
+	void SetLogMaximumSize(const size_t sizeLogMaximum)
+	{
+		m_sizeLogMaximum = sizeLogMaximum;
+	}
+
+private: // plog::IAppender
+	void write(const plog::Record & record) override
+	{
+		std::lock_guard lock(m_itemsGuard);
+
+		auto splitted = QString::fromStdWString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
+		if (splitted.isEmpty())
+			return;
+
+		const auto severity = record.getSeverity();
+		const auto time = record.getTime().time;
+		const auto millieTime = record.getTime().millitm;
+		const auto tId = record.getTid();
+
+		tm t {};
+		plog::util::localtime_s(&t, &time);
+		{
+			auto str = QString("%1:%2:%3.%4 [%5] %6")
+				.arg(t.tm_hour, 2, 10, QChar('0'))
+				.arg(t.tm_min, 2, 10, QChar('0'))
+				.arg(t.tm_sec, 2, 10, QChar('0'))
+				.arg(millieTime, 3, 10, QChar('0'))
+				.arg(tId, 6, 10, QChar('0'))
+				.arg(splitted.front())
+				;
+
+			m_items.emplace_back(std::move(str), severity);
+		}
+		splitted.erase(splitted.begin());
+		for (auto && str : splitted)
+			m_items.emplace_back(std::move(str), severity);
+
+		m_forwarder.Forward([&] { m_timer.start(); });
+	}
+
+private:
+	void OnLogUpdated()
+	{
+		std::vector<Item> items;
+		{
+			std::lock_guard lock(m_itemsGuard);
+			items.swap(m_items);
+		}
+
+		Perform(&LogAppenderObserver::OnInsertBegin, std::size(s_items), std::size(s_items) + std::size(items));
+		std::copy(std::make_move_iterator(std::begin(items)), std::make_move_iterator(std::end(items)), std::back_inserter(s_items));
+		Perform(&LogAppenderObserver::OnInsertEnd);
+
+		if (std::size(s_items) < m_sizeLogMaximum)
+			return;
+
+		Perform(&LogAppenderObserver::OnRemoveBegin, 0, m_sizeLogMaximum / 2);
+		s_items.erase(std::begin(s_items), std::next(std::begin(s_items), m_sizeLogMaximum / 2));
+		Perform(&LogAppenderObserver::OnRemoveEnd);
+	}
+
+private:
+	std::mutex m_itemsGuard;
+	Util::FunctorExecutionForwarder m_forwarder;
+	QTimer m_timer;
+	size_t m_sizeLogMaximum { Constant::UiSettings_ns::sizeLogMaximum_default.toULongLong() };
+	std::vector<Item> m_items;
+};
+
+LogAppenderImpl s_logAppenderImpl;
+[[maybe_unused]] const Log::LogAppender m_logAppender { &s_logAppenderImpl };
+
 using Role = LogModelRole;
 
 class Model final
 	: public QAbstractListModel
-	, virtual public plog::IAppender
+	, virtual LogAppenderObserver
 {
+	NON_COPY_MOVABLE(Model)
+
 public:
 	explicit Model(LogModelController & controller)
 		: m_controller(controller)
 	{
+		s_logAppenderImpl.SetLogMaximumSize(m_controller.GetUiSettings().Get(Constant::UiSettings_ns::sizeLogMaximum, Constant::UiSettings_ns::sizeLogMaximum_default).toULongLong());
+		s_logAppenderImpl.Register(this);
+	}
+
+	~Model() override
+	{
+		s_logAppenderImpl.Unregister(this);
 	}
 
 private: // QAbstractListModel
@@ -97,59 +204,29 @@ private: // QAbstractListModel
 		assert(false && "unexpected role");
 		return false;
 	}
-
-private: // plog::IAppender
-	void write(const plog::Record & record) override
+private:
+	void OnInsertBegin(const size_t begin, const size_t end) override
 	{
-		m_forwarder.Forward([&
-			, message = QString::fromStdWString(record.getMessage())
-			, severity = record.getSeverity()
-			, time = record.getTime().time
-			, millieTime = record.getTime().millitm
-			, tId = record.getTid()
-		] () mutable
-		{
-			auto splitted = message.split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
-			if (splitted.isEmpty())
-				return;
+		emit beginInsertRows({}, static_cast<int>(begin), static_cast<int>(end) - 1);
+	}
 
-			if (static_cast<int>(std::size(s_items)) > m_sizeLogMaximum)
-			{
-				emit beginRemoveRows({}, 0, m_sizeLogMaximum / 2 - 1);
-				s_items.erase(std::begin(s_items), std::next(std::begin(s_items), m_sizeLogMaximum / 2));
-				emit endRemoveRows();
-			}
+	void OnInsertEnd() override
+	{
+		emit endInsertRows();
+	}
 
-			tm t{};
-			plog::util::localtime_s(&t, &time);
-			const auto pos = rowCount();
-			emit beginInsertRows({}, pos, pos + splitted.size() - 1);
+	void OnRemoveBegin(const size_t begin, const size_t end) override
+	{
+		emit beginRemoveRows({}, static_cast<int>(begin), static_cast<int>(end) - 1);
+	}
 
-			{
-				auto str = QString("%1:%2:%3.%4 [%5] %6")
-					.arg(t.tm_hour, 2, 10, QChar('0'))
-					.arg(t.tm_min, 2, 10, QChar('0'))
-					.arg(t.tm_sec, 2, 10, QChar('0'))
-					.arg(millieTime, 3, 10, QChar('0'))
-					.arg(tId, 6, 10, QChar('0'))
-					.arg(splitted.front());
-				;
-
-				s_items.emplace_back(std::move(str), severity);
-			}
-			splitted.erase(splitted.begin());
-			for (auto && str : splitted)
-				s_items.emplace_back(std::move(str), severity);
-
-			emit endInsertRows();
-		});
+	void OnRemoveEnd() override
+	{
+		emit endRemoveRows();
 	}
 
 private:
 	LogModelController & m_controller;
-	Util::FunctorExecutionForwarder m_forwarder;
-	[[maybe_unused]] const Log::LogAppender m_logAppender { this };
-	int m_sizeLogMaximum { m_controller.GetUiSettings().Get(Constant::UiSettings_ns::sizeLogMaximum, Constant::UiSettings_ns::sizeLogMaximum_default).toInt() };
 };
 
 class FilterProxyModel final
