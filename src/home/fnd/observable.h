@@ -54,7 +54,7 @@ private:
 		if (it == m_observersMap.end())
 			return false;
 
-		const auto result = m_observers.erase(it->second) == 1;
+		[[maybe_unused]] const auto result = m_observers.erase(it->second) == 1;
 		m_observersMap.erase(it);
 
 		return true;
