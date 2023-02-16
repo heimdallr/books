@@ -103,6 +103,9 @@ private:
 			items.swap(m_items);
 		}
 
+		if (items.empty())
+			return;
+
 		Perform(&LogAppenderObserver::OnInsertBegin, std::size(s_items), std::size(s_items) + std::size(items));
 		std::copy(std::make_move_iterator(std::begin(items)), std::make_move_iterator(std::end(items)), std::back_inserter(s_items));
 		Perform(&LogAppenderObserver::OnInsertEnd);
