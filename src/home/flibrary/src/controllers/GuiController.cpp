@@ -644,7 +644,6 @@ GuiController::GuiController(QObject * parent)
 	: QObject(parent)
 	, m_impl(*this)
 {
-	PLOGD << "GuiController created";
 }
 
 GuiController::~GuiController() = default;
