@@ -1,12 +1,13 @@
-@echo on
+@echo off
 
 set start_time=%DATE% %TIME%
-set cmake_path=D:\programs\cmake\3.26.0\bin\cmake.exe
+
+call scripts\batch\check_executable.bat cmake
+if NOT [%ERRORLEVEL%]==[0] goto end
 
 set tee_name=tee.exe
 call scripts\batch\check_executable.bat %tee_name%
 if NOT [%ERRORLEVEL%]==[0] goto end
-set GENERATOR="Visual Studio 17 2022"
 
 set originalDir=%CD%
 
@@ -27,16 +28,16 @@ mkdir %BUILD_DIR%
 cd %BUILD_DIR%
 del *.sln
 
-%cmake_path% ^
+cmake ^
 --no-warn-unused-cli ^
 -DCMAKE_GENERATOR_PLATFORM=%GENERATOR_PLATFORM% ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
 -DCMAKE_INSTALL_PREFIX=%BUILD_DIR%\..\.. ^
 %* ^
--G %GENERATOR% %~dp0\zlib 2>&1 | %tee_name% ..\generate_solution.log
+-G %CMAKE_GENERATOR% %~dp0\zlib 2>&1 | %tee_name% ..\generate_solution.log
 
-%cmake_path% --build . --config Release --target install
-%cmake_path% --build . --config Debug --target install
+cmake --build . --config Release --target install
+cmake --build . --config Debug --target install
 
 cd %originalDir%
 
@@ -45,9 +46,7 @@ mkdir %BUILD_DIR%
 cd %BUILD_DIR%
 del *.sln
 
-@echo on
-
-%cmake_path% ^
+cmake ^
 --no-warn-unused-cli ^
 -DCMAKE_GENERATOR_PLATFORM=%GENERATOR_PLATFORM% ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
@@ -57,10 +56,10 @@ del *.sln
 -DZLIB_ROOT=%BUILD_DIR%\..\.. ^
 -DZLIB_INCLUDE_DIR=%BUILD_DIR%\..\..\include\zlib ^
 %* ^
--G %GENERATOR% %~dp0\quazip 2>&1 | %tee_name% ..\generate_solution.log
+-G %CMAKE_GENERATOR% %~dp0\quazip 2>&1 | %tee_name% ..\generate_solution.log
 
-%cmake_path% --build . --config Release --target install
-%cmake_path% --build . --config Debug --target install
+cmake --build . --config Release --target install
+cmake --build . --config Debug --target install
 
 cd %originalDir%
 
