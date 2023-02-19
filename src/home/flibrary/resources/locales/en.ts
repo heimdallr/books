@@ -226,6 +226,11 @@ Restart now?</source>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../src/constants/Localization.h" line="8"/>
+        <source>Author not specified</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>FileDialog</name>
@@ -502,6 +507,7 @@ Restart now?</source>
     <name>QPlatformTheme</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="89"/>
+        <location filename="../../src/constants/Localization.h" line="11"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
         <source>OK</source>
         <translation></translation>

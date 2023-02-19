@@ -4,6 +4,7 @@
 #include <shared_mutex>
 
 #include <QAbstractItemModel>
+#include <QCoreApplication>
 #include <QPointer>
 #include <QTimer>
 
@@ -19,6 +20,7 @@
 #include "util/Settings.h"
 #include "util/StrUtil.h"
 
+#include "constants/Localization.h"
 #include "constants/ObjectConnectorConstant.h"
 
 #include "controllers/ModelControllers/BooksViewType.h"
@@ -116,6 +118,25 @@ struct Author
 	QString last;
 	QString first;
 	QString middle;
+
+	Author(QString last_, QString first_, QString middle_)
+		: last(std::move(last_))
+		, first(std::move(first_))
+		, middle(std::move(middle_))
+	{
+		for (int i = 0; i < 2; ++i)
+		{
+			if (!last.isEmpty())
+				break;
+
+			last = std::move(first);
+			first = std::move(middle_);
+			middle = QString();
+		}
+
+		if (last.isEmpty())
+			last = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+	}
 };
 using Authors = std::unordered_map<long long int, Author>;
 using Series = std::unordered_map<long long int, QString>;

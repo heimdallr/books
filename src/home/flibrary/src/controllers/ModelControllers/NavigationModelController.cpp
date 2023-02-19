@@ -1,12 +1,15 @@
 #include <stack>
 
 #include <QAbstractItemModel>
+#include <QCoreApplication>
 #include <QPointer>
 
 #include "fnd/FindPair.h"
 
 #include "database/interface/Database.h"
 #include "database/interface/Query.h"
+
+#include "constants/Localization.h"
 
 #include "models/NavigationListItem.h"
 #include "models/NavigationTreeItem.h"
@@ -48,6 +51,10 @@ QString CreateAuthorTitle(const DB::Query & query)
 	QString title = query.Get<const char *>(2);
 	AppendTitle(title, query.Get<const char *>(1));
 	AppendTitle(title, query.Get<const char *>(3));
+
+	if (title.isEmpty())
+		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+
 	return title;
 }
 
