@@ -2,11 +2,11 @@
 
 #include <QMetaType>
 
-#include "ModelObserver.h"
+#include "IModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
-class NavigationModelObserver : virtual public ModelObserver
+class NavigationModelObserver : virtual public IModelObserver
 {
 };
 

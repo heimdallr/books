@@ -3,7 +3,7 @@
 
 #include "sqlite3ppext.h"
 
-#include "database/interface/Query.h"
+#include "database/interface/IQuery.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
@@ -15,7 +15,7 @@ int Index(const size_t index)
 }
 
 class Query
-	: virtual public DB::Query
+	: virtual public DB::IQuery
 {
 public:
 	Query(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query)
@@ -132,7 +132,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query)
+std::unique_ptr<DB::IQuery> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query)
 {
 	return std::make_unique<Query>(mutex, db, query);
 }

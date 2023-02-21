@@ -13,7 +13,7 @@
 
 #include "util/FunctorExecutionForwarder.h"
 #include "util/Settings.h"
-#include "util/SettingsObserver.h"
+#include "util/ISettingsObserver.h"
 
 #include "LogModel.h"
 
@@ -32,7 +32,7 @@ struct Item
 
 std::vector<Item> s_items;
 
-class LogAppenderObserver
+class ILogAppenderObserver
 	: public Observer
 {
 public:
@@ -44,7 +44,7 @@ public:
 
 class LogAppenderImpl
 	: virtual public plog::IAppender
-	, public Observable<LogAppenderObserver>
+	, public Observable<ILogAppenderObserver>
 {
 public:
 	LogAppenderImpl()
@@ -106,16 +106,16 @@ private:
 		if (items.empty())
 			return;
 
-		Perform(&LogAppenderObserver::OnInsertBegin, std::size(s_items), std::size(s_items) + std::size(items));
+		Perform(&ILogAppenderObserver::OnInsertBegin, std::size(s_items), std::size(s_items) + std::size(items));
 		std::copy(std::make_move_iterator(std::begin(items)), std::make_move_iterator(std::end(items)), std::back_inserter(s_items));
-		Perform(&LogAppenderObserver::OnInsertEnd);
+		Perform(&ILogAppenderObserver::OnInsertEnd);
 
 		if (std::size(s_items) < m_sizeLogMaximum)
 			return;
 
-		Perform(&LogAppenderObserver::OnRemoveBegin, 0, m_sizeLogMaximum / 2);
+		Perform(&ILogAppenderObserver::OnRemoveBegin, 0, m_sizeLogMaximum / 2);
 		s_items.erase(std::begin(s_items), std::next(std::begin(s_items), m_sizeLogMaximum / 2));
-		Perform(&LogAppenderObserver::OnRemoveEnd);
+		Perform(&ILogAppenderObserver::OnRemoveEnd);
 	}
 
 private:
@@ -133,12 +133,12 @@ using Role = LogModelRole;
 
 class Model final
 	: public QAbstractListModel
-	, virtual LogAppenderObserver
+	, virtual ILogAppenderObserver
 {
 	NON_COPY_MOVABLE(Model)
 
 public:
-	explicit Model(LogModelController & controller)
+	explicit Model(ILogModelController & controller)
 		: m_controller(controller)
 	{
 		s_logAppenderImpl.SetLogMaximumSize(m_controller.GetUiSettings().Get(Constant::UiSettings_ns::sizeLogMaximum, Constant::UiSettings_ns::sizeLogMaximum_default).toULongLong());
@@ -229,17 +229,17 @@ private:
 	}
 
 private:
-	LogModelController & m_controller;
+	ILogModelController & m_controller;
 };
 
 class FilterProxyModel final
 	: public QSortFilterProxyModel
-	, virtual SettingsObserver
+	, virtual ISettingsObserver
 {
 	NON_COPY_MOVABLE(FilterProxyModel)
 
 public:
-	FilterProxyModel(LogModelController & controller, QObject * parent)
+	FilterProxyModel(ILogModelController & controller, QObject * parent)
 		: QSortFilterProxyModel(parent)
 		, m_settings(controller.GetUiSettings())
 		, m_model(controller)
@@ -281,7 +281,7 @@ private:
 
 }
 
-QAbstractItemModel * CreateLogModel(LogModelController & controller, QObject * parent)
+QAbstractItemModel * CreateLogModel(ILogModelController & controller, QObject * parent)
 {
 	return new FilterProxyModel(controller, parent);
 }

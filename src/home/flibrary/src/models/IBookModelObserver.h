@@ -2,13 +2,13 @@
 
 #include <QMetaType>
 
-#include "ModelObserver.h"
+#include "IModelObserver.h"
 
 namespace HomeCompa::Flibrary {
 
 struct Book;
 
-class BookModelObserver : virtual public ModelObserver
+class IBookModelObserver : virtual public IModelObserver
 {
 public:
 	virtual void HandleBookRemoved(const std::vector<std::reference_wrapper<const Book>> & books) = 0;
@@ -16,4 +16,4 @@ public:
 
 }
 
-Q_DECLARE_METATYPE(HomeCompa::Flibrary::BookModelObserver *);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IBookModelObserver *);

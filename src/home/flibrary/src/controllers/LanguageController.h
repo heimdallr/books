@@ -3,7 +3,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "SettingsProvider.h"
+#include "ISettingsProvider.h"
 
 namespace HomeCompa {
 class Settings;
@@ -11,7 +11,7 @@ class Settings;
 
 namespace HomeCompa::Flibrary {
 
-class BooksModelControllerObserver;
+class IBooksModelControllerObserver;
 
 class LanguageController
 	: public QObject
@@ -19,8 +19,8 @@ class LanguageController
 	NON_COPY_MOVABLE(LanguageController)
 
 public:
-	class LanguageProvider
-		: virtual public SettingsProvider
+	class ILanguageProvider
+		: virtual public ISettingsProvider
 	{
 	public:
 		virtual QStringList GetLanguages() = 0;
@@ -29,10 +29,10 @@ public:
 	};
 
 public:
-	explicit LanguageController(LanguageProvider & languageProvider, QObject * parent = nullptr);
+	explicit LanguageController(ILanguageProvider & languageProvider, QObject * parent = nullptr);
 	~LanguageController() override;
 
-	BooksModelControllerObserver * GetBooksModelControllerObserver() noexcept;
+	IBooksModelControllerObserver * GetBooksModelControllerObserver() noexcept;
 	ComboBoxController * GetComboBoxController() noexcept;
 
 private:

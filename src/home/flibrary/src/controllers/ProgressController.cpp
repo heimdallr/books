@@ -15,7 +15,7 @@ struct ProgressController::Impl
 {
 	Util::FunctorExecutionForwarder forwarder;
 	QTimer timer;
-	std::vector<std::shared_ptr<Progress>> progress;
+	std::vector<std::shared_ptr<IProgress>> progress;
 	std::mutex progressGuard;
 	double value { 0.0 };
 };
@@ -63,7 +63,7 @@ ProgressController::~ProgressController()
 	PLOGD << "ProgressController destroyed";
 }
 
-void ProgressController::Add(std::shared_ptr<Progress> progress)
+void ProgressController::Add(std::shared_ptr<IProgress> progress)
 {
 	std::lock_guard lock(m_impl->progressGuard);
 	m_impl->progress.push_back(std::move(progress));

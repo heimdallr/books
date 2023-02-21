@@ -8,9 +8,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/observable.h"
 
-#include "database/interface/Database.h"
-#include "database/interface/Transaction.h"
-#include "database/interface/Query.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/ITransaction.h"
+#include "database/interface/IQuery.h"
 
 #include "sqlite3ppext.h"
 
@@ -18,8 +18,8 @@
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<Transaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
-std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
+std::unique_ptr<ITransaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
+std::unique_ptr<IQuery> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
 
 namespace {
 
@@ -28,13 +28,13 @@ constexpr auto EXTENSION = "extension";
 
 using ConnectionParameters = std::multimap<std::string, std::string>;
 
-using ObserverMethod = void(DatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
+using ObserverMethod = void(IDatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
 constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
 {
-	{ 18, &DatabaseObserver::OnInsert },
-	{  9, &DatabaseObserver::OnDelete },
-	{ 23, &DatabaseObserver::OnUpdate },
+	{ 18, &IDatabaseObserver::OnInsert },
+	{  9, &IDatabaseObserver::OnDelete },
+	{ 23, &IDatabaseObserver::OnUpdate },
 };
 
 std::vector<std::string> Split(const std::string & src, const char separator)
@@ -91,8 +91,8 @@ private:
 };
 
 class Database
-	: virtual public DB::Database
-	, public Observable<DatabaseObserver>
+	: virtual public DB::IDatabase
+	, public Observable<IDatabaseObserver>
 {
 	NON_COPY_MOVABLE(Database)
 
@@ -137,12 +137,12 @@ public:
 	}
 
 private: // Database
-	[[nodiscard]] std::unique_ptr<Transaction> CreateTransaction() override
+	[[nodiscard]] std::unique_ptr<ITransaction> CreateTransaction() override
 	{
 		return CreateTransactionImpl(m_guard, m_db);
 	}
 
-	[[nodiscard]] std::unique_ptr<Query> CreateQuery(std::string_view query) override
+	[[nodiscard]] std::unique_ptr<IQuery> CreateQuery(std::string_view query) override
 	{
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
@@ -157,12 +157,12 @@ private: // Database
 		});
 	}
 
-	void RegisterObserver(DatabaseObserver * observer) override
+	void RegisterObserver(IDatabaseObserver * observer) override
 	{
 		Register(observer);
 	}
 
-	void UnregisterObserver(DatabaseObserver * observer) override
+	void UnregisterObserver(IDatabaseObserver * observer) override
 	{
 		Unregister(observer);
 	}
@@ -177,7 +177,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Database> CreateDatabase(const std::string & connection)
+std::unique_ptr<DB::IDatabase> CreateDatabase(const std::string & connection)
 {
 	return std::make_unique<Database>(connection);
 }

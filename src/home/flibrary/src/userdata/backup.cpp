@@ -6,10 +6,10 @@
 
 #include "fnd/ScopedCall.h"
 
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 
 #include "constants/ProductConstant.h"
 #include "constants/UserData/books.h"
@@ -21,9 +21,9 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-using BackupFunction = void(*)(DB::Database & db, QXmlStreamWriter & stream);
+using BackupFunction = void(*)(DB::IDatabase & db, QXmlStreamWriter & stream);
 
-void BackupUserDataBooks(DB::Database & db, QXmlStreamWriter & stream)
+void BackupUserDataBooks(DB::IDatabase & db, QXmlStreamWriter & stream)
 {
 	static constexpr auto text =
 		"select b.Folder, b.FileName, u.IsDeleted "
@@ -47,7 +47,7 @@ void BackupUserDataBooks(DB::Database & db, QXmlStreamWriter & stream)
 	}
 }
 
-void BackupUserDataGroups(DB::Database & db, QXmlStreamWriter & stream)
+void BackupUserDataGroups(DB::IDatabase & db, QXmlStreamWriter & stream)
 {
 	static constexpr auto text =
 		"select g.Title, b.Folder, b.FileName "
@@ -87,7 +87,7 @@ constexpr std::pair<const char *, BackupFunction> g_backupers[]
 
 }
 
-void Backup(Util::Executor & executor, DB::Database & db, QString fileName)
+void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName)
 {
 	executor({ "Backup user data", [&db, fileName = std::move(fileName)]
 	{

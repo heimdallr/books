@@ -24,7 +24,7 @@ ModelControllerSettings::~ModelControllerSettings()
 
 void ModelControllerSettings::HandleValueChanged(const QString & key, const QVariant & value)
 {
-#define	MODEL_CONTROLLER_SETTINGS_ITEM(NAME) if (key == m_##NAME) return Perform(&ModelControllerSettingsObserver::handle_##NAME##Changed, std::cref(value));
+#define	MODEL_CONTROLLER_SETTINGS_ITEM(NAME) if (key == m_##NAME) return Perform(&IModelControllerSettingsObserver::handle_##NAME##Changed, std::cref(value));
 		MODEL_CONTROLLER_SETTINGS_ITEMS_XMACRO
 #undef  MODEL_CONTROLLER_SETTINGS_ITEM
 }

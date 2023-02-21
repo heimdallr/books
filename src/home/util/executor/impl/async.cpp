@@ -7,7 +7,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "executor.h"
+#include "IExecutor.h"
 #include "FunctorExecutionForwarder.h"
 #include "executor/factory.h"
 
@@ -16,7 +16,7 @@ namespace HomeCompa::Util::ExecutorPrivate::Async {
 namespace {
 
 class Executor
-	: virtual public Util::Executor
+	: virtual public Util::IExecutor
 {
 	NON_COPY_MOVABLE(Executor)
 
@@ -115,7 +115,7 @@ private:
 
 }
 
-std::unique_ptr<Util::Executor> CreateExecutor(ExecutorInitializer initializer)
+std::unique_ptr<Util::IExecutor> CreateExecutor(ExecutorInitializer initializer)
 {
 	return std::make_unique<Executor>(std::move(initializer));
 }

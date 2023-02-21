@@ -4,7 +4,7 @@
 
 #include <plog/Log.h>
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 
 #include "constants/ProductConstant.h"
 
@@ -17,14 +17,14 @@ namespace HomeCompa::Flibrary {
 		RESTORE_ITEM(Groups, 1) \
 
 namespace UserData {
-#define RESTORE_ITEM(NAME, VERSION) void Restore##NAME##VERSION(DB::Database & db, QXmlStreamReader & reader);
+#define RESTORE_ITEM(NAME, VERSION) void Restore##NAME##VERSION(DB::IDatabase & db, QXmlStreamReader & reader);
 		RESTORE_ITEMS_XMACRO
 #undef	RESTORE_ITEM
 }
 
 namespace {
 
-using RestoreFunctor = void(*)(DB::Database & db, QXmlStreamReader & reader);
+using RestoreFunctor = void(*)(DB::IDatabase & db, QXmlStreamReader & reader);
 struct RestoreItem
 {
 	std::string_view node;
@@ -45,7 +45,7 @@ constexpr RestoreItem g_restoreItems[]
 };
 static_assert(std::is_sorted(std::cbegin(g_restoreItems), std::cend(g_restoreItems)));
 
-void RestoreImpl(DB::Database & db, QXmlStreamReader & reader, const int version)
+void RestoreImpl(DB::IDatabase & db, QXmlStreamReader & reader, const int version)
 {
 	while (!reader.atEnd() && !reader.hasError())
 	{
@@ -77,7 +77,7 @@ bool FindElement(QXmlStreamReader & reader, std::string_view name)
 
 }
 
-void Restore(Util::Executor & executor, DB::Database & db, QString fileName)
+void Restore(Util::IExecutor & executor, DB::IDatabase & db, QString fileName)
 {
 	executor({ "Restore user data", [&db, fileName = std::move(fileName)]
 	{

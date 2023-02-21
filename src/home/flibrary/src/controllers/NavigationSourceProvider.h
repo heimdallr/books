@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary {
 
 enum class BooksViewType;
 enum class NavigationSource;
-class BooksModelControllerObserver;
+class IBooksModelControllerObserver;
 
 class NavigationSourceProvider
 	: public QObject

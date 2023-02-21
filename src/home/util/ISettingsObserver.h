@@ -7,7 +7,7 @@ class QVariant;
 
 namespace HomeCompa {
 
-class SettingsObserver
+class ISettingsObserver
 	: public Observer
 {
 public:

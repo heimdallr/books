@@ -5,7 +5,7 @@
 
 namespace HomeCompa::Util {
 
-class Executor
+class IExecutor
 {
 public:
 	using TaskResult = std::function<void()>;
@@ -16,7 +16,7 @@ public:
 	};
 
 public:
-	virtual ~Executor() = default;
+	virtual ~IExecutor() = default;
 	virtual void operator()(Task && task, int priority = 0) = 0;
 };
 

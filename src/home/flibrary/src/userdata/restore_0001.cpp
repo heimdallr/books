@@ -1,18 +1,18 @@
 #include <QXmlStreamReader>
 
-#include "database/interface/Command.h"
-#include "database/interface/Database.h"
-#include "database/interface/Transaction.h"
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/ITransaction.h"
 
 #include "constants/ProductConstant.h"
 #include "constants/UserData/books.h"
 #include "constants/UserData/groups.h"
 #include "constants/UserData/UserData.h"
-#include "database/interface/Query.h"
+#include "database/interface/IQuery.h"
 
 namespace HomeCompa::Flibrary::UserData {
 
-void RestoreBooks1(class DB::Database & db, class QXmlStreamReader & reader)
+void RestoreBooks1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 {
 	using namespace Constant::UserData::Books;
 	static constexpr auto commandText =
@@ -53,7 +53,7 @@ void RestoreBooks1(class DB::Database & db, class QXmlStreamReader & reader)
 	}
 }
 
-void RestoreGroups1(class DB::Database & db, class QXmlStreamReader & reader)
+void RestoreGroups1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 {
 	using namespace Constant::UserData;
 	assert(reader.name() == Groups::RootNode);

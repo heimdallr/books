@@ -16,7 +16,7 @@
 #include "util/inpx.h"
 #include "util/StrUtil.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 #include "util/executor/factory.h"
 
 #include "constants/ObjectConnectorConstant.h"
@@ -103,16 +103,16 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 
 struct CollectionController::Impl
 {
-	Observer & observer;
+	IObserver & observer;
 	bool addMode { false };
 	bool hasUpdate { false };
 	QString error;
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
-	PropagateConstPtr<Util::Executor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
+	PropagateConstPtr<Util::IExecutor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
 
-	explicit Impl(CollectionController & self, Observer & observer_)
+	explicit Impl(CollectionController & self, IObserver & observer_)
 		: observer(observer_)
 		, m_self(self)
 	{
@@ -182,7 +182,7 @@ private:
 	CollectionController & m_self;
 };
 
-CollectionController::CollectionController(Observer & observer, QObject * parent)
+CollectionController::CollectionController(IObserver & observer, QObject * parent)
 	: QObject(parent)
 	, m_impl(*this, observer)
 {

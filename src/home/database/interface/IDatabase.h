@@ -8,10 +8,10 @@
 
 namespace HomeCompa::DB {
 
-class Transaction;
-class Query;
+class ITransaction;
+class IQuery;
 
-class DatabaseObserver : public Observer
+class IDatabaseObserver : public Observer
 {
 public:
 	virtual void OnInsert(std::string_view dbName, std::string_view tableName, int64_t rowId) = 0;
@@ -29,17 +29,17 @@ public:
 
 using DatabaseFunction = std::function<void(DatabaseFunctionContext &)>;
 
-class Database
+class IDatabase
 {
 public:
-	virtual ~Database() = default;
-	virtual [[nodiscard]] std::unique_ptr<Transaction> CreateTransaction() = 0;
-	virtual [[nodiscard]] std::unique_ptr<Query> CreateQuery(std::string_view query) = 0;
+	virtual ~IDatabase() = default;
+	virtual [[nodiscard]] std::unique_ptr<ITransaction> CreateTransaction() = 0;
+	virtual [[nodiscard]] std::unique_ptr<IQuery> CreateQuery(std::string_view query) = 0;
 
 	virtual void CreateFunction(std::string_view name, DatabaseFunction function) = 0;
 
-	virtual void RegisterObserver(DatabaseObserver * observer) = 0;
-	virtual void UnregisterObserver(DatabaseObserver * observer) = 0;
+	virtual void RegisterObserver(IDatabaseObserver * observer) = 0;
+	virtual void UnregisterObserver(IDatabaseObserver * observer) = 0;
 };
 
 }

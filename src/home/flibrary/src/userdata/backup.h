@@ -3,15 +3,15 @@
 class QString;
 
 namespace HomeCompa::DB {
-class Database;
+class IDatabase;
 }
 
 namespace HomeCompa::Util {
-class Executor;
+class IExecutor;
 }
 
 namespace HomeCompa::Flibrary {
 
-void Backup(Util::Executor & executor, DB::Database & db, QString fileName);
+void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName);
 
 }

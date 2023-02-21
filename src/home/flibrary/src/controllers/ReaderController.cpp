@@ -83,14 +83,14 @@ class ReaderSession
 	NON_COPY_MOVABLE(ReaderSession)
 
 public:
-	class Observer
+	class IObserver
 	{
 	public:
-		virtual ~Observer() = default;
+		virtual ~IObserver() = default;
 		virtual void HandleReaderSessionFinished(ReaderSession * readerSession) = 0;
 	};
 
-	ReaderSession(Observer & observer, const QString & readerPath, const std::filesystem::path & archive, const std::string & file)
+	ReaderSession(IObserver & observer, const QString & readerPath, const std::filesystem::path & archive, const std::string & file)
 		: m_observer(observer)
 		, m_tempFile(file)
 	{
@@ -119,14 +119,14 @@ public:
 
 private:
 	QProcess m_process;
-	Observer & m_observer;
+	IObserver & m_observer;
 	TemporaryFile m_tempFile;
 };
 
 }
 
 class ReaderController::Impl
-	: virtual public ReaderSession::Observer
+	: virtual public ReaderSession::IObserver
 {
 public:
 	explicit Impl()

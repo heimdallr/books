@@ -4,14 +4,14 @@
 
 namespace HomeCompa::DB {
 
-class Command;
-template<typename T> int BindImpl(Command & command, size_t index, const T & value) = delete;
-template<typename T> int BindImpl(Command & command, std::string_view name, const T & value) = delete;
+class ICommand;
+template<typename T> int BindImpl(ICommand & command, size_t index, const T & value) = delete;
+template<typename T> int BindImpl(ICommand & command, std::string_view name, const T & value) = delete;
 
-class Command
+class ICommand
 {
 public:
-	virtual ~Command() = default;
+	virtual ~ICommand() = default;
 
 public:
 	virtual void Execute() = 0;
@@ -39,42 +39,42 @@ public:
 	}
 };
 
-template<> inline int BindImpl(Command & command, size_t index, const int & value)
+template<> inline int BindImpl(ICommand & command, size_t index, const int & value)
 {
 	return command.BindInt(index, value);
 }
 
-template<> inline int BindImpl(Command & command, size_t index, const long long int & value)
+template<> inline int BindImpl(ICommand & command, size_t index, const long long int & value)
 {
 	return command.BindLong(index, value);
 }
 
-template<> inline int BindImpl(Command & command, size_t index, const double & value)
+template<> inline int BindImpl(ICommand & command, size_t index, const double & value)
 {
 	return command.BindDouble(index, value);
 }
 
-template<> inline int BindImpl(Command & command, size_t index, const std::string & value)
+template<> inline int BindImpl(ICommand & command, size_t index, const std::string & value)
 {
 	return command.BindString(index, value);
 }
 
-template<> inline int BindImpl(Command & command, std::string_view name, const int & value)
+template<> inline int BindImpl(ICommand & command, std::string_view name, const int & value)
 {
 	return command.BindInt(name, value);
 }
 
-template<> inline int BindImpl(Command & command, std::string_view name, const long long int & value)
+template<> inline int BindImpl(ICommand & command, std::string_view name, const long long int & value)
 {
 	return command.BindLong(name, value);
 }
 
-template<> inline int BindImpl(Command & command, std::string_view name, const double & value)
+template<> inline int BindImpl(ICommand & command, std::string_view name, const double & value)
 {
 	return command.BindDouble(name, value);
 }
 
-template<> inline int BindImpl(Command & command, std::string_view name, const std::string & value)
+template<> inline int BindImpl(ICommand & command, std::string_view name, const std::string & value)
 {
 	return command.BindString(name, value);
 }

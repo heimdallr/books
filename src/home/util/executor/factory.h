@@ -10,7 +10,7 @@ namespace HomeCompa::Util {
 		UTIL_EXECUTOR_IMPL(Sync)   \
 		UTIL_EXECUTOR_IMPL(Async)
 
-class Executor;
+class IExecutor;
 enum class ExecutorImpl
 {
 #define UTIL_EXECUTOR_IMPL(NAME) NAME,
@@ -30,6 +30,6 @@ struct ExecutorInitializer
 
 namespace HomeCompa::Util::ExecutorFactory {
 
-UTIL_API std::unique_ptr<Executor> Create(ExecutorImpl impl, ExecutorInitializer initializer = {});
+UTIL_API std::unique_ptr<IExecutor> Create(ExecutorImpl impl, ExecutorInitializer initializer = {});
 
 }

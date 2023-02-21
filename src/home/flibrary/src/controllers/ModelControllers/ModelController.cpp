@@ -11,7 +11,7 @@
 #include "models/RoleBase.h"
 
 #include "ModelController.h"
-#include "ModelControllerObserver.h"
+#include "IModelControllerObserver.h"
 #include "ModelControllerSettings.h"
 
 namespace HomeCompa::Flibrary {
@@ -42,8 +42,8 @@ constexpr std::pair<ModelControllerType, const char *> g_typeNames[]
 }
 
 struct ModelController::Impl
-	: Observable<ModelControllerObserver>
-	, ModelControllerSettingsObserver
+	: Observable<IModelControllerObserver>
+	, IModelControllerSettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -231,12 +231,12 @@ QString ModelController::GetViewSource() const
 	return m_impl->modelControllerSettings->viewSource().toString();
 }
 
-void ModelController::RegisterObserver(ModelControllerObserver * observer)
+void ModelController::RegisterObserver(IModelControllerObserver * observer)
 {
 	m_impl->Register(observer);
 }
 
-void ModelController::UnregisterObserver(ModelControllerObserver * observer)
+void ModelController::UnregisterObserver(IModelControllerObserver * observer)
 {
 	m_impl->Unregister(observer);
 }
@@ -275,7 +275,7 @@ void ModelController::HandleItemClicked(const int index)
 		SetCurrentIndex(index);
 
 	emit FocusedChanged();
-	m_impl->Perform(&ModelControllerObserver::HandleClicked, this);
+	m_impl->Perform(&IModelControllerObserver::HandleClicked, this);
 }
 
 void ModelController::HandleItemDoubleClicked(const int)
@@ -382,7 +382,7 @@ bool ModelController::SetCurrentIndex(const int index)
 	PLOGV << m_impl->typeName << ": set current index: " << index;
 	return true
 		&& Util::Set(m_impl->currentIndex, index, *this, &ModelController::CurrentIndexChanged)
-		&& (m_impl->Perform(&ModelControllerObserver::HandleCurrentIndexChanged, this, index), true)
+		&& (m_impl->Perform(&IModelControllerObserver::HandleCurrentIndexChanged, this, index), true)
 		;
 }
 

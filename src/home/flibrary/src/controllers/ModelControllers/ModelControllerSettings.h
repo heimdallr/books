@@ -4,7 +4,7 @@
 #include "fnd/observable.h"
 #include "fnd/observer.h"
 
-#include "util/SettingsObserver.h"
+#include "util/ISettingsObserver.h"
 
 class QVariant;
 
@@ -21,19 +21,19 @@ namespace HomeCompa::Flibrary {
 		MODEL_CONTROLLER_SETTINGS_ITEM(id)            \
 
 
-class ModelControllerSettingsObserver
+class IModelControllerSettingsObserver
 	: public Observer
 {
 public:
-	virtual ~ModelControllerSettingsObserver() = default;
+	virtual ~IModelControllerSettingsObserver() = default;
 #define MODEL_CONTROLLER_SETTINGS_ITEM(NAME) virtual void handle_##NAME##Changed(const QVariant & value) = 0;
 		MODEL_CONTROLLER_SETTINGS_ITEMS_XMACRO
 #undef  MODEL_CONTROLLER_SETTINGS_ITEM
 };
 
 class ModelControllerSettings
-	: public Observable<ModelControllerSettingsObserver>
-	, SettingsObserver
+	: public Observable<IModelControllerSettingsObserver>
+	, ISettingsObserver
 {
 	NON_COPY_MOVABLE(ModelControllerSettings)
 

@@ -10,11 +10,11 @@ namespace HomeCompa::Flibrary {
 struct ComboBoxController::Impl final
 	: Observable<ComboBoxObserver>
 {
-	ComboBoxDataProvider & dataProvider;
+	IComboBoxDataProvider & dataProvider;
 	SimpleModelItems simpleModelItems;
 	QAbstractItemModel * const model;
 
-	explicit Impl(ComboBoxDataProvider & dataProvider_, QObject * parent)
+	explicit Impl(IComboBoxDataProvider & dataProvider_, QObject * parent)
 		: dataProvider(dataProvider_)
 		, model(CreateSimpleModel(simpleModelItems, parent))
 	{
@@ -22,7 +22,7 @@ struct ComboBoxController::Impl final
 	}
 };
 
-ComboBoxController::ComboBoxController(ComboBoxDataProvider & dataProvider, QObject * parent)
+ComboBoxController::ComboBoxController(IComboBoxDataProvider & dataProvider, QObject * parent)
 	: QObject(parent)
 	, m_impl(dataProvider, this)
 {

@@ -3,14 +3,14 @@
 #include <QQmlEngine>
 #include <QTimer>
 
-#include "database/interface/Command.h"
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
-#include "database/interface/Transaction.h"
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "constants/ObjectConnectorConstant.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 
 #include "constants/UserData/groups.h"
 #include "constants/UserData/UserData.h"
@@ -40,7 +40,7 @@ std::vector<long long> GetCheckedBooksIds(GroupsModelController & controller, lo
 	return ids;
 }
 
-void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
+void AddBookToGroupImpl(DB::ITransaction & transaction, const std::vector<long long> & bookIds, const long long groupId)
 {
 	const auto command = transaction.CreateCommand(Constant::UserData::Groups::AddBookToGroupCommandText);
 	for (const auto bookId : bookIds)
@@ -51,7 +51,7 @@ void AddBookToGroupImpl(DB::Transaction & transaction, const std::vector<long lo
 	}
 }
 
-long long CreateNewGroupImpl(DB::Transaction & transaction, const QString & name)
+long long CreateNewGroupImpl(DB::ITransaction & transaction, const QString & name)
 {
 	const auto command = transaction.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 	command->Bind(0, name.toStdString());
@@ -62,7 +62,7 @@ long long CreateNewGroupImpl(DB::Transaction & transaction, const QString & name
 	return query->Get<long long>(0);
 }
 
-void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, long long groupId, Util::Executor & executor, DB::Database & db)
+void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, long long groupId, Util::IExecutor & executor, DB::IDatabase & db)
 {
 	executor({ "Remove from group", [&db, groupId, bookIds = GetCheckedBooksIds(controller, bookId)]
 	{
@@ -91,8 +91,8 @@ void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, l
 
 struct GroupsModelController::Impl
 {
-	Util::Executor & executor;
-	DB::Database & db;
+	Util::IExecutor & executor;
+	DB::IDatabase & db;
 
 	PropagateConstPtr<QAbstractItemModel> addToModel { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel({})) };
 	PropagateConstPtr<QAbstractItemModel> removeFromModel { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel({})) };
@@ -107,7 +107,7 @@ struct GroupsModelController::Impl
 
 	QString errorText;
 
-	Impl(GroupsModelController & self, Util::Executor & executor_, DB::Database & db_)
+	Impl(GroupsModelController & self, Util::IExecutor & executor_, DB::IDatabase & db_)
 		: executor(executor_)
 		, db(db_)
 		, m_self(self)
@@ -145,7 +145,7 @@ private:
 	GroupsModelController & m_self;
 };
 
-GroupsModelController::GroupsModelController(Util::Executor & executor, DB::Database & db, QObject * parent)
+GroupsModelController::GroupsModelController(Util::IExecutor & executor, DB::IDatabase & db, QObject * parent)
 	: QObject(parent)
 	, m_impl(*this, executor, db)
 {

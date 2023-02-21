@@ -6,10 +6,10 @@ class Observer;
 
 namespace HomeCompa::ObserverHelper {
 
-class Observable
+class IObservable
 {
 public:
-	virtual ~Observable() = default;
+	virtual ~IObservable() = default;
 	virtual void HandleObserverDestructed(Observer * observer) = 0;
 };
 

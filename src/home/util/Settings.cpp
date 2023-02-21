@@ -2,13 +2,13 @@
 
 #include "fnd/observable.h"
 
-#include "SettingsObserver.h"
+#include "ISettingsObserver.h"
 #include "Settings.h"
 
 namespace HomeCompa {
 
 struct Settings::Impl
-	: public Observable<SettingsObserver>
+	: public Observable<ISettingsObserver>
 {
 	Impl(const QString & organization, const QString & application)
 		: settings(organization, application)
@@ -37,7 +37,7 @@ void Settings::Set(const QString & key, const QVariant & value)
 
 	m_impl->settings.setValue(key, value);
 	m_impl->settings.sync();
-	m_impl->Perform(&SettingsObserver::HandleValueChanged, std::cref(key), std::cref(value));
+	m_impl->Perform(&ISettingsObserver::HandleValueChanged, std::cref(key), std::cref(value));
 }
 
 bool Settings::HasKey(const QString & key) const
@@ -66,12 +66,12 @@ void Settings::Remove(const QString & key)
 	m_impl->settings.sync();
 }
 
-void Settings::RegisterObserver(SettingsObserver * observer)
+void Settings::RegisterObserver(ISettingsObserver * observer)
 {
 	m_impl->Register(observer);
 }
 
-void Settings::UnregisterObserver(SettingsObserver * observer)
+void Settings::UnregisterObserver(ISettingsObserver * observer)
 {
 	m_impl->Unregister(observer);
 }

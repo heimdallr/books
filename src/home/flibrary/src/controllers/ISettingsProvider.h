@@ -6,10 +6,10 @@ class Settings;
 
 namespace HomeCompa::Flibrary {
 
-class SettingsProvider
+class ISettingsProvider
 {
 public:
-	virtual ~SettingsProvider() = default;
+	virtual ~ISettingsProvider() = default;
 	virtual Settings & GetSettings() = 0;
 	virtual Settings & GetUiSettings() = 0;
 };

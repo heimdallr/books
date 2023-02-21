@@ -9,7 +9,7 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class SettingsProvider;
+class ISettingsProvider;
 class LogController final
 	: public QObject
 {
@@ -31,7 +31,7 @@ public:
 	Q_INVOKABLE static void Verbose(const QString & message);
 
 public:
-	explicit LogController(SettingsProvider & settingsProvider, QObject * parent = nullptr);
+	explicit LogController(ISettingsProvider & settingsProvider, QObject * parent = nullptr);
 	~LogController() override;
 
 public:

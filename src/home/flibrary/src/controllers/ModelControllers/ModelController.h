@@ -5,7 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "models/ModelObserver.h"
+#include "models/IModelObserver.h"
 #include "ModelControllerType.h"
 
 class QAbstractItemModel;
@@ -16,13 +16,13 @@ class Settings;
 
 namespace HomeCompa::Flibrary {
 
-class ModelControllerObserver;
+class IModelControllerObserver;
 class ModelControllerSettings;
 struct Book;
 
 class ModelController
 	: public QObject
-	, virtual public ModelObserver
+	, virtual public IModelObserver
 {
 	NON_COPY_MOVABLE(ModelController)
 	Q_OBJECT
@@ -53,8 +53,8 @@ public:
 	);
 	~ModelController() override;
 
-	void RegisterObserver(ModelControllerObserver * observer);
-	void UnregisterObserver(ModelControllerObserver * observer);
+	void RegisterObserver(IModelControllerObserver * observer);
+	void UnregisterObserver(IModelControllerObserver * observer);
 
 	void SetFocused(bool value);
 	QAbstractItemModel * GetCurrentModel();

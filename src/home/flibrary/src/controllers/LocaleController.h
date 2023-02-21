@@ -11,7 +11,7 @@ class Settings;
 
 namespace HomeCompa::Flibrary {
 
-class BooksModelControllerObserver;
+class IBooksModelControllerObserver;
 
 class LocaleController
 	: public QObject

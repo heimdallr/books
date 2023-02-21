@@ -2,7 +2,7 @@
 
 #include <plog/Log.h>
 
-#include "ModelControllers/BooksModelControllerObserver.h"
+#include "ModelControllers/IBooksModelControllerObserver.h"
 
 #include "ComboBoxController.h"
 
@@ -11,8 +11,8 @@
 namespace HomeCompa::Flibrary {
 
 struct LanguageController::Impl
-	: BooksModelControllerObserver
-	, private ComboBoxDataProvider
+	: IBooksModelControllerObserver
+	, private IComboBoxDataProvider
 	, private ComboBoxObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -20,7 +20,7 @@ struct LanguageController::Impl
 public:
 	ComboBoxController comboBoxController { *this };
 
-	explicit Impl(LanguageProvider & languageProvider)
+	explicit Impl(ILanguageProvider & languageProvider)
 		: m_languageProvider(languageProvider)
 	{
 		QQmlEngine::setObjectOwnership(&comboBoxController, QQmlEngine::CppOwnership);
@@ -74,11 +74,11 @@ private: //BooksModelControllerObserver
 	}
 
 private:
-	LanguageProvider & m_languageProvider;
+	ILanguageProvider & m_languageProvider;
 	bool m_preventSetLanguageFilter { false };
 };
 
-LanguageController::LanguageController(LanguageProvider & languageProvider, QObject * parent)
+LanguageController::LanguageController(ILanguageProvider & languageProvider, QObject * parent)
 	: QObject(parent)
 	, m_impl(languageProvider)
 {
@@ -90,7 +90,7 @@ LanguageController::~LanguageController()
 	PLOGD << "LanguageController destroyed";
 }
 
-BooksModelControllerObserver * LanguageController::GetBooksModelControllerObserver() noexcept
+IBooksModelControllerObserver * LanguageController::GetBooksModelControllerObserver() noexcept
 {
 	return m_impl.get();
 }

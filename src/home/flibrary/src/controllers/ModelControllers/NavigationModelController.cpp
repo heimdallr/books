@@ -6,8 +6,8 @@
 
 #include "fnd/FindPair.h"
 
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
 #include "constants/Localization.h"
 
@@ -15,7 +15,7 @@
 #include "models/NavigationTreeItem.h"
 #include "models/RoleBase.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 
 #include "ModelControllerSettings.h"
 #include "NavigationModelController.h"
@@ -46,7 +46,7 @@ void AppendTitle(QString & title, std::string_view str)
 		title.append(" ").append(str.data());
 }
 
-QString CreateAuthorTitle(const DB::Query & query)
+QString CreateAuthorTitle(const DB::IQuery & query)
 {
 	QString title = query.Get<const char *>(2);
 	AppendTitle(title, query.Get<const char *>(1));
@@ -58,7 +58,7 @@ QString CreateAuthorTitle(const DB::Query & query)
 	return title;
 }
 
-NavigationListItems CreateAuthors(DB::Database & db)
+NavigationListItems CreateAuthors(DB::IDatabase & db)
 {
 	NavigationListItems items;
 	const auto query = db.CreateQuery(AUTHORS_QUERY);
@@ -77,7 +77,7 @@ NavigationListItems CreateAuthors(DB::Database & db)
 	return items;
 }
 
-NavigationListItems CreateDictionary(DB::Database & db, std::string_view queryText)
+NavigationListItems CreateDictionary(DB::IDatabase & db, std::string_view queryText)
 {
 	NavigationListItems items;
 	const auto query = db.CreateQuery(queryText);
@@ -96,19 +96,19 @@ NavigationListItems CreateDictionary(DB::Database & db, std::string_view queryTe
 	return items;
 }
 
-NavigationListItems CreateSeries(DB::Database & db)
+NavigationListItems CreateSeries(DB::IDatabase & db)
 {
 	return CreateDictionary(db, SERIES_QUERY);
 }
 
-NavigationListItems CreateGroups(DB::Database & db)
+NavigationListItems CreateGroups(DB::IDatabase & db)
 {
 	return CreateDictionary(db, GROUPS_QUERY);
 }
 
 namespace GenresDetails {
 
-NavigationTreeItems SelectGenres(DB::Database & db)
+NavigationTreeItems SelectGenres(DB::IDatabase & db)
 {
 	NavigationTreeItems items;
 	const auto query = db.CreateQuery(GENRES_QUERY);
@@ -170,14 +170,14 @@ NavigationTreeItems ReorderGenres(NavigationTreeItems & items)
 
 }
 
-NavigationTreeItems CreateGenres(DB::Database & db)
+NavigationTreeItems CreateGenres(DB::IDatabase & db)
 {
 	NavigationTreeItems items = GenresDetails::SelectGenres(db);
 	return GenresDetails::ReorderGenres(items);
 }
 
 template<typename T>
-using NavigationItemsCreator = std::vector<T>(*)(DB::Database & db);
+using NavigationItemsCreator = std::vector<T>(*)(DB::IDatabase & db);
 
 std::unique_ptr<ModelControllerSettings> CreateModelControllerSettings(Settings & uiSettings)
 {
@@ -198,7 +198,7 @@ class NavigationModelController::Impl
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(NavigationModelController & self, Util::Executor & executor, DB::Database & db, const NavigationSource navigationSource)
+	Impl(NavigationModelController & self, Util::IExecutor & executor, DB::IDatabase & db, const NavigationSource navigationSource)
 		: m_self(self)
 		, m_executor(executor)
 		, m_db(db)
@@ -278,8 +278,8 @@ private:
 
 private:
 	NavigationModelController & m_self;
-	Util::Executor & m_executor;
-	DB::Database & m_db;
+	Util::IExecutor & m_executor;
+	DB::IDatabase & m_db;
 	const NavigationSource m_navigationSource;
 
 	NavigationListItems m_authors;
@@ -288,8 +288,8 @@ private:
 	NavigationTreeItems m_genres;
 };
 
-NavigationModelController::NavigationModelController(Util::Executor & executor
-	, DB::Database & db
+NavigationModelController::NavigationModelController(Util::IExecutor & executor
+	, DB::IDatabase & db
 	, const NavigationSource navigationSource
 	, Settings & uiSettings
 )

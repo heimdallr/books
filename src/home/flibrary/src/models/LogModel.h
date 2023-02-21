@@ -1,6 +1,6 @@
 #pragma once
 
-#include "controllers/SettingsProvider.h"
+#include "controllers/ISettingsProvider.h"
 
 class QAbstractItemModel;
 class QColor;
@@ -18,13 +18,13 @@ struct LogModelRole
 	};
 };
 
-class LogModelController
-	: virtual public SettingsProvider
+class ILogModelController
+	: virtual public ISettingsProvider
 {
 public:
 	virtual const QColor & GetColor(plog::Severity severity) const = 0;
 };
 
-QAbstractItemModel * CreateLogModel(LogModelController & controller, QObject * parent = nullptr);
+QAbstractItemModel * CreateLogModel(ILogModelController & controller, QObject * parent = nullptr);
 
 }

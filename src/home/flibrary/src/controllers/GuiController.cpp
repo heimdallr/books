@@ -13,26 +13,26 @@
 #include <plog/Log.h>
 
 #include "database/factory/Factory.h"
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
-#include "database/interface/Transaction.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "models/RoleBase.h"
 #include "models/BookRole.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 #include "util/executor/factory.h"
 
 #include "util/FunctorExecutionForwarder.h"
 
 #include "util/Settings.h"
-#include "util/SettingsObserver.h"
+#include "util/ISettingsObserver.h"
 
 #include "ModelControllers/BooksModelController.h"
 #include "ModelControllers/BooksViewType.h"
 #include "ModelControllers/GroupsModelController.h"
 #include "ModelControllers/ModelController.h"
-#include "ModelControllers/ModelControllerObserver.h"
+#include "ModelControllers/IModelControllerObserver.h"
 #include "ModelControllers/ModelControllerType.h"
 #include "ModelControllers/NavigationModelController.h"
 #include "ModelControllers/NavigationSource.h"
@@ -70,10 +70,10 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 
-PropagateConstPtr<DB::Database> CreateDatabase(const std::string & databaseName)
+PropagateConstPtr<DB::IDatabase> CreateDatabase(const std::string & databaseName)
 {
 	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
-	PropagateConstPtr<DB::Database> db(Create(DB::Factory::Impl::Sqlite, connectionString));
+	PropagateConstPtr<DB::IDatabase> db(Create(DB::Factory::Impl::Sqlite, connectionString));
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
 
 	{
@@ -138,11 +138,11 @@ void UpdateModelData(ModelController & controller)
 }
 
 class GuiController::Impl
-	: virtual ModelControllerObserver
-	, LanguageController::LanguageProvider
-	, CollectionController::Observer
-	, SettingsObserver
-	, DB::DatabaseObserver
+	: virtual IModelControllerObserver
+	, LanguageController::ILanguageProvider
+	, CollectionController::IObserver
+	, ISettingsObserver
+	, DB::IDatabaseObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -489,7 +489,7 @@ private: // CollectionController::Observer
 		if (collection.id.isEmpty())
 		{
 			m_currentCollection = Collection {};
-			PropagateConstPtr<Util::Executor>(std::unique_ptr<Util::Executor>()).swap(m_executor);
+			PropagateConstPtr<Util::IExecutor>(std::unique_ptr<Util::IExecutor>()).swap(m_executor);
 			emit m_self.OpenedChanged();
 			return;
 		}
@@ -565,7 +565,7 @@ private:
 		const auto destroyDatabase = [this]
 		{
 			m_db->UnregisterObserver(this);
-			PropagateConstPtr<DB::Database>(std::unique_ptr<DB::Database>()).swap(m_db);
+			PropagateConstPtr<DB::IDatabase>(std::unique_ptr<DB::IDatabase>()).swap(m_db);
 			emit m_self.OpenedChanged();
 		};
 
@@ -576,7 +576,7 @@ private:
 			, [=] { destroyDatabase(); }
 		});
 
-		PropagateConstPtr<Util::Executor>(std::move(executor)).swap(m_executor);
+		PropagateConstPtr<Util::IExecutor>(std::move(executor)).swap(m_executor);
 	}
 
 	void OnGroupChangedImpl()
@@ -612,8 +612,8 @@ private:
 
 	LogController m_logController { *this };
 
-	PropagateConstPtr<DB::Database> m_db { std::unique_ptr<DB::Database>() };
-	PropagateConstPtr<Util::Executor> m_executor { std::unique_ptr<Util::Executor>() };
+	PropagateConstPtr<DB::IDatabase> m_db { std::unique_ptr<DB::IDatabase>() };
+	PropagateConstPtr<Util::IExecutor> m_executor { std::unique_ptr<Util::IExecutor>() };
 
 	int m_currentNavigationIndex { -1 };
 	PropagateConstPtr<AnnotationController> m_annotationController { std::unique_ptr<AnnotationController>() };

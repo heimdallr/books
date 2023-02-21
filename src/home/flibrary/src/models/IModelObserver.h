@@ -4,10 +4,10 @@
 
 namespace HomeCompa::Flibrary {
 
-class ModelObserver : public Observer
+class IModelObserver : public Observer
 {
 public:
-	virtual ~ModelObserver() = default;
+	virtual ~IModelObserver() = default;
 
 public:
 	virtual void HandleModelItemFound(int index) = 0;

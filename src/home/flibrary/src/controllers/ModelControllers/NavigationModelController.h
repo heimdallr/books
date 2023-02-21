@@ -10,11 +10,11 @@
 #include "NavigationSource.h"
 
 namespace HomeCompa::Util {
-class Executor;
+class IExecutor;
 }
 
 namespace HomeCompa::DB {
-class Database;
+class IDatabase;
 }
 
 namespace HomeCompa::Flibrary {
@@ -28,8 +28,8 @@ class NavigationModelController final
 	Q_OBJECT
 
 public:
-	NavigationModelController(Util::Executor & executor
-		, DB::Database & db
+	NavigationModelController(Util::IExecutor & executor
+		, DB::IDatabase & db
 		, NavigationSource navigationSource
 		, Settings & uiSettings
 	);

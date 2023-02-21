@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "database/interface/Database.h"
+#include "database/interface/IDatabase.h"
 #include "database/impl/sqlite/Database.h"
 
 #include "Factory.h"
@@ -9,7 +9,7 @@ namespace HomeCompa::DB::Factory {
 
 namespace {
 
-using FactoryCreator = std::unique_ptr<Database>(*)(const std::string & connection);
+using FactoryCreator = std::unique_ptr<IDatabase>(*)(const std::string & connection);
 constexpr FactoryCreator g_creators[]
 {
 	&DB::Impl::Sqlite::CreateDatabase,
@@ -29,7 +29,7 @@ auto GetCreator(const Impl impl)
 
 }
 
-std::unique_ptr<Database> Create(const Impl impl, const std::string & connection)
+std::unique_ptr<IDatabase> Create(const Impl impl, const std::string & connection)
 {
 	const auto creator = GetCreator(impl);
 	assert(creator);

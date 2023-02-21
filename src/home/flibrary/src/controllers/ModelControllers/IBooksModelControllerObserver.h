@@ -6,11 +6,11 @@ namespace HomeCompa::Flibrary {
 
 struct Book;
 
-class BooksModelControllerObserver
+class IBooksModelControllerObserver
 	: public Observer
 {
 public:
-	virtual ~BooksModelControllerObserver() = default;
+	virtual ~IBooksModelControllerObserver() = default;
 	virtual void HandleBookChanged(const Book & book) = 0;
 	virtual void HandleModelReset() = 0;
 };

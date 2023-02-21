@@ -14,13 +14,13 @@
 
 #include "fnd/FindPair.h"
 
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 #include "util/executor/factory.h"
 
-#include "ModelControllers/BooksModelControllerObserver.h"
+#include "ModelControllers/IBooksModelControllerObserver.h"
 #include "ModelControllers/NavigationSource.h"
 
 #include "models/Book.h"
@@ -226,7 +226,7 @@ private:
 	QString m_coverPageId;
 };
 
-void GetGroupInfo(DB::Database & db, Book & book)
+void GetGroupInfo(DB::IDatabase & db, Book & book)
 {
 	constexpr auto queryText =
 		"select g.GroupID, g.Title "
@@ -263,10 +263,10 @@ AnnotationData ParseAnnotation(const std::filesystem::path & folder, const Book 
 }
 
 class AnnotationController::Impl
-	: virtual public BooksModelControllerObserver
+	: virtual public IBooksModelControllerObserver
 {
 public:
-	explicit Impl(const AnnotationController & self, DB::Database & db, std::filesystem::path rootFolder)
+	explicit Impl(const AnnotationController & self, DB::IDatabase & db, std::filesystem::path rootFolder)
 		: m_self(self)
 		, m_db(db)
 		, m_rootFolder(std::move(rootFolder))
@@ -397,9 +397,9 @@ private:
 
 private:
 	const AnnotationController & m_self;
-	DB::Database & m_db;
+	DB::IDatabase & m_db;
 	const std::filesystem::path m_rootFolder;
-	PropagateConstPtr<Util::Executor> m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {[]{}, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }, [] { QGuiApplication::restoreOverrideCursor(); }}) };
+	PropagateConstPtr<Util::IExecutor> m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, {[]{}, []{ QGuiApplication::setOverrideCursor(Qt::BusyCursor); }, [] { QGuiApplication::restoreOverrideCursor(); }}) };
 	QTimer m_annotationTimer;
 
 	Book m_book;
@@ -410,7 +410,7 @@ private:
 	int m_coverIndex { -1 };
 };
 
-AnnotationController::AnnotationController(DB::Database & db, std::filesystem::path rootFolder)
+AnnotationController::AnnotationController(DB::IDatabase & db, std::filesystem::path rootFolder)
 	: m_impl(*this, db, std::move(rootFolder))
 {
 	PLOGD << "AnnotationController created";
@@ -436,7 +436,7 @@ long long AnnotationController::GetCurrentBookId() const noexcept
 	return m_impl->GetCurrentBook().Id;
 }
 
-BooksModelControllerObserver * AnnotationController::GetBooksModelControllerObserver()
+IBooksModelControllerObserver * AnnotationController::GetBooksModelControllerObserver()
 {
 	return m_impl.get();
 }

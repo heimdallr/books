@@ -10,7 +10,7 @@ namespace HomeCompa {
 
 template<typename T>
 class Observable
-	: public ObserverHelper::Observable
+	: public ObserverHelper::IObservable
 {
 public:
 	~Observable() override

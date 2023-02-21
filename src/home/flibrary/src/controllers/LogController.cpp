@@ -86,10 +86,10 @@ private:
 }
 
 struct LogController::Impl final
-	: virtual private LogModelController
+	: virtual private ILogModelController
 {
 private:
-	SettingsProvider & m_settingsProvider;
+	ISettingsProvider & m_settingsProvider;
 	QtLogHandler m_qtLogHandler;
 
 public:
@@ -107,7 +107,7 @@ public:
 	QAbstractItemModel * modelLog;
 	QAbstractItemModel * modelSeverity;
 
-	explicit Impl(LogController & self, SettingsProvider & settingsProvider)
+	explicit Impl(LogController & self, ISettingsProvider & settingsProvider)
 		: m_settingsProvider(settingsProvider)
 		, modelLog(CreateLogModel(*this, &self))
 		, modelSeverity(CreateSimpleModel(CreateSeverityItems(static_cast<int>(std::size(colors))), &self))
@@ -135,7 +135,7 @@ private: // LogModelController
 	}
 };
 
-LogController::LogController(SettingsProvider & settingsProvider, QObject * parent)
+LogController::LogController(ISettingsProvider & settingsProvider, QObject * parent)
 	: QObject(parent)
 	, m_impl(*this, settingsProvider)
 {

@@ -16,7 +16,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
-#include "util/executor.h"
+#include "util/IExecutor.h"
 #include "util/Settings.h"
 #include "util/StrUtil.h"
 
@@ -28,17 +28,17 @@
 #include "controllers/ProgressController.h"
 #include "controllers/ReaderController.h"
 
-#include "database/interface/Database.h"
-#include "database/interface/Query.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
 #include "models/Book.h"
 #include "models/BookRole.h"
 
-#include "BooksModelControllerObserver.h"
+#include "IBooksModelControllerObserver.h"
 #include "BooksModelController.h"
 
 #include "ModelControllerSettings.h"
-#include "database/interface/Transaction.h"
+#include "database/interface/ITransaction.h"
 
 #include "Settings/UiSettings_keys.h"
 #include "Settings/UiSettings_values.h"
@@ -70,13 +70,13 @@ constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 
-using Binder = int(*)(DB::Query &, const QString &);
-int BindInt(DB::Query & query, const QString & id)
+using Binder = int(*)(DB::IQuery &, const QString &);
+int BindInt(DB::IQuery & query, const QString & id)
 {
 	return query.Bind(":id", id.toInt());
 }
 
-int BindString(DB::Query & query, const QString & id)
+int BindString(DB::IQuery & query, const QString & id)
 {
 	return query.Bind(":id", id.toStdString());
 }
@@ -176,7 +176,7 @@ QString CreateAuthors(const Authors & authors, const std::set<long long int> & a
 	return result;
 }
 
-Data CreateItems(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
+Data CreateItems(DB::IDatabase & db, const NavigationSource navigationSource, const QString & navigationId)
 {
 	if (navigationSource == NavigationSource::Undefined)
 		return {};
@@ -301,7 +301,7 @@ Data CreateItems(DB::Database & db, const NavigationSource navigationSource, con
 	return data;
 }
 
-Books CreateItemsList(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
+Books CreateItemsList(DB::IDatabase & db, const NavigationSource navigationSource, const QString & navigationId)
 {
 	auto [books, index, authors, series, genres] = CreateItems(db, navigationSource, navigationId);
 	return books;
@@ -498,7 +498,7 @@ Books CreateBookTree(Books & items, const Index & index, const Authors & authors
 	return result;
 }
 
-Books CreateItemsTree(DB::Database & db, const NavigationSource navigationSource, const QString & navigationId)
+Books CreateItemsTree(DB::IDatabase & db, const NavigationSource navigationSource, const QString & navigationId)
 {
 	auto [books, index, authors, series, genres] = CreateItems(db, navigationSource, navigationId);
 
@@ -513,7 +513,7 @@ Books CreateItemsTree(DB::Database & db, const NavigationSource navigationSource
 	return CreateBookTree(books, index, authors, series);
 }
 
-using ItemsCreator = Books(*)(DB::Database &, NavigationSource, const QString &);
+using ItemsCreator = Books(*)(DB::IDatabase &, NavigationSource, const QString &);
 constexpr std::pair<BooksViewType, ItemsCreator> g_itemCreators[]
 {
 	{ BooksViewType::List, &CreateItemsList },
@@ -521,7 +521,7 @@ constexpr std::pair<BooksViewType, ItemsCreator> g_itemCreators[]
 };
 
 struct Progress
-	: virtual ProgressController::Progress
+	: virtual ProgressController::IProgress
 {
 	const size_t total;
 	std::atomic<size_t> progress { 0 };
@@ -692,7 +692,7 @@ constexpr std::pair<BooksViewType, ModelCreator> g_modelCreators[]
 };
 
 struct BooksModelController::Impl
-	: virtual Observable<BooksModelControllerObserver>
+	: virtual Observable<IBooksModelControllerObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -705,8 +705,8 @@ public:
 
 public:
 	Impl(BooksModelController & self
-		, Util::Executor & executor_
-		, DB::Database & db
+		, Util::IExecutor & executor_
+		, DB::IDatabase & db
 		, ProgressController & progressController
 		, const BooksViewType booksViewType_
 		, std::filesystem::path archiveFolder
@@ -752,7 +752,7 @@ public:
 				books = std::move(items);
 				(void)model->setData({}, true, Role::ResetEnd);
 
-				Perform(&BooksModelControllerObserver::HandleModelReset);
+				Perform(&IBooksModelControllerObserver::HandleModelReset);
 
 				m_self.FindCurrentItem();
 			};
@@ -839,8 +839,8 @@ public:
 
 private:
 	BooksModelController & m_self;
-	Util::Executor & m_executor;
-	DB::Database & m_db;
+	Util::IExecutor & m_executor;
+	DB::IDatabase & m_db;
 	ProgressController & m_progressController;
 	NavigationSource m_navigationSource{ NavigationSource::Undefined };
 	QString m_navigationId;
@@ -850,8 +850,8 @@ private:
 	ReaderController m_readerController;
 };
 
-BooksModelController::BooksModelController(Util::Executor & executor
-	, DB::Database & db
+BooksModelController::BooksModelController(Util::IExecutor & executor
+	, DB::IDatabase & db
 	, ProgressController & progressController
 	, const BooksViewType booksViewType
 	, std::filesystem::path archiveFolder
@@ -869,7 +869,7 @@ BooksModelController::BooksModelController(Util::Executor & executor
 BooksModelController::~BooksModelController()
 {
 	if (auto * model = GetCurrentModel())
-		(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverUnregister);
+		(void)model->setData({}, QVariant::fromValue(To<IBookModelObserver>()), Role::ObserverUnregister);
 }
 
 bool BooksModelController::RemoveAvailable(const long long id)
@@ -943,12 +943,12 @@ void BooksModelController::SetNavigationState(NavigationSource navigationSource,
 	m_impl->setNavigationIdTimer.start();
 }
 
-void BooksModelController::RegisterObserver(BooksModelControllerObserver * observer)
+void BooksModelController::RegisterObserver(IBooksModelControllerObserver * observer)
 {
 	m_impl->Register(observer);
 }
 
-void BooksModelController::UnregisterObserver(BooksModelControllerObserver * observer)
+void BooksModelController::UnregisterObserver(IBooksModelControllerObserver * observer)
 {
 	m_impl->Unregister(observer);
 }
@@ -966,10 +966,10 @@ void BooksModelController::UpdateModelData()
 QAbstractItemModel * BooksModelController::CreateModel()
 {
 	if (auto * model = GetCurrentModel())
-		(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverUnregister);
+		(void)model->setData({}, QVariant::fromValue(To<IBookModelObserver>()), Role::ObserverUnregister);
 
 	auto * model = FindSecond(g_modelCreators, m_impl->booksViewType)(m_impl->books, nullptr);
-	(void)model->setData({}, QVariant::fromValue(To<BookModelObserver>()), Role::ObserverRegister);
+	(void)model->setData({}, QVariant::fromValue(To<IBookModelObserver>()), Role::ObserverRegister);
 
 	return model;
 }
@@ -981,7 +981,7 @@ bool BooksModelController::SetCurrentIndex(const int index)
 
 	assert(index < static_cast<int>(std::size(m_impl->books)));
 	const auto & book = m_impl->books[index];
-	m_impl->Perform(&BooksModelControllerObserver::HandleBookChanged, std::cref(book));
+	m_impl->Perform(&IBooksModelControllerObserver::HandleBookChanged, std::cref(book));
 
 	return ModelController::SetCurrentIndex(index);
 }

@@ -12,10 +12,10 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class ComboBoxDataProvider
+class IComboBoxDataProvider
 {
 public:
-	virtual ~ComboBoxDataProvider() = default;
+	virtual ~IComboBoxDataProvider() = default;
 	virtual QString GetValue() const = 0;
 	virtual const QString & GetTitleDefault(const QString & value) const = 0;
 };
@@ -39,7 +39,7 @@ signals:
 	void ValueChanged() const;
 
 public:
-	explicit ComboBoxController(ComboBoxDataProvider & dataProvider, QObject * parent = nullptr);
+	explicit ComboBoxController(IComboBoxDataProvider & dataProvider, QObject * parent = nullptr);
 	~ComboBoxController() override;
 
 public:

@@ -8,11 +8,11 @@
 #include "fnd/NonCopyMovable.h"
 
 namespace HomeCompa::DB {
-class Database;
+class IDatabase;
 }
 namespace HomeCompa::Flibrary {
 
-class BooksModelControllerObserver;
+class IBooksModelControllerObserver;
 
 class AnnotationController
 	: public QObject
@@ -37,11 +37,11 @@ signals:
 	void HasCoverChanged() const;
 
 public:
-	AnnotationController(DB::Database & db, std::filesystem::path rootFolder);
+	AnnotationController(DB::IDatabase & db, std::filesystem::path rootFolder);
 	~AnnotationController() override;
 
 public:
-	BooksModelControllerObserver * GetBooksModelControllerObserver();
+	IBooksModelControllerObserver * GetBooksModelControllerObserver();
 
 private: // property getters
 	QString GetAnnotation() const;

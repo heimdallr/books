@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Command.h"
+#include "ICommand.h"
 
 namespace HomeCompa::DB {
 
-class Query;
-template<typename T> T GetImpl(const Query & query, size_t index) = delete;
+class IQuery;
+template<typename T> T GetImpl(const IQuery & query, size_t index) = delete;
 
-class Query
-	: virtual public Command
+class IQuery
+	: virtual public ICommand
 {
 public:
 	virtual bool Eof() = 0;
@@ -30,27 +30,27 @@ public:
 	}
 };
 
-template<> inline int GetImpl(const Query & query, size_t index)
+template<> inline int GetImpl(const IQuery & query, size_t index)
 {
 	return query.GetInt(index);
 }
 
-template<> inline long long int GetImpl(const Query & query, size_t index)
+template<> inline long long int GetImpl(const IQuery & query, size_t index)
 {
 	return query.GetLong(index);
 }
 
-template<> inline double GetImpl(const Query & query, size_t index)
+template<> inline double GetImpl(const IQuery & query, size_t index)
 {
 	return query.GetDouble(index);
 }
 
-template<> inline std::string GetImpl(const Query & query, size_t index)
+template<> inline std::string GetImpl(const IQuery & query, size_t index)
 {
 	return query.GetString(index);
 }
 
-template<> inline const char * GetImpl(const Query & query, size_t index)
+template<> inline const char * GetImpl(const IQuery & query, size_t index)
 {
 	return query.GetRawString(index);
 }

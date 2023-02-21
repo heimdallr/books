@@ -1,6 +1,6 @@
 #include "sqlite3ppext.h"
 
-#include "database/interface/Command.h"
+#include "database/interface/ICommand.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
@@ -12,7 +12,7 @@ int Index(const size_t index)
 }
 
 class Command
-	: virtual public DB::Command
+	: virtual public DB::ICommand
 {
 public:
 	Command(sqlite3pp::database & db, std::string_view command)
@@ -73,7 +73,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Command> CreateCommandImpl(sqlite3pp::database & db, std::string_view command)
+std::unique_ptr<DB::ICommand> CreateCommandImpl(sqlite3pp::database & db, std::string_view command)
 {
 	return std::make_unique<Command>(db, command);
 }

@@ -8,11 +8,11 @@
 class QAbstractItemModel;
 
 namespace HomeCompa::Util {
-class Executor;
+class IExecutor;
 }
 
 namespace HomeCompa::DB {
-class Database;
+class IDatabase;
 }
 
 namespace HomeCompa::Flibrary {
@@ -49,7 +49,7 @@ public:
 	Q_INVOKABLE void RemoveGroup(long long groupId);
 
 public:
-	GroupsModelController(Util::Executor & executor, DB::Database & db, QObject * parent = nullptr);
+	GroupsModelController(Util::IExecutor & executor, DB::IDatabase & db, QObject * parent = nullptr);
 	~GroupsModelController() override;
 
 private: // property getters

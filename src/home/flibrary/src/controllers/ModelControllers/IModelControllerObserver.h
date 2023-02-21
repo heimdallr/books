@@ -6,10 +6,10 @@ namespace HomeCompa::Flibrary {
 
 class ModelController;
 
-class ModelControllerObserver : public Observer
+class IModelControllerObserver : public Observer
 {
 public:
-	virtual ~ModelControllerObserver() = default;
+	virtual ~IModelControllerObserver() = default;
 
 public:
 	virtual void HandleCurrentIndexChanged(ModelController *, int index) = 0;

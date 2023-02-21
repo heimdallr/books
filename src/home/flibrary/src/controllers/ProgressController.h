@@ -21,10 +21,10 @@ signals:
 	void ProgressChanged() const;
 
 public:
-	class Progress
+	class IProgress
 	{
 	public:
-		virtual ~Progress() = default;
+		virtual ~IProgress() = default;
 		virtual size_t GetTotal() const = 0;
 		virtual size_t GetProgress() const = 0;
 		virtual void Stop() = 0;
@@ -34,7 +34,7 @@ public:
 	explicit ProgressController(QObject * parent = nullptr);
 	~ProgressController() override;
 
-	void Add(std::shared_ptr<Progress> progress);
+	void Add(std::shared_ptr<IProgress> progress);
 
 private: // property getters
 	bool GetStarted();

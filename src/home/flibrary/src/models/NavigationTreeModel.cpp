@@ -92,7 +92,7 @@ private:
 					if (item.Expanded && item.ChildrenCount > 0)
 						return SetDataLocal(index, false, Role::Expanded, item);
 
-					Perform(&ModelObserver::HandleModelItemFound, static_cast<int>(m_index[item.ParentId]));
+					Perform(&IModelObserver::HandleModelItemFound, static_cast<int>(m_index[item.ParentId]));
 					return true;
 
 				case Qt::Key_Right:

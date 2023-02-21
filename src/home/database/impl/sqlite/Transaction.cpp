@@ -2,19 +2,19 @@
 
 #include "sqlite3ppext.h"
 
-#include "database/interface/Command.h"
-#include "database/interface/Query.h"
-#include "database/interface/Transaction.h"
+#include "database/interface/ICommand.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<Command> CreateCommandImpl(sqlite3pp::database & db, std::string_view command);
-std::unique_ptr<Query> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
+std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database & db, std::string_view command);
+std::unique_ptr<IQuery> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
 
 namespace {
 
 class Transaction
-	: virtual public DB::Transaction
+	: virtual public DB::ITransaction
 {
 public:
 	explicit Transaction(std::shared_mutex & mutex, sqlite3pp::database & db)
@@ -43,12 +43,12 @@ private: // Transaction
 		m_transaction.rollback();
 	}
 
-	std::unique_ptr<Command> CreateCommand(std::string_view command) override
+	std::unique_ptr<ICommand> CreateCommand(std::string_view command) override
 	{
 		return CreateCommandImpl(m_db, command);
 	}
 
-	std::unique_ptr<Query> CreateQuery(std::string_view query) override
+	std::unique_ptr<IQuery> CreateQuery(std::string_view query) override
 	{
 		return CreateQueryImpl(m_queryMutex, m_db, query);
 	}
@@ -63,7 +63,7 @@ private:
 
 }
 
-std::unique_ptr<DB::Transaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db)
+std::unique_ptr<DB::ITransaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db)
 {
 	return std::make_unique<Transaction>(mutex, db);
 }

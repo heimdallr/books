@@ -5,28 +5,28 @@
 #include "fnd/ConvertableT.h"
 #include "fnd/memory.h"
 
-#include "models/BookModelObserver.h"
+#include "models/IBookModelObserver.h"
 
 #include "ModelController.h"
 
 namespace HomeCompa::Util {
-class Executor;
+class IExecutor;
 }
 
 namespace HomeCompa::DB {
-class Database;
+class IDatabase;
 }
 
 namespace HomeCompa::Flibrary {
 
-class BooksModelControllerObserver;
+class IBooksModelControllerObserver;
 class ProgressController;
 enum class BooksViewType;
 enum class NavigationSource;
 
 class BooksModelController final
 	: public ModelController
-	, public BookModelObserver
+	, public IBookModelObserver
 	, public ConvertibleT<BooksModelController>
 {
 	NON_COPY_MOVABLE(BooksModelController)
@@ -47,8 +47,8 @@ public:
 	Q_INVOKABLE void Read(long long id);
 
 public:
-	BooksModelController(Util::Executor & executor
-		, DB::Database & db
+	BooksModelController(Util::IExecutor & executor
+		, DB::IDatabase & db
 		, ProgressController & progressController
 		, BooksViewType booksViewType
 		, std::filesystem::path archiveFolder
@@ -57,8 +57,8 @@ public:
 	~BooksModelController() override;
 
 	void SetNavigationState(NavigationSource navigationSource, const QString & navigationId);
-	void RegisterObserver(BooksModelControllerObserver * observer);
-	void UnregisterObserver(BooksModelControllerObserver * observer);
+	void RegisterObserver(IBooksModelControllerObserver * observer);
+	void UnregisterObserver(IBooksModelControllerObserver * observer);
 
 private: // ModelController
 	ModelControllerType GetType() const noexcept override;

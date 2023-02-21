@@ -3,7 +3,7 @@
 #include <plog/Log.h>
 
 #include "util/Settings.h"
-#include "util/SettingsObserver.h"
+#include "util/ISettingsObserver.h"
 
 #include "ComboBoxController.h"
 #include "ViewSourceController.h"
@@ -11,8 +11,8 @@
 namespace HomeCompa::Flibrary {
 
 class ViewSourceController::Impl final
-	: SettingsObserver
-	, ComboBoxDataProvider
+	: ISettingsObserver
+	, IComboBoxDataProvider
 	, ComboBoxObserver
 {
 	NON_COPY_MOVABLE(Impl)

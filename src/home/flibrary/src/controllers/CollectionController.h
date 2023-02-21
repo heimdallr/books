@@ -5,7 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "SettingsProvider.h"
+#include "ISettingsProvider.h"
 
 class QAbstractItemModel;
 
@@ -34,15 +34,15 @@ signals:
 	void ShowLog(bool) const;
 
 public:
-	class Observer
-		: virtual public SettingsProvider
+	class IObserver
+		: virtual public ISettingsProvider
 	{
 	public:
 		virtual void HandleCurrentCollectionChanged(const Collection & collection) = 0;
 	};
 
 public:
-	explicit CollectionController(Observer & observer, QObject * parent = nullptr);
+	explicit CollectionController(IObserver & observer, QObject * parent = nullptr);
 	~CollectionController() override;
 
 public:
