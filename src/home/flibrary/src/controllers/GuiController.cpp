@@ -174,7 +174,7 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(GetAnnotationController()->GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 
@@ -185,14 +185,11 @@ public:
 	{
 		PLOGD << "GuiController started";
 
-		PropagateConstPtr<AnnotationController>(std::make_unique<AnnotationController>(*m_db, m_currentCollection.folder.toStdWString())).swap(m_annotationController);
-
 		auto * const qmlContext = m_qmlEngine.rootContext();
 		qmlContext->setContextProperty("guiController", &m_self);
 		qmlContext->setContextProperty("uiSettings", &m_uiSettings);
 		qmlContext->setContextProperty("fieldsVisibilityProvider", &m_navigationSourceProvider);
 		qmlContext->setContextProperty("localeController", &m_localeController);
-		qmlContext->setContextProperty("annotationController", m_annotationController.get());
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("measure", new Measure(&m_self));
 		qmlContext->setContextProperty("collectionController", &m_collectionController);
@@ -275,6 +272,17 @@ public:
 		return QString("Flibrary - %1").arg(m_currentCollection.name);
 	}
 
+	AnnotationController * GetAnnotationController()
+	{
+		if (m_annotationController)
+			return m_annotationController.get();
+
+		PropagateConstPtr<AnnotationController>(std::make_unique<AnnotationController>(*m_db, m_currentCollection.folder.toStdWString())).swap(m_annotationController);
+		QQmlEngine::setObjectOwnership(m_annotationController.get(), QQmlEngine::CppOwnership);
+
+		return m_annotationController.get();
+	}
+
 	GroupsModelController * GetGroupsModelController()
 	{
 		if (m_groupsModelController)
@@ -316,7 +324,7 @@ public:
 		if (m_booksModelController)
 		{
 			static_cast<ModelController *>(m_booksModelController.get())->UnregisterObserver(this);
-			m_booksModelController->UnregisterObserver(m_annotationController->GetBooksModelControllerObserver());
+			m_booksModelController->UnregisterObserver(GetAnnotationController()->GetBooksModelControllerObserver());
 			m_booksModelController->UnregisterObserver(m_languageController.GetBooksModelControllerObserver());
 		}
 
@@ -325,7 +333,7 @@ public:
 		QQmlEngine::setObjectOwnership(m_booksModelController.get(), QQmlEngine::CppOwnership);
 		static_cast<ModelController *>(m_booksModelController.get())->RegisterObserver(this);
 		m_booksModelController->RegisterObserver(m_languageController.GetBooksModelControllerObserver());
-		m_booksModelController->RegisterObserver(m_annotationController->GetBooksModelControllerObserver());
+		m_booksModelController->RegisterObserver(GetAnnotationController()->GetBooksModelControllerObserver());
 		m_booksModelController->GetModel()->setData({}, m_uiSettings.showDeleted(), BookRole::ShowDeleted);
 
 		if (m_navigationSourceProvider.GetSource() != NavigationSource::Undefined && m_currentNavigationIndex != -1)
@@ -651,6 +659,11 @@ GuiController::~GuiController() = default;
 void GuiController::Start()
 {
 	m_impl->Start();
+}
+
+AnnotationController * GuiController::GetAnnotationController()
+{
+	return m_impl->GetAnnotationController();
 }
 
 GroupsModelController * GuiController::GetGroupsModelController()

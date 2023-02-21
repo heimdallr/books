@@ -30,6 +30,7 @@ public:
 	void Start();
 
 public:
+	Q_INVOKABLE AnnotationController * GetAnnotationController();
 	Q_INVOKABLE GroupsModelController * GetGroupsModelController();
 	Q_INVOKABLE ModelController * GetNavigationModelController();
 	Q_INVOKABLE BooksModelController * GetBooksModelController();

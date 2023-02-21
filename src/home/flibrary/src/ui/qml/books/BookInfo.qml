@@ -8,6 +8,7 @@ import "qrc:/Core"
 Rectangle
 {
 	id: bookInfoID
+	readonly property var annotationController: guiController.GetAnnotationController()
 	readonly property int coverCount: annotationController.coverCount
 	Image
 	{
