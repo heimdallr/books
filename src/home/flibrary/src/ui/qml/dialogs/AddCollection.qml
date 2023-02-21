@@ -12,6 +12,9 @@ import "qrc:/Util/Functions.js" as Functions
 Window
 {
 	id: dialogID
+
+	readonly property var collectionController: guiController.GetCollectionController()
+
 	transientParent: applicationWindowID
 
 	width: uiSettings.heightRow * 30

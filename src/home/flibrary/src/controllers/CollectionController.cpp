@@ -187,7 +187,7 @@ CollectionController::CollectionController(IObserver & observer, QObject * paren
 	, m_impl(*this, observer)
 {
 	Util::ObjectsConnector::registerEmitter(ObjConn::SHOW_LOG, this, SIGNAL(ShowLog(bool)));
-	m_impl->OnCollectionsChanged();
+	QTimer::singleShot(0, [&] { m_impl->OnCollectionsChanged(); });
 
 	PLOGD << "CollectionController created";
 }

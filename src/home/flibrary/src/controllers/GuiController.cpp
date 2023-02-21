@@ -192,7 +192,6 @@ public:
 		qmlContext->setContextProperty("localeController", &m_localeController);
 		qmlContext->setContextProperty("fileDialog", new FileDialogProvider(&m_self));
 		qmlContext->setContextProperty("measure", new Measure(&m_self));
-		qmlContext->setContextProperty("collectionController", &m_collectionController);
 		qmlContext->setContextProperty("log", &m_logController);
 		qmlContext->setContextProperty("progressController", &m_progressController);
 		qmlContext->setContextProperty("iconTray", QIcon(":/icons/tray.png"));
@@ -205,6 +204,7 @@ public:
 		qRegisterMetaType<AnnotationController *>("AnnotationController*");
 		qRegisterMetaType<ComboBoxController *>("ComboBoxController*");
 		qRegisterMetaType<GroupsModelController *>("GroupsModelController*");
+		qRegisterMetaType<CollectionController *>("CollectionController*");
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 
@@ -214,6 +214,8 @@ public:
 		PLOGD << "Loading UI";
 		m_qmlEngine.load("qrc:/Main.qml");
 		PLOGD << "UI loaded";
+
+		(void)GetCollectionController();
 	}
 
 	void OnKeyEvent(const QKeyEvent & keyEvent)
@@ -366,6 +368,18 @@ public:
 		return m_languageController.GetComboBoxController();
 	}
 
+	CollectionController * GetCollectionController()
+	{
+		if (m_collectionController)
+			return m_collectionController.get();
+
+		CollectionController::IObserver & observer = *this;
+		PropagateConstPtr<CollectionController>(std::make_unique<CollectionController>(observer)).swap(m_collectionController);
+		QQmlEngine::setObjectOwnership(m_collectionController.get(), QQmlEngine::CppOwnership);
+
+		return m_collectionController.get();
+	}
+
 	void LogCollectionStatistics()
 	{
 		(*m_executor)({ "Get collection statistics", [&]
@@ -513,7 +527,7 @@ private: // CollectionController::Observer
 
 		emit m_self.TitleChanged();
 
-		m_collectionController.CheckForUpdate(collection);
+		m_collectionController->CheckForUpdate(collection);
 
 		LogCollectionStatistics();
 	}
@@ -636,7 +650,7 @@ private:
 	LocaleController m_localeController { *m_uiSettingsSrc, &m_self };
 	LanguageController m_languageController { *this };
 	ProgressController m_progressController;
-	CollectionController m_collectionController { *this };
+	PropagateConstPtr<CollectionController> m_collectionController { std::unique_ptr<CollectionController>() };
 
 	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceModelItems(g_viewSourceNavigationModelItems) };
 	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceModelItems(g_viewSourceBooksModelItems) };
@@ -705,6 +719,11 @@ ComboBoxController * GuiController::GetViewSourceComboBoxBooksController() noexc
 ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcept
 {
 	return m_impl->GetLanguageComboBoxBooksController();
+}
+
+CollectionController * GuiController::GetCollectionController()
+{
+	return m_impl->GetCollectionController();
 }
 
 void GuiController::LogCollectionStatistics()

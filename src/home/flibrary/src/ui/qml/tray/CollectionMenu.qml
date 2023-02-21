@@ -7,6 +7,8 @@ import "qrc:/Dialogs"
 
 Menu
 {
+	readonly property var collectionController: guiController.GetCollectionController()
+
 	title: qsTranslate("Tray", "Collections")
 
 	MessageDialog
