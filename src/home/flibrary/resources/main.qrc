@@ -1,6 +1,10 @@
 <RCC>
 	<qresource prefix="">
-		<file alias="Main.qml">../src/ui/qml/Main.qml</file>
+		<file alias="Main.qml">../src/ui/qml/main/Main.qml</file>
+	</qresource>
+
+	<qresource prefix="Main">
+		<file alias="LibraryView.qml">../src/ui/qml/main/LibraryView.qml</file>
 	</qresource>
 
 	<qresource prefix="ViewTemplate">

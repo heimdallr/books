@@ -126,27 +126,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="373"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="381"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="376"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="384"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="377"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="385"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="378"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="386"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="379"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="387"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -270,18 +270,18 @@ Restart now?</source>
         <translation>Приложения (*.exe)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="413"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="423"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="421"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="431"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation>Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="413"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="421"/>
         <source>Specify a file to export user data</source>
         <translation>Укажите файл экспорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="423"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="431"/>
         <source>Select a file to import user data</source>
         <translation>Выберите файл импорта пользовательских данных</translation>
     </message>
