@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 import "qrc:/Log"
+import "qrc:/Dialogs"
 
 ApplicationWindow
 {
@@ -32,6 +33,12 @@ ApplicationWindow
 		completed = true;
 
 		log.Debug(`ApplicationWindow created`)
+	}
+
+	AddCollection
+	{
+		id: addCollectionID
+		visible: collectionController.addMode
 	}
 
 	Loader

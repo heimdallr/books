@@ -200,6 +200,7 @@ Window
 				id: btnCancelID
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "Cancel")
+				enabled: collectionController.CollectionsCount() > 0
 				onClicked: collectionController.addMode = false
 			}
 		}

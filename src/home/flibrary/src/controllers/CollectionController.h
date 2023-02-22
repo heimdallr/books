@@ -56,6 +56,7 @@ public:
 	Q_INVOKABLE void ApplyUpdate();
 	Q_INVOKABLE void DiscardUpdate();
 	Q_INVOKABLE void RemoveCurrentCollection();
+	Q_INVOKABLE int CollectionsCount() const noexcept;
 
 private: // property getters
 	bool GetAddMode() const noexcept;

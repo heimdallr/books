@@ -104,10 +104,10 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 struct CollectionController::Impl
 {
 	IObserver & observer;
-	bool addMode { false };
+	Collections collections { Collection::Deserialize(observer.GetSettings()) };
+	bool addMode { collections.empty() };
 	bool hasUpdate { false };
 	QString error;
-	Collections collections { Collection::Deserialize(observer.GetSettings()) };
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
 	PropagateConstPtr<Util::IExecutor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
@@ -320,6 +320,11 @@ void CollectionController::RemoveCurrentCollection()
 {
 	Collection::Remove(m_impl->observer.GetSettings(), m_impl->currentCollectionId);
 	QTimer::singleShot(std::chrono::milliseconds(200), [] { QCoreApplication::exit(1234); });
+}
+
+int CollectionController::CollectionsCount() const noexcept
+{
+	return static_cast<int>(m_impl->collections.size());
 }
 
 bool CollectionController::GetAddMode() const noexcept

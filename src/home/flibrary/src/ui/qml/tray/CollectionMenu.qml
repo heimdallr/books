@@ -34,12 +34,6 @@ Menu
 		onDiscard: collectionController.DiscardUpdate()
 	}
 
-	AddCollection
-	{
-		id: addCollectionID
-		visible: collectionController.addMode
-	}
-
     MenuItem
 	{
 		text: qsTranslate("Tray", "Add new collection...")
