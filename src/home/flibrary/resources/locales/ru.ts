@@ -756,7 +756,7 @@ Restart now?</source>
     <message>
         <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="11"/>
         <source>Archives</source>
-        <translation type="unfinished"></translation>
+        <translation>Архивы</translation>
     </message>
     <message>
         <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="12"/>
