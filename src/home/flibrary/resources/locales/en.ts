@@ -45,7 +45,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="386"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="385"/>
         <source>Keywords</source>
         <translation></translation>
     </message>
@@ -361,7 +361,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="68"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="67"/>
         <source>Size</source>
         <translation></translation>
     </message>
@@ -372,16 +372,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
-        <source>Archive</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="67"/>
         <source>File</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="69"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="68"/>
         <source>Updated</source>
         <translation></translation>
     </message>
@@ -749,6 +744,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="11"/>
+        <source>Archives</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/controllers/ModelControllers/NavigationSource.h" line="12"/>
         <source>Groups</source>
         <translation></translation>
     </message>

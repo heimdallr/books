@@ -68,6 +68,7 @@ constexpr auto QUERY =
 constexpr auto WHERE_AUTHOR = "where a.AuthorID = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
+constexpr auto WHERE_ARCHIVE = "where b.Folder  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 
 using Binder = int(*)(DB::IQuery &, const QString &);
@@ -83,10 +84,11 @@ int BindString(DB::IQuery & query, const QString & id)
 
 constexpr std::pair<NavigationSource, std::tuple<const char *, const char *, Binder>> g_joins[]
 {
-	{ NavigationSource::Authors, { WHERE_AUTHOR, nullptr, &BindInt    } },
-	{ NavigationSource::Genres , { WHERE_GENRE , nullptr, &BindString } },
-	{ NavigationSource::Groups , { nullptr, JOIN_GROUPS , &BindInt    } },
-	{ NavigationSource::Series , { WHERE_SERIES, nullptr, &BindInt    } },
+	{ NavigationSource::Authors , { WHERE_AUTHOR , nullptr    , &BindInt    } },
+	{ NavigationSource::Genres  , { WHERE_GENRE  , nullptr    , &BindString } },
+	{ NavigationSource::Groups  , { nullptr      , JOIN_GROUPS, &BindInt    } },
+	{ NavigationSource::Archives, { WHERE_ARCHIVE, nullptr    , &BindString } },
+	{ NavigationSource::Series  , { WHERE_SERIES , nullptr    , &BindInt    } },
 };
 
 void AppendTitle(QString & title, const QString & str, std::string_view separator)
@@ -228,6 +230,7 @@ Data CreateItems(DB::IDatabase & db, const NavigationSource navigationSource, co
 		item.Size = static_cast<size_t>(query->Get<long long>(8));
 		item.IsDeleted = query->Get<int>(9) != 0;
 		item.SeriesTitle = query->Get<const char *>(14);
+		item.Archives.emplace(item.Folder, item.Folder);
 	}
 
 	for (auto & item : items)

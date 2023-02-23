@@ -8,17 +8,19 @@ namespace HomeCompa::Flibrary {
 QT_TRANSLATE_NOOP("ViewSource", "Authors")
 QT_TRANSLATE_NOOP("ViewSource", "Series")
 QT_TRANSLATE_NOOP("ViewSource", "Genres")
+QT_TRANSLATE_NOOP("ViewSource", "Archives")
 QT_TRANSLATE_NOOP("ViewSource", "Groups")
 #endif
 namespace Constant {
 [[maybe_unused]] constexpr auto NavigationSourceTranslationContext = "ViewSource";
 }
 
-#define VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO  \
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Authors) \
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Series)  \
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Genres)  \
-		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Groups)  \
+#define VIEW_SOURCE_NAVIGATION_MODEL_ITEMS_XMACRO   \
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Authors)  \
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Series)   \
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Genres)   \
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Archives) \
+		VIEW_SOURCE_NAVIGATION_MODEL_ITEM(Groups)   \
 
 enum class NavigationSource
 {

@@ -36,6 +36,7 @@ struct Book
 	Dictionary<long long int> Series;
 	Dictionary<long long int> Groups;
 	Dictionary<QString> Genres;
+	Dictionary<QString> Archives;
 };
 
 }

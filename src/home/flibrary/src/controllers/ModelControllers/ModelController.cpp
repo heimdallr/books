@@ -100,6 +100,9 @@ public:
 
 	void OnKeyPressed(const int key, const int modifiers)
 	{
+		if (!model)
+			return;
+
 		auto index = currentIndex;
 		model->setData({}, QVariant::fromValue(TranslateIndexFromGlobalRequest { &index }), Role::TranslateIndexFromGlobal);
 

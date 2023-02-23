@@ -63,7 +63,6 @@ constexpr auto LINK_TEMPLATE = R"(<a href="%1|%2">%3</a>)";
 QString GetBookInfoTable(const Book & book)
 {
 	return QString("<table>")
-		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Header", "Archive")).arg(book.Folder)
 		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Header", "File")).arg(book.FileName)
 		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Header", "Size")).arg(QString("%L1").arg(book.Size))
 		+ QString(TABLE_STRING_TEMPLATE).arg(QCoreApplication::translate("Header", "Updated")).arg(book.UpdateDate)

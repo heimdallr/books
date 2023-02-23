@@ -33,6 +33,7 @@ constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
 constexpr auto GENRES_QUERY = "select GenreCode, ParentCode, GenreAlias from Genres";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
+constexpr auto ARCHIVES_QUERY = "select distinct Folder from Books";
 
 void AppendTitle(QString & title, std::string_view str)
 {
@@ -104,6 +105,24 @@ NavigationListItems CreateSeries(DB::IDatabase & db)
 NavigationListItems CreateGroups(DB::IDatabase & db)
 {
 	return CreateDictionary(db, GROUPS_QUERY);
+}
+
+NavigationListItems CreateArchives(DB::IDatabase & db)
+{
+	NavigationListItems items;
+	const auto query = db.CreateQuery(ARCHIVES_QUERY);
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		items.emplace_back();
+		items.back().Id = items.back().Title = query->Get<const char *>(0);
+	}
+
+	std::ranges::sort(items, [] (const NavigationListItem & lhs, const NavigationListItem & rhs)
+	{
+		return QString::compare(lhs.Title, rhs.Title, Qt::CaseInsensitive) < 0;
+	});
+
+	return items;
 }
 
 namespace GenresDetails {
@@ -221,6 +240,8 @@ public:
 				return ReloadModelDataImpl<NavigationListItem>(model, &CreateSeries, m_series);
 			case NavigationSource::Groups:
 				return ReloadModelDataImpl<NavigationListItem>(model, &CreateGroups, m_groups);
+			case NavigationSource::Archives:
+				return ReloadModelDataImpl<NavigationListItem>(model, &CreateArchives, m_archives);
 			case NavigationSource::Genres:
 				return ReloadModelDataImpl<NavigationTreeItem>(model, &CreateGenres, m_genres);
 			default:
@@ -239,6 +260,8 @@ public:
 				return CreateModelImpl<NavigationListItem>(&CreateSeries, m_series);
 			case NavigationSource::Groups:
 				return CreateModelImpl<NavigationListItem>(&CreateGroups, m_groups);
+			case NavigationSource::Archives:
+				return CreateModelImpl<NavigationListItem>(&CreateArchives, m_archives);
 			case NavigationSource::Genres:
 				return CreateModelImpl<NavigationTreeItem>(&CreateGenres, m_genres);
 			default:
@@ -251,7 +274,7 @@ private:
 	template<typename T>
 	void ReloadModelDataImpl(QAbstractItemModel * model, NavigationItemsCreator<T> creator, std::vector<T> & navigationItems) const
 	{
-		m_executor({ "Get navigation",[&, model = QPointer(model), creator]() mutable
+		m_executor({ "Get navigation", [&, model = QPointer(model), creator]() mutable
 		{
 			auto items = creator(m_db);
 			return[&, items = std::move(items), model = std::move(model)]() mutable
@@ -286,6 +309,7 @@ private:
 	NavigationListItems m_series;
 	NavigationListItems m_groups;
 	NavigationTreeItems m_genres;
+	NavigationListItems m_archives;
 };
 
 NavigationModelController::NavigationModelController(Util::IExecutor & executor

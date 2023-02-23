@@ -13,6 +13,7 @@
 	</qresource>
 
 	<qresource prefix="Navigation">
+		<file alias="Archives.qml">../src/ui/qml/navigation/Archives.qml</file>
 		<file alias="Authors.qml">../src/ui/qml/navigation/Authors.qml</file>
 		<file alias="Genres.qml">../src/ui/qml/navigation/Genres.qml</file>
 		<file alias="Groups.qml">../src/ui/qml/navigation/Groups.qml</file>
