@@ -109,17 +109,21 @@ NavigationListItems CreateGroups(DB::IDatabase & db)
 
 NavigationListItems CreateArchives(DB::IDatabase & db)
 {
-	NavigationListItems items;
+	std::map<int, QString> sorted;
 	const auto query = db.CreateQuery(ARCHIVES_QUERY);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		items.emplace_back();
-		items.back().Id = items.back().Title = query->Get<const char *>(0);
+		QString value = query->Get<const char *>(0);
+		const auto index = value.indexOf('-') + 1, n = value.lastIndexOf('-') - index;
+		sorted.emplace(value.mid(index, n).toInt(), std::move(value));
 	}
 
-	std::ranges::sort(items, [] (const NavigationListItem & lhs, const NavigationListItem & rhs)
+	NavigationListItems items;
+	items.reserve(sorted.size());
+	std::ranges::transform(sorted, std::back_inserter(items), [] (auto & item)
 	{
-		return QString::compare(lhs.Title, rhs.Title, Qt::CaseInsensitive) < 0;
+		auto copy = item.second;
+		return NavigationListItem { std::move(copy), std::move(item.second) };
 	});
 
 	return items;
