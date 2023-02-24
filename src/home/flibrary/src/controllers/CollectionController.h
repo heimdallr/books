@@ -55,7 +55,7 @@ public:
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE void ApplyUpdate();
 	Q_INVOKABLE void DiscardUpdate();
-	Q_INVOKABLE void RemoveCurrentCollection();
+	Q_INVOKABLE void RemoveCurrentCollection(bool removeDatabase);
 	Q_INVOKABLE int CollectionsCount() const noexcept;
 
 private: // property getters

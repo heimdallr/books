@@ -26,11 +26,11 @@ int main(int argc, char * argv[])
 		PLOGI << "App started";
 		PLOGI << "Commit hash: " << GIT_HASH;
 
+		QApplication app(argc, argv);
+		PLOGD << "QApp created";
+
 		while (true)
 		{
-			QApplication app(argc, argv);
-			PLOGD << "QApp created";
-
 			GuiController guiController;
 			app.installEventFilter(&guiController);
 

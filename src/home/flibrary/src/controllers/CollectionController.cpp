@@ -316,10 +316,28 @@ void CollectionController::DiscardUpdate()
 	} });
 }
 
-void CollectionController::RemoveCurrentCollection()
+void CollectionController::RemoveCurrentCollection(bool removeDatabase)
 {
+	const auto * collection = m_impl->FindCollection(m_impl->currentCollectionId);
+	if (!collection)
+	{
+		PLOGE << "Current collection " << m_impl->currentCollectionId << " not found";
+		return;
+	}
+
 	Collection::Remove(m_impl->observer.GetSettings(), m_impl->currentCollectionId);
-	QTimer::singleShot(std::chrono::milliseconds(200), [] { QCoreApplication::exit(1234); });
+	QTimer::singleShot(std::chrono::milliseconds(200), [removeDatabase, db = collection->database]
+	{
+		QCoreApplication::exit(1234);
+		QTimer::singleShot(std::chrono::seconds(1), [removeDatabase, db = std::move(db)] ()
+		{
+			if (removeDatabase)
+				for (int i = 0; i < 20 && QFile::exists(db) && !QFile::remove(db); ++i, std::this_thread::sleep_for(std::chrono::milliseconds(50)))
+					;
+			if (QFile::exists(db))
+				PLOGE << "Cannot remove collection database: " << db;
+		});
+	});
 }
 
 int CollectionController::CollectionsCount() const noexcept

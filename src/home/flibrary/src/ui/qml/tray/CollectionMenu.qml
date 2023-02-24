@@ -13,12 +13,23 @@ Menu
 
 	MessageDialog
 	{
+		id: removeDatabaseConfirmDialogID
+		title: qsTranslate("Common", "Warning")
+		text: qsTranslate("Collection", "Delete collection database as well?")
+		standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
+		icon: StandardIcon.Question
+		onYes: collectionController.RemoveCurrentCollection(true)
+		onNo: collectionController.RemoveCurrentCollection(false)
+	}
+
+	MessageDialog
+	{
 		id: removeConfirmDialogID
 		title: qsTranslate("Common", "Warning")
 		text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
 		standardButtons: StandardButton.Yes | StandardButton.No
 		icon: StandardIcon.Warning
-		onYes: collectionController.RemoveCurrentCollection()
+		onYes: removeDatabaseConfirmDialogID.open()
 	}
 
 	MessageDialog

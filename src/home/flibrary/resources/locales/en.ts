@@ -107,11 +107,16 @@
     <name>Collection</name>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="18"/>
+        <source>Delete collection database as well?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="29"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="28"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="39"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>
@@ -168,7 +173,8 @@ Restart now?</source>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
         <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="24"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="17"/>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="27"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="28"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="38"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation></translation>
@@ -617,32 +623,32 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="39"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="50"/>
         <source>Add new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="49"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="60"/>
         <source>Select collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="64"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
         <source>Remove collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="70"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="81"/>
         <source>User data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="74"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="85"/>
         <source>Export</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="80"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="91"/>
         <source>Import</source>
         <translation></translation>
     </message>
