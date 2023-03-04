@@ -1,5 +1,5 @@
 #include <cassert>
-#include <shared_mutex>
+#include <mutex>
 
 #include "sqlite3ppext.h"
 
@@ -18,7 +18,7 @@ class Query
 	: virtual public DB::IQuery
 {
 public:
-	Query(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query)
+	Query(std::mutex & mutex, sqlite3pp::database & db, std::string_view query)
 		: m_lock(mutex)
 		, m_query(db, query.data())
 	{
@@ -125,14 +125,14 @@ private:
 	}
 
 private:
-	std::shared_lock<std::shared_mutex> m_lock;
+	std::lock_guard<std::mutex> m_lock;
 	sqlite3pp::query m_query;
 	sqlite3pp::query::iterator m_it;
 };
 
 }
 
-std::unique_ptr<DB::IQuery> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query)
+std::unique_ptr<DB::IQuery> CreateQueryImpl(std::mutex & mutex, sqlite3pp::database & db, std::string_view query)
 {
 	return std::make_unique<Query>(mutex, db, query);
 }

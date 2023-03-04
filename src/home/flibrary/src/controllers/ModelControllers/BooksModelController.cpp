@@ -1,7 +1,6 @@
 #include <fstream>
 #include <numeric>
 #include <set>
-#include <shared_mutex>
 
 #include <QAbstractItemModel>
 #include <QCoreApplication>

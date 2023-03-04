@@ -1,4 +1,4 @@
-#include <shared_mutex>
+#include <mutex>
 #include <sstream>
 #include <string>
 
@@ -18,8 +18,8 @@
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-std::unique_ptr<ITransaction> CreateTransactionImpl(std::shared_mutex & mutex, sqlite3pp::database & db);
-std::unique_ptr<IQuery> CreateQueryImpl(std::shared_mutex & mutex, sqlite3pp::database & db, std::string_view query);
+std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex & mutex, sqlite3pp::database & db);
+std::unique_ptr<IQuery> CreateQueryImpl(std::mutex & mutex, sqlite3pp::database & db, std::string_view query);
 
 namespace {
 
@@ -169,7 +169,7 @@ private: // Database
 
 private:
 	ConnectionParameters m_connectionParameters;
-	std::shared_mutex m_guard;
+	std::mutex m_guard;
 	sqlite3pp::database m_db;
 	ObserverImpl m_observer;
 	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>> m_functions;
