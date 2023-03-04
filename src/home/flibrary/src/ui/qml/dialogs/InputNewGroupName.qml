@@ -6,6 +6,12 @@ InputStringDialog
 
 	property var controller
 
+	function checkNewName()
+	{
+		if (visible)
+			controller.CheckNewName(text)
+	}
+
 	title: qsTranslate("NewGroupDialog", "Input new group name")
 	inputStringTitle: qsTranslate("NewGroupDialog", "Group name")
 	text: qsTranslate("NewGroupDialog", "New group")
@@ -13,5 +19,6 @@ InputStringDialog
 	errorText: controller.errorText
 	okEnabled: text !== "" && errorText === "" && !controller.checkNewNameInProgress
 
-	onTextChanged: controller.CheckNewName(text)
+	onTextChanged: checkNewName()
+	onVisibleChanged: checkNewName()
 }
