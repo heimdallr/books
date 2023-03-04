@@ -489,17 +489,17 @@ Restart now?</source>
 <context>
     <name>NewGroupDialog</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="9"/>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="15"/>
         <source>Input new group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="10"/>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="16"/>
         <source>Group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="11"/>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="17"/>
         <source>New group</source>
         <translation></translation>
     </message>
