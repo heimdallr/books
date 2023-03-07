@@ -130,27 +130,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="395"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="397"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="398"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="400"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="399"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="401"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="400"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="401"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="403"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -271,18 +271,18 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="435"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="445"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="437"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="447"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="435"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="437"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="445"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="447"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
@@ -709,7 +709,8 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
-        <source>Another e-library book cataloger</source>
+        <source>Another e-library book cataloger
+Version: %1</source>
         <translation></translation>
     </message>
     <message>
