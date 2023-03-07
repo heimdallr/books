@@ -143,6 +143,6 @@ file(COPY ${resources} DESTINATION "${BIN_DIR}")
 configure_file(${CMAKE_CURRENT_LIST_DIR}/script/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h @ONLY)
 
 add_custom_command(TARGET flibrary
-    PRE_BUILD
+    POST_BUILD
     COMMAND ${CMAKE_CURRENT_LIST_DIR}/script/build.bat
 )
