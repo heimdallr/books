@@ -1,0 +1,8 @@
+#pragma once
+
+namespace HomeCompa::Flibrary {
+
+constexpr auto PRODUCT_VERSION_MAJOR = "@PRODUCT_VERSION_MAJOR@";
+constexpr auto PRODUCT_VERSION_MINOR = "@PRODUCT_VERSION_MINOR@";
+
+}

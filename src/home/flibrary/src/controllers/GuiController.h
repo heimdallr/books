@@ -45,6 +45,7 @@ public:
 	Q_INVOKABLE void BackupUserData();
 	Q_INVOKABLE void RestoreUserData();
 	Q_INVOKABLE static int GetPixelMetric(const QVariant & metric);
+	Q_INVOKABLE static QString GetVersion();
 
 signals:
 	void OpenedChanged() const;

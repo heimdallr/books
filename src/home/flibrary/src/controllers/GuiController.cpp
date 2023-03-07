@@ -43,6 +43,8 @@
 #include "userdata/backup.h"
 #include "userdata/restore.h"
 
+#include "version/AppVersion.h"
+
 #include "AnnotationController.h"
 #include "Collection.h"
 #include "CollectionController.h"
@@ -704,6 +706,11 @@ int GuiController::GetPixelMetric(const QVariant & metric)
 {
 	const auto value = QApplication::style()->pixelMetric(metric.value<QStyle::PixelMetric>());
 	return value;
+}
+
+QString GuiController::GetVersion()
+{
+	return GetAppVersion();
 }
 
 ComboBoxController * GuiController::GetViewSourceComboBoxNavigationController() noexcept
