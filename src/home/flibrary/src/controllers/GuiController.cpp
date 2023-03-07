@@ -392,8 +392,7 @@ public:
 				"select '%1', count(42) from Authors union all "
 				"select '%2', count(42) from Series union all "
 				"select '%3', count(42) from Books union all "
-				"select '%4', count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0 union all "
-				"select '%5', count(distinct Folder) from Books"
+				"select '%4', count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0"
 				;
 
 			QStringList stats;
@@ -404,7 +403,6 @@ public:
 				, QT_TRANSLATE_NOOP("CollectionStatistics", "Series:")
 				, QT_TRANSLATE_NOOP("CollectionStatistics", "Books:")
 				, QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:")
-				, QT_TRANSLATE_NOOP("CollectionStatistics", "Archives:")
 			).toStdString());
 			for (bookQuery->Execute(); !bookQuery->Eof(); bookQuery->Next())
 			{
