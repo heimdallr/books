@@ -152,6 +152,8 @@ public:
 	explicit Impl(GuiController & self)
 		: m_self(self)
 	{
+		PLOGI << "App version: " << GetVersion();
+
 		m_groupsChangedTimer.setSingleShot(true);
 		m_groupsChangedTimer.setInterval(std::chrono::milliseconds(200));
 		connect(&m_groupsChangedTimer, &QTimer::timeout, [&] { OnGroupChanged(); });
