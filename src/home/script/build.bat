@@ -6,4 +6,4 @@ for /f "tokens=5 delims= " %%a in ("%string%") do (
   )
 set /A BUILD_NUMBER=BUILD_NUMBER+1
 echo BUILD_NUMBER = %BUILD_NUMBER%
-echo constexpr int BUILD_NUMBER = %BUILD_NUMBER% ; > %~dp0..\flibrary\src\version\build.h
+echo constexpr int BUILD_NUMBER = %BUILD_NUMBER% ;>%~dp0..\flibrary\src\version\build.h
