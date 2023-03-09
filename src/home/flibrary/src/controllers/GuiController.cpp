@@ -386,6 +386,11 @@ public:
 		return m_collectionController.get();
 	}
 
+	DialogController * GetAboutDialogController() noexcept
+	{
+		return &m_aboutDialogController;
+	}
+
 	DialogController * GetRestartDialogController() noexcept
 	{
 		return &m_restartDialogController;
@@ -666,6 +671,7 @@ private:
 	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceModelItems(g_viewSourceNavigationModelItems) };
 	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceModelItems(g_viewSourceBooksModelItems) };
 
+	DialogController m_aboutDialogController;
 	DialogController m_restartDialogController { [](const QMessageBox::StandardButton button) { if (button == QMessageBox::Yes) QCoreApplication::exit(1234); return true; } };
 
 	QQmlApplicationEngine m_qmlEngine;
@@ -742,6 +748,11 @@ ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcep
 CollectionController * GuiController::GetCollectionController()
 {
 	return m_impl->GetCollectionController();
+}
+
+DialogController * GuiController::GetAboutDialogController() noexcept
+{
+	return m_impl->GetAboutDialogController();
 }
 
 DialogController * GuiController::GetRestartDialogController() noexcept

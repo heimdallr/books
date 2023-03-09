@@ -41,6 +41,7 @@ public:
 	Q_INVOKABLE ComboBoxController * GetViewSourceComboBoxBooksController() noexcept;
 	Q_INVOKABLE ComboBoxController * GetLanguageComboBoxBooksController() noexcept;
 	Q_INVOKABLE CollectionController * GetCollectionController();
+	Q_INVOKABLE DialogController * GetAboutDialogController() noexcept;
 	Q_INVOKABLE DialogController * GetRestartDialogController() noexcept;
 	Q_INVOKABLE void LogCollectionStatistics();
 	Q_INVOKABLE void HandleLink(const QString & link, long long bookId);
