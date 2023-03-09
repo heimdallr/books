@@ -3,12 +3,14 @@ import QtQuick.Controls 2.15
 
 import "qrc:/Book"
 import "qrc:/Core"
+import "qrc:/Dialogs"
 import "qrc:/Navigation"
 import "qrc:/Tray"
 
 Item
 {
 	Tray {}
+	Dialogs {}
 
 	SplitView
 	{

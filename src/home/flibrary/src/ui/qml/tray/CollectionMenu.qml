@@ -11,40 +11,6 @@ Menu
 
 	title: qsTranslate("Tray", "Collections")
 
-	MessageDialog
-	{
-		id: removeDatabaseConfirmDialogID
-		title: qsTranslate("Common", "Warning")
-		text: qsTranslate("Collection", "Delete collection database as well?")
-		standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Cancel
-		icon: StandardIcon.Question
-		onYes: collectionController.RemoveCurrentCollection(true)
-		onNo: collectionController.RemoveCurrentCollection(false)
-	}
-
-	MessageDialog
-	{
-		id: removeConfirmDialogID
-		title: qsTranslate("Common", "Warning")
-		text: qsTranslate("Collection", "Are you sure you want to delete the collection?")
-		standardButtons: StandardButton.Yes | StandardButton.No
-		icon: StandardIcon.Warning
-		onYes: removeDatabaseConfirmDialogID.open()
-	}
-
-	MessageDialog
-	{
-		id: updateConfirmDialogID
-		title: qsTranslate("Common", "Warning")
-		text: qsTranslate("Collection", "Looks like the collection has been updated. Apply changes?")
-		standardButtons: StandardButton.Yes | StandardButton.Cancel | StandardButton.Discard
-		icon: StandardIcon.Question
-		visible: collectionController.hasUpdate
-		onYes: collectionController.ApplyUpdate()
-		onRejected: collectionController.hasUpdate = false
-		onDiscard: collectionController.DiscardUpdate()
-	}
-
     MenuItem
 	{
 		text: qsTranslate("Tray", "Add new collection...")
@@ -73,7 +39,7 @@ Menu
 	{
 		enabled: collectionsMenuID.enabled
 		text: qsTranslate("Tray", "Remove collection")
-		onTriggered: removeConfirmDialogID.open()
+		onTriggered: collectionController.GetRemoveCollectionConfirmDialogController().visible = true
     }
 
 	Menu

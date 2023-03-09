@@ -49,6 +49,7 @@
 #include "Collection.h"
 #include "CollectionController.h"
 #include "ComboBoxController.h"
+#include "DialogController.h"
 #include "FileDialogProvider.h"
 #include "LanguageController.h"
 #include "LocaleController.h"
@@ -209,6 +210,7 @@ public:
 		qRegisterMetaType<ComboBoxController *>("ComboBoxController*");
 		qRegisterMetaType<GroupsModelController *>("GroupsModelController*");
 		qRegisterMetaType<CollectionController *>("CollectionController*");
+		qRegisterMetaType<DialogController *>("DialogController*");
 
 		qmlRegisterType<QCommonStyle>("Style", 1, 0, "Style");
 

@@ -106,17 +106,17 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="18"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="13"/>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="29"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="24"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="39"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="38"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>
@@ -130,27 +130,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="399"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="401"/>
         <source>Collection statistics:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="402"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="404"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="403"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="405"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="404"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="406"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="405"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="407"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -171,10 +171,10 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="12"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="23"/>
+        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="37"/>
         <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="24"/>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="17"/>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="28"/>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="38"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation></translation>
@@ -183,52 +183,52 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="152"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="161"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="154"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="163"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="158"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="160"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
         <source>Bad database file extension (.inpx)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="176"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="170"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="179"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="172"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="181"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="174"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="183"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="176"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="185"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="248"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="257"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
@@ -271,18 +271,18 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="439"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="449"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="441"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="439"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="441"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="449"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
@@ -623,32 +623,32 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="50"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="16"/>
         <source>Add new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="60"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="26"/>
         <source>Select collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="75"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="41"/>
         <source>Remove collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="81"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="47"/>
         <source>User data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="85"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="51"/>
         <source>Export</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="91"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="57"/>
         <source>Import</source>
         <translation></translation>
     </message>
