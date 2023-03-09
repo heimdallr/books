@@ -22,10 +22,8 @@ class CollectionController
 
 	Q_PROPERTY(QString currentCollectionId READ GetCurrentCollectionId WRITE SetCurrentCollectionId NOTIFY CurrentCollectionIdChanged)
 	Q_PROPERTY(QString error READ GetError WRITE SetError NOTIFY ErrorChanged)
-	Q_PROPERTY(bool addMode READ GetAddMode WRITE SetAddMode NOTIFY AddModeChanged)
 
 signals:
-	void AddModeChanged() const;
 	void CurrentCollectionIdChanged() const;
 	void ErrorChanged() const;
 
@@ -52,18 +50,17 @@ public:
 	Q_INVOKABLE bool CheckCreateCollection(const QString & name, const QString & db, const QString & folder);
 	Q_INVOKABLE QAbstractItemModel * GetModel();
 	Q_INVOKABLE int CollectionsCount() const noexcept;
+	Q_INVOKABLE DialogController * GetAddModeDialogController() noexcept;
 	Q_INVOKABLE DialogController * GetHasUpdateDialogController() noexcept;
 	Q_INVOKABLE DialogController * GetRemoveCollectionConfirmDialogController() noexcept;
 	Q_INVOKABLE DialogController * GetRemoveDatabaseConfirmDialogController() noexcept;
 
 
 private: // property getters
-	bool GetAddMode() const noexcept;
 	const QString & GetCurrentCollectionId() const noexcept;
 	const QString & GetError() const noexcept;
 
 private: // property setters
-	void SetAddMode(bool value);
 	void SetCurrentCollectionId(const QString & id);
 	void SetError(const QString & error);
 

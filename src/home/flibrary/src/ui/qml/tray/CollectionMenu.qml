@@ -14,7 +14,7 @@ Menu
     MenuItem
 	{
 		text: qsTranslate("Tray", "Add new collection...")
-		onTriggered: collectionController.addMode = true
+		onTriggered: collectionController.GetAddModeDialogController().visible = true
 	}
 
 	DynamicMenu

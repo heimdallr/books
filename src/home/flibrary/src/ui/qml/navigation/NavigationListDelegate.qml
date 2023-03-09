@@ -35,7 +35,7 @@ Item
 			}
 			else if (uiSettings.viewSourceNavigation == "Groups")
 			{
-				groupsContextMenuID.navigationId = Id
+				guiController.GetGroupsModelController().SetCurrentId(Id)
 				groupsContextMenuID.popup()
 			}
 		}

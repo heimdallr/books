@@ -106,17 +106,17 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="13"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="32"/>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="24"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="41"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="38"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="50"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
@@ -172,10 +172,10 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="12"/>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="23"/>
-        <location filename="../../src/ui/qml/dialogs/CollectionMenuDialogs.qml" line="37"/>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="24"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="15"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="31"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="40"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="49"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
         <source>Warning</source>
         <translation>Внимание</translation>
@@ -184,52 +184,52 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="161"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="163"/>
         <source>Name cannot be empty</source>
         <translation>Имя не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="163"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="165"/>
         <source>Database file name cannot be empty</source>
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="167"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
         <source>Index file (*.inpx) not found</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="169"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="171"/>
         <source>Bad database file extension (.inpx)</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="176"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="178"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="179"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="181"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="181"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="183"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="183"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="185"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="185"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="187"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена: %1</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/CollectionController.cpp" line="257"/>
+        <location filename="../../src/controllers/CollectionController.cpp" line="346"/>
         <source>No write access to %1</source>
         <translation>Нет достапа на запись в %1</translation>
     </message>
@@ -316,17 +316,17 @@ Restart now?</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="25"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="16"/>
         <source>Are you sure you want to delete the group?</source>
         <translation>Уверены, что хотите удалить группу?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="33"/>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="23"/>
         <source>Create new...</source>
         <translation>Создать новую...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="39"/>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="29"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
@@ -334,12 +334,12 @@ Restart now?</source>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="135"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="138"/>
         <source>A group with the same name already exists</source>
         <translation>Группа с таким именем уже существует</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="240"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="243"/>
         <source>Group name too long</source>
         <translation>Слишком длинное имя для группы</translation>
     </message>

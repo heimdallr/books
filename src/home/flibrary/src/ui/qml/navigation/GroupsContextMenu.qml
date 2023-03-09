@@ -8,24 +8,13 @@ Menu
 {
 	id: groupsContextMenuID
 
-	readonly property var controller: guiController.GetGroupsModelController()
-	property int navigationId: 0
+	readonly property var modelController: guiController.GetGroupsModelController()
 
 	InputNewGroupName
 	{
 		id: inputGroupNameDialogID
-		controller: groupsContextMenuID.controller
-		onAccepted: groupsContextMenuID.controller.CreateNewGroup(text)
-	}
-
-	MessageDialog
-	{
-	    id: removeConfirmDialogID
-	    title: qsTranslate("Common", "Warning")
-	    text: qsTranslate("GroupsMenu", "Are you sure you want to delete the group?")
-		standardButtons: StandardButton.Yes | StandardButton.No
-		icon: StandardIcon.Warning
-	    onYes: controller.RemoveGroup(navigationId)
+		controller: modelController
+		onAccepted: controller.CreateNewGroup(text)
 	}
 
 	MenuItem
@@ -37,6 +26,6 @@ Menu
 	MenuItem
 	{
 		text: qsTranslate("GroupsMenu", "Remove")
-		onTriggered: removeConfirmDialogID.open()
+		onTriggered: modelController.GetRemoveGroupConfirmDialogController().visible = true
 	}
 }

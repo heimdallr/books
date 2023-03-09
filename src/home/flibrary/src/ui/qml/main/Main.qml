@@ -38,7 +38,7 @@ ApplicationWindow
 	AddCollection
 	{
 		id: addCollectionID
-		visible: collectionController.addMode
+		visible: collectionController.GetAddModeDialogController().visible
 	}
 
 	Loader

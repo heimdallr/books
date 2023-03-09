@@ -17,6 +17,7 @@ class IDatabase;
 
 namespace HomeCompa::Flibrary {
 
+class DialogController;
 struct Book;
 
 class GroupsModelController
@@ -46,7 +47,8 @@ public:
 	Q_INVOKABLE void RemoveFromAll();
 	Q_INVOKABLE void CheckNewName(const QString & name);
 	Q_INVOKABLE void CreateNewGroup(const QString & name);
-	Q_INVOKABLE void RemoveGroup(long long groupId);
+	Q_INVOKABLE void SetCurrentId(long long groupId) noexcept;
+	Q_INVOKABLE DialogController * GetRemoveGroupConfirmDialogController() noexcept;
 
 public:
 	GroupsModelController(Util::IExecutor & executor, DB::IDatabase & db, QObject * parent = nullptr);

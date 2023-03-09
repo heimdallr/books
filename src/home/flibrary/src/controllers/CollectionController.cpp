@@ -111,12 +111,12 @@ struct CollectionController::Impl
 {
 	IObserver & observer;
 	Collections collections { Collection::Deserialize(observer.GetSettings()) };
-	bool addMode { collections.empty() };
 	QString error;
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
 	PropagateConstPtr<Util::IExecutor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
 
+	DialogController addModeDialogController;
 	DialogController hasUpdateDialogController { [&](QMessageBox::StandardButton button){ return OnHasUpdateDialogButtonClicked(button); } };
 	DialogController removeCollectionConfirmDialogController { [&](QMessageBox::StandardButton button){ return OnRemoveCollectionConfirmDialogButtonClicked(button); } };
 	DialogController removeDatabaseConfirmDialogController { [&](QMessageBox::StandardButton button){ return OnRemoveDatabaseConfirmDialogButtonClicked(button); } };
@@ -128,6 +128,8 @@ struct CollectionController::Impl
 		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
 
 		collections.erase(std::ranges::remove_if(collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), collections.end());
+
+		addModeDialogController.SetVisible(collections.empty());
 	}
 
 	void OnCollectionsChanged()
@@ -137,7 +139,7 @@ struct CollectionController::Impl
 			currentCollectionId.clear();
 			observer.HandleCurrentCollectionChanged(Collection());
 
-			m_self.SetAddMode(true);
+			addModeDialogController.SetVisible(true);
 			return;
 		}
 
@@ -342,7 +344,7 @@ void CollectionController::CreateCollection(QString name, QString db, QString fo
 	if (!QFile(db).open(QIODevice::WriteOnly))
 	{
 		Util::Set(m_impl->error, QApplication::translate("Error", "No write access to %1").arg(db), *this, &CollectionController::ErrorChanged);
-		return SetAddMode(true);
+		return m_impl->addModeDialogController.SetVisible(true);
 	}
 
 	emit ShowLog(true);
@@ -379,6 +381,11 @@ int CollectionController::CollectionsCount() const noexcept
 	return static_cast<int>(m_impl->collections.size());
 }
 
+DialogController * CollectionController::GetAddModeDialogController() noexcept
+{
+	return &m_impl->addModeDialogController;
+}
+
 DialogController * CollectionController::GetHasUpdateDialogController() noexcept
 {
 	return &m_impl->hasUpdateDialogController;
@@ -394,11 +401,6 @@ DialogController * CollectionController::GetRemoveDatabaseConfirmDialogControlle
 	return &m_impl->removeDatabaseConfirmDialogController;
 }
 
-bool CollectionController::GetAddMode() const noexcept
-{
-	return m_impl->addMode;
-}
-
 const QString & CollectionController::GetCurrentCollectionId() const noexcept
 {
 	return m_impl->currentCollectionId;
@@ -407,12 +409,6 @@ const QString & CollectionController::GetCurrentCollectionId() const noexcept
 const QString & CollectionController::GetError() const noexcept
 {
 	return m_impl->error;
-}
-
-void CollectionController::SetAddMode(const bool value)
-{
-	m_impl->addMode = value;
-	emit AddModeChanged();
 }
 
 void CollectionController::SetCurrentCollectionId(const QString & id)

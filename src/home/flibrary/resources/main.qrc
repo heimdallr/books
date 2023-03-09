@@ -66,7 +66,6 @@
 		<file alias="InputNewGroupName.qml">../src/ui/qml/dialogs/InputNewGroupName.qml</file>
 		<file alias="InputStringDialog.qml">../src/ui/qml/dialogs/InputStringDialog.qml</file>
 		<file alias="Dialogs.qml">../src/ui/qml/dialogs/Dialogs.qml</file>
-		<file alias="CollectionMenuDialogs.qml">../src/ui/qml/dialogs/CollectionMenuDialogs.qml</file>
 		<file alias="MessageDialogCustom.qml">../src/ui/qml/dialogs/MessageDialogCustom.qml</file>
 	</qresource>
 

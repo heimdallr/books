@@ -147,7 +147,7 @@ Window
 			{
 				uiSettings.pathRecentCollectionDatabase = collectionDatabaseID.text
 				uiSettings.pathResentCollectionArchive = collectionArchiveFolderID.text
-				collectionController.addMode = false
+				collectionController.GetAddModeDialogController().visible = false
 			}
 
 			CustomText
@@ -201,7 +201,7 @@ Window
 				Layout.preferredHeight: uiSettings.heightRow
 			    text: qsTranslate("Common", "Cancel")
 				enabled: collectionController.CollectionsCount() > 0
-				onClicked: collectionController.addMode = false
+				onClicked: collectionController.GetAddModeDialogController().visible = false
 			}
 		}
 	}

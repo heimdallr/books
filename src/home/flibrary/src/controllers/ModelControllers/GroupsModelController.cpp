@@ -8,12 +8,13 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "constants/ObjectConnectorConstant.h"
-
 #include "util/IExecutor.h"
 
+#include "constants/ObjectConnectorConstant.h"
 #include "constants/UserData/groups.h"
 #include "constants/UserData/UserData.h"
+
+#include "controllers/DialogController.h"
 
 #include "models/Book.h"
 #include "models/SimpleModel.h"
@@ -98,6 +99,7 @@ struct GroupsModelController::Impl
 	PropagateConstPtr<QAbstractItemModel> removeFromModel { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel({})) };
 
 	long long bookId { -1 };
+	long long currentGroupId { -1 };
 
 	bool checkNewNameInProgress { false };
 	bool toAddExists { false };
@@ -106,6 +108,8 @@ struct GroupsModelController::Impl
 	QString checkName;
 
 	QString errorText;
+
+	DialogController removeGroupConfirmDialogController { [&](QMessageBox::StandardButton button){ return OnRemoveGroupConfirmDialogButtonClicked(button); } };
 
 	Impl(GroupsModelController & self, Util::IExecutor & executor_, DB::IDatabase & db_)
 		: executor(executor_)
@@ -121,6 +125,14 @@ struct GroupsModelController::Impl
 	}
 
 private:
+	bool OnRemoveGroupConfirmDialogButtonClicked(const QMessageBox::StandardButton button)
+	{
+		if (button == QMessageBox::Yes)
+			RemoveGroup();
+
+		return true;
+	}
+
 	void Check()
 	{
 		executor({ "Check new group name",[this, name = checkName.toUpper().toStdString()]
@@ -138,6 +150,20 @@ private:
 				checkNewNameInProgress = false;
 				emit m_self.CheckNewNameInProgressChanged();
 			};
+		} });
+	}
+
+	void RemoveGroup()
+	{
+		executor({ "Remove group", [this]
+		{
+			const auto transaction = db.CreateTransaction();
+			const auto command = transaction->CreateCommand("delete from Groups_User where GroupId = ?");
+			command->Bind(0, currentGroupId);
+			command->Execute();
+			transaction->Commit();
+			currentGroupId = -1;
+			return [] {};
 		} });
 	}
 
@@ -259,17 +285,14 @@ void GroupsModelController::CreateNewGroup(const QString & name)
 	} });
 }
 
-void GroupsModelController::RemoveGroup(long long groupId)
+void GroupsModelController::SetCurrentId(long long groupId) noexcept
 {
-	m_impl->executor({ "Remove group", [this, groupId]
-	{
-		const auto transaction = m_impl->db.CreateTransaction();
-		const auto command = transaction->CreateCommand("delete from Groups_User where GroupId = ?");
-		command->Bind(0, groupId);
-		command->Execute();
-		transaction->Commit();
-		return [] {};
-	} });
+	m_impl->currentGroupId = groupId;
+}
+
+DialogController * GroupsModelController::GetRemoveGroupConfirmDialogController() noexcept
+{
+	return &m_impl->removeGroupConfirmDialogController;
 }
 
 bool GroupsModelController::IsCheckNewNameInProgress() const noexcept
