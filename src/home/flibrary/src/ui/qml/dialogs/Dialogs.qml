@@ -5,6 +5,20 @@ Item
 {
 	Item
 	{
+		id: restartConfirmDialogID
+
+		MessageDialogCustom
+		{
+			controller: guiController.GetRestartDialogController()
+		    title: qsTranslate("Common", "Warning")
+		    text: qsTranslate("Collection", "You must restart the application to apply the changes.\nRestart now?")
+			standardButtons: StandardButton.Yes | StandardButton.No
+			icon: StandardIcon.Question
+		}
+	}
+
+	Item
+	{
 		id: groupDialogsID
 
 		readonly property var controller: guiController.GetGroupsModelController()

@@ -386,6 +386,11 @@ public:
 		return m_collectionController.get();
 	}
 
+	DialogController * GetRestartDialogController() noexcept
+	{
+		return &m_restartDialogController;
+	}
+
 	void LogCollectionStatistics()
 	{
 		(*m_executor)({ "Get collection statistics", [&]
@@ -661,6 +666,8 @@ private:
 	ViewSourceController m_viewSourceNavigationController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation, HomeCompa::Constant::UiSettings_ns::viewSourceNavigation_default, GetViewSourceModelItems(g_viewSourceNavigationModelItems) };
 	ViewSourceController m_viewSourceBooksController { *m_uiSettingsSrc, HomeCompa::Constant::UiSettings_ns::viewSourceBooks, HomeCompa::Constant::UiSettings_ns::viewSourceBooks_default, GetViewSourceModelItems(g_viewSourceBooksModelItems) };
 
+	DialogController m_restartDialogController { [](const QMessageBox::StandardButton button) { if (button == QMessageBox::Yes) QCoreApplication::exit(1234); return true; } };
+
 	QQmlApplicationEngine m_qmlEngine;
 
 	QTimer m_groupsChangedTimer;
@@ -735,6 +742,11 @@ ComboBoxController * GuiController::GetLanguageComboBoxBooksController() noexcep
 CollectionController * GuiController::GetCollectionController()
 {
 	return m_impl->GetCollectionController();
+}
+
+DialogController * GuiController::GetRestartDialogController() noexcept
+{
+	return m_impl->GetRestartDialogController();
 }
 
 void GuiController::LogCollectionStatistics()

@@ -11,16 +11,6 @@ DynamicMenu
 
 	readonly property string currentLanguage: localeController.locale
 
-	MessageDialog
-	{
-	    id: restartConfirmDialogID
-	    title: qsTranslate("Common", "Warning")
-	    text: qsTranslate("Collection", "You must restart the application to apply the changes.\nRestart now?")
-		standardButtons: StandardButton.Yes | StandardButton.No
-		icon: StandardIcon.Question
-	    onYes: Qt.exit(1234)
-	}
-
 	model: localeController.locales
 	delegate: MenuItem
 	{
@@ -30,7 +20,7 @@ DynamicMenu
 		onTriggered: if (modelData !== localeMenuID.currentLanguage)
 		{
 			localeController.locale = modelData
-			restartConfirmDialogID.open()
+			guiController.GetRestartDialogController().visible = true
 		}
 	}
 }

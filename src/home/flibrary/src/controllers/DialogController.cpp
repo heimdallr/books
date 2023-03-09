@@ -16,7 +16,11 @@ DialogController::DialogController(Functor functor, QObject * parent)
 void DialogController::OnButtonClicked(const QVariant & value)
 {
 	const auto button = static_cast<QMessageBox::StandardButton>(value.toInt());
-	QTimer::singleShot(0, [this, visible = !m_functor(button)] { SetVisible(visible); });
+	QTimer::singleShot(0, [visible = !m_functor(button), obj = QPointer(this)]
+	{
+		if (obj)
+			obj->SetVisible(visible);
+	});
 }
 
 bool DialogController::IsVisible() const noexcept
