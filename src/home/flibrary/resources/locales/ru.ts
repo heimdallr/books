@@ -106,22 +106,22 @@
 <context>
     <name>Collection</name>
     <message>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="32"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="56"/>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="41"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="65"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="50"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="74"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="18"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="24"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
@@ -131,27 +131,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="401"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="411"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="404"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="414"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="405"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="415"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="406"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="416"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="407"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="417"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -172,11 +172,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="15"/>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="31"/>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="40"/>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="49"/>
-        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="17"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="23"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="39"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="55"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="64"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="73"/>
         <source>Warning</source>
         <translation>Внимание</translation>
     </message>
@@ -272,18 +272,18 @@ Restart now?</source>
         <translation>Приложения (*.exe)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="441"/>
         <location filename="../../src/controllers/GuiController.cpp" line="451"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="461"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation>Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="441"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
         <source>Specify a file to export user data</source>
         <translation>Укажите файл экспорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="461"/>
         <source>Select a file to import user data</source>
         <translation>Выберите файл импорта пользовательских данных</translation>
     </message>
@@ -316,17 +316,17 @@ Restart now?</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="16"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="40"/>
         <source>Are you sure you want to delete the group?</source>
         <translation>Уверены, что хотите удалить группу?</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="23"/>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="22"/>
         <source>Create new...</source>
         <translation>Создать новую...</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="29"/>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="28"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
@@ -334,12 +334,12 @@ Restart now?</source>
 <context>
     <name>GroupsModel</name>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="138"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="147"/>
         <source>A group with the same name already exists</source>
         <translation>Группа с таким именем уже существует</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="243"/>
+        <location filename="../../src/controllers/ModelControllers/GroupsModelController.cpp" line="266"/>
         <source>Group name too long</source>
         <translation>Слишком длинное имя для группы</translation>
     </message>
@@ -704,19 +704,19 @@ Restart now?</source>
         <translation>Помощь</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Help.qml" line="12"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="13"/>
         <source>About Flibrary</source>
         <translation>О Flibrary</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Help.qml" line="13"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="14"/>
         <source>Another e-library book cataloger
 Version: %1</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки
 Версия: %1</translation>
     </message>
     <message>
-        <location filename="../../src/ui/qml/tray/Help.qml" line="21"/>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="11"/>
         <source>About Flibrary...</source>
         <translation>О Flibrary...</translation>
     </message>
