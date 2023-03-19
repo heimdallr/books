@@ -18,11 +18,6 @@ Item
 		text: Title
 	}
 
-	GroupsContextMenu
-	{
-		id: groupsContextMenuID
-	}
-
 	MouseArea
 	{
 		anchors.fill: parent
@@ -30,14 +25,9 @@ Item
 		onClicked: (mouse)=>
 		{
 			if (mouse.button == Qt.LeftButton)
-			{
 				Click = true
-			}
-			else if (uiSettings.viewSourceNavigation == "Groups")
-			{
-				guiController.GetGroupsModelController().SetCurrentId(Id)
-				groupsContextMenuID.popup()
-			}
+			else
+				applicationWindowID.showNavigationContextMenu(Id)
 		}
 	}
 }

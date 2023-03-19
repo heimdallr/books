@@ -23,16 +23,23 @@ ApplicationWindow
 	onXChanged: if (completed) uiSettings.posXMainWindow = x
 	onYChanged: if (completed) uiSettings.posYMainWindow = y
 
-	Component.onCompleted:
+	function showNavigationContextMenu(id)
 	{
-		if ((x = uiSettings.posXMainWindow) < 0)
-			x = (screen.width - width) / 2
-		if ((y = uiSettings.posYMainWindow) < 0)
-			y = (screen.height - height) / 2
+		contextMenuID.source = ""
+		switch(uiSettings.viewSourceNavigation)
+		{
+			case "Groups":
+				guiController.GetGroupsModelController().SetCurrentId(id)
+				contextMenuID.source = "qrc:/Navigation/GroupsContextMenu.qml"
+			break
+		}
+	}
 
-		completed = true;
-
-		log.Debug(`ApplicationWindow created`)
+	Loader
+	{
+		id: contextMenuID
+		onStatusChanged: if (status == Loader.Ready)
+			item.popup()
 	}
 
 	AddCollection
@@ -52,5 +59,17 @@ ApplicationWindow
 	{
 		anchors.fill: parent
 		visible: log.logMode
+	}
+
+	Component.onCompleted:
+	{
+		if ((x = uiSettings.posXMainWindow) < 0)
+			x = (screen.width - width) / 2
+		if ((y = uiSettings.posYMainWindow) < 0)
+			y = (screen.height - height) / 2
+
+		completed = true;
+
+		log.Debug(`ApplicationWindow created`)
 	}
 }
