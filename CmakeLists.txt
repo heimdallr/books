@@ -11,6 +11,7 @@ add_compile_options(
 	/wd4820 # bytes padding added after data member
 	/wd5045 # compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
 	/we5038 # reorder
+	/MP
 )
 add_definitions(
 	-DNOMINMAX
