@@ -51,8 +51,8 @@ cmake ^
 -DCMAKE_GENERATOR_PLATFORM=%GENERATOR_PLATFORM% ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
 -DCMAKE_INSTALL_PREFIX=%BUILD_DIR%\..\.. ^
--DQT_DIR=%QT_DIR%/lib/cmake/Qt5 ^
--DQt5_DIR=%QT_DIR%/lib/cmake/Qt5 ^
+-DQT_DIR=%QT_DIR%/lib/cmake/Qt6 ^
+-DQt6_DIR=%QT_DIR%/lib/cmake/Qt6 ^
 -DZLIB_ROOT=%BUILD_DIR%\..\.. ^
 -DZLIB_INCLUDE_DIR=%BUILD_DIR%\..\..\include\zlib ^
 %* ^
