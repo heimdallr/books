@@ -19,9 +19,3 @@
 [submodule "src/ext/plog"]
 	path = src/ext/plog
 	url = ../plog.git
-[submodule "src/ext/zlib"]
-	path = src/ext/zlib
-	url = ../zlib.git
-[submodule "src/ext/quazip"]
-	path = src/ext/quazip
-	url = ../quazip.git
