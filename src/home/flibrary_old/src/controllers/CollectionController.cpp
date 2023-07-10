@@ -12,9 +12,9 @@
 #include "fnd/algorithm.h"
 #include "models/SimpleModel.h"
 
-#include "util/constant.h"
-#include "util/inpx.h"
-#include "util/StrUtil.h"
+#include "inpx/src/util/constant.h"
+#include "inpx/src/util/inpx.h"
+#include "inpx/src/util/StrUtil.h"
 
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"

@@ -2,7 +2,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "plogLib.h"
+#include "loggingLib.h"
 
 namespace plog {
 class PLOG_LINKAGE IAppender;
@@ -10,7 +10,7 @@ class PLOG_LINKAGE IAppender;
 
 namespace HomeCompa::Log {
 
-class PLOG_API LogAppender
+class LOGGING_API LogAppender
 {
 	NON_COPY_MOVABLE(LogAppender)
 

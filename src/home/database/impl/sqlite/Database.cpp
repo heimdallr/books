@@ -8,9 +8,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/observable.h"
 
-#include "database/interface/IDatabase.h"
-#include "database/interface/ITransaction.h"
-#include "database/interface/IQuery.h"
+#include "IDatabase.h"
+#include "ITransaction.h"
+#include "IQuery.h"
 
 #include "sqlite3ppext.h"
 

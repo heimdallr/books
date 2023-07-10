@@ -9,8 +9,7 @@
 #include <numeric>
 #include <set>
 
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include <quazip>
 
 #include <plog/Log.h>
 

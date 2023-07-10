@@ -32,6 +32,9 @@ add_definitions(
 
 set(SCRIPTS_PATH "src/ext/scripts")
 include("${SCRIPTS_PATH}/cmake/initialize.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/boost.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/Hypodermic.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/plog.cmake")
 include("${SCRIPTS_PATH}/cmake/thirdparty/zlib.cmake")
 include("${SCRIPTS_PATH}/cmake/thirdparty/qt.cmake")
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
@@ -67,15 +70,8 @@ include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 include("src/ext/fmt.cmake")
 
-include("src/home/plog.cmake")
-include("src/home/fnd.cmake")
-include("src/home/util.cmake")
-include("src/home/database.cmake")
+include("src/home/home.cmake")
 
-include("src/home/inpx.cmake")
-include("src/home/flibrary_old.cmake")
-
-file(GLOB THIRDPARTY_BINARIES "${CMAKE_CURRENT_BINARY_DIR}-thirdparty/bin/*.dll")
-append(PREPARE_WORKSPACE_FILES ${THIRDPARTY_BINARIES})
+include("src/home/flibrary_old/src/flibrary.cmake")
 
 #include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")

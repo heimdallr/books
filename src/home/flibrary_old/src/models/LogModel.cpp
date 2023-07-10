@@ -5,11 +5,13 @@
 #include <mutex>
 
 #include <plog/Appenders/IAppender.h>
+//#include <plog/Log.h>
+#include <plog/Util.h>
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/observable.h"
 
-#include "plog/LogAppender.h"
+#include "logging/LogAppender.h"
 
 #include "util/FunctorExecutionForwarder.h"
 #include "util/Settings.h"
@@ -63,8 +65,7 @@ private: // plog::IAppender
 	void write(const plog::Record & record) override
 	{
 		std::lock_guard lock(m_itemsGuard);
-
-		auto splitted = QString::fromStdWString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
+		auto splitted = QString::fromStdString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
 		if (splitted.isEmpty())
 			return;
 

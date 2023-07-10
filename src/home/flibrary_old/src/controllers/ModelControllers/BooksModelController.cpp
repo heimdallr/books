@@ -10,14 +10,14 @@
 
 #include <plog/Log.h>
 
-#include "quazip.h"
+#include <quazip>
 
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
 #include "util/IExecutor.h"
 #include "util/Settings.h"
-#include "util/StrUtil.h"
+#include "inpx/src/util/StrUtil.h"
 
 #include "constants/Localization.h"
 #include "constants/ObjectConnectorConstant.h"

@@ -3,7 +3,7 @@
 
 #include "sqlite3ppext.h"
 
-#include "database/interface/IQuery.h"
+#include "IQuery.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 

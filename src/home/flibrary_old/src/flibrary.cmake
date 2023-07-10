@@ -86,16 +86,12 @@ GenerateTranslations(
 AddTarget(
 	NAME flibrary_old
 	TYPE app
-	WIN_APP_ICON "${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/icons/main.ico"
+	WIN_APP_ICON "${CMAKE_CURRENT_LIST_DIR}/../resources/icons/main.ico"
 	PROJECT_GROUP App
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary_old/src"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
 	INCLUDE_DIRS
-		"${CMAKE_CURRENT_LIST_DIR}"
-		"${CMAKE_CURRENT_LIST_DIR}/../ext"
-		"${CMAKE_CURRENT_LIST_DIR}/../ext/include"
-		"${CMAKE_CURRENT_LIST_DIR}/../ext/plog/include"
-		"${CMAKE_CURRENT_LIST_DIR}/inpx/src"
-		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include"
+		"${CMAKE_CURRENT_LIST_DIR}/../.."
+		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
 #	QRC
@@ -117,7 +113,7 @@ AddTarget(
 	QT_PLUGINS
 		QJpeg
 	QRC
-		"${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/main.qrc"
+		"${CMAKE_CURRENT_LIST_DIR}/../resources/main.qrc"
 	LINK_TARGETS
 		sqlite
 		sqlite3pp
@@ -126,22 +122,23 @@ AddTarget(
 		Fnd
 		InpxLib
 		MyHomeLibSQLIteExt
-		plog
+		logging
 		Util
 	MODULES
-		QuaZip::QuaZip
+		plog
+		quazip
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
 )
 
-file(GLOB resources ${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/data/*.*)
+file(GLOB resources ${CMAKE_CURRENT_LIST_DIR}/../resources/data/*.*)
 file(COPY ${resources} DESTINATION "${BIN_DIR}")
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/script/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/../../script/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h @ONLY)
 
 add_custom_command(TARGET flibrary_old
     POST_BUILD
-    COMMAND ${CMAKE_CURRENT_LIST_DIR}/script/build.bat
+    COMMAND ${CMAKE_CURRENT_LIST_DIR}/../../script/build.bat
 )

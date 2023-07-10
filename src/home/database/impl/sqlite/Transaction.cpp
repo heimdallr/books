@@ -2,9 +2,9 @@
 
 #include "sqlite3ppext.h"
 
-#include "database/interface/ICommand.h"
-#include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
+#include "ICommand.h"
+#include "IQuery.h"
+#include "ITransaction.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 

@@ -9,7 +9,7 @@
 
 #include <plog/Log.h>
 
-#include "quazip.h"
+#include <quazip>
 
 #include "fnd/FindPair.h"
 

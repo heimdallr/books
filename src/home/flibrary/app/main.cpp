@@ -1,12 +1,9 @@
 #include <QApplication>
-#include <QIcon>
 #include <QStandardPaths>
 
-#include <plog/Appenders/RollingFileAppender.h>
-#include <plog/Formatters/TxtFormatter.h>
+#include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
-#include "controllers/GuiController.h"
 #include "constants/ProductConstant.h"
 #include "logging/init.h"
 
@@ -29,10 +26,10 @@ int main(int argc, char * argv[])
 
 		while (true)
 		{
-			GuiController guiController;
-			app.installEventFilter(&guiController);
+//			GuiController guiController;
+//			app.installEventFilter(&guiController);
 
-			guiController.Start();
+//			guiController.Start();
 
 			if (const auto code = QApplication::exec(); code != 1234)
 			{
@@ -43,11 +40,11 @@ int main(int argc, char * argv[])
 			PLOGI << "App restarted";
 		}
 	}
-	catch(const std::exception & ex)
+	catch (const std::exception & ex)
 	{
 		PLOGF << "App failed with " << ex.what();
 	}
-	catch(...)
+	catch (...)
 	{
 		PLOGF << "App failed with unknown error";
 	}
