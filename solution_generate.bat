@@ -12,15 +12,15 @@ if NOT [%ERRORLEVEL%]==[0] goto end
 set originalDir=%CD%
 if [%WIN64BUILD%]==[true] (
 	set GENERATOR_PLATFORM=x64
-	set PLATFORM="64"
+	set PLATFORM=64
 ) else (
 	set GENERATOR_PLATFORM=Win32
-	set PLATFORM=
+	set PLATFORM=86
 )
 
-echo | set /p=%PLATFORM%>%TEMP%\platform.ini
+echo | set /p="%PLATFORM%">%TEMP%\platform.ini
 
-set BUILD_DIR=build%PLATFORM%
+set BUILD_DIR=build\x%PLATFORM%
 mkdir %~dp0%BUILD_DIR%
 cd %~dp0%BUILD_DIR%
 del *.sln

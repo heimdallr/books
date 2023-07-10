@@ -37,8 +37,7 @@ AddTarget(
 		sqlite
 		sqlite3pp
 	MODULES
-		qt
-		quazip
+		QuaZip::QuaZip
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

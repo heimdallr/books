@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 project(books)
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(PLATFORM "x64")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(PLATFORM "x86")
+endif()
+
 add_compile_options(
 	/std:c++latest
 	/wd4250 # inherits via dominance
@@ -24,16 +30,21 @@ add_definitions(
 	${WINVER}
 )
 
+set(SCRIPTS_PATH "src/ext/scripts")
+include("${SCRIPTS_PATH}/cmake/initialize.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/zlib.cmake")
+include("${SCRIPTS_PATH}/cmake/thirdparty/qt.cmake")
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+include("${SCRIPTS_PATH}/cmake/thirdparty/quazip.cmake")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 set(WARN_DISABLE_DEPRECATED	ON)
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set(SCRIPTS_PATH "src/ext/scripts")
-
-include("${SCRIPTS_PATH}/cmake/initialize.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/ThirdpartyModule.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/quazip.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/qt/qt.cmake")
+#include("${SCRIPTS_PATH}/cmake/thirdparty/ThirdpartyModule.cmake")
 
 include("${SCRIPTS_PATH}/cmake/target.cmake")
 include("${SCRIPTS_PATH}/cmake/GenerateSettingsClass.cmake")
@@ -62,9 +73,9 @@ include("src/home/util.cmake")
 include("src/home/database.cmake")
 
 include("src/home/inpx.cmake")
-include("src/home/flibrary.cmake")
+include("src/home/flibrary_old.cmake")
 
 file(GLOB THIRDPARTY_BINARIES "${CMAKE_CURRENT_BINARY_DIR}-thirdparty/bin/*.dll")
 append(PREPARE_WORKSPACE_FILES ${THIRDPARTY_BINARIES})
 
-include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")
+#include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")
