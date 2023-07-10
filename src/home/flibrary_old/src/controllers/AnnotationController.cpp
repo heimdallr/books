@@ -9,8 +9,7 @@
 
 #include <plog/Log.h>
 
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include "quazip.h"
 
 #include "fnd/FindPair.h"
 
@@ -163,7 +162,7 @@ private:
 		const auto nodeName = name();
 		if (m_mode == XmlParseMode::annotation)
 		{
-			if (nodeName != "annotation")
+			if (nodeName.compare("annotation") != 0)
 			{
 				data.annotation.append(QString("</%1>").arg(nodeName));
 				return;

@@ -21,7 +21,7 @@ void RestoreBooks1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 		"from Books "
 		"where Folder = ? and FileName = ?"
 		;
-	assert(reader.name() == RootNode);
+	assert(reader.name().compare(RootNode) == 0);
 
 	const auto transaction = db.CreateTransaction();
 	transaction->CreateCommand("delete from Books_User")->Execute();
@@ -31,13 +31,13 @@ void RestoreBooks1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 	while (!reader.atEnd() && !reader.hasError())
 	{
 		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::EndElement && reader.name() == RootNode)
+		if (token == QXmlStreamReader::EndElement && reader.name().compare(RootNode) == 0)
 			return transaction->Commit();
 
 		if (token != QXmlStreamReader::StartElement)
 			continue;
 
-		assert(reader.name() == Flibrary::Constant::ITEM);
+		assert(reader.name().compare(Flibrary::Constant::ITEM) == 0);
 
 		const auto attributes = reader.attributes();
 		assert(true
@@ -56,7 +56,7 @@ void RestoreBooks1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 void RestoreGroups1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 {
 	using namespace Constant::UserData;
-	assert(reader.name() == Groups::RootNode);
+	assert(reader.name().compare(Groups::RootNode) == 0);
 
 	static constexpr auto addBookToGroupCommandText =
 		"insert into Groups_List_User(GroupID, BookID) "
@@ -76,7 +76,7 @@ void RestoreGroups1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 	while (!reader.atEnd() && !reader.hasError())
 	{
 		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::EndElement && reader.name() == Groups::RootNode)
+		if (token == QXmlStreamReader::EndElement && reader.name().compare(Groups::RootNode) == 0)
 			return transaction->Commit();
 
 		if (token != QXmlStreamReader::StartElement)
@@ -85,7 +85,7 @@ void RestoreGroups1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 		const auto mode = reader.name();
 		const auto attributes = reader.attributes();
 
-		if (mode == Groups::GroupNode)
+		if (mode.compare(Groups::GroupNode) == 0)
 		{
 			assert(attributes.hasAttribute(Constant::TITLE));
 			const auto title = attributes.value(Constant::TITLE).toString().toStdString();
@@ -97,7 +97,7 @@ void RestoreGroups1(class DB::IDatabase & db, class QXmlStreamReader & reader)
 			continue;
 		}
 
-		if (mode == Constant::ITEM)
+		if (mode.compare(Constant::ITEM) == 0)
 		{
 			assert(groupId >= 0);
 			assert(attributes.hasAttribute(Books::Folder) && attributes.hasAttribute(Books::FileName));

@@ -68,7 +68,7 @@ bool FindElement(QXmlStreamReader & reader, std::string_view name)
 	while (!reader.atEnd() && !reader.hasError())
 	{
 		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::StartElement && reader.name() == name.data())
+		if (token == QXmlStreamReader::StartElement && reader.name().compare(name.data()) == 0)
 			return true;
 	}
 

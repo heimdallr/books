@@ -79,16 +79,16 @@ set(LOCALES
 	)
 GenerateTranslations(
 	NAME "flibrary"
-	PATH "${CMAKE_CURRENT_LIST_DIR}/flibrary"
+	PATH "${CMAKE_CURRENT_LIST_DIR}/flibrary_old"
 	LOCALES ${LOCALES}
 	)
 
 AddTarget(
-	NAME flibrary
-	TYPE app_bundle
-	WIN_APP_ICON "${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/icons/main.ico"
+	NAME flibrary_old
+	TYPE app
+	WIN_APP_ICON "${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/icons/main.ico"
 	PROJECT_GROUP App
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary/src"
+	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/flibrary_old/src"
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}"
 		"${CMAKE_CURRENT_LIST_DIR}/../ext"
@@ -98,8 +98,8 @@ AddTarget(
 		"${CMAKE_CURRENT_BINARY_DIR}-thirdparty/include"
 	SOURCES
 		"${CMAKE_CURRENT_BINARY_DIR}/Settings/moc_UiSettings.cpp"
-	QRC
-		"${CMAKE_CURRENT_BINARY_DIR}/Resources/flibrary_qm.qrc"
+#	QRC
+#		"${CMAKE_CURRENT_BINARY_DIR}/Resources/flibrary_qm.qrc"
 	QT_USE
 		Core
 		Widgets
@@ -117,7 +117,7 @@ AddTarget(
 	QT_PLUGINS
 		QJpeg
 	QRC
-		"${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/main.qrc"
+		"${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/main.qrc"
 	LINK_TARGETS
 		sqlite
 		sqlite3pp
@@ -129,20 +129,19 @@ AddTarget(
 		plog
 		Util
 	MODULES
-		qt
-		quazip
+		QuaZip::QuaZip
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
 )
 
-file(GLOB resources ${CMAKE_CURRENT_LIST_DIR}/flibrary/resources/data/*.*)
+file(GLOB resources ${CMAKE_CURRENT_LIST_DIR}/flibrary_old/resources/data/*.*)
 file(COPY ${resources} DESTINATION "${BIN_DIR}")
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/script/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h @ONLY)
 
-add_custom_command(TARGET flibrary
+add_custom_command(TARGET flibrary_old
     POST_BUILD
     COMMAND ${CMAKE_CURRENT_LIST_DIR}/script/build.bat
 )

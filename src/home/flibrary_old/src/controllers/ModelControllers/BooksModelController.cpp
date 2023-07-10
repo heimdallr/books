@@ -5,12 +5,12 @@
 #include <QAbstractItemModel>
 #include <QCoreApplication>
 #include <QPointer>
+#include <QRegularExpression>
 #include <QTimer>
 
 #include <plog/Log.h>
 
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include "quazip.h"
 
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
@@ -635,7 +635,7 @@ bool Archive(QIODevice & input, const std::filesystem::path & path, const QStrin
 
 QString RemoveIllegalCharacters(QString str)
 {
-	if (str.remove(QRegExp(R"([/\\<>:"\|\?\*])")).isEmpty())
+	if (str.remove(QRegularExpression(R"([/\\<>:"\|\?\*])")).isEmpty())
 		str = "_";
 
 	return str;

@@ -6,8 +6,7 @@
 #include <QTemporaryFile>
 #include <QTimer>
 
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include "quazip.h"
 
 #include <plog/Log.h>
 

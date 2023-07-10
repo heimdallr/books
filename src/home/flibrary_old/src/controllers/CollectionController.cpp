@@ -52,7 +52,7 @@ QString GetFileHash(const QString & fileName)
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 
 	while (const auto readSize = file.read(buf.get(), size))
-		hash.addData(buf.get(), static_cast<int>(readSize));
+		hash.addData(QByteArray(buf.get(), static_cast<int>(readSize)));
 
 	return hash.result().toHex();
 }
