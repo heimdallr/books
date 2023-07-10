@@ -121,7 +121,7 @@ public:
 		: m_db(dbFileName.generic_string().data(), flags)
 		, m_func(m_db)
 	{
-		m_db.load_extension(MHL_SQLITE_EXTENSION);
+		m_db.load_extension("MyHomeLibSQLIteExt");
 		m_func.create("MHL_TRIGGERS_ON", [] (sqlite3pp::ext::context & ctx)
 		{
 			ctx.result(1);
