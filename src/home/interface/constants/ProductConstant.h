@@ -3,7 +3,7 @@
 namespace HomeCompa::Flibrary::Constant {
 
 constexpr auto COMPANY_ID = "HomeCompa";
-constexpr auto PRODUCT_ID = "Flibrary";
+constexpr auto PRODUCT_ID = "Flibrary_new";
 
 constexpr auto UI = "ui";
 

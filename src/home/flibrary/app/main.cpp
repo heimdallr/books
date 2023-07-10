@@ -1,11 +1,15 @@
 #include <QApplication>
+#include <QMainWindow>
 #include <QStandardPaths>
 
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
-#include "constants/ProductConstant.h"
+#include "interface/constants/ProductConstant.h"
+
 #include "logging/init.h"
+
+#include "di_app.h"
 
 #include "Configuration.h"
 
@@ -21,11 +25,19 @@ int main(int argc, char * argv[])
 		PLOGI << "App started";
 		PLOGI << "Commit hash: " << GIT_HASH;
 
-		QApplication app(argc, argv);
-		PLOGD << "QApp created";
-
 		while (true)
 		{
+			QApplication app(argc, argv);
+			PLOGD << "QApplication created";
+
+			std::shared_ptr<Hypodermic::Container> container;
+			Hypodermic::ContainerBuilder builder;
+			di_init(builder, container).swap(container);
+			PLOGD << "DI-container created";
+
+			const auto mainWindow = container->resolve<QMainWindow>();
+			mainWindow->show();
+
 //			GuiController guiController;
 //			app.installEventFilter(&guiController);
 

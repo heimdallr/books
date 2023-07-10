@@ -4,36 +4,35 @@
 #include <QVariant>
 
 #include "fnd/memory.h"
+#include "interface/ISettings.h"
 
 #include "UtilLib.h"
 
 namespace HomeCompa {
 
-class ISettingsObserver;
-
-class UTIL_API Settings
+class UTIL_API Settings : virtual public ISettings
 {
 public:
 	Settings(const QString & organization, const QString & application);
 	~Settings();
 
 public:
-	QVariant Get(const QString & key, const QVariant & defaultValue = {}) const;
-	void Set(const QString & key, const QVariant & value);
+	QVariant Get(const QString & key, const QVariant & defaultValue = {}) const override;
+	void Set(const QString & key, const QVariant & value) override;
 
-	bool HasKey(const QString & key) const;
-	bool HasGroup(const QString & group) const;
+	bool HasKey(const QString & key) const override;
+	bool HasGroup(const QString & group) const override;
 
-	QStringList GetKeys() const;
-	QStringList GetGroups() const;
+	QStringList GetKeys() const override;
+	QStringList GetGroups() const override;
 
-	void Remove(const QString & key);
+	void Remove(const QString & key) override;
 
-	void BeginGroup(const QString & group);
-	void EndGroup();
+	void BeginGroup(const QString & group) override;
+	void EndGroup() override;
 
-	void RegisterObserver(ISettingsObserver * observer);
-	void UnregisterObserver(ISettingsObserver * observer);
+	void RegisterObserver(ISettingsObserver * observer) override;
+	void UnregisterObserver(ISettingsObserver * observer) override;
 
 private:
 	struct Impl;

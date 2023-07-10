@@ -1,0 +1,8 @@
+AddTarget(
+	NAME AppInt
+	TYPE shared_lib
+	SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}
+	PROJECT_GROUP Interface
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
+)
