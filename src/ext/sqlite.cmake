@@ -5,6 +5,8 @@ AddTarget(
 	PROJECT_GROUP Util/SQL
 	COMPILE_DEFINITIONS
 		SQLITE_THREADSAFE=0
+	COMPILER_OPTIONS
+		[ MSVC /wd4996 ] #'GetVersionExA': was declared deprecated
 )
 AddTarget(
 	NAME sqlite3pp
@@ -13,4 +15,6 @@ AddTarget(
 	PROJECT_GROUP Util/SQL
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
+	COMPILER_OPTIONS
+		[ MSVC /wd4267 ] #'argument': conversion from 'size_t' to 'int', possible loss of data
 )
