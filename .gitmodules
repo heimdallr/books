@@ -16,6 +16,3 @@
 [submodule "src/ext/SimpleSaxParser"]
 	path = src/ext/SimpleSaxParser
 	url = ../SimpleSaxParser.git
-[submodule "src/ext/plog"]
-	path = src/ext/plog
-	url = ../plog.git
