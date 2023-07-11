@@ -5,7 +5,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class TreeViewControllerBooks : public ITreeViewController
+class TreeViewControllerBooks : public AbstractTreeViewController
 {
 public:
 	TreeViewControllerBooks();

@@ -16,7 +16,7 @@ public:
 	~LogicFactory() override;
 
 private: // ILogicFactory
-	std::shared_ptr<ITreeViewController> CreateTreeViewController(TreeViewControllerType type) const override;
+	std::shared_ptr<AbstractTreeViewController> CreateTreeViewController(TreeViewControllerType type) const override;
 
 private:
 	struct Impl;

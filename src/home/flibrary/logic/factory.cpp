@@ -24,7 +24,7 @@ LogicFactory::LogicFactory(Hypodermic::Container & container)
 
 LogicFactory::~LogicFactory() = default;
 
-std::shared_ptr<ITreeViewController> LogicFactory::CreateTreeViewController(const TreeViewControllerType type) const
+std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewController(const TreeViewControllerType type) const
 {
 	switch (type)
 	{

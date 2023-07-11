@@ -22,7 +22,7 @@ public:
 public:
 	virtual ~ILogicFactory() = default;
 
-	virtual std::shared_ptr<class ITreeViewController> CreateTreeViewController(enum class TreeViewControllerType type) const = 0;
+	virtual std::shared_ptr<class AbstractTreeViewController> CreateTreeViewController(enum class TreeViewControllerType type) const = 0;
 };
 
 }

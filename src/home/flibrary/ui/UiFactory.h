@@ -18,6 +18,8 @@ public:
 private: // IUiFactory
 	std::shared_ptr<QWidget> CreateTreeViewWidget(TreeViewControllerType type) const override;
 
+	std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const override;
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

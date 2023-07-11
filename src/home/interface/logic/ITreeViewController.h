@@ -14,4 +14,8 @@ public:
 	virtual ~ITreeViewController() = default;
 };
 
+class AbstractTreeViewController : virtual public ITreeViewController
+{
+};
+
 }

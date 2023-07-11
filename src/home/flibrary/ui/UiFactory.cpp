@@ -13,6 +13,8 @@ struct UiFactory::Impl
 {
 	Hypodermic::Container & container;
 
+	mutable std::shared_ptr<AbstractTreeViewController> treeViewController;
+
 	Impl(Hypodermic::Container & container_)
 		: container(container_)
 	{
@@ -28,7 +30,14 @@ UiFactory::~UiFactory() = default;
 
 std::shared_ptr<QWidget> UiFactory::CreateTreeViewWidget(const TreeViewControllerType type) const
 {
-	return std::make_shared<TreeView>(m_impl->container.resolve<ILogicFactory>()->CreateTreeViewController(type));
+	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->CreateTreeViewController(type);
+	return m_impl->container.resolve<TreeView>();
+}
+
+std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const
+{
+	assert(m_impl->treeViewController);
+	return std::move(m_impl->treeViewController);
 }
 
 }

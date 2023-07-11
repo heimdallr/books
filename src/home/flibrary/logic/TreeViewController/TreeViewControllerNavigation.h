@@ -5,7 +5,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class TreeViewControllerNavigation : public ITreeViewController
+class TreeViewControllerNavigation : public AbstractTreeViewController
 {
 public:
 	TreeViewControllerNavigation();
