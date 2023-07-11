@@ -8,10 +8,21 @@
 
 namespace HomeCompa::Log {
 
-LoggingInitializer::LoggingInitializer(const wchar_t * filename)
+struct LoggingInitializer::Impl
 {
-	plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender(filename);
-	LogAppender logAppender(&rollingFileAppender);
+	plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender;
+	LogAppender logAppender;
+
+	Impl(const std::filesystem::path & path)
+		: rollingFileAppender(path.string().data(), 1000000, 1000)
+		, logAppender(&rollingFileAppender)
+	{
+	}
+};
+
+LoggingInitializer::LoggingInitializer(const std::filesystem::path & path)
+	: m_impl(path)
+{
 }
 
 LoggingInitializer::~LoggingInitializer() = default;

@@ -7,6 +7,7 @@
 namespace HomeCompa {
 class ILogicFactory;
 class ISettings;
+class IUiFactory;
 }
 
 namespace HomeCompa::Flibrary {
@@ -15,6 +16,7 @@ class MainWindow : public QMainWindow
 {
 public:
     MainWindow(std::shared_ptr<ILogicFactory> logicFactory
+        , std::shared_ptr<IUiFactory> uiFactory
         , std::shared_ptr<ISettings> settings
         , QWidget * parent = nullptr);
     ~MainWindow() override;

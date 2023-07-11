@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fnd/memory.h"
+
 #include "AppIntLib.h"
 
 namespace HomeCompa {
@@ -19,6 +21,8 @@ public:
 
 public:
 	virtual ~ILogicFactory() = default;
+
+	virtual std::shared_ptr<class ITreeViewController> CreateTreeViewController(enum class TreeViewControllerType type) const = 0;
 };
 
 }

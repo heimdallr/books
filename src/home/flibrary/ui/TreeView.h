@@ -4,12 +4,17 @@
 
 #include "fnd/memory.h"
 
+namespace HomeCompa {
+class ITreeViewController;
+}
+
 namespace HomeCompa::Flibrary {
 
 class TreeView : public QWidget
 {
 public:
-    TreeView(QWidget * parent = nullptr);
+    explicit TreeView(std::shared_ptr<ITreeViewController> controller
+        , QWidget * parent = nullptr);
     ~TreeView() override;
 
 private:

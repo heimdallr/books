@@ -9,4 +9,6 @@ AddTarget(
 		plog
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_EXPORT ]
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
 )

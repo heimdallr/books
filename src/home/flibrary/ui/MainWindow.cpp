@@ -1,8 +1,10 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
-#include "interface/logic/ILogicFactory.h"
 #include "interface/ISettings.h"
+#include "interface/IUiFactory.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/ITreeViewController.h"
 
 #include <plog/Log.h>
 
@@ -16,30 +18,49 @@ constexpr const auto HORIZONTALL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
 
 struct MainWindow::Impl
 {
+    MainWindow & self;
     Ui::MainWindow ui;
     std::shared_ptr<ILogicFactory> logicFactory;
     std::shared_ptr<ISettings> settings;
+    std::shared_ptr<IUiFactory> uiFactory;
 
     const ILogicFactory::Guard logicFactoryGuard;
 
-    Impl(std::shared_ptr<ILogicFactory> logicFactory_
+    std::shared_ptr<QWidget> booksWidget;
+    std::shared_ptr<QWidget> navigationWidget;
+
+    Impl(MainWindow & self_
+        , std::shared_ptr<ILogicFactory> logicFactory_
+        , std::shared_ptr<IUiFactory> uiFactory_
         , std::shared_ptr<ISettings> settings_
     )
-        : logicFactory(std::move(logicFactory_))
+        : self(self_)
+        , logicFactory(std::move(logicFactory_))
         , settings(std::move(settings_))
+        , uiFactory(std::move(uiFactory_))
         , logicFactoryGuard(*logicFactory)
+        , booksWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Books))
+        , navigationWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Navigation))
     {
+        ui.setupUi(&self_);
+
+        ui.booksWidget->layout()->addWidget(booksWidget.get());
+        ui.navigationWidget->layout()->addWidget(navigationWidget.get());
     }
 };
 
 MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
+    , std::shared_ptr<IUiFactory> uiFactory
     , std::shared_ptr<ISettings> settings
     , QWidget *parent
 )
     : QMainWindow(parent)
-    , m_impl(std::move(logicFactory), std::move(settings))
+    , m_impl(*this
+        , std::move(logicFactory)
+        , std::move(uiFactory)
+        , std::move(settings)
+    )
 {
-    m_impl->ui.setupUi(this);
     connect(m_impl->ui.actionReload, &QAction::triggered, this, []
     {
         QCoreApplication::exit(1234);

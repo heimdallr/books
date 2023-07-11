@@ -12,7 +12,6 @@
 #include "di_app.h"
 
 #include "Configuration.h"
-
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -20,7 +19,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString().data());
+		Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
 
 		PLOGI << "App started";
 		PLOGI << "Commit hash: " << GIT_HASH;

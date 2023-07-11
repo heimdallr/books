@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>528</width>
-    <height>400</height>
+    <width>1117</width>
+    <height>708</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,7 +53,25 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
-         <widget class="HomeCompa::Flibrary::TreeView" name="navigationWidget" native="true"/>
+         <widget class="QWidget" name="navigationWidget" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+          </layout>
+         </widget>
          <widget class="QWidget" name="rightWidget" native="true">
           <layout class="QGridLayout" name="gridLayout_2">
            <property name="leftMargin">
@@ -76,7 +94,25 @@
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
-             <widget class="HomeCompa::Flibrary::TreeView" name="booksWidget" native="true"/>
+             <widget class="QWidget" name="booksWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+              </layout>
+             </widget>
              <widget class="QWidget" name="annotationWidget" native="true">
               <layout class="QVBoxLayout" name="verticalLayout_3">
                <property name="spacing">
@@ -115,7 +151,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>528</width>
+     <width>1117</width>
      <height>22</height>
     </rect>
    </property>
@@ -140,14 +176,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>HomeCompa::Flibrary::TreeView</class>
-   <extends>QWidget</extends>
-   <header>TreeView.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../resources/main.qrc"/>
  </resources>
