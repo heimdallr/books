@@ -54,7 +54,7 @@
           <enum>Qt::Horizontal</enum>
          </property>
          <widget class="QWidget" name="navigationWidget" native="true">
-          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -95,7 +95,7 @@
               <enum>Qt::Vertical</enum>
              </property>
              <widget class="QWidget" name="booksWidget" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout">
+              <layout class="QVBoxLayout" name="verticalLayout_2">
                <property name="spacing">
                 <number>0</number>
                </property>
@@ -155,6 +155,27 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionE_xit"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menuFont">
+     <property name="title">
+      <string>Font</string>
+     </property>
+     <addaction name="actionFontSizeUp"/>
+     <addaction name="actionFontSizeDown"/>
+    </widget>
+    <addaction name="menuFont"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -169,6 +190,39 @@
   <action name="actionReload">
    <property name="text">
     <string>Reload</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionFontSizeUp">
+   <property name="text">
+    <string>Size Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionFontSizeDown">
+   <property name="text">
+    <string>Size Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionE_xit">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+X</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

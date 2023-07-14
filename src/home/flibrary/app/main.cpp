@@ -29,6 +29,8 @@ int main(int argc, char * argv[])
 			QApplication app(argc, argv);
 			PLOGD << "QApplication created";
 
+			QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
 			std::shared_ptr<Hypodermic::Container> container;
 			Hypodermic::ContainerBuilder builder;
 			di_init(builder, container).swap(container);

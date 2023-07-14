@@ -1,7 +1,6 @@
 set(MODULES
 	logging
 	fnd
-	interface
 	util
 	database
 	inpx

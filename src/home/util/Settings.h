@@ -4,27 +4,30 @@
 #include <QVariant>
 
 #include "fnd/memory.h"
-#include "interface/ISettings.h"
+#include "fnd/NonCopyMovable.h"
+#include "ISettings.h"
 
 #include "UtilLib.h"
 
 namespace HomeCompa {
 
-class UTIL_API Settings : virtual public ISettings
+class UTIL_API Settings final : virtual public ISettings
 {
+	NON_COPY_MOVABLE(Settings)
+
 public:
 	Settings(const QString & organization, const QString & application);
-	~Settings();
+	~Settings() override;
 
 public:
-	QVariant Get(const QString & key, const QVariant & defaultValue = {}) const override;
+	[[nodiscard]] QVariant Get(const QString & key, const QVariant & defaultValue = {}) const override;
 	void Set(const QString & key, const QVariant & value) override;
 
-	bool HasKey(const QString & key) const override;
-	bool HasGroup(const QString & group) const override;
+	[[nodiscard]] bool HasKey(const QString & key) const override;
+	[[nodiscard]] bool HasGroup(const QString & group) const override;
 
-	QStringList GetKeys() const override;
-	QStringList GetGroups() const override;
+	[[nodiscard]] QStringList GetKeys() const override;
+	[[nodiscard]] QStringList GetGroups() const override;
 
 	void Remove(const QString & key) override;
 
@@ -37,16 +40,6 @@ public:
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
-};
-
-class UTIL_API SettingsGroup
-{
-public:
-	SettingsGroup(Settings & settings, const QString & group);
-	~SettingsGroup();
-
-private:
-	Settings & m_settings;
 };
 
 }

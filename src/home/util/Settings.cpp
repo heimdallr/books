@@ -7,7 +7,7 @@
 
 namespace HomeCompa {
 
-struct Settings::Impl
+struct Settings::Impl final
 	: public Observable<ISettingsObserver>
 {
 	Impl(const QString & organization, const QString & application)
@@ -84,17 +84,6 @@ void Settings::BeginGroup(const QString & group)
 void Settings::EndGroup()
 {
 	m_impl->settings.endGroup();
-}
-
-SettingsGroup::SettingsGroup(Settings & settings, const QString & group)
-	: m_settings(settings)
-{
-	m_settings.BeginGroup(group);
-}
-
-SettingsGroup::~SettingsGroup()
-{
-	m_settings.EndGroup();
 }
 
 }

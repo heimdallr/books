@@ -5,6 +5,7 @@
 #include "fnd/memory.h"
 
 namespace HomeCompa {
+class ISettings;
 class ITreeViewController;
 }
 
@@ -13,7 +14,8 @@ namespace HomeCompa::Flibrary {
 class TreeView : public QWidget
 {
 public:
-    explicit TreeView(std::shared_ptr<ITreeViewController> controller
+    TreeView(std::shared_ptr<ITreeViewController> controller
+        , std::shared_ptr<ISettings> settings
         , QWidget * parent = nullptr);
     ~TreeView() override;
 

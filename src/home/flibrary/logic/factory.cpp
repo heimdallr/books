@@ -5,6 +5,8 @@
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
+#include "util/ISettings.h"
+
 namespace HomeCompa::Flibrary {
 
 struct LogicFactory::Impl

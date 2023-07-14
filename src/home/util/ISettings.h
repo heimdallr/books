@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QStringList>
+#include <QVariant>
+
 namespace HomeCompa {
 
 class ISettingsObserver;
@@ -28,4 +31,20 @@ public:
 	virtual void UnregisterObserver(ISettingsObserver * observer) = 0;
 };
 
+class SettingsGroup
+{
+public:
+	SettingsGroup(ISettings & settings, const QString & group)
+		: m_settings(settings)
+	{
+		m_settings.BeginGroup(group);
+	}
+	~SettingsGroup()
+	{
+		m_settings.EndGroup();
+	}
+
+private:
+	ISettings & m_settings;
+};
 }

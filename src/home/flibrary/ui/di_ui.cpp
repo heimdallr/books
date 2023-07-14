@@ -4,6 +4,7 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/ICollectionController.h"
 
 #include "util/Settings.h"
 

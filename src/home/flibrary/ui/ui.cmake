@@ -6,6 +6,8 @@ AddTarget(
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
+	QRC
+		"${CMAKE_CURRENT_LIST_DIR}/../resources/main.qrc"
 	QT_USE
 		Core
 		Gui
@@ -14,7 +16,7 @@ AddTarget(
 		Hypodermic
 		plog
 	LINK_TARGETS
-		AppInt
+		FlInt
 		logging
 		Util
 	COMPILE_DEFINITIONS

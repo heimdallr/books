@@ -4,6 +4,7 @@
 
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
+#include "util/ISettings.h"
 
 #include "TreeView.h"
 
