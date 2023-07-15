@@ -3,7 +3,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "interface/ICollectionController.h"
+#include "interface/logic/ICollectionController.h"
 
 #include "logicLib.h"
 
@@ -21,11 +21,18 @@ class LOGIC_API CollectionController final
 	NON_COPY_MOVABLE(CollectionController)
 
 public:
-	explicit CollectionController(std::shared_ptr<ISettings> settings);
+	CollectionController(std::shared_ptr<ISettings> settings, std::shared_ptr<class IUiFactory> uiFactory);
 	~CollectionController() override;
 
+public: // ICollectionController
+	[[nodiscard]] bool AddCollection() override;
+	[[nodiscard]] bool IsEmpty() const noexcept override;
+	[[nodiscard]] bool IsCollectionNameExists(const QString & name) const override;
+	[[nodiscard]] QString GetCollectionDatabaseName(const QString & databaseFileName) const override;
+	[[nodiscard]] bool IsCollectionFolderHasInpx(const QString & folder) const override;
+
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

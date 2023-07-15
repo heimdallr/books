@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace HomeCompa {
+namespace HomeCompa::Flibrary {
 
 enum class TreeViewControllerType
 {

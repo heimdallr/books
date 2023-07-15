@@ -6,7 +6,6 @@
 
 namespace HomeCompa {
 class ISettings;
-class ITreeViewController;
 }
 
 namespace HomeCompa::Flibrary {
@@ -14,7 +13,7 @@ namespace HomeCompa::Flibrary {
 class TreeView : public QWidget
 {
 public:
-    TreeView(std::shared_ptr<ITreeViewController> controller
+    TreeView(std::shared_ptr<class ITreeViewController> controller
         , std::shared_ptr<ISettings> settings
         , QWidget * parent = nullptr);
     ~TreeView() override;

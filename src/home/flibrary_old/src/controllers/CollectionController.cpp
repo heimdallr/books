@@ -110,10 +110,10 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 struct CollectionController::Impl
 {
 	IObserver & observer;
-	Collections collections { Collection::Deserialize(observer.GetSettings()) };
+	Collections m_collections { Collection::Deserialize(observer.GetSettings()) };
 	QString error;
 	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
-	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(collections))) };
+	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(m_collections))) };
 	PropagateConstPtr<Util::IExecutor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
 
 	DialogController addModeDialogController;
@@ -127,14 +127,14 @@ struct CollectionController::Impl
 	{
 		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
 
-		collections.erase(std::ranges::remove_if(collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), collections.end());
+		m_collections.erase(std::ranges::remove_if(m_collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), m_collections.end());
 
-		addModeDialogController.SetVisible(collections.empty());
+		addModeDialogController.SetVisible(m_collections.empty());
 	}
 
 	void OnCollectionsChanged()
 	{
-		if (collections.empty())
+		if (m_collections.empty())
 		{
 			currentCollectionId.clear();
 			observer.HandleCurrentCollectionChanged(Collection());
@@ -146,15 +146,15 @@ struct CollectionController::Impl
 		if (const auto * collection = FindCollection(currentCollectionId))
 			return observer.HandleCurrentCollectionChanged(*collection);
 
-		currentCollectionId = collections.front().id;
+		currentCollectionId = m_collections.front().id;
 		Collection::SetActive(observer.GetSettings(), currentCollectionId);
-		observer.HandleCurrentCollectionChanged(collections.front());
+		observer.HandleCurrentCollectionChanged(m_collections.front());
 	}
 
 	const Collection * FindCollection(const QString & id) const
 	{
-		const auto it = std::ranges::find_if(std::as_const(collections), [&] (const auto & item) { return item.id == id; });
-		return it != std::cend(collections) ? &*it : nullptr;
+		const auto it = std::ranges::find_if(std::as_const(m_collections), [&] (const auto & item) { return item.id == id; });
+		return it != std::cend(m_collections) ? &*it : nullptr;
 	}
 
 	bool CheckNewCollection(const QString & name, const QString & db, const QString & folder, const bool create)
@@ -183,7 +183,7 @@ struct CollectionController::Impl
 			return Util::Set(error, QApplication::translate("Error", "Archive folder not found"), m_self, &CollectionController::ErrorChanged), false;
 		if (QDir(folder).isEmpty())
 			return Util::Set(error, QApplication::translate("Error", "Archive folder cannot be empty"), m_self, &CollectionController::ErrorChanged), false;
-		if (const auto it = std::ranges::find_if(std::as_const(collections), [id = Collection::GenerateId(db)](const Collection & item) { return item.id == id; }); it != collections.cend())
+		if (const auto it = std::ranges::find_if(std::as_const(m_collections), [id = Collection::GenerateId(db)](const Collection & item) { return item.id == id; }); it != m_collections.cend())
 			return Util::Set(error, QApplication::translate("Error", "This collection has already been added: %1").arg(it->name), m_self, &CollectionController::ErrorChanged), false;
 
 		return true;
@@ -378,7 +378,7 @@ QAbstractItemModel * CollectionController::GetModel()
 
 int CollectionController::CollectionsCount() const noexcept
 {
-	return static_cast<int>(m_impl->collections.size());
+	return static_cast<int>(m_impl->m_collections.size());
 }
 
 DialogController * CollectionController::GetAddModeDialogController() noexcept

@@ -17,13 +17,12 @@ using namespace Flibrary;
 
 int main(int argc, char * argv[])
 {
+	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
+	PLOGI << "App started";
+	PLOGI << "Commit hash: " << GIT_HASH;
+
 	try
 	{
-		Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
-
-		PLOGI << "App started";
-		PLOGI << "Commit hash: " << GIT_HASH;
-
 		while (true)
 		{
 			QApplication app(argc, argv);

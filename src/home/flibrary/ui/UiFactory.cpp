@@ -4,7 +4,11 @@
 
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
+#include "interface/ui/dialogs/IDialog.h"
+
 #include "util/ISettings.h"
+
+#include "dialogs/AddCollectionDialog.h"
 
 #include "TreeView.h"
 
@@ -16,7 +20,7 @@ struct UiFactory::Impl
 
 	mutable std::shared_ptr<AbstractTreeViewController> treeViewController;
 
-	Impl(Hypodermic::Container & container_)
+	explicit Impl(Hypodermic::Container & container_)
 		: container(container_)
 	{
 	}
@@ -33,6 +37,17 @@ std::shared_ptr<QWidget> UiFactory::CreateTreeViewWidget(const TreeViewControlle
 {
 	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->CreateTreeViewController(type);
 	return m_impl->container.resolve<TreeView>();
+}
+
+std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog() const
+{
+	return m_impl->container.resolve<IAddCollectionDialog>();
+}
+
+QMessageBox::StandardButton UiFactory::ShowWarning(const QString & title, const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const
+{
+	const auto dialog = m_impl->container.resolve<IWarningDialog>();
+	return dialog->Show(title, text, buttons, defaultButton);
 }
 
 std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const

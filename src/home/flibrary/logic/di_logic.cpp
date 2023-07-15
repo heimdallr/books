@@ -2,14 +2,11 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-#include "interface/IUiFactory.h"
-#include "interface/logic/ITreeViewController.h"
-
-#include "Collection/CollectionController.h"
-
-#include "util/ISettings.h"
-
 #include "factory.h"
+#include "Collection/CollectionController.h"
+#include "interface/logic/ITreeViewController.h"
+#include "interface/ui/IUiFactory.h"
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

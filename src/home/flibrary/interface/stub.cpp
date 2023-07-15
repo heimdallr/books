@@ -2,7 +2,7 @@
 
 #include "logic/ILogicFactory.h"
 
-namespace HomeCompa {
+namespace HomeCompa::Flibrary {
 
 namespace {
 

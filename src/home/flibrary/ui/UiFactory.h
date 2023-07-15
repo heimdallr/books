@@ -1,7 +1,8 @@
 #pragma once
 
 #include "fnd/memory.h"
-#include "interface/IUiFactory.h"
+#include "fnd/NonCopyMovable.h"
+#include "interface/ui/IUiFactory.h"
 
 namespace Hypodermic {
 class Container;
@@ -9,16 +10,20 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class UiFactory : virtual public IUiFactory
+class UiFactory final : virtual public IUiFactory
 {
+	NON_COPY_MOVABLE(UiFactory)
+
 public:
 	explicit UiFactory(Hypodermic::Container & container);
 	~UiFactory() override;
 
 private: // IUiFactory
-	std::shared_ptr<QWidget> CreateTreeViewWidget(TreeViewControllerType type) const override;
+	[[nodiscard]] std::shared_ptr<QWidget> CreateTreeViewWidget(TreeViewControllerType type) const override;
+	[[nodiscard]] std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog() const override;
+	QMessageBox::StandardButton ShowWarning(const QString & title, const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 
-	std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const override;
+	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const override;
 
 private:
 	struct Impl;

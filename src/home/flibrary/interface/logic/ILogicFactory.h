@@ -5,7 +5,7 @@
 
 #include "FlIntLib.h"
 
-namespace HomeCompa {
+namespace HomeCompa::Flibrary {
 
 class ILogicFactory
 {

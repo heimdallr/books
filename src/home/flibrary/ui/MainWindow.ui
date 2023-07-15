@@ -159,7 +159,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionE_xit"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -174,8 +174,15 @@
     </widget>
     <addaction name="menuFont"/>
    </widget>
+   <widget class="QMenu" name="menuCollection">
+    <property name="title">
+     <string>Collection</string>
+    </property>
+    <addaction name="actionAddNewCollection"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
+   <addaction name="menuCollection"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -217,12 +224,20 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="actionE_xit">
+  <action name="actionExit">
    <property name="text">
     <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
     <string>Alt+X</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAddNewCollection">
+   <property name="text">
+    <string>Add &amp;new collection...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

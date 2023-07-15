@@ -53,6 +53,10 @@ Collection::Collection(QString name_, QString database_, QString folder_)
 	, database(std::move(database_))
 	, folder(std::move(folder_))
 {
+	database.replace("\\", "/");
+	folder.replace("\\", "/");
+	while (folder.endsWith("\\"))
+		folder.resize(folder.size() - 1);
 }
 
 QString Collection::GetActive(ISettings & settings)
