@@ -8,12 +8,14 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
 	QT_USE
 		Core
+		Gui
 	MODULES
 		Hypodermic
 		plog
 	LINK_TARGETS
 		DatabaseFactory
 		logging
+		Util
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

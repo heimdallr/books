@@ -343,7 +343,7 @@ private:
 			const auto folder = (m_rootFolder / book.Folder.toStdWString()).make_preferred();
 			const auto file = book.FileName.toStdString();
 
-			auto stub = [&]
+			auto stub = [&](size_t)
 			{
 				emit m_self.AnnotationChanged();
 				emit m_self.HasCoverChanged();

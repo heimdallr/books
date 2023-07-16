@@ -81,7 +81,7 @@ void Restore(Util::IExecutor & executor, DB::IDatabase & db, QString fileName)
 {
 	executor({ "Restore user data", [&db, fileName = std::move(fileName)]
 	{
-		auto stub = [] {};
+		auto stub = [](size_t) {};
 
 		QFile inp(fileName);
 		if (!inp.open(QIODevice::ReadOnly))

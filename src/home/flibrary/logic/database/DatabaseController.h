@@ -3,6 +3,10 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+namespace HomeCompa::DB {
+class IDatabase;
+}
+
 namespace HomeCompa::Flibrary {
 
 class DatabaseController final
@@ -10,8 +14,11 @@ class DatabaseController final
 	NON_COPY_MOVABLE(DatabaseController)
 
 public:
-	explicit DatabaseController(class ILogicFactory & logicFactory, std::shared_ptr<class ICollectionController> collectionController);
+	explicit DatabaseController(std::shared_ptr<class ICollectionController> collectionController);
 	~DatabaseController();
+
+public:
+	std::unique_ptr<DB::IDatabase> CreateDatabase() const;
 
 private:
 	class Impl;

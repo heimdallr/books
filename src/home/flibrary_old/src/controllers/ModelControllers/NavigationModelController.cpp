@@ -281,7 +281,7 @@ private:
 		m_executor({ "Get navigation", [&, model = QPointer(model), creator]() mutable
 		{
 			auto items = creator(m_db);
-			return[&, items = std::move(items), model = std::move(model)]() mutable
+			return[&, items = std::move(items), model = std::move(model)](size_t) mutable
 			{
 				if (model.isNull())
 					return;

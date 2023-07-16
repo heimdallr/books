@@ -42,14 +42,17 @@ public:
 	}
 
 private: // Util::Executor
-	void operator()(Task && task, int priority) override
+	size_t operator()(Task && task, int priority) override
 	{
+		const auto id = task.id;
 		{
 			std::lock_guard lock(m_tasksGuard);
 			m_tasks.insert_or_assign(priority ? priority : ++m_priority, std::move(task));
 		}
 		std::unique_lock lock(m_startMutex);
 		m_startCondition.notify_one();
+
+		return id;
 	}
 
 private:
@@ -92,7 +95,7 @@ private:
 			PLOGD << task.name << " started";
 			auto taskResult = task.task();
 			PLOGD << task.name << " finished";
-			m_forwarder.Forward(std::move(taskResult));
+			m_forwarder.Forward([id = task.id, taskResult = std::move(taskResult)] { taskResult(id); });
 			m_forwarder.Forward(m_initializer.afterExecute);
 		}
 

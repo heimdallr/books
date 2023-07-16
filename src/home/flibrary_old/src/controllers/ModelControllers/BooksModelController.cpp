@@ -746,7 +746,7 @@ public:
 		{
 			auto items = m_itemsCreator(m_db, navigationSource, navigationId);
 
-			return[&, items = std::move(items)]() mutable
+			return[&, items = std::move(items)](size_t) mutable
 			{
 				QPointer<QAbstractItemModel> model = m_self.GetCurrentModel();
 
@@ -801,7 +801,7 @@ public:
 
 			progress->progress = totalSize;
 
-			return []{};
+			return [](size_t){};
 		}});
 	}
 
@@ -835,7 +835,7 @@ public:
 			}
 			transaction->Commit();
 
-			return [] {};
+			return [] (size_t) {};
 		} });
 	}
 

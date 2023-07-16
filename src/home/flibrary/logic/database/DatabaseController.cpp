@@ -15,7 +15,7 @@ using namespace Flibrary;
 
 namespace {
 
-std::unique_ptr<DB::IDatabase> CreateDatabase(const std::string & databaseName)
+std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName)
 {
 	if (databaseName.empty())
 		return {};
@@ -48,9 +48,8 @@ class DatabaseController::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(ILogicFactory & logicFactory, std::shared_ptr<ICollectionController> collectionController)
-		: m_logicFactory(logicFactory)
-		, m_collectionController(std::move(collectionController))
+	explicit Impl(std::shared_ptr<ICollectionController> collectionController)
+		: m_collectionController(std::move(collectionController))
 	{
 		m_collectionController->RegisterObserver(this);
 
@@ -62,20 +61,30 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
+	std::unique_ptr<DB::IDatabase> CreateDatabase() const
+	{
+		return CreateDatabaseImpl(m_databaseFileName.toStdString());
+	}
+
 private: // ICollectionController::IObserver
 	void OnActiveCollectionChanged(const Collection & collection) override
 	{
-		m_logicFactory.SetDatabase(CreateDatabase(collection.database.toStdString()));
+		m_databaseFileName = collection.database;
 	}
 
 private:
-	ILogicFactory & m_logicFactory;
+	QString m_databaseFileName;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 };
 
-DatabaseController::DatabaseController(ILogicFactory & logicFactory, std::shared_ptr<ICollectionController> collectionController)
-	: m_impl(logicFactory, std::move(collectionController))
+DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> collectionController)
+	: m_impl(std::move(collectionController))
 {
 }
 
 DatabaseController::~DatabaseController() = default;
+
+std::unique_ptr<DB::IDatabase> DatabaseController::CreateDatabase() const
+{
+	return m_impl->CreateDatabase();
+}

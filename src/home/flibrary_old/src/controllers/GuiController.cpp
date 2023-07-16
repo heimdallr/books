@@ -46,7 +46,7 @@
 #include "version/AppVersion.h"
 
 #include "AnnotationController.h"
-#include "CollectionImpl.h"
+#include "Collection.h"
 #include "CollectionController.h"
 #include "ComboBoxController.h"
 #include "DialogController.h"
@@ -421,7 +421,7 @@ public:
 				stats << QString("%1 %2").arg(translated).arg(bookQuery->Get<long long>(1));
 			}
 
-			return[stats = stats.join("\n")]
+			return[stats = stats.join("\n")] (size_t)
 			{
 				PLOGI << std::endl << stats;
 			};
@@ -520,11 +520,11 @@ private: // LocaleController::LanguageProvider
 	}
 
 private: // CollectionController::Observer
-	void HandleCurrentCollectionChanged(const CollectionImpl & collection) override
+	void HandleCurrentCollectionChanged(const Collection & collection) override
 	{
 		if (collection.id.isEmpty())
 		{
-			m_currentCollection = CollectionImpl {};
+			m_currentCollection = Collection {};
 			PropagateConstPtr<Util::IExecutor>(std::unique_ptr<Util::IExecutor>()).swap(m_executor);
 			emit m_self.OpenedChanged();
 			return;
@@ -653,7 +653,7 @@ private:
 
 	int m_currentNavigationIndex { -1 };
 	PropagateConstPtr<AnnotationController> m_annotationController { std::unique_ptr<AnnotationController>() };
-	CollectionImpl m_currentCollection;
+	Collection m_currentCollection;
 
 	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };

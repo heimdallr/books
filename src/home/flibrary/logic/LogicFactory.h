@@ -20,11 +20,8 @@ public:
 
 private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> CreateTreeViewController(TreeViewControllerType type) const override;
-	void SetDatabase(std::shared_ptr<DB::IDatabase> db) override;
-	[[nodiscard]] std::shared_ptr<DB::IDatabase> GetDatabase() const override;
-
-	void RegisterObserver(IObserver * observer) override;
-	void UnregisterObserver(IObserver * observer) override;
+	[[nodiscard]] std::unique_ptr<DB::IDatabase> GetDatabase() const override;
+	[[nodiscard]] std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const override;
 
 private:
 	struct Impl;

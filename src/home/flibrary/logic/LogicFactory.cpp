@@ -15,17 +15,16 @@
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
-
 #include "logic/database/DatabaseController.h"
+#include "util/executor/factory.h"
+#include "util/IExecutor.h"
 #include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 
 struct LogicFactory::Impl final
-	: Observable<IObserver>
 {
 	Hypodermic::Container & container;
-	std::shared_ptr<DB::IDatabase> database;
 	std::unique_ptr<DatabaseController> databaseController;
 
 	explicit Impl(Hypodermic::Container & container)
@@ -37,7 +36,7 @@ struct LogicFactory::Impl final
 LogicFactory::LogicFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
-	m_impl->databaseController = std::make_unique<DatabaseController>(*this, m_impl->container.resolve<ICollectionController>());
+	m_impl->databaseController = std::make_unique<DatabaseController>(m_impl->container.resolve<ICollectionController>());
 }
 
 LogicFactory::~LogicFactory() = default;
@@ -56,25 +55,14 @@ std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewControll
 	return assert(false && "unexpected type"), nullptr;
 }
 
-void LogicFactory::SetDatabase(std::shared_ptr<DB::IDatabase> db)
+std::unique_ptr<DB::IDatabase> LogicFactory::GetDatabase() const
 {
-	m_impl->database = std::move(db);
-	m_impl->Perform(&IObserver::OnDatabaseChanged, m_impl->database);
+	return m_impl->databaseController->CreateDatabase();
 }
 
-std::shared_ptr<DB::IDatabase> LogicFactory::GetDatabase() const
+std::unique_ptr<Util::IExecutor> LogicFactory::GetExecutor(Util::ExecutorInitializer initializer) const
 {
-	return m_impl->database;
-}
-
-void LogicFactory::RegisterObserver(IObserver * observer)
-{
-	m_impl->Register(observer);
-}
-
-void LogicFactory::UnregisterObserver(IObserver * observer)
-{
-	m_impl->Unregister(observer);
+	return Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, std::move(initializer));
 }
 
 }

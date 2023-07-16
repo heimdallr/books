@@ -84,7 +84,7 @@ void RemoveBookFromGroup(GroupsModelController & controller, long long bookId, l
 
 		transaction->Commit();
 
-		return [] { };
+		return [](size_t) { };
 	} });
 }
 
@@ -142,7 +142,7 @@ private:
 			query->Execute();
 			const auto id = query->Get<int>(0);
 
-			return [this, id]
+			return [this, id](size_t)
 			{
 				errorText = id > 0 ? QCoreApplication::translate("GroupsModel", "A group with the same name already exists") : "";
 				emit m_self.ErrorTextChanged();
@@ -163,7 +163,7 @@ private:
 			command->Execute();
 			transaction->Commit();
 			currentGroupId = -1;
-			return [] {};
+			return [] (size_t) {};
 		} });
 	}
 
@@ -212,7 +212,7 @@ void GroupsModelController::Reset(long long bookId)
 			(query->Get<int>(2) < 0 ? addTo : removeFrom).push_back(std::move(item));
 		}
 
-		return [this, addTo = std::move(addTo), removeFrom = std::move(removeFrom)]() mutable
+		return [this, addTo = std::move(addTo), removeFrom = std::move(removeFrom)](size_t) mutable
 		{
 			m_impl->addToModel->setData({}, QVariant::fromValue(&addTo), SimpleModelRole::SetItems);
 			m_impl->removeFromModel->setData({}, QVariant::fromValue(&removeFrom), SimpleModelRole::SetItems);
@@ -231,7 +231,7 @@ void GroupsModelController::AddToNew(const QString & name)
 		const auto id = CreateNewGroupImpl(*transaction, name);
 		AddBookToGroupImpl(*transaction, bookIds, id);
 		transaction->Commit();
-		return [] {};
+		return [] (size_t) {};
 	} });
 }
 
@@ -242,7 +242,7 @@ void GroupsModelController::AddTo(const QString & id)
 		const auto transaction = m_impl->db.CreateTransaction();
 		AddBookToGroupImpl(*transaction, bookIds, id);
 		transaction->Commit();
-		return [] {};
+		return [] (size_t) {};
 	} });
 }
 
@@ -281,7 +281,7 @@ void GroupsModelController::CreateNewGroup(const QString & name)
 		const auto transaction = m_impl->db.CreateTransaction();
 		CreateNewGroupImpl(*transaction, name);
 		transaction->Commit();
-		return [] {};
+		return [] (size_t) {};
 	} });
 }
 

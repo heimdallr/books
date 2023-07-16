@@ -91,7 +91,7 @@ void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName)
 {
 	executor({ "Backup user data", [&db, fileName = std::move(fileName)]
 	{
-		auto stub = [] {};
+		auto stub = [](size_t) {};
 
 		QFile outp(fileName);
 		if (!outp.open(QIODevice::WriteOnly))
