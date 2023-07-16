@@ -1,8 +1,7 @@
 #include "DataProvider.h"
 
 #include <QString>
-
-#include "Types.h"
+#include <QTimer>
 
 using namespace HomeCompa::Flibrary;
 
@@ -22,6 +21,11 @@ public:
 	void SetViewMode(const ViewMode viewMode)
 	{
 		m_viewMode = viewMode;
+	}
+
+	void RequestNavigation(std::function<void(DataItem::Ptr)> callback)
+	{
+		callback(DataItem::Ptr());
 	}
 
 private:
@@ -45,4 +49,9 @@ void DataProvider::SetNavigationMode(const NavigationMode navigationMode)
 void DataProvider::SetViewMode(const ViewMode viewMode)
 {
 	m_impl->SetViewMode(viewMode);
+}
+
+void DataProvider::RequestNavigation(std::function<void(DataItem::Ptr)> callback)
+{
+	m_impl->RequestNavigation(std::move(callback));
 }

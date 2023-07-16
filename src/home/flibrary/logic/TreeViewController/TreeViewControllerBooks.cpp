@@ -30,10 +30,12 @@ class TreeViewControllerBooks::Impl final
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
+	, std::shared_ptr<AbstractModelProvider> modelProvider
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
+		, std::move(modelProvider)
 	)
 {
 	Setup();
@@ -55,7 +57,7 @@ void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
 {
 	const auto intMode = GetModeIndex(mode);
 	m_dataProvider->SetViewMode(static_cast<ViewMode>(intMode));
-	SetMode(intMode);
+	Perform(&IObserver::OnModeChanged, intMode);
 }
 
 int TreeViewControllerBooks::GetModeIndex(const QVariant & mode) const

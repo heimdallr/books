@@ -1,11 +1,15 @@
 #include "TreeViewControllerNavigation.h"
 
 #include <qglobal.h>
+#include <QAbstractItemModel>
+#include <QTimer>
 #include <QVariant>
 
 #include "fnd/FindPair.h"
 
 #include "data/DataProvider.h"
+#include "data/Model.h"
+#include "data/ModelProvider.h"
 #include "data/Types.h"
 
 using namespace HomeCompa::Flibrary;
@@ -27,19 +31,42 @@ static_assert(std::size(MODE_NAMES) == static_cast<size_t>(NavigationMode::Last)
 
 }
 
-class TreeViewControllerNavigation::Impl final
+struct TreeViewControllerNavigation::Impl final
+	: IModelObserver
 {
+	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
+	QTimer navigationTimer;
+	int mode = -1;
+
+	Impl()
+	{
+		for ([[maybe_unused]]const auto & _ : MODE_NAMES)
+			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
+
+		navigationTimer.setSingleShot(true);
+		navigationTimer.setInterval(std::chrono::milliseconds(200));
+	}
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
+	, std::shared_ptr<AbstractModelProvider> modelProvider
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
+		, std::move(modelProvider)
 	)
 {
 	Setup();
+	QObject::connect(&m_impl->navigationTimer, &QTimer::timeout, &m_impl->navigationTimer, [&]
+	{
+		m_dataProvider->RequestNavigation([&] (DataItem::Ptr data)
+		{
+			m_impl->models[m_impl->mode].reset(m_modelProvider->CreateModel(std::move(data), *m_impl));
+			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
+		});
+	});
 }
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation() = default;
@@ -56,9 +83,14 @@ void TreeViewControllerNavigation::SetModeIndex(const int index)
 
 void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
 {
-	const auto intMode = GetModeIndex(mode);
-	m_dataProvider->SetNavigationMode(static_cast<NavigationMode>(intMode));
-	SetMode(intMode);
+	m_impl->mode = GetModeIndex(mode);
+	m_dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
+	Perform(&IObserver::OnModeChanged, m_impl->mode);
+
+	if (m_impl->models[m_impl->mode])
+		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
+
+	m_impl->navigationTimer.start();
 }
 
 int TreeViewControllerNavigation::GetModeIndex(const QVariant & mode) const

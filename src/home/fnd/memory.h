@@ -151,6 +151,7 @@ public:
 	void swap(PropagateConstPtr & rhs) noexcept { rhs.m_p.swap(m_p); }
 	void reset() { m_p.reset(); }
 	void reset(T * p) noexcept { m_p.reset(p); }
+	void reset(P<T> p) noexcept { m_p = std::move(p); }
 
 	explicit operator bool() const noexcept { return !!get(); }
 	bool operator!() const noexcept { return !get(); }

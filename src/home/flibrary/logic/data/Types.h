@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "fnd/memory.h"
+
 namespace HomeCompa::Flibrary {
 
 enum class NavigationMode
@@ -19,6 +21,11 @@ enum class ViewMode
 	List,
 	Tree,
 	Last
+};
+
+struct DataItem
+{
+	using Ptr = PropagateConstPtr<DataItem>;
 };
 
 }

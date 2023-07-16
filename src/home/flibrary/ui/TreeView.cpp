@@ -50,6 +50,11 @@ private: // ITreeViewController::IObserver
 	{
 		ui.cbMode->setCurrentIndex(index);
 	}
+
+	void OnModelChanged(QAbstractItemModel * model) override
+	{
+		ui.treeView->setModel(model);
+	}
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller

@@ -1,7 +1,6 @@
 #include "AbstractTreeViewController.h"
 
 #include "fnd/FindPair.h"
-#include "fnd/observable.h"
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -14,7 +13,6 @@ using namespace HomeCompa::Flibrary;
 
 struct AbstractTreeViewController::Impl final
 	: ISettingsObserver
-	, Observable<ITreeViewController::IObserver>
 {
 	AbstractTreeViewController & self;
 	QString settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(self.m_context) };
@@ -49,10 +47,12 @@ private:
 AbstractTreeViewController::AbstractTreeViewController(const char * const context
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
+	, std::shared_ptr<AbstractModelProvider> modelProvider
 )
 	: m_context(context)
 	, m_settings(std::move(settings))
 	, m_dataProvider(std::move(dataProvider))
+	, m_modelProvider(std::move(modelProvider))
 	, m_impl(*this)
 {
 	m_settings->RegisterObserver(m_impl.get());
@@ -75,22 +75,17 @@ int AbstractTreeViewController::GetModeIndex() const
 
 void AbstractTreeViewController::RegisterObserver(IObserver * observer)
 {
-	m_impl->Register(observer);
+	Register(observer);
 }
 
 void AbstractTreeViewController::UnregisterObserver(IObserver * observer)
 {
-	m_impl->Unregister(observer);
+	Unregister(observer);
 }
 
 void AbstractTreeViewController::Setup()
 {
 	OnModeChanged(m_settings->Get(m_impl->settingsModeKey));
-}
-
-void AbstractTreeViewController::SetMode(int index)
-{
-	m_impl->Perform(&IObserver::OnModeChanged, index);
 }
 
 void AbstractTreeViewController::SetMode(const QString & mode)

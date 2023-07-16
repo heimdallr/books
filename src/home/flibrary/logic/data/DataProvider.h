@@ -1,7 +1,11 @@
 #pragma once
 
+#include <functional>
+
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+
+#include "Types.h"
 
 class QString;
 
@@ -20,6 +24,8 @@ public:
 public:
 	void SetNavigationMode(enum class NavigationMode navigationMode);
 	void SetViewMode(enum class ViewMode viewMode);
+
+	void RequestNavigation(std::function<void(DataItem::Ptr)> callback);
 
 private:
 	class Impl;

@@ -4,6 +4,8 @@
 
 #include "fnd/observer.h"
 
+class QAbstractItemModel;
+
 namespace HomeCompa::Flibrary {
 
 enum class TreeViewControllerType
@@ -19,6 +21,7 @@ public:
 	{
 	public:
 		virtual void OnModeChanged(int index) = 0;
+		virtual void OnModelChanged(QAbstractItemModel * model) = 0;
 	};
 
 public:

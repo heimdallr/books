@@ -5,6 +5,7 @@
 #include "fnd/observable.h"
 
 #include "data/DataProvider.h"
+#include "data/ModelProvider.h"
 
 #include "database/factory/Factory.h"
 #include "database/interface/IDatabase.h"

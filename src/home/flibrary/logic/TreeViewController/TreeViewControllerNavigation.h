@@ -18,6 +18,7 @@ class TreeViewControllerNavigation final
 public:
 	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<DataProvider> dataProvider
+		, std::shared_ptr<AbstractModelProvider> modelProvider
 	);
 	~TreeViewControllerNavigation() override;
 
@@ -30,7 +31,7 @@ private: // AbstractTreeViewController
 	int GetModeIndex(const QVariant & mode) const override;
 
 private:
-	class Impl;
+	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
