@@ -65,8 +65,6 @@
 #include "Settings/UiSettings_keys.h"
 #include "Settings/UiSettings_values.h"
 
-#include "Configuration.h"
-
 Q_DECLARE_METATYPE(QSystemTrayIcon::ActivationReason)
 
 namespace HomeCompa::Flibrary {
@@ -75,7 +73,7 @@ namespace {
 
 PropagateConstPtr<DB::IDatabase> CreateDatabase(const std::string & databaseName)
 {
-	const std::string connectionString = std::string("path=") + databaseName + ";extension=" + MHL_SQLITE_EXTENSION;
+	const std::string connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt";
 	PropagateConstPtr<DB::IDatabase> db(Create(DB::Factory::Impl::Sqlite, connectionString));
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
 

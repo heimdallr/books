@@ -1,31 +1,39 @@
 #pragma once
 
-#include "fnd/memory.h"
-#include "fnd/NonCopyMovable.h"
+#include <memory>
+#include <string>
 
-#include "FlIntLib.h"
+#include "fnd/observer.h"
+
+namespace HomeCompa::DB {
+class IDatabase;
+}
+
+namespace HomeCompa::DB::Factory {
+enum class Impl;
+}
 
 namespace HomeCompa::Flibrary {
 
-class ILogicFactory
+class ILogicFactory  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	FLINT_API static const ILogicFactory & Instance();
-
-public:
-	class FLINT_API Guard
+	class IObserver : public Observer
 	{
-		NON_COPY_MOVABLE(Guard)
-
 	public:
-		explicit Guard(const ILogicFactory & logicFactory) noexcept;
-		~Guard() noexcept;
+		virtual void OnDatabaseChanged(std::shared_ptr<DB::IDatabase> db) = 0;
 	};
 
 public:
 	virtual ~ILogicFactory() = default;
 
+public:
 	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> CreateTreeViewController(enum class TreeViewControllerType type) const = 0;
+	virtual void SetDatabase(std::shared_ptr<DB::IDatabase> db) = 0;
+	[[nodiscard]] virtual std::shared_ptr<DB::IDatabase> GetDatabase() const = 0;
+
+	virtual void RegisterObserver(IObserver * observer) = 0;
+	virtual void UnregisterObserver(IObserver * observer) = 0;
 };
 
 }

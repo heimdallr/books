@@ -6,6 +6,7 @@
 #include <plog/Log.h>
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/ILogicFactory.h"
 
 #include "logging/init.h"
 
@@ -34,6 +35,8 @@ int main(int argc, char * argv[])
 			Hypodermic::ContainerBuilder builder;
 			di_init(builder, container).swap(container);
 			PLOGD << "DI-container created";
+
+			const auto logicFactory = container->resolve<ILogicFactory>();
 
 			const auto mainWindow = container->resolve<QMainWindow>();
 			mainWindow->show();

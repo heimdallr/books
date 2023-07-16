@@ -53,7 +53,7 @@ public:
 		, m_uiFactory(std::move(uiFactory))
 	{
 		if (std::ranges::none_of(m_collections, [id = CollectionImpl::GetActive(*m_settings)] (const auto & item) { return item->id == id; }))
-			CollectionImpl::SetActive(*m_settings, m_collections.empty() ? "" : m_collections.front()->id);
+			SetActiveCollection(m_collections.empty() ? EMPTY_COLLECTION : *m_collections.front());
 	}
 
 	const Collections & GetCollections() const noexcept

@@ -31,7 +31,7 @@ public: // ICollectionController
 	[[nodiscard]] QString GetCollectionDatabaseName(const QString & databaseFileName) const override;
 	[[nodiscard]] bool IsCollectionFolderHasInpx(const QString & folder) const override;
 	[[nodiscard]] const Collections & GetCollections() const noexcept override;
-	[[nodiscard]] const Collection & GetActiveCollection() const noexcept;
+	[[nodiscard]] const Collection & GetActiveCollection() const noexcept override;
 	void SetActiveCollection(const QString & id) override;
 
 	void RegisterObserver(IObserver * observer) override;

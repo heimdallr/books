@@ -10,12 +10,12 @@ enum class TreeViewControllerType
 	Books,
 };
 
-class ITreeViewController
+class ITreeViewController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~ITreeViewController() = default;
-	virtual const char * GetTreeViewName() const noexcept = 0;
-	virtual std::vector<const char *> GetModeNames() const = 0;
+	[[nodiscard]] virtual std::vector<const char *> GetModeNames() const = 0;
+	virtual void SetModeIndex(int index) = 0;
 };
 
 class AbstractTreeViewController : virtual public ITreeViewController

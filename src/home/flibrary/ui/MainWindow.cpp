@@ -29,22 +29,18 @@ class MainWindow::Impl final
 
 public:
     Impl(MainWindow & self
-        , std::shared_ptr<ILogicFactory> logicFactory
-        , std::shared_ptr<IUiFactory> uiFactory
+        , const std::shared_ptr<IUiFactory> & uiFactory
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
         , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
     )
 	    : GeometryRestorable(*this, settings, "MainWindow")
         , m_self(self)
-        , m_logicFactory(std::move(logicFactory))
-        , m_uiFactory(std::move(uiFactory))
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
-        , m_logicFactoryGuard(*logicFactory)
-        , m_booksWidget(this->m_uiFactory->CreateTreeViewWidget(TreeViewControllerType::Books))
-        , m_navigationWidget(this->m_uiFactory->CreateTreeViewWidget(TreeViewControllerType::Navigation))
+        , m_booksWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Books))
+        , m_navigationWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Navigation))
     {
         Setup();
         ConnectActions();
@@ -146,20 +142,15 @@ private:
 private:
     MainWindow & m_self;
     Ui::MainWindow m_ui {};
-    PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
-    PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
-
-    const ILogicFactory::Guard m_logicFactoryGuard;
 
     PropagateConstPtr<QWidget, std::shared_ptr> m_booksWidget;
     PropagateConstPtr<QWidget, std::shared_ptr> m_navigationWidget;
 };
 
-MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
-    , std::shared_ptr<IUiFactory> uiFactory
+MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
@@ -167,8 +158,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 )
     : QMainWindow(parent)
     , m_impl(*this
-        , std::move(logicFactory)
-        , std::move(uiFactory)
+        , uiFactory
         , std::move(settings)
         , std::move(collectionController)
         , std::move(parentWidgetProvider)

@@ -2,11 +2,8 @@
 
 #include <QTimer>
 
-#include <plog/Log.h>
-
 #include "ui_TreeView.h"
 
-#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ITreeViewController.h"
 #include "util/ISettings.h"
 
@@ -31,12 +28,9 @@ struct TreeView::Impl
 
 		ui.cbView->setStyleSheet("QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}");
 		for (const auto * name : this->controller->GetModeNames())
-			ui.cbMode->addItem(QCoreApplication::translate(this->controller->GetTreeViewName(), name), name);
+			ui.cbMode->addItem(name);
 
-		connect(ui.cbMode, &QComboBox::currentIndexChanged, [this] (int)
-		{
-			this->settings->Set(QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(this->controller->GetTreeViewName()), ui.cbMode->currentData());
-		});
+		connect(ui.cbMode, &QComboBox::currentIndexChanged, [this] (const int index) { this->controller->SetModeIndex(index); });
 	}
 };
 

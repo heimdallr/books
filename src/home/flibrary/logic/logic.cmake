@@ -12,6 +12,7 @@ AddTarget(
 		Hypodermic
 		plog
 	LINK_TARGETS
+		DatabaseFactory
 		logging
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]

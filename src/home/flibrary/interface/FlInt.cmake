@@ -1,6 +1,6 @@
 AddTarget(
 	NAME FlInt
-	TYPE shared_lib
+	TYPE header_only
 	PROJECT_GROUP App
 	SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}
 	INCLUDE_DIRS

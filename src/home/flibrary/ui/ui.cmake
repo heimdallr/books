@@ -16,7 +16,6 @@ AddTarget(
 		Hypodermic
 		plog
 	LINK_TARGETS
-		FlInt
 		logging
 		Util
 	COMPILE_DEFINITIONS
