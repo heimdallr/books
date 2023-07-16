@@ -1,16 +1,20 @@
+#include "ui_TreeView.h"
 #include "TreeView.h"
 
 #include <QTimer>
 
-#include "ui_TreeView.h"
-
 #include "interface/logic/ITreeViewController.h"
+
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
 
-struct TreeView::Impl
+struct TreeView::Impl final
+	: private ITreeViewController::IObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
+public:
 	Ui::TreeView ui{};
 	TreeView & self;
 	std::shared_ptr<ITreeViewController> controller;
@@ -28,9 +32,23 @@ struct TreeView::Impl
 
 		ui.cbView->setStyleSheet("QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}");
 		for (const auto * name : this->controller->GetModeNames())
-			ui.cbMode->addItem(name);
+			ui.cbMode->addItem(QCoreApplication::translate(this->controller->TrContext(), name));
 
+		OnModeChanged(this->controller->GetModeIndex());
 		connect(ui.cbMode, &QComboBox::currentIndexChanged, [this] (const int index) { this->controller->SetModeIndex(index); });
+
+		this->controller->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		controller->UnregisterObserver(this);
+	}
+
+private: // ITreeViewController::IObserver
+	void OnModeChanged(const int index) override
+	{
+		ui.cbMode->setCurrentIndex(index);
 	}
 };
 

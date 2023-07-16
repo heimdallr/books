@@ -2,17 +2,21 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-#include "LogicFactory.h"
+// ReSharper disable CppUnusedIncludeDirective
 #include "Collection/CollectionController.h"
-#include "interface/logic/ITreeViewController.h"
+#include "data/DataProvider.h"
 #include "interface/ui/IUiFactory.h"
+#include "logic/TreeViewController/AbstractTreeViewController.h"
+#include "LogicFactory.h"
 #include "util/ISettings.h"
+// ReSharper restore CppUnusedIncludeDirective
 
 namespace HomeCompa::Flibrary {
 
 void di_logic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
+	builder.registerType<DataProvider>().singleInstance();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

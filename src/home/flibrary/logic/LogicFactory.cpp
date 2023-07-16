@@ -4,6 +4,8 @@
 
 #include "fnd/observable.h"
 
+#include "data/DataProvider.h"
+
 #include "database/factory/Factory.h"
 #include "database/interface/IDatabase.h"
 

@@ -1,72 +1,66 @@
 #include "TreeViewControllerBooks.h"
 
 #include <qglobal.h>
-// ReSharper disable once CppUnusedIncludeDirective
-#include <QString> // for plog
-#include <plog/Log.h>
+#include <QVariant>
 
-#include "interface/constants/SettingsConstant.h"
-#include "util/ISettings.h"
-#include "util/ISettingsObserver.h"
+#include "fnd/FindPair.h"
+
+#include "data/DataProvider.h"
+#include "data/Types.h"
 
 using namespace HomeCompa::Flibrary;
 
 namespace {
 
-constexpr const char * g_modeNames[]
+constexpr auto CONTEXT = "Books";
+
+constexpr std::pair<const char *, ViewMode> MODE_NAMES[]
 {
-	QT_TRANSLATE_NOOP("Books", "List"),
-	QT_TRANSLATE_NOOP("Books", "Tree"),
+	{ QT_TRANSLATE_NOOP("Books", "List"), ViewMode::List },
+	{ QT_TRANSLATE_NOOP("Books", "Tree"), ViewMode::Tree },
 };
+
+static_assert(std::size(MODE_NAMES) == static_cast<size_t>(ViewMode::Last));
 
 }
 
 class TreeViewControllerBooks::Impl final
-	: ISettingsObserver
 {
-	NON_COPY_MOVABLE(Impl)
-
-public:
-	Impl(ITreeViewController & self
-		, std::shared_ptr<ISettings> settings
-	)
-		: m_self(self)
-		, m_settings(std::move(settings))
-	{
-		m_settings->RegisterObserver(this);
-	}
-
-	~Impl() override
-	{
-		m_settings->UnregisterObserver(this);
-	}
-
-private: // ISettingsObserver
-	void HandleValueChanged(const QString & key, const QVariant & value) override
-	{
-		if (key == m_settingsModeKey)
-			PLOGD << value.toString();
-	}
-
-private:
-	ITreeViewController & m_self;
-	std::shared_ptr<ISettings> m_settings;
-	QString m_settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(m_self.GetTreeViewName()) };
 };
 
-TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings)
-	: m_impl(*this, std::move(settings))
+TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
+	, std::shared_ptr<DataProvider> dataProvider
+)
+	: AbstractTreeViewController(CONTEXT
+		, std::move(settings)
+		, std::move(dataProvider)
+	)
 {
+	Setup();
 }
 
 TreeViewControllerBooks::~TreeViewControllerBooks() = default;
 
-const char * TreeViewControllerBooks::GetTreeViewName() const noexcept
-{
-	return "Books";
-}
-
 std::vector<const char *> TreeViewControllerBooks::GetModeNames() const
 {
-	return std::vector<const char *>{std::cbegin(g_modeNames), std::cend(g_modeNames)};
+	return GetModeNamesImpl(MODE_NAMES);
+}
+
+void TreeViewControllerBooks::SetModeIndex(const int index)
+{
+	SetMode(MODE_NAMES[index].first);
+}
+
+void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
+{
+	const auto intMode = GetModeIndex(mode);
+	m_dataProvider->SetViewMode(static_cast<ViewMode>(intMode));
+	SetMode(intMode);
+}
+
+int TreeViewControllerBooks::GetModeIndex(const QVariant & mode) const
+{
+	const auto strMode = mode.toString().toStdString();
+	const auto enumMode = FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
+	return static_cast<int>(enumMode);
 }

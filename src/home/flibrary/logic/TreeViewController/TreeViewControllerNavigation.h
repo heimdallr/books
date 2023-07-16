@@ -2,7 +2,7 @@
 
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
-#include "interface/logic/ITreeViewController.h"
+#include "AbstractTreeViewController.h"
 
 namespace HomeCompa {
 class ISettings;
@@ -16,12 +16,18 @@ class TreeViewControllerNavigation final
 	NON_COPY_MOVABLE(TreeViewControllerNavigation)
 
 public:
-	explicit TreeViewControllerNavigation(std::shared_ptr<ISettings> settings);
+	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<DataProvider> dataProvider
+	);
 	~TreeViewControllerNavigation() override;
 
 private: // ITreeViewController
-	const char * GetTreeViewName() const noexcept override;
-	std::vector<const char *> GetModeNames() const override;
+	[[nodiscard]] std::vector<const char *> GetModeNames() const override;
+	void SetModeIndex(int index) override;
+
+private: // AbstractTreeViewController
+	void OnModeChanged(const QVariant & mode) override;
+	int GetModeIndex(const QVariant & mode) const override;
 
 private:
 	class Impl;
