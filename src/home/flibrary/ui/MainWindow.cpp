@@ -1,6 +1,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
+#include <QTimer>
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
@@ -19,9 +20,10 @@ constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
 constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
 }
 
-class MainWindow::Impl
+class MainWindow::Impl final
     : GeometryRestorable
 	, GeometryRestorable::IObserver
+	, ICollectionController::IObserver
 {
     NON_COPY_MOVABLE(Impl)
 
@@ -44,11 +46,16 @@ public:
         , m_booksWidget(this->m_uiFactory->CreateTreeViewWidget(TreeViewControllerType::Books))
         , m_navigationWidget(this->m_uiFactory->CreateTreeViewWidget(TreeViewControllerType::Navigation))
     {
-        Init();
+        Setup();
+        ConnectActions();
+        CreateCollectionsMenu();
+        RestoreWidgetsState();
     }
 
 	~Impl() override
     {
+        m_collectionController->UnregisterObserver(this);
+
         m_settings->Set(VERTICAL_SPLITTER_KEY, m_ui.verticalSplitter->saveState());
         m_settings->Set(HORIZONTAL_SPLITTER_KEY, m_ui.horizontalSplitter->saveState());
     }
@@ -59,8 +66,17 @@ private: // GeometryRestorable::IObserver
         return m_self;
     }
 
+private: // ICollectionController::IObserver
+    void OnActiveCollectionChanged(const Collection& collection) override
+    {
+        if (collection.id.isEmpty())
+            throw std::runtime_error("No collections found");
+
+        Reboot();
+    }
+
 private:
-    void Init()
+    void Setup()
     {
         m_ui.setupUi(&m_self);
 
@@ -68,13 +84,21 @@ private:
 
         m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
         m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
+    }
 
+    void RestoreWidgetsState()
+    {
         if (const auto value = m_settings->Get(VERTICAL_SPLITTER_KEY); value.isValid())
             m_ui.verticalSplitter->restoreState(value.toByteArray());
 
         if (const auto value = m_settings->Get(HORIZONTAL_SPLITTER_KEY); value.isValid())
             m_ui.horizontalSplitter->restoreState(value.toByteArray());
 
+        Init();
+    }
+
+    void ConnectActions()
+    {
         const auto incrementFontSize = [&](const int value)
         {
             bool ok = false;
@@ -85,17 +109,38 @@ private:
         connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(1); });
         connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(-1); });
         connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
-        connect(m_ui.actionReload, &QAction::triggered, &m_self, [] { QCoreApplication::exit(1234); });
-        connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&]
+        connect(m_ui.actionReload, &QAction::triggered, &m_self, [&] { Reboot(); });
+        connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
+    }
+
+    void CreateCollectionsMenu()
+    {
+        if (m_collectionController->IsEmpty())
+            m_collectionController->AddCollection();
+
+        m_collectionController->RegisterObserver(this);
+
+        m_ui.menuSelectCollection->clear();
+
+        const auto & activeCollection = m_collectionController->GetActiveCollection();
+        for (const auto & collection : m_collectionController->GetCollections())
         {
-            if (m_collectionController->AddCollection())
-                QCoreApplication::exit(1234);
-        });
+            const auto active = collection->id == activeCollection.id;
+            auto * action = m_ui.menuSelectCollection->addAction(collection->name);
+            connect(action, &QAction::triggered, &m_self, [&, id = collection->id] { m_collectionController->SetActiveCollection(id); });
+            action->setCheckable(true);
+            action->setChecked(active);
+            action->setEnabled(!active);
+        }
 
-        GeometryRestorable::Init();
+        const auto enabled = !m_ui.menuSelectCollection->isEmpty();
+        m_ui.actionRemoveCollection->setEnabled(enabled);
+        m_ui.menuSelectCollection->setEnabled(enabled);
+    }
 
-        if (m_collectionController->IsEmpty() && !m_collectionController->AddCollection())
-            throw std::runtime_error("No collections found");
+    static void Reboot()
+    {
+        QTimer::singleShot(0, [] { QCoreApplication::exit(1234); });
     }
 
 private:

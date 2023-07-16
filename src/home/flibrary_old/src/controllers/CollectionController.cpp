@@ -21,7 +21,7 @@
 
 #include "constants/ObjectConnectorConstant.h"
 
-#include "Collection.h"
+#include "CollectionImpl.h"
 #include "CollectionController.h"
 
 #include "DialogController.h"
@@ -34,7 +34,7 @@ SimpleModelItems GetSimpleModeItems(const Collections & collections)
 {
 	SimpleModelItems items;
 	items.reserve(collections.size());
-	std::ranges::transform(collections, std::back_inserter(items), [] (const Collection & collection)
+	std::ranges::transform(collections, std::back_inserter(items), [] (const CollectionImpl & collection)
 	{
 		return SimpleModelItem { collection.id, collection.name };
 	});
@@ -110,9 +110,9 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 struct CollectionController::Impl
 {
 	IObserver & observer;
-	Collections m_collections { Collection::Deserialize(observer.GetSettings()) };
+	Collections m_collections { CollectionImpl::Deserialize(observer.GetSettings()) };
 	QString error;
-	QString currentCollectionId { Collection::GetActive(observer.GetSettings()) };
+	QString currentCollectionId { CollectionImpl::GetActive(observer.GetSettings()) };
 	PropagateConstPtr<QAbstractItemModel> model { std::unique_ptr<QAbstractItemModel>(CreateSimpleModel(GetSimpleModeItems(m_collections))) };
 	PropagateConstPtr<Util::IExecutor> executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async)};
 
@@ -127,7 +127,7 @@ struct CollectionController::Impl
 	{
 		QQmlEngine::setObjectOwnership(model.get(), QQmlEngine::CppOwnership);
 
-		m_collections.erase(std::ranges::remove_if(m_collections, [] (const Collection & item) { return !QFile::exists(item.database); }).begin(), m_collections.end());
+		m_collections.erase(std::ranges::remove_if(m_collections, [] (const CollectionImpl & item) { return !QFile::exists(item.database); }).begin(), m_collections.end());
 
 		addModeDialogController.SetVisible(m_collections.empty());
 	}
@@ -137,7 +137,7 @@ struct CollectionController::Impl
 		if (m_collections.empty())
 		{
 			currentCollectionId.clear();
-			observer.HandleCurrentCollectionChanged(Collection());
+			observer.HandleCurrentCollectionChanged(CollectionImpl());
 
 			addModeDialogController.SetVisible(true);
 			return;
@@ -147,11 +147,11 @@ struct CollectionController::Impl
 			return observer.HandleCurrentCollectionChanged(*collection);
 
 		currentCollectionId = m_collections.front().id;
-		Collection::SetActive(observer.GetSettings(), currentCollectionId);
+		CollectionImpl::SetActive(observer.GetSettings(), currentCollectionId);
 		observer.HandleCurrentCollectionChanged(m_collections.front());
 	}
 
-	const Collection * FindCollection(const QString & id) const
+	const CollectionImpl * FindCollection(const QString & id) const
 	{
 		const auto it = std::ranges::find_if(std::as_const(m_collections), [&] (const auto & item) { return item.id == id; });
 		return it != std::cend(m_collections) ? &*it : nullptr;
@@ -183,7 +183,7 @@ struct CollectionController::Impl
 			return Util::Set(error, QApplication::translate("Error", "Archive folder not found"), m_self, &CollectionController::ErrorChanged), false;
 		if (QDir(folder).isEmpty())
 			return Util::Set(error, QApplication::translate("Error", "Archive folder cannot be empty"), m_self, &CollectionController::ErrorChanged), false;
-		if (const auto it = std::ranges::find_if(std::as_const(m_collections), [id = Collection::GenerateId(db)](const Collection & item) { return item.id == id; }); it != m_collections.cend())
+		if (const auto it = std::ranges::find_if(std::as_const(m_collections), [id = CollectionImpl::GenerateId(db)](const CollectionImpl & item) { return item.id == id; }); it != m_collections.cend())
 			return Util::Set(error, QApplication::translate("Error", "This collection has already been added: %1").arg(it->name), m_self, &CollectionController::ErrorChanged), false;
 
 		return true;
@@ -222,7 +222,7 @@ private:
 			return true;
 		}
 
-		Collection::Remove(observer.GetSettings(), currentCollectionId);
+		CollectionImpl::Remove(observer.GetSettings(), currentCollectionId);
 
 		QTimer::singleShot(std::chrono::milliseconds(200), [removeDatabase = button == QMessageBox::Yes, db = collection->database]() mutable
 		{
@@ -299,7 +299,7 @@ CollectionController::~CollectionController()
 	PLOGD << "CollectionController destroyed";
 }
 
-void CollectionController::CheckForUpdate(const Collection & collection)
+void CollectionController::CheckForUpdate(const CollectionImpl & collection)
 {
 	(*m_impl->executor)({ "Check inpx for update", [&this_ = *this, collection = collection]() mutable
 	{
@@ -332,7 +332,7 @@ bool CollectionController::AddCollection(QString name, QString db, QString folde
 	while (folder.endsWith("\\"))
 		folder.resize(folder.size() - 1);
 
-	const Collection collection(std::move(name), std::move(db), std::move(folder));
+	const CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
 	collection.Serialize(m_impl->observer.GetSettings());
 	SetCurrentCollectionId(collection.id);
 
@@ -413,7 +413,7 @@ const QString & CollectionController::GetError() const noexcept
 
 void CollectionController::SetCurrentCollectionId(const QString & id)
 {
-	Collection::SetActive(m_impl->observer.GetSettings(), id);
+	CollectionImpl::SetActive(m_impl->observer.GetSettings(), id);
 	QTimer::singleShot(std::chrono::milliseconds(200), [] { QCoreApplication::exit(1234); });
 }
 

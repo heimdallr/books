@@ -1,9 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <QStringList>
 #include <QVariant>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 #include "ISettings.h"
 
@@ -31,15 +32,15 @@ public:
 
 	void Remove(const QString & key) override;
 
-	void BeginGroup(const QString & group) override;
-	void EndGroup() override;
+	void BeginGroup(const QString & group) const override;
+	void EndGroup() const override;
 
 	void RegisterObserver(ISettingsObserver * observer) override;
 	void UnregisterObserver(ISettingsObserver * observer) override;
 
 private:
 	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 }

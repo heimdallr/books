@@ -19,7 +19,7 @@ constexpr auto DATABASE = "DatabaseFileName";
 constexpr auto FOLDER = "ArchiveFolder";
 
 constexpr auto DATABASE_FILENAME_FILTER = "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)";
-constexpr auto ERROR_TEXT_TEMPLATE = R"(<html><head/><body><p><span style="color:#ff0000;">%1</span></p></body></html>)";
+//constexpr auto ERROR_TEXT_TEMPLATE = R"(<html><head/><body><p><span style="color:#ff0000;">%1</span></p></body></html>)";
 
 QString GetDatabase(QWidget & parent, const QString & file)
 {
@@ -185,7 +185,7 @@ private:
         widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
         return text.isEmpty()
             ? (m_ui.lblError->setText(""), true)
-            : (m_ui.lblError->setText(QString(ERROR_TEXT_TEMPLATE).arg(text)), false)
+            : (m_ui.lblError->setText(text), false)
             ;
     }
 

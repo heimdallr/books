@@ -12,7 +12,7 @@ class QAbstractItemModel;
 namespace HomeCompa::Flibrary {
 
 class DialogController;
-struct Collection;
+struct CollectionImpl;
 
 class CollectionController
 	: public QObject
@@ -34,7 +34,7 @@ public:
 		: virtual public ISettingsProvider
 	{
 	public:
-		virtual void HandleCurrentCollectionChanged(const Collection & collection) = 0;
+		virtual void HandleCurrentCollectionChanged(const CollectionImpl & collection) = 0;
 	};
 
 public:
@@ -42,7 +42,7 @@ public:
 	~CollectionController() override;
 
 public:
-	void CheckForUpdate(const Collection & collection);
+	void CheckForUpdate(const CollectionImpl & collection);
 
 public:
 	Q_INVOKABLE bool AddCollection(QString name, QString db, QString folder);

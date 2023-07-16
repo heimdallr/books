@@ -50,8 +50,23 @@
        </property>
        <item row="0" column="0">
         <widget class="QSplitter" name="verticalSplitter">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="midLineWidth">
+          <number>0</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="handleWidth">
+          <number>0</number>
          </property>
          <widget class="QWidget" name="navigationWidget" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -91,8 +106,14 @@
            </property>
            <item row="0" column="0">
             <widget class="QSplitter" name="horizontalSplitter">
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+             <property name="handleWidth">
+              <number>0</number>
              </property>
              <widget class="QWidget" name="booksWidget" native="true">
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -178,7 +199,19 @@
     <property name="title">
      <string>Collection</string>
     </property>
+    <widget class="QMenu" name="menuSelectCollection">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Select &amp;collection</string>
+     </property>
+    </widget>
     <addaction name="actionAddNewCollection"/>
+    <addaction name="menuSelectCollection"/>
+    <addaction name="actionRemoveCollection"/>
+    <addaction name="separator"/>
+    <addaction name="actionUserdata"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -232,7 +265,7 @@
     <string>Alt+X</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::QuitRole</enum>
    </property>
   </action>
   <action name="actionAddNewCollection">
@@ -241,6 +274,22 @@
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionRemoveCollection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Remove collection</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionUserdata">
+   <property name="text">
+    <string>&amp;User data</string>
    </property>
   </action>
  </widget>

@@ -24,7 +24,7 @@ protected:
 	~GeometryRestorable();
 
 protected:
-	virtual void Init();
+	void Init();
 
 private:
 	class Impl;

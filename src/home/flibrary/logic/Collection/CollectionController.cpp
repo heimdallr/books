@@ -5,16 +5,19 @@
 
 #include <plog/Log.h>
 
+#include "fnd/observable.h"
+
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "Collection.h"
+#include "CollectionImpl.h"
 
 using namespace HomeCompa::Flibrary;
 
 namespace {
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
+const Collection EMPTY_COLLECTION;
 
 QString GetInpx(const QString & folder)
 {
@@ -26,9 +29,21 @@ QString GetInpx(const QString & folder)
 	return result;
 }
 
+const Collection & FindCollectionById(const Collections & collections, const QString & id) noexcept
+{
+	const auto it = std::ranges::find_if(collections, [&] (const auto & item)
+	{
+		return item->id == id;
+	});
+
+	return it != std::cend(collections) ? **it : EMPTY_COLLECTION;
+
 }
 
-class CollectionController::Impl
+}
+
+class CollectionController::Impl final
+	: public Observable<IObserver>
 {
 public:
 	explicit Impl(std::shared_ptr<ISettings> settings
@@ -37,19 +52,35 @@ public:
 		: m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 	{
+		if (std::ranges::none_of(m_collections, [id = CollectionImpl::GetActive(*m_settings)] (const auto & item) { return item->id == id; }))
+			CollectionImpl::SetActive(*m_settings, m_collections.empty() ? "" : m_collections.front()->id);
 	}
 
-	bool AddCollection()
+	const Collections & GetCollections() const noexcept
 	{
-		auto added = false;
+		return m_collections;
+	}
+
+	const ISettings& GetSettings() const noexcept
+	{
+		return *m_settings;
+	}
+
+	ISettings & GetSettings() noexcept
+	{
+		return *m_settings;
+	}
+
+	void AddCollection()
+	{
 		switch (const auto dialog = m_uiFactory->CreateAddCollectionDialog(); dialog->Exec())
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				added = CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
+				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				added = Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
 				break;
 
 			default:
@@ -57,61 +88,39 @@ public:
 		}
 
 		m_overwriteConfirmCount = 0;
-		return added;
 	}
 
-	[[nodiscard]] bool IsEmpty() const noexcept
+	void SetActiveCollection(const Collection & collection)
 	{
-		return m_collections.empty();
-	}
-
-	[[nodiscard]] bool IsCollectionNameExists(const QString & name) const
-	{
-		return std::ranges::any_of(m_collections, [&](const auto & item){ return item.name == name; });
-	}
-
-	[[nodiscard]] QString GetCollectionDatabaseName(const QString & databaseFileName) const
-	{
-		const auto it = std::ranges::find_if(m_collections, [id = Collection::GenerateId(databaseFileName)] (const auto & item)
-		{
-			return item.id == id;
-		});
-
-		return it != std::cend(m_collections) ? it->name : QString();
-	}
-
-	[[nodiscard]] static bool IsCollectionFolderHasInpx(const QString & folder)
-	{
-		return !GetInpx(folder).isEmpty();
+		CollectionImpl::SetActive(GetSettings(), collection.id);
+		Perform(&IObserver::OnActiveCollectionChanged, std::cref(collection));
 	}
 
 private:
-	[[nodiscard]] bool CreateNew(const QString & /*name*/, const QString & db, const QString & /*folder*/)
+	void CreateNew(const QString & /*name*/, const QString & db, const QString & /*folder*/)
 	{
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning("Warning", "The existing database file will be overwritten. Continue?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 				return ++m_overwriteConfirmCount < MAX_OVERWRITE_CONFIRM_COUNT
 					? AddCollection()
-					: false;
+					: Perform(&IObserver::OnActiveCollectionChanged, std::cref(EMPTY_COLLECTION));
 
 			PLOGW << db << " will be rewritten";
 		}
-
-		return true;
 	}
 
-	[[nodiscard]] bool Add(QString name, QString db, QString folder) const
+	void Add(QString name, QString db, QString folder)
 	{
-		const Collection collection(std::move(name), std::move(db), std::move(folder));
-		collection.Serialize(*m_settings);
-		return true;
+		const CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		CollectionImpl::Serialize(collection, *m_settings);
+		SetActiveCollection(collection);
 	}
 
 private:
-	std::shared_ptr<ISettings> m_settings;
-	std::shared_ptr<IUiFactory> m_uiFactory;
-	Collections m_collections { Collection::Deserialize(*m_settings) };
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
 	int m_overwriteConfirmCount { 0 };
 };
 
@@ -130,27 +139,55 @@ CollectionController::~CollectionController()
 	PLOGD << "CollectionController destroyed";
 }
 
-bool CollectionController::AddCollection()
+void CollectionController::AddCollection()
 {
-	return m_impl->AddCollection();
+	m_impl->AddCollection();
 }
 
 bool CollectionController::IsEmpty() const noexcept
 {
-	return m_impl->IsEmpty();
+	return GetCollections().empty();
 }
 
 bool CollectionController::IsCollectionNameExists(const QString & name) const
 {
-	return m_impl->IsCollectionNameExists(name);
+	return std::ranges::any_of(GetCollections(), [&] (const auto & item)
+	{
+		return item->name == name;
+	});
 }
 
 QString CollectionController::GetCollectionDatabaseName(const QString & databaseFileName) const
 {
-	return m_impl->GetCollectionDatabaseName(databaseFileName);
+	return FindCollectionById(GetCollections(), CollectionImpl::GenerateId(databaseFileName)).name;
 }
 
 bool CollectionController::IsCollectionFolderHasInpx(const QString & folder) const
 {
-	return m_impl->IsCollectionFolderHasInpx(folder);
+	return !GetInpx(folder).isEmpty();
+}
+
+const Collections & CollectionController::GetCollections() const noexcept
+{
+	return m_impl->GetCollections();
+}
+
+const Collection & CollectionController::GetActiveCollection() const noexcept
+{
+	return FindCollectionById(GetCollections(), CollectionImpl::GetActive(m_impl->GetSettings()));
+}
+
+void CollectionController::SetActiveCollection(const QString & id)
+{
+	m_impl->SetActiveCollection(FindCollectionById(m_impl->GetCollections(), id));
+}
+
+void CollectionController::RegisterObserver(IObserver * observer)
+{
+	m_impl->Register(observer);
+}
+
+void CollectionController::UnregisterObserver(IObserver * observer)
+{
+	m_impl->Unregister(observer);
 }

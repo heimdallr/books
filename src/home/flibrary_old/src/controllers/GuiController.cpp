@@ -46,7 +46,7 @@
 #include "version/AppVersion.h"
 
 #include "AnnotationController.h"
-#include "Collection.h"
+#include "CollectionImpl.h"
 #include "CollectionController.h"
 #include "ComboBoxController.h"
 #include "DialogController.h"
@@ -522,11 +522,11 @@ private: // LocaleController::LanguageProvider
 	}
 
 private: // CollectionController::Observer
-	void HandleCurrentCollectionChanged(const Collection & collection) override
+	void HandleCurrentCollectionChanged(const CollectionImpl & collection) override
 	{
 		if (collection.id.isEmpty())
 		{
-			m_currentCollection = Collection {};
+			m_currentCollection = CollectionImpl {};
 			PropagateConstPtr<Util::IExecutor>(std::unique_ptr<Util::IExecutor>()).swap(m_executor);
 			emit m_self.OpenedChanged();
 			return;
@@ -655,7 +655,7 @@ private:
 
 	int m_currentNavigationIndex { -1 };
 	PropagateConstPtr<AnnotationController> m_annotationController { std::unique_ptr<AnnotationController>() };
-	Collection m_currentCollection;
+	CollectionImpl m_currentCollection;
 
 	std::map<NavigationSource, PropagateConstPtr<NavigationModelController>> m_navigationModelControllers;
 	PropagateConstPtr<BooksModelController> m_booksModelController { std::unique_ptr<BooksModelController>() };
