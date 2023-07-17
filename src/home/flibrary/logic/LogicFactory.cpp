@@ -1,6 +1,7 @@
 #include "LogicFactory.h"
 
 #include <Hypodermic/Hypodermic.h>
+#include <plog/Log.h>
 
 #include "fnd/observable.h"
 
@@ -37,9 +38,14 @@ LogicFactory::LogicFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
 	m_impl->databaseController = std::make_unique<DatabaseController>(m_impl->container.resolve<ICollectionController>());
+
+	PLOGD << "LogicFactory created";
 }
 
-LogicFactory::~LogicFactory() = default;
+LogicFactory::~LogicFactory()
+{
+	PLOGD << "LogicFactory destroyed";
+}
 
 std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewController(const ItemType type) const
 {

@@ -48,7 +48,7 @@ protected:
 
 public:
 	virtual ~DataItem() = default;
-	using Ptr = PropagateConstPtr<DataItem>;
+	using Ptr = std::shared_ptr<DataItem>;
 
 public:
 	const DataItem* GetParent() const noexcept
@@ -114,9 +114,9 @@ struct NavigationItem final : DataItem
 	{
 	}
 
-	static std::unique_ptr<DataItem> Create(const DataItem * parent = nullptr)
+	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr)
 	{
-		return std::make_unique<NavigationItem>(parent);
+		return std::make_shared<NavigationItem>(parent);
 	}
 
 private: // DataItem
@@ -125,7 +125,7 @@ private: // DataItem
 		return 1;
 	}
 
-	QVariant GetData(const int column) const override
+	QVariant GetData([[maybe_unused]]const int column) const override
 	{
 		assert(column == 0);
 		return title;

@@ -8,7 +8,6 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/ILogicFactory.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

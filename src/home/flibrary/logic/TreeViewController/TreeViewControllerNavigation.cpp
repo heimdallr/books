@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QTimer>
 #include <QVariant>
+#include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
@@ -67,9 +68,14 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 		});
 	});
+
+	PLOGD << "TreeViewControllerNavigation created";
 }
 
-TreeViewControllerNavigation::~TreeViewControllerNavigation() = default;
+TreeViewControllerNavigation::~TreeViewControllerNavigation()
+{
+	PLOGD << "TreeViewControllerNavigation destroyed";
+}
 
 std::vector<const char *> TreeViewControllerNavigation::GetModeNames() const
 {

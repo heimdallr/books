@@ -9,7 +9,7 @@ using namespace HomeCompa::Flibrary;
 struct ModelProvider::Impl
 {
 	Hypodermic::Container & container;
-	mutable DataItem::Ptr data { std::unique_ptr<DataItem>() };
+	mutable DataItem::Ptr data { std::shared_ptr<DataItem>() };
 	mutable IModelObserver * observer { nullptr };
 
 	explicit Impl(Hypodermic::Container & container)

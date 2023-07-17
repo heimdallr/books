@@ -16,6 +16,7 @@ class DataProvider
 	NON_COPY_MOVABLE(DataProvider)
 
 public:
+	using Callback = std::function<void(DataItem::Ptr)>;
 
 public:
 	explicit DataProvider(std::shared_ptr<class ILogicFactory> logicFactory);
@@ -25,7 +26,7 @@ public:
 	void SetNavigationMode(enum class NavigationMode navigationMode);
 	void SetViewMode(enum class ViewMode viewMode);
 
-	void RequestNavigation(std::function<void(DataItem::Ptr)> callback);
+	void RequestNavigation(Callback callback);
 
 private:
 	class Impl;

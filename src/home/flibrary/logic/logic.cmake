@@ -16,6 +16,8 @@ AddTarget(
 		DatabaseFactory
 		logging
 		Util
+	DEPENDENCIES
+		MyHomeLibSQLIteExt
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

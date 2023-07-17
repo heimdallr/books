@@ -2,6 +2,7 @@
 
 #include <qglobal.h>
 #include <QVariant>
+#include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
@@ -39,9 +40,13 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	)
 {
 	Setup();
+	PLOGD << "TreeViewControllerBooks created";
 }
 
-TreeViewControllerBooks::~TreeViewControllerBooks() = default;
+TreeViewControllerBooks::~TreeViewControllerBooks()
+{
+	PLOGD << "TreeViewControllerBooks destroyed";
+}
 
 std::vector<const char *> TreeViewControllerBooks::GetModeNames() const
 {
