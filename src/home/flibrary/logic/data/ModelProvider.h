@@ -22,7 +22,7 @@ public:
 	~ModelProvider() override;
 
 public:
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateModel(DataItem::Ptr data, IModelObserver & observer) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateTreeModel(DataItem::Ptr data, IModelObserver & observer) const override;
 	[[nodiscard]] DataItem::Ptr GetData() const noexcept override;
 	[[nodiscard]] IModelObserver & GetObserver() const noexcept override;
 

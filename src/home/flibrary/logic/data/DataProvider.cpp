@@ -9,6 +9,7 @@
 #include "fnd/FindPair.h"
 
 #include <database/interface/IDatabase.h>
+#include <plog/Log.h>
 
 #include "database/interface/IQuery.h"
 #include "util/executor/factory.h"
@@ -233,9 +234,13 @@ private:
 DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)
 	: m_impl(std::move(logicFactory))
 {
+	PLOGD << "DataProvider created";
 }
 
-DataProvider::~DataProvider() = default;
+DataProvider::~DataProvider()
+{
+	PLOGD << "DataProvider destroyed";
+}
 
 void DataProvider::SetNavigationMode(const NavigationMode navigationMode)
 {

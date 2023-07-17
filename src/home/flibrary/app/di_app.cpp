@@ -7,10 +7,10 @@
 
 namespace HomeCompa::Flibrary {
 
-std::shared_ptr<Hypodermic::Container> di_init(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
+std::shared_ptr<Hypodermic::Container> DiInit(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
-	di_logic(builder, container);
-	di_ui(builder, container);
+	DiLogic(builder, container);
+	DiUi(builder, container);
 
 	return builder.build();
 }

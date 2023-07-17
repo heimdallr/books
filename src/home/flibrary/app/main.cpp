@@ -33,18 +33,13 @@ int main(int argc, char * argv[])
 
 			std::shared_ptr<Hypodermic::Container> container;
 			Hypodermic::ContainerBuilder builder;
-			di_init(builder, container).swap(container);
+			DiInit(builder, container).swap(container);
 			PLOGD << "DI-container created";
 
 			const auto logicFactory = container->resolve<ILogicFactory>();
 
 			const auto mainWindow = container->resolve<QMainWindow>();
 			mainWindow->show();
-
-//			GuiController guiController;
-//			app.installEventFilter(&guiController);
-
-//			guiController.Start();
 
 			if (const auto code = QApplication::exec(); code != 1234)
 			{

@@ -2,7 +2,7 @@
 
 #include <Hypodermic/Container.h>
 
-#include "Model.h"
+#include "model/TreeModel.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -25,7 +25,7 @@ ModelProvider::ModelProvider(Hypodermic::Container & container)
 
 ModelProvider::~ModelProvider() = default;
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateModel(DataItem::Ptr data, IModelObserver & observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(DataItem::Ptr data, IModelObserver & observer) const
 {
 	m_impl->data = std::move(data);
 	m_impl->observer = &observer;

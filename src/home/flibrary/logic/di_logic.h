@@ -12,6 +12,6 @@ class ContainerBuilder;
 
 namespace HomeCompa::Flibrary {
 
-LOGIC_API void di_logic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
+LOGIC_API void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
 
 }

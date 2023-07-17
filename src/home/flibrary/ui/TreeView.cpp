@@ -2,6 +2,7 @@
 #include "TreeView.h"
 
 #include <QTimer>
+#include <plog/Log.h>
 
 #include "interface/logic/ITreeViewController.h"
 
@@ -67,6 +68,10 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 		, std::move(settings)
 	)
 {
+	PLOGD << "TreeView created";
 }
 
-TreeView::~TreeView() = default;
+TreeView::~TreeView()
+{
+	PLOGD << "TreeView destroyed";
+}

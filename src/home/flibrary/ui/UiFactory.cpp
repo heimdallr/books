@@ -1,6 +1,7 @@
 #include "UiFactory.h"
 
 #include <Hypodermic/Hypodermic.h>
+#include <plog/Log.h>
 
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
@@ -29,9 +30,13 @@ struct UiFactory::Impl
 UiFactory::UiFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
+	PLOGD << "UiFactory created";
 }
 
-UiFactory::~UiFactory() = default;
+UiFactory::~UiFactory()
+{
+	PLOGD << "UiFactory destroyed";
+}
 
 std::shared_ptr<QWidget> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {

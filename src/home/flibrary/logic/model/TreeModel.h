@@ -4,11 +4,11 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "Types.h"
+#include "data/Types.h"
 
 namespace HomeCompa::Flibrary {
 
-class IModelObserver
+class IModelObserver  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IModelObserver() = default;

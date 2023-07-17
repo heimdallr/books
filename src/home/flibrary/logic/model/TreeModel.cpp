@@ -1,6 +1,8 @@
-#include "Model.h"
+#include "TreeModel.h"
 
-#include "AbstractModelProvider.h"
+#include <plog/Log.h>
+
+#include "data/AbstractModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -13,9 +15,13 @@ TreeModel::TreeModel(const std::shared_ptr<AbstractModelProvider> & modelProvide
 	: AbstractTreeModel(parent)
 	, m_data(modelProvider->GetData())
 {
+	PLOGD << "TreeModel created";
 }
 
-TreeModel::~TreeModel() = default;
+TreeModel::~TreeModel()
+{
+	PLOGD << "TreeModel destroyed";
+}
 
 QModelIndex TreeModel::index(const int row, const int column, const QModelIndex & parent) const
 {

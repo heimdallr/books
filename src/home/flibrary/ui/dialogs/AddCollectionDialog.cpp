@@ -3,6 +3,7 @@
 
 #include <QFileDialog>
 #include <QFileInfo>
+#include <plog/Log.h>
 
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
@@ -203,9 +204,13 @@ AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<class ParentWidge
     : QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this, std::move(settings), std::move(collectionController))
 {
+    PLOGD << "AddCollectionDialog created";
 }
 
-AddCollectionDialog::~AddCollectionDialog() = default;
+AddCollectionDialog::~AddCollectionDialog()
+{
+    PLOGD << "AddCollectionDialog destroyed";
+}
 
 int AddCollectionDialog::Exec()
 {

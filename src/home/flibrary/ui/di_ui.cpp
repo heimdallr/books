@@ -18,7 +18,7 @@
 
 namespace HomeCompa::Flibrary {
 
-void di_ui(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
+void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
 	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
 	builder.registerType<ParentWidgetProvider>().singleInstance();
