@@ -54,12 +54,12 @@ public:
 
 				std::unordered_multimap<QString, DataItem::Ptr> items;
 				std::unordered_map<QString, DataItem*> index;
-				DataItem::Ptr root(NavigationItem::create());
+				DataItem::Ptr root(NavigationItem::Create());
 				index.emplace("0", root.get());
 
 				for (query->Execute(); !query->Eof(); query->Next())
 				{
-					auto & item = *items.emplace(query->Get<const char *>(1), DataItem::Ptr(NavigationItem::create()))->second->To<NavigationItem>();
+					auto & item = *items.emplace(query->Get<const char *>(1), DataItem::Ptr(NavigationItem::Create()))->second->To<NavigationItem>();
 					item.id = query->Get<const char *>(0);
 					item.title = query->Get<const char *>(2);
 					index.emplace(item.id, &item);
@@ -81,8 +81,7 @@ public:
 
 					for (auto && [it, end] = items.equal_range(parentId); it != end; ++it)
 					{
-						auto & item = parent->children.emplace_back(std::move(it->second));
-						item->parent = parent;
+						auto & item = parent->AppendChild(std::move(it->second));
 						stack.push(item->To<NavigationItem>()->id);
 					}
 				}
