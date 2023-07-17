@@ -41,14 +41,14 @@ LogicFactory::LogicFactory(Hypodermic::Container & container)
 
 LogicFactory::~LogicFactory() = default;
 
-std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewController(const TreeViewControllerType type) const
+std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewController(const ItemType type) const
 {
 	switch (type)
 	{
-		case TreeViewControllerType::Books:
+		case ItemType::Books:
 			return m_impl->container.resolve<TreeViewControllerBooks>();
 
-		case TreeViewControllerType::Navigation:
+		case ItemType::Navigation:
 			return m_impl->container.resolve<TreeViewControllerNavigation>();
 	}
 

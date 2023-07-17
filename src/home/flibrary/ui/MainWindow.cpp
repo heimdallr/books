@@ -11,6 +11,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 #include "ParentWidgetProvider.h"
+#include "logic/data/Types.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -39,8 +40,8 @@ public:
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
-        , m_booksWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Books))
-        , m_navigationWidget(uiFactory->CreateTreeViewWidget(TreeViewControllerType::Navigation))
+        , m_booksWidget(uiFactory->CreateTreeViewWidget(ItemType::Books))
+        , m_navigationWidget(uiFactory->CreateTreeViewWidget(ItemType::Navigation))
     {
         Setup();
         ConnectActions();

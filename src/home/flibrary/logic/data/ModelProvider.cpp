@@ -9,8 +9,8 @@ using namespace HomeCompa::Flibrary;
 struct ModelProvider::Impl
 {
 	Hypodermic::Container & container;
-	mutable DataItem::Ptr data;
-	mutable IModelObserver * observer;
+	mutable DataItem::Ptr data { std::unique_ptr<DataItem>() };
+	mutable IModelObserver * observer { nullptr };
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)

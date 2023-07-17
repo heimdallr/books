@@ -8,12 +8,6 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-enum class TreeViewControllerType
-{
-	Navigation,
-	Books,
-};
-
 class ITreeViewController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:

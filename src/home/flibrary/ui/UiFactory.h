@@ -19,7 +19,7 @@ public:
 	~UiFactory() override;
 
 private: // IUiFactory
-	[[nodiscard]] std::shared_ptr<QWidget> CreateTreeViewWidget(TreeViewControllerType type) const override;
+	[[nodiscard]] std::shared_ptr<QWidget> CreateTreeViewWidget(ItemType type) const override;
 	[[nodiscard]] std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog() const override;
 	QMessageBox::StandardButton ShowWarning(const QString & title, const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 
