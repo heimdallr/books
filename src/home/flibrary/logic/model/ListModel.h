@@ -8,19 +8,19 @@
 
 namespace HomeCompa::Flibrary {
 
-class AbstractTreeModel : public QAbstractItemModel
+class AbstractListModel : public QAbstractItemModel
 {
 protected:
-	explicit AbstractTreeModel(QObject * parent);
+	explicit AbstractListModel(QObject * parent);
 };
 
-class TreeModel : public AbstractTreeModel
+class ListModel : public AbstractListModel
 {
-	NON_COPY_MOVABLE(TreeModel)
+	NON_COPY_MOVABLE(ListModel)
 
 public:
-	explicit TreeModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
-	~TreeModel() override;
+	explicit ListModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
+	~ListModel() override;
 
 private: // QAbstractItemModel
 	QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const override;

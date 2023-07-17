@@ -9,7 +9,7 @@
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "data/Types.h"
-#include "model/TreeModel.h"
+#include "model/IModelObserver.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -21,11 +21,11 @@ using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider:
 
 constexpr std::pair<const char *, std::tuple<ModelCreator, NavigationMode>> MODE_DESCRIPTORS[]
 {
-	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { &AbstractModelProvider::CreateTreeModel, NavigationMode::Authors } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { &AbstractModelProvider::CreateTreeModel, NavigationMode::Series } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { &AbstractModelProvider::CreateListModel, NavigationMode::Authors } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { &AbstractModelProvider::CreateListModel, NavigationMode::Series } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { &AbstractModelProvider::CreateTreeModel, NavigationMode::Genres } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { &AbstractModelProvider::CreateTreeModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { &AbstractModelProvider::CreateTreeModel, NavigationMode::Groups } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { &AbstractModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { &AbstractModelProvider::CreateListModel, NavigationMode::Groups } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));

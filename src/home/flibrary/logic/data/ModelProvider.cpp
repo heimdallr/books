@@ -2,6 +2,7 @@
 
 #include <Hypodermic/Container.h>
 
+#include "model/ListModel.h"
 #include "model/TreeModel.h"
 
 using namespace HomeCompa::Flibrary;
@@ -24,6 +25,13 @@ ModelProvider::ModelProvider(Hypodermic::Container & container)
 }
 
 ModelProvider::~ModelProvider() = default;
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(DataItem::Ptr data, IModelObserver & observer) const
+{
+	m_impl->data = std::move(data);
+	m_impl->observer = &observer;
+	return m_impl->container.resolve<ListModel>();
+}
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(DataItem::Ptr data, IModelObserver & observer) const
 {
