@@ -107,3 +107,8 @@ int TreeViewControllerNavigation::GetModeIndex(const QVariant & mode) const
 	const auto [_, enumMode] = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparer {});
 	return static_cast<int>(enumMode);
 }
+
+ItemType TreeViewControllerNavigation::GetItemType() const noexcept
+{
+	return ItemType::Navigation;
+}

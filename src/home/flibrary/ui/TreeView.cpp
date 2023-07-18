@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <plog/Log.h>
 
+#include "interface/constants/Enums.h"
 #include "interface/logic/ITreeViewController.h"
 
 #include "util/ISettings.h"
@@ -30,6 +31,7 @@ public:
 		, settings(std::move(settings))
 	{
 		ui.setupUi(&this->self);
+		ui.treeView->setHeaderHidden(this->controller->GetItemType() == ItemType::Navigation);
 
 		ui.cbView->setStyleSheet("QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}");
 		for (const auto * name : this->controller->GetModeNames())

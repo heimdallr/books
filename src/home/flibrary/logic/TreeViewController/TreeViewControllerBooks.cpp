@@ -71,3 +71,8 @@ int TreeViewControllerBooks::GetModeIndex(const QVariant & mode) const
 	const auto enumMode = FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
 	return static_cast<int>(enumMode);
 }
+
+ItemType TreeViewControllerBooks::GetItemType() const noexcept
+{
+	return ItemType::Books;
+}

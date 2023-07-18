@@ -7,33 +7,9 @@
 #include <QString>
 #include <QVariant>
 
+#include "interface/constants/Enums.h"
+
 namespace HomeCompa::Flibrary {
-
-enum class NavigationMode
-{
-	Unknown = -1,
-	Authors,
-	Series,
-	Genres,
-	Archives,
-	Groups,
-	Last
-};
-
-enum class ViewMode
-{
-	Unknown = -1,
-	List,
-	Tree,
-	Last
-};
-
-enum class ItemType
-{
-	Unknown = -1,
-	Navigation,
-	Books,
-};
 
 struct NavigationItem;
 struct BookItem;

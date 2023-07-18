@@ -1,20 +1,21 @@
 #include "DataProvider.h"
 
-#include <unordered_map>
 #include <stack>
+#include <unordered_map>
 
-#include <QtGui/QGuiApplication>
+#include <plog/Log.h>
 #include <QtGui/QCursor>
+#include <QtGui/QGuiApplication>
 
 #include "fnd/FindPair.h"
 
-#include <database/interface/IDatabase.h>
-#include <plog/Log.h>
-
+#include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
 
+#include "interface/constants/Localization.h"
 #include "interface/logic/ILogicFactory.h"
 
 using namespace HomeCompa;
@@ -82,8 +83,8 @@ QString CreateAuthorTitle(const DB::IQuery & query)
 	AppendTitle(title, query.Get<const char *>(1));
 	AppendTitle(title, query.Get<const char *>(3));
 
-//	if (title.isEmpty())
-//		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+	if (title.isEmpty())
+		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
 
 	return title;
 }

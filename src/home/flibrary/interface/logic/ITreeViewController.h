@@ -23,7 +23,8 @@ public:
 	[[nodiscard]] virtual const char * TrContext() const noexcept = 0;
 	[[nodiscard]] virtual std::vector<const char *> GetModeNames() const = 0;
 	virtual void SetModeIndex(int index) = 0;
-	virtual int GetModeIndex() const = 0;
+	[[nodiscard]] virtual int GetModeIndex() const = 0;
+	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

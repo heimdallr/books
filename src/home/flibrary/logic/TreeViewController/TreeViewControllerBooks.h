@@ -30,7 +30,8 @@ private: // ITreeViewController
 
 private: // AbstractTreeViewController
 	void OnModeChanged(const QVariant & mode) override;
-	int GetModeIndex(const QVariant & mode) const override;
+	[[nodiscard]] int GetModeIndex(const QVariant & mode) const override;
+	[[nodiscard]] ItemType GetItemType() const noexcept override;
 
 private:
 	class Impl;
