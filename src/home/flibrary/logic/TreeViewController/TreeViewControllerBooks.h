@@ -32,9 +32,10 @@ private: // AbstractTreeViewController
 	void OnModeChanged(const QVariant & mode) override;
 	[[nodiscard]] int GetModeIndex(const QVariant & mode) const override;
 	[[nodiscard]] ItemType GetItemType() const noexcept override;
+	[[nodiscard]] ViewMode GetViewMode() const noexcept override;
 
 private:
-	class Impl;
+	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

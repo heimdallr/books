@@ -23,10 +23,16 @@ constexpr std::pair<const char *, ViewMode> MODE_NAMES[]
 
 static_assert(std::size(MODE_NAMES) == static_cast<size_t>(ViewMode::Last));
 
+auto GetViewModeImpl(std::string_view strMode)
+{
+	return FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
 }
 
-class TreeViewControllerBooks::Impl final
+}
+
+struct TreeViewControllerBooks::Impl final
 {
+	ViewMode viewMode { ViewMode::Unknown };
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
@@ -60,19 +66,23 @@ void TreeViewControllerBooks::SetModeIndex(const int index)
 
 void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
 {
-	const auto intMode = GetModeIndex(mode);
-	m_dataProvider->SetViewMode(static_cast<ViewMode>(intMode));
-	Perform(&IObserver::OnModeChanged, intMode);
+	m_impl->viewMode = GetViewModeImpl(mode.toString().toStdString());
+	m_dataProvider->SetViewMode(m_impl->viewMode);
+	Perform(&IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
 }
 
 int TreeViewControllerBooks::GetModeIndex(const QVariant & mode) const
 {
-	const auto strMode = mode.toString().toStdString();
-	const auto enumMode = FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
+	const auto enumMode = GetViewModeImpl(mode.toString().toStdString());
 	return static_cast<int>(enumMode);
 }
 
 ItemType TreeViewControllerBooks::GetItemType() const noexcept
 {
 	return ItemType::Books;
+}
+
+ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
+{
+	return m_impl->viewMode;
 }

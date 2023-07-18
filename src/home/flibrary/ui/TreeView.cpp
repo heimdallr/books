@@ -57,6 +57,7 @@ private: // ITreeViewController::IObserver
 	void OnModelChanged(QAbstractItemModel * model) override
 	{
 		ui.treeView->setModel(model);
+		ui.treeView->setRootIsDecorated(controller->GetViewMode() == ViewMode::Tree);
 	}
 };
 

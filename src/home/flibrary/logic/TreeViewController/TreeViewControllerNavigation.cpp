@@ -19,13 +19,20 @@ constexpr auto CONTEXT = "Navigation";
 
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider::*)(DataItem::Ptr, IModelObserver &) const;
 
-constexpr std::pair<const char *, std::tuple<ModelCreator, NavigationMode>> MODE_DESCRIPTORS[]
+struct ModeDescriptor
 {
-	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { &AbstractModelProvider::CreateListModel, NavigationMode::Authors } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { &AbstractModelProvider::CreateListModel, NavigationMode::Series } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { &AbstractModelProvider::CreateTreeModel, NavigationMode::Genres } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { &AbstractModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { &AbstractModelProvider::CreateListModel, NavigationMode::Groups } },
+	ViewMode viewMode;
+	ModelCreator modelCreator;
+	NavigationMode navigationMode;
+};
+
+constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
+{
+	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Authors } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Series } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &AbstractModelProvider::CreateTreeModel, NavigationMode::Genres } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Groups } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -64,7 +71,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	{
 		m_dataProvider->RequestNavigation([&] (DataItem::Ptr data)
 		{
-			const auto modelCreator = std::get<0>(MODE_DESCRIPTORS[m_impl->mode].second);
+			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
 			auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));
 			m_impl->models[m_impl->mode].reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
@@ -104,11 +111,16 @@ void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
 int TreeViewControllerNavigation::GetModeIndex(const QVariant & mode) const
 {
 	const auto strMode = mode.toString().toStdString();
-	const auto [_, enumMode] = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparer {});
+	const auto enumMode = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparer {}).navigationMode;
 	return static_cast<int>(enumMode);
 }
 
 ItemType TreeViewControllerNavigation::GetItemType() const noexcept
 {
 	return ItemType::Navigation;
+}
+
+ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
+{
+	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }

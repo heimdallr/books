@@ -25,6 +25,7 @@ public:
 	virtual void SetModeIndex(int index) = 0;
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
+	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;
