@@ -3,6 +3,7 @@
 #include <QWidget>
 
 #include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
 
 namespace HomeCompa {
 class ISettings;
@@ -10,8 +11,10 @@ class ISettings;
 
 namespace HomeCompa::Flibrary {
 
-class TreeView : public QWidget
+class TreeView final : public QWidget
 {
+    NON_COPY_MOVABLE(TreeView)
+
 public:
     TreeView(std::shared_ptr<class ITreeViewController> controller
         , std::shared_ptr<ISettings> settings
@@ -19,7 +22,7 @@ public:
     ~TreeView() override;
 
 private:
-    struct Impl;
+    class Impl;
     PropagateConstPtr<Impl> m_impl;
 };
 
