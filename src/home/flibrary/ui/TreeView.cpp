@@ -1,11 +1,14 @@
 #include "ui_TreeView.h"
 #include "TreeView.h"
 
-#include <QTimer>
 #include <ranges>
+
+#include <QTimer>
+
 #include <plog/Log.h>
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/logic/ITreeViewController.h"
 
 #include "util/ISettings.h"
@@ -22,11 +25,11 @@ class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IValueApplier() = default;
-	virtual void Find() const = 0;
-	virtual void Filter() const = 0;
+	virtual void Find() = 0;
+	virtual void Filter() = 0;
 };
 
-using ApplyValue = void(IValueApplier::*)() const;
+using ApplyValue = void(IValueApplier::*)();
 
 constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 {
@@ -73,14 +76,15 @@ private: // ITreeViewController::IObserver
 	}
 
 private: //	IValueApplier
-	void Find() const override
+	void Find() override
 	{
 		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), Qt::DisplayRole, m_ui.value->text(), 1, Qt::MatchFlag::MatchStartsWith | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 	}
 
-	void Filter() const override
+	void Filter() override
 	{
+		m_filterTimer.start();
 	}
 
 private:
@@ -88,6 +92,9 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
+
+		m_filterTimer.setSingleShot(true);
+		m_filterTimer.setInterval(std::chrono::milliseconds(200));
 
 		FillComboBoxes();
 		Connect();
@@ -112,6 +119,7 @@ private:
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, [&]                   { RestoreValue(); });
 		connect(m_ui.value      , &QLineEdit::textEdited         , [&]                   { SaveValue(); });
 		connect(m_ui.value      , &QLineEdit::textChanged        , [&]                   { OnValueChanged(); });
+		connect(&m_filterTimer  , &QTimer::timeout               , [&]                   { m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter); });
 	}
 
 	auto GetValueModeKey() const
@@ -129,7 +137,7 @@ private:
 		m_ui.value->setText(m_settings->Get(GetValueModeKey()).toString());
 	}
 
-	void OnValueChanged() const
+	void OnValueChanged()
 	{
 		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
@@ -139,6 +147,7 @@ private:
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	Ui::TreeView m_ui {};
+	QTimer m_filterTimer;
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller

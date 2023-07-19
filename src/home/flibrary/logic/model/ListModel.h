@@ -14,7 +14,7 @@ protected:
 	explicit AbstractListModel(QObject * parent);
 };
 
-class ListModel : public AbstractListModel
+class ListModel final : public AbstractListModel
 {
 	NON_COPY_MOVABLE(ListModel)
 

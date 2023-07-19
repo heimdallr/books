@@ -14,7 +14,7 @@ protected:
 	explicit AbstractTreeModel(QObject * parent);
 };
 
-class TreeModel : public AbstractTreeModel
+class TreeModel final : public AbstractTreeModel
 {
 	NON_COPY_MOVABLE(TreeModel)
 
