@@ -62,26 +62,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="cbView">
-       <item>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../resources/main.qrc">
-          <normaloff>:/icons/find.png</normaloff>:/icons/find.png</iconset>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../resources/main.qrc">
-          <normaloff>:/icons/filter.png</normaloff>:/icons/filter.png</iconset>
-        </property>
-       </item>
-      </widget>
+      <widget class="QComboBox" name="cbValueMode"/>
      </item>
      <item>
       <widget class="QLabel" name="lblCount">
@@ -93,7 +74,11 @@
     </layout>
    </item>
    <item>
-    <widget class="QTreeView" name="treeView"/>
+    <widget class="QTreeView" name="treeView">
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

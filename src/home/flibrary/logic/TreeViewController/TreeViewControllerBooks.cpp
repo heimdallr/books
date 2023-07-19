@@ -23,7 +23,7 @@ constexpr std::pair<const char *, ViewMode> MODE_NAMES[]
 
 static_assert(std::size(MODE_NAMES) == static_cast<size_t>(ViewMode::Last));
 
-auto GetViewModeImpl(std::string_view strMode)
+auto GetViewModeImpl(const std::string & strMode)
 {
 	return FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
 }
