@@ -18,7 +18,8 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 constexpr auto VALUE_MODE_ICON_TEMPLATE = ":/icons/%1.png";
-constexpr auto VALUE_MODE_KEY = "ui/%1/%2/%3/Value";
+constexpr auto VALUE_MODE_VALUE_KEY = "ui/%1/%2/%3/Value";
+constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto VALUE_MODE_STYLE_SHEET = "QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}";
 
 class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -105,12 +106,16 @@ private:
 
 	void FillComboBoxes()
 	{
+		m_ui.cbValueMode->setStyleSheet(VALUE_MODE_STYLE_SHEET);
 		for (const auto * name : VALUE_MODES | std::views::keys)
 			m_ui.cbValueMode->addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), "", QString(name));
 
-		m_ui.cbValueMode->setStyleSheet(VALUE_MODE_STYLE_SHEET);
 		for (const auto * name : m_controller->GetModeNames())
 			m_ui.cbMode->addItem(QCoreApplication::translate(m_controller->TrContext(), name), QString(name));
+
+		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item) { return mode == item.first; });
+		if (it != std::cend(VALUE_MODES))
+			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(VALUE_MODES), it)));
 	}
 
 	void Connect()
@@ -122,24 +127,30 @@ private:
 		connect(&m_filterTimer  , &QTimer::timeout               , [&]                   { m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter); });
 	}
 
-	auto GetValueModeKey() const
-	{
-		return QString(VALUE_MODE_KEY).arg(this->m_controller->TrContext()).arg(m_ui.cbMode->currentData().toString()).arg(m_ui.cbValueMode->currentData().toString());
-	}
-
 	void SaveValue()
 	{
-		m_settings->Set(GetValueModeKey(), m_ui.value->text());
+		m_settings->Set(GetValueModeValueKey(), m_ui.value->text());
 	}
 
 	void RestoreValue()
 	{
-		m_ui.value->setText(m_settings->Get(GetValueModeKey()).toString());
+		m_ui.value->setText(m_settings->Get(GetValueModeValueKey()).toString());
+		m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData().toString());
 	}
 
 	void OnValueChanged()
 	{
 		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
+	}
+
+	QString GetValueModeValueKey() const
+	{
+		return QString(VALUE_MODE_VALUE_KEY).arg(m_controller->TrContext()).arg(m_ui.cbMode->currentData().toString()).arg(m_ui.cbValueMode->currentData().toString());
+	}
+
+	QString GetValueModeKey() const
+	{
+		return QString(VALUE_MODE_KEY).arg(m_controller->TrContext());
 	}
 
 private:
