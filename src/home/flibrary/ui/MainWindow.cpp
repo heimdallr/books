@@ -106,7 +106,6 @@ private:
         connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(1); });
         connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(-1); });
         connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
-        connect(m_ui.actionReload, &QAction::triggered, &m_self, [&] { Reboot(); });
         connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
     }
 
