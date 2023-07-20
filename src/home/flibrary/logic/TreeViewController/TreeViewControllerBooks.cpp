@@ -64,6 +64,11 @@ void TreeViewControllerBooks::SetModeIndex(const int index)
 	SetMode(MODE_NAMES[index].first);
 }
 
+void TreeViewControllerBooks::SetCurrentId(QString /*id*/)
+{
+	// Get annotation
+}
+
 void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
 {
 	m_impl->viewMode = GetViewModeImpl(mode.toString().toStdString());

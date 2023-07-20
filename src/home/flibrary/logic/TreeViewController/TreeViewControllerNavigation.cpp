@@ -44,7 +44,9 @@ struct TreeViewControllerNavigation::Impl final
 {
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	QTimer navigationTimer;
+	QTimer booksTimer;
 	int mode = { -1 };
+	QString currentId;
 
 	Impl()
 	{
@@ -53,6 +55,9 @@ struct TreeViewControllerNavigation::Impl final
 
 		navigationTimer.setSingleShot(true);
 		navigationTimer.setInterval(std::chrono::milliseconds(200));
+
+		booksTimer.setSingleShot(true);
+		booksTimer.setInterval(std::chrono::milliseconds(200));
 	}
 };
 
@@ -67,16 +72,17 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	)
 {
 	Setup();
-	QObject::connect(&m_impl->navigationTimer, &QTimer::timeout, &m_impl->navigationTimer, [&]
+
+	m_dataProvider->SetNavigationRequestCallback([&] (DataItem::Ptr data)
 	{
-		m_dataProvider->RequestNavigation([&] (DataItem::Ptr data)
-		{
-			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-			auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));
-			m_impl->models[m_impl->mode].reset(std::move(model));
-			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
-		});
+		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
+		auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));
+		m_impl->models[m_impl->mode].reset(std::move(model));
+		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});
+
+	QObject::connect(&m_impl->navigationTimer, &QTimer::timeout, &m_impl->navigationTimer, [&] { m_dataProvider->RequestNavigation(); });
+	QObject::connect(&m_impl->booksTimer, &QTimer::timeout, &m_impl->booksTimer, [&] { m_dataProvider->RequestBooks(std::move(m_impl->currentId)); });
 
 	PLOGD << "TreeViewControllerNavigation created";
 }
@@ -94,6 +100,13 @@ std::vector<const char *> TreeViewControllerNavigation::GetModeNames() const
 void TreeViewControllerNavigation::SetModeIndex(const int index)
 {
 	SetMode(MODE_DESCRIPTORS[index].first);
+}
+
+void TreeViewControllerNavigation::SetCurrentId(QString id)
+{
+	assert(!id.isEmpty());
+	m_impl->currentId = std::move(id);
+	m_impl->booksTimer.start();
 }
 
 void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)

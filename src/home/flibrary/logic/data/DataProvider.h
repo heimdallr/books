@@ -26,7 +26,11 @@ public:
 	void SetNavigationMode(enum class NavigationMode navigationMode);
 	void SetViewMode(enum class ViewMode viewMode);
 
-	void RequestNavigation(Callback callback);
+	void SetNavigationRequestCallback(Callback callback);
+	void SetBookRequestCallback(Callback callback);
+
+	void RequestNavigation() const;
+	void RequestBooks(QString id) const;
 
 private:
 	class Impl;

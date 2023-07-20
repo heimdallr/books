@@ -57,6 +57,7 @@ public:
 	virtual size_t GetColumnCount() const noexcept = 0;
 	virtual QVariant GetData(int column) const = 0;
 	virtual ItemType GetType() const noexcept = 0;
+	virtual const QString & GetId() const noexcept = 0;
 
 	template<typename T>
 	T * To() noexcept = delete;
@@ -108,6 +109,7 @@ private: // DataItem
 	}
 
 	ItemType GetType() const noexcept override { return ItemType::Navigation; }
+	const QString & GetId() const noexcept override { return id; }
 	NavigationItem * ToNavigationItem() noexcept override { return this; }
 };
 

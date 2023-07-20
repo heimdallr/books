@@ -37,16 +37,15 @@ struct QueryDescription
 	QueryDataExtractor extractor = nullptr;
 };
 
-class IQueryExecutor  // NOLINT(cppcoreguidelines-special-member-functions)
+class INavigationQueryExecutor  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~IQueryExecutor() = default;
-	virtual void RequestSimpleList(QueryDescription queryDescription, DataProvider::Callback callback) const = 0;
-	virtual void RequestGenres(QueryDescription queryDescription, DataProvider::Callback callback) const = 0;
-	virtual void Stub(QueryDescription, DataProvider::Callback) const {}
+	virtual ~INavigationQueryExecutor() = default;
+	virtual void RequestNavigationSimpleList(QueryDescription queryDescription) const = 0;
+	virtual void RequestNavigationGenres(QueryDescription queryDescription) const = 0;
 };
 
-using QueryExecutorFunctor = void(IQueryExecutor::*)(QueryDescription, DataProvider::Callback) const;
+using QueryExecutorFunctor = void(INavigationQueryExecutor::*)(QueryDescription) const;
 
 DataItem::Ptr SimpleListItem(const DB::IQuery & query)
 {
@@ -100,17 +99,17 @@ DataItem::Ptr AuthorItem(const DB::IQuery & query)
 
 constexpr std::pair<NavigationMode, std::pair<QueryExecutorFunctor, QueryDescription>> QUERIES[]
 {
-	{ NavigationMode::Authors , { &IQueryExecutor::RequestSimpleList, { AUTHORS_QUERY , &AuthorItem}}},
-	{ NavigationMode::Series  , { &IQueryExecutor::RequestSimpleList, { SERIES_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Genres  , { &IQueryExecutor::RequestGenres    , { GENRES_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Groups  , { &IQueryExecutor::RequestSimpleList, { GROUPS_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Archives, { &IQueryExecutor::RequestSimpleList, { ARCHIVES_QUERY, &IdOnly}}},
+	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , &AuthorItem}}},
+	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , &SimpleListItem}}},
+	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , &SimpleListItem}}},
+	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , &SimpleListItem}}},
+	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, &IdOnly}}},
 };
 
 }
 
 class DataProvider::Impl
-	: virtual public IQueryExecutor
+	: virtual public INavigationQueryExecutor
 {
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
@@ -128,34 +127,58 @@ public:
 		m_viewMode = viewMode;
 	}
 
-	void RequestNavigation(Callback callback) const
+	void SetNavigationRequestCallback(Callback callback)
 	{
-		const auto [functor, description] = FindSecond(QUERIES, m_navigationMode);
-		std::invoke(functor, this, description, std::move(callback));
+		m_navigationRequestCallback = std::move(callback);
 	}
 
-private: // IQueryExecutor
-	void RequestSimpleList(QueryDescription queryDescription, Callback callback) const override
+	void SetBookRequestCallback(Callback callback)
 	{
-		(*m_executor)({ "Get navigation", [&db = *m_db, &modeRef = m_navigationMode, mode = m_navigationMode, callback = std::move(callback), queryDescription] () mutable
+		m_booksRequestCallback = std::move(callback);
+	}
+
+	void RequestNavigation() const
+	{
+		const auto [functor, description] = FindSecond(QUERIES, m_navigationMode);
+		std::invoke(functor, this, description);
+	}
+
+	void RequestBooks(QString /*id*/) const
+	{
+	}
+
+private: // INavigationQueryExecutor
+	void RequestNavigationSimpleList(QueryDescription queryDescription) const override
+	{
+		(*m_executor)({ "Get navigation", [&, &modeRef = m_navigationMode, mode = m_navigationMode, queryDescription] ()
 		{
 			DataItem::Ptr root(NavigationItem::Create());
-			const auto query = db.CreateQuery(queryDescription.query);
+			const auto query = m_db->CreateQuery(queryDescription.query);
 
+			PLOGD << "Sort started";
+			std::map<QString, DataItem::Ptr> data;
 			for (query->Execute(); !query->Eof(); query->Next())
-				root->AppendChild(queryDescription.extractor(*query));
+			{
+				auto item = queryDescription.extractor(*query);
+				auto title = item->To<NavigationItem>()->title.toLower();
+				data.emplace_hint(data.end(), std::move(title), std::move(item));
+			}
+			PLOGD << "Sort started";
 
-			return [&modeRef, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
+			for (auto& item : data | std::views::values)
+				root->AppendChild(std::move(item));
+
+			return [&, mode, root = std::move(root)] (size_t) mutable
 			{
 				if (mode == modeRef)
-					callback(std::move(root));
+					m_navigationRequestCallback(std::move(root));
 			};
 		} }, 1);
 	}
 
-	void RequestGenres(QueryDescription queryDescription, Callback callback) const override
+	void RequestNavigationGenres(QueryDescription queryDescription) const override
 	{
-		(*m_executor)({"Get navigation", [&db = *m_db, &modeRef = m_navigationMode, mode = m_navigationMode, callback = std::move(callback), queryDescription] () mutable
+		(*m_executor)({"Get navigation", [&, &modeRef = m_navigationMode, mode = m_navigationMode, queryDescription] ()
 		{
 			std::unordered_multimap<QString, DataItem::Ptr> items;
 			std::unordered_map<QString, DataItem *> index;
@@ -163,7 +186,7 @@ private: // IQueryExecutor
 			DataItem::Ptr root(NavigationItem::Create());
 			index.emplace("0", root.get());
 
-			const auto query = db.CreateQuery(queryDescription.query);
+			const auto query = m_db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto & item = *items.emplace(query->Get<const char *>(2), queryDescription.extractor(*query))->second->To<NavigationItem>();
@@ -191,10 +214,10 @@ private: // IQueryExecutor
 				}
 			}
 
-			return [&modeRef, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
+			return [&, mode, root = std::move(root)] (size_t) mutable
 			{
 				if (mode == modeRef)
-					callback(std::move(root));
+					m_navigationRequestCallback(std::move(root));
 			};
 		}}, 1);
 	}
@@ -230,6 +253,8 @@ private:
 	std::unique_ptr<Util::IExecutor> m_executor{ CreateExecutor() };
 	NavigationMode m_navigationMode { NavigationMode::Unknown };
 	ViewMode m_viewMode { ViewMode::Unknown };
+	Callback m_navigationRequestCallback;
+	Callback m_booksRequestCallback;
 };
 
 DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)
@@ -253,7 +278,22 @@ void DataProvider::SetViewMode(const ViewMode viewMode)
 	m_impl->SetViewMode(viewMode);
 }
 
-void DataProvider::RequestNavigation(std::function<void(DataItem::Ptr)> callback)
+void DataProvider::SetNavigationRequestCallback(Callback callback)
 {
-	m_impl->RequestNavigation(std::move(callback));
+	m_impl->SetNavigationRequestCallback(std::move(callback));
+}
+
+void DataProvider::SetBookRequestCallback(Callback callback)
+{
+	m_impl->SetBookRequestCallback(std::move(callback));
+}
+
+void DataProvider::RequestNavigation() const
+{
+	m_impl->RequestNavigation();
+}
+
+void DataProvider::RequestBooks(QString id) const
+{
+	m_impl->RequestBooks(std::move(id));
 }

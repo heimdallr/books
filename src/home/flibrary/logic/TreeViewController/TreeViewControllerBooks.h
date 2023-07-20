@@ -27,6 +27,7 @@ public:
 private: // ITreeViewController
 	[[nodiscard]] std::vector<const char *> GetModeNames() const override;
 	void SetModeIndex(int index) override;
+	void SetCurrentId(QString id) override;
 
 private: // AbstractTreeViewController
 	void OnModeChanged(const QVariant & mode) override;

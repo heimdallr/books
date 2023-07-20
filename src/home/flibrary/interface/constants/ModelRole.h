@@ -8,7 +8,8 @@ struct Role
 {
 	enum Value
 	{
-		Filter = Qt::UserRole + 1,
+		Id = Qt::UserRole + 1,
+		Filter,
 	};
 };
 

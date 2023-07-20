@@ -73,6 +73,10 @@ private: // ITreeViewController::IObserver
 	{
 		m_ui.treeView->setModel(model);
 		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
+		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
+		{
+			m_controller->SetCurrentId(index.data(Role::Id).toString());
+		});
 		RestoreValue();
 	}
 
@@ -120,11 +124,26 @@ private:
 
 	void Connect()
 	{
-		connect(m_ui.cbMode     , &QComboBox::currentIndexChanged, [&] (const int index) { m_controller->SetModeIndex(index); });
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, [&]                   { RestoreValue(); });
-		connect(m_ui.value      , &QLineEdit::textEdited         , [&]                   { SaveValue(); });
-		connect(m_ui.value      , &QLineEdit::textChanged        , [&]                   { OnValueChanged(); });
-		connect(&m_filterTimer  , &QTimer::timeout               , [&]                   { m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter); });
+		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&] (const int index)
+		{
+			m_controller->SetModeIndex(index);
+		});
+		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
+		{
+			RestoreValue();
+		});
+		connect(m_ui.value, &QLineEdit::textEdited, &m_self, [&]
+		{
+			SaveValue();
+		});
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&]
+		{
+			OnValueChanged();
+		});
+		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
+		{
+			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter);
+		});
 	}
 
 	void SaveValue()
