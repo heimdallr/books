@@ -39,6 +39,11 @@ public:
 		return m_children.emplace_back(std::move(child));
 	}
 
+	void SetChildren(std::vector<Ptr> children) noexcept
+	{
+		m_children = std::move(children);
+	}
+
 	const DataItem * GetChild(const size_t row) const noexcept
 	{
 		return row < GetChildCount() ? m_children[row].get() : nullptr;

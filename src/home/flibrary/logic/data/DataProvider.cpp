@@ -155,18 +155,16 @@ private: // INavigationQueryExecutor
 			DataItem::Ptr root(NavigationItem::Create());
 			const auto query = m_db->CreateQuery(queryDescription.query);
 
-			PLOGD << "Sort started";
-			std::map<QString, DataItem::Ptr> data;
+			std::vector<DataItem::Ptr> data;
 			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				auto item = queryDescription.extractor(*query);
-				auto title = item->To<NavigationItem>()->title.toLower();
-				data.emplace_hint(data.end(), std::move(title), std::move(item));
-			}
-			PLOGD << "Sort started";
+				data.push_back(queryDescription.extractor(*query));
 
-			for (auto& item : data | std::views::values)
-				root->AppendChild(std::move(item));
+			std::ranges::sort(data, [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
+			{
+				return QString::compare(lhs->To<NavigationItem>()->title, rhs->To<NavigationItem>()->title, Qt::CaseInsensitive) < 0;
+			});
+
+			root->SetChildren(std::move(data));
 
 			return [&, mode, root = std::move(root)] (size_t) mutable
 			{
