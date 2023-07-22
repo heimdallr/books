@@ -1,6 +1,39 @@
 #include "DataItem.h"
 
+#include "interface/constants/Localization.h"
+
+#include <QCoreApplication>
+
 using namespace HomeCompa::Flibrary;
+
+namespace {
+
+void AppendTitle(QString & title, const QString & str)
+{
+	if (title.isEmpty())
+	{
+		title = str;
+		return;
+	}
+
+	if (!str.isEmpty())
+		title.append(" ").append(str.data());
+}
+
+QString CreateAuthorTitle(const AuthorItem & item)
+{
+	QString title = item.title;
+	AppendTitle(title, item.firstName);
+	AppendTitle(title, item.middleName);
+
+	if (title.isEmpty())
+		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+
+	return title;
+}
+
+
+}
 
 DataItem::DataItem(const DataItem * parent)
 	: m_parent(parent)
@@ -85,7 +118,10 @@ std::shared_ptr<DataItem> AuthorItem::Create(const DataItem * parent)
 const QString & AuthorItem::GetData([[maybe_unused]] const int column) const
 {
 	assert(column == 0);
-	return title;
+	if (fullName.isEmpty())
+		fullName = CreateAuthorTitle(*this);
+
+	return fullName;
 }
 
 AuthorItem * AuthorItem::ToAuthorItem() noexcept

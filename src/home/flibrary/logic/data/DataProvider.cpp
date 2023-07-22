@@ -15,7 +15,6 @@
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
 
-#include "interface/constants/Localization.h"
 #include "interface/logic/ILogicFactory.h"
 
 using namespace HomeCompa;
@@ -66,30 +65,6 @@ DataItem::Ptr CreateIdOnlyItem(const DB::IQuery & query)
 	typed.title = typed.id = query.Get<const char *>(0);
 
 	return item;
-}
-
-void AppendTitle(QString & title, std::string_view str)
-{
-	if (title.isEmpty())
-	{
-		title = str.data();
-		return;
-	}
-
-	if (!str.empty())
-		title.append(" ").append(str.data());
-}
-
-QString CreateAuthorTitle(const DB::IQuery & query)
-{
-	QString title = query.Get<const char *>(2);
-	AppendTitle(title, query.Get<const char *>(1));
-	AppendTitle(title, query.Get<const char *>(3));
-
-	if (title.isEmpty())
-		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
-
-	return title;
 }
 
 DataItem::Ptr CreateAuthorItem(const DB::IQuery & query)
@@ -177,7 +152,7 @@ private: // INavigationQueryExecutor
 
 			std::ranges::sort(items, [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
 			{
-				return QString::compare(lhs->To<NavigationItem>()->title, rhs->To<NavigationItem>()->title, Qt::CaseInsensitive) < 0;
+				return QString::compare(lhs->GetData(), rhs->GetData(), Qt::CaseInsensitive) < 0;
 			});
 
 			DataItem::Ptr root(NavigationItem::Create());

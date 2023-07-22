@@ -83,6 +83,7 @@ struct AuthorItem final : NavigationItem
 {
 	QString firstName;
 	QString middleName;
+	mutable QString fullName;
 
 	explicit AuthorItem(const DataItem * parent = nullptr);
 
