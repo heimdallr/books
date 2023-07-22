@@ -1,17 +1,17 @@
 #pragma once
 
-#include <QAbstractItemModel>
-
 #include "fnd/NonCopyMovable.h"
 
 #include "data/DataItem.h"
 
+#include "BaseModel.h"
+
 namespace HomeCompa::Flibrary {
 
-class AbstractTreeModel : public QAbstractItemModel
+class AbstractTreeModel : public BaseModel
 {
 protected:
-	explicit AbstractTreeModel(QObject * parent);
+	explicit AbstractTreeModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent);
 };
 
 class TreeModel final : public AbstractTreeModel
@@ -19,7 +19,7 @@ class TreeModel final : public AbstractTreeModel
 	NON_COPY_MOVABLE(TreeModel)
 
 public:
-	explicit TreeModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
+	explicit TreeModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
 	~TreeModel() override;
 
 private: // QAbstractItemModel
@@ -27,10 +27,6 @@ private: // QAbstractItemModel
 	QModelIndex parent(const QModelIndex & child) const override;
 	int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 	int columnCount(const QModelIndex & parent = QModelIndex()) const override;
-	QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
-
-private:
-	DataItem::Ptr m_data;
 };
 
 }

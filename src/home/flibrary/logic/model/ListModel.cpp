@@ -2,20 +2,17 @@
 
 #include <plog/Log.h>
 
-#include "interface/constants/ModelRole.h"
-
 #include "data/AbstractModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
-AbstractListModel::AbstractListModel(QObject * parent)
-	: QAbstractItemModel(parent)
+AbstractListModel::AbstractListModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+	: BaseModel(modelProvider, parent)
 {
 }
 
 ListModel::ListModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
-	: AbstractListModel(parent)
-	, m_data(modelProvider->GetData())
+	: AbstractListModel(modelProvider, parent)
 {
 	PLOGD << "ListModel created";
 }
@@ -46,25 +43,3 @@ int ListModel::columnCount(const QModelIndex & /*parent*/) const
 {
 	return 1;
 }
-
-QVariant ListModel::data(const QModelIndex & index, const int role) const
-{
-	if (!index.isValid())
-		return {};
-
-	const auto * item = static_cast<DataItem *>(index.internalPointer());
-	switch (role)
-	{
-		case Qt::DisplayRole:
-			return item->GetData(index.column());
-
-		case Role::Id:
-			return item->GetId();
-
-		default:
-			break;
-	}
-
-	return {};
-}
-

@@ -3,18 +3,16 @@
 #include <plog/Log.h>
 
 #include "data/AbstractModelProvider.h"
-#include "interface/constants/ModelRole.h"
 
 using namespace HomeCompa::Flibrary;
 
-AbstractTreeModel::AbstractTreeModel(QObject * parent)
-	: QAbstractItemModel(parent)
+AbstractTreeModel::AbstractTreeModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+	: BaseModel(modelProvider, parent)
 {
 }
 
 TreeModel::TreeModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
-	: AbstractTreeModel(parent)
-	, m_data(modelProvider->GetData())
+	: AbstractTreeModel(modelProvider, parent)
 {
 	PLOGD << "TreeModel created";
 }
@@ -60,25 +58,3 @@ int TreeModel::columnCount(const QModelIndex & parent) const
 	const auto * parentItem = parent.isValid() ? static_cast<DataItem *>(parent.internalPointer()) : m_data.get();
 	return static_cast<int>(parentItem->GetColumnCount());
 }
-
-QVariant TreeModel::data(const QModelIndex & index, const int role) const
-{
-	if (!index.isValid())
-		return {};
-
-	const auto * item = static_cast<DataItem *>(index.internalPointer());
-	switch (role)
-	{
-		case Qt::DisplayRole:
-			return item->GetData(index.column());
-
-		case Role::Id:
-			return item->GetId();
-
-		default:
-			break;
-	}
-
-	return {};
-}
-
