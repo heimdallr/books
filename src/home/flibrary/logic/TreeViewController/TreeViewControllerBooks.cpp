@@ -1,13 +1,12 @@
 #include "TreeViewControllerBooks.h"
 
-#include <qglobal.h>
-#include <QVariant>
+#include <QString.h>
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
+#include "data/DataItem.h"
 #include "data/DataProvider.h"
-#include "data/Types.h"
 
 using namespace HomeCompa::Flibrary;
 

@@ -47,20 +47,24 @@ public:
 
 using QueryExecutorFunctor = void(INavigationQueryExecutor::*)(QueryDescription) const;
 
-DataItem::Ptr SimpleListItem(const DB::IQuery & query)
+DataItem::Ptr CreateSimpleListItem(const DB::IQuery & query)
 {
 	auto item = DataItem::Ptr(NavigationItem::Create());
-	auto & types = *item->To<NavigationItem>();
-	types.id = query.Get<const char *>(0);
-	types.title = query.Get<const char *>(1);
+	auto & typed = *item->To<NavigationItem>();
+
+	typed.id = query.Get<const char *>(0);
+	typed.title = query.Get<const char *>(1);
+
 	return item;
 }
 
-DataItem::Ptr IdOnly(const DB::IQuery & query)
+DataItem::Ptr CreateIdOnlyItem(const DB::IQuery & query)
 {
-	auto item = DataItem::Ptr(NavigationItem::Create());
-	auto & types = *item->To<NavigationItem>();
-	types.title = types.id = query.Get<const char *>(0);
+	auto item = NavigationItem::Create();
+	auto & typed = *item->To<NavigationItem>();
+
+	typed.title = typed.id = query.Get<const char *>(0);
+
 	return item;
 }
 
@@ -88,22 +92,26 @@ QString CreateAuthorTitle(const DB::IQuery & query)
 	return title;
 }
 
-DataItem::Ptr AuthorItem(const DB::IQuery & query)
+DataItem::Ptr CreateAuthorItem(const DB::IQuery & query)
 {
-	auto item = DataItem::Ptr(NavigationItem::Create());
-	auto & types = *item->To<NavigationItem>();
-	types.id = query.Get<const char *>(0);
-	types.title = CreateAuthorTitle(query);
+	auto item = AuthorItem::Create();
+	auto & typed = *item->To<AuthorItem>();
+
+	typed.id = query.Get<const char *>(0);
+	typed.title = query.Get<const char *>(2);
+	typed.firstName = query.Get<const char *>(1);
+	typed.middleName = query.Get<const char *>(3);
+
 	return item;
 }
 
 constexpr std::pair<NavigationMode, std::pair<QueryExecutorFunctor, QueryDescription>> QUERIES[]
 {
-	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , &AuthorItem}}},
-	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , &SimpleListItem}}},
-	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, &IdOnly}}},
+	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , &CreateAuthorItem}}},
+	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , &CreateSimpleListItem}}},
+	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , &CreateSimpleListItem}}},
+	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , &CreateSimpleListItem}}},
+	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, &CreateIdOnlyItem}}},
 };
 
 }
@@ -111,6 +119,9 @@ constexpr std::pair<NavigationMode, std::pair<QueryExecutorFunctor, QueryDescrip
 class DataProvider::Impl
 	: virtual public INavigationQueryExecutor
 {
+private:
+	using Cache = std::unordered_map<QString, DataItem::Ptr>;
+
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
 		: m_logicFactory(std::move(logicFactory))
@@ -150,45 +161,49 @@ public:
 private: // INavigationQueryExecutor
 	void RequestNavigationSimpleList(QueryDescription queryDescription) const override
 	{
-		(*m_executor)({ "Get navigation", [&, &modeRef = m_navigationMode, mode = m_navigationMode, queryDescription] ()
+		(*m_executor)({ "Get navigation", [&, mode = m_navigationMode, queryDescription] ()
 		{
-			DataItem::Ptr root(NavigationItem::Create());
+			Cache cache;
 			const auto query = m_db->CreateQuery(queryDescription.query);
-
-			std::vector<DataItem::Ptr> data;
 			for (query->Execute(); !query->Eof(); query->Next())
-				data.push_back(queryDescription.extractor(*query));
+			{
+				auto item = queryDescription.extractor(*query);
+				cache.emplace(item->GetId(), item);
+			}
 
-			std::ranges::sort(data, [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
+			DataItem::Items items;
+			items.reserve(std::size(cache));
+			std::ranges::copy(cache | std::views::values, std::back_inserter(items));
+
+			std::ranges::sort(items, [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
 			{
 				return QString::compare(lhs->To<NavigationItem>()->title, rhs->To<NavigationItem>()->title, Qt::CaseInsensitive) < 0;
 			});
 
-			root->SetChildren(std::move(data));
+			DataItem::Ptr root(NavigationItem::Create());
+			root->SetChildren(std::move(items));
 
-			return [&, mode, root = std::move(root)] (size_t) mutable
+			return [&, mode, root = std::move(root), cache = std::move(cache)] (size_t) mutable
 			{
-				if (mode == modeRef)
-					m_navigationRequestCallback(std::move(root));
+				SendNavigationCallback(mode, std::move(root), std::move(cache));
 			};
 		} }, 1);
 	}
 
 	void RequestNavigationGenres(QueryDescription queryDescription) const override
 	{
-		(*m_executor)({"Get navigation", [&, &modeRef = m_navigationMode, mode = m_navigationMode, queryDescription] ()
+		(*m_executor)({"Get navigation", [&, mode = m_navigationMode, queryDescription] ()
 		{
-			std::unordered_multimap<QString, DataItem::Ptr> items;
-			std::unordered_map<QString, DataItem *> index;
-
+			Cache cache;
 			DataItem::Ptr root(NavigationItem::Create());
-			index.emplace("0", root.get());
+			std::unordered_multimap<QString, DataItem::Ptr> items;
+			cache.emplace("0", root);
 
 			const auto query = m_db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
-				auto & item = *items.emplace(query->Get<const char *>(2), queryDescription.extractor(*query))->second->To<NavigationItem>();
-				index.emplace(item.id, &item);
+				auto item = items.emplace(query->Get<const char *>(2), queryDescription.extractor(*query))->second;
+				cache.emplace(item->GetId(), std::move(item));
 			}
 
 			std::stack<QString> stack { {"0"} };
@@ -198,10 +213,10 @@ private: // INavigationQueryExecutor
 				auto parentId = std::move(stack.top());
 				stack.pop();
 
-				auto * parent = [&]
+				const auto parent = [&]
 				{
-					const auto it = index.find(parentId);
-					assert(it != index.end());
+					const auto it = cache.find(parentId);
+					assert(it != cache.end());
 					return it->second;
 				}();
 
@@ -212,10 +227,11 @@ private: // INavigationQueryExecutor
 				}
 			}
 
-			return [&, mode, root = std::move(root)] (size_t) mutable
+			assert(std::ranges::all_of(items | std::views::values, [] (const auto & item) { return !item; }));
+
+			return [&, mode, root = std::move(root), cache = std::move(cache)] (size_t) mutable
 			{
-				if (mode == modeRef)
-					m_navigationRequestCallback(std::move(root));
+				SendNavigationCallback(mode, std::move(root), std::move(cache));
 			};
 		}}, 1);
 	}
@@ -245,6 +261,13 @@ private:
 		});
 	}
 
+	void SendNavigationCallback(const NavigationMode mode, DataItem::Ptr root, Cache cache) const
+	{
+		m_navigationCache[static_cast<int>(mode)] = std::move(cache);
+		if (mode == m_navigationMode)
+			m_navigationRequestCallback(std::move(root));
+	}
+
 private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	std::unique_ptr<DB::IDatabase> m_db;
@@ -253,6 +276,8 @@ private:
 	ViewMode m_viewMode { ViewMode::Unknown };
 	Callback m_navigationRequestCallback;
 	Callback m_booksRequestCallback;
+
+	mutable Cache m_navigationCache[static_cast<int>(NavigationMode::Last)];
 };
 
 DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)

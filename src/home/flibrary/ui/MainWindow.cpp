@@ -7,11 +7,9 @@
 #include "GeometryRestorable.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 #include "ParentWidgetProvider.h"
-#include "logic/data/Types.h"
+#include "logic/data/DataItem.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;

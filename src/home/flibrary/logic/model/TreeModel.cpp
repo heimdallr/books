@@ -3,6 +3,7 @@
 #include <plog/Log.h>
 
 #include "data/AbstractModelProvider.h"
+#include "interface/constants/ModelRole.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -65,11 +66,19 @@ QVariant TreeModel::data(const QModelIndex & index, const int role) const
 	if (!index.isValid())
 		return {};
 
-	if (role != Qt::DisplayRole)
-		return {};
-
 	const auto * item = static_cast<DataItem *>(index.internalPointer());
+	switch (role)
+	{
+		case Qt::DisplayRole:
+			return item->GetData(index.column());
 
-	return item->GetData(index.column());
+		case Role::Id:
+			return item->GetId();
+
+		default:
+			break;
+	}
+
+	return {};
 }
 

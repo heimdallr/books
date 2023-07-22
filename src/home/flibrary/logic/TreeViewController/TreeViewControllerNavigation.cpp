@@ -6,9 +6,9 @@
 
 #include "fnd/FindPair.h"
 
+#include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "data/Types.h"
 #include "model/IModelObserver.h"
 
 using namespace HomeCompa::Flibrary;
