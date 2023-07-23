@@ -2,9 +2,11 @@
 
 #include <QObject>
 
-namespace HomeCompa::Flibrary {
+#include "UtilLib.h"
 
-class Measure
+namespace HomeCompa {
+
+class UTIL_API Measure final
 	: public QObject
 {
 	Q_OBJECT

@@ -39,7 +39,7 @@ public:
 	size_t GetRow() const noexcept;
 
 public:
-	virtual size_t GetColumnCount() const noexcept = 0;
+	virtual int GetColumnCount() const noexcept = 0;
 	virtual const QString & GetId() const noexcept = 0;
 	virtual const QString & GetData(int column = 0) const = 0;
 
@@ -73,30 +73,69 @@ struct NavigationItem : DataItem
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
 private: // DataItem
-	size_t GetColumnCount() const noexcept override;
+	int GetColumnCount() const noexcept override;
 	const QString & GetId() const noexcept override;
 	const QString & GetData(int column) const override;
 	NavigationItem * ToNavigationItem() noexcept override;
 };
 
-struct AuthorItem final : NavigationItem
+struct AuthorItem : DataItem
 {
-	QString firstName;
-	QString middleName;
-	mutable QString fullName;
+	struct Column
+	{
+		enum Value
+		{
+			LastName = 0,
+			FirstName,
+			MiddleName,
+			Last
+		};
+	};
+	QString id;
+	QString data[Column::Last];
 
 	explicit AuthorItem(const DataItem * parent = nullptr);
 
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
 private: // DataItem
+	int GetColumnCount() const noexcept override;
+	const QString & GetId() const noexcept override;
 	const QString & GetData(int column) const override;
 	AuthorItem * ToAuthorItem() noexcept override;
 };
 
 struct BookItem final : DataItem
 {
+	struct Column
+	{
+		enum Value
+		{
+			Author = 0,
+			Title,
+			Series,
+			SeqNumber,
+			Size,
+			Genre,
+			Folder,
+			FileName,
+			LibRate,
+			UpdateDate,
+			Lang,
+			Last
+		};
+	};
+	QString id;
+	QString data[Column::Last];
+	bool deleted { false };
+
 	explicit BookItem(const DataItem * parent = nullptr);
+	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
+
+private:
+	int GetColumnCount() const noexcept override;
+	const QString & GetId() const noexcept override;
+	const QString & GetData(int column) const override;
 	BookItem * ToBookItem() noexcept override;
 };
 

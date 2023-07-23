@@ -2,7 +2,7 @@
 
 #include "Measure.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa {
 
 namespace {
 

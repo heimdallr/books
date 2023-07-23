@@ -45,6 +45,8 @@
 
 #include "version/AppVersion.h"
 
+#include "util/Measure.h"
+
 #include "AnnotationController.h"
 #include "Collection.h"
 #include "CollectionController.h"
@@ -54,7 +56,6 @@
 #include "LanguageController.h"
 #include "LocaleController.h"
 #include "LogController.h"
-#include "Measure.h"
 #include "NavigationSourceProvider.h"
 #include "ProgressController.h"
 #include "ViewSourceController.h"

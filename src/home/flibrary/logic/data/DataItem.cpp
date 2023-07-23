@@ -1,39 +1,8 @@
 #include "DataItem.h"
 
-#include "interface/constants/Localization.h"
-
 #include <QCoreApplication>
 
 using namespace HomeCompa::Flibrary;
-
-namespace {
-
-void AppendTitle(QString & title, const QString & str)
-{
-	if (title.isEmpty())
-	{
-		title = str;
-		return;
-	}
-
-	if (!str.isEmpty())
-		title.append(" ").append(str.data());
-}
-
-QString CreateAuthorTitle(const AuthorItem & item)
-{
-	QString title = item.title;
-	AppendTitle(title, item.firstName);
-	AppendTitle(title, item.middleName);
-
-	if (title.isEmpty())
-		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
-
-	return title;
-}
-
-
-}
 
 DataItem::DataItem(const DataItem * parent)
 	: m_parent(parent)
@@ -84,7 +53,7 @@ std::shared_ptr<DataItem> NavigationItem::Create(const DataItem * parent)
 	return std::make_shared<NavigationItem>(parent);
 }
 
-size_t NavigationItem::GetColumnCount() const noexcept
+int NavigationItem::GetColumnCount() const noexcept
 {
 	return 1;
 }
@@ -106,7 +75,7 @@ NavigationItem * NavigationItem::ToNavigationItem() noexcept
 }
 
 AuthorItem::AuthorItem(const DataItem * parent)
-	: NavigationItem(parent)
+	: DataItem(parent)
 {
 }
 
@@ -115,13 +84,20 @@ std::shared_ptr<DataItem> AuthorItem::Create(const DataItem * parent)
 	return std::make_shared<AuthorItem>(parent);
 }
 
-const QString & AuthorItem::GetData([[maybe_unused]] const int column) const
+int AuthorItem::GetColumnCount() const noexcept
 {
-	assert(column == 0);
-	if (fullName.isEmpty())
-		fullName = CreateAuthorTitle(*this);
+	return Column::Last;
+}
 
-	return fullName;
+const QString & AuthorItem::GetId() const noexcept
+{
+	return id;
+}
+
+const QString & AuthorItem::GetData(const int column) const
+{
+	assert(column >= 0 && column < GetColumnCount());
+	return data[column];
 }
 
 AuthorItem * AuthorItem::ToAuthorItem() noexcept
@@ -129,9 +105,31 @@ AuthorItem * AuthorItem::ToAuthorItem() noexcept
 	return this;
 }
 
+
 BookItem::BookItem(const DataItem * parent)
 	: DataItem(parent)
 {
+}
+
+std::shared_ptr<DataItem> BookItem::Create(const DataItem * parent)
+{
+	return std::make_shared<BookItem>(parent);
+}
+
+int BookItem::GetColumnCount() const noexcept
+{
+	return Column::Last;
+}
+
+const QString & BookItem::GetId() const noexcept
+{
+	return id;
+}
+
+const QString & BookItem::GetData(const int column) const
+{
+	assert(column >= 0 && column < GetColumnCount());
+	return data[column];
 }
 
 BookItem * BookItem::ToBookItem() noexcept

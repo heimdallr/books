@@ -46,7 +46,6 @@ struct TreeViewControllerNavigation::Impl final
 	QTimer navigationTimer;
 	QTimer booksTimer;
 	int mode = { -1 };
-	QString currentId;
 
 	Impl()
 	{
@@ -82,7 +81,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	});
 
 	QObject::connect(&m_impl->navigationTimer, &QTimer::timeout, &m_impl->navigationTimer, [&] { m_dataProvider->RequestNavigation(); });
-	QObject::connect(&m_impl->booksTimer, &QTimer::timeout, &m_impl->booksTimer, [&] { m_dataProvider->RequestBooks(std::move(m_impl->currentId)); });
+	QObject::connect(&m_impl->booksTimer, &QTimer::timeout, &m_impl->booksTimer, [&] { m_dataProvider->RequestBooks(); });
 
 	PLOGD << "TreeViewControllerNavigation created";
 }
@@ -105,7 +104,7 @@ void TreeViewControllerNavigation::SetModeIndex(const int index)
 void TreeViewControllerNavigation::SetCurrentId(QString id)
 {
 	assert(!id.isEmpty());
-	m_impl->currentId = std::move(id);
+	m_dataProvider->SetNavigationId(std::move(id));
 	m_impl->booksTimer.start();
 }
 

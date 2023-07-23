@@ -7,6 +7,8 @@
 
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "data/ModelProvider.h"
+#include "model/IModelObserver.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -30,8 +32,10 @@ auto GetViewModeImpl(const std::string & strMode)
 }
 
 struct TreeViewControllerBooks::Impl final
+	: IModelObserver
 {
 	ViewMode viewMode { ViewMode::Unknown };
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model{std::shared_ptr<QAbstractItemModel>()};
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
@@ -45,6 +49,13 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	)
 {
 	Setup();
+
+	m_dataProvider->SetBookRequestCallback([&] (DataItem::Ptr data)
+	{
+		m_impl->model.reset(m_modelProvider->CreateListModel(std::move(data), *m_impl));
+		Perform(&IObserver::OnModelChanged, m_impl->model.get());
+	});
+
 	PLOGD << "TreeViewControllerBooks created";
 }
 
@@ -71,7 +82,7 @@ void TreeViewControllerBooks::SetCurrentId(QString /*id*/)
 void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
 {
 	m_impl->viewMode = GetViewModeImpl(mode.toString().toStdString());
-	m_dataProvider->SetViewMode(m_impl->viewMode);
+	m_dataProvider->SetBooksViewMode(m_impl->viewMode);
 	Perform(&IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
 }
 

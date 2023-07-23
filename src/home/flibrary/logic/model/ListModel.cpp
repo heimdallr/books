@@ -39,7 +39,8 @@ int ListModel::rowCount(const QModelIndex & parent) const
 	return parent.isValid() ? 0 : static_cast<int>(m_data->GetChildCount());
 }
 
-int ListModel::columnCount(const QModelIndex & /*parent*/) const
+int ListModel::columnCount(const QModelIndex & parent) const
 {
-	return 1;
+	const auto * parentItem = parent.isValid() ? static_cast<DataItem *>(parent.internalPointer()) : m_data.get();
+	return parentItem->GetChildCount() ? parentItem->GetChild(0)->GetColumnCount() : 0;
 }
