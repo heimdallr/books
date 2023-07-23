@@ -28,6 +28,12 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Qt::DisplayRole:
 			switch (index.column())
 			{
+				case BookItem::Column::SeqNumber:
+					if (const auto seqNumber = item->GetData(index.column()).toInt(); seqNumber > 0)
+						return seqNumber;
+
+					return {};
+
 				case BookItem::Column::Size:
 					return Measure::GetSize(item->GetData(index.column()).toULongLong());
 
