@@ -11,6 +11,7 @@
 #include "database/factory/Factory.h"
 #include "database/interface/IDatabase.h"
 
+#include "interface/constants/Enums.h"
 #include "interface/logic/ICollectionController.h"
 
 #include "TreeViewController/TreeViewControllerBooks.h"
@@ -56,6 +57,9 @@ std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewControll
 
 		case ItemType::Navigation:
 			return m_impl->container.resolve<TreeViewControllerNavigation>();
+
+		default:
+			break;
 	}
 
 	return assert(false && "unexpected type"), nullptr;

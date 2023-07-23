@@ -5,11 +5,11 @@
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
+#include "interface/constants/Enums.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
 #include "ParentWidgetProvider.h"
-#include "logic/data/DataItem.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;

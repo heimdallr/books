@@ -9,6 +9,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "interface/constants/Enums.h"
 #include "model/IModelObserver.h"
 
 using namespace HomeCompa::Flibrary;

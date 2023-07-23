@@ -22,6 +22,14 @@ TreeModel::~TreeModel()
 	PLOGD << "TreeModel destroyed";
 }
 
+QVariant TreeModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
+{
+	if (!(orientation == Qt::Horizontal && role == Qt::DisplayRole))
+		return {};
+
+	return m_data->GetData(section);
+}
+
 QModelIndex TreeModel::index(const int row, const int column, const QModelIndex & parent) const
 {
 	if (!hasIndex(row, column, parent))
@@ -53,8 +61,7 @@ int TreeModel::rowCount(const QModelIndex & parent) const
 	return static_cast<int>(parentItem->GetChildCount());
 }
 
-int TreeModel::columnCount(const QModelIndex & parent) const
+int TreeModel::columnCount(const QModelIndex & /*parent*/) const
 {
-	const auto * parentItem = parent.isValid() ? static_cast<DataItem *>(parent.internalPointer()) : m_data.get();
-	return static_cast<int>(parentItem->GetColumnCount());
+	return m_data->GetColumnCount();
 }

@@ -2,12 +2,7 @@
 
 #include <vector>
 
-#include "fnd/memory.h"
-
-#include <QString>
 #include <QVariant>
-
-#include "interface/constants/Enums.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -23,7 +18,7 @@ DATA_ITEMS_X_MACRO
 class DataItem  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 protected:
-	explicit DataItem(const DataItem * parent = nullptr);
+	explicit DataItem(size_t columnCount, const DataItem * parent = nullptr);
 
 public:
 	virtual ~DataItem();
@@ -31,17 +26,20 @@ public:
 	using Items = std::vector<Ptr>;
 
 public:
-	const DataItem * GetParent() const noexcept;
+	[[nodiscard]] const DataItem * GetParent() const noexcept;
 	Ptr & AppendChild(Ptr child);
 	void SetChildren(Items children) noexcept;
-	const DataItem * GetChild(const size_t row) const noexcept;
-	size_t GetChildCount() const noexcept;
-	size_t GetRow() const noexcept;
+	[[nodiscard]] const DataItem * GetChild(size_t row) const noexcept;
+	[[nodiscard]] size_t GetChildCount() const noexcept;
+	[[nodiscard]] size_t GetRow() const noexcept;
+	[[nodiscard]] int GetColumnCount() const noexcept;
+	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
+	[[nodiscard]] const QString & GetId() const noexcept;
+
+	DataItem & SetId(QString id) noexcept;
+	DataItem & SetData(QString value, int column = 0) noexcept;
 
 public:
-	virtual int GetColumnCount() const noexcept = 0;
-	virtual const QString & GetId() const noexcept = 0;
-	virtual const QString & GetData(int column = 0) const = 0;
 
 	template<typename T>
 	T * To() noexcept = delete;
@@ -61,25 +59,21 @@ protected:
 	size_t m_row { 0 };
 	const DataItem * m_parent { nullptr };
 	Items m_children;
+	QString m_id;
+	std::vector<QString> m_data;
 };
 
-struct NavigationItem : DataItem
+struct NavigationItem final : DataItem
 {
-	QString id;
-	QString title;
-
 	explicit NavigationItem(const DataItem * parent = nullptr);
 
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
 private: // DataItem
-	int GetColumnCount() const noexcept override;
-	const QString & GetId() const noexcept override;
-	const QString & GetData(int column) const override;
 	NavigationItem * ToNavigationItem() noexcept override;
 };
 
-struct AuthorItem : DataItem
+struct AuthorItem final : DataItem
 {
 	struct Column
 	{
@@ -91,51 +85,46 @@ struct AuthorItem : DataItem
 			Last
 		};
 	};
-	QString id;
-	QString data[Column::Last];
 
 	explicit AuthorItem(const DataItem * parent = nullptr);
 
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
 private: // DataItem
-	int GetColumnCount() const noexcept override;
-	const QString & GetId() const noexcept override;
-	const QString & GetData(int column) const override;
 	AuthorItem * ToAuthorItem() noexcept override;
 };
 
 struct BookItem final : DataItem
 {
+#define BOOKS_COLUMN_ITEMS_X_MACRO \
+BOOKS_COLUMN_ITEM(Author) \
+BOOKS_COLUMN_ITEM(Title) \
+BOOKS_COLUMN_ITEM(Series) \
+BOOKS_COLUMN_ITEM(SeqNumber) \
+BOOKS_COLUMN_ITEM(Size) \
+BOOKS_COLUMN_ITEM(Genre) \
+BOOKS_COLUMN_ITEM(Folder) \
+BOOKS_COLUMN_ITEM(FileName) \
+BOOKS_COLUMN_ITEM(LibRate) \
+BOOKS_COLUMN_ITEM(UpdateDate) \
+BOOKS_COLUMN_ITEM(Lang)
+
 	struct Column
 	{
 		enum Value
 		{
-			Author = 0,
-			Title,
-			Series,
-			SeqNumber,
-			Size,
-			Genre,
-			Folder,
-			FileName,
-			LibRate,
-			UpdateDate,
-			Lang,
+#define		BOOKS_COLUMN_ITEM(NAME) NAME,
+			BOOKS_COLUMN_ITEMS_X_MACRO
+#undef		BOOKS_COLUMN_ITEM
 			Last
 		};
 	};
-	QString id;
-	QString data[Column::Last];
 	bool deleted { false };
 
 	explicit BookItem(const DataItem * parent = nullptr);
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
 private:
-	int GetColumnCount() const noexcept override;
-	const QString & GetId() const noexcept override;
-	const QString & GetData(int column) const override;
 	BookItem * ToBookItem() noexcept override;
 };
 
