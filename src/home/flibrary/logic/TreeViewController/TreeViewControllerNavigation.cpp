@@ -44,20 +44,12 @@ struct TreeViewControllerNavigation::Impl final
 	: IModelObserver
 {
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
-	QTimer navigationTimer;
-	QTimer booksTimer;
 	int mode = { -1 };
 
 	Impl()
 	{
 		for ([[maybe_unused]]const auto & _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
-
-		navigationTimer.setSingleShot(true);
-		navigationTimer.setInterval(std::chrono::milliseconds(200));
-
-		booksTimer.setSingleShot(true);
-		booksTimer.setInterval(std::chrono::milliseconds(200));
 	}
 };
 
@@ -81,9 +73,6 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});
 
-	QObject::connect(&m_impl->navigationTimer, &QTimer::timeout, &m_impl->navigationTimer, [&] { m_dataProvider->RequestNavigation(); });
-	QObject::connect(&m_impl->booksTimer, &QTimer::timeout, &m_impl->booksTimer, [&] { m_dataProvider->RequestBooks(); });
-
 	PLOGD << "TreeViewControllerNavigation created";
 }
 
@@ -106,7 +95,6 @@ void TreeViewControllerNavigation::SetCurrentId(QString id)
 {
 	assert(!id.isEmpty());
 	m_dataProvider->SetNavigationId(std::move(id));
-	m_impl->booksTimer.start();
 }
 
 void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
@@ -117,8 +105,6 @@ void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
 
 	if (m_impl->models[m_impl->mode])
 		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
-
-	m_impl->navigationTimer.start();
 }
 
 int TreeViewControllerNavigation::GetModeIndex(const QVariant & mode) const

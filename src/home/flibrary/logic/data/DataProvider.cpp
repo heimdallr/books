@@ -6,6 +6,7 @@
 #include <plog/Log.h>
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
+#include <QTimer>
 
 #include "fnd/FindPair.h"
 
@@ -345,10 +346,16 @@ class BooksGenerator final
 	, public IBooksTreeCreator
 {
 public:
-	BooksGenerator(DB::IDatabase & db, const QString & navigationId, const QueryDescription & description)
+	BooksGenerator(DB::IDatabase & db
+		, const NavigationMode navigationMode
+		, QString navigationId
+		, const QueryDescription & description
+	)
+		: m_navigationMode(navigationMode)
+		, m_navigationId(std::move(navigationId))
 	{
 		const auto query = db.CreateQuery(QString(BOOKS_QUERY).arg(description.joinClause, description.whereClause).toStdString());
-		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
+		[[maybe_unused]] const auto result = description.binder(*query, m_navigationId);
 		assert(result == 0);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
@@ -390,6 +397,32 @@ public:
 		}
 	}
 
+public:
+	NavigationMode GetNavigationMode() const noexcept
+	{
+		return m_navigationMode;
+	}
+
+	const QString & GetNavigationId() const noexcept
+	{
+		return m_navigationId;
+	}
+
+	ViewMode GetBooksViewMode() const noexcept
+	{
+		return m_viewMode;
+	}
+
+	DataItem::Ptr GetCached() const noexcept
+	{
+		return m_rootCached;
+	}
+
+	void SetBooksViewMode(const ViewMode viewMode) noexcept
+	{
+		m_viewMode = viewMode;
+	}
+
 private: // IBooksRootGenerator
 	[[nodiscard]] DataItem::Ptr GetList(BooksTreeCreator) const override
 	{
@@ -400,9 +433,9 @@ private: // IBooksRootGenerator
 			return std::get<0>(item);
 		});
 
-		auto root = CreateBooksRoot();
-		root->SetChildren(std::move(items));
-		return root;
+		m_rootCached = CreateBooksRoot();
+		m_rootCached->SetChildren(std::move(items));
+		return m_rootCached;
 	}
 
 	[[nodiscard]] DataItem::Ptr GetTree(const BooksTreeCreator creator) const override
@@ -413,16 +446,16 @@ private: // IBooksRootGenerator
 private: // IBooksTreeCreator
 	[[nodiscard]] DataItem::Ptr CreateAuthorsTree() const override
 	{
-		auto root = CreateBooksRoot();
+		m_rootCached = CreateBooksRoot();
 			
 		for (const auto & series : m_series | std::views::values)
-			root->AppendChild(series);
+			m_rootCached->AppendChild(series);
 
 		for (const auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
 			if (!seriesId)
 			{
-				root->AppendChild(book);
+				m_rootCached->AppendChild(book);
 				continue;
 			}
 
@@ -431,7 +464,7 @@ private: // IBooksTreeCreator
 			it->second->AppendChild(book);
 		}
 
-		return root;
+		return m_rootCached;
 	}
 
 private:
@@ -461,10 +494,15 @@ private:
 	}
 
 private:
+	const NavigationMode m_navigationMode;
+	const QString m_navigationId;
+	ViewMode m_viewMode { ViewMode::Unknown };
 	std::unordered_map<int, std::tuple<DataItem::Ptr, std::optional<int>, std::unordered_set<int>, std::unordered_set<QString>>> m_books;
 	std::unordered_map<int, DataItem::Ptr> m_series;
 	std::unordered_map<int, DataItem::Ptr> m_authors;
 	std::unordered_map<QString, DataItem::Ptr> m_genres;
+
+	mutable DataItem::Ptr m_rootCached;
 };
 
 }
@@ -476,26 +514,35 @@ public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
 		: m_logicFactory(std::move(logicFactory))
 	{
+		const auto setTimer = [] (QTimer & timer, std::function<void()> f)
+		{
+			timer.setSingleShot(true);
+			timer.setInterval(std::chrono::milliseconds(200));
+			QObject::connect(&timer, &QTimer::timeout, &timer, [f = std::move(f)]
+			{
+				f();
+			});
+		};
+		setTimer(m_navigationTimer, [&] { RequestNavigation(); });
+		setTimer(m_booksTimer, [&] { RequestBooks(); });
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
 	{
 		m_navigationMode = navigationMode;
-	}
-
-	void SetNavigationViewMode(const ViewMode viewMode)
-	{
-		m_navigationViewMode = viewMode;
+		m_navigationTimer.start();
 	}
 
 	void SetNavigationId(QString id)
 	{
 		m_navigationId = std::move(id);
+		m_booksTimer.start();
 	}
 
 	void SetBooksViewMode(const ViewMode viewMode)
 	{
 		m_booksViewMode = viewMode;
+		m_booksTimer.start();
 	}
 
 	void SetNavigationRequestCallback(Callback callback)
@@ -516,15 +563,36 @@ public:
 
 	void RequestBooks() const
 	{
-		const auto [functor, description] = FindSecond(QUERIES, m_navigationMode);
+		if (m_navigationId.isEmpty() || m_booksViewMode == ViewMode::Unknown)
+			return;
+
+		const auto booksGeneratorReady = m_booksGenerator
+			&& m_booksGenerator->GetNavigationMode() == m_navigationMode
+			&& m_booksGenerator->GetNavigationId() == m_navigationId
+			;
+
+		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
+			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached());
+
+		const auto & [functor, description] = FindSecond(QUERIES, m_navigationMode);
 		const auto & booksGenerator = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
 
-		(*m_executor)({ "Get books", [&, navigationId = m_navigationId] () mutable
+		(*m_executor)({ "Get books", [&
+			, navigationMode = m_navigationMode
+			, navigationId = m_navigationId
+			, viewMode = m_booksViewMode
+			, generator = std::move(m_booksGenerator)
+			, booksGeneratorReady
+		] () mutable
 		{
-			const BooksGenerator generator(*m_db, navigationId, description);
-			auto root = (generator.*booksGenerator)(description.treeCreator);
-			return [&, navigationId = std::move(navigationId), root = std::move(root)] (size_t) mutable
+			if (!booksGeneratorReady)
+				generator = std::make_unique<BooksGenerator>(*m_db, navigationMode, navigationId, description);
+
+			generator->SetBooksViewMode(viewMode);
+			auto root = (*generator.*booksGenerator)(description.treeCreator);
+			return [&, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator)] (size_t) mutable
 			{
+				m_booksGenerator = std::move(generator);
 				SendBooksCallback(navigationId, std::move(root));
 			};
 		} }, 2);
@@ -650,11 +718,15 @@ private:
 	std::unique_ptr<DB::IDatabase> m_db;
 	std::unique_ptr<Util::IExecutor> m_executor{ CreateExecutor() };
 	NavigationMode m_navigationMode { NavigationMode::Unknown };
-	ViewMode m_navigationViewMode { ViewMode::Unknown };
 	ViewMode m_booksViewMode { ViewMode::Unknown };
 	QString m_navigationId;
 	Callback m_navigationRequestCallback;
 	Callback m_booksRequestCallback;
+
+	mutable std::shared_ptr<BooksGenerator> m_booksGenerator;
+
+	QTimer m_navigationTimer;
+	QTimer m_booksTimer;
 };
 
 DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)
@@ -671,11 +743,6 @@ DataProvider::~DataProvider()
 void DataProvider::SetNavigationMode(const NavigationMode navigationMode)
 {
 	m_impl->SetNavigationMode(navigationMode);
-}
-
-void DataProvider::SetNavigationViewMode(const ViewMode viewMode)
-{
-	m_impl->SetNavigationViewMode(viewMode);
 }
 
 void DataProvider::SetNavigationId(QString id)
@@ -696,11 +763,6 @@ void DataProvider::SetNavigationRequestCallback(Callback callback)
 void DataProvider::SetBookRequestCallback(Callback callback)
 {
 	m_impl->SetBookRequestCallback(std::move(callback));
-}
-
-void DataProvider::RequestNavigation() const
-{
-	m_impl->RequestNavigation();
 }
 
 void DataProvider::RequestBooks() const
