@@ -127,7 +127,9 @@ class IBooksTreeCreator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IBooksTreeCreator() = default;
-	virtual DataItem::Ptr CreateAuthorsTree() const = 0;
+	[[nodiscard]] virtual DataItem::Ptr CreateAuthorsTree() const = 0;
+	[[nodiscard]] virtual DataItem::Ptr CreateSeriesTree() const = 0;
+	[[nodiscard]] virtual DataItem::Ptr CreateGeneralTree() const = 0;
 };
 
 using BooksTreeCreator = DataItem::Ptr(IBooksTreeCreator::*)() const;
@@ -320,10 +322,10 @@ constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &CreateSimpleListItem, NAVIGATION_
 constexpr std::pair<NavigationMode, std::pair<QueryExecutorFunctor, QueryDescription>> QUERIES[]
 {
 	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , QUERY_INFO_AUTHOR          , WHERE_AUTHOR , nullptr    , &BindInt   , &IBooksTreeCreator::CreateAuthorsTree}}},
-	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr    , &BindInt   }}},
-	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_GENRE  , nullptr    , &BindString}}},
-	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS, &BindInt   }}},
-	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr    , &BindString}}},
+	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr    , &BindInt   , &IBooksTreeCreator::CreateSeriesTree}}},
+	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_GENRE  , nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree}}},
+	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS, &BindInt   , &IBooksTreeCreator::CreateGeneralTree}}},
+	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree}}},
 };
 
 constexpr std::pair<ViewMode, BooksRootGenerator> BOOKS_GENERATORS[]
@@ -345,6 +347,37 @@ class BooksGenerator final
 	: public IBooksRootGenerator
 	, public IBooksTreeCreator
 {
+	using IdsSet = std::unordered_set<long long>;
+
+	static auto ToAuthorItemComparable(const DataItem::Ptr & author)
+	{
+		return std::make_tuple(
+			  QStringWrapper { author->GetData(AuthorItem::Column::LastName) }
+			, QStringWrapper { author->GetData(AuthorItem::Column::FirstName) }
+			, QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
+		);
+	}
+
+	struct AuthorComparator
+	{
+		bool operator()(const DataItem::Ptr & lhs, const DataItem::Ptr & rhs) const
+		{
+			return ToAuthorItemComparable(lhs) < ToAuthorItemComparable(rhs);
+		}
+	};
+
+	template <typename T>
+	struct UnorderedSetHash
+	{
+		size_t operator()(const std::unordered_set<T> & key) const
+		{
+			return std::accumulate(std::cbegin(key), std::cend(key), size_t { 0 }, [] (const size_t init, const T & item)
+			{
+				return std::rotr(init, 1) ^ std::hash<T>()(item);
+			});
+		}
+	};
+
 public:
 	BooksGenerator(DB::IDatabase & db
 		, const NavigationMode navigationMode
@@ -359,9 +392,9 @@ public:
 		assert(result == 0);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto & book = m_books[query->Get<int>(Book::BookId)];
-			std::get<1>(book) = UpdateDictionary<int>(m_series, *query, QueryInfo(&CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [](const DataItem & item){ return item.GetId() != "-1"; });
-			Add(std::get<2>(book), UpdateDictionary<int>(m_authors, *query, QueryInfo(&CreateFullAuthorItem, BOOKS_QUERY_INDEX_AUTHOR)));
+			auto & book = m_books[query->Get<long long>(Book::BookId)];
+			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [](const DataItem & item){ return item.GetId() != "-1"; });
+			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&CreateFullAuthorItem, BOOKS_QUERY_INDEX_AUTHOR)));
 			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const DataItem & item)
 			{
 				return !(item.GetData().isEmpty() || item.GetData()[0].isDigit());
@@ -371,19 +404,6 @@ public:
 				std::get<0>(book) = CreateBookItem(*query);
 		}
 
-		const auto toAuthorItemComparable = [] (const DataItem::Ptr & author)
-		{
-			return std::make_tuple(
-				  QStringWrapper { author->GetData(AuthorItem::Column::LastName) }
-				, QStringWrapper { author->GetData(AuthorItem::Column::FirstName) }
-				, QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
-			);
-		};
-
-		const auto authorsComparator = [&] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
-		{
-			return toAuthorItemComparable(lhs) < toAuthorItemComparable(rhs);
-		};
 
 		const auto genresComparator = [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
 		{
@@ -392,7 +412,7 @@ public:
 
 		for (auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			book->SetData(Join(m_authors, authorIds, &GetAuthorShortName, authorsComparator), BookItem::Column::Author);
+			book->SetData(Join(m_authors, authorIds, &GetAuthorShortName, AuthorComparator{}), BookItem::Column::Author);
 			book->SetData(Join(m_genres, genreIds, &GetTitle, genresComparator), BookItem::Column::Genre);
 		}
 	}
@@ -467,7 +487,98 @@ private: // IBooksTreeCreator
 		return m_rootCached;
 	}
 
+	[[nodiscard]] DataItem::Ptr CreateSeriesTree() const override
+	{
+		std::unordered_map<IdsSet, IdsSet, UnorderedSetHash<long long>> authorToBooks;
+		for (const auto & [id, book] : m_books)
+			authorToBooks[std::get<2>(book)].insert(id);
+
+		m_rootCached = CreateBooksRoot();
+		for (const auto & [authorIds, bookIds] : authorToBooks)
+		{
+			auto authorsNode = CreateAuthorsNode(authorIds);
+			authorsNode->SetChildren(CreateBookItems(bookIds));
+			m_rootCached->AppendChild(std::move(authorsNode));
+		}
+
+		return m_rootCached;
+	}
+
+	[[nodiscard]] DataItem::Ptr CreateGeneralTree() const override
+	{
+		using SeriesToBooks = std::unordered_map<long long, IdsSet>;
+		std::unordered_map<IdsSet, std::pair<SeriesToBooks, IdsSet>, UnorderedSetHash<long long>> authorToBooks;
+		for (const auto & [id, book] : m_books)
+		{
+			auto & [series, books] = authorToBooks[std::get<2>(book)];
+			const auto & seriesId = std::get<1>(book);
+			auto & bookIds = seriesId ? series[*seriesId] : books;
+			bookIds.insert(id);
+		}
+
+		m_rootCached = CreateBooksRoot();
+		for (const auto & [authorIds, authorData] : authorToBooks)
+		{
+			auto authorsNode = CreateAuthorsNode(authorIds);
+			auto & [seriesToBooks, noSeriesBookIds] = authorData;
+
+			for (const auto &[seriesId, bookIds] : seriesToBooks)
+			{
+				const auto it = m_series.find(seriesId);
+				assert(it != m_series.end());
+				auto seriesNode = NavigationItem::Create();
+				seriesNode->SetData(it->second->GetData());
+				seriesNode->SetChildren(CreateBookItems(bookIds));
+				authorsNode->AppendChild(std::move(seriesNode));
+			}
+
+			for (auto&& book : CreateBookItems(noSeriesBookIds))
+				authorsNode->AppendChild(std::move(book));
+
+			m_rootCached->AppendChild(std::move(authorsNode));
+		}
+
+		return m_rootCached;
+	}
+
 private:
+	DataItem::Items CreateBookItems(const IdsSet & idsSet) const
+	{
+		DataItem::Items books;
+		std::ranges::transform(idsSet, std::back_inserter(books), [&] (const long long id)
+		{
+			const auto it = m_books.find(id);
+			assert(it != m_books.end());
+			return std::get<0>(it->second);
+		});
+		return books;
+	}
+
+	DataItem::Ptr CreateAuthorsNode(const IdsSet & idsSet) const
+	{
+		DataItem::Items authors;
+		std::ranges::transform(idsSet, std::back_inserter(authors), [&] (const long long id)
+		{
+			const auto it = m_authors.find(id);
+			assert(it != m_authors.end());
+			return it->second;
+		});
+
+		std::ranges::sort(authors, AuthorComparator {});
+		QString authorsStr;
+		for (const auto & author : authors)
+		{
+			QString authorStr = author->GetData(AuthorItem::Column::LastName);
+			AppendTitle(authorStr, author->GetData(AuthorItem::Column::FirstName));
+			AppendTitle(authorStr, author->GetData(AuthorItem::Column::MiddleName));
+			AppendTitle(authorsStr, authorStr, ", ");
+		}
+
+		auto authorsNode = NavigationItem::Create();
+		authorsNode->SetData(std::move(authorsStr));
+		return authorsNode;
+	}
+
 	template <typename T>
 	static QString Join(const std::unordered_map<T, DataItem::Ptr> & dictionary
 		, const std::unordered_set<T> & keyIds
@@ -497,9 +608,9 @@ private:
 	const NavigationMode m_navigationMode;
 	const QString m_navigationId;
 	ViewMode m_viewMode { ViewMode::Unknown };
-	std::unordered_map<int, std::tuple<DataItem::Ptr, std::optional<int>, std::unordered_set<int>, std::unordered_set<QString>>> m_books;
-	std::unordered_map<int, DataItem::Ptr> m_series;
-	std::unordered_map<int, DataItem::Ptr> m_authors;
+	std::unordered_map<long long, std::tuple<DataItem::Ptr, std::optional<long long>, IdsSet, std::unordered_set<QString>>> m_books;
+	std::unordered_map<long long, DataItem::Ptr> m_series;
+	std::unordered_map<long long, DataItem::Ptr> m_authors;
 	std::unordered_map<QString, DataItem::Ptr> m_genres;
 
 	mutable DataItem::Ptr m_rootCached;
@@ -637,7 +748,7 @@ private: // INavigationQueryExecutor
 		{
 			std::unordered_map<QString, DataItem::Ptr> cache;
 
-			auto root = CreateBooksRoot();
+			auto root = NavigationItem::Create();
 			std::unordered_multimap<QString, DataItem::Ptr> items;
 			cache.emplace("0", root);
 
