@@ -230,6 +230,16 @@ DataItem::Ptr CreateBookItem(const DB::IQuery & query)
 	return item;
 }
 
+DataItem::Ptr CreateBooksRoot()
+{
+	DataItem::Ptr root(BookItem::Create());
+	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&, n = 0] (const auto * columnName) mutable
+	{
+		root->SetData(columnName, n++);
+	});
+	return root;
+}
+
 template<typename KeyType, typename BindType = KeyType>
 std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, DataItem::Ptr> & dictionary
 	, const DB::IQuery & query
@@ -390,7 +400,7 @@ private: // IBooksRootGenerator
 			return std::get<0>(item);
 		});
 
-		DataItem::Ptr root(NavigationItem::Create());
+		auto root = CreateBooksRoot();
 		root->SetChildren(std::move(items));
 		return root;
 	}
@@ -403,11 +413,7 @@ private: // IBooksRootGenerator
 private: // IBooksTreeCreator
 	[[nodiscard]] DataItem::Ptr CreateAuthorsTree() const override
 	{
-		DataItem::Ptr root(BookItem::Create());
-		std::ranges::for_each(BOOKS_COLUMN_NAMES, [&, n = 0] (const auto * columnName) mutable
-		{
-			root->SetData(columnName, n++);
-		});
+		auto root = CreateBooksRoot();
 			
 		for (const auto & series : m_series | std::views::values)
 			root->AppendChild(series);
@@ -547,7 +553,7 @@ private: // INavigationQueryExecutor
 				return QStringWrapper { lhs->GetData() } < QStringWrapper { rhs->GetData() };
 			});
 
-			DataItem::Ptr root(NavigationItem::Create());
+			auto root = NavigationItem::Create();
 			root->SetChildren(std::move(items));
 
 			return [&, mode, root = std::move(root)] (size_t) mutable
@@ -563,7 +569,7 @@ private: // INavigationQueryExecutor
 		{
 			std::unordered_map<QString, DataItem::Ptr> cache;
 
-			DataItem::Ptr root(NavigationItem::Create());
+			auto root = CreateBooksRoot();
 			std::unordered_multimap<QString, DataItem::Ptr> items;
 			cache.emplace("0", root);
 

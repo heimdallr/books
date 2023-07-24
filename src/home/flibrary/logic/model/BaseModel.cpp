@@ -17,6 +17,14 @@ BaseModel::BaseModel(const std::shared_ptr<AbstractModelProvider> & modelProvide
 
 BaseModel::~BaseModel() = default;
 
+QVariant BaseModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
+{
+	if (!(orientation == Qt::Horizontal && role == Qt::DisplayRole))
+		return {};
+
+	return m_data->GetData(section);
+}
+
 QVariant BaseModel::data(const QModelIndex & index, const int role) const
 {
 	if (!index.isValid())

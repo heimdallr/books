@@ -22,14 +22,6 @@ TreeModel::~TreeModel()
 	PLOGD << "TreeModel destroyed";
 }
 
-QVariant TreeModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
-{
-	if (!(orientation == Qt::Horizontal && role == Qt::DisplayRole))
-		return {};
-
-	return m_data->GetData(section);
-}
-
 QModelIndex TreeModel::index(const int row, const int column, const QModelIndex & parent) const
 {
 	if (!hasIndex(row, column, parent))

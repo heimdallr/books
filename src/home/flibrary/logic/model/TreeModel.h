@@ -23,7 +23,6 @@ public:
 	~TreeModel() override;
 
 private: // QAbstractItemModel
-	QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 	QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const override;
 	QModelIndex parent(const QModelIndex & index) const override;
 	int rowCount(const QModelIndex & parent = QModelIndex()) const override;
