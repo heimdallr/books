@@ -32,26 +32,27 @@ public:
 	[[nodiscard]] const DataItem * GetChild(size_t row) const noexcept;
 	[[nodiscard]] size_t GetChildCount() const noexcept;
 	[[nodiscard]] size_t GetRow() const noexcept;
-	[[nodiscard]] int GetColumnCount() const noexcept;
-	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
 	[[nodiscard]] const QString & GetId() const noexcept;
+	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
+
+	[[nodiscard]] virtual int RemapColumn(int column) const noexcept;
+	[[nodiscard]] virtual int GetColumnCount() const noexcept;
 
 	DataItem & SetId(QString id) noexcept;
 	DataItem & SetData(QString value, int column = 0) noexcept;
 
 public:
-
 	template<typename T>
 	T * To() noexcept = delete;
 	template<typename T>
 	const T * To() const noexcept { return const_cast<DataItem *>(this)->To<T>(); }
 
-#define DATA_ITEM(NAME) template<> NAME* To<>() noexcept { return To##NAME(); }
+#define DATA_ITEM(NAME) template<> NAME* To<>() noexcept { return To##NAME(); }  // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 
 private:
-#define DATA_ITEM(NAME) [[nodiscard]] virtual NAME* To##NAME() noexcept { return nullptr; }
+#define DATA_ITEM(NAME) [[nodiscard]] virtual NAME* To##NAME() noexcept { return nullptr; }  // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 
@@ -97,16 +98,16 @@ private: // DataItem
 struct BookItem final : DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
-BOOKS_COLUMN_ITEM(Author) \
-BOOKS_COLUMN_ITEM(Title) \
-BOOKS_COLUMN_ITEM(Series) \
-BOOKS_COLUMN_ITEM(SeqNumber) \
-BOOKS_COLUMN_ITEM(Size) \
-BOOKS_COLUMN_ITEM(Genre) \
-BOOKS_COLUMN_ITEM(Folder) \
-BOOKS_COLUMN_ITEM(FileName) \
-BOOKS_COLUMN_ITEM(LibRate) \
-BOOKS_COLUMN_ITEM(UpdateDate) \
+BOOKS_COLUMN_ITEM(Author)          \
+BOOKS_COLUMN_ITEM(Title)           \
+BOOKS_COLUMN_ITEM(Series)          \
+BOOKS_COLUMN_ITEM(SeqNumber)       \
+BOOKS_COLUMN_ITEM(Size)            \
+BOOKS_COLUMN_ITEM(Genre)           \
+BOOKS_COLUMN_ITEM(Folder)          \
+BOOKS_COLUMN_ITEM(FileName)        \
+BOOKS_COLUMN_ITEM(LibRate)         \
+BOOKS_COLUMN_ITEM(UpdateDate)      \
 BOOKS_COLUMN_ITEM(Lang)
 
 	struct Column
@@ -119,12 +120,41 @@ BOOKS_COLUMN_ITEM(Lang)
 			Last
 		};
 	};
+
+	static constexpr int ALL[]
+	{
+#define		BOOKS_COLUMN_ITEM(NAME) Column::NAME,
+			BOOKS_COLUMN_ITEMS_X_MACRO
+#undef		BOOKS_COLUMN_ITEM
+	};
+
+	struct Mapping
+	{
+		const int * const columns;
+		const size_t size;
+		template<size_t Size>
+		using Data = const int[Size];
+		template<size_t Size>
+		explicit constexpr Mapping(const Data<Size> & data) noexcept
+			: columns(data)
+			, size(std::size(data))
+		{
+		}
+		constexpr Mapping() noexcept
+			: Mapping(ALL)
+		{
+		}
+	};
+
 	bool deleted { false };
+	static const Mapping * mapping;
 
 	explicit BookItem(const DataItem * parent = nullptr);
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
 
-private:
+private: // DataItem
+	[[nodiscard]] int RemapColumn(int column) const noexcept override;
+	[[nodiscard]] int GetColumnCount() const noexcept override;
 	BookItem * ToBookItem() noexcept override;
 };
 

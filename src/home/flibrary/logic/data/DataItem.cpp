@@ -5,7 +5,10 @@
 using namespace HomeCompa::Flibrary;
 
 namespace {
+
 const QString EMPTY_STRING;
+constexpr BookItem::Mapping FULL { BookItem::ALL };
+
 }
 
 DataItem::DataItem(const size_t columnCount, const DataItem * parent)
@@ -48,14 +51,20 @@ size_t DataItem::GetRow() const noexcept
 	return m_row;
 }
 
+int DataItem::RemapColumn(const int column) const noexcept
+{
+	return column;
+}
+
 int DataItem::GetColumnCount() const noexcept
 {
 	return static_cast<int>(std::size(m_data));
 }
 
-const QString & DataItem::GetData(const int column) const noexcept
+const QString & DataItem::GetData(int column) const noexcept
 {
-	return column >= 0 && column < GetColumnCount() ? m_data[column] : EMPTY_STRING;
+	column = RemapColumn(column);
+	return column >= 0 && column < static_cast<int>(std::size(m_data)) ? m_data[column] : EMPTY_STRING;
 }
 
 const QString & DataItem::GetId() const noexcept
@@ -71,7 +80,7 @@ DataItem & DataItem::SetId(QString id) noexcept
 
 DataItem & DataItem::SetData(QString value, const int column) noexcept
 {
-	assert(column >= 0 && column < GetColumnCount());
+	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));
 	m_data[column] = std::move(value);
 	return *this;
 }
@@ -107,6 +116,8 @@ AuthorItem * AuthorItem::ToAuthorItem() noexcept
 	return this;
 }
 
+const BookItem::Mapping * BookItem::mapping = &FULL;
+
 BookItem::BookItem(const DataItem * parent)
 	: DataItem(Column::Last, parent)
 {
@@ -115,6 +126,16 @@ BookItem::BookItem(const DataItem * parent)
 std::shared_ptr<DataItem> BookItem::Create(const DataItem * parent)
 {
 	return std::make_shared<BookItem>(parent);
+}
+
+int BookItem::RemapColumn(const int column) const noexcept
+{
+	return mapping->columns[column];
+}
+
+int BookItem::GetColumnCount() const noexcept
+{
+	return static_cast<int>(mapping->size);
 }
 
 BookItem * BookItem::ToBookItem() noexcept

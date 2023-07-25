@@ -21,6 +21,7 @@
 #include "interface/logic/ILogicFactory.h"
 
 #include "BooksTreeGenerator.h"
+#include "DataItem.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -89,19 +90,33 @@ constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDE
 constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
 constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
 
+constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_AUTHORS[] { BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_SERIES[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_GENRES[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+
+constexpr int MAPPING_TREE_COMMON[] { BookItem::Column::Title, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_TREE_GENRES[] { BookItem::Column::Title, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+
 constexpr std::pair<NavigationMode, std::pair<QueryExecutorFunctor, QueryDescription>> QUERIES[]
 {
-	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , QUERY_INFO_AUTHOR          , WHERE_AUTHOR , nullptr    , &BindInt   , &IBooksTreeCreator::CreateAuthorsTree}}},
-	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr    , &BindInt   , &IBooksTreeCreator::CreateSeriesTree}}},
-	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_GENRE  , nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree}}},
-	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS, &BindInt   , &IBooksTreeCreator::CreateGeneralTree}}},
-	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree}}},
+	{ NavigationMode::Authors , { &INavigationQueryExecutor::RequestNavigationSimpleList, { AUTHORS_QUERY , QUERY_INFO_AUTHOR          , WHERE_AUTHOR , nullptr    , &BindInt   , &IBooksTreeCreator::CreateAuthorsTree, BookItem::Mapping(MAPPING_AUTHORS), BookItem::Mapping(MAPPING_TREE_COMMON)}}},
+	{ NavigationMode::Series  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr    , &BindInt   , &IBooksTreeCreator::CreateSeriesTree , BookItem::Mapping(MAPPING_SERIES) , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
+	{ NavigationMode::Genres  , { &INavigationQueryExecutor::RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_GENRE  , nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES) , BookItem::Mapping(MAPPING_TREE_GENRES)}}},
+	{ NavigationMode::Groups  , { &INavigationQueryExecutor::RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS, &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
+	{ NavigationMode::Archives, { &INavigationQueryExecutor::RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr    , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 };
 
-constexpr std::pair<ViewMode, IBooksRootGenerator::Generator> BOOKS_GENERATORS[]
+struct BooksViewModeDescription
 {
-	{ ViewMode::List, &IBooksRootGenerator::GetList },
-	{ ViewMode::Tree, &IBooksRootGenerator::GetTree },
+	IBooksRootGenerator::Generator generator;
+	QueryDescription::MappingGetter mapping;
+};
+
+constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
+{
+	{ ViewMode::List, { &IBooksRootGenerator::GetList, &QueryDescription::GetListMapping } },
+	{ ViewMode::Tree, { &IBooksRootGenerator::GetTree, &QueryDescription::GetTreeMapping } },
 };
 
 }
@@ -170,11 +185,11 @@ public:
 			&& m_booksGenerator->GetNavigationId() == m_navigationId
 			;
 
-		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
-			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached());
+		const auto & [_, description] = FindSecond(QUERIES, m_navigationMode);
+		const auto & [booksGenerator, columnMapper] = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
 
-		const auto & [functor, description] = FindSecond(QUERIES, m_navigationMode);
-		const auto & booksGenerator = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
+		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
+			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
 
 		(*m_executor)({ "Get books", [&
 			, navigationMode = m_navigationMode
@@ -192,7 +207,7 @@ public:
 			return [&, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator)] (size_t) mutable
 			{
 				m_booksGenerator = std::move(generator);
-				SendBooksCallback(navigationId, std::move(root));
+				SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
 			};
 		} }, 2);
 	}
@@ -306,10 +321,13 @@ private:
 			m_navigationRequestCallback(std::move(root));
 	}
 
-	void SendBooksCallback(const QString & id, DataItem::Ptr root) const
+	void SendBooksCallback(const QString & id, DataItem::Ptr root, const BookItem::Mapping & columnMapping) const
 	{
-		if (id == m_navigationId)
-			m_booksRequestCallback(std::move(root));
+		if (id != m_navigationId)
+			return;
+
+		BookItem::mapping = &columnMapping;
+		m_booksRequestCallback(std::move(root));
 	}
 
 private:

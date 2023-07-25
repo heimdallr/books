@@ -34,7 +34,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			switch (index.column())
+			switch (item->RemapColumn(index.column()))
 			{
 				case BookItem::Column::SeqNumber:
 					if (const auto seqNumber = item->GetData(index.column()).toInt(); seqNumber > 0)

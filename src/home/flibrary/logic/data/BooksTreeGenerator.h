@@ -31,8 +31,8 @@ public:
 
 public:
 	virtual ~IBooksRootGenerator() = default;
-	virtual DataItem::Ptr GetList(IBooksTreeCreator::Creator treeCreator) const = 0;
-	virtual DataItem::Ptr GetTree(IBooksTreeCreator::Creator treeCreator) const = 0;
+	virtual DataItem::Ptr GetList(IBooksTreeCreator::Creator creator) const = 0;
+	virtual DataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
 using QueryDataExtractor = DataItem::Ptr(*)(const DB::IQuery & query, const int * index);
@@ -46,6 +46,7 @@ struct QueryInfo
 struct QueryDescription
 {
 	using Binder = int(*)(DB::IQuery &, const QString &);
+	using MappingGetter = const BookItem::Mapping & (QueryDescription::*)() const noexcept;
 
 	const char * query;
 	const QueryInfo & queryInfo;
@@ -53,6 +54,11 @@ struct QueryDescription
 	const char * joinClause;
 	Binder binder;
 	IBooksTreeCreator::Creator treeCreator;
+	BookItem::Mapping listMapping;
+	BookItem::Mapping treeMapping;
+
+	constexpr const BookItem::Mapping & GetListMapping() const noexcept{ return listMapping; }
+	constexpr const BookItem::Mapping & GetTreeMapping() const noexcept{ return treeMapping; }
 };
 
 struct QStringWrapper
@@ -86,12 +92,12 @@ public:
 	void SetBooksViewMode(ViewMode viewMode) noexcept;
 
 private: // IBooksRootGenerator
-	[[nodiscard]] DataItem::Ptr GetList(Creator) const override;
+	[[nodiscard]] DataItem::Ptr GetList(Creator creator) const override;
 	[[nodiscard]] DataItem::Ptr GetTree(Creator creator) const override;
 
 private: // IBooksTreeCreator
 	[[nodiscard]] DataItem::Ptr CreateAuthorsTree() const override;
-	[[nodiscard]] DataItem::Ptr CreateSeriesTree() const override;
+	[[nodiscard]] DataItem::Ptr CreateSeriesTree () const override;
 	[[nodiscard]] DataItem::Ptr CreateGeneralTree() const override;
 
 private:
