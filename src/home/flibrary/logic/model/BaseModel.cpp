@@ -43,7 +43,9 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 					return {};
 
 				case BookItem::Column::Size:
-					return Measure::GetSize(item->GetData(index.column()).toULongLong());
+					if (const auto size = item->GetData(index.column()).toULongLong())
+						return Measure::GetSize(size);
+					return {};
 
 				default:
 					return item->GetData(index.column());
