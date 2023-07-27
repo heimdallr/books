@@ -11,6 +11,7 @@
 #include "interface/ui/IUiFactory.h"
 #include "ParentWidgetProvider.h"
 #include "util/ISettings.h"
+#include "TreeView.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -105,6 +106,7 @@ private:
         connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(-1); });
         connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
         connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
+        connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
     }
 
     void CreateCollectionsMenu()
@@ -144,8 +146,8 @@ private:
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
 
-    PropagateConstPtr<QWidget, std::shared_ptr> m_booksWidget;
-    PropagateConstPtr<QWidget, std::shared_ptr> m_navigationWidget;
+    PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
+    PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 };
 
 MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory

@@ -38,7 +38,7 @@ UiFactory::~UiFactory()
 	PLOGD << "UiFactory destroyed";
 }
 
-std::shared_ptr<QWidget> UiFactory::CreateTreeViewWidget(const ItemType type) const
+std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {
 	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->CreateTreeViewController(type);
 	return m_impl->container.resolve<TreeView>();
