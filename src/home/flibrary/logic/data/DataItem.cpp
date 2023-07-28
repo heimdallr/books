@@ -2,6 +2,8 @@
 
 #include <QCoreApplication>
 
+#include "interface/constants/Enums.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace {
@@ -101,6 +103,11 @@ NavigationItem * NavigationItem::ToNavigationItem() noexcept
 	return this;
 }
 
+ItemType NavigationItem::GetType() const noexcept
+{
+	return ItemType::Navigation;
+}
+
 AuthorItem::AuthorItem(const DataItem * parent)
 	: DataItem(Column::Last, parent)
 {
@@ -114,6 +121,11 @@ std::shared_ptr<DataItem> AuthorItem::Create(const DataItem * parent)
 AuthorItem * AuthorItem::ToAuthorItem() noexcept
 {
 	return this;
+}
+
+ItemType AuthorItem::GetType() const noexcept
+{
+	return ItemType::Navigation;
 }
 
 const BookItem::Mapping * BookItem::mapping = &FULL;
@@ -141,4 +153,9 @@ int BookItem::GetColumnCount() const noexcept
 BookItem * BookItem::ToBookItem() noexcept
 {
 	return this;
+}
+
+ItemType BookItem::GetType() const noexcept
+{
+	return ItemType::Books;
 }

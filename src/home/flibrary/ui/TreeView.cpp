@@ -5,6 +5,8 @@
 #include <ranges>
 
 #include <QMenu>
+#include <QPainter>
+#include <QStyledItemDelegate>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -42,6 +44,33 @@ constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 {
 	{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
 	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
+};
+
+class Delegate final : public QStyledItemDelegate
+{
+public:
+	explicit Delegate(QAbstractScrollArea * parent = nullptr)
+		: QStyledItemDelegate(parent)
+		, m_view(*parent->viewport())
+	{
+	}
+
+private:
+	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
+	{
+		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
+			return QStyledItemDelegate::paint(painter, option, index);
+
+		if (index.column() != 0)
+			return;
+
+		auto o = option;
+		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
+		QStyledItemDelegate::paint(painter, o, index);
+	}
+
+private:
+	QWidget & m_view;
 };
 
 }
@@ -104,6 +133,7 @@ private: // ITreeViewController::IObserver
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
 			widget->setContextMenuPolicy(Qt::CustomContextMenu);
+			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
 			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
 			{
 				CreateHeaderContextMenu(pos);
@@ -131,6 +161,7 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
+		//m_ui.treeView->setItemDelegate(new Delegate(&m_self));
 
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));

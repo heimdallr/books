@@ -5,6 +5,7 @@
 #include <QVariant>
 
 namespace HomeCompa::Flibrary {
+enum class ItemType;
 
 #define DATA_ITEMS_X_MACRO \
 DATA_ITEM(NavigationItem)  \
@@ -41,6 +42,8 @@ public:
 	DataItem & SetId(QString id) noexcept;
 	DataItem & SetData(QString value, int column = 0) noexcept;
 
+	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
+
 public:
 	template<typename T>
 	T * To() noexcept = delete;
@@ -72,6 +75,7 @@ struct NavigationItem final : DataItem
 
 private: // DataItem
 	NavigationItem * ToNavigationItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
 struct AuthorItem final : DataItem
@@ -93,6 +97,7 @@ struct AuthorItem final : DataItem
 
 private: // DataItem
 	AuthorItem * ToAuthorItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
 struct BookItem final : DataItem
@@ -156,6 +161,7 @@ private: // DataItem
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 	BookItem * ToBookItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
 }

@@ -54,6 +54,9 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::Id:
 			return item->GetId();
 
+		case Role::Type:
+			return QVariant::fromValue(item->GetType());
+
 		default:
 			break;
 	}
