@@ -130,10 +130,12 @@ private: // ITreeViewController::IObserver
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
+			model->setData({}, true, Role::Checkable);
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
 			widget->setContextMenuPolicy(Qt::CustomContextMenu);
 			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
+			m_ui.treeView->setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
 			{
 				CreateHeaderContextMenu(pos);

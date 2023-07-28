@@ -43,6 +43,8 @@ public:
 	DataItem & SetData(QString value, int column = 0) noexcept;
 
 	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
+	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept;
+	virtual void SetCheckState(Qt::CheckState state) noexcept;
 
 public:
 	template<typename T>
@@ -151,6 +153,7 @@ BOOKS_COLUMN_ITEM(Lang)
 		}
 	};
 
+	Qt::CheckState checkState { Qt::Unchecked };
 	bool deleted { false };
 	static const Mapping * mapping;
 
@@ -161,6 +164,8 @@ private: // DataItem
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 	BookItem * ToBookItem() noexcept override;
+	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
+	void SetCheckState(Qt::CheckState state) noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 

@@ -1,5 +1,7 @@
 #include "DataItem.h"
 
+#include <ranges>
+
 #include <QCoreApplication>
 
 #include "interface/constants/Enums.h"
@@ -36,6 +38,8 @@ DataItem::Ptr & DataItem::AppendChild(Ptr child)
 void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 {
 	m_children = std::move(children);
+	for (const auto & child : m_children)
+		child->m_parent = this;
 }
 
 const DataItem * DataItem::GetChild(const size_t row) const noexcept
@@ -87,6 +91,33 @@ DataItem & DataItem::SetData(QString value, const int column) noexcept
 	return *this;
 }
 
+Qt::CheckState DataItem::GetCheckState() const noexcept
+{
+	if (m_children.empty())
+		return Qt::Unchecked;
+
+	if (m_children.front()->GetCheckState() == Qt::Checked)
+	{
+		return std::ranges::all_of(m_children | std::views::drop(1), [] (const auto & item)
+		{
+			return item->GetCheckState() == Qt::Checked;
+		}) ? Qt::Checked : Qt::PartiallyChecked;
+	}
+
+	if (m_children.front()->GetCheckState() == Qt::Unchecked)
+	{
+		return std::ranges::all_of(m_children | std::views::drop(1), [] (const auto & item)
+		{
+			return item->GetCheckState() == Qt::Unchecked;
+		}) ? Qt::Unchecked : Qt::PartiallyChecked;
+	}
+
+	return Qt::PartiallyChecked;
+}
+
+void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept
+{
+}
 
 NavigationItem::NavigationItem(const DataItem * parent)
 	: DataItem(1, parent)
@@ -154,6 +185,17 @@ BookItem * BookItem::ToBookItem() noexcept
 {
 	return this;
 }
+
+Qt::CheckState BookItem::GetCheckState() const noexcept
+{
+	return checkState;
+}
+
+void BookItem::SetCheckState(const Qt::CheckState state) noexcept
+{
+	checkState = state;
+}
+
 
 ItemType BookItem::GetType() const noexcept
 {

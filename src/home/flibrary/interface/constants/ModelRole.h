@@ -9,7 +9,9 @@ struct Role
 	enum Value
 	{
 		Id = Qt::UserRole + 1,
+		Type,
 		Filter,
+		Checkable,
 	};
 };
 
