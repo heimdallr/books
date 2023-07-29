@@ -9,7 +9,9 @@
 #include "interface/ui/IUiFactory.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "LogicFactory.h"
+#include "model/CheckboxProxyModel.h"
 #include "model/ListModel.h"
+#include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
 #include "util/ISettings.h"
 // ReSharper restore CppUnusedIncludeDirective
@@ -22,6 +24,8 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
+	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
+	builder.registerType<CheckboxProxyModel>().as<AbstractCheckboxProxyModel>();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

@@ -22,9 +22,6 @@ protected: // QAbstractItemModel
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
 
-private:
-	void Check(const QModelIndex & parent, Qt::CheckState state);
-
 protected:
 	DataItem::Ptr m_data;
 	bool m_checkable { false };

@@ -10,6 +10,7 @@ struct Role
 	{
 		Id = Qt::UserRole + 1,
 		Type,
+		CheckState,
 		MappedColumn,
 
 		// global

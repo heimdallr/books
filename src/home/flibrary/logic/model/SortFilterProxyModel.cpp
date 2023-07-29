@@ -3,12 +3,16 @@
 #include "interface/constants/ModelRole.h"
 
 #include "data/AbstractModelProvider.h"
-#include "interface/constants/Enums.h"
 
 using namespace HomeCompa::Flibrary;
 
-SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent)
+AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject * parent)
 	: QSortFilterProxyModel(parent)
+{
+}
+
+SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+	: AbstractSortFilterProxyModel(parent)
 	, m_sourceModel(modelProvider->GetSourceModel())
 {
 	QSortFilterProxyModel::setSourceModel(m_sourceModel.get());

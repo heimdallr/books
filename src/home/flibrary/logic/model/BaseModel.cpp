@@ -74,20 +74,11 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 {
 	if (index.isValid())
 	{
-		const auto * item = static_cast<DataItem *>(index.internalPointer());
+		auto * item = static_cast<DataItem *>(index.internalPointer());
 		switch (role)
 		{
-			case Qt::CheckStateRole:
-			{
-				Check(index, item->GetCheckState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-				auto parent = index;
-				while (parent.isValid())
-				{
-					emit dataChanged(parent, parent, { Qt::CheckStateRole });
-					parent = parent.parent();
-				}
-			}
-			return true;
+			case Role::CheckState:
+				return item->SetCheckState(value.value<Qt::CheckState>()), true;
 
 			default:
 				return assert(false && "unexpected role"), false;
@@ -104,7 +95,6 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 			break;
 	}
 
-
 	return assert(false && "unexpected role"), false;
 }
 
@@ -116,19 +106,4 @@ Qt::ItemFlags BaseModel::flags(const QModelIndex & index) const
 		flags |= Qt::ItemIsUserCheckable;
 
 	return flags;
-}
-
-void BaseModel::Check(const QModelIndex & parent, const Qt::CheckState state)
-{
-	auto * item = static_cast<DataItem *>(parent.internalPointer());
-	if (item->GetChildCount() > 0)
-	{
-		const auto count = rowCount(parent);
-		for (auto i = 0; i < count; ++i)
-			Check(index(i, 0, parent), state);
-
-		emit dataChanged(index(0, 0, parent), index(count - 1, 0), { Qt::CheckStateRole });
-	}
-
-	item->SetCheckState(state);
 }

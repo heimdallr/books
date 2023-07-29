@@ -9,7 +9,13 @@
 
 namespace HomeCompa::Flibrary {
 
-class SortFilterProxyModel final : public QSortFilterProxyModel
+class AbstractSortFilterProxyModel : public QSortFilterProxyModel
+{
+protected:
+	explicit AbstractSortFilterProxyModel(QObject * parent = nullptr);
+};
+
+class SortFilterProxyModel final : public AbstractSortFilterProxyModel
 {
 	NON_COPY_MOVABLE(SortFilterProxyModel)
 
