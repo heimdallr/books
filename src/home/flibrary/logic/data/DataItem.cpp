@@ -1,4 +1,5 @@
 #include "DataItem.h"
+#include "DataItem.h"
 
 #include <ranges>
 
@@ -120,7 +121,7 @@ void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept
 }
 
 NavigationItem::NavigationItem(const DataItem * parent)
-	: DataItem(1, parent)
+	: DataItem(Column::Last, parent)
 {
 }
 

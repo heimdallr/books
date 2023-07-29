@@ -10,6 +10,9 @@ struct Role
 	{
 		Id = Qt::UserRole + 1,
 		Type,
+		MappedColumn,
+
+		// global
 		Filter,
 		Checkable,
 	};

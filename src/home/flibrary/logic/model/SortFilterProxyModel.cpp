@@ -3,6 +3,7 @@
 #include "interface/constants/ModelRole.h"
 
 #include "data/AbstractModelProvider.h"
+#include "interface/constants/Enums.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -39,5 +40,6 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 
 	const auto itemIndex = m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return itemIndex.data().toString().simplified().contains(m_filter, Qt::CaseInsensitive);
+
+	return itemIndex.data().toString().contains(m_filter, Qt::CaseInsensitive);
 }

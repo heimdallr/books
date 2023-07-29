@@ -71,6 +71,14 @@ protected:
 
 struct NavigationItem final : DataItem
 {
+	struct Column
+	{
+		enum Value
+		{
+			Title = 0,
+			Last
+		};
+	};
 	explicit NavigationItem(const DataItem * parent = nullptr);
 
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);

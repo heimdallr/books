@@ -60,6 +60,9 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::Type:
 			return QVariant::fromValue(item->GetType());
 
+		case Role::MappedColumn:
+			return item->RemapColumn(index.column());
+
 		default:
 			break;
 	}

@@ -11,13 +11,18 @@
 
 #include <plog/Log.h>
 
+#include "fnd/IsOneOf.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/ITreeViewController.h"
 
+#include "logic/data/DataItem.h"
+
 #include "util/ISettings.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -58,13 +63,19 @@ public:
 private:
 	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
 	{
+		auto o = option;
 		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
-			return QStyledItemDelegate::paint(painter, option, index);
+		{
+			const auto column = index.data(Role::MappedColumn).toInt();
+			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
+				o.displayAlignment = Qt::AlignRight;
+
+			return QStyledItemDelegate::paint(painter, o, index);
+		}
 
 		if (index.column() != 0)
 			return;
 
-		auto o = option;
 		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
 		QStyledItemDelegate::paint(painter, o, index);
 	}
@@ -205,7 +216,9 @@ private:
 		});
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
 		{
+			m_ui.treeView->model()->setData({}, {}, Role::Filter);
 			RestoreValue();
+			OnValueChanged();
 		});
 		connect(m_ui.value, &QLineEdit::textEdited, &m_self, [&]
 		{
