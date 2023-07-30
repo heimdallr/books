@@ -1,17 +1,4 @@
 <RCC>
-	<qresource prefix="icons/">
-		<file alias="expander.png">icons/expander.png</file>
-		<file alias="Filter.png">icons/filter.png</file>
-		<file alias="Find.png">icons/find.png</file>
-		<file alias="tray.png">icons/tray.png</file>
-	</qresource>
-
-	<qresource prefix="icons/checkbox">
-		<file alias="checked.png">icons/checkbox/checked.png</file>
-		<file alias="partially.png">icons/checkbox/partially.png</file>
-		<file alias="unchecked.png">icons/checkbox/unchecked.png</file>
-	</qresource>
-
 	<qresource prefix="data">
 		<file alias="CreateCollection.sql">data/CreateCollection.sql</file>
 		<file alias="genres.ini">data/genres.ini</file>

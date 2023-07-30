@@ -1,5 +1,6 @@
 #include "BaseModel.h"
 
+#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 
 #include "util/Measure.h"
@@ -22,7 +23,7 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 	if (!(orientation == Qt::Horizontal && role == Qt::DisplayRole))
 		return {};
 
-	return m_data->GetData(section);
+	return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
 }
 
 QVariant BaseModel::data(const QModelIndex & index, const int role) const

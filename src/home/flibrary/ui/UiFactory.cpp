@@ -49,10 +49,16 @@ std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog() con
 	return m_impl->container.resolve<IAddCollectionDialog>();
 }
 
-QMessageBox::StandardButton UiFactory::ShowWarning(const QString & title, const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowQuestion(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	const auto dialog = m_impl->container.resolve<IWarningDialog>();
-	return dialog->Show(title, text, buttons, defaultButton);
+	return dialog->Show(text, buttons, defaultButton);
+}
+
+QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+{
+	const auto dialog = m_impl->container.resolve<IWarningDialog>();
+	return dialog->Show(text, buttons, defaultButton);
 }
 
 std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const

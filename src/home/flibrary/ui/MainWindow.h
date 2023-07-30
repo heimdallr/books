@@ -21,6 +21,7 @@ public:
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<class ICollectionController> collectionController
         , std::shared_ptr<class ParentWidgetProvider> parentWidgetProvider
+        , std::shared_ptr<class LocaleController> localeController
         , QWidget * parent = nullptr);
     ~MainWindow() override;
 

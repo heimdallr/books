@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 			const auto mainWindow = container->resolve<QMainWindow>();
 			mainWindow->show();
 
-			if (const auto code = QApplication::exec(); code != 1234)
+			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)
 			{
 				PLOGI << "App finished with " << code;
 				return code;

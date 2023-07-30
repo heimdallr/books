@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string notr="true">MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -217,9 +217,21 @@
     <addaction name="separator"/>
     <addaction name="actionUserdata"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <widget class="QMenu" name="menuLanguage">
+     <property name="title">
+      <string>Language</string>
+     </property>
+    </widget>
+    <addaction name="menuLanguage"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuCollection"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFontSizeUp">
@@ -227,7 +239,7 @@
     <string>Size Up</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Up</string>
+    <string notr="true">Ctrl+Up</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
@@ -238,7 +250,7 @@
     <string>Size Down</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Down</string>
+    <string notr="true">Ctrl+Down</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
@@ -249,7 +261,7 @@
     <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
-    <string>Alt+X</string>
+    <string notr="true">Alt+X</string>
    </property>
    <property name="menuRole">
     <enum>QAction::QuitRole</enum>

@@ -67,7 +67,7 @@ QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
 	AppendTitle(title, query.Get<const char *>(index[3]));
 
 	if (title.isEmpty())
-		title = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+		title = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
 
 	return title;
 }

@@ -6,9 +6,11 @@
 
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
+#include "LocaleController.h"
 #include "ParentWidgetProvider.h"
 #include "util/ISettings.h"
 #include "TreeView.h"
@@ -33,12 +35,14 @@ public:
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
         , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+        , std::shared_ptr<LocaleController> localeController
     )
 	    : GeometryRestorable(*this, settings, "MainWindow")
         , m_self(self)
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
+		, m_localeController(std::move(localeController))
         , m_booksWidget(uiFactory->CreateTreeViewWidget(ItemType::Books))
         , m_navigationWidget(uiFactory->CreateTreeViewWidget(ItemType::Navigation))
     {
@@ -80,6 +84,8 @@ private:
 
         m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
         m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
+
+        m_localeController->Setup(*m_ui.menuLanguage);
     }
 
     void RestoreWidgetsState()
@@ -107,6 +113,7 @@ private:
         connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
         connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
         connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
+        connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
     }
 
     void CreateCollectionsMenu()
@@ -136,7 +143,7 @@ private:
 
     static void Reboot()
     {
-        QTimer::singleShot(0, [] { QCoreApplication::exit(1234); });
+        QTimer::singleShot(0, [] { QCoreApplication::exit(Constant::RESTART_APP); });
     }
 
 private:
@@ -145,6 +152,7 @@ private:
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
+    PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 
     PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
     PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -154,6 +162,7 @@ MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+    , std::shared_ptr<LocaleController> localeController
     , QWidget * parent
 )
     : QMainWindow(parent)
@@ -162,6 +171,7 @@ MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory
         , std::move(settings)
         , std::move(collectionController)
         , std::move(parentWidgetProvider)
+        , std::move(localeController)
     )
 {
     PLOGD << "MainWindow created";

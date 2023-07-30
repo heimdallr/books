@@ -17,4 +17,6 @@ constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
 constexpr auto FlibraryBackupVersionNumber = 1;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
+constexpr int RESTART_APP = 1234;
+
 }

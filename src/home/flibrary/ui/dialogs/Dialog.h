@@ -20,15 +20,26 @@ protected:
 	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentProvider;
 };
 
+class QuestionDialog final
+	: public Dialog
+	, public IQuestionDialog
+{
+public:
+	explicit QuestionDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
+
+private: // IDialog
+	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
+};
+
 class WarningDialog final
 	: public Dialog
 	, public IWarningDialog
 {
 public:
-	WarningDialog(std::shared_ptr<class ParentWidgetProvider> parentProvider);
+	explicit WarningDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
 
 private: // IDialog
-	QMessageBox::StandardButton Show(const QString & title, const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
+	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 };
 
 }

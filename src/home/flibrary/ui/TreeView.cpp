@@ -1,11 +1,11 @@
 #include "ui_TreeView.h"
 #include "TreeView.h"
 
-#include <qevent.h>
 #include <ranges>
 
 #include <QMenu>
 #include <QPainter>
+#include <QResizeEvent>
 #include <QStyledItemDelegate>
 #include <QTimer>
 
@@ -14,6 +14,7 @@
 #include "fnd/IsOneOf.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/ITreeViewController.h"
 
@@ -145,7 +146,6 @@ private: // ITreeViewController::IObserver
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
 			widget->setContextMenuPolicy(Qt::CustomContextMenu);
-			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
 			m_ui.treeView->setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
 			{
@@ -174,7 +174,8 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
-		//m_ui.treeView->setItemDelegate(new Delegate(&m_self));
+		if (m_controller->GetItemType() == ItemType::Books)
+			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
 
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));
@@ -195,7 +196,7 @@ private:
 			m_ui.cbValueMode->addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), "", QString(name));
 
 		for (const auto * name : m_controller->GetModeNames())
-			m_ui.cbMode->addItem(QCoreApplication::translate(m_controller->TrContext(), name), QString(name));
+			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
 
 		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item) { return mode == item.first; });
 		if (it != std::cend(VALUE_MODES))

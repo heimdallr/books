@@ -171,7 +171,7 @@ QString GetAuthorShortName(const DataItem::Ptr & item)
 	}
 
 	if (last.isEmpty())
-		last = QCoreApplication::translate(Constant::Localization::CONTEXT_ERROR, Constant::Localization::AUTHOR_NOT_SPECIFIED);
+		last = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
 
 	auto name = last;
 

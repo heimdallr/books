@@ -22,15 +22,15 @@ struct LocaleController::Impl
 	}
 
 	Settings & uiSettings;
-	QTranslator translator;
+	QTranslator m_translator;
 };
 
 LocaleController::LocaleController(Settings & uiSettings, QObject * parent)
 	: QObject(parent)
 	, m_impl(uiSettings)
 {
-	if (m_impl->translator.load(QString(":/resources/%1.qm").arg(GetLocale())))
-		QCoreApplication::installTranslator(&m_impl->translator);
+	if (m_impl->m_translator.load(QString(":/resources/%1.qm").arg(GetLocale())))
+		QCoreApplication::installTranslator(&m_impl->m_translator);
 
 	PLOGD << "LocaleController created";
 }

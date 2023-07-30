@@ -1,11 +1,12 @@
-#include <QCoreApplication>
-
 #include "Measure.h"
 
-namespace HomeCompa {
+#include "interface/constants/Localization.h"
+
+namespace HomeCompa::Flibrary::Measure {
 
 namespace {
 
+constexpr auto CONTEXT = "Measure";
 constexpr std::pair<qulonglong, const char *> g_sizes[]
 {
 	{ 1024 * 1024 * 1024, QT_TRANSLATE_NOOP("Measure", "%1 Gb") },
@@ -16,12 +17,7 @@ constexpr std::pair<qulonglong, const char *> g_sizes[]
 
 }
 
-Measure::Measure(QObject * parent)
-	: QObject(parent)
-{
-}
-
-QString Measure::GetSize(const qulonglong size)
+QString GetSize(const qulonglong size)
 {
 	const auto it = std::ranges::find_if(std::as_const(g_sizes), [size = size + 1] (const auto & item)
 	{
@@ -29,7 +25,7 @@ QString Measure::GetSize(const qulonglong size)
 	});
 	assert(it != std::cend(g_sizes));
 
-	return QString(QCoreApplication::translate("Measure", it->second)).arg(static_cast<double>(size) / static_cast<double>(it->first), 0, 'f', 1);
+	return Loc::Tr(CONTEXT, it->second).arg(static_cast<double>(size) / static_cast<double>(it->first), 0, 'f', 1);
 }
 
 }

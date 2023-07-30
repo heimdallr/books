@@ -7,6 +7,8 @@
 
 #include "fnd/observable.h"
 
+#include "interface/constants/Localization.h"
+
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -18,6 +20,14 @@ namespace {
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 const Collection EMPTY_COLLECTION;
+
+constexpr auto CONTEXT = "CollectionController";
+constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
+
+QString Tr(const char * str)
+{
+	return Loc::Tr(CONTEXT, str);
+}
 
 QString GetInpx(const QString & folder)
 {
@@ -101,7 +111,7 @@ private:
 	{
 		if (QFile(db).exists())
 		{
-			if (m_uiFactory->ShowWarning("Warning", "The existing database file will be overwritten. Continue?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 				return ++m_overwriteConfirmCount < MAX_OVERWRITE_CONFIRM_COUNT
 					? AddCollection()
 					: Perform(&IObserver::OnActiveCollectionChanged, std::cref(EMPTY_COLLECTION));

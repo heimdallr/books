@@ -8,6 +8,7 @@
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
 
+#include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 
 using namespace HomeCompa::Flibrary;
@@ -19,17 +20,41 @@ constexpr auto NAME = "Name";
 constexpr auto DATABASE = "DatabaseFileName";
 constexpr auto FOLDER = "ArchiveFolder";
 
-constexpr auto DATABASE_FILENAME_FILTER = "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)";
-//constexpr auto ERROR_TEXT_TEMPLATE = R"(<html><head/><body><p><span style="color:#ff0000;">%1</span></p></body></html>)";
+constexpr auto CONTEXT                                    = "AddCollectionDialog";
+constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
+constexpr auto SELECT_DATABASE_FILE     = QT_TRANSLATE_NOOP("AddCollectionDialog", "Select database file");
+constexpr auto SELECT_ARCHIVES_FOLDER   = QT_TRANSLATE_NOOP("AddCollectionDialog", "Select archives folder");
+
+constexpr auto EMPTY_NAME                         = QT_TRANSLATE_NOOP("Error", "Name cannot be empty");
+constexpr auto COLLECTION_NAME_ALREADY_EXISTS     = QT_TRANSLATE_NOOP("Error", "Same named collection has already been added");
+constexpr auto EMPTY_DATABASE                     = QT_TRANSLATE_NOOP("Error", "Database file name cannot be empty");
+constexpr auto COLLECTION_DATABASE_ALREADY_EXISTS = QT_TRANSLATE_NOOP("Error", "This collection has already been added: %1");
+constexpr auto DATABASE_NOT_FOUND                 = QT_TRANSLATE_NOOP("Error", "Database file not found");
+constexpr auto BAD_DATABASE_EXT                   = QT_TRANSLATE_NOOP("Error", "Bad database file extension (.inpx)");
+constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "Archive folder name cannot be empty");
+constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
+constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
+constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
+
+QString Error(const char * str)
+{
+    return Loc::Tr(Loc::Ctx::ERROR, str);
+}
+
+QString Tr(const char * str)
+{
+    return Loc::Tr(CONTEXT, str);
+}
+
 
 QString GetDatabase(QWidget & parent, const QString & file)
 {
-	return QFileDialog::getSaveFileName(&parent, QWidget::tr("Select database file"), QFileInfo(file).path(), QWidget::tr(DATABASE_FILENAME_FILTER), nullptr, QFileDialog::DontConfirmOverwrite);
+	return QFileDialog::getSaveFileName(&parent, Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), nullptr, QFileDialog::DontConfirmOverwrite);
 }
 
 QString GetFolder(QWidget & parent, const QString & dir)
 {
-    return QFileDialog::getExistingDirectory(&parent, QWidget::tr("Select archives folder"), dir);
+    return QFileDialog::getExistingDirectory(&parent, Tr(SELECT_ARCHIVES_FOLDER), dir);
 }
 
 }
@@ -135,10 +160,10 @@ private:
         const auto name = GetName();
 
         if (name.isEmpty())
-            return SetErrorText(m_ui.editName, tr("Name cannot be empty"));
+            return SetErrorText(m_ui.editName, Error(EMPTY_NAME));
 
         if (m_collectionController->IsCollectionNameExists(name))
-            return SetErrorText(m_ui.editName, tr("Same named collection has already been added"));
+            return SetErrorText(m_ui.editName, Error(COLLECTION_NAME_ALREADY_EXISTS));
 
         return true;
     }
@@ -148,16 +173,16 @@ private:
         const auto db = GetDatabaseFileName();
 
         if (db.isEmpty())
-            return SetErrorText(m_ui.editDatabase, tr("Database file name cannot be empty"));
+            return SetErrorText(m_ui.editDatabase, Error(EMPTY_DATABASE));
 
         if (const auto name = m_collectionController->GetCollectionDatabaseName(db); !name.isEmpty())
-            return SetErrorText(m_ui.editDatabase, tr("This collection has already been added: %1").arg(name));
+            return SetErrorText(m_ui.editDatabase, Error(COLLECTION_DATABASE_ALREADY_EXISTS).arg(name));
 
 		if (mode == Result::Add && !QFile(db).exists())
-			return SetErrorText(m_ui.editDatabase, tr("Database file not found"));
+			return SetErrorText(m_ui.editDatabase, Error(DATABASE_NOT_FOUND));
 
 		if (mode == Result::CreateNew && QFileInfo(db).suffix().toLower() == "inpx")
-			return SetErrorText(m_ui.editDatabase, tr("Bad database file extension (.inpx)"));
+			return SetErrorText(m_ui.editDatabase, Error(BAD_DATABASE_EXT));
 
         return true;
     }
@@ -167,16 +192,16 @@ private:
         const auto folder = GetArchiveFolder();
 
         if (folder.isEmpty())
-            return SetErrorText(m_ui.editArchive, tr("Archive folder name cannot be empty"));
+            return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));
 
 		if (!QDir(folder).exists())
-			return SetErrorText(m_ui.editArchive, tr("Archive folder not found"));
+			return SetErrorText(m_ui.editArchive, Error(ARCHIVES_FOLDER_NOT_FOUND));
 
 		if (QDir(folder).isEmpty())
-			return SetErrorText(m_ui.editArchive, tr("Archive folder cannot be empty"));
+			return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_FOLDER));
 
 		if (mode == Result::CreateNew && !m_collectionController->IsCollectionFolderHasInpx(folder))
-			return SetErrorText(m_ui.editArchive, tr("Index file (*.inpx) not found"));
+			return SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
 
         return true;
     }
@@ -194,7 +219,7 @@ private:
     AddCollectionDialog & m_self;
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-    Ui::AddCollectionDialogClass m_ui {};
+    Ui::AddCollectionDialog m_ui {};
 };
 
 AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider

@@ -1,5 +1,5 @@
 AddTarget(
-	NAME ui
+	NAME flui
 	TYPE shared_lib
 	PROJECT_GROUP App
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
@@ -7,7 +7,7 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
 	QRC
-		"${CMAKE_CURRENT_LIST_DIR}/../resources/main.qrc"
+#		"${CMAKE_CURRENT_LIST_DIR}/../resources/main.qrc"
 	QT_USE
 		Core
 		Gui

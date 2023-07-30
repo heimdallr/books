@@ -78,8 +78,8 @@ set(LOCALES
 	"ru"
 	)
 GenerateTranslations(
-	NAME "flibrary"
-	PATH "${CMAKE_CURRENT_LIST_DIR}/flibrary_old"
+	NAME "flibrary_old"
+	PATH "${CMAKE_CURRENT_LIST_DIR}/.."
 	LOCALES ${LOCALES}
 	)
 

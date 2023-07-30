@@ -5,20 +5,24 @@
     <name>AddCollection</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="31"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="31"/>
         <source>Add new collection</source>
         <translation>Добавить новую коллекцию</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="53"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="53"/>
         <source>Collection name</source>
         <translation>Имя коллекции</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="73"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="73"/>
         <source>Collection database file</source>
         <translation>Файл базы данных</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="110"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="110"/>
         <source>Collection archive folder</source>
         <translation>Папка с архивами</translation>
@@ -28,15 +32,18 @@
     <name>AddCollectionDialog</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="170"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="170"/>
         <source>Database file already exists. Owerride?</source>
         <translation>Файл базы данных уже существует. Перезаписать?</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="178"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="178"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="193"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="193"/>
         <source>Add</source>
         <translation>Добавить</translation>
@@ -45,7 +52,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="385"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="384"/>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>
@@ -54,50 +61,60 @@
     <name>BookContextMenu</name>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="20"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="20"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="26"/>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="26"/>
         <source>Selection</source>
         <translation>Выделение</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="31"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="31"/>
         <source>Select all</source>
         <translation>Выделить все</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="38"/>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="38"/>
         <source>Deselect all</source>
         <translation>Отменить выделение</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="45"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="45"/>
         <source>Invert selection</source>
         <translation>Инвертировать выделение</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="53"/>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="53"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="70"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="70"/>
         <source>In zip archive</source>
         <translation>Архиворовать в zip</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="76"/>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="76"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="89"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="89"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="96"/>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="96"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
@@ -107,20 +124,24 @@
     <name>Collection</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="56"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="56"/>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="65"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="65"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="74"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="74"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="24"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="24"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
@@ -131,27 +152,27 @@ Restart now?</source>
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="411"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="410"/>
         <source>Collection statistics:</source>
         <translation>Статистика коллекции:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="414"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="413"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="415"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="414"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="416"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="415"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="417"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="416"/>
         <source>Deleted books:</source>
         <translation>Удалённые книги:</translation>
     </message>
@@ -161,16 +182,26 @@ Restart now?</source>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="126"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="89"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="126"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="202"/>
+        <location filename="../../src/ui/qml/core/CustomProgressBar.qml" line="72"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="202"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="23"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="39"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="55"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="64"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="73"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="169"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="23"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="39"/>
@@ -243,47 +274,51 @@ Restart now?</source>
     <name>FileDialog</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="92"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="92"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="92"/>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="92"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="129"/>
+        <location filename="../../src/ui/qml/dialogs/AddCollection.qml" line="129"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="58"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/ContextMenu.qml" line="58"/>
         <source>Select destination folder</source>
         <translation>Укажите путь назначения на устройстве</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ReaderController.cpp" line="179"/>
+        <location filename="../../src/controllers/ReaderController.cpp" line="178"/>
         <source>Select %1 reader</source>
         <translation>Укажите читалку для %1</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/ReaderController.cpp" line="179"/>
+        <location filename="../../src/controllers/ReaderController.cpp" line="178"/>
         <source>Applications (*.exe)</source>
         <translation>Приложения (*.exe)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
-        <location filename="../../src/controllers/GuiController.cpp" line="461"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="450"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="460"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation>Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="451"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="450"/>
         <source>Specify a file to export user data</source>
         <translation>Укажите файл экспорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/GuiController.cpp" line="461"/>
+        <location filename="../../src/controllers/GuiController.cpp" line="460"/>
         <source>Select a file to import user data</source>
         <translation>Выберите файл импорта пользовательских данных</translation>
     </message>
@@ -292,40 +327,48 @@ Restart now?</source>
     <name>GroupsMenu</name>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="10"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="10"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="25"/>
         <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="25"/>
         <source>Add to</source>
         <translation>Добавить в</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="43"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="43"/>
         <source>New group...</source>
         <translation>Новая группа...</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="55"/>
         <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="55"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="69"/>
+        <location filename="../../src/ui/qml/books/ContextMenu/GroupsMenu.qml" line="69"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="40"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="40"/>
         <source>Are you sure you want to delete the group?</source>
         <translation>Уверены, что хотите удалить группу?</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="22"/>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="22"/>
         <source>Create new...</source>
         <translation>Создать новую...</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="28"/>
         <location filename="../../src/ui/qml/navigation/GroupsContextMenu.qml" line="28"/>
         <source>Remove</source>
         <translation>Удалить</translation>
@@ -348,42 +391,48 @@ Restart now?</source>
     <name>Header</name>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="23"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="23"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="45"/>
         <source>SeriesTitle</source>
         <translation>Серия</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="33"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="33"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="64"/>
         <source>No</source>
         <translation>№</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="67"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="75"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
         <source>Size</source>
         <translation>Размер</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/books/BooksHeader.qml" line="87"/>
+        <location filename="../../src/ui/qml/books/BooksHeader.qml" line="87"/>
         <source>GenreAlias</source>
         <translation>Жанр</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="66"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="65"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/AnnotationController.cpp" line="68"/>
+        <location filename="../../src/controllers/AnnotationController.cpp" line="67"/>
         <source>Updated</source>
         <translation>Обновлён</translation>
     </message>
@@ -391,12 +440,12 @@ Restart now?</source>
 <context>
     <name>Language</name>
     <message>
-        <location filename="../../../../../build64/Resources/flibrary_locales.h" line="7"/>
+        <location filename="../../../../../build/x64/Resources/flibrary_old_locales.h" line="7"/>
         <source>en</source>
         <translation>English</translation>
     </message>
     <message>
-        <location filename="../../../../../build64/Resources/flibrary_locales.h" line="8"/>
+        <location filename="../../../../../build/x64/Resources/flibrary_old_locales.h" line="8"/>
         <source>ru</source>
         <translation>Русский</translation>
     </message>
@@ -405,30 +454,36 @@ Restart now?</source>
     <name>Logging</name>
     <message>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="6"/>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="6"/>
         <source>Log</source>
         <translation>Журнал</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
         <source>Hide log</source>
         <translation>Скрыть журнал</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="10"/>
         <source>Show log</source>
         <translation>Показать журнал</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="22"/>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="22"/>
         <source>Show collection statistics</source>
         <translation>Показать статистику коллекции</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
+        <location filename="../../src/ui/qml/log/LogContextMenu.qml" line="16"/>
         <source>Clear log</source>
         <translation>Очистить журнал</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/log/SeverityLevel.qml" line="12"/>
         <location filename="../../src/ui/qml/log/SeverityLevel.qml" line="12"/>
         <source>Log level</source>
         <translation>Уровень детализации журнала</translation>
@@ -467,39 +522,38 @@ Restart now?</source>
 <context>
     <name>Measure</name>
     <message>
-        <location filename="../../src/controllers/Measure.cpp" line="11"/>
         <source>%1 Gb</source>
-        <translation>%1 Гб</translation>
+        <translation type="vanished">%1 Гб</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/Measure.cpp" line="12"/>
         <source>%1 Mb</source>
-        <translation>%1 Мб</translation>
+        <translation type="vanished">%1 Мб</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/Measure.cpp" line="13"/>
         <source>%1 Kb</source>
-        <translation>%1 Кб</translation>
+        <translation type="vanished">%1 Кб</translation>
     </message>
     <message>
-        <location filename="../../src/controllers/Measure.cpp" line="14"/>
         <source>%1 b</source>
-        <translation>%1 б</translation>
+        <translation type="vanished">%1 б</translation>
     </message>
 </context>
 <context>
     <name>NewGroupDialog</name>
     <message>
         <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="15"/>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="15"/>
         <source>Input new group name</source>
         <translation>Укажите имя новой группы</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="16"/>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="16"/>
         <source>Group name</source>
         <translation>Имя группы</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="17"/>
         <location filename="../../src/ui/qml/dialogs/InputNewGroupName.qml" line="17"/>
         <source>New group</source>
         <translation>Новая группа</translation>
@@ -508,6 +562,7 @@ Restart now?</source>
 <context>
     <name>QPlatformTheme</name>
     <message>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="89"/>
         <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="89"/>
         <location filename="../../src/constants/Localization.h" line="11"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="4"/>
@@ -571,6 +626,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="102"/>
+        <location filename="../../src/ui/qml/dialogs/InputStringDialog.qml" line="102"/>
         <location filename="../../src/constants/StandardButtonLocalization.h" line="16"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
@@ -605,110 +661,132 @@ Restart now?</source>
     <name>Tray</name>
     <message>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Show Flibrary</source>
         <translation>Показать Flibrary</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="15"/>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="15"/>
         <source>Exit</source>
         <translation>Выход</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/Tray.qml" line="13"/>
+        <location filename="../../src/ui/qml/tray/Tray.qml" line="13"/>
         <source>Flibrary</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="12"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="12"/>
         <source>Collections</source>
         <translation>Управление коллекциями</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="16"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="16"/>
         <source>Add new collection...</source>
         <translation>Добавить коллекцию...</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="26"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="26"/>
         <source>Select collection</source>
         <translation>Выбрать коллекцию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="41"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="41"/>
         <source>Remove collection</source>
         <translation>Удалить коллекцию</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="47"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="47"/>
         <source>User data</source>
         <translation>Пользовательские данные</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="51"/>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="51"/>
         <source>Export</source>
         <translation>Экспорт (сохранение)</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="57"/>
         <location filename="../../src/ui/qml/tray/CollectionMenu.qml" line="57"/>
         <source>Import</source>
         <translation>Импорт (восстановление)</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="8"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="8"/>
         <source>View</source>
         <translation>Вид</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
         <source>Show deleted books</source>
         <translation>Показать удалённые книги</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="12"/>
         <source>Hide deleted books</source>
         <translation>Скрыть удалённые книги</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
         <source>Show annotation</source>
         <translation>Показать аннотацию</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
+        <location filename="../../src/ui/qml/tray/ViewMenu.qml" line="18"/>
         <source>Hide annotation</source>
         <translation>Скрыть аннотацию</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="6"/>
         <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="6"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="12"/>
+        <location filename="../../src/ui/qml/tray/SettingsMenu.qml" line="12"/>
         <source>Restore default values</source>
         <translation>Восстановить по-умолчанию</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="10"/>
         <location filename="../../src/ui/qml/tray/LanguageMenu.qml" line="10"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
+        <location filename="../../src/ui/qml/tray/SystemMenu.qml" line="9"/>
         <source>Hide Flibrary</source>
         <translation>Скрыть Flibrary</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="7"/>
         <location filename="../../src/ui/qml/tray/Help.qml" line="7"/>
         <source>Help</source>
         <translation>Помощь</translation>
     </message>
     <message>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="13"/>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="13"/>
         <source>About Flibrary</source>
         <translation>О Flibrary</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="14"/>
         <location filename="../../src/ui/qml/dialogs/Dialogs.qml" line="14"/>
         <source>Another e-library book cataloger
 Version: %1</source>
@@ -716,6 +794,7 @@ Version: %1</source>
 Версия: %1</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/tray/Help.qml" line="11"/>
         <location filename="../../src/ui/qml/tray/Help.qml" line="11"/>
         <source>About Flibrary...</source>
         <translation>О Flibrary...</translation>
@@ -725,10 +804,12 @@ Version: %1</source>
     <name>ViewMode</name>
     <message>
         <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="13"/>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="13"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
+        <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="25"/>
         <location filename="../../src/ui/qml/ViewTemplate/ViewModeCombobox.qml" line="25"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
