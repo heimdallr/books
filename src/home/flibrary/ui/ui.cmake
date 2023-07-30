@@ -16,6 +16,7 @@ AddTarget(
 		Hypodermic
 		plog
 	LINK_TARGETS
+		flversion
 		logging
 		Util
 	COMPILE_DEFINITIONS

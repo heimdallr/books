@@ -201,7 +201,7 @@
    </widget>
    <widget class="QMenu" name="menuCollection">
     <property name="title">
-     <string>Collection</string>
+     <string>&amp;Collection</string>
     </property>
     <widget class="QMenu" name="menuSelectCollection">
      <property name="enabled">
@@ -228,10 +228,17 @@
     </widget>
     <addaction name="menuLanguage"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuCollection"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFontSizeUp">
@@ -289,6 +296,11 @@
   <action name="actionUserdata">
    <property name="text">
     <string>&amp;User data</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About...</string>
    </property>
   </action>
  </widget>

@@ -31,7 +31,7 @@ class MainWindow::Impl final
 
 public:
     Impl(MainWindow & self
-        , const std::shared_ptr<IUiFactory> & uiFactory
+        , std::shared_ptr<IUiFactory> uiFactory
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
         , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
@@ -39,12 +39,13 @@ public:
     )
 	    : GeometryRestorable(*this, settings, "MainWindow")
         , m_self(self)
+		, m_uiFactory(std::move(uiFactory))
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
 		, m_localeController(std::move(localeController))
-        , m_booksWidget(uiFactory->CreateTreeViewWidget(ItemType::Books))
-        , m_navigationWidget(uiFactory->CreateTreeViewWidget(ItemType::Navigation))
+        , m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
+        , m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
     {
         Setup();
         ConnectActions();
@@ -112,6 +113,7 @@ private:
         connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(-1); });
         connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
         connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
+        connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&] { m_uiFactory->ShowAbout(); });
         connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
         connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
     }
@@ -149,6 +151,7 @@ private:
 private:
     MainWindow & m_self;
     Ui::MainWindow m_ui {};
+    PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
@@ -158,7 +161,7 @@ private:
     PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 };
 
-MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory
+MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
@@ -167,7 +170,7 @@ MainWindow::MainWindow(const std::shared_ptr<IUiFactory> & uiFactory
 )
     : QMainWindow(parent)
     , m_impl(*this
-        , uiFactory
+        , std::move(uiFactory)
         , std::move(settings)
         , std::move(collectionController)
         , std::move(parentWidgetProvider)

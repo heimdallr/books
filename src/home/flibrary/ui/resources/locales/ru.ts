@@ -54,10 +54,6 @@
         <translation>Папка с архивами книг коллекции</translation>
     </message>
     <message>
-        <source>The existing database file will be overwritten. Continue?</source>
-        <translation type="vanished">Существующий файл базы данных будет перезаписан. Продолжаем?</translation>
-    </message>
-    <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="24"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
@@ -166,6 +162,25 @@ Restart now?</source>
     <message>
         <source>Deleted books:</source>
         <translation type="vanished">Удалённые книги:</translation>
+    </message>
+</context>
+<context>
+    <name>Dialog</name>
+    <message>
+        <location filename="../../dialogs/Dialog.cpp" line="15"/>
+        <source>About FLibrary</source>
+        <translation>О FLibrary</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/Dialog.cpp" line="16"/>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
+        <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <source>Another e-library book cataloger
+Version: %1</source>
+        <translation type="vanished">Ещё один каталогизатор книг электронной библиотеки
+Версия: %1</translation>
     </message>
 </context>
 <context>
@@ -384,11 +399,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Collection</source>
-        <translation>Коллекция</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation>Выбрать &amp;коллекцию</translation>
     </message>
@@ -431,6 +441,21 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>Language</source>
         <translation>Язык</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Help</source>
+        <translation>&amp;Помощь</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;About...</source>
+        <translation>&amp;О программе...</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Collection</source>
+        <translation>&amp;Коллекция</translation>
     </message>
 </context>
 <context>

@@ -726,7 +726,7 @@ int GuiController::GetPixelMetric(const QVariant & metric)
 
 QString GuiController::GetVersion()
 {
-	return GetAppVersion();
+	return GetApplicationVersion();
 }
 
 ComboBoxController * GuiController::GetViewSourceComboBoxNavigationController() noexcept

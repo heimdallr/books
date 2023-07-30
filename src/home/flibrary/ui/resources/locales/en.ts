@@ -79,6 +79,19 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>Dialog</name>
+    <message>
+        <location filename="../../dialogs/Dialog.cpp" line="15"/>
+        <source>About FLibrary</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/Dialog.cpp" line="16"/>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Error</name>
     <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="28"/>
@@ -181,11 +194,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Collection</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation></translation>
     </message>
@@ -227,6 +235,21 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>Language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Help</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;About...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Collection</source>
         <translation></translation>
     </message>
 </context>

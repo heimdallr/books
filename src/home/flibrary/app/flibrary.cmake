@@ -16,8 +16,14 @@ AddTarget(
 		logging
 		logic
 		flui
+		flversion
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS
 		[ MSVC /WX /W4 ]
+)
+
+add_custom_command(TARGET flibrary
+    POST_BUILD
+    COMMAND ${CMAKE_CURRENT_LIST_DIR}/../../script/build.bat
 )

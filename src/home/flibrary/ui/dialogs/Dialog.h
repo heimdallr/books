@@ -20,6 +20,17 @@ protected:
 	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentProvider;
 };
 
+class AboutDialog final
+	: public Dialog
+	, public IAboutDialog
+{
+public:
+	explicit AboutDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
+
+private: // IDialog
+	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
+};
+
 class QuestionDialog final
 	: public Dialog
 	, public IQuestionDialog

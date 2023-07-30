@@ -14,12 +14,16 @@ public:
 		assert(false && "No impl");
 		throw std::runtime_error("No impl");
 	}
-	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & /*text*/, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const
+	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & /*text*/ = {}, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const
 	{
 		assert(false && "No impl");
 		throw std::runtime_error("No impl");
 	}
 
+};
+
+class IAboutDialog : virtual public IDialog
+{
 };
 
 class IQuestionDialog : virtual public IDialog

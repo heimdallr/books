@@ -23,6 +23,8 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 {
 	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
 	builder.registerType<ParentWidgetProvider>().singleInstance();
+	builder.registerType<AboutDialog>().as<IAboutDialog>();
+	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

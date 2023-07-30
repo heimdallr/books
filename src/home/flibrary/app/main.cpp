@@ -11,8 +11,10 @@
 #include "logging/init.h"
 
 #include "di_app.h"
+#include "version/AppVersion.h"
 
 #include "Configuration.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -20,6 +22,7 @@ int main(int argc, char * argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
 	PLOGI << "App started";
+	PLOGI << "Version: " << GetApplicationVersion();
 	PLOGI << "Commit hash: " << GIT_HASH;
 
 	try
