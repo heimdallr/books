@@ -39,7 +39,6 @@ QMessageBox::StandardButton AboutDialog::Show(const QString & /*text*/, QMessage
 	messageBox.setTextFormat(Qt::RichText);
 	messageBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), "https://github.com/heimdallr/books"));
 	messageBox.exec();
-//	QMessageBox::about(m_parentProvider->GetWidget(), Loc::Tr(CONTEXT, ABOUT_TITLE), Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), "https://github.com/heimdallr/books"));
 	return QMessageBox::NoButton;
 }
 
