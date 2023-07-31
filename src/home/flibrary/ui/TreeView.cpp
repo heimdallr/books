@@ -11,6 +11,7 @@
 
 #include <plog/Log.h>
 
+#include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
@@ -76,6 +77,13 @@ QString SizeDelegate(const QVariant & value)
 	return ok && result > 0 ? Measure::GetSize(result) : QString {};
 }
 
+constexpr const std::pair<int, TextDelegate> DELEGATES[]
+{
+	{BookItem::Column::Size, &SizeDelegate},
+	{BookItem::Column::LibRate, &NumberDelegate},
+	{BookItem::Column::SeqNumber, &NumberDelegate},
+};
+
 class Delegate final : public QStyledItemDelegate
 {
 public:
@@ -95,23 +103,7 @@ private:
 			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
 				o.displayAlignment = Qt::AlignRight;
 
-			const auto textDelegate = [&]
-			{
-				switch(column)
-				{
-					case BookItem::Column::LibRate:
-					case BookItem::Column::SeqNumber:
-						return &NumberDelegate;
-
-					case BookItem::Column::Size:
-						return &SizeDelegate;
-
-					default:
-						return &PassThruDelegate;
-				}
-			}();
-
-			ScopedCall scopedCall([&] { m_textDelegate = textDelegate; },
+			ScopedCall scopedCall([&] { m_textDelegate = FindSecond(DELEGATES, column, &PassThruDelegate); },
 								  [&] { m_textDelegate = &PassThruDelegate; });
 
 			return QStyledItemDelegate::paint(painter, o, index);
@@ -224,7 +216,10 @@ private:
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		if (m_controller->GetItemType() == ItemType::Books)
+		{
 			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
+			m_ui.treeView->setSortingEnabled(true);
+		}
 
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));
