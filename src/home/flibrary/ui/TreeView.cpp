@@ -13,7 +13,7 @@
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
-#include "fnd/ScopedCall.h"
+#include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -93,7 +93,7 @@ public:
 	{
 	}
 
-private:
+private: // QStyledItemDelegate
 	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
 	{
 		auto o = option;
@@ -103,9 +103,7 @@ private:
 			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
 				o.displayAlignment = Qt::AlignRight;
 
-			ScopedCall scopedCall([&] { m_textDelegate = FindSecond(DELEGATES, column, &PassThruDelegate); },
-								  [&] { m_textDelegate = &PassThruDelegate; });
-
+			ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 			return QStyledItemDelegate::paint(painter, o, index);
 		}
 
