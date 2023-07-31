@@ -194,8 +194,8 @@ private: // ITreeViewController::IObserver
 			});
 		}
 
-		RestoreValue();
 		RestoreHeaderLayout();
+		RestoreValue();
 	}
 
 private: //	IValueApplier
