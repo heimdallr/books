@@ -1,5 +1,5 @@
 AddTarget(
-	NAME flui
+	NAME ui
 	TYPE shared_lib
 	PROJECT_GROUP App
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"

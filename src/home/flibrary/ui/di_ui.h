@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "FlUILib.h"
+#include "uiLib.h"
 
 namespace Hypodermic
 {
@@ -12,6 +12,6 @@ class ContainerBuilder;
 
 namespace HomeCompa::Flibrary {
 
-FLUI_API void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
+UI_API void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
 
 }

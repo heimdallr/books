@@ -15,7 +15,7 @@ AddTarget(
 	LINK_TARGETS
 		logging
 		logic
-		flui
+		ui
 		ver
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
