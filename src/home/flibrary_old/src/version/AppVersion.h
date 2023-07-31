@@ -4,6 +4,6 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-QString GetApplicationVersion();
+QString GetAppVersion();
 
 }

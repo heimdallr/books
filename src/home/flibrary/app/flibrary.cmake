@@ -16,7 +16,7 @@ AddTarget(
 		logging
 		logic
 		flui
-		flversion
+		ver
 	COMPILE_DEFINITIONS
 		[ WIN32 PLOG_IMPORT ]
 	COMPILER_OPTIONS

@@ -2,10 +2,10 @@
 
 class QString;
 
-#include "flversionLib.h"
+#include "verLib.h"
 
 namespace HomeCompa::Flibrary {
 
-FLVERSION_API QString GetApplicationVersion();
+VER_API QString GetApplicationVersion();
 
 }

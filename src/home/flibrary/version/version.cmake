@@ -1,5 +1,5 @@
 AddTarget(
-	NAME flversion
+	NAME ver
 	TYPE shared_lib
 	PROJECT_GROUP App
 	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
@@ -9,7 +9,7 @@ AddTarget(
 		[ MSVC /WX /W4 ]
 )
 
-add_custom_command(TARGET flversion
+add_custom_command(TARGET ver
     POST_BUILD
     COMMAND ${CMAKE_CURRENT_LIST_DIR}/../../script/build.bat
 )
