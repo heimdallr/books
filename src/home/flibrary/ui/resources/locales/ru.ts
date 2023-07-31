@@ -459,6 +459,29 @@ Version: %1</source>
     </message>
 </context>
 <context>
+    <name>Measure</name>
+    <message>
+        <location filename="../../Measure.cpp" line="12"/>
+        <source>%1 Gb</source>
+        <translation>%1 Гб</translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="13"/>
+        <source>%1 Mb</source>
+        <translation>%1 Мб</translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="14"/>
+        <source>%1 Kb</source>
+        <translation>%1 Кб</translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="15"/>
+        <source>%1 b</source>
+        <translation>%1 б</translation>
+    </message>
+</context>
+<context>
     <name>NewGroupDialog</name>
     <message>
         <source>Input new group name</source>
@@ -644,12 +667,12 @@ Version: %1</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="51"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="52"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

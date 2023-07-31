@@ -23,29 +23,6 @@
     </message>
 </context>
 <context>
-    <name>Measure</name>
-    <message>
-        <location filename="../../util/Measure.cpp" line="12"/>
-        <source>%1 Gb</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../util/Measure.cpp" line="13"/>
-        <source>%1 Mb</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../util/Measure.cpp" line="14"/>
-        <source>%1 Kb</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../util/Measure.cpp" line="15"/>
-        <source>%1 b</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>Navigation</name>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>

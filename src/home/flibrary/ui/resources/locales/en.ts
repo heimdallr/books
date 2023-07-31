@@ -254,14 +254,37 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>Measure</name>
+    <message>
+        <location filename="../../Measure.cpp" line="12"/>
+        <source>%1 Gb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="13"/>
+        <source>%1 Mb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="14"/>
+        <source>%1 Kb</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Measure.cpp" line="15"/>
+        <source>%1 b</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="51"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="52"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Filter</source>
         <translation></translation>
     </message>

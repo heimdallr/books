@@ -12,6 +12,7 @@
 #include <plog/Log.h>
 
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -19,8 +20,9 @@
 #include "interface/logic/ITreeViewController.h"
 
 #include "logic/data/DataItem.h"
-
 #include "util/ISettings.h"
+
+#include "Measure.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -35,6 +37,8 @@ constexpr auto COLUMNS_KEY = "ui/%1/%2/Columns/%3";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
+constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
+constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 
 class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -51,6 +55,26 @@ constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 	{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
 	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
 };
+
+using TextDelegate = QString(*)(const QVariant & value);
+QString PassThruDelegate(const QVariant & value)
+{
+	return value.toString();
+}
+
+QString NumberDelegate(const QVariant & value)
+{
+	bool ok = false;
+	const auto result = value.toInt(&ok);
+	return ok && result > 0 ? QString::number(result) : QString {};
+}
+
+QString SizeDelegate(const QVariant & value)
+{
+	bool ok = false;
+	const auto result = value.toULongLong(&ok);
+	return ok && result > 0 ? Measure::GetSize(result) : QString {};
+}
 
 class Delegate final : public QStyledItemDelegate
 {
@@ -71,6 +95,25 @@ private:
 			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
 				o.displayAlignment = Qt::AlignRight;
 
+			const auto textDelegate = [&]
+			{
+				switch(column)
+				{
+					case BookItem::Column::LibRate:
+					case BookItem::Column::SeqNumber:
+						return &NumberDelegate;
+
+					case BookItem::Column::Size:
+						return &SizeDelegate;
+
+					default:
+						return &PassThruDelegate;
+				}
+			}();
+
+			ScopedCall scopedCall([&] { m_textDelegate = textDelegate; },
+								  [&] { m_textDelegate = &PassThruDelegate; });
+
 			return QStyledItemDelegate::paint(painter, o, index);
 		}
 
@@ -81,8 +124,14 @@ private:
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
+	QString displayText(const QVariant& value, const QLocale& /*locale*/) const override
+	{
+		return m_textDelegate(value);
+	}
+
 private:
 	QWidget & m_view;
+	mutable TextDelegate m_textDelegate { &PassThruDelegate };
 };
 
 }
@@ -235,13 +284,18 @@ private:
 		});
 	}
 
-	QString GetColumnSettingsKey() const
+	QString GetColumnSettingsKey(const char * value = nullptr) const
 	{
-		return QString(COLUMNS_KEY)
+		auto key = QString(COLUMNS_KEY)
 			.arg(m_controller->TrContext())
 			.arg(m_recentMode)
 			.arg(m_navigationModeName)
 			;
+
+		if (value)
+			key.append(QString("/%1").arg(value));
+
+		return key;
 	}
 
 	void SaveValue()
@@ -270,6 +324,9 @@ private:
 			m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(i), header->visualIndex(i));
 			m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(i), header->isSectionHidden(i));
 		}
+
+		m_settings->Set(SORT_INDICATOR_COLUMN_KEY, header->sortIndicatorSection());
+		m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
 	}
 
 	void RestoreHeaderLayout()
@@ -280,8 +337,11 @@ private:
 		auto * header = m_ui.treeView->header();
 		std::map<int, int> widths;
 		std::map<int, int> indices;
+		auto sortIndex = 0;
+		auto sortOrder = Qt::AscendingOrder;
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+
 			for (const auto & column : m_settings->GetGroups())
 			{
 				bool ok = false;
@@ -293,6 +353,9 @@ private:
 						header->hideSection(logicalIndex);
 				}
 			}
+
+			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex).toInt();
+			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
 		}
 
 		indices.erase(-1);
@@ -320,6 +383,8 @@ private:
 
 		for (const auto [visualIndex, logicalIndex] : indices)
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
+
+		header->setSortIndicator(sortIndex, sortOrder);
 	}
 
 	void CreateHeaderContextMenu(const QPoint & pos)

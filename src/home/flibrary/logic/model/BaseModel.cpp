@@ -3,8 +3,6 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 
-#include "util/Measure.h"
-
 #include "data/AbstractModelProvider.h"
 #include "data/DataItem.h"
 
@@ -35,22 +33,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			switch (item->RemapColumn(index.column()))
-			{
-				case BookItem::Column::SeqNumber:
-					if (const auto seqNumber = item->GetData(index.column()).toInt(); seqNumber > 0)
-						return seqNumber;
-
-					return {};
-
-				case BookItem::Column::Size:
-					if (const auto size = item->GetData(index.column()).toULongLong())
-						return Measure::GetSize(size);
-					return {};
-
-				default:
-					return item->GetData(index.column());
-			}
+			return item->GetData(index.column());
 
 		case Qt::CheckStateRole:
 			return m_checkable && index.column() == 0 ? item->GetCheckState() : QVariant{};

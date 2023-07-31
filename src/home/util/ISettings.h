@@ -9,6 +9,10 @@ namespace HomeCompa {
 
 class ISettingsObserver;
 
+template <typename T>
+concept IsEnum = std::is_enum_v<T>;
+
+
 class ISettings  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -31,6 +35,12 @@ public:
 
 	virtual void RegisterObserver(ISettingsObserver * observer) = 0;
 	virtual void UnregisterObserver(ISettingsObserver * observer) = 0;
+
+	template<IsEnum T>
+	[[nodiscard]] T Get(const QString & key, const T & defaultValue) const
+	{
+		return static_cast<T>(Get(key, static_cast<int>(defaultValue)).toInt());
+	}
 };
 
 class SettingsGroup
