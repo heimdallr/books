@@ -30,6 +30,7 @@ private: // QAbstractItemModel
 private:
 	void Check(const QModelIndex & parent, Qt::CheckState state);
 	QStringList CollectLanguages() const;
+	int GetCount() const;
 
 private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;

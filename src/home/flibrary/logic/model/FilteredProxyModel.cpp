@@ -10,6 +10,26 @@
 
 using namespace HomeCompa::Flibrary;
 
+namespace {
+
+void EnumerateLeafs(const QAbstractItemModel & model, const std::function<void(const QModelIndex&)> & f)
+{
+	std::stack<QModelIndex> stack { {QModelIndex{}} };
+	while (!stack.empty())
+	{
+		const auto parent = stack.top();
+		stack.pop();
+		const auto rowCount = model.rowCount(parent);
+		if (rowCount == 0)
+			f(parent);
+
+		for (int i = 0; i < rowCount; ++i)
+			stack.push(model.index(i, 0, parent));
+	}
+}
+
+}
+
 AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject * parent)
 	: QIdentityProxyModel(parent)
 {
@@ -33,6 +53,9 @@ QVariant FilteredProxyModel::data(const QModelIndex & index, const int role) con
 	{
 		case Role::Languages:
 			return CollectLanguages();
+
+		case Role::Count:
+			return GetCount();
 
 		default:
 			break;
@@ -85,24 +108,22 @@ void FilteredProxyModel::Check(const QModelIndex & parent, const Qt::CheckState 
 QStringList FilteredProxyModel::CollectLanguages() const
 {
 	std::set<QString> languages;
-	std::stack<QModelIndex> stack { {QModelIndex{}} };
-	while (!stack.empty())
+	EnumerateLeafs(*this, [&] (const QModelIndex & child)
 	{
-		const auto parent = stack.top();
-		stack.pop();
-		for (int i = 0, sz = rowCount(parent); i < sz; ++i)
-		{
-			const auto child = index(i, 0, parent);
-			if (child.data(Role::Type).value<ItemType>() == ItemType::Navigation)
-			{
-				stack.push(child);
-				continue;
-			}
-
-			assert(child.data(Role::Type).value<ItemType>() == ItemType::Books);
-			languages.insert(child.data(Role::Lang).toString().toLower());
-		}
-	}
+		assert(child.data(Role::Type).value<ItemType>() == ItemType::Books);
+		languages.insert(child.data(Role::Lang).toString().toLower());
+	});
 
 	return { languages.cbegin(), languages.cend() };
+}
+
+int FilteredProxyModel::GetCount() const
+{
+	int result = 0;
+	EnumerateLeafs(*this, [&] (const QModelIndex &)
+	{
+		++result;
+	});
+
+	return result;
 }

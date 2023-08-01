@@ -19,6 +19,7 @@ struct Role
 #undef	BOOKS_COLUMN_ITEM
 
 		// global
+		Count,
 		Filter,
 		Checkable,
 		Languages,

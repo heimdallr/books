@@ -42,6 +42,7 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
+constexpr auto RECENT_ID_KEY = "ui/%1";
 
 class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -178,7 +179,7 @@ private: // ITreeViewController::IObserver
 		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
 		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
 		{
-			m_controller->SetCurrentId(index.data(Role::Id).toString());
+			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
 		});
 
 		if (m_controller->GetItemType() == ItemType::Books)
@@ -197,13 +198,19 @@ private: // ITreeViewController::IObserver
 
 		RestoreHeaderLayout();
 		RestoreValue();
+		OnCountChanged();
 	}
 
 private: //	IValueApplier
 	void Find() override
 	{
-		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), Qt::DisplayRole, m_ui.value->text(), 1, Qt::MatchFlag::MatchStartsWith | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
-			m_ui.treeView->setCurrentIndex(matched.front());
+		if (!m_ui.value->text().isEmpty())
+			return Find(m_ui.value->text());
+
+		if (!m_currentId.isEmpty())
+			return Find(m_currentId, Role::Id);
+
+		m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
 	}
 
 	void Filter() override
@@ -277,21 +284,10 @@ private:
 		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
 		{
 			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter);
+			OnCountChanged();
+			if (!m_currentId.isEmpty())
+				return Find(m_currentId, Role::Id);
 		});
-	}
-
-	QString GetColumnSettingsKey(const char * value = nullptr) const
-	{
-		auto key = QString(COLUMNS_KEY)
-			.arg(m_controller->TrContext())
-			.arg(m_recentMode)
-			.arg(m_navigationModeName)
-			;
-
-		if (value)
-			key.append(QString("/%1").arg(value));
-
-		return key;
 	}
 
 	void SaveValue()
@@ -301,13 +297,23 @@ private:
 
 	void RestoreValue()
 	{
-		m_ui.value->setText(m_settings->Get(GetValueModeValueKey()).toString());
+		if (const auto value = m_settings->Get(GetValueModeValueKey()).toString(); value != m_ui.value->text())
+			m_ui.value->setText(value);
+		else
+			OnValueChanged();
+
 		m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData().toString());
 	}
 
 	void SaveHeaderLayout()
 	{
-		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
+		if (m_recentMode.isEmpty())
+			return;
+
+		if (const auto currentIndex = m_ui.treeView->currentIndex(); currentIndex.isValid())
+			m_settings->Set(GetRecentIdKey(), m_currentId);
+
+		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
 		const auto * header = m_ui.treeView->header();
@@ -327,7 +333,12 @@ private:
 
 	void RestoreHeaderLayout()
 	{
-		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
+		if (m_recentMode.isEmpty())
+			return;
+
+		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId).toString();
+
+		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
 		auto * header = m_ui.treeView->header();
@@ -433,6 +444,7 @@ private:
 			auto * action = m_languageContextMenu->addAction(language, &m_self, [&, language]
 			{
 				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
+				OnCountChanged();
 				m_settings->Set(RECENT_LANG_FILTER_KEY, language);
 			});
 			action->setCheckable(true);
@@ -448,6 +460,33 @@ private:
 		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
 
+	void Find(const QVariant & value, const int role = Qt::DisplayRole) const
+	{
+		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+			m_ui.treeView->setCurrentIndex(matched.front());
+		else if (role == Role::Id)
+			m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+	}
+
+	void OnCountChanged() const
+	{
+		m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+	}
+
+	QString GetColumnSettingsKey(const char * value = nullptr) const
+	{
+		auto key = QString(COLUMNS_KEY)
+			.arg(m_controller->TrContext())
+			.arg(m_recentMode)
+			.arg(m_navigationModeName)
+			;
+
+		if (value)
+			key.append(QString("/%1").arg(value));
+
+		return key;
+	}
+
 	QString GetValueModeValueKey() const
 	{
 		return QString(VALUE_MODE_VALUE_KEY).arg(m_controller->TrContext()).arg(m_ui.cbMode->currentData().toString()).arg(m_ui.cbValueMode->currentData().toString());
@@ -458,6 +497,18 @@ private:
 		return QString(VALUE_MODE_KEY).arg(m_controller->TrContext());
 	}
 
+	QString GetRecentIdKey() const
+	{
+		auto key = QString(RECENT_ID_KEY).arg(m_controller->TrContext());
+
+		if (m_controller->GetItemType() == ItemType::Navigation)
+			key.append(QString("/%1").arg(m_recentMode));
+
+		key.append("/LastId");
+
+		return key;
+	}
+
 private:
 	TreeView & m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
@@ -466,6 +517,7 @@ private:
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
 	QString m_recentMode;
+	QString m_currentId;
 	QMenu m_headerContextMenu;
 	std::unique_ptr<QMenu> m_languageContextMenu;
 	std::unique_ptr<QActionGroup> m_languageContextMenuGroup;
