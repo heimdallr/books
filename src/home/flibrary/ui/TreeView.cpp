@@ -1,6 +1,7 @@
 #include "ui_TreeView.h"
 #include "TreeView.h"
 
+#include <QActionGroup>
 #include <ranges>
 
 #include <QMenu>
@@ -40,6 +41,7 @@ constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
+constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
 
 class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -181,6 +183,7 @@ private: // ITreeViewController::IObserver
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
+			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
@@ -382,13 +385,22 @@ private:
 
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
+		const auto index = m_ui.treeView->header()->logicalIndexAt(pos);
+		int column = -1;
+		m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(index, &column)), Role::MappedColumn);
+
+		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu()).popup(m_ui.treeView->header()->mapToGlobal(pos));
+	}
+
+	QMenu & GetHeaderContextMenu()
+	{
 		m_headerContextMenu.clear();
 		auto * header = m_ui.treeView->header();
 		const auto * model = header->model();
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = m_headerContextMenu.addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=](const bool checked)
+			auto * action = m_headerContextMenu.addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=] (const bool checked)
 			{
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
@@ -399,7 +411,39 @@ private:
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));
 		}
-		m_headerContextMenu.popup(header->mapToGlobal(pos));
+		return m_headerContextMenu;
+	}
+
+	QMenu & GetLanguageContextMenu()
+	{
+		if (m_languageContextMenu)
+			return *m_languageContextMenu;
+
+		const auto languageFilter = m_ui.treeView->model()->data({}, Role::LanguageFilter).toString();
+		auto languages = m_ui.treeView->model()->data({}, Role::Languages).toStringList();
+		if (languages.size() < 2)
+			return GetHeaderContextMenu();
+
+		m_languageContextMenu = std::make_unique<QMenu>();
+		m_languageContextMenuGroup = std::make_unique<QActionGroup>(nullptr);
+
+		languages.push_front("");
+		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
+			languages.push_front(std::move(recentLanguage));
+
+		for (const auto & language : languages)
+		{
+			auto * action = m_languageContextMenu->addAction(language, &m_self, [&, language]
+			{
+				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
+				m_settings->Set(RECENT_LANG_FILTER_KEY, language);
+			});
+			action->setCheckable(true);
+			action->setChecked(language == languageFilter);
+			m_languageContextMenuGroup->addAction(action);
+		}
+
+		return *m_languageContextMenu;
 	}
 
 	void OnValueChanged()
@@ -426,6 +470,8 @@ private:
 	QString m_navigationModeName;
 	QString m_recentMode;
 	QMenu m_headerContextMenu;
+	std::unique_ptr<QMenu> m_languageContextMenu;
+	std::unique_ptr<QActionGroup> m_languageContextMenuGroup;
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller

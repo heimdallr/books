@@ -24,14 +24,21 @@ public:
 	~SortFilterProxyModel() override;
 
 private: // QAbstractItemModel
+	QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+	QVariant data(const QModelIndex& index, int role) const override;
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
 private: // QSortFilterProxyModel
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 
 private:
+	bool filterAcceptsText(const QModelIndex & index) const;
+	bool filterAcceptsLanguage(const QModelIndex & index) const;
+
+private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	QString m_filter;
+	QString m_languageFilter;
 };
 
 }

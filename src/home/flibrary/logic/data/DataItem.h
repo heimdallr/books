@@ -35,6 +35,7 @@ public:
 	[[nodiscard]] size_t GetRow() const noexcept;
 	[[nodiscard]] const QString & GetId() const noexcept;
 	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
+	[[nodiscard]] const QString & GetRawData(int column = 0) const noexcept;
 
 	[[nodiscard]] virtual int RemapColumn(int column) const noexcept;
 	[[nodiscard]] virtual int GetColumnCount() const noexcept;
@@ -135,6 +136,7 @@ BOOKS_COLUMN_ITEM(Lang)
 			Last
 		};
 	};
+	static_assert(Column::Author == 0);
 
 	static constexpr int ALL[]
 	{
@@ -167,6 +169,7 @@ BOOKS_COLUMN_ITEM(Lang)
 
 	explicit BookItem(const DataItem * parent = nullptr);
 	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
+	static int Remap(int column) noexcept;
 
 private: // DataItem
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;

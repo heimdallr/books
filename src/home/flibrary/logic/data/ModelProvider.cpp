@@ -2,7 +2,7 @@
 
 #include <Hypodermic/Container.h>
 
-#include "model/CheckboxProxyModel.h"
+#include "model/FilteredProxyModel.h"
 #include "model/IModelObserver.h"
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
@@ -29,7 +29,7 @@ struct ModelProvider::Impl
 		observer = &o;
 		sourceModel = container.resolve<T>();
 		sourceModel = container.resolve<AbstractSortFilterProxyModel>();
-		return container.resolve<AbstractCheckboxProxyModel>();
+		return container.resolve<AbstractFilteredProxyModel>();
 	}
 };
 

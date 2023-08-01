@@ -667,12 +667,12 @@ Version: %1</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="55"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="57"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

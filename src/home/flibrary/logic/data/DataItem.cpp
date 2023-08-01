@@ -68,9 +68,13 @@ int DataItem::GetColumnCount() const noexcept
 	return static_cast<int>(std::size(m_data));
 }
 
-const QString & DataItem::GetData(int column) const noexcept
+const QString & DataItem::GetData(const int column) const noexcept
 {
-	column = RemapColumn(column);
+	return GetRawData(RemapColumn(column));
+}
+
+const QString & DataItem::GetRawData(const int column) const noexcept
+{
 	return column >= 0 && column < static_cast<int>(std::size(m_data)) ? m_data[column] : EMPTY_STRING;
 }
 
@@ -172,9 +176,14 @@ std::shared_ptr<DataItem> BookItem::Create(const DataItem * parent)
 	return std::make_shared<BookItem>(parent);
 }
 
-int BookItem::RemapColumn(const int column) const noexcept
+int BookItem::Remap(const int column) noexcept
 {
 	return mapping->columns[column];
+}
+
+int BookItem::RemapColumn(const int column) const noexcept
+{
+	return Remap(column);
 }
 
 int BookItem::GetColumnCount() const noexcept
