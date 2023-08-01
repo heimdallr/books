@@ -4,6 +4,10 @@
 
 #include <QVariant>
 
+#include "fnd/NonCopyMovable.h"
+
+#include "logicLib.h"
+
 namespace HomeCompa::Flibrary {
 enum class ItemType;
 
@@ -18,6 +22,8 @@ DATA_ITEMS_X_MACRO
 
 class DataItem  // NOLINT(cppcoreguidelines-special-member-functions)
 {
+	NON_COPY_MOVABLE(DataItem)
+
 protected:
 	explicit DataItem(size_t columnCount, const DataItem * parent = nullptr);
 
@@ -111,7 +117,7 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-struct BookItem final : DataItem
+struct LOGIC_API BookItem final : DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 BOOKS_COLUMN_ITEM(Author)          \

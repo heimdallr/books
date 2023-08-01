@@ -13,7 +13,6 @@ struct Role
 		Id = Qt::UserRole + 1,
 		Type,
 		CheckState,
-		MappedColumn,
 
 #define	BOOKS_COLUMN_ITEM(NAME) NAME,
 		BOOKS_COLUMN_ITEMS_X_MACRO

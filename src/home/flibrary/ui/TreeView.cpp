@@ -101,7 +101,7 @@ private: // QStyledItemDelegate
 		auto o = option;
 		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
 		{
-			const auto column = index.data(Role::MappedColumn).toInt();
+			const auto column = BookItem::Remap(index.column());
 			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
 				o.displayAlignment = Qt::AlignRight;
 
@@ -385,10 +385,7 @@ private:
 
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
-		const auto index = m_ui.treeView->header()->logicalIndexAt(pos);
-		int column = -1;
-		m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(index, &column)), Role::MappedColumn);
-
+		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
 		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu()).popup(m_ui.treeView->header()->mapToGlobal(pos));
 	}
 

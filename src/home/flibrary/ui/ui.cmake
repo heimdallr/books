@@ -15,6 +15,7 @@ AddTarget(
 		plog
 	LINK_TARGETS
 		logging
+		logic
 		Util
 		ver
 	COMPILE_DEFINITIONS

@@ -48,9 +48,6 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef	BOOKS_COLUMN_ITEM
 
-		case Role::MappedColumn:
-			return item->RemapColumn(index.column());
-
 		default:
 			break;
 	}
@@ -78,13 +75,6 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 		case Role::Checkable:
 			m_checkable = value.toBool();
 			return true;
-
-		case Role::MappedColumn:
-		{
-			auto [column, result] = value.value<QPair<int, int *>>();
-			*result = m_data->RemapColumn(column);
-			return true;
-		}
 
 		default:
 			break;
