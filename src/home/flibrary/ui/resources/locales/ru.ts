@@ -457,6 +457,11 @@ Version: %1</source>
         <source>&amp;Collection</source>
         <translation>&amp;Коллекция</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Hide removed books</source>
+        <translation>Скрыть &amp;удалённые книги</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -667,12 +672,12 @@ Version: %1</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="59"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="60"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

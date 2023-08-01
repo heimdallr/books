@@ -44,6 +44,9 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::Type:
 			return QVariant::fromValue(item->GetType());
 
+		case Role::IsRemoved:
+			return item->IsRemoved();
+
 #define	BOOKS_COLUMN_ITEM(NAME) case Role::NAME: return item->GetRawData(BookItem::Column::NAME);
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef	BOOKS_COLUMN_ITEM

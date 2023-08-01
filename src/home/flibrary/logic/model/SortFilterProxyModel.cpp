@@ -1,8 +1,8 @@
 #include "SortFilterProxyModel.h"
 
-#include "interface/constants/ModelRole.h"
-
 #include "data/AbstractModelProvider.h"
+
+#include "interface/constants/ModelRole.h"
 #include "interface/constants/Enums.h"
 
 using namespace HomeCompa::Flibrary;
@@ -10,7 +10,7 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 template <typename T>
-bool Set(T & oldValue, T && newValue, const std::function<void()> & f)
+bool Set(T & oldValue, T && newValue, const std::function<void()> & f = []{})
 {
 	if (oldValue == newValue)
 		return false;
@@ -27,11 +27,27 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject * parent)
 {
 }
 
-SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
-	: AbstractSortFilterProxyModel(parent)
-	, m_sourceModel(modelProvider->GetSourceModel())
+struct SortFilterProxyModel::Impl final
 {
-	QSortFilterProxyModel::setSourceModel(m_sourceModel.get());
+	QString m_filter;
+	QString m_languageFilter;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
+	bool m_hideRemoved { false };
+
+	explicit Impl(const std::shared_ptr<AbstractModelProvider> & modelProvider
+	)
+		: m_sourceModel(modelProvider->GetSourceModel())
+	{
+	}
+};
+
+SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<AbstractModelProvider> & modelProvider
+	, QObject * parent
+)
+	: AbstractSortFilterProxyModel(parent)
+	, m_impl(modelProvider)
+{
+	QSortFilterProxyModel::setSourceModel(m_impl->m_sourceModel.get());
 	setAutoAcceptChildRows(true);
 	setRecursiveFilteringEnabled(true);
 }
@@ -40,8 +56,8 @@ SortFilterProxyModel::~SortFilterProxyModel() = default;
 
 QVariant SortFilterProxyModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
-	return orientation == Qt::Horizontal && role == Qt::DisplayRole && BookItem::Remap(section) == BookItem::Column::Lang && !m_languageFilter.isEmpty()
-		? m_languageFilter
+	return orientation == Qt::Horizontal && role == Qt::DisplayRole && BookItem::Remap(section) == BookItem::Column::Lang && !m_impl->m_languageFilter.isEmpty()
+		? m_impl->m_languageFilter
 		: AbstractSortFilterProxyModel::headerData(section, orientation, role);
 }
 
@@ -51,11 +67,11 @@ QVariant SortFilterProxyModel::data(const QModelIndex & index, const int role) c
 	{
 		switch (role)
 		{
-			case Role::Filter:
-				return m_filter;
+			case Role::TextFilter:
+				return m_impl->m_filter;
 
 			case Role::LanguageFilter:
-				return m_languageFilter;
+				return m_impl->m_languageFilter;
 
 			default:
 				break;
@@ -71,11 +87,14 @@ bool SortFilterProxyModel::setData(const QModelIndex & index, const QVariant & v
 	{
 		switch (role)
 		{
-			case Role::Filter:
-				return Set(m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+			case Role::TextFilter:
+				return Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+
+			case Role::HideRemovedFilter:
+				return Set(m_impl->m_hideRemoved, value.toBool(), [&] { invalidateFilter(); });
 
 			case Role::LanguageFilter:
-				if (Set(m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
+				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;
@@ -93,25 +112,33 @@ bool SortFilterProxyModel::setData(const QModelIndex & index, const QVariant & v
 
 bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelIndex & sourceParent) const
 {
-
-	const auto itemIndex = m_sourceModel->index(sourceRow, 0, sourceParent);
+	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return filterAcceptsText(itemIndex) && filterAcceptsLanguage(itemIndex);
+	return true
+		&& filterAcceptsText(itemIndex)
+		&& filterAcceptsLanguage(itemIndex)
+		&& filterAcceptsRemoved(itemIndex)
+		;
 }
 
 bool SortFilterProxyModel::filterAcceptsText(const QModelIndex & index) const
 {
-	if (m_filter.isEmpty())
+	if (m_impl->m_filter.isEmpty())
 		return true;
 
 	const auto text = index.data(Role::Type).value<ItemType>() == ItemType::Navigation ? index.data() : index.data(Role::Title);
-	return text.toString().simplified().contains(m_filter, Qt::CaseInsensitive);
+	return text.toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 }
 
 bool SortFilterProxyModel::filterAcceptsLanguage(const QModelIndex & index) const
 {
 	return false
-		|| m_languageFilter.isEmpty()
-		|| (index.data(Role::Type).value<ItemType>() == ItemType::Books && index.data(Role::Lang) == m_languageFilter)
+		|| m_impl->m_languageFilter.isEmpty()
+		|| (index.data(Role::Type).value<ItemType>() == ItemType::Books && index.data(Role::Lang) == m_impl->m_languageFilter)
 		;
+}
+
+bool SortFilterProxyModel::filterAcceptsRemoved(const QModelIndex & index) const
+{
+	return !(m_impl->m_hideRemoved && index.data(Role::IsRemoved).toBool());
 }

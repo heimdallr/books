@@ -87,6 +87,9 @@ private:
         m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
 
         m_localeController->Setup(*m_ui.menuLanguage);
+
+        m_ui.actionHideRemoved->setChecked(m_settings->Get(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, false).toBool());
+        m_booksWidget->HideRemoved(m_ui.actionHideRemoved->isChecked());
     }
 
     void RestoreWidgetsState()
@@ -109,13 +112,36 @@ private:
             m_settings->Set(Constant::Settings::FONT_SIZE_KEY, (ok ? fontSize : Constant::Settings::FONT_SIZE_DEFAULT) + value);
         };
 
-        connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(1); });
-        connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize] { incrementFontSize(-1); });
-        connect(m_ui.actionExit, &QAction::triggered, &m_self, [] { QCoreApplication::exit(); });
-        connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection(); });
-        connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&] { m_uiFactory->ShowAbout(); });
+        connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize]
+        {
+            incrementFontSize(1);
+        });
+        connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize]
+        {
+            incrementFontSize(-1);
+        });
+        connect(m_ui.actionExit, &QAction::triggered, &m_self, []
+        {
+            QCoreApplication::exit();
+        });
+        connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&]
+        {
+            m_collectionController->AddCollection();
+        });
+        connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&]
+        {
+            m_uiFactory->ShowAbout();
+        });
+        connect(m_ui.actionHideRemoved, &QAction::triggered, &m_self, [&] (const bool checked)
+        {
+            m_settings->Set(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, checked);
+            m_booksWidget->HideRemoved(checked);
+        });
         connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
-        connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
+        connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&]
+        {
+            Reboot();
+        });
     }
 
     void CreateCollectionsMenu()

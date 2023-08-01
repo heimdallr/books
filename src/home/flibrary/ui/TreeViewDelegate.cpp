@@ -1,6 +1,7 @@
 #include "TreeViewDelegate.h"
 
 #include <QAbstractScrollArea>
+#include <QPainter>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
@@ -61,6 +62,9 @@ void TreeViewDelegateBooks::paint(QPainter * painter, const QStyleOptionViewItem
 		const auto column = BookItem::Remap(index.column());
 		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
 			o.displayAlignment = Qt::AlignRight;
+
+		if (index.data(Role::IsRemoved).toBool())
+			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		return QStyledItemDelegate::paint(painter, o, index);

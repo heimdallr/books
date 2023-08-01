@@ -139,7 +139,7 @@ DataItem::Ptr CreateBookItem(const DB::IQuery & query)
 		item->SetData(query.Get<const char *>(queryIndex), dataIndex);
 
 	auto & typed = *item->To<BookItem>();
-	typed.deleted = query.Get<int>(Book::IsDeleted);
+	typed.removed = query.Get<int>(Book::IsDeleted);
 
 	return item;
 }

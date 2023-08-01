@@ -43,6 +43,7 @@ public:
 	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
 	[[nodiscard]] const QString & GetRawData(int column = 0) const noexcept;
 
+	[[nodiscard]] virtual bool IsRemoved() const noexcept;
 	[[nodiscard]] virtual int RemapColumn(int column) const noexcept;
 	[[nodiscard]] virtual int GetColumnCount() const noexcept;
 
@@ -170,7 +171,7 @@ BOOKS_COLUMN_ITEM(Lang)
 	};
 
 	Qt::CheckState checkState { Qt::Unchecked };
-	bool deleted { false };
+	bool removed { false };
 	static const Mapping * mapping;
 
 	explicit BookItem(const DataItem * parent = nullptr);
@@ -178,6 +179,7 @@ BOOKS_COLUMN_ITEM(Lang)
 	static int Remap(int column) noexcept;
 
 private: // DataItem
+	[[nodiscard]] bool IsRemoved() const noexcept override;
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 	BookItem * ToBookItem() noexcept override;

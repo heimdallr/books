@@ -1,5 +1,4 @@
 #include "DataItem.h"
-#include "DataItem.h"
 
 #include <ranges>
 
@@ -56,6 +55,11 @@ size_t DataItem::GetChildCount() const noexcept
 size_t DataItem::GetRow() const noexcept
 {
 	return m_row;
+}
+
+bool DataItem::IsRemoved() const noexcept
+{
+	return true;
 }
 
 int DataItem::RemapColumn(const int column) const noexcept
@@ -179,6 +183,11 @@ std::shared_ptr<DataItem> BookItem::Create(const DataItem * parent)
 int BookItem::Remap(const int column) noexcept
 {
 	return mapping->columns[column];
+}
+
+bool BookItem::IsRemoved() const noexcept
+{
+	return removed;
 }
 
 int BookItem::RemapColumn(const int column) const noexcept

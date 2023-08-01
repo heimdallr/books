@@ -197,6 +197,7 @@
      <addaction name="actionFontSizeUp"/>
      <addaction name="actionFontSizeDown"/>
     </widget>
+    <addaction name="actionHideRemoved"/>
     <addaction name="menuFont"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
@@ -301,6 +302,17 @@
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About...</string>
+   </property>
+  </action>
+  <action name="actionHideRemoved">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Hide removed books</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>

@@ -84,6 +84,9 @@
      <property name="selectionMode">
       <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>
+     <property name="autoExpandDelay">
+      <number>0</number>
+     </property>
      <property name="uniformRowHeights">
       <bool>true</bool>
      </property>

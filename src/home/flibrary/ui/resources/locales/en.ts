@@ -252,6 +252,11 @@ Restart now?</source>
         <source>&amp;Collection</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Hide removed books</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -279,12 +284,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="59"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="60"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Filter</source>
         <translation></translation>
     </message>

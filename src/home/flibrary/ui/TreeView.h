@@ -28,6 +28,7 @@ signals:
 
 public:
     void SetNavigationModeName(QString navigationModeName);
+    void HideRemoved(bool hideRemoved);
 
 private: // QWidget
     void resizeEvent(QResizeEvent* event) override;

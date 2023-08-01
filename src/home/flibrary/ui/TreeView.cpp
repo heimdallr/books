@@ -90,6 +90,17 @@ public:
 		m_navigationModeName = std::move(navigationModeName);
 	}
 
+	void HideRemoved(const bool hideRemoved)
+	{
+		m_hideRemoved = hideRemoved;
+		if (auto * model = m_ui.treeView->model())
+		{
+			model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
+			OnCountChanged();
+			Find(m_currentId, Role::Id);
+		}
+	}
+
 	void ResizeEvent(const QResizeEvent * event)
 	{
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
@@ -116,7 +127,10 @@ private: // ITreeViewController::IObserver
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
 			m_languageContextMenu.reset();
+
 			model->setData({}, true, Role::Checkable);
+			model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
+
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
 			widget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -200,7 +214,7 @@ private:
 		});
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
 		{
-			m_ui.treeView->model()->setData({}, {}, Role::Filter);
+			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
 			RestoreValue();
 			OnValueChanged();
 		});
@@ -214,7 +228,7 @@ private:
 		});
 		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
 		{
-			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::Filter);
+			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::TextFilter);
 			OnCountChanged();
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
@@ -397,6 +411,9 @@ private:
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
 			m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+		
+		if (const auto index = m_ui.treeView->currentIndex(); index.isValid())
+			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);
 	}
 
 	void OnCountChanged() const
@@ -454,6 +471,7 @@ private:
 	std::unique_ptr<QMenu> m_languageContextMenu;
 	std::unique_ptr<QActionGroup> m_languageContextMenuGroup;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
+	bool m_hideRemoved { false };
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
@@ -479,6 +497,11 @@ TreeView::~TreeView()
 void TreeView::SetNavigationModeName(QString navigationModeName)
 {
 	m_impl->SetNavigationModeName(std::move(navigationModeName));
+}
+
+void TreeView::HideRemoved(const bool hideRemoved)
+{
+	m_impl->HideRemoved(hideRemoved);
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)

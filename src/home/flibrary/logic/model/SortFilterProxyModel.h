@@ -20,7 +20,8 @@ class SortFilterProxyModel final : public AbstractSortFilterProxyModel
 	NON_COPY_MOVABLE(SortFilterProxyModel)
 
 public:
-	explicit SortFilterProxyModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
+	explicit SortFilterProxyModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider
+		, QObject * parent = nullptr);
 	~SortFilterProxyModel() override;
 
 private: // QAbstractItemModel
@@ -34,11 +35,11 @@ private: // QSortFilterProxyModel
 private:
 	bool filterAcceptsText(const QModelIndex & index) const;
 	bool filterAcceptsLanguage(const QModelIndex & index) const;
+	bool filterAcceptsRemoved(const QModelIndex & index) const;
 
 private:
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
-	QString m_filter;
-	QString m_languageFilter;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }
