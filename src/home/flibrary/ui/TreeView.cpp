@@ -189,7 +189,6 @@ private: // ITreeViewController::IObserver
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
 			widget->setContextMenuPolicy(Qt::CustomContextMenu);
-			m_ui.treeView->setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
 			{
 				CreateHeaderContextMenu(pos);
