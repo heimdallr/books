@@ -279,12 +279,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="58"/>
+        <location filename="../../TreeView.cpp" line="59"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="59"/>
+        <location filename="../../TreeView.cpp" line="60"/>
         <source>Filter</source>
         <translation></translation>
     </message>

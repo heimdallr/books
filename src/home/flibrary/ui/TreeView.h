@@ -19,6 +19,7 @@ class TreeView final : public QWidget
 public:
     TreeView(std::shared_ptr<class ITreeViewController> controller
         , std::shared_ptr<ISettings> settings
+        , std::shared_ptr<class IUiFactory> uiFactory
         , QWidget * parent = nullptr);
     ~TreeView() override;
 

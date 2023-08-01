@@ -1,30 +1,26 @@
 #include "ui_TreeView.h"
 #include "TreeView.h"
 
-#include <QActionGroup>
 #include <ranges>
 
+#include <QActionGroup>
 #include <QMenu>
 #include <QPainter>
 #include <QResizeEvent>
-#include <QStyledItemDelegate>
 #include <QTimer>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
-#include "fnd/IsOneOf.h"
-#include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/ITreeViewController.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "logic/data/DataItem.h"
 #include "util/ISettings.h"
-
-#include "Measure.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -60,73 +56,6 @@ constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
 };
 
-using TextDelegate = QString(*)(const QVariant & value);
-QString PassThruDelegate(const QVariant & value)
-{
-	return value.toString();
-}
-
-QString NumberDelegate(const QVariant & value)
-{
-	bool ok = false;
-	const auto result = value.toInt(&ok);
-	return ok && result > 0 ? QString::number(result) : QString {};
-}
-
-QString SizeDelegate(const QVariant & value)
-{
-	bool ok = false;
-	const auto result = value.toULongLong(&ok);
-	return ok && result > 0 ? Measure::GetSize(result) : QString {};
-}
-
-constexpr const std::pair<int, TextDelegate> DELEGATES[]
-{
-	{BookItem::Column::Size, &SizeDelegate},
-	{BookItem::Column::LibRate, &NumberDelegate},
-	{BookItem::Column::SeqNumber, &NumberDelegate},
-};
-
-class Delegate final : public QStyledItemDelegate
-{
-public:
-	explicit Delegate(QAbstractScrollArea * parent = nullptr)
-		: QStyledItemDelegate(parent)
-		, m_view(*parent->viewport())
-	{
-	}
-
-private: // QStyledItemDelegate
-	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
-	{
-		auto o = option;
-		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
-		{
-			const auto column = BookItem::Remap(index.column());
-			if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::LibRate, BookItem::Column::SeqNumber))
-				o.displayAlignment = Qt::AlignRight;
-
-			ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-			return QStyledItemDelegate::paint(painter, o, index);
-		}
-
-		if (index.column() != 0)
-			return;
-
-		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
-		QStyledItemDelegate::paint(painter, o, index);
-	}
-
-	QString displayText(const QVariant& value, const QLocale& /*locale*/) const override
-	{
-		return m_textDelegate(value);
-	}
-
-private:
-	QWidget & m_view;
-	mutable TextDelegate m_textDelegate { &PassThruDelegate };
-};
-
 }
 
 class TreeView::Impl final
@@ -139,10 +68,12 @@ public:
 	Impl(TreeView & self
 		, std::shared_ptr<ITreeViewController> controller
 		, std::shared_ptr<ISettings> settings
+		, std::shared_ptr<IUiFactory> uiFactory
 	)
 		: m_self(self)
 		, m_controller(std::move(controller))
 		, m_settings(std::move(settings))
+		, m_uiFactory(std::move(uiFactory))
 	{
 		Setup();
 	}
@@ -224,7 +155,8 @@ private:
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
-			m_ui.treeView->setItemDelegate(new Delegate(m_ui.treeView));
+			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
+			m_ui.treeView->setItemDelegate(m_delegate.get());
 			m_ui.treeView->setSortingEnabled(true);
 		}
 
@@ -512,6 +444,7 @@ private:
 	TreeView & m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -520,16 +453,19 @@ private:
 	QMenu m_headerContextMenu;
 	std::unique_ptr<QMenu> m_languageContextMenu;
 	std::unique_ptr<QActionGroup> m_languageContextMenuGroup;
+	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 	, std::shared_ptr<ISettings> settings
+	, std::shared_ptr<IUiFactory> uiFactory
 	, QWidget * parent
 )
 	: QWidget(parent)
 	, m_impl(*this
 		, std::move(controller)
 		, std::move(settings)
+		, std::move(uiFactory)
 	)
 {
 	PLOGD << "TreeView created";

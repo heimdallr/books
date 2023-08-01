@@ -1,9 +1,11 @@
 #pragma once
 
+#include <memory>
+
 #include <QtWidgets/QMessageBox>
 
-#include "fnd/memory.h"
-
+class QAbstractItemDelegate;
+class QAbstractScrollArea;
 class QDialog;
 class QWidget;
 
@@ -16,11 +18,14 @@ public:
 
 	[[nodiscard]] virtual std::shared_ptr<class TreeView> CreateTreeViewWidget(enum class ItemType type) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const = 0;
+
 	virtual void ShowAbout() const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 
-	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> GetTreeViewController() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> GetTreeViewController() const noexcept = 0;
+	[[nodiscard]] virtual QAbstractScrollArea & GetAbstractScrollArea() const noexcept = 0;
 };
 
 }

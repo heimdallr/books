@@ -12,6 +12,7 @@
 #include "dialogs/AddCollectionDialog.h"
 
 #include "TreeView.h"
+#include "TreeViewDelegate.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -20,6 +21,7 @@ struct UiFactory::Impl
 	Hypodermic::Container & container;
 
 	mutable std::shared_ptr<AbstractTreeViewController> treeViewController;
+	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
 
 	explicit Impl(Hypodermic::Container & container_)
 		: container(container_)
@@ -49,6 +51,12 @@ std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog() con
 	return m_impl->container.resolve<IAddCollectionDialog>();
 }
 
+std::shared_ptr<QAbstractItemDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
+{
+	m_impl->abstractScrollArea = &parent;
+	return m_impl->container.resolve<TreeViewDelegateBooks>();
+}
+
 void UiFactory::ShowAbout() const
 {
 	const auto dialog = m_impl->container.resolve<IAboutDialog>();
@@ -67,10 +75,16 @@ QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const Q
 	return dialog->Show(text, buttons, defaultButton);
 }
 
-std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const
+std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const noexcept
 {
 	assert(m_impl->treeViewController);
 	return std::move(m_impl->treeViewController);
+}
+
+QAbstractScrollArea & UiFactory::GetAbstractScrollArea() const noexcept
+{
+	assert(m_impl->abstractScrollArea);
+	return *m_impl->abstractScrollArea;
 }
 
 }
