@@ -12,6 +12,7 @@
 #include "database/interface/IDatabase.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
 
 #include "TreeViewController/TreeViewControllerBooks.h"

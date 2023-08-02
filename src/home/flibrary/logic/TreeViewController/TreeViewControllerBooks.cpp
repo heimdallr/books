@@ -9,6 +9,7 @@
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "interface/constants/Enums.h"
+#include "interface/logic/IAnnotationController.h"
 #include "model/IModelObserver.h"
 
 using namespace HomeCompa::Flibrary;
@@ -17,7 +18,7 @@ namespace {
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel>(AbstractModelProvider:: *)(DataItem::Ptr, IModelObserver &) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel>(AbstractModelProvider::*)(DataItem::Ptr, IModelObserver &) const;
 
 struct ModeDescriptor
 {
@@ -44,18 +45,26 @@ struct TreeViewControllerBooks::Impl final
 	: IModelObserver
 {
 	ViewMode viewMode { ViewMode::Unknown };
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model{std::shared_ptr<QAbstractItemModel>()};
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel>() };
+	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
+
+	explicit Impl(std::shared_ptr<IAnnotationController> annotationController)
+		: annotationController(std::move(annotationController))
+	{
+	}
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
 	, std::shared_ptr<AbstractModelProvider> modelProvider
+	, std::shared_ptr<IAnnotationController> annotationController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
 		, std::move(modelProvider)
 	)
+	, m_impl(std::move(annotationController))
 {
 	Setup();
 
@@ -85,9 +94,9 @@ void TreeViewControllerBooks::SetModeIndex(const int index)
 	SetMode(MODE_NAMES[index].first);
 }
 
-void TreeViewControllerBooks::SetCurrentId(QString /*id*/)
+void TreeViewControllerBooks::SetCurrentId(QString id)
 {
-	// Get annotation
+	m_impl->annotationController->SetCurrentBookId(std::move(id));
 }
 
 void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)

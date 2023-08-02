@@ -29,6 +29,10 @@ public:
 	IExecutor & operator=(IExecutor &&) = default;
 	virtual ~IExecutor() = default;
 	virtual size_t operator()(Task && task, int priority = 0) = 0;
+	size_t operator()(Task && task, const int priority = 0) const
+	{
+		return (*const_cast<IExecutor *>(this))(std::move(task), priority);
+	}
 };
 
 }

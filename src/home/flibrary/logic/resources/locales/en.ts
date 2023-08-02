@@ -4,12 +4,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="30"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="31"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="31"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="32"/>
         <source>Tree</source>
         <translation></translation>
     </message>

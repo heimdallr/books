@@ -4,21 +4,17 @@
 #include <unordered_map>
 
 #include <plog/Log.h>
-#include <QtGui/QCursor>
-#include <QtGui/QGuiApplication>
-#include <QTimer>
 
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "util/executor/factory.h"
-#include "util/IExecutor.h"
-
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/ILogicFactory.h"
+
+#include "shared/DatabaseUser.h"
 
 #include "BooksTreeGenerator.h"
 #include "DataItem.h"
@@ -123,40 +119,30 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
 
 class DataProvider::Impl
 	: virtual public INavigationQueryExecutor
+	, DatabaseUser
 {
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
-		: m_logicFactory(std::move(logicFactory))
+		: DatabaseUser(std::move(logicFactory))
 	{
-		const auto setTimer = [] (QTimer & timer, std::function<void()> f)
-		{
-			timer.setSingleShot(true);
-			timer.setInterval(std::chrono::milliseconds(200));
-			QObject::connect(&timer, &QTimer::timeout, &timer, [f = std::move(f)]
-			{
-				f();
-			});
-		};
-		setTimer(m_navigationTimer, [&] { RequestNavigation(); });
-		setTimer(m_booksTimer, [&] { RequestBooks(); });
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
 	{
 		m_navigationMode = navigationMode;
-		m_navigationTimer.start();
+		m_navigationTimer->start();
 	}
 
 	void SetNavigationId(QString id)
 	{
 		m_navigationId = std::move(id);
-		m_booksTimer.start();
+		m_booksTimer->start();
 	}
 
 	void SetBooksViewMode(const ViewMode viewMode)
 	{
 		m_booksViewMode = viewMode;
-		m_booksTimer.start();
+		m_booksTimer->start();
 	}
 
 	void SetNavigationRequestCallback(Callback callback)
@@ -293,28 +279,6 @@ private: // INavigationQueryExecutor
 	}
 
 private:
-	std::unique_ptr<Util::IExecutor> CreateExecutor()
-	{
-		const auto createDatabase = [this]
-		{
-			m_db = m_logicFactory->GetDatabase();
-//			m_db->RegisterObserver(this);
-		};
-
-		const auto destroyDatabase = [this]
-		{
-//			m_db->UnregisterObserver(this);
-			m_db.reset();
-		};
-
-		return m_logicFactory->GetExecutor({
-			  [=] { createDatabase(); }
-			, [ ] { QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
-			, [ ] { QGuiApplication::restoreOverrideCursor(); }
-			, [=] { destroyDatabase(); }
-		});
-	}
-
 	void SendNavigationCallback(const NavigationMode mode, DataItem::Ptr root) const
 	{
 		if (mode == m_navigationMode)
@@ -331,9 +295,6 @@ private:
 	}
 
 private:
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
-	std::unique_ptr<DB::IDatabase> m_db;
-	std::unique_ptr<Util::IExecutor> m_executor{ CreateExecutor() };
 	NavigationMode m_navigationMode { NavigationMode::Unknown };
 	ViewMode m_booksViewMode { ViewMode::Unknown };
 	QString m_navigationId;
@@ -341,9 +302,8 @@ private:
 	Callback m_booksRequestCallback;
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
-
-	QTimer m_navigationTimer;
-	QTimer m_booksTimer;
+	PropagateConstPtr<QTimer> m_navigationTimer { CreateTimer([&] { RequestNavigation(); }) };
+	PropagateConstPtr<QTimer> m_booksTimer { CreateTimer([&] { RequestBooks(); }) };
 };
 
 DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)

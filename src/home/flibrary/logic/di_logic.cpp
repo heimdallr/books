@@ -3,6 +3,7 @@
 #include <Hypodermic/Hypodermic.h>
 
 // ReSharper disable CppUnusedIncludeDirective
+#include "Annotation/AnnotationController.h"
 #include "Collection/CollectionController.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -20,6 +21,7 @@ namespace HomeCompa::Flibrary {
 
 void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
+	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<ListModel>().as<AbstractListModel>();
