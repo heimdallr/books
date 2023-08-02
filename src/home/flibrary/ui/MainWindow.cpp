@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <plog/Log.h>
 
+#include "AnnotationWidget.h"
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ProductConstant.h"
@@ -35,6 +36,7 @@ public:
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
         , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+        , std::shared_ptr<AnnotationWidget> annotationWidget
         , std::shared_ptr<LocaleController> localeController
     )
 	    : GeometryRestorable(*this, settings, "MainWindow")
@@ -43,6 +45,7 @@ public:
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
+		, m_annotationWidget(std::move(annotationWidget))
 		, m_localeController(std::move(localeController))
         , m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
         , m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
@@ -83,6 +86,7 @@ private:
 
         m_parentWidgetProvider->SetWidget(&m_self);
 
+        m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
         m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
         m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
 
@@ -181,6 +185,7 @@ private:
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
+    PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
     PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 
     PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
@@ -191,6 +196,7 @@ MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+    , std::shared_ptr<AnnotationWidget> annotationWidget
     , std::shared_ptr<LocaleController> localeController
     , QWidget * parent
 )
@@ -200,6 +206,7 @@ MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
         , std::move(settings)
         , std::move(collectionController)
         , std::move(parentWidgetProvider)
+        , std::move(annotationWidget)
         , std::move(localeController)
     )
 {

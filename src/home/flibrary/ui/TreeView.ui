@@ -81,6 +81,9 @@
    </item>
    <item>
     <widget class="QTreeView" name="treeView">
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>

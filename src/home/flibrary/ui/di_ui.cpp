@@ -11,6 +11,7 @@
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/Dialog.h"
 
+#include "AnnotationWidget.h"
 #include "LocaleController.h"
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"
