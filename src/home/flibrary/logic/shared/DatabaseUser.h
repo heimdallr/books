@@ -16,20 +16,22 @@ class DatabaseUser
 {
 	NON_COPY_MOVABLE(DatabaseUser)
 
-protected:
-	explicit DatabaseUser(std::shared_ptr<ILogicFactory> logicFactory);
+public:
+	DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
+		, std::shared_ptr<class DatabaseController> databaseController
+	);
 	~DatabaseUser();
 
-protected:
+public:
+	size_t Execute(Util::IExecutor::Task && task, int priority = 0) const;
+	std::shared_ptr<DB::IDatabase> Database() const;
+
+public:
 	static std::unique_ptr<QTimer> CreateTimer(std::function<void()> f);
 
 private:
-	std::unique_ptr<Util::IExecutor> CreateExecutor();
-
-protected:
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
-	std::unique_ptr<DB::IDatabase> m_db;
-	std::unique_ptr<Util::IExecutor> m_executor;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }

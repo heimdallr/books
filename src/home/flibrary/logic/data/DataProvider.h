@@ -19,7 +19,7 @@ public:
 	using Callback = std::function<void(DataItem::Ptr)>;
 
 public:
-	explicit DataProvider(std::shared_ptr<class ILogicFactory> logicFactory);
+	explicit DataProvider(std::shared_ptr<class DatabaseUser> databaseUser);
 	~DataProvider();
 
 public:

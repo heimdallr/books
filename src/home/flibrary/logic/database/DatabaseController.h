@@ -18,7 +18,7 @@ public:
 	~DatabaseController();
 
 public:
-	std::unique_ptr<DB::IDatabase> CreateDatabase() const;
+	std::shared_ptr<DB::IDatabase> GetDatabase() const;
 
 private:
 	class Impl;

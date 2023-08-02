@@ -15,6 +15,8 @@
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
 #include "util/ISettings.h"
+#include "database/DatabaseController.h"
+#include "shared/DatabaseUser.h"
 // ReSharper restore CppUnusedIncludeDirective
 
 namespace HomeCompa::Flibrary {
@@ -24,6 +26,8 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();
+	builder.registerType<DatabaseController>().singleInstance();
+	builder.registerType<DatabaseUser>().singleInstance();
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();

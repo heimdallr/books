@@ -12,7 +12,6 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
-#include "interface/logic/ILogicFactory.h"
 
 #include "shared/DatabaseUser.h"
 
@@ -119,11 +118,10 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
 
 class DataProvider::Impl
 	: virtual public INavigationQueryExecutor
-	, DatabaseUser
 {
 public:
-	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
-		: DatabaseUser(std::move(logicFactory))
+	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+		: m_databaseUser(std::move(databaseUser))
 	{
 	}
 
@@ -177,7 +175,7 @@ public:
 		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
 			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
 
-		(*m_executor)({ "Get books", [&
+		m_databaseUser->Execute({ "Get books", [&
 			, navigationMode = m_navigationMode
 			, navigationId = m_navigationId
 			, viewMode = m_booksViewMode
@@ -186,7 +184,10 @@ public:
 		] () mutable
 		{
 			if (!booksGeneratorReady)
-				generator = std::make_unique<BooksTreeGenerator>(*m_db, navigationMode, navigationId, description);
+			{
+				const auto db = m_databaseUser->Database();
+				generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
+			}
 
 			generator->SetBooksViewMode(viewMode);
 			auto root = (*generator.*booksGenerator)(description.treeCreator);
@@ -201,11 +202,12 @@ public:
 private: // INavigationQueryExecutor
 	void RequestNavigationSimpleList(const QueryDescription & queryDescription) const override
 	{
-		(*m_executor)({ "Get navigation", [&, mode = m_navigationMode] ()
+		m_databaseUser->Execute({ "Get navigation", [&, mode = m_navigationMode] ()
 		{
 			std::unordered_map<QString, DataItem::Ptr> cache;
 
-			const auto query = m_db->CreateQuery(queryDescription.query);
+			const auto db = m_databaseUser->Database();
+			const auto query = db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
@@ -233,7 +235,7 @@ private: // INavigationQueryExecutor
 
 	void RequestNavigationGenres(const QueryDescription & queryDescription) const override
 	{
-		(*m_executor)({"Get navigation", [&, mode = m_navigationMode] ()
+		m_databaseUser->Execute({"Get navigation", [&, mode = m_navigationMode]
 		{
 			std::unordered_map<QString, DataItem::Ptr> cache;
 
@@ -241,7 +243,8 @@ private: // INavigationQueryExecutor
 			std::unordered_multimap<QString, DataItem::Ptr> items;
 			cache.emplace("0", root);
 
-			const auto query = m_db->CreateQuery(queryDescription.query);
+			const auto db = m_databaseUser->Database();
+			const auto query = db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto item = items.emplace(query->Get<const char *>(2), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
@@ -302,12 +305,13 @@ private:
 	Callback m_booksRequestCallback;
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
-	PropagateConstPtr<QTimer> m_navigationTimer { CreateTimer([&] { RequestNavigation(); }) };
-	PropagateConstPtr<QTimer> m_booksTimer { CreateTimer([&] { RequestBooks(); }) };
+	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigation(); }) };
+	PropagateConstPtr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooks(); }) };
 };
 
-DataProvider::DataProvider(std::shared_ptr<ILogicFactory> logicFactory)
-	: m_impl(std::move(logicFactory))
+DataProvider::DataProvider(std::shared_ptr<DatabaseUser> databaseUser)
+	: m_impl(std::move(databaseUser))
 {
 	PLOGD << "DataProvider created";
 }

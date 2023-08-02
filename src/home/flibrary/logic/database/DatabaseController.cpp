@@ -1,5 +1,7 @@
 #include "DatabaseController.h"
 
+#include <mutex>
+
 #include <plog/Log.h>
 
 #include "database/factory/Factory.h"
@@ -60,18 +62,27 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-	std::unique_ptr<DB::IDatabase> CreateDatabase() const
+	std::shared_ptr<DB::IDatabase> GetDatabase() const
 	{
-		return CreateDatabaseImpl(m_databaseFileName.toStdString());
+		std::lock_guard lock(m_dbGuard);
+
+		if (!m_db)
+			m_db = CreateDatabaseImpl(m_databaseFileName.toStdString());
+
+		return m_db;
 	}
 
 private: // ICollectionController::IObserver
 	void OnActiveCollectionChanged(const Collection & collection) override
 	{
 		m_databaseFileName = collection.database;
+		std::lock_guard lock(m_dbGuard);
+		m_db.reset();
 	}
 
 private:
+	mutable std::mutex m_dbGuard;
+	mutable std::shared_ptr<DB::IDatabase> m_db;
 	QString m_databaseFileName;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 };
@@ -83,7 +94,7 @@ DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> co
 
 DatabaseController::~DatabaseController() = default;
 
-std::unique_ptr<DB::IDatabase> DatabaseController::CreateDatabase() const
+std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
 {
-	return m_impl->CreateDatabase();
+	return m_impl->GetDatabase();
 }

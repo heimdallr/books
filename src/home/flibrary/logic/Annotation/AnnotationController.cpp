@@ -11,11 +11,10 @@ constexpr auto BOOK_QUERY = "select Title, SeriesID, SeqNumber, UpdateDate, LibR
 }
 
 class AnnotationController::Impl final
-	: DatabaseUser
 {
 public:
-	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory)
-		: DatabaseUser(std::move(logicFactory))
+	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+		: m_databaseUser(std::move(databaseUser))
 	{
 	}
 
@@ -29,15 +28,23 @@ public:
 private:
 	void ExtractInfo()
 	{
+		m_databaseUser->Execute({ "Get book info", [&]
+		{
+			const auto db = m_databaseUser->Database();
+			return [] (size_t)
+			{
+			};
+		} }, 3);
 	}
 
 private:
 	QString m_currentBookId;
-	PropagateConstPtr<QTimer> m_extractInfoTimer { CreateTimer([&] { ExtractInfo(); }) };
+	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<QTimer> m_extractInfoTimer { DatabaseUser::CreateTimer([&] { ExtractInfo(); }) };
 };
 
-AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory)
-	: m_impl(std::move(logicFactory))
+AnnotationController::AnnotationController(std::shared_ptr<DatabaseUser> databaseUser)
+	: m_impl(std::move(databaseUser))
 {
 	PLOGD << "AnnotationController created";
 }
