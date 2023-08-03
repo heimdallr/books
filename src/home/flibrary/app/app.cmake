@@ -27,3 +27,6 @@ add_custom_command(TARGET flibrary
     POST_BUILD
     COMMAND ${CMAKE_CURRENT_LIST_DIR}/../../script/build.bat
 )
+
+get_property(third_party_bin_dirs GLOBAL PROPERTY third_party_bin_dirs_property)
+set_target_properties(flibrary PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=%PATH%;${third_party_bin_dirs}")

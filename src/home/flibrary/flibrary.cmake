@@ -1,9 +1,9 @@
 set(MODULES
-	app
 	ui
 	logic
 	interface
 	version
+	app
 )
 
 foreach(module ${MODULES})

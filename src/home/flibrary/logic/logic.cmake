@@ -6,12 +6,15 @@ AddTarget(
 	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
+		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
 	QT_USE
 		Core
 		Gui
 	MODULES
 		Hypodermic
 		plog
+		quazip
+		zlib
 	LINK_TARGETS
 		DatabaseFactory
 		logging

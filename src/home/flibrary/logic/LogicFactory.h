@@ -20,6 +20,7 @@ public:
 
 private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> CreateTreeViewController(ItemType type) const override;
+	[[nodiscard]] std::shared_ptr<ArchiveParser> CreateArchiveParser() const override;
 	[[nodiscard]] std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const override;
 
 private:

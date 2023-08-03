@@ -15,6 +15,8 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
 
+#include "Annotation/ArchiveParser.h"
+
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
@@ -58,6 +60,11 @@ std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewControll
 	}
 
 	return assert(false && "unexpected type"), nullptr;
+}
+
+std::shared_ptr<ArchiveParser> LogicFactory::CreateArchiveParser() const
+{
+	return m_impl->container.resolve<ArchiveParser>();
 }
 
 std::unique_ptr<Util::IExecutor> LogicFactory::GetExecutor(Util::ExecutorInitializer initializer) const

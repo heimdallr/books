@@ -25,6 +25,7 @@ public:
 
 public:
 	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> CreateTreeViewController(enum class ItemType type) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser> CreateArchiveParser() const = 0;
 	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer = {}) const = 0;
 };
 

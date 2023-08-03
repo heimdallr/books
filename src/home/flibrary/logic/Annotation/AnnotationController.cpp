@@ -2,6 +2,7 @@
 
 #include <plog/Log.h>
 
+#include "ArchiveParser.h"
 #include "database/interface/IQuery.h"
 #include "shared/DatabaseUser.h"
 
@@ -23,11 +24,12 @@ constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join
 class AnnotationController::Impl final
 {
 public:
-	explicit Impl(const std::shared_ptr<ILogicFactory> & logicFactory
+	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<DatabaseUser> databaseUser
 	)
-		: m_executor(logicFactory->GetExecutor())
+		: m_logicFactory(std::move(logicFactory))
 		, m_databaseUser(std::move(databaseUser))
+		, m_executor(m_logicFactory->GetExecutor())
 	{
 	}
 
@@ -60,9 +62,9 @@ private:
 
 	void ExtractArchiveInfo(DataItem::Ptr book) const
 	{
-		(*m_executor)({ "Get archive book info", [&, book = std::move(book)] () mutable
+		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]
 		{
-			return [&, book = std::move(book)] (size_t) mutable
+			return [&, data = m_logicFactory->CreateArchiveParser()->Parse(*book)] (size_t) mutable
 			{
 			};
 		} });
@@ -112,14 +114,15 @@ private:
 	}
 
 private:
-	PropagateConstPtr<Util::IExecutor> m_executor;
+	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { DatabaseUser::CreateTimer([&] { ExtractInfo(); }) };
 
 	QString m_currentBookId;
 };
 
-AnnotationController::AnnotationController(const std::shared_ptr<ILogicFactory> & logicFactory
+AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<DatabaseUser> databaseUser
 )
 	: m_impl(logicFactory, std::move(databaseUser))
