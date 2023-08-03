@@ -60,6 +60,57 @@ public:
 		m_extractInfoTimer->start();
 	}
 
+private: // IDataProvider
+	[[nodiscard]] const IDataItem & GatBook() const noexcept override
+	{
+		return *m_book;
+	}
+
+	[[nodiscard]] const IDataItem & GatSeries() const noexcept override
+	{
+		return *m_series;
+	}
+
+	[[nodiscard]] const IDataItem & GatAuthors() const noexcept override
+	{
+		return *m_authors;
+	}
+
+	[[nodiscard]] const IDataItem & GatGenres() const noexcept override
+	{
+		return *m_genres;
+	}
+
+	[[nodiscard]] const IDataItem & GatGroups() const noexcept override
+	{
+		return *m_groups;
+	}
+
+	[[nodiscard]] const QString & GetAnnotation() const noexcept override
+	{
+		return m_archiveData.annotation;
+	}
+
+	[[nodiscard]] const std::vector<QString> & GetKeywords() const noexcept override
+	{
+		return m_archiveData.keywords;
+	}
+
+	[[nodiscard]] const std::vector<QString> & GetCovers() const noexcept override
+	{
+		return m_archiveData.covers;
+	}
+
+	[[nodiscard]] int GetCoverIndex() const noexcept override
+	{
+		return m_archiveData.coverIndex;
+	}
+
+	[[nodiscard]] const IDataItem & GetContent() const noexcept override
+	{
+		return *m_archiveData.content;
+	}
+
 private:
 	void ExtractInfo()
 	{
@@ -140,7 +191,7 @@ private:
 		const auto query = db.CreateQuery(SERIES_QUERY);
 		query->Bind(":id", id);
 		query->Execute();
-		return query->Eof() ? IDataItem::Ptr {} : DatabaseUser::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
+		return query->Eof() ? NavigationItem::Create() : DatabaseUser::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
 	}
 
 	static IDataItem::Ptr CreateDictionary(DB::IDatabase & db, const char * queryText, const long long id, const Extractor extractor)
@@ -149,7 +200,12 @@ private:
 		const auto query = db.CreateQuery(queryText);
 		query->Bind(":id", id);
 		for (query->Execute(); !query->Eof(); query->Next())
-			root->AppendChild(extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM));
+		{
+			auto child = extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
+			child->Reduce();
+			root->AppendChild(std::move(child));
+		}
+
 		return root;
 	}
 

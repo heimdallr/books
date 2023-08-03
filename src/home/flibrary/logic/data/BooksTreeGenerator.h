@@ -105,6 +105,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
-
 }

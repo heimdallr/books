@@ -16,7 +16,8 @@ class AnnotationWidget final : public QWidget
 	NON_COPY_MOVABLE(AnnotationWidget)
 
 public:
-	explicit AnnotationWidget(std::shared_ptr<ISettings> settings
+	AnnotationWidget(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class IAnnotationController> annotationController
 		, QWidget * parent = nullptr
 	);
 	~AnnotationWidget() override;

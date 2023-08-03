@@ -55,6 +55,7 @@ public:
 	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
 	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept = 0;
 	virtual void SetCheckState(Qt::CheckState state) noexcept = 0;
+	virtual void Reduce() = 0;
 
 public:
 	template<typename T>

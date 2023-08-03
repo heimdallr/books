@@ -90,41 +90,6 @@ IDataItem::Ptr CreateBooksRoot()
 	return root;
 }
 
-QString GetAuthorShortName(const IDataItem::Ptr & item)
-{
-	QString last = item->GetData(AuthorItem::Column::LastName);
-	QString first = item->GetData(AuthorItem::Column::FirstName);
-	QString middle = item->GetData(AuthorItem::Column::MiddleName);
-
-	for (int i = 0; i < 2; ++i)
-	{
-		if (!last.isEmpty())
-			break;
-
-		last = std::move(first);
-		first = std::move(middle);
-		middle = QString();
-	}
-
-	if (last.isEmpty())
-		last = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
-
-	auto name = last;
-
-	const auto append = [&] (const QString & str)
-	{
-		if (str.isEmpty())
-			return;
-
-		AppendTitle(name, str.first(1) + ".");
-	};
-
-	append(first);
-	append(middle);
-
-	return name;
-}
-
 template<typename KeyType, typename BindType = KeyType>
 std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, IDataItem::Ptr> & dictionary
 	, const DB::IQuery & query
@@ -154,7 +119,6 @@ void Add(std::unordered_set<KeyType> & set, std::optional<KeyType> key)
 template <typename T>
 QString Join(const std::unordered_map<T, IDataItem::Ptr> & dictionary
 	, const std::unordered_set<T> & keyIds
-	, const std::function<QString(const IDataItem::Ptr &)> & toString
 	, const std::function<bool(const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)> & comparator
 )
 {
@@ -171,14 +135,9 @@ QString Join(const std::unordered_map<T, IDataItem::Ptr> & dictionary
 
 	QString result;
 	for (const auto & value : values)
-		AppendTitle(result, toString(value), ", ");
+		AppendTitle(result, value->GetData(0), ", ");
 
 	return result;
-}
-
-QString GetTitle(const IDataItem::Ptr & item)
-{
-	return item->GetData();
 }
 
 }
@@ -224,10 +183,13 @@ public:
 			return QStringWrapper { lhs->GetId() } < QStringWrapper { rhs->GetId() };
 		};
 
+		for (const auto& author : m_authors | std::views::values)
+			author->Reduce();
+
 		for (auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			book->SetData(Join(m_authors, authorIds, &GetAuthorShortName, AuthorComparator {}), BookItem::Column::Author);
-			book->SetData(Join(m_genres, genreIds, &GetTitle, genresComparator), BookItem::Column::Genre);
+			book->SetData(Join(m_authors, authorIds, AuthorComparator {}), BookItem::Column::Author);
+			book->SetData(Join(m_genres, genreIds, genresComparator), BookItem::Column::Genre);
 		}
 	}
 
@@ -432,20 +394,4 @@ void BooksTreeGenerator::SetBooksViewMode(const ViewMode viewMode) noexcept
 [[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const
 {
 	return m_impl->CreateGeneralTree();
-}
-
-namespace HomeCompa::Flibrary {
-
-void AppendTitle(QString & title, const QString & str, const QString & delimiter)
-{
-	if (title.isEmpty())
-	{
-		title = str;
-		return;
-	}
-
-	if (!str.isEmpty())
-		title.append(delimiter).append(str);
-}
-
 }

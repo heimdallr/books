@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/Localization.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -127,6 +128,10 @@ void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept
 {
 }
 
+void DataItem::Reduce()
+{
+}
+
 DataItem * DataItem::ToDataItem() noexcept
 {
 	return this;
@@ -165,6 +170,41 @@ std::shared_ptr<IDataItem> AuthorItem::Create(const IDataItem * parent)
 AuthorItem * AuthorItem::ToAuthorItem() noexcept
 {
 	return this;
+}
+
+void AuthorItem::Reduce()
+{
+	QString last = GetRawData(AuthorItem::Column::LastName);
+	QString first = GetRawData(AuthorItem::Column::FirstName);
+	QString middle = GetRawData(AuthorItem::Column::MiddleName);
+
+	for (int i = 0; i < 2; ++i)
+	{
+		if (!last.isEmpty())
+			break;
+
+		last = std::move(first);
+		first = std::move(middle);
+		middle = QString();
+	}
+
+	if (last.isEmpty())
+		last = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
+
+	auto name = last;
+
+	const auto append = [&] (const QString & str)
+	{
+		if (str.isEmpty())
+			return;
+
+		AppendTitle(name, str.first(1) + ".");
+	};
+
+	append(first);
+	append(middle);
+
+	SetData(name);
 }
 
 ItemType AuthorItem::GetType() const noexcept
@@ -219,8 +259,23 @@ void BookItem::SetCheckState(const Qt::CheckState state) noexcept
 	checkState = state;
 }
 
-
 ItemType BookItem::GetType() const noexcept
 {
 	return ItemType::Books;
+}
+
+namespace HomeCompa::Flibrary {
+
+void AppendTitle(QString & title, const QString & str, const QString & delimiter)
+{
+	if (title.isEmpty())
+	{
+		title = str;
+		return;
+	}
+
+	if (!str.isEmpty())
+		title.append(delimiter).append(str);
+}
+
 }

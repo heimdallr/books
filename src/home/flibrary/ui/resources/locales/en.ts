@@ -70,6 +70,49 @@
     </message>
 </context>
 <context>
+    <name>Annotation</name>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="19"/>
+        <source>Keywords: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="20"/>
+        <source>Series:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="21"/>
+        <source>Authors:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="22"/>
+        <source>Genres:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="23"/>
+        <source>Archive:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="24"/>
+        <source>File:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="25"/>
+        <source>Size:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="26"/>
+        <source>Updated:</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Collection</name>
     <message>
         <location filename="../../LocaleController.cpp" line="20"/>
@@ -284,12 +327,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="55"/>
+        <location filename="../../TreeView.cpp" line="54"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Filter</source>
         <translation></translation>
     </message>

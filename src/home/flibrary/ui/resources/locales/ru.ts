@@ -72,8 +72,44 @@
 <context>
     <name>Annotation</name>
     <message>
-        <source>Keywords</source>
-        <translation type="vanished">Ключевые слова</translation>
+        <location filename="../../AnnotationWidget.cpp" line="19"/>
+        <source>Keywords: %1</source>
+        <translation>Ключевые слова: %1</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="20"/>
+        <source>Series:</source>
+        <translation>Серия:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="21"/>
+        <source>Authors:</source>
+        <translation>Авторы:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="22"/>
+        <source>Genres:</source>
+        <translation>Жанры:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="23"/>
+        <source>Archive:</source>
+        <translation>Архив:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="24"/>
+        <source>File:</source>
+        <translation>Файл:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="25"/>
+        <source>Size:</source>
+        <translation>Размер:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="26"/>
+        <source>Updated:</source>
+        <translation>Обновлён:</translation>
     </message>
 </context>
 <context>
@@ -672,12 +708,12 @@ Version: %1</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="55"/>
+        <location filename="../../TreeView.cpp" line="54"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="55"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

@@ -4,8 +4,9 @@
 #include <Hypodermic/Hypodermic.h>
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILogicFactory.h"
 
 #include "util/Settings.h"
 #include "dialogs/AddCollectionDialog.h"

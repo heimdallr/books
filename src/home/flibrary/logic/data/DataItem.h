@@ -10,10 +10,20 @@
 namespace HomeCompa::Flibrary {
 class DataItem : public IDataItem
 {
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Title = 0,
+			Last
+		};
+	};
+
 protected:
 	explicit DataItem(size_t columnCount, const IDataItem * parent = nullptr);
 
-private: // IDataItem
+protected: // IDataItem
 	[[nodiscard]] const IDataItem * GetParent() const noexcept override;
 	Ptr & AppendChild(Ptr child) override;
 	void SetChildren(Items children) noexcept override;
@@ -33,6 +43,7 @@ private: // IDataItem
 
 	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
 	void SetCheckState(Qt::CheckState state) noexcept override;
+	void Reduce() override;
 
 	DataItem * ToDataItem() noexcept override;
 
@@ -47,15 +58,6 @@ protected:
 class NavigationItem final : public DataItem
 {
 public:
-	struct Column
-	{
-		enum Value
-		{
-			Title = 0,
-			Last
-		};
-	};
-
 	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
 	explicit NavigationItem(const IDataItem * parent);
 
@@ -83,6 +85,7 @@ public:
 
 private: // DataItem
 	AuthorItem * ToAuthorItem() noexcept override;
+	void Reduce() override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -157,5 +160,7 @@ private: // DataItem
 	void SetCheckState(Qt::CheckState state) noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
+
+void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
 
 }

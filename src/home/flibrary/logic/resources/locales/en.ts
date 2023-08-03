@@ -4,12 +4,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="31"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="30"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="31"/>
         <source>Tree</source>
         <translation></translation>
     </message>
@@ -25,27 +25,27 @@
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="34"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="34"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="35"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="35"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="36"/>
         <source>Archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="36"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="37"/>
         <source>Groups</source>
         <translation></translation>
     </message>
