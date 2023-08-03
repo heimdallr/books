@@ -2,6 +2,9 @@
 
 #include <plog/Log.h>
 
+#include "fnd/observable.h"
+#include "fnd/EnumBitmask.h"
+
 #include "ArchiveParser.h"
 #include "database/interface/IQuery.h"
 #include "shared/DatabaseUser.h"
@@ -19,9 +22,24 @@ constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s jo
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
+
+enum class Ready
+{
+	None     = 0,
+	Database = 1 << 0,
+	Archive  = 1 << 1,
+	All = None
+		| Database
+		| Archive
+};
+
 }
 
+ENABLE_BITMASK_OPERATORS(Ready);
+
 class AnnotationController::Impl final
+	: public Observable<IObserver>
+	, public IDataProvider
 {
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
@@ -41,7 +59,7 @@ public:
 	}
 
 private:
-	void ExtractInfo() const
+	void ExtractInfo()
 	{
 		m_databaseUser->Execute({ "Get database book info", [&, id = m_currentBookId.toLongLong()]
 		{
@@ -54,23 +72,32 @@ private:
 		} }, 3);
 	}
 
-	void ExtractInfo(DataItem::Ptr book) const
+	void ExtractInfo(DataItem::Ptr book)
 	{
+		m_ready = Ready::None;
+
 		ExtractArchiveInfo(book);
 		ExtractDatabaseInfo(std::move(book));
 	}
 
-	void ExtractArchiveInfo(DataItem::Ptr book) const
+	void ExtractArchiveInfo(DataItem::Ptr book)
 	{
 		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]
 		{
 			return [&, data = m_logicFactory->CreateArchiveParser()->Parse(*book)] (size_t) mutable
 			{
+				if (book->GetId() != m_currentBookId)
+					return;
+
+				m_archiveData = std::move(data);
+
+				if ((m_ready |= Ready::Archive) == Ready::All)
+					Perform(&IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} });
 	}
 
-	void ExtractDatabaseInfo(DataItem::Ptr book) const
+	void ExtractDatabaseInfo(DataItem::Ptr book)
 	{
 		m_databaseUser->Execute({ "Get database book additional info", [&, book = std::move(book)] () mutable
 		{
@@ -80,8 +107,19 @@ private:
 			auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUser::CreateFullAuthorItem);
 			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			return [&, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres)] (size_t) mutable
+			return [&, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups)] (size_t) mutable
 			{
+				if (book->GetId() != m_currentBookId)
+					return;
+
+				m_book = std::move(book);
+				m_series = std::move(series);
+				m_authors = std::move(authors);
+				m_genres = std::move(genres);
+				m_groups = std::move(groups);
+
+				if ((m_ready |= Ready::Database) == Ready::All)
+					Perform(&IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} }, 3);
 	}
@@ -120,12 +158,22 @@ private:
 	PropagateConstPtr<QTimer> m_extractInfoTimer { DatabaseUser::CreateTimer([&] { ExtractInfo(); }) };
 
 	QString m_currentBookId;
+
+	Ready m_ready { Ready::None };
+
+	ArchiveParser::Data m_archiveData;
+
+	DataItem::Ptr m_book;
+	DataItem::Ptr m_series;
+	DataItem::Ptr m_authors;
+	DataItem::Ptr m_genres;
+	DataItem::Ptr m_groups;
 };
 
 AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<DatabaseUser> databaseUser
 )
-	: m_impl(logicFactory, std::move(databaseUser))
+	: m_impl(std::move(logicFactory), std::move(databaseUser))
 {
 	PLOGD << "AnnotationController created";
 }
@@ -137,4 +185,14 @@ AnnotationController::~AnnotationController()
 void AnnotationController::SetCurrentBookId(QString bookId)
 {
 	m_impl->SetCurrentBookId(std::move(bookId));
+}
+
+void AnnotationController::RegisterObserver(IObserver * observer)
+{
+	m_impl->Register(observer);
+}
+
+void AnnotationController::UnregisterObserver(IObserver * observer)
+{
+	m_impl->Unregister(observer);
 }

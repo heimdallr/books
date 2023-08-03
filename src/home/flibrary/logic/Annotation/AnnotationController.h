@@ -20,6 +20,9 @@ public:
 private: // IAnnotationController
 	void SetCurrentBookId(QString bookId) override;
 
+	void RegisterObserver(IObserver * observer) override;
+	void UnregisterObserver(IObserver * observer) override;
+
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
