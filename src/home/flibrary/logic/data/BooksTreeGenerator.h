@@ -105,7 +105,6 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-DataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
 void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
 
 }

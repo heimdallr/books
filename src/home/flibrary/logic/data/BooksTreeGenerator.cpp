@@ -4,13 +4,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <QCoreApplication>
-
-#include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
-
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+
+#include "shared/DatabaseUser.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -26,7 +23,7 @@ constexpr const char * BOOKS_COLUMN_NAMES[] {
 };
 
 constexpr auto BOOKS_QUERY =
-	"select b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted, 0) "
+	"select %1 "
 	", a.AuthorID, a.LastName, a.FirstName, a.MiddleName "
 	", g.GenreCode, g.GenreAlias "
 	", coalesce(b.SeriesID, -1), s.SeriesTitle "
@@ -35,10 +32,10 @@ constexpr auto BOOKS_QUERY =
 	"join Authors a on a.AuthorID = al.AuthorID "
 	"join Genre_List gl on gl.BookID = b.BookID "
 	"join Genres g on g.GenreCode = gl.GenreCode "
-	"%1 "
+	"%2 "
 	"left join Series s on s.SeriesID = b.SeriesID "
 	"left join Books_User bu on bu.BookID = b.BookID "
-	"%2"
+	"%3"
 	;
 
 auto ToAuthorItemComparable(const DataItem::Ptr & author)
@@ -70,79 +67,17 @@ struct UnorderedSetHash
 	}
 };
 
-struct Book
+constexpr int BOOK_QUERY_TO_AUTHOR[]
 {
-	enum Value
-	{
-		BookId = 0,
-		BookTitle,
-		SeqNumber,
-		UpdateDate,
-		LibRate,
-		Lang,
-		Folder,
-		FileName,
-		Size,
-		IsDeleted,
-		AuthorId,
-		AuthorLastName,
-		AuthorFirstName,
-		AuthorMiddleName,
-		GenreCode,
-		GenreTitle,
-		SeriesId,
-		SeriesTitle,
-	};
+	BookQueryFields::AuthorId,
+	BookQueryFields::AuthorLastName,
+	BookQueryFields::AuthorFirstName,
+	BookQueryFields::AuthorMiddleName,
 };
 
-constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[]
-{
-	{ Book::BookTitle, BookItem::Column::Title },
-	{ Book::SeriesTitle, BookItem::Column::Series },
-	{ Book::SeqNumber, BookItem::Column::SeqNumber },
-	{ Book::Folder, BookItem::Column::Folder },
-	{ Book::FileName, BookItem::Column::FileName },
-	{ Book::Size, BookItem::Column::Size },
-	{ Book::LibRate, BookItem::Column::LibRate },
-	{ Book::UpdateDate, BookItem::Column::UpdateDate },
-	{ Book::Lang, BookItem::Column::Lang },
-};
-
-constexpr std::pair<int, int> BOOK_QUERY_TO_AUTHOR[]
-{
-	{ Book::AuthorFirstName, AuthorItem::Column::FirstName },
-	{ Book::AuthorLastName, AuthorItem::Column::LastName },
-	{ Book::AuthorMiddleName, AuthorItem::Column::MiddleName },
-};
-
-constexpr int BOOKS_QUERY_INDEX_SERIES[] { Book::SeriesId, Book::SeriesTitle };
-constexpr int BOOKS_QUERY_INDEX_AUTHOR[] { Book::AuthorId };
-constexpr int BOOKS_QUERY_INDEX_GENRE[] { Book::GenreCode, Book::GenreTitle };
-
-DataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * /*index*/)
-{
-	auto item = AuthorItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(Book::AuthorId)));
-	for (const auto & [queryIndex, dataIndex] : BOOK_QUERY_TO_AUTHOR)
-		item->SetData(query.Get<const char *>(queryIndex), dataIndex);
-
-	return item;
-}
-
-DataItem::Ptr CreateBookItem(const DB::IQuery & query)
-{
-	auto item = BookItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(Book::BookId)));
-	for (const auto & [queryIndex, dataIndex] : BOOK_QUERY_TO_DATA)
-		item->SetData(query.Get<const char *>(queryIndex), dataIndex);
-
-	auto & typed = *item->To<BookItem>();
-	typed.removed = query.Get<int>(Book::IsDeleted);
-
-	return item;
-}
+constexpr int BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
+constexpr int BOOKS_QUERY_INDEX_AUTHOR[] { BookQueryFields::AuthorId };
+constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle };
 
 DataItem::Ptr CreateBooksRoot()
 {
@@ -263,24 +198,24 @@ public:
 		: navigationMode(navigationMode_)
 		, navigationId(std::move(navigationId_))
 	{
-		const auto query = db.CreateQuery(QString(BOOKS_QUERY).arg(description.joinClause, description.whereClause).toStdString());
+		const auto query = db.CreateQuery(QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString());
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto & book = m_books[query->Get<long long>(Book::BookId)];
-			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const DataItem & item)
+			auto & book = m_books[query->Get<long long>(BookQueryFields::BookId)];
+			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const DataItem & item)
 			{
 				return item.GetId() != "-1";
 			});
-			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&CreateFullAuthorItem, BOOKS_QUERY_INDEX_AUTHOR)));
-			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const DataItem & item)
+			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUser::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
+			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const DataItem & item)
 			{
 				return !(item.GetData().isEmpty() || item.GetData()[0].isDigit());
 			}));
 
 			if (!std::get<0>(book))
-				std::get<0>(book) = CreateBookItem(*query);
+				std::get<0>(book) = DatabaseUser::CreateBookItem(*query);
 		}
 
 		const auto genresComparator = [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
@@ -495,16 +430,6 @@ void BooksTreeGenerator::SetBooksViewMode(const ViewMode viewMode) noexcept
 }
 
 namespace HomeCompa::Flibrary {
-
-DataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index)
-{
-	auto item = DataItem::Ptr(NavigationItem::Create());
-
-	item->SetId(query.Get<const char *>(index[0]));
-	item->SetData(query.Get<const char *>(index[1]));
-
-	return item;
-}
 
 void AppendTitle(QString & title, const QString & str, const QString & delimiter)
 {

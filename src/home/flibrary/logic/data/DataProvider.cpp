@@ -82,8 +82,8 @@ constexpr int NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
 constexpr int NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM[] { 0, 0 };
 
 constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
-constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
-constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
+constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
+constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
 constexpr int MAPPING_AUTHORS[] { BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };

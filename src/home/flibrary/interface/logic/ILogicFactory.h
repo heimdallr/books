@@ -2,12 +2,13 @@
 
 #include <memory>
 
+#include "util/executor/factory.h"
+
 namespace HomeCompa::DB {
 class IDatabase;
 }
 
 namespace HomeCompa::Util {
-struct ExecutorInitializer;
 class IExecutor;
 }
 
@@ -24,7 +25,7 @@ public:
 
 public:
 	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> CreateTreeViewController(enum class ItemType type) const = 0;
-	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const = 0;
+	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer = {}) const = 0;
 };
 
 }

@@ -12,7 +12,9 @@ class AnnotationController final : virtual public IAnnotationController
 	NON_COPY_MOVABLE(AnnotationController)
 
 public:
-	explicit AnnotationController(std::shared_ptr<class DatabaseUser> databaseUser);
+	AnnotationController(const std::shared_ptr<class ILogicFactory> & logicFactory
+		, std::shared_ptr<class DatabaseUser> databaseUser
+	);
 	~AnnotationController() override;
 
 private: // IAnnotationController
