@@ -5,6 +5,7 @@
 #include <plog/Log.h>
 
 #include "LogAppender.h"
+#include "QtLoHandler.h"
 
 namespace HomeCompa::Log {
 
@@ -12,6 +13,7 @@ struct LoggingInitializer::Impl
 {
 	plog::RollingFileAppender<plog::TxtFormatter> rollingFileAppender;
 	LogAppender logAppender;
+	QtLogHandler qtLogHandler;
 
 	Impl(const std::filesystem::path & path)
 		: rollingFileAppender(path.string().data(), 1000000, 1000)
