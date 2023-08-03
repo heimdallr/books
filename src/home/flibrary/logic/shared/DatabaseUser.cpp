@@ -3,6 +3,8 @@
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
 
+#include <plog/Log.h>
+
 #include "database/DatabaseController.h"
 #include "inpx/src/util/types.h"
 #include "util/executor/factory.h"
@@ -57,9 +59,13 @@ DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
 )
 	: m_impl(*logicFactory, std::move(databaseController))
 {
+	PLOGD << "DatabaseUser created";
 }
 
-DatabaseUser::~DatabaseUser() = default;
+DatabaseUser::~DatabaseUser()
+{
+	PLOGD << "DatabaseUser destroyed";
+}
 
 std::unique_ptr<QTimer> DatabaseUser::CreateTimer(std::function<void()> f)
 {

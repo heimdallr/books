@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <plog/Log.h>
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 
@@ -76,7 +78,6 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 };
 
 constexpr int BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
-constexpr int BOOKS_QUERY_INDEX_AUTHOR[] { BookQueryFields::AuthorId };
 constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle };
 
 DataItem::Ptr CreateBooksRoot()
@@ -373,9 +374,13 @@ BooksTreeGenerator::BooksTreeGenerator(DB::IDatabase & db
 )
 	: m_impl(db, navigationMode, std::move(navigationId), description)
 {
+	PLOGD << "BooksTreeGenerator created";
 }
 
-BooksTreeGenerator::~BooksTreeGenerator() = default;
+BooksTreeGenerator::~BooksTreeGenerator()
+{
+	PLOGD << "BooksTreeGenerator destroyed";
+}
 
 NavigationMode BooksTreeGenerator::GetNavigationMode() const noexcept
 {

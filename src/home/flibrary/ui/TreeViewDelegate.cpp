@@ -3,6 +3,8 @@
 #include <QAbstractScrollArea>
 #include <QPainter>
 
+#include <plog/Log.h>
+
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ValueGuard.h"
@@ -52,6 +54,12 @@ TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<class IUiFact
 	, m_view(uiFactory->GetAbstractScrollArea())
 	, m_textDelegate(&PassThruDelegate)
 {
+	PLOGD << "TreeViewDelegateBooks created";
+}
+
+TreeViewDelegateBooks::~TreeViewDelegateBooks()
+{
+	PLOGD << "TreeViewDelegateBooks destroyed";
 }
 
 void TreeViewDelegateBooks::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const

@@ -1,6 +1,7 @@
 #include "ModelProvider.h"
 
 #include <Hypodermic/Container.h>
+#include <plog/Log.h>
 
 #include "model/FilteredProxyModel.h"
 #include "model/IModelObserver.h"
@@ -36,9 +37,13 @@ struct ModelProvider::Impl
 ModelProvider::ModelProvider(Hypodermic::Container & container)
 	: m_impl(container)
 {
+	PLOGD << "ModelProvider created";
 }
 
-ModelProvider::~ModelProvider() = default;
+ModelProvider::~ModelProvider()
+{
+	PLOGD << "ModelProvider destroyed";
+}
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(DataItem::Ptr data, IModelObserver & observer) const
 {

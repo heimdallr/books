@@ -90,9 +90,13 @@ private:
 DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> collectionController)
 	: m_impl(std::move(collectionController))
 {
+	PLOGD << "DatabaseController created";
 }
 
-DatabaseController::~DatabaseController() = default;
+DatabaseController::~DatabaseController()
+{
+	PLOGD << "DatabaseController destroyed";
+}
 
 std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
 {

@@ -41,7 +41,7 @@ public:
 private:
 	void ExtractInfo() const
 	{
-		m_databaseUser->Execute({ "Get book info", [&, id = m_currentBookId.toLongLong()]
+		m_databaseUser->Execute({ "Get database book info", [&, id = m_currentBookId.toLongLong()]
 		{
 			const auto db = m_databaseUser->Database();
 			return [&, book = CreateBook(*db, id)] (size_t) mutable
@@ -54,7 +54,23 @@ private:
 
 	void ExtractInfo(DataItem::Ptr book) const
 	{
-		m_databaseUser->Execute({ "Get book info", [&, book] () mutable
+		ExtractArchiveInfo(book);
+		ExtractDatabaseInfo(std::move(book));
+	}
+
+	void ExtractArchiveInfo(DataItem::Ptr book) const
+	{
+		(*m_executor)({ "Get archive book info", [&, book = std::move(book)] () mutable
+		{
+			return [&, book = std::move(book)] (size_t) mutable
+			{
+			};
+		} });
+	}
+
+	void ExtractDatabaseInfo(DataItem::Ptr book) const
+	{
+		m_databaseUser->Execute({ "Get database book additional info", [&, book = std::move(book)] () mutable
 		{
 			const auto db = m_databaseUser->Database();
 			const auto bookId = book->GetId().toLongLong();
@@ -64,10 +80,8 @@ private:
 			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			return [&, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres)] (size_t) mutable
 			{
-//				if (book->GetId() == m_currentBookId)
-//					ExtractInfo(std::move(book));
-				};
-			} }, 3);
+			};
+		} }, 3);
 	}
 
 	static DataItem::Ptr CreateBook(DB::IDatabase & db, const long long id)

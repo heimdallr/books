@@ -13,6 +13,7 @@ public:
 
 public:
 	explicit TreeViewDelegateBooks(const std::shared_ptr<class IUiFactory> & uiFactory, QObject * parent = nullptr);
+	~TreeViewDelegateBooks() override;
 
 private: // QStyledItemDelegate
 	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
