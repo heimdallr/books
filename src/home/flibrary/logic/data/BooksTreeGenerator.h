@@ -15,27 +15,27 @@ namespace HomeCompa::Flibrary {
 class IBooksTreeCreator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Creator = DataItem::Ptr(IBooksTreeCreator::*)() const;
+	using Creator = IDataItem::Ptr(IBooksTreeCreator::*)() const;
 
 public:
 	virtual ~IBooksTreeCreator() = default;
-	[[nodiscard]] virtual DataItem::Ptr CreateAuthorsTree() const = 0;
-	[[nodiscard]] virtual DataItem::Ptr CreateSeriesTree() const = 0;
-	[[nodiscard]] virtual DataItem::Ptr CreateGeneralTree() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr CreateAuthorsTree() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr CreateSeriesTree() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralTree() const = 0;
 };
 
 class IBooksRootGenerator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Generator = DataItem::Ptr(IBooksRootGenerator::*)(IBooksTreeCreator::Creator) const;
+	using Generator = IDataItem::Ptr(IBooksRootGenerator::*)(IBooksTreeCreator::Creator) const;
 
 public:
 	virtual ~IBooksRootGenerator() = default;
-	virtual DataItem::Ptr GetList(IBooksTreeCreator::Creator creator) const = 0;
-	virtual DataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
+	virtual IDataItem::Ptr GetList(IBooksTreeCreator::Creator creator) const = 0;
+	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
-using QueryDataExtractor = DataItem::Ptr(*)(const DB::IQuery & query, const int * index);
+using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
 
 struct QueryInfo
 {
@@ -88,17 +88,17 @@ public:
 	NavigationMode GetNavigationMode() const noexcept;
 	const QString & GetNavigationId() const noexcept;
 	enum class ViewMode GetBooksViewMode() const noexcept;
-	DataItem::Ptr GetCached() const noexcept;
+	IDataItem::Ptr GetCached() const noexcept;
 	void SetBooksViewMode(ViewMode viewMode) noexcept;
 
 private: // IBooksRootGenerator
-	[[nodiscard]] DataItem::Ptr GetList(Creator creator) const override;
-	[[nodiscard]] DataItem::Ptr GetTree(Creator creator) const override;
+	[[nodiscard]] IDataItem::Ptr GetList(Creator creator) const override;
+	[[nodiscard]] IDataItem::Ptr GetTree(Creator creator) const override;
 
 private: // IBooksTreeCreator
-	[[nodiscard]] DataItem::Ptr CreateAuthorsTree() const override;
-	[[nodiscard]] DataItem::Ptr CreateSeriesTree () const override;
-	[[nodiscard]] DataItem::Ptr CreateGeneralTree() const override;
+	[[nodiscard]] IDataItem::Ptr CreateAuthorsTree() const override;
+	[[nodiscard]] IDataItem::Ptr CreateSeriesTree () const override;
+	[[nodiscard]] IDataItem::Ptr CreateGeneralTree() const override;
 
 private:
 	class Impl;

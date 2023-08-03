@@ -1,84 +1,52 @@
 ﻿#pragma once
 
 #include <vector>
+#include <QString>
 
-#include <QVariant>
-
-#include "fnd/NonCopyMovable.h"
+#include "interface/logic/IDataItem.h"
 
 #include "logicLib.h"
 
 namespace HomeCompa::Flibrary {
-enum class ItemType;
-
-#define DATA_ITEMS_X_MACRO \
-DATA_ITEM(NavigationItem)  \
-DATA_ITEM(AuthorItem)      \
-DATA_ITEM(BookItem)
-
-#define DATA_ITEM(NAME) struct NAME;
-DATA_ITEMS_X_MACRO
-#undef DATA_ITEM
-
-class DataItem  // NOLINT(cppcoreguidelines-special-member-functions)
+class DataItem : public IDataItem
 {
-	NON_COPY_MOVABLE(DataItem)
-
 protected:
-	explicit DataItem(size_t columnCount, const DataItem * parent = nullptr);
+	explicit DataItem(size_t columnCount, const IDataItem * parent = nullptr);
 
-public:
-	virtual ~DataItem();
-	using Ptr = std::shared_ptr<DataItem>;
-	using Items = std::vector<Ptr>;
+private: // IDataItem
+	[[nodiscard]] const IDataItem * GetParent() const noexcept override;
+	Ptr & AppendChild(Ptr child) override;
+	void SetChildren(Items children) noexcept override;
+	[[nodiscard]] const IDataItem * GetChild(size_t row) const noexcept override;
+	[[nodiscard]] size_t GetChildCount() const noexcept override;
+	[[nodiscard]] size_t GetRow() const noexcept override;
+	[[nodiscard]] const QString & GetId() const noexcept override;
+	[[nodiscard]] const QString & GetData(int column = 0) const noexcept override;
+	[[nodiscard]] const QString & GetRawData(int column = 0) const noexcept override;
 
-public:
-	[[nodiscard]] const DataItem * GetParent() const noexcept;
-	Ptr & AppendChild(Ptr child);
-	void SetChildren(Items children) noexcept;
-	[[nodiscard]] const DataItem * GetChild(size_t row) const noexcept;
-	[[nodiscard]] size_t GetChildCount() const noexcept;
-	[[nodiscard]] size_t GetRow() const noexcept;
-	[[nodiscard]] const QString & GetId() const noexcept;
-	[[nodiscard]] const QString & GetData(int column = 0) const noexcept;
-	[[nodiscard]] const QString & GetRawData(int column = 0) const noexcept;
+	[[nodiscard]] bool IsRemoved() const noexcept override;
+	[[nodiscard]] int RemapColumn(int column) const noexcept override;
+	[[nodiscard]] int GetColumnCount() const noexcept override;
 
-	[[nodiscard]] virtual bool IsRemoved() const noexcept;
-	[[nodiscard]] virtual int RemapColumn(int column) const noexcept;
-	[[nodiscard]] virtual int GetColumnCount() const noexcept;
+	IDataItem & SetId(QString id) noexcept override;
+	IDataItem & SetData(QString value, int column = 0) noexcept override;
 
-	DataItem & SetId(QString id) noexcept;
-	DataItem & SetData(QString value, int column = 0) noexcept;
+	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
+	void SetCheckState(Qt::CheckState state) noexcept override;
 
-	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
-	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept;
-	virtual void SetCheckState(Qt::CheckState state) noexcept;
-
-public:
-	template<typename T>
-	T * To() noexcept = delete;
-	template<typename T>
-	const T * To() const noexcept { return const_cast<DataItem *>(this)->To<T>(); }
-
-#define DATA_ITEM(NAME) template<> NAME* To<>() noexcept { return To##NAME(); }  // NOLINT(bugprone-macro-parentheses)
-	DATA_ITEMS_X_MACRO
-#undef DATA_ITEM
-
-private:
-#define DATA_ITEM(NAME) [[nodiscard]] virtual NAME* To##NAME() noexcept { return nullptr; }  // NOLINT(bugprone-macro-parentheses)
-	DATA_ITEMS_X_MACRO
-#undef DATA_ITEM
+	DataItem * ToDataItem() noexcept override;
 
 protected:
 	size_t m_row { 0 };
-	const DataItem * m_parent { nullptr };
+	const IDataItem * m_parent { nullptr };
 	Items m_children;
 	QString m_id;
 	std::vector<QString> m_data;
 };
 
-struct NavigationItem final : DataItem
+class NavigationItem final : public DataItem
 {
+public:
 	struct Column
 	{
 		enum Value
@@ -87,17 +55,18 @@ struct NavigationItem final : DataItem
 			Last
 		};
 	};
-	explicit NavigationItem(const DataItem * parent = nullptr);
 
-	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
+	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
+	explicit NavigationItem(const IDataItem * parent);
 
 private: // DataItem
 	NavigationItem * ToNavigationItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-struct AuthorItem final : DataItem
+class AuthorItem final : public DataItem
 {
+public:
 	struct Column
 	{
 		enum Value
@@ -109,16 +78,15 @@ struct AuthorItem final : DataItem
 		};
 	};
 
-	explicit AuthorItem(const DataItem * parent = nullptr);
-
-	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
+	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
+	explicit AuthorItem(const IDataItem * parent);
 
 private: // DataItem
 	AuthorItem * ToAuthorItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-struct LOGIC_API BookItem final : DataItem
+class LOGIC_API BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 BOOKS_COLUMN_ITEM(Author)          \
@@ -133,6 +101,7 @@ BOOKS_COLUMN_ITEM(LibRate)         \
 BOOKS_COLUMN_ITEM(UpdateDate)      \
 BOOKS_COLUMN_ITEM(Lang)
 
+public:
 	struct Column
 	{
 		enum Value
@@ -174,9 +143,10 @@ BOOKS_COLUMN_ITEM(Lang)
 	bool removed { false };
 	static const Mapping * mapping;
 
-	explicit BookItem(const DataItem * parent = nullptr);
-	static std::shared_ptr<DataItem> Create(const DataItem * parent = nullptr);
+	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
 	static int Remap(int column) noexcept;
+
+	explicit BookItem(const IDataItem * parent = nullptr);
 
 private: // DataItem
 	[[nodiscard]] bool IsRemoved() const noexcept override;

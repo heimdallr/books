@@ -19,7 +19,6 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "logic/data/DataItem.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa;

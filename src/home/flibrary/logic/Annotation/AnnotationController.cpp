@@ -5,8 +5,10 @@
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
-#include "ArchiveParser.h"
 #include "database/interface/IQuery.h"
+
+#include "ArchiveParser.h"
+#include "data/DataItem.h"
 #include "shared/DatabaseUser.h"
 
 using namespace HomeCompa;
@@ -14,7 +16,7 @@ using namespace Flibrary;
 
 namespace {
 
-using Extractor = DataItem::Ptr(*)(const DB::IQuery & query, const int * index);
+using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
 constexpr int QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
@@ -72,7 +74,7 @@ private:
 		} }, 3);
 	}
 
-	void ExtractInfo(DataItem::Ptr book)
+	void ExtractInfo(IDataItem::Ptr book)
 	{
 		m_ready = Ready::None;
 
@@ -80,7 +82,7 @@ private:
 		ExtractDatabaseInfo(std::move(book));
 	}
 
-	void ExtractArchiveInfo(DataItem::Ptr book)
+	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
 		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]
 		{
@@ -97,7 +99,7 @@ private:
 		} });
 	}
 
-	void ExtractDatabaseInfo(DataItem::Ptr book)
+	void ExtractDatabaseInfo(IDataItem::Ptr book)
 	{
 		m_databaseUser->Execute({ "Get database book additional info", [&, book = std::move(book)] () mutable
 		{
@@ -124,7 +126,7 @@ private:
 		} }, 3);
 	}
 
-	static DataItem::Ptr CreateBook(DB::IDatabase & db, const long long id)
+	static IDataItem::Ptr CreateBook(DB::IDatabase & db, const long long id)
 	{
 		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
 		query->Bind(":id", id);
@@ -133,15 +135,15 @@ private:
 		return DatabaseUser::CreateBookItem(*query);
 	}
 
-	static DataItem::Ptr CreateSeries(DB::IDatabase & db, const long long id)
+	static IDataItem::Ptr CreateSeries(DB::IDatabase & db, const long long id)
 	{
 		const auto query = db.CreateQuery(SERIES_QUERY);
 		query->Bind(":id", id);
 		query->Execute();
-		return query->Eof() ? DataItem::Ptr {} : DatabaseUser::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
+		return query->Eof() ? IDataItem::Ptr {} : DatabaseUser::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
 	}
 
-	static DataItem::Ptr CreateDictionary(DB::IDatabase & db, const char * queryText, const long long id, const Extractor extractor)
+	static IDataItem::Ptr CreateDictionary(DB::IDatabase & db, const char * queryText, const long long id, const Extractor extractor)
 	{
 		auto root = NavigationItem::Create();
 		const auto query = db.CreateQuery(queryText);
@@ -163,11 +165,11 @@ private:
 
 	ArchiveParser::Data m_archiveData;
 
-	DataItem::Ptr m_book;
-	DataItem::Ptr m_series;
-	DataItem::Ptr m_authors;
-	DataItem::Ptr m_genres;
-	DataItem::Ptr m_groups;
+	IDataItem::Ptr m_book;
+	IDataItem::Ptr m_series;
+	IDataItem::Ptr m_authors;
+	IDataItem::Ptr m_genres;
+	IDataItem::Ptr m_groups;
 };
 
 AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory

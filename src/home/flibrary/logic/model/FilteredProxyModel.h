@@ -5,7 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "data/DataItem.h"
+#include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary {
 

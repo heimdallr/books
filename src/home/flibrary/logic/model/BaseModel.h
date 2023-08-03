@@ -4,7 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "data/DataItem.h"
+#include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -23,7 +23,7 @@ protected: // QAbstractItemModel
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
 
 protected:
-	DataItem::Ptr m_data;
+	IDataItem::Ptr m_data;
 	bool m_checkable { false };
 };
 

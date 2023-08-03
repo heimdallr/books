@@ -15,23 +15,22 @@ constexpr BookItem::Mapping FULL { BookItem::ALL };
 
 }
 
-DataItem::DataItem(const size_t columnCount, const DataItem * parent)
+DataItem::DataItem(const size_t columnCount, const IDataItem * parent)
 	: m_parent(parent)
 	, m_data(columnCount)
 {
 }
 
-DataItem::~DataItem() = default;
-
-const DataItem * DataItem::GetParent() const noexcept
+const IDataItem * DataItem::GetParent() const noexcept
 {
 	return m_parent;
 }
 
-DataItem::Ptr & DataItem::AppendChild(Ptr child)
+IDataItem::Ptr & DataItem::AppendChild(Ptr child)
 {
-	child->m_parent = this;
-	child->m_row = GetChildCount();
+	auto * typed = child->To<DataItem>();
+	typed->m_parent = this;
+	typed->m_row = GetChildCount();
 	return m_children.emplace_back(std::move(child));
 }
 
@@ -39,10 +38,10 @@ void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 {
 	m_children = std::move(children);
 	for (const auto & child : m_children)
-		child->m_parent = this;
+		child->To<DataItem>()->m_parent = this;
 }
 
-const DataItem * DataItem::GetChild(const size_t row) const noexcept
+const IDataItem * DataItem::GetChild(const size_t row) const noexcept
 {
 	return row < GetChildCount() ? m_children[row].get() : nullptr;
 }
@@ -87,13 +86,13 @@ const QString & DataItem::GetId() const noexcept
 	return m_id;
 }
 
-DataItem & DataItem::SetId(QString id) noexcept
+IDataItem & DataItem::SetId(QString id) noexcept
 {
 	m_id = std::move(id);
 	return *this;
 }
 
-DataItem & DataItem::SetData(QString value, const int column) noexcept
+IDataItem & DataItem::SetData(QString value, const int column) noexcept
 {
 	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));
 	m_data[column] = std::move(value);
@@ -128,12 +127,17 @@ void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept
 {
 }
 
-NavigationItem::NavigationItem(const DataItem * parent)
+DataItem * DataItem::ToDataItem() noexcept
+{
+	return this;
+}
+
+NavigationItem::NavigationItem(const IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<DataItem> NavigationItem::Create(const DataItem * parent)
+std::shared_ptr<IDataItem> NavigationItem::Create(const IDataItem * parent)
 {
 	return std::make_shared<NavigationItem>(parent);
 }
@@ -148,12 +152,12 @@ ItemType NavigationItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-AuthorItem::AuthorItem(const DataItem * parent)
+AuthorItem::AuthorItem(const IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<DataItem> AuthorItem::Create(const DataItem * parent)
+std::shared_ptr<IDataItem> AuthorItem::Create(const IDataItem * parent)
 {
 	return std::make_shared<AuthorItem>(parent);
 }
@@ -170,12 +174,12 @@ ItemType AuthorItem::GetType() const noexcept
 
 const BookItem::Mapping * BookItem::mapping = &FULL;
 
-BookItem::BookItem(const DataItem * parent)
+BookItem::BookItem(const IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<DataItem> BookItem::Create(const DataItem * parent)
+std::shared_ptr<IDataItem> BookItem::Create(const IDataItem * parent)
 {
 	return std::make_shared<BookItem>(parent);
 }

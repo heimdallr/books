@@ -2,8 +2,6 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "data/DataItem.h"
-
 #include "BaseModel.h"
 
 namespace HomeCompa::Flibrary {

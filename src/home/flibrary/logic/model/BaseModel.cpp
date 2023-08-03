@@ -2,9 +2,9 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IDataItem.h"
 
 #include "data/AbstractModelProvider.h"
-#include "data/DataItem.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -29,7 +29,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	if (!index.isValid())
 		return {};
 
-	const auto * item = static_cast<DataItem *>(index.internalPointer());
+	const auto * item = static_cast<IDataItem *>(index.internalPointer());
 	switch (role)
 	{
 		case Qt::DisplayRole:
@@ -62,7 +62,7 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 {
 	if (index.isValid())
 	{
-		auto * item = static_cast<DataItem *>(index.internalPointer());
+		auto * item = static_cast<IDataItem *>(index.internalPointer());
 		switch (role)
 		{
 			case Role::CheckState:

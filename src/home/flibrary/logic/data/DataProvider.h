@@ -5,7 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "DataItem.h"
+#include "interface/logic/IDataItem.h"
 
 class QString;
 
@@ -16,7 +16,7 @@ class DataProvider
 	NON_COPY_MOVABLE(DataProvider)
 
 public:
-	using Callback = std::function<void(DataItem::Ptr)>;
+	using Callback = std::function<void(IDataItem::Ptr)>;
 
 public:
 	explicit DataProvider(std::shared_ptr<class DatabaseUser> databaseUser);

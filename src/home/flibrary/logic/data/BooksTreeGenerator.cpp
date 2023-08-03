@@ -40,7 +40,7 @@ constexpr auto BOOKS_QUERY =
 	"%3"
 	;
 
-auto ToAuthorItemComparable(const DataItem::Ptr & author)
+auto ToAuthorItemComparable(const IDataItem::Ptr & author)
 {
 	return std::make_tuple(
 		  QStringWrapper { author->GetData(AuthorItem::Column::LastName) }
@@ -51,7 +51,7 @@ auto ToAuthorItemComparable(const DataItem::Ptr & author)
 
 struct AuthorComparator
 {
-	bool operator()(const DataItem::Ptr & lhs, const DataItem::Ptr & rhs) const
+	bool operator()(const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs) const
 	{
 		return ToAuthorItemComparable(lhs) < ToAuthorItemComparable(rhs);
 	}
@@ -80,9 +80,9 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 constexpr int BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
 constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle };
 
-DataItem::Ptr CreateBooksRoot()
+IDataItem::Ptr CreateBooksRoot()
 {
-	DataItem::Ptr root(BookItem::Create());
+	IDataItem::Ptr root(BookItem::Create());
 	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&, n = 0] (const auto * columnName) mutable
 	{
 		root->SetData(columnName, n++);
@@ -90,7 +90,7 @@ DataItem::Ptr CreateBooksRoot()
 	return root;
 }
 
-QString GetAuthorShortName(const DataItem::Ptr & item)
+QString GetAuthorShortName(const IDataItem::Ptr & item)
 {
 	QString last = item->GetData(AuthorItem::Column::LastName);
 	QString first = item->GetData(AuthorItem::Column::FirstName);
@@ -126,10 +126,10 @@ QString GetAuthorShortName(const DataItem::Ptr & item)
 }
 
 template<typename KeyType, typename BindType = KeyType>
-std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, DataItem::Ptr> & dictionary
+std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, IDataItem::Ptr> & dictionary
 	, const DB::IQuery & query
 	, const QueryInfo & queryInfo
-	, const std::function<bool(const DataItem &)> & filter = [] (const DataItem &)
+	, const std::function<bool(const IDataItem &)> & filter = [] (const IDataItem &)
 {
 	return true;
 }
@@ -152,13 +152,13 @@ void Add(std::unordered_set<KeyType> & set, std::optional<KeyType> key)
 }
 
 template <typename T>
-QString Join(const std::unordered_map<T, DataItem::Ptr> & dictionary
+QString Join(const std::unordered_map<T, IDataItem::Ptr> & dictionary
 	, const std::unordered_set<T> & keyIds
-	, const std::function<QString(const DataItem::Ptr &)> & toString
-	, const std::function<bool(const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)> & comparator
+	, const std::function<QString(const IDataItem::Ptr &)> & toString
+	, const std::function<bool(const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)> & comparator
 )
 {
-	DataItem::Items values;
+	IDataItem::Items values;
 	values.reserve(std::size(keyIds));
 	std::ranges::transform(keyIds, std::back_inserter(values), [&] (const T & id)
 	{
@@ -176,7 +176,7 @@ QString Join(const std::unordered_map<T, DataItem::Ptr> & dictionary
 	return result;
 }
 
-QString GetTitle(const DataItem::Ptr & item)
+QString GetTitle(const IDataItem::Ptr & item)
 {
 	return item->GetData();
 }
@@ -186,7 +186,7 @@ QString GetTitle(const DataItem::Ptr & item)
 class BooksTreeGenerator::Impl
 {
 public:
-	mutable DataItem::Ptr rootCached;
+	mutable IDataItem::Ptr rootCached;
 	const NavigationMode navigationMode;
 	const QString navigationId;
 	ViewMode viewMode { ViewMode::Unknown };
@@ -205,12 +205,12 @@ public:
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto & book = m_books[query->Get<long long>(BookQueryFields::BookId)];
-			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const DataItem & item)
+			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const IDataItem & item)
 			{
 				return item.GetId() != "-1";
 			});
 			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUser::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
-			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const DataItem & item)
+			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const IDataItem & item)
 			{
 				return !(item.GetData().isEmpty() || item.GetData()[0].isDigit());
 			}));
@@ -219,7 +219,7 @@ public:
 				std::get<0>(book) = DatabaseUser::CreateBookItem(*query);
 		}
 
-		const auto genresComparator = [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
+		const auto genresComparator = [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 		{
 			return QStringWrapper { lhs->GetId() } < QStringWrapper { rhs->GetId() };
 		};
@@ -231,9 +231,9 @@ public:
 		}
 	}
 
-	[[nodiscard]] DataItem::Ptr GetList() const
+	[[nodiscard]] IDataItem::Ptr GetList() const
 	{
-		DataItem::Items items;
+		IDataItem::Items items;
 		items.reserve(std::size(m_books));
 		std::ranges::transform(m_books | std::views::values, std::back_inserter(items), [] (const auto & item)
 		{
@@ -245,7 +245,7 @@ public:
 		return rootCached;
 	}
 
-	[[nodiscard]] DataItem::Ptr CreateAuthorsTree() const
+	[[nodiscard]] IDataItem::Ptr CreateAuthorsTree() const
 	{
 		rootCached = CreateBooksRoot();
 
@@ -268,7 +268,7 @@ public:
 		return rootCached;
 	}
 
-	[[nodiscard]] DataItem::Ptr CreateSeriesTree() const
+	[[nodiscard]] IDataItem::Ptr CreateSeriesTree() const
 	{
 		std::unordered_map<IdsSet, IdsSet, UnorderedSetHash<long long>> authorToBooks;
 		for (const auto & [id, book] : m_books)
@@ -285,7 +285,7 @@ public:
 		return rootCached;
 	}
 
-	[[nodiscard]] DataItem::Ptr CreateGeneralTree() const
+	[[nodiscard]] IDataItem::Ptr CreateGeneralTree() const
 	{
 		using SeriesToBooks = std::unordered_map<long long, IdsSet>;
 		std::unordered_map<IdsSet, std::pair<SeriesToBooks, IdsSet>, UnorderedSetHash<long long>> authorToBooks;
@@ -323,9 +323,9 @@ public:
 	}
 
 private:
-	DataItem::Items CreateBookItems(const IdsSet & idsSet) const
+	IDataItem::Items CreateBookItems(const IdsSet & idsSet) const
 	{
-		DataItem::Items books;
+		IDataItem::Items books;
 		std::ranges::transform(idsSet, std::back_inserter(books), [&] (const long long id)
 		{
 			const auto it = m_books.find(id);
@@ -335,9 +335,9 @@ private:
 		return books;
 	}
 
-	DataItem::Ptr CreateAuthorsNode(const IdsSet & idsSet) const
+	IDataItem::Ptr CreateAuthorsNode(const IdsSet & idsSet) const
 	{
-		DataItem::Items authors;
+		IDataItem::Items authors;
 		std::ranges::transform(idsSet, std::back_inserter(authors), [&] (const long long id)
 		{
 			const auto it = m_authors.find(id);
@@ -361,10 +361,10 @@ private:
 	}
 
 private:
-	std::unordered_map<long long, std::tuple<DataItem::Ptr, std::optional<long long>, IdsSet, std::unordered_set<QString>>> m_books;
-	std::unordered_map<long long, DataItem::Ptr> m_series;
-	std::unordered_map<long long, DataItem::Ptr> m_authors;
-	std::unordered_map<QString, DataItem::Ptr> m_genres;
+	std::unordered_map<long long, std::tuple<IDataItem::Ptr, std::optional<long long>, IdsSet, std::unordered_set<QString>>> m_books;
+	std::unordered_map<long long, IDataItem::Ptr> m_series;
+	std::unordered_map<long long, IDataItem::Ptr> m_authors;
+	std::unordered_map<QString, IDataItem::Ptr> m_genres;
 };
 
 BooksTreeGenerator::BooksTreeGenerator(DB::IDatabase & db
@@ -397,7 +397,7 @@ ViewMode BooksTreeGenerator::GetBooksViewMode() const noexcept
 	return m_impl->viewMode;
 }
 
-DataItem::Ptr BooksTreeGenerator::GetCached() const noexcept
+IDataItem::Ptr BooksTreeGenerator::GetCached() const noexcept
 {
 	return m_impl->rootCached;
 }
@@ -408,28 +408,28 @@ void BooksTreeGenerator::SetBooksViewMode(const ViewMode viewMode) noexcept
 }
 
 // IBooksRootGenerator
-[[nodiscard]] DataItem::Ptr BooksTreeGenerator::GetList(Creator) const
+[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::GetList(Creator) const
 {
 	return m_impl->GetList();
 }
 
-[[nodiscard]] DataItem::Ptr BooksTreeGenerator::GetTree(const Creator creator) const
+[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::GetTree(const Creator creator) const
 {
 	return ((*this).*creator)();
 }
 
 // IBooksTreeCreator
-[[nodiscard]] DataItem::Ptr BooksTreeGenerator::CreateAuthorsTree() const
+[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateAuthorsTree() const
 {
 	return m_impl->CreateAuthorsTree();
 }
 
-[[nodiscard]] DataItem::Ptr BooksTreeGenerator::CreateSeriesTree() const
+[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateSeriesTree() const
 {
 	return m_impl->CreateSeriesTree();
 }
 
-[[nodiscard]] DataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const
+[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const
 {
 	return m_impl->CreateGeneralTree();
 }

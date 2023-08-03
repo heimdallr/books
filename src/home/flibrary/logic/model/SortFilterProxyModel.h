@@ -5,8 +5,6 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "data/DataItem.h"
-
 namespace HomeCompa::Flibrary {
 
 class AbstractSortFilterProxyModel : public QSortFilterProxyModel

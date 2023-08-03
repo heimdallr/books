@@ -1,5 +1,8 @@
 #include "ModelProvider.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <QString> // for plog
+
 #include <Hypodermic/Container.h>
 #include <plog/Log.h>
 
@@ -14,7 +17,7 @@ using namespace HomeCompa::Flibrary;
 struct ModelProvider::Impl
 {
 	Hypodermic::Container & container;
-	mutable DataItem::Ptr data { std::shared_ptr<DataItem>() };
+	mutable IDataItem::Ptr data;
 	mutable IModelObserver * observer { nullptr };
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
 
@@ -24,7 +27,7 @@ struct ModelProvider::Impl
 	}
 
 	template <typename T>
-	std::shared_ptr<QAbstractItemModel> CreateModel(DataItem::Ptr d, IModelObserver & o) const
+	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver & o) const
 	{
 		data = std::move(d);
 		observer = &o;
@@ -45,17 +48,17 @@ ModelProvider::~ModelProvider()
 	PLOGD << "ModelProvider destroyed";
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(DataItem::Ptr data, IModelObserver & observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver & observer) const
 {
 	return m_impl->CreateModel<ListModel>(std::move(data), observer);
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(DataItem::Ptr data, IModelObserver & observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver & observer) const
 {
 	return m_impl->CreateModel<TreeModel>(std::move(data), observer);
 }
 
-DataItem::Ptr ModelProvider::GetData() const noexcept
+IDataItem::Ptr ModelProvider::GetData() const noexcept
 {
 	assert(m_impl->data);
 	return std::move(m_impl->data);

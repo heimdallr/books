@@ -12,8 +12,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 
-#include "logic/data/DataItem.h"
-
 #include "Measure.h"
 #include "interface/ui/IUiFactory.h"
 

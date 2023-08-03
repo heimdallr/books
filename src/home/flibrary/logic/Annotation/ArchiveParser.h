@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <QString>
 
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "data/DataItem.h"
+#include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -20,7 +21,7 @@ public:
 		std::vector<QString> keywords;
 		std::vector<QString> covers;
 		int coverIndex { -1 };
-		DataItem::Ptr content;
+		IDataItem::Ptr content;
 	};
 
 public:
@@ -28,7 +29,7 @@ public:
 	~ArchiveParser();
 
 public:
-	[[nodiscard]] Data Parse(const DataItem & dataItem) const;
+	[[nodiscard]] Data Parse(const IDataItem & dataItem) const;
 
 private:
 	class Impl;

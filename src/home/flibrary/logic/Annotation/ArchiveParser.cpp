@@ -7,6 +7,8 @@
 #include "fnd/FindPair.h"
 #include "interface/logic/ICollectionController.h"
 
+#include "data/DataItem.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace {
@@ -175,7 +177,7 @@ public:
 	{
 	}
 
-	[[nodiscard]] Data Parse(const DataItem & book) const
+	[[nodiscard]] Data Parse(const IDataItem & book) const
 	{
 		const auto folder = QString("%1/%2").arg(m_collectionController->GetActiveCollection().folder, book.GetRawData(BookItem::Column::Folder));
 		QuaZip zip(folder);
@@ -204,7 +206,7 @@ ArchiveParser::~ArchiveParser()
 	PLOGD << "AnnotationParser destroyed";
 }
 
-ArchiveParser::Data  ArchiveParser::Parse(const DataItem & dataItem) const
+ArchiveParser::Data  ArchiveParser::Parse(const IDataItem & dataItem) const
 {
 	return m_impl->Parse(dataItem);
 }

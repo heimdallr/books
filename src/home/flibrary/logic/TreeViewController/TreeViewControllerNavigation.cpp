@@ -2,11 +2,12 @@
 
 #include <qglobal.h>
 #include <QTimer>
+#include <QVariant>
+
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
-#include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "interface/constants/Enums.h"
@@ -18,7 +19,7 @@ namespace {
 
 constexpr auto CONTEXT = "Navigation";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider::*)(DataItem::Ptr, IModelObserver &) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 
 struct ModeDescriptor
 {
@@ -65,7 +66,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 {
 	Setup();
 
-	m_dataProvider->SetNavigationRequestCallback([&] (DataItem::Ptr data)
+	m_dataProvider->SetNavigationRequestCallback([&] (IDataItem::Ptr data)
 	{
 		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
 		auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));

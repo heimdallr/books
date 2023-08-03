@@ -3,6 +3,9 @@
 #include <stack>
 #include <unordered_map>
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <QString> // for plog
+
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -67,7 +70,7 @@ QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
 	return title;
 }
 
-DataItem::Ptr CreateAuthorItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr CreateAuthorItem(const DB::IQuery & query, const int * index)
 {
 	auto item = NavigationItem::Create();
 
@@ -204,7 +207,7 @@ private: // INavigationQueryExecutor
 	{
 		m_databaseUser->Execute({ "Get navigation", [&, mode = m_navigationMode] ()
 		{
-			std::unordered_map<QString, DataItem::Ptr> cache;
+			std::unordered_map<QString, IDataItem::Ptr> cache;
 
 			const auto db = m_databaseUser->Database();
 			const auto query = db->CreateQuery(queryDescription.query);
@@ -214,11 +217,11 @@ private: // INavigationQueryExecutor
 				cache.emplace(item->GetId(), item);
 			}
 
-			DataItem::Items items;
+			IDataItem::Items items;
 			items.reserve(std::size(cache));
 			std::ranges::copy(cache | std::views::values, std::back_inserter(items));
 
-			std::ranges::sort(items, [] (const DataItem::Ptr & lhs, const DataItem::Ptr & rhs)
+			std::ranges::sort(items, [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 			{
 				return QStringWrapper { lhs->GetData() } < QStringWrapper { rhs->GetData() };
 			});
@@ -237,10 +240,10 @@ private: // INavigationQueryExecutor
 	{
 		m_databaseUser->Execute({"Get navigation", [&, mode = m_navigationMode]
 		{
-			std::unordered_map<QString, DataItem::Ptr> cache;
+			std::unordered_map<QString, IDataItem::Ptr> cache;
 
 			auto root = NavigationItem::Create();
-			std::unordered_multimap<QString, DataItem::Ptr> items;
+			std::unordered_multimap<QString, IDataItem::Ptr> items;
 			cache.emplace("0", root);
 
 			const auto db = m_databaseUser->Database();
@@ -282,13 +285,13 @@ private: // INavigationQueryExecutor
 	}
 
 private:
-	void SendNavigationCallback(const NavigationMode mode, DataItem::Ptr root) const
+	void SendNavigationCallback(const NavigationMode mode, IDataItem::Ptr root) const
 	{
 		if (mode == m_navigationMode)
 			m_navigationRequestCallback(std::move(root));
 	}
 
-	void SendBooksCallback(const QString & id, DataItem::Ptr root, const BookItem::Mapping & columnMapping) const
+	void SendBooksCallback(const QString & id, IDataItem::Ptr root, const BookItem::Mapping & columnMapping) const
 	{
 		if (id != m_navigationId)
 			return;

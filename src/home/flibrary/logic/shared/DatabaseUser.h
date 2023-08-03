@@ -2,10 +2,10 @@
 
 #include <QTimer>
 
-#include "data/DataItem.h"
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/IDataItem.h"
 #include "interface/logic/ILogicFactory.h"
 
 #include "util/IExecutor.h"
@@ -33,9 +33,9 @@ public:
 
 public:
 	static std::unique_ptr<QTimer> CreateTimer(std::function<void()> f);
-	static DataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
-	static DataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * index);
-	static DataItem::Ptr CreateBookItem(const DB::IQuery & query);
+	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
+	static IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * index);
+	static IDataItem::Ptr CreateBookItem(const DB::IQuery & query);
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

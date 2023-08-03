@@ -5,6 +5,7 @@
 
 #include <plog/Log.h>
 
+#include "data/DataItem.h"
 #include "database/DatabaseController.h"
 #include "inpx/src/util/types.h"
 #include "util/executor/factory.h"
@@ -90,9 +91,9 @@ std::shared_ptr<DB::IDatabase> DatabaseUser::Database() const
 	return m_impl->databaseController->GetDatabase();
 }
 
-DataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const int * index)
 {
-	auto item = DataItem::Ptr(NavigationItem::Create());
+	auto item = IDataItem::Ptr(NavigationItem::Create());
 
 	item->SetId(query.Get<const char *>(index[0]));
 	item->SetData(query.Get<const char *>(index[1]));
@@ -100,7 +101,7 @@ DataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const
 	return item;
 }
 
-DataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const int * index)
 {
 	auto item = AuthorItem::Create();
 
@@ -111,7 +112,7 @@ DataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const
 	return item;
 }
 
-DataItem::Ptr DatabaseUser::CreateBookItem(const DB::IQuery & query)
+IDataItem::Ptr DatabaseUser::CreateBookItem(const DB::IQuery & query)
 {
 	auto item = BookItem::Create();
 

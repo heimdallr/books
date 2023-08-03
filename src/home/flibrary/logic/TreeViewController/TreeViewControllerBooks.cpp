@@ -1,11 +1,10 @@
 #include "TreeViewControllerBooks.h"
 
-#include <QString.h>
+#include <QVariant>
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
-#include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "interface/constants/Enums.h"
@@ -18,7 +17,7 @@ namespace {
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel>(AbstractModelProvider::*)(DataItem::Ptr, IModelObserver &) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel>(AbstractModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 
 struct ModeDescriptor
 {
@@ -68,7 +67,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 {
 	Setup();
 
-	m_dataProvider->SetBookRequestCallback([&] (DataItem::Ptr data)
+	m_dataProvider->SetBookRequestCallback([&] (IDataItem::Ptr data)
 	{
 		assert(m_impl->viewMode != ViewMode::Unknown);
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;

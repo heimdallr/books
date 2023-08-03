@@ -27,7 +27,7 @@ QModelIndex TreeModel::index(const int row, const int column, const QModelIndex 
 	if (!hasIndex(row, column, parent))
 		return {};
 
-	const auto * parentItem = parent.isValid() ? static_cast<DataItem *>(parent.internalPointer()) : m_data.get();
+	const auto * parentItem = parent.isValid() ? static_cast<IDataItem *>(parent.internalPointer()) : m_data.get();
 	const auto * childItem = parentItem->GetChild(row);
 
 	return childItem ? createIndex(row, column, childItem) : QModelIndex();
@@ -38,7 +38,7 @@ QModelIndex TreeModel::parent(const QModelIndex & index) const
 	if (!index.isValid())
 		return {};
 
-	const auto * childItem = static_cast<DataItem *>(index.internalPointer());
+	const auto * childItem = static_cast<IDataItem *>(index.internalPointer());
 	const auto * parentItem = childItem->GetParent();
 
 	return parentItem != m_data.get() ? createIndex(static_cast<int>(parentItem->GetRow()), 0, parentItem) : QModelIndex();
@@ -49,7 +49,7 @@ int TreeModel::rowCount(const QModelIndex & parent) const
 	if (parent.column() > 0)
 		return 0;
 
-	const auto * parentItem = parent.isValid() ? static_cast<DataItem *>(parent.internalPointer()) : m_data.get();
+	const auto * parentItem = parent.isValid() ? static_cast<IDataItem *>(parent.internalPointer()) : m_data.get();
 	return static_cast<int>(parentItem->GetChildCount());
 }
 
