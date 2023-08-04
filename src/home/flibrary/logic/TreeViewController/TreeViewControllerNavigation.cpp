@@ -87,18 +87,13 @@ std::vector<const char *> TreeViewControllerNavigation::GetModeNames() const
 	return GetModeNamesImpl(MODE_DESCRIPTORS);
 }
 
-void TreeViewControllerNavigation::SetModeIndex(const int index)
-{
-	SetMode(MODE_DESCRIPTORS[index].first);
-}
-
 void TreeViewControllerNavigation::SetCurrentId(QString id)
 {
 	assert(!id.isEmpty());
 	m_dataProvider->SetNavigationId(std::move(id));
 }
 
-void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
+void TreeViewControllerNavigation::OnModeChanged(const QString & mode)
 {
 	m_impl->mode = GetModeIndex(mode);
 	m_dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
@@ -108,9 +103,9 @@ void TreeViewControllerNavigation::OnModeChanged(const QVariant & mode)
 		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 }
 
-int TreeViewControllerNavigation::GetModeIndex(const QVariant & mode) const
+int TreeViewControllerNavigation::GetModeIndex(const QString & mode) const
 {
-	const auto strMode = mode.toString().toStdString();
+	const auto strMode = mode.toStdString();
 	const auto enumMode = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparer {}).navigationMode;
 	return static_cast<int>(enumMode);
 }

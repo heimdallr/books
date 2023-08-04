@@ -24,12 +24,11 @@ public:
 
 private: // ITreeViewController
 	[[nodiscard]] std::vector<const char *> GetModeNames() const override;
-	void SetModeIndex(int index) override;
 	void SetCurrentId(QString id) override;
 
 private: // AbstractTreeViewController
-	void OnModeChanged(const QVariant & mode) override;
-	[[nodiscard]] int GetModeIndex(const QVariant & mode) const override;
+	void OnModeChanged(const QString & mode) override;
+	[[nodiscard]] int GetModeIndex(const QString & mode) const override;
 	[[nodiscard]] ItemType GetItemType() const noexcept override;
 	[[nodiscard]] ViewMode GetViewMode() const noexcept override;
 

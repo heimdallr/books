@@ -10,7 +10,6 @@
 #include "interface/logic/ITreeViewController.h"
 
 class QString;
-class QVariant;
 
 namespace HomeCompa {
 class ISettings;
@@ -37,11 +36,10 @@ private: // ITreeViewController
 	[[nodiscard]] int GetModeIndex() const override;
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;
+	void SetMode(const QString & mode) override;
 
 protected:
 	void Setup();
-	void SetMode(const QString & mode);
-	void Stub(const QVariant &){}
 
 	template<typename Value, size_t ArraySize>
 	std::vector<const char *> GetModeNamesImpl(Value(&array)[ArraySize]) const
@@ -53,8 +51,8 @@ protected:
 	}
 
 protected:
-	virtual void OnModeChanged(const QVariant & mode) = 0;
-	[[nodiscard]] virtual int GetModeIndex(const QVariant & mode) const = 0;
+	virtual void OnModeChanged(const QString & mode) = 0;
+	[[nodiscard]] virtual int GetModeIndex(const QString & mode) const = 0;
 
 protected:
 	const char * const m_context;

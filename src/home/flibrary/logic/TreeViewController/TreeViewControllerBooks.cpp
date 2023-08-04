@@ -1,6 +1,6 @@
 #include "TreeViewControllerBooks.h"
 
-#include <QVariant>
+#include <QString>
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -88,26 +88,21 @@ std::vector<const char *> TreeViewControllerBooks::GetModeNames() const
 	return GetModeNamesImpl(MODE_NAMES);
 }
 
-void TreeViewControllerBooks::SetModeIndex(const int index)
-{
-	SetMode(MODE_NAMES[index].first);
-}
-
 void TreeViewControllerBooks::SetCurrentId(QString id)
 {
 	m_impl->annotationController->SetCurrentBookId(std::move(id));
 }
 
-void TreeViewControllerBooks::OnModeChanged(const QVariant & mode)
+void TreeViewControllerBooks::OnModeChanged(const QString & mode)
 {
-	m_impl->viewMode = GetViewModeImpl(mode.toString().toStdString()).viewMode;
+	m_impl->viewMode = GetViewModeImpl(mode.toStdString()).viewMode;
 	m_dataProvider->SetBooksViewMode(m_impl->viewMode);
 	Perform(&IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
 }
 
-int TreeViewControllerBooks::GetModeIndex(const QVariant & mode) const
+int TreeViewControllerBooks::GetModeIndex(const QString & mode) const
 {
-	const auto enumMode = GetViewModeImpl(mode.toString().toStdString()).viewMode;
+	const auto enumMode = GetViewModeImpl(mode.toStdString()).viewMode;
 	return static_cast<int>(enumMode);
 }
 

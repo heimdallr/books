@@ -7,12 +7,10 @@
 #include "data/DataProvider.h"
 
 #include "util/ISettings.h"
-#include "util/ISettingsObserver.h"
 
 using namespace HomeCompa::Flibrary;
 
 struct AbstractTreeViewController::Impl final
-	: ISettingsObserver
 {
 	AbstractTreeViewController & self;
 	QString settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(self.m_context) };
@@ -21,27 +19,6 @@ struct AbstractTreeViewController::Impl final
 		: self(self)
 	{
 	}
-
-private: // ISettingsObserver
-	void HandleValueChanged(const QString & key, const QVariant & value) override
-	{
-		const auto handler = FindSecond(m_observerMapping, key, &AbstractTreeViewController::Stub);
-		(self.*handler)(value);
-	}
-
-private:
-	using ObserverHandler = void(AbstractTreeViewController::*)(const QVariant &);
-	using ObserverHandlerMapping = std::vector<std::pair<QString, ObserverHandler>>;
-	[[nodiscard]] ObserverHandlerMapping CreateObserverHandlerMapping() const
-	{
-		return ObserverHandlerMapping
-		{
-			{settingsModeKey, &AbstractTreeViewController::OnModeChanged}
-		};
-	}
-
-private:
-	ObserverHandlerMapping m_observerMapping { CreateObserverHandlerMapping() };
 };
 
 AbstractTreeViewController::AbstractTreeViewController(const char * const context
@@ -55,13 +32,9 @@ AbstractTreeViewController::AbstractTreeViewController(const char * const contex
 	, m_modelProvider(std::move(modelProvider))
 	, m_impl(*this)
 {
-	m_settings->RegisterObserver(m_impl.get());
 }
 
-AbstractTreeViewController::~AbstractTreeViewController()
-{
-	m_settings->UnregisterObserver(m_impl.get());
-}
+AbstractTreeViewController::~AbstractTreeViewController() = default;
 
 const char * AbstractTreeViewController::TrContext() const noexcept
 {
@@ -70,7 +43,7 @@ const char * AbstractTreeViewController::TrContext() const noexcept
 
 int AbstractTreeViewController::GetModeIndex() const
 {
-	return GetModeIndex(m_settings->Get(m_impl->settingsModeKey));
+	return GetModeIndex(m_settings->Get(m_impl->settingsModeKey).toString());
 }
 
 void AbstractTreeViewController::RegisterObserver(IObserver * observer)
@@ -85,10 +58,11 @@ void AbstractTreeViewController::UnregisterObserver(IObserver * observer)
 
 void AbstractTreeViewController::Setup()
 {
-	OnModeChanged(m_settings->Get(m_impl->settingsModeKey));
+	OnModeChanged(m_settings->Get(m_impl->settingsModeKey).toString());
 }
 
 void AbstractTreeViewController::SetMode(const QString & mode)
 {
 	m_settings->Set(m_impl->settingsModeKey, mode);
+	OnModeChanged(mode);
 }

@@ -203,11 +203,11 @@ private:
 
 	void Connect()
 	{
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&] (const int index)
+		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&] (const int)
 		{
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
-			m_controller->SetModeIndex(index);
+			m_controller->SetMode(newMode);
 			SaveHeaderLayout();
 			m_recentMode = std::move(newMode);
 		});
