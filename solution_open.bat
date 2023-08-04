@@ -18,6 +18,7 @@ goto end
 
 :run
 echo %SOLUTION_FILE% starting
+set PATH=%PATH%;%ICU_DIR%\bin
 start "" "%SOLUTION_FILE%"
 
 :end
