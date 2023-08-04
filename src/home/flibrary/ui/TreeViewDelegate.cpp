@@ -1,6 +1,7 @@
 #include "TreeViewDelegate.h"
 
 #include <QAbstractScrollArea>
+#include <QApplication>
 #include <QPainter>
 
 #include <plog/Log.h>

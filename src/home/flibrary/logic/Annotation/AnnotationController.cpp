@@ -96,7 +96,7 @@ private: // IDataProvider
 		return m_archiveData.keywords;
 	}
 
-	[[nodiscard]] const std::vector<QString> & GetCovers() const noexcept override
+	[[nodiscard]] const std::vector<QByteArray> & GetCovers() const noexcept override
 	{
 		return m_archiveData.covers;
 	}
@@ -114,6 +114,7 @@ private: // IDataProvider
 private:
 	void ExtractInfo()
 	{
+		Perform(&IObserver::OnAnnotationRequested);
 		m_databaseUser->Execute({ "Get database book info", [&, id = m_currentBookId.toLongLong()]
 		{
 			const auto db = m_databaseUser->Database();

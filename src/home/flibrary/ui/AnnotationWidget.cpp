@@ -89,7 +89,7 @@ struct Table
 
 }
 
-class AnnotationWidget::Impl
+class AnnotationWidget::Impl final
 	: IAnnotationController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -104,7 +104,7 @@ public:
 		, m_annotationController(std::move(annotationController))
 	{
 		m_ui.setupUi(&m_self);
-		m_ui.picture->setVisible(false);
+		m_ui.cover->setVisible(false);
 
 		if (const auto value = m_settings->Get(SPLITTER_KEY); value.isValid())
 			m_ui.splitter->restoreState(value.toByteArray());
@@ -120,7 +120,28 @@ public:
 		m_annotationController->UnregisterObserver(this);
 	}
 
+	void OnResize() const
+	{
+		if (m_covers.empty())
+			return;
+
+		const auto maxHeight = m_ui.mainWidget->height();
+		const auto maxWidth = m_ui.scrollArea->width() / 2;
+
+		QPixmap pixmap;
+		[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
+		m_ui.cover->setPixmap(pixmap.scaled(maxWidth, maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	}
+
 private: // IAnnotationController::IObserver
+	void OnAnnotationRequested() override
+	{
+		m_ui.cover->setVisible(false);
+		m_ui.info->setText({});
+		m_covers.clear();
+		m_currentCoverIndex = m_coverIndex = -1;
+	}
+
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider & dataProvider) override
 	{
 		auto annotation = QString("<b>%1</b>").arg(dataProvider.GatBook().GetRawData(BookItem::Column::Title));
@@ -139,7 +160,17 @@ private: // IAnnotationController::IObserver
 			.Add(SIZE, QString("%L1").arg(dataProvider.GatBook().GetRawData(BookItem::Column::Size).toLongLong()))
 			.Add(UPDATED, dataProvider.GatBook().GetRawData(BookItem::Column::UpdateDate))
 			.ToString());
+
 		m_ui.info->setText(annotation);
+
+		m_covers = dataProvider.GetCovers();
+		m_currentCoverIndex = m_coverIndex = dataProvider.GetCoverIndex();
+
+		if (m_covers.empty())
+			return;
+
+		m_ui.cover->setVisible(true);
+		OnResize();
 	}
 
 private:
@@ -147,6 +178,9 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	Ui::AnnotationWidget m_ui {};
+	std::vector<QByteArray> m_covers;
+	int m_coverIndex { -1 };
+	int m_currentCoverIndex { -1 };
 };
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
@@ -162,4 +196,9 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 AnnotationWidget::~AnnotationWidget()
 {
 	PLOGD << "AnnotationWidget destroyed";
+}
+
+void AnnotationWidget::resizeEvent(QResizeEvent *)
+{
+	m_impl->OnResize();
 }

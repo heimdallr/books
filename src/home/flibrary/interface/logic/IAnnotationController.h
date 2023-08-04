@@ -2,6 +2,7 @@
 
 #include "fnd/observer.h"
 
+class QByteArray;
 class QString;
 
 namespace HomeCompa::Flibrary {
@@ -24,7 +25,7 @@ public:
 
 		[[nodiscard]] virtual const QString & GetAnnotation() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;
-		[[nodiscard]] virtual const std::vector<QString> & GetCovers() const noexcept = 0;
+		[[nodiscard]] virtual const std::vector<QByteArray> & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem & GetContent() const noexcept = 0;
 
@@ -33,6 +34,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
+		virtual void OnAnnotationRequested() = 0;
 		virtual void OnAnnotationChanged(const IDataProvider & dataProvider) = 0;
 	};
 

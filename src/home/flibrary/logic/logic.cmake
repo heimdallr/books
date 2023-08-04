@@ -14,7 +14,6 @@ AddTarget(
 		Hypodermic
 		plog
 		quazip
-		zlib
 	LINK_TARGETS
 		DatabaseFactory
 		logging

@@ -46,6 +46,7 @@ public:
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
 	{
+//		[[maybe_unused]]const auto data = ioDevice.readAll();
 	}
 
 	ArchiveParser::Data Parse()
@@ -61,6 +62,9 @@ public:
 		while (!atEnd() && !hasError())
 		{
 			const auto token = readNext();
+			if (token == QXmlStreamReader::Invalid)
+				PLOGE << error() << ":" << errorString();
+
 			const auto parser = FindSecond(s_parsers, token, &XmlParser::Stub, std::equal_to<>{});
 			std::invoke(parser, this);
 		}
@@ -142,8 +146,6 @@ private:
 		const auto binaryId = attrs.value(ID), contentType = attrs.value(CONTENT_TYPE);
 		if (m_coverPageId == binaryId)
 			m_data.coverIndex = static_cast<int>(m_data.covers.size());
-
-		m_data.covers.emplace_back(QString("data:%1;base64,").arg(contentType));
 	}
 
 	void OnCharactersAnnotation()
@@ -153,7 +155,7 @@ private:
 
 	void OnCharactersBinary()
 	{
-		m_data.covers.back().append(text());
+		m_data.covers.push_back(QByteArray::fromBase64(text().toUtf8()));
 	}
 
 	void OnCharactersKeywords()

@@ -19,7 +19,7 @@ public:
 	{
 		QString annotation;
 		std::vector<QString> keywords;
-		std::vector<QString> covers;
+		std::vector<QByteArray> covers;
 		int coverIndex { -1 };
 		IDataItem::Ptr content;
 	};

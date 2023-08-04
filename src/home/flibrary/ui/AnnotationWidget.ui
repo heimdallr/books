@@ -46,12 +46,18 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="picture">
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+        <widget class="QLabel" name="cover">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="text">
           <string notr="true"/>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::NoTextInteraction</set>
@@ -71,15 +77,15 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>594</width>
-            <height>1636</height>
+            <width>611</width>
+            <height>616</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
             <widget class="QLabel" name="info">
              <property name="text">
-              <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;123&lt;/p&gt;&lt;p&gt;123&lt;/p&gt;&lt;p&gt;123&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;123&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;123&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;31&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;31&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;1&lt;/p&gt;&lt;p&gt;23&lt;/p&gt;&lt;p&gt;12&lt;/p&gt;&lt;p&gt;3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string notr="true"/>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>

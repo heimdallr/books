@@ -23,6 +23,9 @@ public:
 	~AnnotationWidget() override;
 
 private:
+	void resizeEvent(QResizeEvent* event) override;
+
+private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
