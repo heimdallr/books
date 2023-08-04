@@ -56,8 +56,9 @@ public:
 public:
 	void SetCurrentBookId(QString bookId)
 	{
-		m_currentBookId = std::move(bookId);
-		m_extractInfoTimer->start();
+		Perform(&IObserver::OnAnnotationRequested);
+		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
+			m_extractInfoTimer->start();
 	}
 
 private: // IDataProvider
@@ -114,7 +115,7 @@ private: // IDataProvider
 private:
 	void ExtractInfo()
 	{
-		Perform(&IObserver::OnAnnotationRequested);
+		m_ready = Ready::None;
 		m_databaseUser->Execute({ "Get database book info", [&, id = m_currentBookId.toLongLong()]
 		{
 			const auto db = m_databaseUser->Database();
@@ -128,8 +129,6 @@ private:
 
 	void ExtractInfo(IDataItem::Ptr book)
 	{
-		m_ready = Ready::None;
-
 		ExtractArchiveInfo(book);
 		ExtractDatabaseInfo(std::move(book));
 	}
@@ -183,8 +182,7 @@ private:
 		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
-		assert(!query->Eof());
-		return DatabaseUser::CreateBookItem(*query);
+		return query->Eof() ? NavigationItem::Create() : DatabaseUser::CreateBookItem(*query);
 	}
 
 	static IDataItem::Ptr CreateSeries(DB::IDatabase & db, const long long id)
