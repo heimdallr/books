@@ -3,6 +3,8 @@
 #include <qglobal.h>
 #include <QCoreApplication>
 
+#include "flintLib.h"
+
 namespace HomeCompa::Flibrary::Loc::Ctx {
 constexpr auto COMMON = "Common";
 constexpr auto ERROR = "Error";
@@ -41,10 +43,7 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 
 #endif
 
-inline QString Tr(const char * context, const char * str)
-{
-	return QCoreApplication::translate(context, str);
-}
+FLINT_API QString Tr(const char * context, const char * str);
 
 inline QString Question()
 {

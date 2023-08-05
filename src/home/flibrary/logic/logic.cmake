@@ -16,6 +16,7 @@ AddTarget(
 		quazip
 	LINK_TARGETS
 		DatabaseFactory
+		flint
 		logging
 		Util
 	DEPENDENCIES

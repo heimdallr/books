@@ -14,6 +14,7 @@ AddTarget(
 		Hypodermic
 		plog
 	LINK_TARGETS
+		flint
 		logging
 		logic
 		Util

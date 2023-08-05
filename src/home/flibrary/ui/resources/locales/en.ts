@@ -72,47 +72,47 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="22"/>
+        <location filename="../../AnnotationWidget.cpp" line="24"/>
         <source>Keywords: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="23"/>
+        <location filename="../../AnnotationWidget.cpp" line="26"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="24"/>
+        <location filename="../../AnnotationWidget.cpp" line="25"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="25"/>
+        <location filename="../../AnnotationWidget.cpp" line="27"/>
         <source>Genres:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="26"/>
+        <location filename="../../AnnotationWidget.cpp" line="28"/>
         <source>Archives:</source>
         <translation>Archive:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="27"/>
+        <location filename="../../AnnotationWidget.cpp" line="29"/>
         <source>Groups:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="28"/>
+        <location filename="../../AnnotationWidget.cpp" line="30"/>
         <source>File:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="29"/>
+        <location filename="../../AnnotationWidget.cpp" line="31"/>
         <source>Size:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="30"/>
+        <location filename="../../AnnotationWidget.cpp" line="32"/>
         <source>Updated:</source>
         <translation></translation>
     </message>
