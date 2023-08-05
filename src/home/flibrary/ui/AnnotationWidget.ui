@@ -46,7 +46,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="cover">
+        <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
            <horstretch>0</horstretch>
@@ -147,6 +147,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>HomeCompa::Flibrary::ClickableLabel</class>
+   <extends>QLabel</extends>
+   <header>ClickableLabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

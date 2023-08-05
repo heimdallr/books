@@ -43,7 +43,7 @@ constexpr const char * CUSTOM_URL_SCHEMA[]
 	GROUPS,
 };
 
-QString Tr(const char * str)
+auto Tr(const char * str)
 {
 	return Loc::Tr(CONTEXT, str);
 }
@@ -95,7 +95,7 @@ struct Table
 		return *this;
 	}
 
-	QString ToString() const
+	[[nodiscard]] QString ToString() const
 	{
 		return data.isEmpty() ? QString {} : QString("<table>%1</table>").arg(data.join("\n"));
 	}
@@ -132,6 +132,33 @@ public:
 		m_annotationController->RegisterObserver(this);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&] (const QString & link) { OnLinkActivated(link); });
+		connect(m_ui.cover, &ClickableLabel::clicked, [&] (const QPoint & pos)
+		{
+			if (m_covers.size() < 2)
+				return;
+
+			switch (3 * pos.x() / m_ui.cover->width())
+			{
+				case 0:
+					if (--m_currentCoverIndex < 0)
+						m_currentCoverIndex = static_cast<int>(m_covers.size()) - 1;
+					break;
+
+				case 1:
+					m_currentCoverIndex = m_coverIndex;
+					break;
+
+				case 2:
+					if (++m_currentCoverIndex >= static_cast<int>(m_covers.size()))
+						m_currentCoverIndex = 0;
+					break;
+
+				default:
+					assert(false && "wtf?");
+			}
+
+			OnResize();
+		});
 	}
 
 	~Impl() override
@@ -158,6 +185,7 @@ private: // IAnnotationController::IObserver
 	{
 		m_ui.cover->setVisible(false);
 		m_ui.cover->setPixmap({});
+		m_ui.cover->setCursor(Qt::ArrowCursor);
 		m_ui.info->setText({});
 		m_covers.clear();
 		m_currentCoverIndex = m_coverIndex = -1;
@@ -194,6 +222,9 @@ private: // IAnnotationController::IObserver
 		m_currentCoverIndex = m_coverIndex;
 
 		m_ui.cover->setVisible(true);
+		if (m_covers.size() > 1)
+			m_ui.cover->setCursor(Qt::PointingHandCursor);
+
 		OnResize();
 	}
 
