@@ -116,27 +116,22 @@ private: // ITreeViewController::IObserver
 
 	void OnModelChanged(QAbstractItemModel * model) override
 	{
-		m_ui.treeView->setModel(model);
-		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
-		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
+		if (m_ui.treeView->model() != model)
 		{
-			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
-		});
+			m_ui.treeView->setModel(model);
+			m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
 
-		if (m_controller->GetItemType() == ItemType::Books)
-		{
-			m_languageContextMenu.reset();
-
-			model->setData({}, true, Role::Checkable);
-			model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
-
-			auto * widget = m_ui.treeView->header();
-			widget->setStretchLastSection(false);
-			widget->setContextMenuPolicy(Qt::CustomContextMenu);
-			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
+			connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
 			{
-				CreateHeaderContextMenu(pos);
+				m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
 			});
+
+			if (m_controller->GetItemType() == ItemType::Books)
+			{
+				m_languageContextMenu.reset();
+				model->setData({}, true, Role::Checkable);
+				model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
+			}
 		}
 
 		RestoreHeaderLayout();
@@ -147,11 +142,11 @@ private: // ITreeViewController::IObserver
 private: //	IValueApplier
 	void Find() override
 	{
-		if (!m_ui.value->text().isEmpty())
-			return Find(m_ui.value->text());
-
 		if (!m_currentId.isEmpty())
 			return Find(m_currentId, Role::Id);
+
+		if (!m_ui.value->text().isEmpty())
+			return Find(m_ui.value->text());
 
 		m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
 	}
@@ -171,6 +166,14 @@ private:
 			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
 			m_ui.treeView->setItemDelegate(m_delegate.get());
 			m_ui.treeView->setSortingEnabled(true);
+
+			auto * widget = m_ui.treeView->header();
+			widget->setStretchLastSection(false);
+			widget->setContextMenuPolicy(Qt::CustomContextMenu);
+			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
+			{
+				CreateHeaderContextMenu(pos);
+			});
 		}
 
 		m_filterTimer.setSingleShot(true);
@@ -182,7 +185,10 @@ private:
 		OnModeChanged(m_controller->GetModeIndex());
 		m_controller->RegisterObserver(this);
 
-		QTimer::singleShot(0, [&] { emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString()); });
+		QTimer::singleShot(0, [&]
+		{
+			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
+		});
 	}
 
 	void FillComboBoxes()
@@ -194,7 +200,10 @@ private:
 		for (const auto * name : m_controller->GetModeNames())
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
 
-		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item) { return mode == item.first; });
+		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
+		{
+			return mode == item.first;
+		});
 		if (it != std::cend(VALUE_MODES))
 			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(VALUE_MODES), it)));
 
@@ -410,7 +419,7 @@ private:
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
 			m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
-		
+
 		if (const auto index = m_ui.treeView->currentIndex(); index.isValid())
 			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);
 	}

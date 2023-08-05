@@ -42,7 +42,7 @@ UiFactory::~UiFactory()
 
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {
-	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->CreateTreeViewController(type);
+	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);
 	return m_impl->container.resolve<TreeView>();
 }
 

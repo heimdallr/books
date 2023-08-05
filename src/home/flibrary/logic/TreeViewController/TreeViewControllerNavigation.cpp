@@ -101,12 +101,14 @@ void TreeViewControllerNavigation::OnModeChanged(const QString & mode)
 
 	if (m_impl->models[m_impl->mode])
 		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
+
+	m_dataProvider->RequestNavigation();
 }
 
 int TreeViewControllerNavigation::GetModeIndex(const QString & mode) const
 {
 	const auto strMode = mode.toStdString();
-	const auto enumMode = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparer {}).navigationMode;
+	const auto enumMode = FindSecond(MODE_DESCRIPTORS, strMode.data(), MODE_DESCRIPTORS[0].second, PszComparerCaseInsensitive {}).navigationMode;
 	return static_cast<int>(enumMode);
 }
 

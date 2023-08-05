@@ -131,7 +131,6 @@ public:
 	void SetNavigationMode(const NavigationMode navigationMode)
 	{
 		m_navigationMode = navigationMode;
-		m_navigationTimer->start();
 	}
 
 	void SetNavigationId(QString id)
@@ -156,52 +155,10 @@ public:
 		m_booksRequestCallback = std::move(callback);
 	}
 
-	void RequestNavigation() const
+	void RequestNavigation()
 	{
-		const auto & [invoker, description] = FindSecond(QUERIES, m_navigationMode);
-		std::invoke(invoker, this, std::cref(description));
+		m_navigationTimer->start();
 	}
-
-	void RequestBooks() const
-	{
-		if (m_navigationId.isEmpty() || m_booksViewMode == ViewMode::Unknown)
-			return;
-
-		const auto booksGeneratorReady = m_booksGenerator
-			&& m_booksGenerator->GetNavigationMode() == m_navigationMode
-			&& m_booksGenerator->GetNavigationId() == m_navigationId
-			;
-
-		const auto & [_, description] = FindSecond(QUERIES, m_navigationMode);
-		const auto & [booksGenerator, columnMapper] = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
-
-		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
-			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
-
-		m_databaseUser->Execute({ "Get books", [&
-			, navigationMode = m_navigationMode
-			, navigationId = m_navigationId
-			, viewMode = m_booksViewMode
-			, generator = std::move(m_booksGenerator)
-			, booksGeneratorReady
-		] () mutable
-		{
-			if (!booksGeneratorReady)
-			{
-				const auto db = m_databaseUser->Database();
-				generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
-			}
-
-			generator->SetBooksViewMode(viewMode);
-			auto root = (*generator.*booksGenerator)(description.treeCreator);
-			return [&, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator)] (size_t) mutable
-			{
-				m_booksGenerator = std::move(generator);
-				SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
-			};
-		} }, 2);
-	}
-
 private: // INavigationQueryExecutor
 	void RequestNavigationSimpleList(const QueryDescription & queryDescription) const override
 	{
@@ -285,6 +242,52 @@ private: // INavigationQueryExecutor
 	}
 
 private:
+	void RequestNavigationImpl() const
+	{
+		const auto & [invoker, description] = FindSecond(QUERIES, m_navigationMode);
+		std::invoke(invoker, this, std::cref(description));
+	}
+
+	void RequestBooks() const
+	{
+		if (m_navigationId.isEmpty() || m_booksViewMode == ViewMode::Unknown)
+			return;
+
+		const auto booksGeneratorReady = m_booksGenerator
+			&& m_booksGenerator->GetNavigationMode() == m_navigationMode
+			&& m_booksGenerator->GetNavigationId() == m_navigationId
+			;
+
+		const auto & [_, description] = FindSecond(QUERIES, m_navigationMode);
+		const auto & [booksGenerator, columnMapper] = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
+
+		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
+			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
+
+		m_databaseUser->Execute({ "Get books",[&
+			, navigationMode = m_navigationMode
+			, navigationId = m_navigationId
+			, viewMode = m_booksViewMode
+			, generator = std::move(m_booksGenerator)
+			, booksGeneratorReady
+		] () mutable
+		{
+			if (!booksGeneratorReady)
+			{
+				const auto db = m_databaseUser->Database();
+				generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
+			}
+
+			generator->SetBooksViewMode(viewMode);
+			auto root = (*generator.*booksGenerator)(description.treeCreator);
+			return [&, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator)] (size_t) mutable
+			{
+				m_booksGenerator = std::move(generator);
+				SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+			};
+		} }, 2);
+	}
+
 	void SendNavigationCallback(const NavigationMode mode, IDataItem::Ptr root) const
 	{
 		if (mode == m_navigationMode)
@@ -309,7 +312,7 @@ private:
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	PropagateConstPtr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigation(); }) };
+	PropagateConstPtr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigationImpl(); }) };
 	PropagateConstPtr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooks(); }) };
 };
 
@@ -349,7 +352,7 @@ void DataProvider::SetBookRequestCallback(Callback callback)
 	m_impl->SetBookRequestCallback(std::move(callback));
 }
 
-void DataProvider::RequestBooks() const
+void DataProvider::RequestNavigation()
 {
-	m_impl->RequestBooks();
+	m_impl->RequestNavigation();
 }

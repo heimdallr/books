@@ -62,27 +62,27 @@ public:
 	}
 
 private: // IDataProvider
-	[[nodiscard]] const IDataItem & GatBook() const noexcept override
+	[[nodiscard]] const IDataItem & GetBook() const noexcept override
 	{
 		return *m_book;
 	}
 
-	[[nodiscard]] const IDataItem & GatSeries() const noexcept override
+	[[nodiscard]] const IDataItem & GetSeries() const noexcept override
 	{
 		return *m_series;
 	}
 
-	[[nodiscard]] const IDataItem & GatAuthors() const noexcept override
+	[[nodiscard]] const IDataItem & GetAuthors() const noexcept override
 	{
 		return *m_authors;
 	}
 
-	[[nodiscard]] const IDataItem & GatGenres() const noexcept override
+	[[nodiscard]] const IDataItem & GetGenres() const noexcept override
 	{
 		return *m_genres;
 	}
 
-	[[nodiscard]] const IDataItem & GatGroups() const noexcept override
+	[[nodiscard]] const IDataItem & GetGroups() const noexcept override
 	{
 		return *m_groups;
 	}

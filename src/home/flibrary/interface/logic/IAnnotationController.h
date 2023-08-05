@@ -17,11 +17,11 @@ public:
 		virtual ~IDataProvider() = default;
 
 	public:
-		[[nodiscard]] virtual const IDataItem & GatBook() const noexcept = 0;
-		[[nodiscard]] virtual const IDataItem & GatSeries() const noexcept = 0;
-		[[nodiscard]] virtual const IDataItem & GatAuthors() const noexcept = 0;
-		[[nodiscard]] virtual const IDataItem & GatGenres() const noexcept = 0;
-		[[nodiscard]] virtual const IDataItem & GatGroups() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetBook() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetSeries() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetAuthors() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetGenres() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetGroups() const noexcept = 0;
 
 		[[nodiscard]] virtual const QString & GetAnnotation() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;

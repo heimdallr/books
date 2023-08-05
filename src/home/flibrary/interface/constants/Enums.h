@@ -26,6 +26,7 @@ enum class ItemType
 	Unknown = -1,
 	Navigation,
 	Books,
+	Last
 };
 
 }

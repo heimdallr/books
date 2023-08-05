@@ -72,42 +72,47 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="19"/>
+        <location filename="../../AnnotationWidget.cpp" line="22"/>
         <source>Keywords: %1</source>
         <translation>Ключевые слова: %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="20"/>
+        <location filename="../../AnnotationWidget.cpp" line="23"/>
         <source>Series:</source>
         <translation>Серия:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="21"/>
+        <location filename="../../AnnotationWidget.cpp" line="24"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="22"/>
+        <location filename="../../AnnotationWidget.cpp" line="25"/>
         <source>Genres:</source>
         <translation>Жанры:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="23"/>
-        <source>Archive:</source>
+        <location filename="../../AnnotationWidget.cpp" line="26"/>
+        <source>Archives:</source>
         <translation>Архив:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="24"/>
+        <location filename="../../AnnotationWidget.cpp" line="27"/>
+        <source>Groups:</source>
+        <translation>Группы:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="28"/>
         <source>File:</source>
         <translation>Файл:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="25"/>
+        <location filename="../../AnnotationWidget.cpp" line="29"/>
         <source>Size:</source>
         <translation>Размер:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="26"/>
+        <location filename="../../AnnotationWidget.cpp" line="30"/>
         <source>Updated:</source>
         <translation>Обновлён:</translation>
     </message>

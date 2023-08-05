@@ -27,6 +27,7 @@ namespace HomeCompa::Flibrary {
 struct LogicFactory::Impl final
 {
 	Hypodermic::Container & container;
+	mutable std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -45,21 +46,27 @@ LogicFactory::~LogicFactory()
 	PLOGD << "LogicFactory destroyed";
 }
 
-std::shared_ptr<AbstractTreeViewController> LogicFactory::CreateTreeViewController(const ItemType type) const
+std::shared_ptr<AbstractTreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const
 {
-	switch (type)
+	auto & controller = m_impl->controllers[static_cast<size_t>(type)];
+	if (!controller)
 	{
-		case ItemType::Books:
-			return m_impl->container.resolve<TreeViewControllerBooks>();
+		switch (type)
+		{
+			case ItemType::Books:
+				controller = m_impl->container.resolve<TreeViewControllerBooks>();
+				break;
 
-		case ItemType::Navigation:
-			return m_impl->container.resolve<TreeViewControllerNavigation>();
+			case ItemType::Navigation:
+				controller = m_impl->container.resolve<TreeViewControllerNavigation>();
+				break;
 
-		default:
-			break;
+			default:
+				return assert(false && "unexpected type"), nullptr;
+		}
 	}
 
-	return assert(false && "unexpected type"), nullptr;
+	return controller;
 }
 
 std::shared_ptr<ArchiveParser> LogicFactory::CreateArchiveParser() const
