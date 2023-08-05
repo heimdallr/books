@@ -350,18 +350,18 @@ private:
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
-		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu()).popup(m_ui.treeView->header()->mapToGlobal(pos));
+		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu())->exec(m_ui.treeView->header()->mapToGlobal(pos));
 	}
 
-	QMenu & GetHeaderContextMenu()
+	std::shared_ptr<QMenu> GetHeaderContextMenu() const
 	{
-		m_headerContextMenu.clear();
+		auto menu = std::make_shared<QMenu>();
 		auto * header = m_ui.treeView->header();
 		const auto * model = header->model();
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = m_headerContextMenu.addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=] (const bool checked)
+			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=] (const bool checked)
 			{
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
@@ -372,13 +372,13 @@ private:
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));
 		}
-		return m_headerContextMenu;
+		return menu;
 	}
 
-	QMenu & GetLanguageContextMenu()
+	std::shared_ptr<QMenu> GetLanguageContextMenu()
 	{
 		if (m_languageContextMenu)
-			return *m_languageContextMenu;
+			return m_languageContextMenu;
 
 		const auto languageFilter = m_ui.treeView->model()->data({}, Role::LanguageFilter).toString();
 		auto languages = m_ui.treeView->model()->data({}, Role::Languages).toStringList();
@@ -386,7 +386,7 @@ private:
 			return GetHeaderContextMenu();
 
 		m_languageContextMenu = std::make_unique<QMenu>();
-		m_languageContextMenuGroup = std::make_unique<QActionGroup>(nullptr);
+		auto * menuGroup = new QActionGroup(m_languageContextMenu.get());
 
 		languages.push_front("");
 		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
@@ -402,10 +402,10 @@ private:
 			});
 			action->setCheckable(true);
 			action->setChecked(language == languageFilter);
-			m_languageContextMenuGroup->addAction(action);
+			menuGroup->addAction(action);
 		}
 
-		return *m_languageContextMenu;
+		return m_languageContextMenu;
 	}
 
 	void OnValueChanged()
@@ -475,9 +475,7 @@ private:
 	QString m_navigationModeName;
 	QString m_recentMode;
 	QString m_currentId;
-	QMenu m_headerContextMenu;
-	std::unique_ptr<QMenu> m_languageContextMenu;
-	std::unique_ptr<QActionGroup> m_languageContextMenuGroup;
+	std::shared_ptr<QMenu> m_languageContextMenu;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_hideRemoved { false };
 };

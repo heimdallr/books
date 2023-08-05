@@ -56,7 +56,7 @@
     <message>
         <location filename="../../constants/Localization.h" line="42"/>
         <source>Lang</source>
-        <translation>Lznguage</translation>
+        <translation>Language</translation>
     </message>
 </context>
 <context>
