@@ -24,6 +24,44 @@
     </message>
 </context>
 <context>
+    <name>Logging</name>
+    <message>
+        <location filename="../../log/LogController.cpp" line="20"/>
+        <source>NONE</source>
+        <translation>Ничего</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="21"/>
+        <source>FATAL</source>
+        <translation>Фатальные ошибки</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="22"/>
+        <source>ERROR</source>
+        <translation>Ошибки</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="23"/>
+        <source>WARN</source>
+        <translation>Предупреждения</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="24"/>
+        <source>INFO</source>
+        <translation>Информация</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="25"/>
+        <source>DEBUG</source>
+        <translation>Отладка</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="26"/>
+        <source>VERB</source>
+        <translation>Подробная информация</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>

@@ -193,37 +193,6 @@ Restart now?</source>
     </message>
 </context>
 <context>
-    <name>Logging</name>
-    <message>
-        <source>Log level</source>
-        <translation type="vanished">Log verbosity level</translation>
-    </message>
-    <message>
-        <source>FATAL</source>
-        <translation type="vanished">Fatal</translation>
-    </message>
-    <message>
-        <source>ERROR</source>
-        <translation type="vanished">Error</translation>
-    </message>
-    <message>
-        <source>WARN</source>
-        <translation type="vanished">Warning</translation>
-    </message>
-    <message>
-        <source>INFO</source>
-        <translation type="vanished">Info</translation>
-    </message>
-    <message>
-        <source>DEBUG</source>
-        <translation type="vanished">Debug</translation>
-    </message>
-    <message>
-        <source>VERB</source>
-        <translation type="vanished">Verbose</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -308,17 +277,27 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Log</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Show log</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <source>Log &amp;verbosity level</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Clear log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show collection s&amp;tatistics</source>
+        <translation></translation>
     </message>
 </context>
 <context>

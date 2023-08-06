@@ -18,6 +18,9 @@ public:
 private:
 	QAbstractItemModel * GetModel() const noexcept override;
 	void Clear() override;
+	std::vector<const char *> GetSeverities() const override;
+	int GetSeverity() const override;
+	void SetSeverity(int value) override;
 
 private:
 	struct Impl;

@@ -226,10 +226,18 @@ public:
 		QSortFilterProxyModel::setSourceModel(&m_model);
 	}
 
-private:
+private: // QAbstractListModel
+	QVariant data(const QModelIndex& index, const int role) const override
+	{
+		if (!index.isValid() && role == Role::Severity)
+			return m_logLevel;
+
+		return QSortFilterProxyModel::data(index, role);
+	}
+
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
-		if (role == Role::Severity)
+		if (!index.isValid() && role == Role::Severity)
 		{
 			m_logLevel = value.toInt();
 			invalidateFilter();

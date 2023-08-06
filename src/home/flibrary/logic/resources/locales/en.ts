@@ -23,6 +23,44 @@
     </message>
 </context>
 <context>
+    <name>Logging</name>
+    <message>
+        <location filename="../../log/LogController.cpp" line="20"/>
+        <source>NONE</source>
+        <translation>None</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="21"/>
+        <source>FATAL</source>
+        <translation>Fatal</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="22"/>
+        <source>ERROR</source>
+        <translation>Errors</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="23"/>
+        <source>WARN</source>
+        <translation>Warnings</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="24"/>
+        <source>INFO</source>
+        <translation>Information</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="25"/>
+        <source>DEBUG</source>
+        <translation>Debug</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="26"/>
+        <source>VERB</source>
+        <translation>Verbose</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>

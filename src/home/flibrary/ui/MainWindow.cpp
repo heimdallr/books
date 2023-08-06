@@ -1,6 +1,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
+#include <QActionGroup>
 #include <QTimer>
 #include <plog/Log.h>
 
@@ -16,6 +17,7 @@
 #include "ParentWidgetProvider.h"
 #include "util/ISettings.h"
 #include "TreeView.h"
+#include "interface/constants/Localization.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -23,6 +25,7 @@ namespace {
 
 constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
 constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
+constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 
 }
 
@@ -57,6 +60,7 @@ public:
     {
         Setup();
         ConnectActions();
+        CreateLogMenu();
         CreateCollectionsMenu();
         RestoreWidgetsState();
     }
@@ -98,6 +102,9 @@ private:
         m_booksWidget->HideRemoved(m_ui.actionHideRemoved->isChecked());
 
         m_ui.logView->setModel(m_logController->GetModel());
+
+        if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
+            m_logController->SetSeverity(severity.toInt());
     }
 
     void RestoreWidgetsState()
@@ -165,6 +172,24 @@ private:
         connect(m_ui.actionClearLog, &QAction::triggered, &m_self, [&]
         {
             m_logController->Clear();
+        });
+    }
+
+    void CreateLogMenu()
+    {
+        auto * group = new QActionGroup(&m_self);
+        const auto currentSeverity = m_logController->GetSeverity();
+        std::ranges::for_each(m_logController->GetSeverities(), [&, n = 0] (const char * name)mutable
+        {
+            auto * action = m_ui.menuLogVerbosityLevel->addAction(Loc::Tr("Logging", name), [&, n]
+            {
+                m_settings->Set(LOG_SEVERITY_KEY, n);
+                m_logController->SetSeverity(n);
+            });
+            action->setCheckable(true);
+            action->setChecked(n == currentSeverity);
+            group->addAction(action);
+            ++n;
         });
     }
 

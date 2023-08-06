@@ -371,57 +371,6 @@ Version: %1</source>
     </message>
 </context>
 <context>
-    <name>Logging</name>
-    <message>
-        <source>Log</source>
-        <translation type="vanished">Журнал</translation>
-    </message>
-    <message>
-        <source>Hide log</source>
-        <translation type="vanished">Скрыть журнал</translation>
-    </message>
-    <message>
-        <source>Show log</source>
-        <translation type="vanished">Показать журнал</translation>
-    </message>
-    <message>
-        <source>Show collection statistics</source>
-        <translation type="vanished">Показать статистику коллекции</translation>
-    </message>
-    <message>
-        <source>Clear log</source>
-        <translation type="vanished">Очистить журнал</translation>
-    </message>
-    <message>
-        <source>Log level</source>
-        <translation type="vanished">Уровень детализации журнала</translation>
-    </message>
-    <message>
-        <source>FATAL</source>
-        <translation type="vanished">Фатальные ошибки</translation>
-    </message>
-    <message>
-        <source>ERROR</source>
-        <translation type="vanished">Ошибки</translation>
-    </message>
-    <message>
-        <source>WARN</source>
-        <translation type="vanished">Предупреждения</translation>
-    </message>
-    <message>
-        <source>INFO</source>
-        <translation type="vanished">Информация</translation>
-    </message>
-    <message>
-        <source>DEBUG</source>
-        <translation type="vanished">Отладка</translation>
-    </message>
-    <message>
-        <source>VERB</source>
-        <translation type="vanished">Подробная информация</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -506,17 +455,27 @@ Version: %1</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Log</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Журнал</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Show log</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Показать журнал</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <source>Log &amp;verbosity level</source>
+        <translation>&amp;Уровень детализации жунрала</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Clear log</source>
+        <translation>О&amp;чистить журнал</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show collection s&amp;tatistics</source>
+        <translation>Показать с&amp;татистику коллекции</translation>
     </message>
 </context>
 <context>
