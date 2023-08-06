@@ -16,8 +16,8 @@ namespace HomeCompa::Flibrary {
 
 namespace {
 constexpr auto LOCALE = "ui/locale";
-constexpr auto CONTEXT = "Collection";
-constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("Collection", "You must restart the application to apply the changes.\nRestart now?");
+constexpr auto CONTEXT = "LocaleController";
+constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("LocaleController", "You must restart the application to apply the changes.\nRestart now?");
 }
 
 class LocaleController::Impl

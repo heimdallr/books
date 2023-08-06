@@ -21,7 +21,10 @@ class LOGIC_API CollectionController final
 	NON_COPY_MOVABLE(CollectionController)
 
 public:
-	CollectionController(std::shared_ptr<ISettings> settings, std::shared_ptr<class IUiFactory> uiFactory);
+	CollectionController(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class ITaskQueue> taskQueue
+	);
 	~CollectionController() override;
 
 public: // ICollectionController

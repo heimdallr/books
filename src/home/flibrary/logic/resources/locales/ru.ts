@@ -17,10 +17,20 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="24"/>
+        <location filename="../../Collection/CollectionController.cpp" line="26"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан
 Продолжить?</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="27"/>
+        <source>Are you sure you want to delete the collection?</source>
+        <translation>Уверены, что хотите удалить коллекцию?</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="28"/>
+        <source>Delete collection database as well?</source>
+        <translation>Удалить и базу данных коллекции?</translation>
     </message>
 </context>
 <context>

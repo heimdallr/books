@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -13,6 +14,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "CollectionImpl.h"
+#include "interface/logic/ITaskQueue.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -22,6 +24,8 @@ constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 
 constexpr auto CONTEXT = "CollectionController";
 constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
+constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
+constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 
 QString Tr(const char * str)
 {
@@ -46,9 +50,11 @@ class CollectionController::Impl final
 public:
 	explicit Impl(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<ITaskQueue> taskQueue
 	)
 		: m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
+		, m_taskQueue(std::move(taskQueue))
 	{
 		if (std::ranges::none_of(m_collections, [id = CollectionImpl::GetActive(*m_settings)] (const auto & item) { return item->id == id; }))
 			SetActiveCollection(m_collections.empty() ? QString {} : m_collections.front()->id);
@@ -80,7 +86,13 @@ public:
 
 	void RemoveCollection()
 	{
-		const auto id = CollectionImpl::GetActive(*m_settings);
+		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Cancel)
+			return;
+
+		const auto collection = GetActiveCollection();
+		assert(collection);
+		const auto id = collection->id;
+		auto db = collection->database;
 		if (const auto [begin, end] = std::ranges::remove_if(m_collections, [&] (const auto & item)
 		{
 			return item->id == id;
@@ -89,6 +101,18 @@ public:
 			m_collections.erase(begin, end);
 		}
 		CollectionImpl::Remove(*m_settings, id);
+
+		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+		{
+			m_taskQueue->Enqueue([db = std::move(db)]
+			{
+				for (int i = 0; i < 20; ++i, std::this_thread::sleep_for(std::chrono::milliseconds(50)))
+					if (QFile::remove(db) && !QFile::exists(db))
+						return true;
+
+				return false;
+			});
+		}
 
 		if (m_collections.empty())
 			return Perform(&IObserver::OnActiveCollectionChanged);
@@ -143,15 +167,18 @@ private:
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	PropagateConstPtr<ITaskQueue, std::shared_ptr> m_taskQueue;
 	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
 	int m_overwriteConfirmCount { 0 };
 };
 
 CollectionController::CollectionController(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<ITaskQueue> taskQueue
 )
 	: m_impl(std::move(settings)
 		, std::move(uiFactory)
+		, std::move(taskQueue)
 	)
 {
 	PLOGD << "CollectionController created";

@@ -118,15 +118,6 @@
     </message>
 </context>
 <context>
-    <name>Collection</name>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>Dialog</name>
     <message>
         <location filename="../../dialogs/Dialog.cpp" line="15"/>
@@ -189,6 +180,15 @@ Restart now?</source>
     <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
         <source>Index file (*.inpx) not found</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>LocaleController</name>
+    <message>
+        <location filename="../../LocaleController.cpp" line="20"/>
+        <source>You must restart the application to apply the changes.
+Restart now?</source>
         <translation></translation>
     </message>
 </context>

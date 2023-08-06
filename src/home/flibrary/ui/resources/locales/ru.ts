@@ -163,46 +163,8 @@
 <context>
     <name>Collection</name>
     <message>
-        <source>Delete collection database as well?</source>
-        <translation type="vanished">Удалить и базу данных коллекции?</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to delete the collection?</source>
-        <translation type="vanished">Уверены, что хотите удалить коллекцию?</translation>
-    </message>
-    <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation type="vanished">Похоже, коллекция обновиласть. Применить изменения?</translation>
-    </message>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation>Для применения изменений необходимо перезапустить приложение.
-Перезапустить сейчас?</translation>
-    </message>
-</context>
-<context>
-    <name>CollectionStatistics</name>
-    <message>
-        <source>Collection statistics:</source>
-        <translation type="vanished">Статистика коллекции:</translation>
-    </message>
-    <message>
-        <source>Authors:</source>
-        <translation type="vanished">Авторы:</translation>
-    </message>
-    <message>
-        <source>Series:</source>
-        <translation type="vanished">Серии:</translation>
-    </message>
-    <message>
-        <source>Books:</source>
-        <translation type="vanished">Книги:</translation>
-    </message>
-    <message>
-        <source>Deleted books:</source>
-        <translation type="vanished">Удалённые книги:</translation>
     </message>
 </context>
 <context>
@@ -368,6 +330,16 @@ Version: %1</source>
     <message>
         <source>Group name too long</source>
         <translation type="vanished">Слишком длинное имя для группы</translation>
+    </message>
+</context>
+<context>
+    <name>LocaleController</name>
+    <message>
+        <location filename="../../LocaleController.cpp" line="20"/>
+        <source>You must restart the application to apply the changes.
+Restart now?</source>
+        <translation>Для применения изменений необходимо перезапустить приложение.
+Перезапустить сейчас?</translation>
     </message>
 </context>
 <context>
