@@ -23,6 +23,7 @@ public:
         , std::shared_ptr<class ParentWidgetProvider> parentWidgetProvider
         , std::shared_ptr<class AnnotationWidget> annotationWidget
         , std::shared_ptr<class LocaleController> localeController
+        , std::shared_ptr<class ILogController> logController
         , QWidget * parent = nullptr);
     ~MainWindow() override;
 

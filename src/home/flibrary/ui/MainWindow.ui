@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1117</width>
+    <width>884</width>
     <height>708</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <string notr="true">MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -31,64 +31,30 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidget" name="widget" native="true">
-      <layout class="QGridLayout" name="gridLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QSplitter" name="verticalSplitter">
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-         <property name="lineWidth">
-          <number>0</number>
-         </property>
-         <property name="midLineWidth">
-          <number>0</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="handleWidth">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="navigationWidget" native="true">
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="rightWidget" native="true">
-          <layout class="QGridLayout" name="gridLayout_2">
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="mainPage">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="widget" native="true">
+          <layout class="QGridLayout" name="gridLayout">
            <property name="leftMargin">
             <number>0</number>
            </property>
@@ -105,18 +71,27 @@
             <number>0</number>
            </property>
            <item row="0" column="0">
-            <widget class="QSplitter" name="horizontalSplitter">
+            <widget class="QSplitter" name="verticalSplitter">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
              <property name="lineWidth">
               <number>0</number>
              </property>
+             <property name="midLineWidth">
+              <number>0</number>
+             </property>
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Horizontal</enum>
              </property>
              <property name="handleWidth">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="booksWidget" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_2">
+             <widget class="QWidget" name="navigationWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout">
                <property name="spacing">
                 <number>0</number>
                </property>
@@ -134,11 +109,8 @@
                </property>
               </layout>
              </widget>
-             <widget class="QWidget" name="annotationWidget" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
+             <widget class="QWidget" name="rightWidget" native="true">
+              <layout class="QGridLayout" name="gridLayout_2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -151,15 +123,91 @@
                <property name="bottomMargin">
                 <number>0</number>
                </property>
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QSplitter" name="horizontalSplitter">
+                 <property name="lineWidth">
+                  <number>0</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="handleWidth">
+                  <number>0</number>
+                 </property>
+                 <widget class="QWidget" name="booksWidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_2">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="annotationWidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_3">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                  </layout>
+                 </widget>
+                </widget>
+               </item>
               </layout>
              </widget>
             </widget>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-      </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="logPage">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QListView" name="logView"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -169,7 +217,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1117</width>
+     <width>884</width>
      <height>22</height>
     </rect>
    </property>
@@ -190,8 +238,15 @@
      <addaction name="actionFontSizeUp"/>
      <addaction name="actionFontSizeDown"/>
     </widget>
+    <widget class="QMenu" name="menuLog">
+     <property name="title">
+      <string>&amp;Log</string>
+     </property>
+     <addaction name="actionShowLog"/>
+    </widget>
     <addaction name="actionHideRemoved"/>
     <addaction name="menuFont"/>
+    <addaction name="menuLog"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
     <property name="title">
@@ -303,6 +358,20 @@
    </property>
    <property name="text">
     <string>&amp;Hide removed books</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowLog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Show log</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

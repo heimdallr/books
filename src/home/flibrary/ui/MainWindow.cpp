@@ -10,6 +10,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILogController.h"
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "ParentWidgetProvider.h"
@@ -40,6 +41,7 @@ public:
         , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
         , std::shared_ptr<AnnotationWidget> annotationWidget
         , std::shared_ptr<LocaleController> localeController
+        , std::shared_ptr<ILogController> logController
     )
 	    : GeometryRestorable(*this, settings, "MainWindow")
         , m_self(self)
@@ -49,6 +51,7 @@ public:
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
 		, m_annotationWidget(std::move(annotationWidget))
 		, m_localeController(std::move(localeController))
+		, m_logController(std::move(logController))
         , m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
         , m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
     {
@@ -93,6 +96,8 @@ private:
 
         m_ui.actionHideRemoved->setChecked(m_settings->Get(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, false).toBool());
         m_booksWidget->HideRemoved(m_ui.actionHideRemoved->isChecked());
+
+        m_ui.logView->setModel(m_logController->GetModel());
     }
 
     void RestoreWidgetsState()
@@ -149,6 +154,10 @@ private:
         {
             m_collectionController->RemoveCollection();
         });
+        connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&](const bool checked)
+        {
+            m_ui.stackedWidget->setCurrentIndex(checked ? 1 : 0);
+        });
     }
 
     void CreateCollectionsMenu()
@@ -193,6 +202,7 @@ private:
     PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
     PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
     PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
+    PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
 
     PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
     PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -204,6 +214,7 @@ MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
     , std::shared_ptr<AnnotationWidget> annotationWidget
     , std::shared_ptr<LocaleController> localeController
+    , std::shared_ptr<ILogController> logController
     , QWidget * parent
 )
     : QMainWindow(parent)
@@ -214,6 +225,7 @@ MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
         , std::move(parentWidgetProvider)
         , std::move(annotationWidget)
         , std::move(localeController)
+        , std::move(logController)
     )
 {
     PLOGD << "MainWindow created";

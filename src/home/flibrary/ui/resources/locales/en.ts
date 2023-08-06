@@ -305,6 +305,21 @@ Restart now?</source>
         <source>&amp;Hide removed books</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Log</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Show log</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Esc</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

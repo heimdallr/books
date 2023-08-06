@@ -11,6 +11,8 @@
 
 #include "logging/init.h"
 
+#include "logic/model/LogModel.h"
+
 #include "di_app.h"
 #include "version/AppVersion.h"
 
@@ -22,6 +24,8 @@ using namespace Flibrary;
 int main(int argc, char * argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
+	LogModelAppender logModelAppender;
+
 	PLOGI << "App started";
 	PLOGI << "Version: " << GetApplicationVersion();
 	PLOGI << "Commit hash: " << GIT_HASH;

@@ -17,7 +17,7 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="25"/>
+        <location filename="../../Collection/CollectionController.cpp" line="24"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан
 Продолжить?</translation>
