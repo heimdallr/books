@@ -8,6 +8,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/ITaskQueue.h"
 
 #include "logging/init.h"
 
@@ -44,8 +45,8 @@ int main(int argc, char * argv[])
 			DiInit(builder, container).swap(container);
 			PLOGD << "DI-container created";
 
+			container->resolve<ITaskQueue>()->Execute();
 			const auto logicFactory = container->resolve<ILogicFactory>();
-
 			const auto mainWindow = container->resolve<QMainWindow>();
 
 			if (container->resolve<ICollectionController>()->GetCollections().empty())

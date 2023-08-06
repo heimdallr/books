@@ -17,6 +17,7 @@
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
 #include "shared/DatabaseUser.h"
+#include "shared/TaskQueue.h"
 #include "util/ISettings.h"
 // ReSharper restore CppUnusedIncludeDirective
 
@@ -59,6 +60,12 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	{
 		return ctx.resolve<IUiFactory>()->GetTreeViewController();
 	}).as<ITreeViewController>();
+
+	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
+	{
+		static auto taskQueue = std::make_shared<TaskQueue>();
+		return taskQueue;
+	}).as<ITaskQueue>();
 }
 
 }
