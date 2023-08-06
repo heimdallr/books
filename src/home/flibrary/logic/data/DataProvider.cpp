@@ -52,11 +52,11 @@ class INavigationQueryExecutor // NOLINT(cppcoreguidelines-special-member-functi
 {
 public:
 	virtual ~INavigationQueryExecutor() = default;
-	virtual void RequestNavigationSimpleList(const QueryDescription & queryDescription) const = 0;
-	virtual void RequestNavigationGenres(const QueryDescription & queryDescription) const = 0;
+	virtual void RequestNavigationSimpleList(std::shared_ptr<DB::IDatabase> db, const QueryDescription & queryDescription) const = 0;
+	virtual void RequestNavigationGenres(std::shared_ptr<DB::IDatabase> db, const QueryDescription & queryDescription) const = 0;
 };
 
-using QueryExecutorFunctor = void(INavigationQueryExecutor::*)(const QueryDescription&) const;
+using QueryExecutorFunctor = void(INavigationQueryExecutor::*)(std::shared_ptr<DB::IDatabase> db, const QueryDescription&) const;
 
 QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
 {
@@ -160,13 +160,12 @@ public:
 		m_navigationTimer->start();
 	}
 private: // INavigationQueryExecutor
-	void RequestNavigationSimpleList(const QueryDescription & queryDescription) const override
+	void RequestNavigationSimpleList(std::shared_ptr<DB::IDatabase> db, const QueryDescription & queryDescription) const override
 	{
-		m_databaseUser->Execute({ "Get navigation", [&, mode = m_navigationMode] ()
+		m_databaseUser->Execute({ "Get navigation", [&, mode = m_navigationMode, db = std::move(db)]
 		{
 			std::unordered_map<QString, IDataItem::Ptr> cache;
 
-			const auto db = m_databaseUser->Database();
 			const auto query = db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
@@ -193,9 +192,9 @@ private: // INavigationQueryExecutor
 		} }, 1);
 	}
 
-	void RequestNavigationGenres(const QueryDescription & queryDescription) const override
+	void RequestNavigationGenres(std::shared_ptr<DB::IDatabase> db, const QueryDescription & queryDescription) const override
 	{
-		m_databaseUser->Execute({"Get navigation", [&, mode = m_navigationMode]
+		m_databaseUser->Execute({"Get navigation", [&, mode = m_navigationMode, db = std::move(db)]
 		{
 			std::unordered_map<QString, IDataItem::Ptr> cache;
 
@@ -203,7 +202,6 @@ private: // INavigationQueryExecutor
 			std::unordered_multimap<QString, IDataItem::Ptr> items;
 			cache.emplace("0", root);
 
-			const auto db = m_databaseUser->Database();
 			const auto query = db->CreateQuery(queryDescription.query);
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
@@ -244,8 +242,12 @@ private: // INavigationQueryExecutor
 private:
 	void RequestNavigationImpl() const
 	{
+		auto db = m_databaseUser->Database();
+		if (!db)
+			return;
+
 		const auto & [invoker, description] = FindSecond(QUERIES, m_navigationMode);
-		std::invoke(invoker, this, std::cref(description));
+		std::invoke(invoker, this, std::move(db), std::cref(description));
 	}
 
 	void RequestBooks() const

@@ -27,13 +27,14 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnActiveCollectionChanged(const Collection & collection) = 0;
+		virtual void OnActiveCollectionChanged() = 0;
 	};
 public:
 	virtual ~ICollectionController() = default;
 
 public:
 	virtual void AddCollection() = 0;
+	virtual void RemoveCollection() = 0;
 
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
@@ -42,7 +43,7 @@ public:
 	[[nodiscard]] virtual bool IsCollectionFolderHasInpx(const QString & archiveFolder) const = 0;
 
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
-	[[nodiscard]] virtual const Collection & GetActiveCollection() const noexcept = 0;
+	[[nodiscard]] virtual std::optional<const Collection> GetActiveCollection() const noexcept = 0;
 	virtual void SetActiveCollection(const QString & id) = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;

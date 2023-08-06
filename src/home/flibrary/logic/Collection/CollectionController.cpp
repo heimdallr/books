@@ -19,7 +19,6 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
-const Collection EMPTY_COLLECTION;
 
 constexpr auto CONTEXT = "CollectionController";
 constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
@@ -39,17 +38,6 @@ QString GetInpx(const QString & folder)
 	return result;
 }
 
-const Collection & FindCollectionById(const Collections & collections, const QString & id) noexcept
-{
-	const auto it = std::ranges::find_if(collections, [&] (const auto & item)
-	{
-		return item->id == id;
-	});
-
-	return it != std::cend(collections) ? **it : EMPTY_COLLECTION;
-
-}
-
 }
 
 class CollectionController::Impl final
@@ -63,22 +51,12 @@ public:
 		, m_uiFactory(std::move(uiFactory))
 	{
 		if (std::ranges::none_of(m_collections, [id = CollectionImpl::GetActive(*m_settings)] (const auto & item) { return item->id == id; }))
-			SetActiveCollection(m_collections.empty() ? EMPTY_COLLECTION : *m_collections.front());
+			SetActiveCollection(m_collections.empty() ? QString {} : m_collections.front()->id);
 	}
 
 	const Collections & GetCollections() const noexcept
 	{
 		return m_collections;
-	}
-
-	const ISettings& GetSettings() const noexcept
-	{
-		return *m_settings;
-	}
-
-	ISettings & GetSettings() noexcept
-	{
-		return *m_settings;
 	}
 
 	void AddCollection()
@@ -100,10 +78,44 @@ public:
 		m_overwriteConfirmCount = 0;
 	}
 
-	void SetActiveCollection(const Collection & collection)
+	void RemoveCollection()
 	{
-		CollectionImpl::SetActive(GetSettings(), collection.id);
-		Perform(&IObserver::OnActiveCollectionChanged, std::cref(collection));
+		const auto id = CollectionImpl::GetActive(*m_settings);
+		if (const auto [begin, end] = std::ranges::remove_if(m_collections, [&] (const auto & item)
+		{
+			return item->id == id;
+		}); begin != end)
+		{
+			m_collections.erase(begin, end);
+		}
+		CollectionImpl::Remove(*m_settings, id);
+
+		if (m_collections.empty())
+			return Perform(&IObserver::OnActiveCollectionChanged);
+
+		CollectionImpl::SetActive(*m_settings, m_collections.front()->id);
+		Perform(&IObserver::OnActiveCollectionChanged);
+	}
+
+	void SetActiveCollection(const QString & id)
+	{
+		CollectionImpl::SetActive(*m_settings, id);
+		Perform(&IObserver::OnActiveCollectionChanged);
+	}
+
+	std::optional<const Collection> GetActiveCollection() const noexcept
+	{
+		return FindCollectionById(CollectionImpl::GetActive(*m_settings));
+	}
+
+	std::optional<const Collection> FindCollectionById(const QString & id) const noexcept
+	{
+		const auto it = std::ranges::find_if(m_collections, [&] (const auto & item)
+		{
+			return item->id == id;
+		});
+
+		return it != std::cend(m_collections) ? **it : std::optional<const Collection>{};
 	}
 
 private:
@@ -114,7 +126,7 @@ private:
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 				return ++m_overwriteConfirmCount < MAX_OVERWRITE_CONFIRM_COUNT
 					? AddCollection()
-					: Perform(&IObserver::OnActiveCollectionChanged, std::cref(EMPTY_COLLECTION));
+					: Perform(&IObserver::OnActiveCollectionChanged);
 
 			PLOGW << db << " will be rewritten";
 		}
@@ -122,9 +134,10 @@ private:
 
 	void Add(QString name, QString db, QString folder)
 	{
-		const CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
 		CollectionImpl::Serialize(collection, *m_settings);
-		SetActiveCollection(collection);
+		m_collections.push_back(std::make_unique<CollectionImpl>(std::move(collection)));
+		SetActiveCollection(m_collections.back()->id);
 	}
 
 private:
@@ -154,6 +167,11 @@ void CollectionController::AddCollection()
 	m_impl->AddCollection();
 }
 
+void CollectionController::RemoveCollection()
+{
+	m_impl->RemoveCollection();
+}
+
 bool CollectionController::IsEmpty() const noexcept
 {
 	return GetCollections().empty();
@@ -169,7 +187,8 @@ bool CollectionController::IsCollectionNameExists(const QString & name) const
 
 QString CollectionController::GetCollectionDatabaseName(const QString & databaseFileName) const
 {
-	return FindCollectionById(GetCollections(), CollectionImpl::GenerateId(databaseFileName)).name;
+	const auto collection = m_impl->FindCollectionById(CollectionImpl::GenerateId(databaseFileName));
+	return collection ? collection->name : QString{};
 }
 
 bool CollectionController::IsCollectionFolderHasInpx(const QString & folder) const
@@ -182,14 +201,14 @@ const Collections & CollectionController::GetCollections() const noexcept
 	return m_impl->GetCollections();
 }
 
-const Collection & CollectionController::GetActiveCollection() const noexcept
+std::optional<const Collection> CollectionController::GetActiveCollection() const noexcept
 {
-	return FindCollectionById(GetCollections(), CollectionImpl::GetActive(m_impl->GetSettings()));
+	return m_impl->GetActiveCollection();
 }
 
 void CollectionController::SetActiveCollection(const QString & id)
 {
-	m_impl->SetActiveCollection(FindCollectionById(m_impl->GetCollections(), id));
+	m_impl->SetActiveCollection(id);
 }
 
 void CollectionController::RegisterObserver(IObserver * observer)

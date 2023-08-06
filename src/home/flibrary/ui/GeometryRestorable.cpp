@@ -48,7 +48,9 @@ public:
 	~Impl() override
 	{
 		m_settings->UnregisterObserver(this);
-		m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
+
+		if (m_initialized)
+			m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
 	}
 
 	void Init()
@@ -61,6 +63,8 @@ public:
 		OnFontSizeChanged(m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT));
 		if (const auto value = m_settings->Get(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name)); value.isValid())
 			m_observer.GetWidget().setGeometry(value.toRect());
+
+		m_initialized = true;
 	}
 
 private: // QObject
@@ -108,6 +112,7 @@ private:
 	IObserver & m_observer;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	const QString m_name;
+	bool m_initialized { false };
 };
 
 GeometryRestorable::GeometryRestorable(IObserver & observer, std::shared_ptr<ISettings> settings, QString name)

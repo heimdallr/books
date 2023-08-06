@@ -222,7 +222,7 @@ private:
     Ui::AddCollectionDialog m_ui {};
 };
 
-AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
+AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
 )

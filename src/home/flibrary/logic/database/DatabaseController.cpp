@@ -54,7 +54,7 @@ public:
 	{
 		m_collectionController->RegisterObserver(this);
 
-		OnActiveCollectionChanged(m_collectionController->GetActiveCollection());
+		OnActiveCollectionChanged();
 	}
 
 	~Impl() override
@@ -73,9 +73,10 @@ public:
 	}
 
 private: // ICollectionController::IObserver
-	void OnActiveCollectionChanged(const Collection & collection) override
+	void OnActiveCollectionChanged() override
 	{
-		m_databaseFileName = collection.database;
+		const auto collection = m_collectionController->GetActiveCollection();
+		m_databaseFileName = collection ? collection->database : QString{};
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
 	}

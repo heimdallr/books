@@ -6,6 +6,7 @@
 #include <plog/Log.h>
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 
 #include "logging/init.h"
@@ -42,6 +43,13 @@ int main(int argc, char * argv[])
 			const auto logicFactory = container->resolve<ILogicFactory>();
 
 			const auto mainWindow = container->resolve<QMainWindow>();
+
+			if (container->resolve<ICollectionController>()->GetCollections().empty())
+			{
+				PLOGW << "No collections found";
+				return 0;
+			}
+
 			mainWindow->show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)

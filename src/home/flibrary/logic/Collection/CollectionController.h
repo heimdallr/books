@@ -26,12 +26,13 @@ public:
 
 public: // ICollectionController
 	void AddCollection() override;
+	void RemoveCollection() override;
 	[[nodiscard]] bool IsEmpty() const noexcept override;
 	[[nodiscard]] bool IsCollectionNameExists(const QString & name) const override;
 	[[nodiscard]] QString GetCollectionDatabaseName(const QString & databaseFileName) const override;
 	[[nodiscard]] bool IsCollectionFolderHasInpx(const QString & folder) const override;
 	[[nodiscard]] const Collections & GetCollections() const noexcept override;
-	[[nodiscard]] const Collection & GetActiveCollection() const noexcept override;
+	[[nodiscard]] std::optional<const Collection> GetActiveCollection() const noexcept override;
 	void SetActiveCollection(const QString & id) override;
 
 	void RegisterObserver(IObserver * observer) override;

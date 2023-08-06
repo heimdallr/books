@@ -19,8 +19,10 @@
 using namespace HomeCompa::Flibrary;
 
 namespace {
+
 constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
 constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
+
 }
 
 class MainWindow::Impl final
@@ -71,11 +73,8 @@ private: // GeometryRestorable::IObserver
     }
 
 private: // ICollectionController::IObserver
-    void OnActiveCollectionChanged(const Collection& collection) override
+    void OnActiveCollectionChanged() override
     {
-        if (collection.id.isEmpty())
-            throw std::runtime_error("No collections found");
-
         Reboot();
     }
 
@@ -146,21 +145,28 @@ private:
         {
             Reboot();
         });
+        connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [&]
+        {
+            m_collectionController->RemoveCollection();
+        });
     }
 
     void CreateCollectionsMenu()
     {
+        m_collectionController->RegisterObserver(this);
+
         if (m_collectionController->IsEmpty())
             m_collectionController->AddCollection();
 
-        m_collectionController->RegisterObserver(this);
+    	m_ui.menuSelectCollection->clear();
 
-        m_ui.menuSelectCollection->clear();
+        const auto activeCollection = m_collectionController->GetActiveCollection();
+        if (!activeCollection)
+            return;
 
-        const auto & activeCollection = m_collectionController->GetActiveCollection();
         for (const auto & collection : m_collectionController->GetCollections())
         {
-            const auto active = collection->id == activeCollection.id;
+            const auto active = collection->id == activeCollection->id;
             auto * action = m_ui.menuSelectCollection->addAction(collection->name);
             connect(action, &QAction::triggered, &m_self, [&, id = collection->id] { m_collectionController->SetActiveCollection(id); });
             action->setCheckable(true);

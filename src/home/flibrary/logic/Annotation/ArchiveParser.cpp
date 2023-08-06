@@ -181,7 +181,9 @@ public:
 
 	[[nodiscard]] Data Parse(const IDataItem & book) const
 	{
-		const auto folder = QString("%1/%2").arg(m_collectionController->GetActiveCollection().folder, book.GetRawData(BookItem::Column::Folder));
+		const auto collection = m_collectionController->GetActiveCollection();
+		assert(collection);
+		const auto folder = QString("%1/%2").arg(collection->folder, book.GetRawData(BookItem::Column::Folder));
 		QuaZip zip(folder);
 		zip.open(QuaZip::Mode::mdUnzip);
 		zip.setCurrentFile(book.GetRawData(BookItem::Column::FileName));
