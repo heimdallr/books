@@ -15,6 +15,7 @@ public:
 	virtual std::vector<const char *> GetSeverities() const = 0;
 	virtual int GetSeverity() const = 0;
 	virtual void SetSeverity(int value) = 0;
+	virtual void ShowCollectionStatistics() const = 0;
 };
 
 }

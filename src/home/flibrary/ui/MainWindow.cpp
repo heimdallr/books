@@ -173,6 +173,10 @@ private:
         {
             m_logController->Clear();
         });
+        connect(m_ui.actionShowCollectionStatistics, &QAction::triggered, &m_self, [&]
+        {
+            m_logController->ShowCollectionStatistics();
+        });
     }
 
     void CreateLogMenu()

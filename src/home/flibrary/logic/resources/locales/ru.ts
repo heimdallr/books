@@ -24,39 +24,62 @@
     </message>
 </context>
 <context>
+    <name>CollectionStatistics</name>
+    <message>
+        <location filename="../../log/LogController.cpp" line="102"/>
+        <source>Authors:</source>
+        <translation>Авторы:</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="103"/>
+        <source>Series:</source>
+        <translation>Серии:</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="104"/>
+        <source>Books:</source>
+        <translation>Книги:</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="105"/>
+        <source>Deleted books:</source>
+        <translation>Удалено книг:</translation>
+    </message>
+</context>
+<context>
     <name>Logging</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="20"/>
+        <location filename="../../log/LogController.cpp" line="24"/>
         <source>NONE</source>
         <translation>Ничего</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="21"/>
+        <location filename="../../log/LogController.cpp" line="25"/>
         <source>FATAL</source>
         <translation>Фатальные ошибки</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="22"/>
+        <location filename="../../log/LogController.cpp" line="26"/>
         <source>ERROR</source>
         <translation>Ошибки</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="23"/>
+        <location filename="../../log/LogController.cpp" line="27"/>
         <source>WARN</source>
         <translation>Предупреждения</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="24"/>
+        <location filename="../../log/LogController.cpp" line="28"/>
         <source>INFO</source>
         <translation>Информация</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="25"/>
+        <location filename="../../log/LogController.cpp" line="29"/>
         <source>DEBUG</source>
         <translation>Отладка</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="26"/>
+        <location filename="../../log/LogController.cpp" line="30"/>
         <source>VERB</source>
         <translation>Подробная информация</translation>
     </message>

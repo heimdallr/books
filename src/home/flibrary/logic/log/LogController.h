@@ -12,7 +12,7 @@ class LogController : virtual public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	LogController();
+	explicit LogController(std::shared_ptr<class DatabaseUser> databaseUser);
 	~LogController() override;
 
 private:
@@ -21,6 +21,7 @@ private:
 	std::vector<const char *> GetSeverities() const override;
 	int GetSeverity() const override;
 	void SetSeverity(int value) override;
+	void ShowCollectionStatistics() const override;
 
 private:
 	struct Impl;
