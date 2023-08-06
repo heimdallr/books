@@ -176,6 +176,8 @@ private:
         connect(m_ui.actionShowCollectionStatistics, &QAction::triggered, &m_self, [&]
         {
             m_logController->ShowCollectionStatistics();
+            if (!m_ui.actionShowLog->isChecked())
+                m_ui.actionShowLog->trigger();
         });
     }
 

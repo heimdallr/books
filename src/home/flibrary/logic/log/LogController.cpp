@@ -113,7 +113,7 @@ void LogController::ShowCollectionStatistics() const
 
 		return[stats = stats.join("\n")] (size_t)
 		{
-			PLOGI << std::endl << stats;
+			PLOGI << stats;
 		};
 	} });
 }

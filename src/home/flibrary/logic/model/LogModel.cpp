@@ -57,7 +57,8 @@ private: // plog::IAppender
 	void write(const plog::Record & record) override
 	{
 		std::lock_guard lock(m_itemsGuard);
-		auto splitted = QString::fromStdString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
+		auto splitted = QStringList() << QString::fromStdString(record.getMessage());
+//		auto splitted = QString::fromStdString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
 		if (splitted.isEmpty())
 			return;
 
@@ -224,6 +225,7 @@ public:
 		: QSortFilterProxyModel(parent)
 	{
 		QSortFilterProxyModel::setSourceModel(&m_model);
+		QSortFilterProxyModel::sort(0);
 	}
 
 private: // QAbstractListModel
@@ -252,6 +254,11 @@ private: // QSortFilterProxyModel
 	{
 		assert(row < static_cast<const QAbstractItemModel &>(m_model).rowCount());
 		return static_cast<int>((*s_items)[row].severity) <= m_logLevel;
+	}
+
+	bool lessThan(const QModelIndex& lhs, const QModelIndex& rhs) const override
+	{
+		return lhs.row() > rhs.row();
 	}
 
 private:
