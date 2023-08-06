@@ -17,6 +17,7 @@ public:
 
 private:
 	QAbstractItemModel * GetModel() const noexcept override;
+	void Clear() override;
 
 private:
 	struct Impl;

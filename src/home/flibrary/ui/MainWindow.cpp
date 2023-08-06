@@ -154,9 +154,17 @@ private:
         {
             m_collectionController->RemoveCollection();
         });
+        connect(m_ui.logView, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint & pos)
+        {
+            m_ui.menuLog->exec(m_ui.logView->viewport()->mapToGlobal(pos));
+        });
         connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&](const bool checked)
         {
             m_ui.stackedWidget->setCurrentIndex(checked ? 1 : 0);
+        });
+        connect(m_ui.actionClearLog, &QAction::triggered, &m_self, [&]
+        {
+            m_logController->Clear();
         });
     }
 

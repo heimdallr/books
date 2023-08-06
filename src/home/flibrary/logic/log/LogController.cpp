@@ -19,3 +19,9 @@ QAbstractItemModel * LogController::GetModel() const noexcept
 	assert(m_impl->model);
 	return m_impl->model.get();
 }
+
+void LogController::Clear()
+{
+	assert(m_impl->model);
+	m_impl->model->setData({}, {}, LogModelRole::Clear);
+}
