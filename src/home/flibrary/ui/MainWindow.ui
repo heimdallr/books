@@ -241,13 +241,6 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuFont">
-     <property name="title">
-      <string>Font</string>
-     </property>
-     <addaction name="actionFontSizeUp"/>
-     <addaction name="actionFontSizeDown"/>
-    </widget>
     <widget class="QMenu" name="menuLog">
      <property name="title">
       <string>&amp;Log</string>
@@ -263,7 +256,6 @@
      <addaction name="menuLogVerbosityLevel"/>
     </widget>
     <addaction name="actionHideRemoved"/>
-    <addaction name="menuFont"/>
     <addaction name="menuLog"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
@@ -293,7 +285,15 @@
       <string>Language</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuFont">
+     <property name="title">
+      <string>Font</string>
+     </property>
+     <addaction name="actionFontSizeUp"/>
+     <addaction name="actionFontSizeDown"/>
+    </widget>
     <addaction name="menuLanguage"/>
+    <addaction name="menuFont"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
