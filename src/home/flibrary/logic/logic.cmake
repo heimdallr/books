@@ -17,6 +17,7 @@ AddTarget(
 	LINK_TARGETS
 		DatabaseFactory
 		flint
+		InpxLib
 		logging
 		Util
 	DEPENDENCIES

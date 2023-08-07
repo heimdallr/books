@@ -22,7 +22,7 @@ public:
 
 	virtual void ShowAbout() const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
-	[[nodiscard]] virtual QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
+	virtual QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 
 	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> GetTreeViewController() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractScrollArea & GetAbstractScrollArea() const noexcept = 0;

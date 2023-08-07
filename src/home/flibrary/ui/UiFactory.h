@@ -25,7 +25,7 @@ private: // IUiFactory
 
 	void ShowAbout() const override;
 	[[nodiscard]] QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
-	[[nodiscard]] QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
+	QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 
 	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const noexcept override;
 	[[nodiscard]] QAbstractScrollArea & GetAbstractScrollArea() const noexcept override;

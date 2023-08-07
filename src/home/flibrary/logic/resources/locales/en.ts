@@ -17,18 +17,23 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="26"/>
+        <location filename="../../Collection/CollectionController.cpp" line="30"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="27"/>
+        <location filename="../../Collection/CollectionController.cpp" line="31"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="28"/>
+        <location filename="../../Collection/CollectionController.cpp" line="32"/>
         <source>Delete collection database as well?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <source>No write access to %1</source>
         <translation></translation>
     </message>
 </context>

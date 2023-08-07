@@ -22,6 +22,7 @@ class LOGIC_API CollectionController final
 
 public:
 	CollectionController(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class ITaskQueue> taskQueue
 	);

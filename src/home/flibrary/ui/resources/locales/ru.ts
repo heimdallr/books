@@ -238,29 +238,9 @@ Version: %1</source>
         <source>This collection has already been added: %1</source>
         <translation>Эта база данных уже добавлена как коллекция %1</translation>
     </message>
-    <message>
-        <source>No write access to %1</source>
-        <translation type="vanished">Нет достапа на запись в %1</translation>
-    </message>
-    <message>
-        <source>Author not specified</source>
-        <translation type="vanished">Автор не указан</translation>
-    </message>
 </context>
 <context>
     <name>FileDialog</name>
-    <message>
-        <source>Select database file</source>
-        <translation type="vanished">Выберите файл базы данных</translation>
-    </message>
-    <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation type="vanished">Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
-    </message>
-    <message>
-        <source>Select archives folder</source>
-        <translation type="vanished">Выберите папку с архивами</translation>
-    </message>
     <message>
         <source>Select destination folder</source>
         <translation type="vanished">Укажите путь назначения на устройстве</translation>

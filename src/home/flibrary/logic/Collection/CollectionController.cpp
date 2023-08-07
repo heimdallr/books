@@ -1,7 +1,6 @@
 #include "CollectionController.h"
 
-#include <QDir>
-#include <QFile>
+#include <QTemporaryDir>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -9,12 +8,16 @@
 #include "fnd/observable.h"
 
 #include "interface/constants/Localization.h"
-
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/ITaskQueue.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "CollectionImpl.h"
-#include "interface/logic/ITaskQueue.h"
+
+#include "inpx/src/util/constant.h"
+#include "inpx/src/util/inpx.h"
+#include "util/IExecutor.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -26,6 +29,7 @@ constexpr auto CONTEXT = "CollectionController";
 constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
 constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
 constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
+constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 
 QString Tr(const char * str)
 {
@@ -42,17 +46,57 @@ QString GetInpx(const QString & folder)
 	return result;
 }
 
+using IniMap = std::map<std::wstring, std::filesystem::path>;
+using IniMapPair = std::pair<std::unique_ptr<QTemporaryDir>, IniMap>;
+IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFiles)
+{
+	IniMapPair result { createFiles ? std::make_unique<QTemporaryDir>() : nullptr, IniMap{} };
+	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
+	{
+		auto fileName = QDir::fromNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + name);
+		if (!createFiles || QFile(fileName).exists())
+			return fileName;
+
+		fileName = tempDir.filePath(name);
+		QFile::copy(":/data/" + name, fileName);
+		return fileName;
+	};
+
+	const auto inpx = GetInpx(folder);
+	if (inpx.isEmpty())
+	{
+		PLOGE << "Index file (*.inpx) not found";
+		return result;
+	}
+
+	result.second = IniMap
+	{
+		{ DB_PATH, db.toStdWString() },
+		{ GENRES, getFile("genres.ini").toStdWString() },
+		{ DB_CREATE_SCRIPT, getFile("CreateCollection.sql").toStdWString() },
+		{ DB_UPDATE_SCRIPT, getFile("UpdateCollection.sql").toStdWString() },
+		{ INPX, inpx.toStdWString() },
+	};
+
+	for (const auto & [key, value] : result.second)
+		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
+
+	return result;
+}
+
 }
 
 class CollectionController::Impl final
 	: public Observable<IObserver>
 {
 public:
-	explicit Impl(std::shared_ptr<ISettings> settings
+	Impl(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ITaskQueue> taskQueue
 	)
 		: m_settings(std::move(settings))
+		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
 		, m_taskQueue(std::move(taskQueue))
 	{
@@ -143,7 +187,7 @@ public:
 	}
 
 private:
-	void CreateNew(const QString & /*name*/, const QString & db, const QString & /*folder*/)
+	void CreateNew(QString name, QString db, QString folder)
 	{
 		if (QFile(db).exists())
 		{
@@ -154,6 +198,29 @@ private:
 
 			PLOGW << db << " will be rewritten";
 		}
+
+		if (!QFile(db).open(QIODevice::WriteOnly))
+		{
+			(void)m_uiFactory->ShowWarning(Tr(CANNOT_WRITE_TO_DATABASE).arg(db), QMessageBox::Ok);
+			return;
+		}
+
+		std::shared_ptr executor = m_logicFactory->GetExecutor({});
+		(*executor)({"Create collection", [&, executor, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
+		{
+			auto result = std::function([executor](size_t) { });
+
+			if (auto [_, ini] = GetIniMap(db, folder, true); Inpx::CreateNewCollection(std::move(ini)))
+			{
+				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder)](size_t) mutable
+				{
+					Add(std::move(name), std::move(db), std::move(folder));
+				});
+			}
+	
+			return result;
+		}});
+
 	}
 
 	void Add(QString name, QString db, QString folder)
@@ -166,6 +233,7 @@ private:
 
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ITaskQueue, std::shared_ptr> m_taskQueue;
 	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
@@ -173,10 +241,12 @@ private:
 };
 
 CollectionController::CollectionController(std::shared_ptr<ISettings> settings
+	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ITaskQueue> taskQueue
 )
 	: m_impl(std::move(settings)
+		, std::move(logicFactory)
 		, std::move(uiFactory)
 		, std::move(taskQueue)
 	)

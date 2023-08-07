@@ -1,6 +1,7 @@
 #include <QCryptographicHash>
 // ReSharper disable once CppUnusedIncludeDirective
 #include <QString> // for plog
+#include <QFile>
 
 #include <plog/Log.h>
 
@@ -77,7 +78,7 @@ void CollectionImpl::Serialize(const Collection & collection, ISettings & settin
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 }
 
-Collections CollectionImpl::Deserialize(const ISettings & settings)
+Collections CollectionImpl::Deserialize(ISettings & settings)
 {
 	Collections collections;
 	SettingsGroup settingsGroup(settings, COLLECTIONS);
@@ -85,6 +86,16 @@ Collections CollectionImpl::Deserialize(const ISettings & settings)
 	{
 		return DeserializeImpl(settings, std::move(groupId));
 	});
+
+	if (auto [begin, end] = std::ranges::remove_if(collections, [&] (const auto & item)
+	{
+		if (QFile::exists(item->database))
+			return false;
+
+		settings.Remove(item->id);
+		return true;
+	}); begin != end)
+		collections.erase(begin, end);
 
 	return collections;
 }
