@@ -346,16 +346,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Size Up</source>
-        <translation>Увеличить размер</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
-        <source>Size Down</source>
-        <translation>Уменьшить размер</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>E&amp;xit</source>
         <translation>В&amp;ыход</translation>
     </message>
@@ -428,6 +418,21 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>Show collection s&amp;tatistics</source>
         <translation>Показать с&amp;татистику коллекции</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Size &amp;Up</source>
+        <translation>У&amp;величить размер</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Size &amp;Down</source>
+        <translation>У&amp;меньшить размер</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Font &amp;settings...</source>
+        <translation>&amp;Настройки шрифтов...</translation>
     </message>
 </context>
 <context>

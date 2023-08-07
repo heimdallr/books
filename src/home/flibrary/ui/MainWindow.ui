@@ -289,6 +289,7 @@
      <property name="title">
       <string>Font</string>
      </property>
+     <addaction name="actionFontSettings"/>
      <addaction name="actionFontSizeUp"/>
      <addaction name="actionFontSizeDown"/>
     </widget>
@@ -310,7 +311,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFontSizeUp">
    <property name="text">
-    <string>Size Up</string>
+    <string>Size &amp;Up</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Up</string>
@@ -321,7 +322,7 @@
   </action>
   <action name="actionFontSizeDown">
    <property name="text">
-    <string>Size Down</string>
+    <string>Size &amp;Down</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Down</string>
@@ -345,6 +346,9 @@
    <property name="text">
     <string>Add &amp;new collection...</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -356,6 +360,9 @@
    <property name="text">
     <string>&amp;Remove collection</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -364,10 +371,16 @@
    <property name="text">
     <string>&amp;User data</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About...</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
    </property>
   </action>
   <action name="actionHideRemoved">
@@ -376,6 +389,9 @@
    </property>
    <property name="text">
     <string>&amp;Hide removed books</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
@@ -399,6 +415,9 @@
    <property name="text">
     <string>&amp;Clear log</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -406,6 +425,20 @@
   <action name="actionShowCollectionStatistics">
    <property name="text">
     <string>Show collection s&amp;tatistics</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionFontSettings">
+   <property name="text">
+    <string>Font &amp;settings...</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

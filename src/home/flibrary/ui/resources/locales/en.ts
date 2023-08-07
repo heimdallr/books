@@ -216,16 +216,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Size Up</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
-        <source>Size Down</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>E&amp;xit</source>
         <translation></translation>
     </message>
@@ -297,6 +287,21 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>Show collection s&amp;tatistics</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Size &amp;Up</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Size &amp;Down</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
 </context>
