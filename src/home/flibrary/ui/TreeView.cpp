@@ -27,7 +27,6 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto VALUE_MODE_ICON_TEMPLATE = ":/icons/%1.png";
-constexpr auto VALUE_MODE_VALUE_KEY = "ui/%1/%2/%3/Value";
 constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto VALUE_MODE_STYLE_SHEET = "QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}";
 constexpr auto COLUMNS_KEY = "ui/%1/%2/Columns/%3";
@@ -135,18 +134,18 @@ private: // ITreeViewController::IObserver
 		}
 
 		RestoreHeaderLayout();
-		RestoreValue();
 		OnCountChanged();
+		OnValueChanged();
 	}
 
 private: //	IValueApplier
 	void Find() override
 	{
-		if (!m_currentId.isEmpty())
-			return Find(m_currentId, Role::Id);
-
 		if (!m_ui.value->text().isEmpty())
 			return Find(m_ui.value->text());
+
+		if (!m_currentId.isEmpty())
+			return Find(m_currentId, Role::Id);
 
 		m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
 	}
@@ -223,12 +222,7 @@ private:
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
 		{
 			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
-			RestoreValue();
 			OnValueChanged();
-		});
-		connect(m_ui.value, &QLineEdit::textEdited, &m_self, [&]
-		{
-			SaveValue();
 		});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&]
 		{
@@ -241,21 +235,6 @@ private:
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
 		});
-	}
-
-	void SaveValue()
-	{
-		m_settings->Set(GetValueModeValueKey(), m_ui.value->text());
-	}
-
-	void RestoreValue()
-	{
-		if (const auto value = m_settings->Get(GetValueModeValueKey()).toString(); value != m_ui.value->text())
-			m_ui.value->setText(value);
-		else
-			OnValueChanged();
-
-		m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData().toString());
 	}
 
 	void SaveHeaderLayout()
@@ -441,11 +420,6 @@ private:
 			key.append(QString("/%1").arg(value));
 
 		return key;
-	}
-
-	QString GetValueModeValueKey() const
-	{
-		return QString(VALUE_MODE_VALUE_KEY).arg(m_controller->TrContext()).arg(m_ui.cbMode->currentData().toString()).arg(m_ui.cbValueMode->currentData().toString());
 	}
 
 	QString GetValueModeKey() const
