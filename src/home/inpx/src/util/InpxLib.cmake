@@ -11,7 +11,6 @@ AddTarget(
 	QT_USE
 		Core
 	LINK_TARGETS
-		fmt
 		logging
 		sqlite
 		sqlite3pp

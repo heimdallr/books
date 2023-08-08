@@ -1,9 +1,6 @@
 [submodule "src/ext/scripts"]
 	path = src/ext/scripts
 	url = ../scripts.git
-[submodule "src/ext/fmt"]
-	path = src/ext/fmt
-	url = ../fmt.git
 [submodule "src/ext/MyHomeLib"]
 	path = src/ext/MyHomeLib
 	url = ../MyHomeLib.git

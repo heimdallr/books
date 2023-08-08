@@ -13,7 +13,6 @@
 
 #include <plog/Log.h>
 
-#include "fmt/core.h"
 #include "sqlite3ppext.h"
 
 #pragma warning(pop)
@@ -149,7 +148,7 @@ auto LoadGenres(const std::filesystem::path & genresIniFileName)
 
 	std::ifstream iniStream(genresIniFileName);
 	if (!iniStream.is_open())
-		throw std::invalid_argument(fmt::format("Cannot open '{}'", genresIniFileName.generic_string()));
+		throw std::invalid_argument(std::format("Cannot open '{}'", genresIniFileName.generic_string()));
 
 	genres.emplace_back(L"0");
 	index.emplace(genres.front().code, size_t { 0 });
@@ -183,7 +182,7 @@ auto LoadGenres(const std::filesystem::path & genresIniFileName)
 		assert(it != index.end());
 		auto & parent = genres[it->second];
 		genre.parentId = it->second;
-		genre.dbCode = ToWide(fmt::format("{:s}.{:03d}", ToMultiByte(parent.dbCode), ++parent.childrenCount));
+		genre.dbCode = ToWide(std::format("{:s}.{:03d}", ToMultiByte(parent.dbCode), ++parent.childrenCount));
 	});
 
 	return std::make_pair(std::move(genres), std::move(index));
@@ -291,7 +290,7 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			{
 				const auto result = std::size(data);
 				auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
-				genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
+				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
 				unknownGenres.push_back(genre.name);
 				return result;
 			},
@@ -311,7 +310,7 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 				const auto it = index.insert(std::make_pair(code, std::size(genres))).first;
 				auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
 				auto & parentGenre = genres[parentIt->second];
-				genre.dbCode = ToWide(fmt::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
+				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
 				return it;
 			};
 
@@ -319,12 +318,12 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			const auto endDate = std::cend(date);
 			const auto year = Next(itDate, endDate, DATE_SEPARATOR);
 			const auto month = Next(itDate, endDate, DATE_SEPARATOR);
-			const auto dateCode = ToWide(fmt::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
+			const auto dateCode = ToWide(std::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
 
 			auto itIndexDate = genresIndex.find(dateCode);
 			if (itIndexDate == genresIndex.end())
 			{
-				const auto yearCode = ToWide(fmt::format("year_{0}", ToMultiByte(year)));
+				const auto yearCode = ToWide(std::format("year_{0}", ToMultiByte(year)));
 				auto itIndexYear = genresIndex.find(yearCode);
 				if (itIndexYear == genresIndex.end())
 					itIndexYear = add(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
@@ -444,7 +443,7 @@ Data Parse(const std::filesystem::path & genresFileName, const std::filesystem::
 
 bool TableExists(sqlite3pp::database & db, const std::string & table)
 {
-	sqlite3pp::query query(db, fmt::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
+	sqlite3pp::query query(db, std::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
 	return std::begin(query) != std::end(query);
 }
 
@@ -490,7 +489,7 @@ void ExecuteScript(const std::wstring & action, const std::filesystem::path & db
 	str.resize(1024);
 	std::ifstream inp(scriptFileName);
 	if (!inp.is_open())
-		throw std::runtime_error(fmt::format("Cannot open {}", scriptFileName.generic_string()));
+		throw std::runtime_error(std::format("Cannot open {}", scriptFileName.generic_string()));
 
 	while(!inp.eof())
 	{
@@ -529,7 +528,7 @@ size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view pro
 	if (rowsTotal == 0)
 		return rowsTotal;
 
-	Timer t(ToWide(fmt::format("store {0} {1}", process, rowsTotal)));
+	Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
 	size_t rowsInserted = 0;
 
 	DatabaseWrapper db(dbFileName);
@@ -538,7 +537,7 @@ size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view pro
 
 	const auto log = [rowsTotal, &rowsInserted]
 	{
-		PLOGI << fmt::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
+		PLOGI << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
 	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
