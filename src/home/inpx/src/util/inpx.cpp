@@ -21,7 +21,6 @@
 #include "types.h"
 
 #include "inpx.h"
-#include "Configuration.h"
 
 namespace {
 
@@ -35,14 +34,14 @@ class Timer
 {
 public:
 	explicit Timer(std::wstring process_)
-		: t(std::chrono::high_resolution_clock::now())
-		, process(std::move(process_))
+		: m_t(std::chrono::high_resolution_clock::now())
+		, m_process(std::move(process_))
 	{
-		PLOGI << process << " started";
+		PLOGI << m_process << " started";
 	}
 	~Timer()
 	{
-		PLOGI << process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count() << " ms";
+		PLOGI << m_process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_t).count() << " ms";
 	}
 
 	// rule 5
@@ -52,8 +51,8 @@ public:
 	Timer & operator=(Timer &&) = delete;
 
 private:
-	const std::chrono::steady_clock::time_point t;
-	const std::wstring process;
+	const std::chrono::steady_clock::time_point m_t;
+	const std::wstring m_process;
 };
 
 size_t GetIdDefault(std::wstring_view)
@@ -61,12 +60,12 @@ size_t GetIdDefault(std::wstring_view)
 	return GetId();
 }
 
-Dictionary::const_iterator FindDefault(const Dictionary & container, std::wstring_view value)
+Dictionary::const_iterator FindDefault(const Dictionary & container, const std::wstring_view value)
 {
 	return container.find(value);
 }
 
-bool IsComment(std::wstring_view line)
+bool IsComment(const std::wstring_view line)
 {
 	return false
 		|| std::size(line) < 3
@@ -115,7 +114,7 @@ private:
 class DatabaseWrapper
 {
 public:
-	explicit DatabaseWrapper(const std::filesystem::path & dbFileName, int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
+	explicit DatabaseWrapper(const std::filesystem::path & dbFileName, const int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
 		: m_db(dbFileName.generic_string().data(), flags)
 		, m_func(m_db)
 	{
@@ -201,7 +200,7 @@ T Add(std::wstring_view value, Dictionary & container, const GetIdFunctor & getI
 	return static_cast<T>(it->second);
 }
 
-void ParseItem(size_t id, std::wstring_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+void ParseItem(size_t id, const std::wstring_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
@@ -472,8 +471,8 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 
 	auto & strDate = data.emplace(PROP_CREATIONDATE, std::string()).first->second;
 	strDate.resize(30);
-	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	(void)std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
 	return data;
 }
@@ -496,13 +495,13 @@ void ExecuteScript(const std::wstring & action, const std::filesystem::path & db
 		command.clear();
 		while (!inp.eof())
 		{
-			inp.getline(str.data(), str.size());
+			inp.getline(str.data(), static_cast<std::streamsize>(str.size()));
 			assert(inp.good() || inp.eof());
 			if (str.starts_with("--@@"))
 				break;
 
 			if (str.front())
-				command.append(str.data()).append("\n");
+				command.append(str).append("\n");
 		}
 
 		if (command.empty() || !command.front())
@@ -522,7 +521,7 @@ void ExecuteScript(const std::wstring & action, const std::filesystem::path & db
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view process, std::string_view query, It beg, It end, Functor && f)
+size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view process, const std::string_view query, It beg, It end, Functor && f)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
 	if (rowsTotal == 0)
@@ -540,7 +539,7 @@ size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view pro
 		PLOGI << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
-	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](size_t init, const typename It::value_type & value)
+	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const typename It::value_type & value)
 	{
 		f(cmd, value);
 		const auto result = 0
@@ -666,7 +665,7 @@ std::wstring RemoveExt(std::wstring & str)
 {
 	const auto dotPos = str.find_last_of(L'.');
 	assert(dotPos != std::string::npos);
-	std::wstring result(std::next(std::cbegin(str), dotPos + 1), std::cend(str));
+	std::wstring result(std::next(std::cbegin(str), static_cast<int>(dotPos) + 1), std::cend(str));
 	str.resize(dotPos);
 	return result;
 }
@@ -692,26 +691,26 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini)
 	}
 
 	std::set<std::wstring> inpxFolders;
-	std::map<std::wstring, std::wstring> extentions;
-	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&extentions] (std::wstring item)
+	std::map<std::wstring, std::wstring> extenstion;
+	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&extenstion] (std::wstring item)
 	{
 		auto ext = RemoveExt(item);
-		extentions.emplace(item, std::move(ext));
+		extenstion.emplace(item, std::move(ext));
 		return item;
 	});
 
 	std::ranges::set_difference(inpxFolders, dbFolders, std::back_inserter(result));
-	std::ranges::transform(result, std::begin(result), [&extentions] (const std::wstring & item)
+	std::ranges::transform(result, std::begin(result), [&extenstion] (const std::wstring & item)
 	{
-		const auto it = extentions.find(item);
-		assert(it != extentions.end());
+		const auto it = extenstion.find(item);
+		assert(it != extenstion.end());
 		return item + L'.' + it->second;
 	});
 
 	return result;
 }
 
-Dictionary ReadDictionary(std::string_view name, sqlite3pp::database & db, const char * statement)
+Dictionary ReadDictionary(const std::string_view name, sqlite3pp::database & db, const char * statement)
 {
 	PLOGI << "Read " << name;
 	Dictionary data;
