@@ -19,6 +19,7 @@
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
+#include "shared/BooksContextMenuProvider.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/GroupController.h"
@@ -83,6 +84,11 @@ std::unique_ptr<Util::IExecutor> LogicFactory::GetExecutor(Util::ExecutorInitial
 std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
 {
 	return m_impl->container.resolve<GroupController>();
+}
+
+std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const
+{
+	return m_impl->container.resolve<BooksContextMenuProvider>();
 }
 
 }

@@ -1,5 +1,7 @@
 #include "GroupController.h"
 
+#include <plog/Log.h>
+
 #include "database/interface/ITransaction.h"
 
 #include "shared/DatabaseUser.h"
@@ -26,9 +28,13 @@ struct GroupController::Impl
 GroupController::GroupController(std::shared_ptr<DatabaseUser> databaseUser)
 	: m_impl(std::move(databaseUser))
 {
+	PLOGD << "GroupController created";
 }
 
-GroupController::~GroupController() = default;
+GroupController::~GroupController()
+{
+	PLOGD << "GroupController destroyed";
+}
 
 void GroupController::CreateNewGroup(QString name, Callback callback) const
 {

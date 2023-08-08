@@ -27,7 +27,7 @@ protected: // IDataItem
 	[[nodiscard]] const IDataItem * GetParent() const noexcept override;
 	Ptr & AppendChild(Ptr child) override;
 	void SetChildren(Items children) noexcept override;
-	[[nodiscard]] const IDataItem * GetChild(size_t row) const noexcept override;
+	[[nodiscard]] Ptr GetChild(size_t row) const noexcept override;
 	[[nodiscard]] size_t GetChildCount() const noexcept override;
 	[[nodiscard]] size_t GetRow() const noexcept override;
 	[[nodiscard]] const QString & GetId() const noexcept override;
@@ -170,6 +170,8 @@ public:
 		{
 			Title = 0,
 			Id,
+			Parameter,
+			Enabled,
 			Last
 		};
 	};

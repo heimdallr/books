@@ -43,9 +43,9 @@ void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 		child->To<DataItem>()->m_parent = this;
 }
 
-const IDataItem * DataItem::GetChild(const size_t row) const noexcept
+IDataItem::Ptr DataItem::GetChild(const size_t row) const noexcept
 {
-	return row < GetChildCount() ? m_children[row].get() : nullptr;
+	return row < GetChildCount() ? m_children[row] : Ptr{};
 }
 
 size_t DataItem::GetChildCount() const noexcept

@@ -120,10 +120,6 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <source>Read</source>
-        <translation type="vanished">Читать</translation>
-    </message>
-    <message>
         <source>Selection</source>
         <translation type="vanished">Выделение</translation>
     </message>
@@ -138,26 +134,6 @@
     <message>
         <source>Invert selection</source>
         <translation type="vanished">Инвертировать выделение</translation>
-    </message>
-    <message>
-        <source>Send to device</source>
-        <translation type="vanished">Отправить на устройство</translation>
-    </message>
-    <message>
-        <source>In zip archive</source>
-        <translation type="vanished">Архиворовать в zip</translation>
-    </message>
-    <message>
-        <source>In original format</source>
-        <translation type="vanished">В исходном формате</translation>
-    </message>
-    <message>
-        <source>Remove book</source>
-        <translation type="vanished">Удалить книгу</translation>
-    </message>
-    <message>
-        <source>Undo book deletion</source>
-        <translation type="vanished">Отменить удаление книги</translation>
     </message>
 </context>
 <context>
@@ -178,12 +154,6 @@
         <location filename="../../dialogs/Dialog.cpp" line="18"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</translation>
-    </message>
-    <message>
-        <source>Another e-library book cataloger
-Version: %1</source>
-        <translation type="vanished">Ещё один каталогизатор книг электронной библиотеки
-Версия: %1</translation>
     </message>
 </context>
 <context>
@@ -264,41 +234,6 @@ Version: %1</source>
     <message>
         <source>Select a file to import user data</source>
         <translation type="vanished">Выберите файл импорта пользовательских данных</translation>
-    </message>
-</context>
-<context>
-    <name>GroupsMenu</name>
-    <message>
-        <source>Groups</source>
-        <translation type="vanished">Группы</translation>
-    </message>
-    <message>
-        <source>Add to</source>
-        <translation type="vanished">Добавить в</translation>
-    </message>
-    <message>
-        <source>New group...</source>
-        <translation type="vanished">Новая группа...</translation>
-    </message>
-    <message>
-        <source>Remove from</source>
-        <translation type="vanished">Удалить из</translation>
-    </message>
-    <message>
-        <source>All</source>
-        <translation type="vanished">Все</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to delete the group?</source>
-        <translation type="vanished">Уверены, что хотите удалить группу?</translation>
-    </message>
-    <message>
-        <source>Create new...</source>
-        <translation type="vanished">Создать новую...</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation type="vanished">Удалить</translation>
     </message>
 </context>
 <context>
@@ -456,21 +391,6 @@ Restart now?</source>
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
         <translation>%1 б</translation>
-    </message>
-</context>
-<context>
-    <name>NewGroupDialog</name>
-    <message>
-        <source>Input new group name</source>
-        <translation type="vanished">Укажите имя новой группы</translation>
-    </message>
-    <message>
-        <source>Group name</source>
-        <translation type="vanished">Имя группы</translation>
-    </message>
-    <message>
-        <source>New group</source>
-        <translation type="vanished">Новая группа</translation>
     </message>
 </context>
 <context>

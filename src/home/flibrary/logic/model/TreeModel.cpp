@@ -28,9 +28,9 @@ QModelIndex TreeModel::index(const int row, const int column, const QModelIndex 
 		return {};
 
 	const auto * parentItem = parent.isValid() ? static_cast<IDataItem *>(parent.internalPointer()) : m_data.get();
-	const auto * childItem = parentItem->GetChild(row);
+	const auto childItem = parentItem->GetChild(row);
 
-	return childItem ? createIndex(row, column, childItem) : QModelIndex();
+	return childItem ? createIndex(row, column, childItem.get()) : QModelIndex();
 }
 
 QModelIndex TreeModel::parent(const QModelIndex & index) const

@@ -145,24 +145,38 @@ private: // ITreeViewController::IObserver
 			return;
 
 		QMenu menu;
-		std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{item.get(), &menu}} };
+		std::stack<std::pair<IDataItem::Ptr, QMenu *>> stack { {{item, &menu}} };
 		while (!stack.empty())
 		{
-			auto [parent, subMenu] = stack.top();
+			auto [parent, subMenu] = std::move(stack.top());
 			stack.pop();
 			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
 			{
-				const auto * child = parent->GetChild(i);
+				auto child = parent->GetChild(i);
+				const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
+				const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
+				const auto title = child->GetData().toStdString();
+
 				if (child->GetChildCount() != 0)
 				{
-					stack.emplace(child, subMenu->addMenu(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data())));
+					auto * subSubMenu = stack.emplace(child, subMenu->addMenu(Loc::Tr(m_controller->TrContext(), title.data()))).second;
+					subSubMenu->setEnabled(enabled);
 					continue;
 				}
 
-				subMenu->addAction(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data()), [&, id = child->GetData(MenuItem::Column::Id).toInt()]
+				const auto childId = child->GetData(MenuItem::Column::Id).toInt();
+				if (childId < 0)
 				{
-					m_controller->OnContextMenuTriggered(m_ui.treeView->selectionModel()->selectedIndexes(), m_ui.treeView->currentIndex(), id);
+					subMenu->addSeparator();
+					continue;
+				}
+
+				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)]
+				{
+					m_controller->OnContextMenuTriggered(m_ui.treeView->selectionModel()->selectedIndexes(), m_ui.treeView->currentIndex(), child);
 				});
+
+				action->setEnabled(enabled);
 			}
 		}
 

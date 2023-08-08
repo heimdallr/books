@@ -39,7 +39,7 @@ public:
 	[[nodiscard]] virtual const IDataItem * GetParent() const noexcept = 0;
 	virtual Ptr & AppendChild(Ptr child) = 0;
 	virtual void SetChildren(Items children) noexcept = 0;
-	[[nodiscard]] virtual const IDataItem * GetChild(size_t row) const noexcept = 0;
+	[[nodiscard]] virtual Ptr GetChild(size_t row) const noexcept = 0;
 	[[nodiscard]] virtual size_t GetChildCount() const noexcept = 0;
 	[[nodiscard]] virtual size_t GetRow() const noexcept = 0;
 	[[nodiscard]] virtual const QString & GetId() const noexcept = 0;

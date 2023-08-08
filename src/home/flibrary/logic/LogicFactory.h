@@ -23,6 +23,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<ArchiveParser> CreateArchiveParser() const override;
 	[[nodiscard]] std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const override;
 	[[nodiscard]] std::shared_ptr<GroupController> CreateGroupController() const override;
+	[[nodiscard]] std::shared_ptr<BooksContextMenuProvider> CreateBooksContextMenuProvider() const override;
 
 private:
 	struct Impl;

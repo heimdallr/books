@@ -45,15 +45,13 @@ enum class MenuAction
 	RemoveGroup,
 };
 
-template <typename T>
-void Add(IDataItem::Ptr & dst, QString title, T id)
+void Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
 {
 	auto item = MenuItem::Create();
 	item->SetData(std::move(title), MenuItem::Column::Title);
 	item->SetData(QString::number(static_cast<int>(id)), MenuItem::Column::Id);
 	dst->AppendChild(std::move(item));
 }
-
 
 IDataItem::Ptr MenuRequesterGroups()
 {
@@ -258,8 +256,8 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index)
 	Perform(&IObserver::OnContextMenuReady, index.data(Role::Id).toString(), std::cref(item));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, int id) const
+void TreeViewControllerNavigation::OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, const IDataItem::Ptr & item) const
 {
-	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(id));
+	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));
 }

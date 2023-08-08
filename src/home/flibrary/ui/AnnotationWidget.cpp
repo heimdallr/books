@@ -78,7 +78,7 @@ QString Urls(const char * type, const IDataItem & parent)
 	std::vector<QString> urls;
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
-		const auto * item = parent.GetChild(i);
+		const auto item = parent.GetChild(i);
 		urls.push_back(Url(type, item->GetId(), item->GetData(DataItem::Column::Title)));
 	}
 
