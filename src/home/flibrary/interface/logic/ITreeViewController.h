@@ -21,6 +21,7 @@ public:
 	public:
 		virtual void OnModeChanged(int index) = 0;
 		virtual void OnModelChanged(QAbstractItemModel * model) = 0;
+		virtual void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item) = 0;
 	};
 
 public:
@@ -32,7 +33,7 @@ public:
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
-	[[nodiscard]] virtual IDataItem::Ptr RequestContextMenu(const QModelIndex & index) const = 0;
+	virtual void RequestContextMenu(const QModelIndex & index) = 0;
 	virtual void OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, int id) const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;

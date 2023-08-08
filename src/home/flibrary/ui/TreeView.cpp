@@ -139,6 +139,36 @@ private: // ITreeViewController::IObserver
 		OnValueChanged();
 	}
 
+	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item) override
+	{
+		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
+			return;
+
+		QMenu menu;
+		std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{item.get(), &menu}} };
+		while (!stack.empty())
+		{
+			auto [parent, subMenu] = stack.top();
+			stack.pop();
+			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
+			{
+				const auto * child = parent->GetChild(i);
+				if (child->GetChildCount() != 0)
+				{
+					stack.emplace(child, subMenu->addMenu(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data())));
+					continue;
+				}
+
+				subMenu->addAction(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data()), [&, id = child->GetData(MenuItem::Column::Id).toInt()]
+				{
+					m_controller->OnContextMenuTriggered(m_ui.treeView->selectionModel()->selectedIndexes(), m_ui.treeView->currentIndex(), id);
+				});
+			}
+		}
+
+		menu.exec(QCursor::pos());
+	}
+
 private: //	IValueApplier
 	void Find() override
 	{
@@ -236,35 +266,9 @@ private:
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
 		});
-		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
+		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
-			const auto item = m_controller->RequestContextMenu(m_ui.treeView->currentIndex());
-			if (!item)
-				return;
-
-			QMenu menu;
-			std::stack<std::pair<const IDataItem*, QMenu *>> stack { {{item.get(), &menu}}};
-			while (!stack.empty())
-			{
-				auto [parent, subMenu] = stack.top();
-				stack.pop();
-				for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
-				{
-					const auto * child = parent->GetChild(i);
-					if (child->GetChildCount() != 0)
-					{
-						stack.emplace(child, subMenu->addMenu(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data())));
-						continue;
-					}
-
-					subMenu->addAction(Loc::Tr(m_controller->TrContext(), child->GetData().toStdString().data()), [&, id = child->GetData(MenuItem::Column::Id).toInt()]
-					{
-						m_controller->OnContextMenuTriggered(m_ui.treeView->selectionModel()->selectedIndexes(), m_ui.treeView->currentIndex(), id);
-					});
-				}
-			}
-
-			menu.exec(m_ui.treeView->viewport()->mapToGlobal(pos));
+			m_controller->RequestContextMenu(m_ui.treeView->currentIndex());
 		});
 	}
 
