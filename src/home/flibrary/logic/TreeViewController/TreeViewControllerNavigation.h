@@ -19,8 +19,13 @@ public:
 	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<DataProvider> dataProvider
 		, std::shared_ptr<AbstractModelProvider> modelProvider
+		, std::shared_ptr<class ILogicFactory> logicFactory
+		, std::shared_ptr<class IUiFactory> uiFactory
 	);
 	~TreeViewControllerNavigation() override;
+
+public:
+	void RequestNavigation() const;
 
 private: // ITreeViewController
 	[[nodiscard]] std::vector<const char *> GetModeNames() const override;
@@ -31,6 +36,8 @@ private: // AbstractTreeViewController
 	[[nodiscard]] int GetModeIndex(const QString & mode) const override;
 	[[nodiscard]] ItemType GetItemType() const noexcept override;
 	[[nodiscard]] ViewMode GetViewMode() const noexcept override;
+	[[nodiscard]] IDataItem::Ptr RequestContextMenu(const QModelIndex & index) const override;
+	void OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, int id) const override;
 
 private:
 	struct Impl;

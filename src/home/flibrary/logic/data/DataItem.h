@@ -161,6 +161,27 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
+class MenuItem final : public DataItem
+{
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Title = 0,
+			Id,
+			Last
+		};
+	};
+
+	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
+	explicit MenuItem(const IDataItem * parent);
+
+private: // DataItem
+	MenuItem * ToMenuItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
+};
+
 void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
 
 }

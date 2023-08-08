@@ -155,7 +155,7 @@ public:
 		m_booksRequestCallback = std::move(callback);
 	}
 
-	void RequestNavigation()
+	void RequestNavigation() const
 	{
 		m_navigationTimer->start();
 	}
@@ -314,8 +314,8 @@ private:
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	PropagateConstPtr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigationImpl(); }) };
-	PropagateConstPtr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooks(); }) };
+	std::unique_ptr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigationImpl(); }) };
+	std::unique_ptr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooks(); }) };
 };
 
 DataProvider::DataProvider(std::shared_ptr<DatabaseUser> databaseUser)
@@ -354,7 +354,7 @@ void DataProvider::SetBookRequestCallback(Callback callback)
 	m_impl->SetBookRequestCallback(std::move(callback));
 }
 
-void DataProvider::RequestNavigation()
+void DataProvider::RequestNavigation() const
 {
 	m_impl->RequestNavigation();
 }

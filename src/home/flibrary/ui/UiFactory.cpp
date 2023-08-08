@@ -75,6 +75,12 @@ QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const Q
 	return dialog->Show(text, buttons, defaultButton);
 }
 
+QString UiFactory::GetText(const QString & title, const QString & label, const QString & text, const QLineEdit::EchoMode mode) const
+{
+	const auto dialog = m_impl->container.resolve<IInputTextDialog>();
+	return dialog->GetText(title, label, text, mode);
+}
+
 std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const noexcept
 {
 	assert(m_impl->treeViewController);

@@ -4,6 +4,10 @@
 
 #include "fnd/observer.h"
 
+#include "IDataItem.h"
+
+class QModelIndex;
+class QPoint;
 class QAbstractItemModel;
 class QString;
 
@@ -28,6 +32,8 @@ public:
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
+	[[nodiscard]] virtual IDataItem::Ptr RequestContextMenu(const QModelIndex & index) const = 0;
+	virtual void OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, int id) const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

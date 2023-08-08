@@ -1,4 +1,5 @@
 #include "DataItem.h"
+#include "DataItem.h"
 
 #include <ranges>
 
@@ -263,6 +264,28 @@ ItemType BookItem::GetType() const noexcept
 {
 	return ItemType::Books;
 }
+
+std::shared_ptr<IDataItem> MenuItem::Create(const IDataItem * parent)
+{
+	return std::make_shared<MenuItem>(parent);
+}
+
+MenuItem::MenuItem(const IDataItem * parent)
+	: DataItem(Column::Last, parent)
+{
+}
+
+MenuItem * MenuItem::ToMenuItem() noexcept
+{
+	return this;
+}
+
+ItemType MenuItem::GetType() const noexcept
+{
+	assert(false && "unexpected call");
+	return ItemType::Unknown;
+}
+
 
 namespace HomeCompa::Flibrary {
 

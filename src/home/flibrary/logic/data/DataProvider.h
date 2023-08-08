@@ -30,7 +30,7 @@ public:
 	void SetNavigationRequestCallback(Callback callback);
 	void SetBookRequestCallback(Callback callback);
 
-	void RequestNavigation();
+	void RequestNavigation() const;
 
 private:
 	class Impl;

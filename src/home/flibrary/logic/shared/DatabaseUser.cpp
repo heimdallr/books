@@ -6,8 +6,7 @@
 #include <plog/Log.h>
 
 #include "data/DataItem.h"
-#include "database/DatabaseController.h"
-#include "inpx/src/util/types.h"
+#include "shared/DatabaseController.h"
 #include "util/executor/factory.h"
 
 using namespace HomeCompa;

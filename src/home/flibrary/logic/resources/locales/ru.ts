@@ -102,27 +102,57 @@
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="29"/>
+        <source>Are you sure you want to delete the groups (%1)?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="30"/>
+        <source>Input new group name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="31"/>
+        <source>Group name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <source>New group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="61"/>
+        <source>Create new...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="62"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="76"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="34"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="77"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="35"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="78"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="36"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="79"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="37"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="80"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>

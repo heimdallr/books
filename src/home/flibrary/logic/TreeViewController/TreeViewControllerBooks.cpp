@@ -115,3 +115,12 @@ ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
 {
 	return m_impl->viewMode;
 }
+
+IDataItem::Ptr TreeViewControllerBooks::RequestContextMenu(const QModelIndex & /*index*/) const
+{
+	return nullptr;
+}
+
+void TreeViewControllerBooks::OnContextMenuTriggered(const QList<QModelIndex> & /*indexList*/, const QModelIndex & /*index*/, int /*id*/) const
+{
+}

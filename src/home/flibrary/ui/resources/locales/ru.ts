@@ -170,12 +170,12 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../dialogs/Dialog.cpp" line="15"/>
+        <location filename="../../dialogs/Dialog.cpp" line="17"/>
         <source>About FLibrary</source>
         <translation>О FLibrary</translation>
     </message>
     <message>
-        <location filename="../../dialogs/Dialog.cpp" line="16"/>
+        <location filename="../../dialogs/Dialog.cpp" line="18"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</translation>
     </message>

@@ -16,7 +16,8 @@ enum class ItemType;
 DATA_ITEM(DataItem)        \
 DATA_ITEM(NavigationItem)  \
 DATA_ITEM(AuthorItem)      \
-DATA_ITEM(BookItem)
+DATA_ITEM(BookItem)        \
+DATA_ITEM(MenuItem)
 
 #define DATA_ITEM(NAME) class NAME;  // NOLINT(bugprone-macro-parentheses)
 DATA_ITEMS_X_MACRO

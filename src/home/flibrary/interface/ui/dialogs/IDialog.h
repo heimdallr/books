@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QLineEdit>
 #include <QtWidgets/QMessageBox>
 
 namespace HomeCompa::Flibrary {
@@ -19,6 +20,11 @@ public:
 		assert(false && "No impl");
 		throw std::runtime_error("No impl");
 	}
+	[[nodiscard]] virtual QString GetText(const QString & /*title*/, const QString & /*label*/, const QString & /*text*/ = {}, QLineEdit::EchoMode /*mode*/ = QLineEdit::Normal) const
+	{
+		assert(false && "No impl");
+		throw std::runtime_error("No impl");
+	}
 
 };
 
@@ -31,6 +37,10 @@ class IQuestionDialog : virtual public IDialog
 };
 
 class IWarningDialog : virtual public IDialog
+{
+};
+
+class IInputTextDialog : virtual public IDialog
 {
 };
 

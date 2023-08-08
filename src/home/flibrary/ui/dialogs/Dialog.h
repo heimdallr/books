@@ -53,4 +53,15 @@ private: // IDialog
 	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 };
 
+class InputTextDialog final
+	: public Dialog
+	, public IInputTextDialog
+{
+public:
+	explicit InputTextDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
+
+private: // IDialog
+	QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const override;
+};
+
 }

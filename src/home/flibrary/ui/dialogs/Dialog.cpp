@@ -1,5 +1,7 @@
 #include "Dialog.h"
 
+#include <QInputDialog>
+
 #include <plog/Log.h>
 
 #include "interface/constants/Localization.h"
@@ -62,4 +64,14 @@ WarningDialog::WarningDialog(std::shared_ptr<ParentWidgetProvider> parentProvide
 QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return QMessageBox::warning(m_parentProvider->GetWidget(), Loc::Warning(), text, buttons, defaultButton);
+}
+
+InputTextDialog::InputTextDialog(std::shared_ptr<ParentWidgetProvider> parentProvider)
+	: Dialog(std::move(parentProvider))
+{
+}
+
+QString InputTextDialog::GetText(const QString & title, const QString & label, const QString & text, const QLineEdit::EchoMode mode) const
+{
+	return QInputDialog::getText(m_parentProvider->GetWidget(), title, label, mode, text);
 }

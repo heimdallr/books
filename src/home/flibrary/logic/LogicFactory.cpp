@@ -9,18 +9,19 @@
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 
-#include "database/DatabaseController.h"
-
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "Annotation/ArchiveParser.h"
 
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
+#include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
+#include "shared/GroupController.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -77,6 +78,11 @@ std::shared_ptr<ArchiveParser> LogicFactory::CreateArchiveParser() const
 std::unique_ptr<Util::IExecutor> LogicFactory::GetExecutor(Util::ExecutorInitializer initializer) const
 {
 	return Util::ExecutorFactory::Create(Util::ExecutorImpl::Async, std::move(initializer));
+}
+
+std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
+{
+	return m_impl->container.resolve<GroupController>();
 }
 
 }
