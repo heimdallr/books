@@ -12,19 +12,21 @@ using namespace HomeCompa::Flibrary;
 
 namespace {
 
-void EnumerateLeafs(const QAbstractItemModel & model, const std::function<void(const QModelIndex&)> & f)
+void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & indexList, const std::function<void(const QModelIndex&)> & f)
 {
-	std::stack<QModelIndex> stack { {QModelIndex{}} };
+	std::vector<QModelIndex> stack;
+	std::ranges::copy_if(indexList, std::back_inserter(stack), [] (const QModelIndex & index) { return index.column() == 0; });
+
 	while (!stack.empty())
 	{
-		const auto parent = stack.top();
-		stack.pop();
+		const auto parent = stack.back();
+		stack.pop_back();
 		const auto rowCount = model.rowCount(parent);
 		if (rowCount == 0)
 			f(parent);
 
 		for (int i = 0; i < rowCount; ++i)
-			stack.push(model.index(i, 0, parent));
+			stack.push_back(model.index(i, 0, parent));
 	}
 }
 
@@ -89,6 +91,21 @@ bool FilteredProxyModel::setData(const QModelIndex & index, const QVariant & val
 				break;
 		}
 	}
+	else
+	{
+		switch (role)
+		{
+			case Role::Selected:
+			{
+				const auto request = value.value<SelectedRequest>();
+				GetSelected(request.current, request.selected, request.result);
+				return true;
+			}
+
+			default:
+				break;
+		}
+	}
 
 	return m_sourceModel->setData(mapToSource(index), value, role);
 }
@@ -108,10 +125,10 @@ void FilteredProxyModel::Check(const QModelIndex & parent, const Qt::CheckState 
 QStringList FilteredProxyModel::CollectLanguages() const
 {
 	std::set<QString> languages;
-	EnumerateLeafs(*this, [&] (const QModelIndex & child)
+	EnumerateLeafs(*this, {QModelIndex{}}, [&] (const QModelIndex & child)
 	{
-		assert(child.data(Role::Type).value<ItemType>() == ItemType::Books);
-		languages.insert(child.data(Role::Lang).toString().toLower());
+		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+			languages.insert(child.data(Role::Lang).toString().toLower());
 	});
 
 	return { languages.cbegin(), languages.cend() };
@@ -120,10 +137,30 @@ QStringList FilteredProxyModel::CollectLanguages() const
 int FilteredProxyModel::GetCount() const
 {
 	int result = 0;
-	EnumerateLeafs(*this, [&] (const QModelIndex &)
+	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex & child)
 	{
-		++result;
+		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+			++result;
 	});
 
 	return result;
+}
+
+void FilteredProxyModel::GetSelected(const QModelIndex & index, const QModelIndexList & indexList, QModelIndexList * selected) const
+{
+	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex & child)
+	{
+		if (child.data(Role::Type).value<ItemType>() == ItemType::Books && child.data(Role::CheckState).value<Qt::CheckState>() == Qt::Checked)
+			(*selected) << child;
+	});
+
+	if (selected->isEmpty())
+		EnumerateLeafs(*this, indexList, [&] (const QModelIndex & child)
+	{
+		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+			(*selected) << child;
+	});
+
+	if (selected->isEmpty())
+		(*selected) << index;
 }

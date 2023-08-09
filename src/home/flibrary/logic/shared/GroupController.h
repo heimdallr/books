@@ -16,15 +16,20 @@ class GroupController
 
 public:
 	using Callback = std::function<void()>;
-	using Ids = std::unordered_set<long long>;
+	using Id = long long;
+	using Ids = std::unordered_set<Id>;
 
 public:
-	explicit GroupController(std::shared_ptr<class DatabaseUser> databaseUser);
+	GroupController(std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class IUiFactory> uiFactory
+	);
 	~GroupController();
 
 public:
-	void CreateNewGroup(QString name, Callback callback) const;
+	void CreateNewGroup(Callback callback) const;
 	void RemoveGroups(Ids ids, Callback callback) const;
+	void AddToGroup(Id id, Ids ids, Callback callback) const;
+	void RemoveFromGroup(Id id, Ids ids, Callback callback) const;
 
 private:
 	struct Impl;

@@ -31,6 +31,7 @@ private:
 	void Check(const QModelIndex & parent, Qt::CheckState state);
 	QStringList CollectLanguages() const;
 	int GetCount() const;
+	void GetSelected(const QModelIndex & index, const QModelIndexList & indexList, QModelIndexList * selected) const;
 
 private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;

@@ -26,7 +26,15 @@ struct Role
 		TextFilter,
 		LanguageFilter,
 		HideRemovedFilter,
+		Selected,
 	};
+};
+
+struct SelectedRequest
+{
+	QModelIndex current;
+	QModelIndexList selected;
+	QModelIndexList * result { nullptr };
 };
 
 }

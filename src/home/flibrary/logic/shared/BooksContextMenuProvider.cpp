@@ -5,7 +5,9 @@
 #include <plog/Log.h>
 
 #include "DatabaseUser.h"
+#include "GroupController.h"
 #include "data/DataItem.h"
+#include "fnd/FindPair.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
@@ -29,18 +31,43 @@ constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "In original fo
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
 
+#define MENU_ACTION_ITEMS_X_MACRO     \
+MENU_ACTION_ITEM(ReadBook)            \
+MENU_ACTION_ITEM(RemoveBook)          \
+MENU_ACTION_ITEM(UndoRemoveBook)      \
+MENU_ACTION_ITEM(AddToNewGroup)       \
+MENU_ACTION_ITEM(AddToGroup)          \
+MENU_ACTION_ITEM(RemoveFromGroup)     \
+MENU_ACTION_ITEM(RemoveFromAllGroups) \
+MENU_ACTION_ITEM(SendAsArchive)       \
+MENU_ACTION_ITEM(SendAsIs)
+
 enum class MenuAction
 {
 	None = -1,
-	ReadBook,
-	RemoveBook,
-	UndoRemoveBook,
-	AddToNewGroup,
-	AddToGroup,
-	RemoveFromGroup,
-	RemoveFromAllGroups,
-	SendAsArchive,
-	SendAsIs,
+#define MENU_ACTION_ITEM(NAME) NAME,
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
+class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IContextMenuHandler() = default;
+
+#define MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
+using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const;
+
+constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
+{
+	{ MenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
+#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::NAME },
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
 };
 
 auto Tr(const char * str)
@@ -74,7 +101,8 @@ void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDat
 	if (remove->GetChildCount() > 0)
 	{
 		Add(remove);
-		Add(remove, Tr(GROUPS_REMOVE_FROM_ALL), MenuAction::RemoveFromAllGroups);
+		Add(remove, Tr(GROUPS_REMOVE_FROM_ALL), MenuAction::RemoveFromAllGroups)
+			->SetData(QString::number(-1), MenuItem::Column::Parameter);
 	}
 	else
 	{
@@ -85,16 +113,21 @@ void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDat
 	if (add->GetChildCount() > 0)
 		Add(add);
 
-	Add(add, Tr(GROUPS_ADD_TO_NEW), MenuAction::AddToNewGroup);
+	Add(add, Tr(GROUPS_ADD_TO_NEW), MenuAction::AddToNewGroup)
+		->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
 }
 
-class BooksContextMenuProvider::Impl
+class BooksContextMenuProvider::Impl final
+	: public IContextMenuHandler
 {
 public:
-	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<GroupController> groupController
+	)
 		: m_databaseUser(std::move(databaseUser))
+		, m_groupController(std::move(groupController))
 	{
 	}
 
@@ -134,12 +167,78 @@ public:
 		} });
 	}
 
+private: // IContextMenuHandler
+void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+{
+	callback(item);
+}
+void RemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+{
+	callback(item);
+}
+void UndoRemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+{
+	callback(item);
+}
+void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+{
+	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+}
+void AddToGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+{
+	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+}
+void RemoveFromGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+{
+	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+}
+void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+{
+	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+}
+void SendAsArchive(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+{
+	callback(item);
+}
+void SendAsIs(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+{
+	callback(item);
+}
+
+using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
+
+private:
+	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, GroupActionFunction f) const
+	{
+		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
+		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)] () mutable
+		{
+			callback(item);
+		});
+	}
+
+	GroupController::Ids GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList) const
+	{
+		QModelIndexList selected;
+		model->setData({}, QVariant::fromValue(SelectedRequest { index, indexList, &selected }), Role::Selected);
+
+		GroupController::Ids ids;
+		std::ranges::transform(selected, std::inserter(ids, ids.end()), [] (const auto & selectedIndex)
+		{
+			return selectedIndex.data(Role::Id).toLongLong();
+		});
+		return ids;
+	}
+
 private:
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 };
 
-BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser)
-	: m_impl(std::move(databaseUser))
+BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<GroupController> groupController
+)
+	: m_impl(std::move(databaseUser), std::move(groupController))
 {
 	PLOGD << "BooksContextMenuProvider created";
 }
@@ -152,4 +251,10 @@ BooksContextMenuProvider::~BooksContextMenuProvider()
 void BooksContextMenuProvider::Request(const QModelIndex & index, Callback callback)
 {
 	m_impl->Request(index, std::move(callback));
+}
+
+void BooksContextMenuProvider::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const
+{
+	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
+	std::invoke(invoker, *m_impl, model, std::cref(index), std::cref(indexList), std::move(item), std::move(callback));
 }

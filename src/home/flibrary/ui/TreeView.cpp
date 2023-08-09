@@ -171,9 +171,9 @@ private: // ITreeViewController::IObserver
 					continue;
 				}
 
-				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)]
+				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)]() mutable
 				{
-					m_controller->OnContextMenuTriggered(m_ui.treeView->selectionModel()->selectedIndexes(), m_ui.treeView->currentIndex(), child);
+					m_controller->OnContextMenuTriggered(m_ui.treeView->model(), m_ui.treeView->currentIndex(), m_ui.treeView->selectionModel()->selectedIndexes(), std::move(child));
 				});
 
 				action->setEnabled(enabled);

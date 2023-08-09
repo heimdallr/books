@@ -135,6 +135,11 @@ void TreeViewControllerBooks::RequestContextMenu(const QModelIndex & index)
 	});
 }
 
-void TreeViewControllerBooks::OnContextMenuTriggered(const QList<QModelIndex> & /*indexList*/, const QModelIndex & /*index*/, const IDataItem::Ptr & /*item*/) const
+void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const
 {
+	auto menuProvider = m_impl->logicFactory->CreateBooksContextMenuProvider();
+	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [menuProvider] (const IDataItem::Ptr &) mutable
+	{
+		menuProvider.reset();
+	});
 }

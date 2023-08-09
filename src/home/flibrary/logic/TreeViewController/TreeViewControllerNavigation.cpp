@@ -26,11 +26,6 @@ namespace {
 
 constexpr auto CONTEXT = "Navigation";
 
-constexpr auto REMOVE_GROUP_CONFIRM = QT_TRANSLATE_NOOP("Navigation", "Are you sure you want to delete the groups (%1)?");
-constexpr auto INPUT_NEW_GROUP_NAME = QT_TRANSLATE_NOOP("Navigation", "Input new group name");
-constexpr auto GROUP_NAME = QT_TRANSLATE_NOOP("Navigation", "Group name");
-constexpr auto NEW_GROUP_NAME = QT_TRANSLATE_NOOP("Navigation", "New group");
-
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 using MenuRequester = IDataItem::Ptr(*)();
 
@@ -96,11 +91,6 @@ constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 	{ MenuAction::RemoveGroup, &IContextMenuHandler::OnRemoveGroupTriggered },
 };
 
-auto Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
-
 }
 
 struct TreeViewControllerNavigation::Impl final
@@ -129,14 +119,10 @@ struct TreeViewControllerNavigation::Impl final
 private: // IContextMenuHandler
 	void OnCreateNewGroupTriggered(const QList<QModelIndex> &, const QModelIndex &) const override
 	{
-		auto groupName = uiFactory->GetText(Tr(INPUT_NEW_GROUP_NAME), Tr(GROUP_NAME), Tr(NEW_GROUP_NAME));
-		if (groupName.isEmpty())
-			return;
-
 		if (!groupController)
 			groupController = logicFactory->CreateGroupController();
 
-		groupController->CreateNewGroup(std::move(groupName), [&, gc = groupController] () mutable
+		groupController->CreateNewGroup([&, gc = groupController] () mutable
 		{
 			gc.reset();
 			groupController.reset();
@@ -153,10 +139,7 @@ private: // IContextMenuHandler
 
 		GroupController::Ids ids { toId(index) };
 		std::ranges::transform(indexList, std::inserter(ids, ids.end()), toId);
-		if (false
-			|| ids.empty()
-			|| uiFactory->ShowQuestion(Tr(REMOVE_GROUP_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No
-			)
+		if (ids.empty())
 			return;
 
 		if (!groupController)
@@ -256,7 +239,7 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index)
 	Perform(&IObserver::OnContextMenuReady, index.data(Role::Id).toString(), std::cref(item));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index, const IDataItem::Ptr & item) const
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

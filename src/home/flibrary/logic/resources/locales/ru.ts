@@ -4,57 +4,57 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="18"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="20"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="19"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="21"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="20"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="22"/>
         <source>New group...</source>
         <translation>Новая группа...</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="21"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="23"/>
         <source>Add to</source>
         <translation>Добавить в</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="22"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="24"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="23"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="25"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="24"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="26"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="25"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="27"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="26"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="27"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="29"/>
         <source>In zip archive</source>
         <translation>Архивировать в zip</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="30"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
     </message>
@@ -120,6 +120,29 @@
     </message>
 </context>
 <context>
+    <name>GroupController</name>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="18"/>
+        <source>Input new group name</source>
+        <translation>Укажите имя новой группы</translation>
+    </message>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="19"/>
+        <source>Group name</source>
+        <translation>Имя группы</translation>
+    </message>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="20"/>
+        <source>New group</source>
+        <translation>Новая группа</translation>
+    </message>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="21"/>
+        <source>Are you sure you want to delete the groups (%1)?</source>
+        <translation>Уверены, что хотите удалить группы (%1)?</translation>
+    </message>
+</context>
+<context>
     <name>Logging</name>
     <message>
         <location filename="../../log/LogController.cpp" line="24"/>
@@ -160,57 +183,37 @@
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="29"/>
-        <source>Are you sure you want to delete the groups (%1)?</source>
-        <translation>Уверены, что хотите удалить группы (%1)?</translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="30"/>
-        <source>Input new group name</source>
-        <translation>Укажите имя новой группы</translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="31"/>
-        <source>Group name</source>
-        <translation>Имя группы</translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
-        <source>New group</source>
-        <translation>Новая группа</translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="59"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="54"/>
         <source>Create new...</source>
         <translation>Создать новую...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="60"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="55"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="74"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="69"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="75"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="70"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="76"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="71"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="77"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="72"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="78"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="73"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
