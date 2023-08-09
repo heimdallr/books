@@ -4,13 +4,19 @@
 #include <QString>
 #include <plog/Log.h>
 
-#include "DatabaseUser.h"
-#include "GroupController.h"
-#include "data/DataItem.h"
 #include "fnd/FindPair.h"
+
+#include "database/interface/ITransaction.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+
+#include "data/DataItem.h"
+#include "data/DataProvider.h"
+
+#include "DatabaseUser.h"
+#include "GroupController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -129,9 +135,11 @@ class BooksContextMenuProvider::Impl final
 public:
 	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
 		, std::shared_ptr<GroupController> groupController
+		, std::shared_ptr<DataProvider> dataProvider
 	)
 		: m_databaseUser(std::move(databaseUser))
 		, m_groupController(std::move(groupController))
+		, m_dataProvider(std::move(dataProvider))
 	{
 	}
 
@@ -177,14 +185,14 @@ private: // IContextMenuHandler
 		callback(item);
 	}
 
-	void RemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	void RemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		callback(item);
+		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), true);
 	}
 
-	void UndoRemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		callback(item);
+		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), false);
 	}
 
 	void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -218,7 +226,7 @@ private: // IContextMenuHandler
 	}
 
 private:
-	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, GroupActionFunction f) const
+	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction & f) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
 		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)] () mutable
@@ -240,15 +248,40 @@ private:
 		return ids;
 	}
 
+	void ChangeBookRemoved(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
+	{
+		m_databaseUser->Execute({ "Remove books", [&, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove] () mutable
+		{
+			const auto db = m_databaseUser->Database();
+			const auto transaction = db->CreateTransaction();
+			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted) values(:id, :is_deleted)");
+			for (const auto & id : ids)
+			{
+				command->Bind(":id", id);
+				command->Bind(":is_deleted", remove ? 1 : 0);
+				command->Execute();
+			}
+			transaction->Commit();
+
+			return [&, item = std::move(item), callback = std::move(callback)] (size_t)
+			{
+				callback(item);
+				m_dataProvider->RequestBooks(true);
+			};
+		} });
+	}
+
 private:
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
+	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
 };
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
 	, std::shared_ptr<GroupController> groupController
+	, std::shared_ptr<DataProvider> dataProvider
 )
-	: m_impl(std::move(databaseUser), std::move(groupController))
+	: m_impl(std::move(databaseUser), std::move(groupController), std::move(dataProvider))
 {
 	PLOGD << "BooksContextMenuProvider created";
 }
