@@ -4,6 +4,9 @@
 
 #include <plog/Log.h>
 
+#include "fnd/observable.h"
+#include "util/FunctorExecutionForwarder.h"
+
 #include "database/factory/Factory.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -45,6 +48,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 
 class DatabaseController::Impl final
 	: ICollectionController::IObserver
+	, public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -64,10 +68,25 @@ public:
 
 	std::shared_ptr<DB::IDatabase> GetDatabase() const
 	{
-		std::lock_guard lock(m_dbGuard);
+		{
+			std::lock_guard lock(m_dbGuard);
+			if (m_db)
+				return m_db;
+		}
 
-		if (!m_db)
-			m_db = CreateDatabaseImpl(m_databaseFileName.toStdString());
+		if (m_db)
+			const_cast<Impl*>(this)->Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
+
+		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
+
+		{
+			std::lock_guard lock(m_dbGuard);
+			m_db = std::move(db);
+		}
+		m_forwarder.Forward([&, db = m_db]
+		{
+			const_cast<Impl *>(this)->Perform(&DatabaseController::IObserver::AfterDatabaseCreated, std::ref(*db));
+		});
 
 		return m_db;
 	}
@@ -77,6 +96,8 @@ private: // ICollectionController::IObserver
 	{
 		const auto collection = m_collectionController->GetActiveCollection();
 		m_databaseFileName = collection ? collection->database : QString{};
+		if (m_db)
+			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
 	}
@@ -86,6 +107,7 @@ private:
 	mutable std::shared_ptr<DB::IDatabase> m_db;
 	QString m_databaseFileName;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	Util::FunctorExecutionForwarder m_forwarder;
 };
 
 DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> collectionController)
@@ -102,4 +124,14 @@ DatabaseController::~DatabaseController()
 std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
 {
 	return m_impl->GetDatabase();
+}
+
+void DatabaseController::RegisterObserver(IObserver * observer)
+{
+	m_impl->Register(observer);
+}
+
+void DatabaseController::UnregisterObserver(IObserver * observer)
+{
+	m_impl->Unregister(observer);
 }

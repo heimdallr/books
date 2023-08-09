@@ -21,11 +21,13 @@ public:
 		, std::shared_ptr<AbstractModelProvider> modelProvider
 		, std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class DatabaseController> databaseController
 	);
 	~TreeViewControllerNavigation() override;
 
 public:
 	void RequestNavigation() const;
+	void RequestBooks(bool force) const;
 
 private: // ITreeViewController
 	[[nodiscard]] std::vector<const char *> GetModeNames() const override;

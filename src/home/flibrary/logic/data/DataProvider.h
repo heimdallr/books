@@ -31,6 +31,7 @@ public:
 	void SetBookRequestCallback(Callback callback);
 
 	void RequestNavigation() const;
+	void RequestBooks(bool force = false) const;
 
 private:
 	class Impl;

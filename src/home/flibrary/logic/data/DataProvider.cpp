@@ -159,6 +159,15 @@ public:
 	{
 		m_navigationTimer->start();
 	}
+
+	void RequestBooks(const bool force) const
+	{
+		if (force)
+			m_booksGenerator.reset();
+
+		m_booksTimer->start();
+	}
+
 private: // INavigationQueryExecutor
 	void RequestNavigationSimpleList(std::shared_ptr<DB::IDatabase> db, const QueryDescription & queryDescription) const override
 	{
@@ -250,7 +259,7 @@ private:
 		std::invoke(invoker, this, std::move(db), std::cref(description));
 	}
 
-	void RequestBooks() const
+	void RequestBooksImpl() const
 	{
 		if (m_navigationId.isEmpty() || m_booksViewMode == ViewMode::Unknown)
 			return;
@@ -315,7 +324,7 @@ private:
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	std::unique_ptr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigationImpl(); }) };
-	std::unique_ptr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooks(); }) };
+	std::unique_ptr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooksImpl(); }) };
 };
 
 DataProvider::DataProvider(std::shared_ptr<DatabaseUser> databaseUser)
@@ -357,4 +366,9 @@ void DataProvider::SetBookRequestCallback(Callback callback)
 void DataProvider::RequestNavigation() const
 {
 	m_impl->RequestNavigation();
+}
+
+void DataProvider::RequestBooks(const bool force) const
+{
+	m_impl->RequestBooks(force);
 }

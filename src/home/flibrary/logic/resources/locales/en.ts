@@ -182,37 +182,37 @@
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="54"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="81"/>
         <source>Create new...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="55"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="82"/>
         <source>Remove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="69"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="96"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="70"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="97"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="71"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="98"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="72"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="99"/>
         <source>Archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="73"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="100"/>
         <source>Groups</source>
         <translation></translation>
     </message>

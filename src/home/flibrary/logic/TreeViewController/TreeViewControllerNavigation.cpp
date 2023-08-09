@@ -6,6 +6,8 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/IDatabase.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
@@ -18,7 +20,9 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
+#include "shared/DatabaseController.h"
 #include "shared/GroupController.h"
+#include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -39,6 +43,29 @@ enum class MenuAction
 	CreateNewGroup,
 	RemoveGroup,
 };
+
+class ITableSubscriptionHandler
+{
+public:
+	using Function = void(ITableSubscriptionHandler::*)();
+public:
+	virtual ~ITableSubscriptionHandler() = default;
+	virtual void On_Groups_User_Changed() = 0;
+	virtual void On_Groups_List_User_Changed() = 0;
+};
+
+constexpr std::pair<std::string_view, ITableSubscriptionHandler::Function> SUBSCRIBED_TABLES[]
+{
+#define ITEM(NAME) {#NAME, &ITableSubscriptionHandler::On_##NAME##_Changed}
+		ITEM(Groups_User),
+		ITEM(Groups_List_User),
+#undef	ITEM
+};
+
+auto GetSubscribedTable(const std::string_view name)
+{
+	return FindSecond(SUBSCRIBED_TABLES, name, nullptr);
+}
 
 void Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
 {
@@ -74,6 +101,10 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
+static_assert(std::ranges::all_of(MODE_DESCRIPTORS, [] (const auto & )
+{
+	return true;
+}));
 
 class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -96,24 +127,38 @@ constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 struct TreeViewControllerNavigation::Impl final
 	: IModelObserver
 	, virtual IContextMenuHandler
+	, virtual private DatabaseController::IObserver
+	, virtual private DB::IDatabaseObserver
+	, virtual private ITableSubscriptionHandler
 {
 	TreeViewControllerNavigation & self;
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
 	mutable std::shared_ptr<GroupController> groupController;
+	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
 	Impl(TreeViewControllerNavigation & self
 		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<DatabaseController> databaseController
 	)
 		: self(self)
 		, logicFactory(std::move(logicFactory))
 		, uiFactory(std::move(uiFactory))
+		, databaseController(std::move(databaseController))
 	{
 		for ([[maybe_unused]]const auto & _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
+
+		this->databaseController->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		this->databaseController->UnregisterObserver(this);
 	}
 
 private: // IContextMenuHandler
@@ -125,8 +170,6 @@ private: // IContextMenuHandler
 		groupController->CreateNewGroup([&, gc = groupController] () mutable
 		{
 			gc.reset();
-			groupController.reset();
-			self.RequestNavigation();
 		});
 	}
 
@@ -148,10 +191,57 @@ private: // IContextMenuHandler
 		groupController->RemoveGroups(std::move(ids), [&, gc = groupController]() mutable
 		{
 			gc.reset();
-			groupController.reset();
-			self.RequestNavigation();
 		});
 	}
+
+private: // DatabaseController::IObserver
+	void AfterDatabaseCreated(DB::IDatabase & db) override
+	{
+		db.RegisterObserver(this);
+	}
+
+	void BeforeDatabaseDestroyed(DB::IDatabase & db) override
+	{
+		db.UnregisterObserver(this);
+	}
+
+private: // DB::IDatabaseObserver
+	void OnInsert(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
+	{
+		if (auto invoker = GetSubscribedTable(tableName))
+			forwarder.Forward([this, invoker]
+		{
+			((*this).*invoker)();
+		});
+	}
+	void OnUpdate(std::string_view /*dbName*/, std::string_view /*tableName*/, int64_t /*rowId*/) override
+	{
+	}
+	void OnDelete(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
+	{
+		if (auto invoker = GetSubscribedTable(tableName))
+			forwarder.Forward([this, invoker]
+		{
+			((*this).*invoker)();
+		});
+	}
+
+private: // ITableSubscriptionHandler
+	void On_Groups_User_Changed() override
+	{
+		if (static_cast<NavigationMode>(mode) == NavigationMode::Groups)
+			self.RequestNavigation();
+		else
+			models[static_cast<int>(NavigationMode::Groups)].reset();
+	}
+
+	void On_Groups_List_User_Changed() override
+	{
+		if (static_cast<NavigationMode>(mode) == NavigationMode::Groups)
+			self.RequestBooks(true);
+	}
+
+	NON_COPY_MOVABLE(Impl)
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
@@ -159,6 +249,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	, std::shared_ptr<AbstractModelProvider> modelProvider
 	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<DatabaseController> databaseController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
@@ -168,6 +259,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	, m_impl(*this
 		, std::move(logicFactory)
 		, std::move(uiFactory)
+		, std::move(databaseController)
 	)
 {
 	Setup();
@@ -191,6 +283,11 @@ TreeViewControllerNavigation::~TreeViewControllerNavigation()
 void TreeViewControllerNavigation::RequestNavigation() const
 {
 	m_dataProvider->RequestNavigation();
+}
+
+void TreeViewControllerNavigation::RequestBooks(const bool force) const
+{
+	m_dataProvider->RequestBooks(force);
 }
 
 std::vector<const char *> TreeViewControllerNavigation::GetModeNames() const
