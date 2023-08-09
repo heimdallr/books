@@ -16,6 +16,7 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
 constexpr auto CONTEXT = "BookContextMenu";
 constexpr auto READ_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Read");
 constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "Groups");
@@ -30,6 +31,8 @@ constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "In zip ar
 constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "In original format");
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
+
+using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
 
 #define MENU_ACTION_ITEMS_X_MACRO     \
 MENU_ACTION_ITEM(ReadBook)            \
@@ -53,6 +56,9 @@ enum class MenuAction
 class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	using Function = void (IContextMenuHandler::*)(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const;
+
+public:
 	virtual ~IContextMenuHandler() = default;
 
 #define MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
@@ -60,9 +66,7 @@ public:
 #undef	MENU_ACTION_ITEM
 };
 
-using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const;
-
-constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
+constexpr std::pair<MenuAction, IContextMenuHandler::Function> MENU_HANDLERS[]
 {
 	{ MenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
 #define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::NAME },
@@ -168,44 +172,50 @@ public:
 	}
 
 private: // IContextMenuHandler
-void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-{
-	callback(item);
-}
-void RemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-{
-	callback(item);
-}
-void UndoRemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-{
-	callback(item);
-}
-void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
-{
-	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
-}
-void AddToGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
-{
-	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
-}
-void RemoveFromGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
-{
-	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
-}
-void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
-{
-	GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
-}
-void SendAsArchive(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-{
-	callback(item);
-}
-void SendAsIs(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-{
-	callback(item);
-}
+	void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		callback(item);
+	}
 
-using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
+	void RemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		callback(item);
+	}
+
+	void UndoRemoveBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		callback(item);
+	}
+
+	void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+	}
+
+	void AddToGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+	}
+
+	void RemoveFromGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+	}
+
+	void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+	}
+
+	void SendAsArchive(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		callback(item);
+	}
+
+	void SendAsIs(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		callback(item);
+	}
 
 private:
 	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, GroupActionFunction f) const
