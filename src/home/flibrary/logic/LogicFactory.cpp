@@ -23,6 +23,7 @@
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/GroupController.h"
+#include "shared/ReaderController.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -89,6 +90,11 @@ std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
 std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const
 {
 	return m_impl->container.resolve<BooksContextMenuProvider>();
+}
+
+std::shared_ptr<ReaderController> LogicFactory::CreateReaderController() const
+{
+	return m_impl->container.resolve<ReaderController>();
 }
 
 }

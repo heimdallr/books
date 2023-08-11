@@ -35,6 +35,7 @@ public:
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
 	virtual void RequestContextMenu(const QModelIndex & index) = 0;
 	virtual void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const = 0;
+	virtual void OnDoubleClicked(const QModelIndex & index) const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

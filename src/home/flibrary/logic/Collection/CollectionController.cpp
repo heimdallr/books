@@ -17,6 +17,7 @@
 
 #include "inpx/src/util/constant.h"
 #include "inpx/src/util/inpx.h"
+#include "util/hash.h"
 #include "util/IExecutor.h"
 
 using namespace HomeCompa::Flibrary;
@@ -284,7 +285,7 @@ bool CollectionController::IsCollectionNameExists(const QString & name) const
 
 QString CollectionController::GetCollectionDatabaseName(const QString & databaseFileName) const
 {
-	const auto collection = m_impl->FindCollectionById(CollectionImpl::GenerateId(databaseFileName));
+	const auto collection = m_impl->FindCollectionById(Util::md5(databaseFileName.toUtf8()));
 	return collection ? collection->name : QString{};
 }
 

@@ -3,10 +3,14 @@
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
+#include <QFileInfo>
+
+#include "ParentWidgetProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IDialog.h"
 
+#include "util/hash.h"
 #include "util/ISettings.h"
 
 #include "dialogs/AddCollectionDialog.h"
@@ -15,6 +19,42 @@
 #include "TreeViewDelegate.h"
 
 namespace HomeCompa::Flibrary {
+
+namespace {
+
+constexpr auto RECENT_DIR_KEY = "ui/RecentDir/%1";
+
+class RecentDir
+{
+public:
+	RecentDir(std::shared_ptr<ISettings> settings, const QString & str)
+		: m_settings(std::move(settings))
+		, m_key(QString(RECENT_DIR_KEY).arg(Util::md5((str).toUtf8())))
+	{
+	}
+
+	QString GetDir(const QString & dir) const
+	{
+		return dir.isEmpty() ? m_settings->Get(m_key).toString() : dir;
+	}
+
+	void SetDir(QString name)
+	{
+		if (name.isEmpty())
+			return;
+
+		if (const QFileInfo fileInfo(name); fileInfo.isFile())
+			name = fileInfo.dir().absolutePath();
+
+		m_settings->Set(m_key, name);
+	}
+
+private:
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	const QString m_key;
+};
+
+}
 
 struct UiFactory::Impl
 {
@@ -38,6 +78,11 @@ UiFactory::UiFactory(Hypodermic::Container & container)
 UiFactory::~UiFactory()
 {
 	PLOGD << "UiFactory destroyed";
+}
+
+QObject * UiFactory::GetParentObject() const noexcept
+{
+	return m_impl->container.resolve<ParentWidgetProvider>()->GetWidget();
 }
 
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
@@ -79,6 +124,38 @@ QString UiFactory::GetText(const QString & title, const QString & label, const Q
 {
 	const auto dialog = m_impl->container.resolve<IInputTextDialog>();
 	return dialog->GetText(title, label, text, mode);
+}
+
+QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString & str, const QString & dir, const std::function<QString(const QString &)> & f)
+{
+	RecentDir recentDir(std::move(settings), str);
+	auto result = f(recentDir.GetDir(dir));
+	recentDir.SetDir(result);
+	return result;
+}
+
+QString UiFactory::GetOpenFileName(const QString & title, const QString & dir, const QString & filter, const QFileDialog::Options options) const
+{
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title + filter, dir, [&](const QString & recentDir)
+	{
+		return QFileDialog::getOpenFileName(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
+	});
+}
+
+QString UiFactory::GetSaveFileName(const QString & title, const QString & dir, const QString & filter, const QFileDialog::Options options) const
+{
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title + filter, dir, [&] (const QString & recentDir)
+	{
+		return QFileDialog::getSaveFileName(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
+	});
+}
+
+QString UiFactory::GetExistingDirectory(const QString & title, const QString & dir, const QFileDialog::Options options) const
+{
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title, dir, [&] (const QString & recentDir)
+	{
+		return QFileDialog::getExistingDirectory(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, options);
+	});
 }
 
 std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const noexcept

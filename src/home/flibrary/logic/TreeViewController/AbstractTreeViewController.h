@@ -37,6 +37,7 @@ private: // ITreeViewController
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;
 	void SetMode(const QString & mode) override;
+	void OnDoubleClicked(const QModelIndex &) const override {}
 
 protected:
 	void Setup();

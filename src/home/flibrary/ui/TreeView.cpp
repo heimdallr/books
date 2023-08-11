@@ -284,6 +284,10 @@ private:
 		{
 			m_controller->RequestContextMenu(m_ui.treeView->currentIndex());
 		});
+		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&]
+		{
+			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
+		});
 	}
 
 	void SaveHeaderLayout()

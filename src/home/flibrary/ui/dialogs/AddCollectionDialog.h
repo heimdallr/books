@@ -25,6 +25,7 @@ public:
     AddCollectionDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ICollectionController> collectionController
+		, std::shared_ptr<class IUiFactory> uiFactory
 	);
     ~AddCollectionDialog() override;
 

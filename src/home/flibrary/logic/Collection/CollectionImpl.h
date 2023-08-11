@@ -24,7 +24,6 @@ struct CollectionImpl : Collection
 	static void SetActive(ISettings & settings, const QString & uid);
 
 	static void Remove(ISettings & settings, const QString & uid);
-	static QString GenerateId(const QString & databaseFileName);
 };
 
 }

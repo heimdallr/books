@@ -14,6 +14,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
+#include "shared/ReaderController.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -141,5 +142,17 @@ void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel * model,
 	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [menuProvider] (const IDataItem::Ptr &) mutable
 	{
 		menuProvider.reset();
+	});
+}
+
+void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
+{
+	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
+		return;
+
+	auto readerController = m_impl->logicFactory->CreateReaderController();
+	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController]() mutable
+	{
+		readerController.reset();
 	});
 }

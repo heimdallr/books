@@ -14,6 +14,7 @@
 
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "shared/ReaderController.h"
 
 #include "DatabaseUser.h"
 #include "GroupController.h"
@@ -134,10 +135,12 @@ class BooksContextMenuProvider::Impl final
 {
 public:
 	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<DataProvider> dataProvider
 	)
 		: m_databaseUser(std::move(databaseUser))
+		, m_logicFactory(std::move(logicFactory))
 		, m_groupController(std::move(groupController))
 		, m_dataProvider(std::move(dataProvider))
 	{
@@ -180,9 +183,14 @@ public:
 	}
 
 private: // IContextMenuHandler
-	void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & index, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		callback(item);
+		auto readerController = m_logicFactory->CreateReaderController();
+		readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController, item = std::move(item), callback = std::move(callback)] () mutable
+		{
+			callback(item);
+			readerController.reset();
+		});
 	}
 
 	void RemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -221,7 +229,7 @@ private: // IContextMenuHandler
 	}
 
 	void SendAsIs(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-	{
+	{	
 		callback(item);
 	}
 
@@ -273,15 +281,21 @@ private:
 
 private:
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
 };
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
 )
-	: m_impl(std::move(databaseUser), std::move(groupController), std::move(dataProvider))
+	: m_impl(std::move(databaseUser)
+		, std::move(logicFactory)
+		, std::move(groupController)
+		, std::move(dataProvider)
+	)
 {
 	PLOGD << "BooksContextMenuProvider created";
 }

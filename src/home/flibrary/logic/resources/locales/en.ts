@@ -4,57 +4,57 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="20"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>
         <source>Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="21"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="29"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="22"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="30"/>
         <source>New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="23"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="31"/>
         <source>Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="24"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="32"/>
         <source>Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="25"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
         <source>All</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="26"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
         <source>Remove book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="27"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
         <source>Undo book deletion</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>Send to device</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="29"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>In zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="30"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>In original format</source>
         <translation></translation>
     </message>
@@ -62,12 +62,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="34"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="35"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="35"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="36"/>
         <source>Tree</source>
         <translation></translation>
     </message>
@@ -75,22 +75,22 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="29"/>
+        <location filename="../../Collection/CollectionController.cpp" line="30"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="30"/>
+        <location filename="../../Collection/CollectionController.cpp" line="31"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="31"/>
+        <location filename="../../Collection/CollectionController.cpp" line="32"/>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
@@ -214,6 +214,19 @@
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="100"/>
         <source>Groups</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ReaderController</name>
+    <message>
+        <location filename="../../shared/ReaderController.cpp" line="23"/>
+        <source>Select %1 reader</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp" line="24"/>
+        <source>Applications (*.exe)</source>
         <translation></translation>
     </message>
 </context>

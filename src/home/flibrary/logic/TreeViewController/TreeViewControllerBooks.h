@@ -37,6 +37,7 @@ private: // AbstractTreeViewController
 	[[nodiscard]] ViewMode GetViewMode() const noexcept override;
 	void RequestContextMenu(const QModelIndex & index) override;
 	void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const override;
+	void OnDoubleClicked(const QModelIndex & index) const override;
 
 private:
 	struct Impl;

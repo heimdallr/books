@@ -20,6 +20,7 @@ public:
 
 public:
 	BooksContextMenuProvider(std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class GroupController> groupController
 		, std::shared_ptr<class DataProvider> dataProvider
 	);

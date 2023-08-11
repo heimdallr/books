@@ -1,10 +1,10 @@
-#include <QCryptographicHash>
 // ReSharper disable once CppUnusedIncludeDirective
 #include <QString> // for plog
 #include <QFile>
 
 #include <plog/Log.h>
 
+#include "util/hash.h"
 #include "util/ISettings.h"
 
 #include "CollectionImpl.h"
@@ -50,7 +50,7 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 
 CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_)
 {
-	id = GenerateId(database_);
+	id = Util::md5(database_.toUtf8());
 	name = std::move(name_);
 	database = std::move(database_);
 	folder = std::move(folder_);
@@ -119,13 +119,6 @@ void CollectionImpl::Remove(ISettings & settings, const QString & uid)
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Remove(uid);
 	PLOGW << "Collection " << uid << " removed";
-}
-
-QString CollectionImpl::GenerateId(const QString & databaseFileName)
-{
-	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
-	hash.addData(databaseFileName.toUtf8());
-	return hash.result().toHex();
 }
 
 }

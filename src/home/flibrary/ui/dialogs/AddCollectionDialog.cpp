@@ -1,8 +1,6 @@
 #include "ui_AddCollectionDialog.h"
 #include "AddCollectionDialog.h"
 
-#include <QFileDialog>
-#include <QFileInfo>
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
@@ -10,6 +8,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/ui/IUiFactory.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -47,14 +46,14 @@ QString Tr(const char * str)
 }
 
 
-QString GetDatabase(QWidget & parent, const QString & file)
+QString GetDatabase(const IUiFactory & uiController, const QString & file)
 {
-	return QFileDialog::getSaveFileName(&parent, Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), nullptr, QFileDialog::DontConfirmOverwrite);
+    return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), QFileDialog::DontConfirmOverwrite);
 }
 
-QString GetFolder(QWidget & parent, const QString & dir)
+QString GetFolder(const IUiFactory & uiController, const QString & dir)
 {
-    return QFileDialog::getExistingDirectory(&parent, Tr(SELECT_ARCHIVES_FOLDER), dir);
+    return uiController.GetExistingDirectory(Tr(SELECT_ARCHIVES_FOLDER), dir);
 }
 
 }
@@ -69,11 +68,13 @@ public:
     explicit Impl(AddCollectionDialog & self
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
+        , std::shared_ptr<IUiFactory> uiFactory
     )
         : GeometryRestorable(*this, settings, "AddCollectionDialog")
 		, m_self(self)
 		, m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
+		, m_uiFactory(std::move(uiFactory))
     {
         m_ui.setupUi(&m_self);
 
@@ -86,20 +87,20 @@ public:
         connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, [&] { m_self.done(Result::Cancel); } );
         connect(m_ui.btnDatabase, &QAbstractButton::clicked, &m_self, [&]
         {
-            if (const auto file = GetDatabase(m_self, GetDatabaseFileName()); !file.isEmpty())
+            if (const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName()); !file.isEmpty())
 				m_ui.editDatabase->setText(file);
         });
         connect(m_ui.btnArchive, &QAbstractButton::clicked, &m_self, [&]
         {
-            if (const auto dir = GetFolder(m_self, GetArchiveFolder()); !dir.isEmpty())
+            if (const auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
                 m_ui.editArchive->setText(dir);
         });
 
-        connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { CheckData(Result::Cancel); });
-        connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { CheckData(Result::Cancel); });
-        connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { CheckData(Result::Cancel); });
+        connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+        connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+        connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 
-        GeometryRestorable::Init();
+        Init();
     }
 
     ~Impl() override
@@ -219,15 +220,21 @@ private:
     AddCollectionDialog & m_self;
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+    PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
     Ui::AddCollectionDialog m_ui {};
 };
 
 AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
+    , std::shared_ptr<IUiFactory> uiFactory
 )
     : QDialog(parentWidgetProvider->GetWidget())
-	, m_impl(*this, std::move(settings), std::move(collectionController))
+	, m_impl(*this
+        , std::move(settings)
+        , std::move(collectionController)
+        , std::move(uiFactory)
+    )
 {
     PLOGD << "AddCollectionDialog created";
 }

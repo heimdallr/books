@@ -46,7 +46,6 @@ public:
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
 	{
-//		[[maybe_unused]]const auto data = ioDevice.readAll();
 	}
 
 	ArchiveParser::Data Parse()
