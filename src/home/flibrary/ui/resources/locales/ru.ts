@@ -216,10 +216,6 @@
         <translation type="vanished">Укажите путь назначения на устройстве</translation>
     </message>
     <message>
-        <source>Select %1 reader</source>
-        <translation type="vanished">Укажите читалку для %1</translation>
-    </message>
-    <message>
         <source>Flibrary export files (*.flibk)</source>
         <translation type="vanished">Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
@@ -230,17 +226,6 @@
     <message>
         <source>Select a file to import user data</source>
         <translation type="vanished">Выберите файл импорта пользовательских данных</translation>
-    </message>
-</context>
-<context>
-    <name>GroupsModel</name>
-    <message>
-        <source>A group with the same name already exists</source>
-        <translation type="vanished">Группа с таким именем уже существует</translation>
-    </message>
-    <message>
-        <source>Group name too long</source>
-        <translation type="vanished">Слишком длинное имя для группы</translation>
     </message>
 </context>
 <context>

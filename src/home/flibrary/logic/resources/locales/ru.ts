@@ -141,6 +141,20 @@
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation>Уверены, что хотите удалить группы (%1)?</translation>
     </message>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="22"/>
+        <source>Group name too long.
+Try again?</source>
+        <translation>Имя слишком длинное.
+Попробуете ещё раз?</translation>
+    </message>
+    <message>
+        <location filename="../../shared/GroupController.cpp" line="23"/>
+        <source>Group %1 already exists.
+Try again?</source>
+        <translation>Группа %1 уже есть.
+Попробуете ещё раз?</translation>
+    </message>
 </context>
 <context>
     <name>Logging</name>
