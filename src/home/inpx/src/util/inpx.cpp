@@ -483,29 +483,30 @@ void ExecuteScript(const std::wstring & action, const std::filesystem::path & db
 
 	DatabaseWrapper db(dbFileName);
 
-	std::string command;
-	std::string str;
-	str.resize(1024);
 	std::ifstream inp(scriptFileName);
 	if (!inp.is_open())
 		throw std::runtime_error(std::format("Cannot open {}", scriptFileName.generic_string()));
 
 	while(!inp.eof())
 	{
-		command.clear();
+		std::string command;
 		while (!inp.eof())
 		{
-			inp.getline(str.data(), static_cast<std::streamsize>(str.size()));
+			std::string str;
+			std::getline(inp, str);
 			assert(inp.good() || inp.eof());
 			if (str.starts_with("--@@"))
 				break;
 
-			if (str.front())
+			if (!str.empty())
 				command.append(str).append("\n");
 		}
 
-		if (command.empty() || !command.front())
+		if (command.empty())
 			continue;
+
+		while (command.back() == '\n')
+			command.resize(command.size() - 1);
 
 		PLOGI << command;
 		if (command.starts_with("PRAGMA"))
