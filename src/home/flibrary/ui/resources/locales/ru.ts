@@ -350,6 +350,11 @@ Restart now?</source>
         <source>Font &amp;settings...</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.cpp" line="28"/>
+        <source>Select font</source>
+        <translation>Выберите шрифт</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

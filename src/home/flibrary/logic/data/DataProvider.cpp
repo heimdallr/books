@@ -16,6 +16,8 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 
+#include "util/UiTimer.h"
+
 #include "shared/DatabaseUser.h"
 
 #include "BooksTreeGenerator.h"
@@ -323,8 +325,8 @@ private:
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	std::unique_ptr<QTimer> m_navigationTimer { DatabaseUser::CreateTimer([&] { RequestNavigationImpl(); }) };
-	std::unique_ptr<QTimer> m_booksTimer { DatabaseUser::CreateTimer([&] { RequestBooksImpl(); }) };
+	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
+	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };
 };
 
 DataProvider::DataProvider(std::shared_ptr<DatabaseUser> databaseUser)

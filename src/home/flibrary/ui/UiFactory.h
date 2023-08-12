@@ -29,6 +29,7 @@ private: // IUiFactory
 	[[nodiscard]] QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 	QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
 	[[nodiscard]] QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const override;
+	[[nodiscard]] std::optional<QFont> GetFont(const QString & title, const QFont & font, QFontDialog::FontDialogOptions options = {}) const override;
 
 	[[nodiscard]] QString GetOpenFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const override;
 	[[nodiscard]] QString GetSaveFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const override;

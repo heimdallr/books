@@ -15,7 +15,13 @@ struct Settings::Impl final
 	{
 	}
 
+	QString Key(const QString & key) const
+	{
+		return group.back() + (group.back().isEmpty() ? "" : "/") + key;
+	}
+
 	QSettings settings;
+	std::vector<QString> group{1};
 };
 
 Settings::Settings(const QString & organization, const QString & application)
@@ -37,7 +43,8 @@ void Settings::Set(const QString & key, const QVariant & value)
 
 	m_impl->settings.setValue(key, value);
 	m_impl->settings.sync();
-	m_impl->Perform(&ISettingsObserver::HandleValueChanged, std::cref(key), std::cref(value));
+
+	m_impl->Perform(&ISettingsObserver::HandleValueChanged, m_impl->Key(key), std::cref(value));
 }
 
 bool Settings::HasKey(const QString & key) const
@@ -79,11 +86,13 @@ void Settings::UnregisterObserver(ISettingsObserver * observer)
 void Settings::BeginGroup(const QString & group) const
 {
 	m_impl->settings.beginGroup(group);
+	m_impl->group.push_back(m_impl->Key(group));
 }
 
 void Settings::EndGroup() const
 {
 	m_impl->settings.endGroup();
+	m_impl->group.pop_back();
 }
 
 }

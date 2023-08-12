@@ -16,7 +16,7 @@ protected:
 	public:
 		virtual ~IObserver() = default;
 		virtual QWidget & GetWidget() noexcept = 0;
-		virtual void OnFontSizeChanged(int /*fontSize*/) {}
+		virtual void OnFontChanged(const QFont &) {}
 	};
 
 protected:

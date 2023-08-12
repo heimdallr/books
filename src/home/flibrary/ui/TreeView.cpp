@@ -321,7 +321,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId).toString();
+		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
@@ -339,14 +339,14 @@ private:
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
 				{
-					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1).toInt());
-					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1).toInt(), logicalIndex);
-					if (m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false).toBool())
+					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
+					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
+					if (m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false))
 						header->hideSection(logicalIndex);
 				}
 			}
 
-			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex).toInt();
+			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
 		}
 

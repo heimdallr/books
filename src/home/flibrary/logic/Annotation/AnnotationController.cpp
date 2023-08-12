@@ -11,6 +11,8 @@
 #include "data/DataItem.h"
 #include "shared/DatabaseUser.h"
 
+#include "util/UiTimer.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -212,7 +214,7 @@ private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	PropagateConstPtr<Util::IExecutor> m_executor;
-	PropagateConstPtr<QTimer> m_extractInfoTimer { DatabaseUser::CreateTimer([&] { ExtractInfo(); }) };
+	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 
 	QString m_currentBookId;
 

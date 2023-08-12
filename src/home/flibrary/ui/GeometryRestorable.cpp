@@ -1,38 +1,26 @@
-#include <QWidget>
-
-#include "fnd/FindPair.h"
-#include "util/ISettingsObserver.h"
-#include "interface/constants/SettingsConstant.h"
-
 #include "GeometryRestorable.h"
 
-#include <qcoreevent.h>
+#include <QWidget>
+#include <QEvent>
+#include <QTimer>
+
+#include "fnd/FindPair.h"
+
+#include "interface/constants/SettingsConstant.h"
+
+#include "util/ISettingsObserver.h"
+#include "util/UiTimer.h"
+#include "util/serializer/QFont.h"
 
 using namespace HomeCompa::Flibrary;
 
 namespace {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
-
-class ISettingsObserverHandler  // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~ISettingsObserverHandler() = default;
-	virtual void OnFontSizeChanged(const QVariant & value) = 0;
-	virtual void Stub(const QVariant & /*value*/) {}
-};
-
-using Handler = void(ISettingsObserverHandler::*)(const QVariant &);
-constexpr std::pair<const char *, Handler> HANDLERS[]
-{
-	{Constant::Settings::FONT_SIZE_KEY, &ISettingsObserverHandler::OnFontSizeChanged},
-};
-
 }
 
 class GeometryRestorable::Impl final
 	: QObject
 	, ISettingsObserver
-	, ISettingsObserverHandler
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -60,7 +48,7 @@ public:
 
 	void OnShow()
 	{
-		OnFontSizeChanged(m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT));
+		OnFontChanged();
 		if (const auto value = m_settings->Get(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name)); value.isValid())
 			m_observer.GetWidget().setGeometry(value.toRect());
 
@@ -77,33 +65,30 @@ private: // QObject
 	}
 
 private: // ISettingsObserver
-	void HandleValueChanged(const QString & key, const QVariant & value) override
+	void HandleValueChanged(const QString & key, const QVariant &) override
 	{
-		const auto f = FindSecond(HANDLERS, key.toStdString().data(), &ISettingsObserverHandler::Stub, PszComparer {});
-		((*this).*f)(value);
-	}
-
-private: // ISettingsObserverHandler
-	void OnFontSizeChanged(const QVariant & value) override
-	{
-		bool ok = false;
-		const auto size = value.toInt(&ok);
-		if (!ok)
-			return;
-
-		EnumerateWidgets(m_observer.GetWidget(), [&] (QWidget & widget)
-		{
-			auto font = widget.font();
-			font.setPointSize(size);
-			widget.setFont(font);
-		});
-
-		m_observer.OnFontSizeChanged(size);
+		if (key.startsWith(Constant::Settings::FONT_KEY))
+			m_fontTimer->start();
 	}
 
 private:
-	static void EnumerateWidgets(const QWidget & parent, const std::function<void(QWidget &)> & f)
+	void OnFontChanged()
 	{
+		const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+		auto font = m_observer.GetWidget().font();
+		Util::Deserialize(font, *m_settings);
+
+		EnumerateWidgets(m_observer.GetWidget(), [&] (QWidget & widget)
+		{
+			widget.setFont(font);
+		});
+
+		m_observer.OnFontChanged(font);
+	}
+
+	static void EnumerateWidgets(QWidget & parent, const std::function<void(QWidget &)> & f)
+	{
+		f(parent);
 		for (auto * widget : parent.findChildren<QWidget *>())
 			f(*widget);
 	}
@@ -113,6 +98,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	const QString m_name;
 	bool m_initialized { false };
+	PropagateConstPtr<QTimer> m_fontTimer { Util::CreateUiTimer([&] { OnFontChanged(); }) };
+	
 };
 
 GeometryRestorable::GeometryRestorable(IObserver & observer, std::shared_ptr<ISettings> settings, QString name)

@@ -126,6 +126,12 @@ QString UiFactory::GetText(const QString & title, const QString & label, const Q
 	return dialog->GetText(title, label, text, mode);
 }
 
+std::optional<QFont> UiFactory::GetFont(const QString & title, const QFont & font, const QFontDialog::FontDialogOptions options) const
+{
+	bool ok = false;
+	return QFontDialog::getFont(&ok, font, m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, options);
+}
+
 QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString & str, const QString & dir, const std::function<QString(const QString &)> & f)
 {
 	RecentDir recentDir(std::move(settings), str);

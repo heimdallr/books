@@ -134,7 +134,7 @@ private: // GeometryRestorable::IObserver
         return m_self;
     }
 
-    void OnFontSizeChanged(int /*fontSize*/) override
+    void OnFontChanged(const QFont&) override
     {
         m_self.adjustSize();
         const auto height = m_self.sizeHint().height();

@@ -10,6 +10,7 @@ constexpr auto COMMON = "Common";
 constexpr auto ERROR = "Error";
 constexpr auto LANG = "Language";
 constexpr auto BOOK = "Book";
+constexpr auto LOGGING = "Logging";
 }
 
 namespace HomeCompa::Flibrary::Loc {

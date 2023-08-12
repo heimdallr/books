@@ -32,10 +32,10 @@ public:
 	std::shared_ptr<DB::IDatabase> Database() const;
 
 public:
-	static std::unique_ptr<QTimer> CreateTimer(std::function<void()> f);
 	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
 	static IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * index);
 	static IDataItem::Ptr CreateBookItem(const DB::IQuery & query);
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

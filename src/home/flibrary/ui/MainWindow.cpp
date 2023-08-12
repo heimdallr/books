@@ -8,6 +8,7 @@
 #include "AnnotationWidget.h"
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
@@ -16,12 +17,15 @@
 #include "LocaleController.h"
 #include "ParentWidgetProvider.h"
 #include "util/ISettings.h"
+#include "util/serializer/QFont.h"
 #include "TreeView.h"
-#include "interface/constants/Localization.h"
 
 using namespace HomeCompa::Flibrary;
 
 namespace {
+
+constexpr auto MAIN_WINDOW = "MainWindow";
+constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 
 constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
 constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
@@ -46,7 +50,7 @@ public:
         , std::shared_ptr<LocaleController> localeController
         , std::shared_ptr<ILogController> logController
     )
-	    : GeometryRestorable(*this, settings, "MainWindow")
+	    : GeometryRestorable(*this, settings, MAIN_WINDOW)
         , m_self(self)
 		, m_uiFactory(std::move(uiFactory))
         , m_settings(std::move(settings))
@@ -98,7 +102,7 @@ private:
 
         m_localeController->Setup(*m_ui.menuLanguage);
 
-        m_ui.actionHideRemoved->setChecked(m_settings->Get(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, false).toBool());
+        m_ui.actionHideRemoved->setChecked(m_settings->Get(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, false));
         m_booksWidget->HideRemoved(m_ui.actionHideRemoved->isChecked());
 
         m_ui.logView->setModel(m_logController->GetModel());
@@ -122,9 +126,8 @@ private:
     {
         const auto incrementFontSize = [&](const int value)
         {
-            bool ok = false;
-            const auto fontSize = m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT).toInt(&ok);
-            m_settings->Set(Constant::Settings::FONT_SIZE_KEY, (ok ? fontSize : Constant::Settings::FONT_SIZE_DEFAULT) + value);
+            const auto fontSize = m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT);
+            m_settings->Set(Constant::Settings::FONT_SIZE_KEY, fontSize + value);
         };
 
         connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize]
@@ -179,6 +182,14 @@ private:
             if (!m_ui.actionShowLog->isChecked())
                 m_ui.actionShowLog->trigger();
         });
+        connect(m_ui.actionFontSettings, &QAction::triggered, &m_self, [&]
+        {
+            if (const auto font = m_uiFactory->GetFont(Loc::Tr(MAIN_WINDOW, FONT_DIALOG_TITLE), m_self.font()))
+            {
+                const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+                Util::Serialize(*font, *m_settings);
+            }
+        });
     }
 
     void CreateLogMenu()
@@ -187,7 +198,7 @@ private:
         const auto currentSeverity = m_logController->GetSeverity();
         std::ranges::for_each(m_logController->GetSeverities(), [&, n = 0] (const char * name)mutable
         {
-            auto * action = m_ui.menuLogVerbosityLevel->addAction(Loc::Tr("Logging", name), [&, n]
+            auto * action = m_ui.menuLogVerbosityLevel->addAction(Loc::Tr(Loc::Ctx::LOGGING, name), [&, n]
             {
                 m_settings->Set(LOG_SEVERITY_KEY, n);
                 m_logController->SetSeverity(n);

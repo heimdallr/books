@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QFontDialog>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
 
@@ -28,6 +29,7 @@ public:
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	virtual QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	[[nodiscard]] virtual QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
+	[[nodiscard]] virtual std::optional<QFont> GetFont(const QString & title, const QFont & font, QFontDialog::FontDialogOptions options = {}) const = 0;
 
 	[[nodiscard]] virtual QString GetOpenFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const = 0;
 	[[nodiscard]] virtual QString GetSaveFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const = 0;

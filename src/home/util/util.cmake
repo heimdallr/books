@@ -7,6 +7,7 @@ AddTarget(
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 	QT_USE
 		Core
+		Gui
 	MODULES
 		plog
 	LINK_TARGETS
