@@ -15,6 +15,7 @@
 
 #include "dialogs/AddCollectionDialog.h"
 
+#include "ItemViewToolTipper.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
 

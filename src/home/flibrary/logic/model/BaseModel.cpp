@@ -33,6 +33,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
+		case Qt::ToolTipRole:
 			return item->GetData(index.column());
 
 		case Qt::CheckStateRole:

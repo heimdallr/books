@@ -22,6 +22,8 @@
 
 #include "util/ISettings.h"
 
+#include "ItemViewToolTipper.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -68,11 +70,13 @@ public:
 		, std::shared_ptr<ITreeViewController> controller
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
 	)
 		: m_self(self)
 		, m_controller(std::move(controller))
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
+		, m_itemViewToolTipper(std::move(itemViewToolTipper))
 	{
 		Setup();
 	}
@@ -205,6 +209,8 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
+		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
+
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
 			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
@@ -385,7 +391,7 @@ private:
 		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu())->exec(m_ui.treeView->header()->mapToGlobal(pos));
 	}
 
-	std::shared_ptr<QMenu> GetHeaderContextMenu() const
+	std::shared_ptr<QMenu> GetHeaderContextMenu()
 	{
 		auto menu = std::make_shared<QMenu>();
 		auto * header = m_ui.treeView->header();
@@ -393,13 +399,15 @@ private:
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=] (const bool checked)
+			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=, this_ = this] (const bool checked)
 			{
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
 				header->setSectionHidden(index, !checked);
 				if (checked)
 					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+
+				this_->SaveHeaderLayout();
 			});
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));
@@ -497,6 +505,7 @@ private:
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -510,6 +519,7 @@ private:
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -517,6 +527,7 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 		, std::move(controller)
 		, std::move(settings)
 		, std::move(uiFactory)
+		, std::move(itemViewToolTipper)
 	)
 {
 	PLOGD << "TreeView created";

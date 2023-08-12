@@ -20,6 +20,7 @@ public:
     TreeView(std::shared_ptr<class ITreeViewController> controller
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<class IUiFactory> uiFactory
+        , std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper
         , QWidget * parent = nullptr);
     ~TreeView() override;
 
