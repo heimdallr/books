@@ -77,16 +77,19 @@ public:
 		if (m_db)
 			const_cast<Impl*>(this)->Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 
-		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
-
 		{
+			auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
 			std::lock_guard lock(m_dbGuard);
 			m_db = std::move(db);
 		}
-		m_forwarder.Forward([&, db = m_db]
+
+		if (m_db)
 		{
-			const_cast<Impl *>(this)->Perform(&DatabaseController::IObserver::AfterDatabaseCreated, std::ref(*db));
-		});
+			m_forwarder.Forward([&, db = m_db]
+			{
+				const_cast<Impl *>(this)->Perform(&DatabaseController::IObserver::AfterDatabaseCreated, std::ref(*db));
+			});
+		}
 
 		return m_db;
 	}
@@ -100,6 +103,10 @@ private: // ICollectionController::IObserver
 			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
+	}
+
+	void OnNewCollectionCreating(bool) override
+	{
 	}
 
 private:

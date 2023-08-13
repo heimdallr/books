@@ -28,6 +28,7 @@ public:
 	{
 	public:
 		virtual void OnActiveCollectionChanged() = 0;
+		virtual void OnNewCollectionCreating(bool) = 0;
 	};
 public:
 	virtual ~ICollectionController() = default;

@@ -207,14 +207,19 @@ private:
 		}
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor({});
+		Perform(&IObserver::OnNewCollectionCreating, true);
 		(*executor)({"Create collection", [&, executor, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
 		{
-			auto result = std::function([executor](size_t) { });
+			auto result = std::function([&, executor](size_t)
+			{
+				Perform(&IObserver::OnNewCollectionCreating, false);
+			});
 
 			if (auto [_, ini] = GetIniMap(db, folder, true); Inpx::CreateNewCollection(std::move(ini)))
 			{
 				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder)](size_t) mutable
 				{
+					Perform(&IObserver::OnNewCollectionCreating, false);
 					Add(std::move(name), std::move(db), std::move(folder));
 				});
 			}

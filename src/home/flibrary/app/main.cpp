@@ -48,13 +48,6 @@ int main(int argc, char * argv[])
 			container->resolve<ITaskQueue>()->Execute();
 			const auto logicFactory = container->resolve<ILogicFactory>();
 			const auto mainWindow = container->resolve<QMainWindow>();
-
-			if (container->resolve<ICollectionController>()->GetCollections().empty())
-			{
-				PLOGW << "No collections found";
-				return 0;
-			}
-
 			mainWindow->show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)

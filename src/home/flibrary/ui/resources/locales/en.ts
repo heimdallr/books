@@ -336,12 +336,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="54"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="55"/>
+        <location filename="../../TreeView.cpp" line="57"/>
         <source>Filter</source>
         <translation></translation>
     </message>

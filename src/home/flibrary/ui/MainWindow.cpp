@@ -67,6 +67,11 @@ public:
         CreateLogMenu();
         CreateCollectionsMenu();
         RestoreWidgetsState();
+        QTimer::singleShot(0, [&]
+        {
+            if (m_collectionController->IsEmpty())
+                m_collectionController->AddCollection();
+        });
     }
 
 	~Impl() override
@@ -87,6 +92,12 @@ private: // ICollectionController::IObserver
     void OnActiveCollectionChanged() override
     {
         Reboot();
+    }
+
+    void OnNewCollectionCreating(const bool running) override
+    {
+        if (m_ui.actionShowLog->isChecked() != running)
+	        m_ui.actionShowLog->trigger();
     }
 
 private:
@@ -213,9 +224,6 @@ private:
     void CreateCollectionsMenu()
     {
         m_collectionController->RegisterObserver(this);
-
-        if (m_collectionController->IsEmpty())
-            m_collectionController->AddCollection();
 
     	m_ui.menuSelectCollection->clear();
 
