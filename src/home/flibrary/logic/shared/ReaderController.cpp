@@ -27,10 +27,7 @@ constexpr auto READER_KEY = "Reader/%1";
 
 constexpr auto BUFFER_SIZE = 16 * 1024;
 
-auto Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
+TR_DEF
 
 class ReaderProcess final : QProcess
 {

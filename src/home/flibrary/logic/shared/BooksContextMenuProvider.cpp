@@ -81,10 +81,7 @@ constexpr std::pair<MenuAction, IContextMenuHandler::Function> MENU_HANDLERS[]
 #undef	MENU_ACTION_ITEM
 };
 
-auto Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
+TR_DEF
 
 IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const MenuAction id = MenuAction::None)
 {

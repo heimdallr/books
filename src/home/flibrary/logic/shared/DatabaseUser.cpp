@@ -33,13 +33,13 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[]
 struct DatabaseUser::Impl
 {
 	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
-	std::unique_ptr<Util::IExecutor> m_executor;
+	std::shared_ptr<Util::IExecutor> executor;
 
 	Impl(const ILogicFactory & logicFactory
 		, std::shared_ptr<DatabaseController> databaseController
 	)
 		: databaseController(std::move(databaseController))
-		, m_executor(CreateExecutor(logicFactory))
+		, executor(CreateExecutor(logicFactory))
 	{
 	}
 
@@ -69,12 +69,17 @@ DatabaseUser::~DatabaseUser()
 
 size_t DatabaseUser::Execute(Util::IExecutor::Task && task, const int priority) const
 {
-	return (*m_impl->m_executor)(std::move(task), priority);
+	return (*m_impl->executor)(std::move(task), priority);
 }
 
 std::shared_ptr<DB::IDatabase> DatabaseUser::Database() const
 {
 	return m_impl->databaseController->GetDatabase();
+}
+
+std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
+{
+	return m_impl->executor;
 }
 
 IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const int * index)

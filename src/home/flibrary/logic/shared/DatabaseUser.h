@@ -19,7 +19,8 @@ class DatabaseUser
 {
 	NON_COPY_MOVABLE(DatabaseUser)
 public:
-	static constexpr const char * BOOKS_QUERY_FIELDS = "b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted, 0)";
+	static constexpr auto BOOKS_QUERY_FIELDS = "b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted, 0)";
+	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 
 public:
 	DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
@@ -30,6 +31,7 @@ public:
 public:
 	size_t Execute(Util::IExecutor::Task && task, int priority = 0) const;
 	std::shared_ptr<DB::IDatabase> Database() const;
+	std::shared_ptr<Util::IExecutor> Executor() const;
 
 public:
 	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);

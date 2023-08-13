@@ -63,19 +63,29 @@
     <name>Common</name>
     <message>
         <location filename="../../constants/Localization.h" line="18"/>
+        <source>Error!</source>
+        <translation>Ошибка!</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="19"/>
+        <source>Information</source>
+        <translation>Информация</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="20"/>
         <source>Question</source>
         <translation>Вопрос</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="19"/>
-        <source>Warning</source>
+        <location filename="../../constants/Localization.h" line="21"/>
+        <source>Warning!</source>
         <translation>Внимание!</translation>
     </message>
 </context>
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../constants/Localization.h" line="21"/>
+        <location filename="../../constants/Localization.h" line="23"/>
         <source>Author not specified</source>
         <translation>Автор не указан</translation>
     </message>
@@ -83,22 +93,14 @@
 <context>
     <name>Language</name>
     <message>
-        <location filename="../../constants/Localization.h" line="25"/>
+        <location filename="../../constants/Localization.h" line="27"/>
         <source>en</source>
         <translation>&amp;English</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="26"/>
+        <location filename="../../constants/Localization.h" line="28"/>
         <source>ru</source>
         <translation>&amp;Русский</translation>
-    </message>
-</context>
-<context>
-    <name>QPlatformTheme</name>
-    <message>
-        <location filename="../../constants/Localization.h" line="31"/>
-        <source>OK</source>
-        <translation>ОК</translation>
     </message>
 </context>
 </TS>

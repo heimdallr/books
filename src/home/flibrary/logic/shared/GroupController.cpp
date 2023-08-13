@@ -27,7 +27,6 @@ constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
 constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, BookId) values(?, ?)";
 constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where BookID = ?";
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX = " and GroupID = ?";
-constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 constexpr auto SELECT_ALL_GROUPS_QUERY = "select Title from Groups_User";
 
 using Names = std::unordered_set<QString>;
@@ -39,15 +38,12 @@ long long CreateNewGroupImpl(DB::ITransaction & transaction, const QString & nam
 	command->Bind(0, name.toStdString());
 	command->Execute();
 
-	const auto query = transaction.CreateQuery(SELECT_LAST_ID_QUERY);
+	const auto query = transaction.CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
 	query->Execute();
 	return query->Get<long long>(0);
 }
 
-auto Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
+TR_DEF
 
 }
 

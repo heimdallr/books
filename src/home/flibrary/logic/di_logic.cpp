@@ -18,6 +18,7 @@
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/TaskQueue.h"
+#include "userdata/UserDataController.h"
 #include "util/ISettings.h"
 // ReSharper restore CppUnusedIncludeDirective
 
@@ -35,6 +36,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
+	builder.registerType<UserDataController>().as<IUserDataController>();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

@@ -20,48 +20,18 @@ protected:
 	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentProvider;
 };
 
-class AboutDialog final
-	: public Dialog
-	, public IAboutDialog
-{
-public:
-	explicit AboutDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
-
-private: // IDialog
-	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
+#define STANDARD_DIALOG_ITEM(NAME)                                                                                                                          \
+class NAME##Dialog final                                                                                                                                    \
+	: public Dialog                                                                                                                                         \
+	, public I##NAME##Dialog                                                                                                                                \
+{                                                                                                                                                           \
+public:                                                                                                                                                     \
+	explicit NAME##Dialog(std::shared_ptr<ParentWidgetProvider> parentProvider);                                                                            \
+private:                                                                                                                                                    \
+	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override; \
+	QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const override;  \
 };
-
-class QuestionDialog final
-	: public Dialog
-	, public IQuestionDialog
-{
-public:
-	explicit QuestionDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
-
-private: // IDialog
-	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
-};
-
-class WarningDialog final
-	: public Dialog
-	, public IWarningDialog
-{
-public:
-	explicit WarningDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
-
-private: // IDialog
-	QMessageBox::StandardButton Show(const QString & text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton) const override;
-};
-
-class InputTextDialog final
-	: public Dialog
-	, public IInputTextDialog
-{
-public:
-	explicit InputTextDialog(std::shared_ptr<ParentWidgetProvider> parentProvider);
-
-private: // IDialog
-	QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const override;
-};
+STANDARD_DIALOG_ITEMS_X_MACRO
+#undef	STANDARD_DIALOG_ITEM
 
 }

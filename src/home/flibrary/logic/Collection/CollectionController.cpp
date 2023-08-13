@@ -32,10 +32,7 @@ constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionControll
 constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 
-QString Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
+TR_DEF
 
 QString GetInpx(const QString & folder)
 {

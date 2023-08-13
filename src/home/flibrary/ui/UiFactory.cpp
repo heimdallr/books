@@ -121,6 +121,18 @@ QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const Q
 	return dialog->Show(text, buttons, defaultButton);
 }
 
+void UiFactory::ShowInfo(const QString & text) const
+{
+	const auto dialog = m_impl->container.resolve<IInfoDialog>();
+	(void)dialog->Show(text);
+}
+
+void UiFactory::ShowError(const QString & text) const
+{
+	const auto dialog = m_impl->container.resolve<IErrorDialog>();
+	(void)dialog->Show(text);
+}
+
 QString UiFactory::GetText(const QString & title, const QString & label, const QString & text, const QLineEdit::EchoMode mode) const
 {
 	const auto dialog = m_impl->container.resolve<IInputTextDialog>();

@@ -295,7 +295,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="28"/>
+        <location filename="../../MainWindow.cpp" line="30"/>
         <source>Select font</source>
         <translation></translation>
     </message>

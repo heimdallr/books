@@ -15,8 +15,10 @@ constexpr auto LOGGING = "Logging";
 
 namespace HomeCompa::Flibrary::Loc {
 
+constexpr auto ERROR = QT_TRANSLATE_NOOP("Common", "Error!");
+constexpr auto INFORMATION = QT_TRANSLATE_NOOP("Common", "Information");
 constexpr auto QUESTION = QT_TRANSLATE_NOOP("Common", "Question");
-constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning");
+constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning!");
 
 constexpr auto AUTHOR_NOT_SPECIFIED = QT_TRANSLATE_NOOP("Error", "Author not specified");
 
@@ -27,8 +29,6 @@ constexpr const char * LOCALES[]
 };
 
 #if(false)
-
-QT_TRANSLATE_NOOP("QPlatformTheme", "OK")
 
 QT_TRANSLATE_NOOP("Book", "Author")
 QT_TRANSLATE_NOOP("Book", "Title")
@@ -46,14 +46,11 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 
 FLINT_API QString Tr(const char * context, const char * str);
 
-inline QString Question()
-{
-	return Tr(Ctx::COMMON, QUESTION);
-}
-
-inline QString Warning()
-{
-	return Tr(Ctx::COMMON, WARNING);
-}
+inline QString Error() { return Tr(Ctx::COMMON, ERROR); }
+inline QString Information() { return Tr(Ctx::COMMON, INFORMATION); }
+inline QString Question() { return Tr(Ctx::COMMON, QUESTION); }
+inline QString Warning() { return Tr(Ctx::COMMON, WARNING); }
 
 }
+
+#define TR_DEF QString Tr(const char * str) {  return Loc::Tr(CONTEXT, str); }

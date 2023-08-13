@@ -12,13 +12,13 @@
 
 namespace HomeCompa::Flibrary {
 
-#define RESTORE_ITEMS_XMACRO    \
+#define RESTORE_ITEMS_X_MACRO    \
 		RESTORE_ITEM(Books, 1)  \
 		RESTORE_ITEM(Groups, 1) \
 
 namespace UserData {
 #define RESTORE_ITEM(NAME, VERSION) void Restore##NAME##VERSION(DB::IDatabase & db, QXmlStreamReader & reader);
-		RESTORE_ITEMS_XMACRO
+		RESTORE_ITEMS_X_MACRO
 #undef	RESTORE_ITEM
 }
 
@@ -39,7 +39,7 @@ struct RestoreItem
 constexpr RestoreItem g_restoreItems[]
 {
 #define RESTORE_ITEM(NAME, VERSION) { #NAME, VERSION, &UserData::Restore##NAME##VERSION },
-		RESTORE_ITEMS_XMACRO
+		RESTORE_ITEMS_X_MACRO
 #undef	RESTORE_ITEM
 		{ "z", std::numeric_limits<int>::max(), nullptr }
 };

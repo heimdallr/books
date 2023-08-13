@@ -10,38 +10,20 @@ class IDialog  // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IDialog() = default;
 
-	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & /*title*/, const QString & /*text*/, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const
-	{
-		assert(false && "No impl");
-		throw std::runtime_error("No impl");
-	}
-	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & /*text*/ = {}, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const
-	{
-		assert(false && "No impl");
-		throw std::runtime_error("No impl");
-	}
-	[[nodiscard]] virtual QString GetText(const QString & /*title*/, const QString & /*label*/, const QString & /*text*/ = {}, QLineEdit::EchoMode /*mode*/ = QLineEdit::Normal) const
-	{
-		assert(false && "No impl");
-		throw std::runtime_error("No impl");
-	}
-
+	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & text = {}, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
+	[[nodiscard]] virtual QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
 };
 
-class IAboutDialog : virtual public IDialog
-{
-};
+#define STANDARD_DIALOG_ITEMS_X_MACRO \
+STANDARD_DIALOG_ITEM(About)           \
+STANDARD_DIALOG_ITEM(Error)           \
+STANDARD_DIALOG_ITEM(Info)            \
+STANDARD_DIALOG_ITEM(InputText)       \
+STANDARD_DIALOG_ITEM(Question)        \
+STANDARD_DIALOG_ITEM(Warning)
 
-class IQuestionDialog : virtual public IDialog
-{
-};
-
-class IWarningDialog : virtual public IDialog
-{
-};
-
-class IInputTextDialog : virtual public IDialog
-{
-};
+#define STANDARD_DIALOG_ITEM(NAME) class I##NAME##Dialog : virtual public IDialog {};
+		STANDARD_DIALOG_ITEMS_X_MACRO
+#undef	STANDARD_DIALOG_ITEM
 
 }

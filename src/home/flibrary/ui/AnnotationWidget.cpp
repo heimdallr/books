@@ -43,10 +43,7 @@ constexpr const char * CUSTOM_URL_SCHEMA[]
 	GROUPS,
 };
 
-auto Tr(const char * str)
-{
-	return Loc::Tr(CONTEXT, str);
-}
+TR_DEF
 
 QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
 {

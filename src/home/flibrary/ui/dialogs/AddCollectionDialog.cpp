@@ -40,11 +40,7 @@ QString Error(const char * str)
     return Loc::Tr(Loc::Ctx::ERROR, str);
 }
 
-QString Tr(const char * str)
-{
-    return Loc::Tr(CONTEXT, str);
-}
-
+TR_DEF
 
 QString GetDatabase(const IUiFactory & uiController, const QString & file)
 {

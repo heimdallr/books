@@ -210,25 +210,6 @@
     </message>
 </context>
 <context>
-    <name>FileDialog</name>
-    <message>
-        <source>Select destination folder</source>
-        <translation type="vanished">Укажите путь назначения на устройстве</translation>
-    </message>
-    <message>
-        <source>Flibrary export files (*.flibk)</source>
-        <translation type="vanished">Файлы экспорта Flibrary (*.flibk)</translation>
-    </message>
-    <message>
-        <source>Specify a file to export user data</source>
-        <translation type="vanished">Укажите файл экспорта пользовательских данных</translation>
-    </message>
-    <message>
-        <source>Select a file to import user data</source>
-        <translation type="vanished">Выберите файл импорта пользовательских данных</translation>
-    </message>
-</context>
-<context>
     <name>LocaleController</name>
     <message>
         <location filename="../../LocaleController.cpp" line="20"/>
@@ -341,7 +322,7 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="28"/>
+        <location filename="../../MainWindow.cpp" line="30"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>

@@ -19,6 +19,8 @@
 #include "util/ISettings.h"
 #include "util/serializer/QFont.h"
 #include "TreeView.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IUserDataController.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -42,6 +44,7 @@ class MainWindow::Impl final
 
 public:
     Impl(MainWindow & self
+        , std::shared_ptr<ILogicFactory> logicFactory
         , std::shared_ptr<IUiFactory> uiFactory
         , std::shared_ptr<ISettings> settings
         , std::shared_ptr<ICollectionController> collectionController
@@ -52,6 +55,7 @@ public:
     )
 	    : GeometryRestorable(*this, settings, MAIN_WINDOW)
         , m_self(self)
+		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
         , m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
@@ -214,6 +218,16 @@ private:
             m_settings->Remove("ui");
             Reboot();
         });
+        connect(m_ui.actionExportUserData, &QAction::triggered, &m_self, [&]
+        {
+            auto controller = m_logicFactory->CreateUserDataController();
+            controller->Backup([controller] () mutable { controller.reset(); });
+        });
+        connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [&]
+        {
+            auto controller = m_logicFactory->CreateUserDataController();
+            controller->Restore([controller] () mutable { controller.reset(); });
+        });
     }
 
     void CreateLogMenu()
@@ -274,6 +288,7 @@ private:
 private:
     MainWindow & m_self;
     Ui::MainWindow m_ui {};
+    PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
     PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
     PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
     PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
@@ -286,7 +301,8 @@ private:
     PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 };
 
-MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
+MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
+    , std::shared_ptr<IUiFactory> uiFactory
     , std::shared_ptr<ISettings> settings
     , std::shared_ptr<ICollectionController> collectionController
     , std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
@@ -297,6 +313,7 @@ MainWindow::MainWindow(std::shared_ptr<IUiFactory> uiFactory
 )
     : QMainWindow(parent)
     , m_impl(*this
+        , std::move(logicFactory)
         , std::move(uiFactory)
         , std::move(settings)
         , std::move(collectionController)

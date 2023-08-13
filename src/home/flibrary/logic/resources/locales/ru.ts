@@ -245,4 +245,67 @@ Try again?</source>
         <translation>Приложения (*.exe)</translation>
     </message>
 </context>
+<context>
+    <name>UserData</name>
+    <message>
+        <location filename="../../userdata/backup.cpp" line="26"/>
+        <source>Cannot write to &apos;%1&apos;</source>
+        <translation>Ошибка записи в %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="26"/>
+        <source>Cannot read from %1</source>
+        <translation>Jib,rf xntybz bp %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="27"/>
+        <source>Invalid root node name, must be %1</source>
+        <translation>Неправильное имя корневого узла, должно быть %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="28"/>
+        <source>Cannot find version node, must be %1</source>
+        <translation>Не найден узел версии %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="29"/>
+        <source>Cannot find version attribute, must be %1</source>
+        <translation>Не найден атрибут узла версии %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="30"/>
+        <source>%1: must be integer</source>
+        <translation>Номер версии %1 должен быть целым значением</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="31"/>
+        <source>Cannot find user data node, must be %1</source>
+        <translation>Не найден узел пользовательских данных %1</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/UserDataController.cpp" line="18"/>
+        <source>Specify a file to export user data</source>
+        <translation>Укажите файл экспорта пользовательских данных</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/UserDataController.cpp" line="19"/>
+        <source>Select a file to import user data</source>
+        <translation>Выберите файл импорта пользовательских данных</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/UserDataController.cpp" line="20"/>
+        <source>Flibrary export files (*.flibk)</source>
+        <translation>Файлы экспорта Flibrary (*.flibk)</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/UserDataController.cpp" line="21"/>
+        <source>User data successfully recovered</source>
+        <translation>Пользовательские данные восстановлены</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/UserDataController.cpp" line="22"/>
+        <source>User data successfully saved</source>
+        <translation>Пользовательские данные сохранены</translation>
+    </message>
+</context>
 </TS>

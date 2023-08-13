@@ -25,6 +25,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<GroupController> CreateGroupController() const override;
 	[[nodiscard]] std::shared_ptr<BooksContextMenuProvider> CreateBooksContextMenuProvider() const override;
 	[[nodiscard]] std::shared_ptr<ReaderController> CreateReaderController() const override;
+	[[nodiscard]] std::shared_ptr<IUserDataController> CreateUserDataController() const override;
 
 private:
 	struct Impl;

@@ -12,6 +12,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IUserDataController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "Annotation/ArchiveParser.h"
@@ -25,7 +26,8 @@
 #include "shared/GroupController.h"
 #include "shared/ReaderController.h"
 
-namespace HomeCompa::Flibrary {
+using namespace HomeCompa;
+using namespace Flibrary;
 
 struct LogicFactory::Impl final
 {
@@ -97,4 +99,7 @@ std::shared_ptr<ReaderController> LogicFactory::CreateReaderController() const
 	return m_impl->container.resolve<ReaderController>();
 }
 
+std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() const
+{
+	return m_impl->container.resolve<IUserDataController>();
 }

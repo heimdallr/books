@@ -29,10 +29,23 @@ Dialog::~Dialog()
 	PLOGD << "Dialog destroyed";
 }
 
-AboutDialog::AboutDialog(std::shared_ptr<ParentWidgetProvider> parentProvider)
-	: Dialog(std::move(parentProvider))
-{
-}
+#define STANDARD_DIALOG_ITEM(NAME) \
+NAME##Dialog::NAME##Dialog(std::shared_ptr<ParentWidgetProvider> parentProvider) \
+	: Dialog(std::move(parentProvider)) {}
+STANDARD_DIALOG_ITEMS_X_MACRO
+#undef	STANDARD_DIALOG_ITEM
+
+#define NO_GET_TEXT(NAME) QString NAME##Dialog::GetText(const QString & /*title*/, const QString & /*label*/, const QString & /*text*/, QLineEdit::EchoMode /*mode*/) const { throw std::runtime_error("not implemented"); }
+		NO_GET_TEXT(About)
+		NO_GET_TEXT(Error)
+		NO_GET_TEXT(Info)
+		NO_GET_TEXT(Question)
+		NO_GET_TEXT(Warning)
+#undef	NO_GET_TEXT
+
+#define NO_SHOW(NAME) QMessageBox::StandardButton NAME##Dialog::Show(const QString & /*text*/ = {}, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const { throw std::runtime_error("not implemented"); }
+		NO_SHOW(InputText)
+#undef	NO_SHOW
 
 QMessageBox::StandardButton AboutDialog::Show(const QString & /*text*/, QMessageBox::StandardButtons /*buttons*/, QMessageBox::StandardButton /*defaultButton*/) const
 {
@@ -44,21 +57,9 @@ QMessageBox::StandardButton AboutDialog::Show(const QString & /*text*/, QMessage
 	return QMessageBox::NoButton;
 }
 
-
-QuestionDialog::QuestionDialog(std::shared_ptr<ParentWidgetProvider> parentProvider)
-	: Dialog(std::move(parentProvider))
-{
-}
-
 QMessageBox::StandardButton QuestionDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return QMessageBox::question(m_parentProvider->GetWidget(), Loc::Question(), text, buttons, defaultButton);
-}
-
-
-WarningDialog::WarningDialog(std::shared_ptr<ParentWidgetProvider> parentProvider)
-	: Dialog(std::move(parentProvider))
-{
 }
 
 QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
@@ -66,9 +67,14 @@ QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMes
 	return QMessageBox::warning(m_parentProvider->GetWidget(), Loc::Warning(), text, buttons, defaultButton);
 }
 
-InputTextDialog::InputTextDialog(std::shared_ptr<ParentWidgetProvider> parentProvider)
-	: Dialog(std::move(parentProvider))
+QMessageBox::StandardButton InfoDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
+	return QMessageBox::information(m_parentProvider->GetWidget(), Loc::Information(), text, buttons, defaultButton);
+}
+
+QMessageBox::StandardButton ErrorDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+{
+	return QMessageBox::critical(m_parentProvider->GetWidget(), Loc::Error(), text, buttons, defaultButton);
 }
 
 QString InputTextDialog::GetText(const QString & title, const QString & label, const QString & text, const QLineEdit::EchoMode mode) const
