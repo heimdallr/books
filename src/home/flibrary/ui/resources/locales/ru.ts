@@ -339,7 +339,7 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Show removed books</source>
-        <translation>&amp;Показывать удалённы книги</translation>
+        <translation>&amp;Показывать удалённые книги</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>

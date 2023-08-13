@@ -15,7 +15,7 @@ namespace {
 void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & indexList, const std::function<void(const QModelIndex&)> & f)
 {
 	std::vector<QModelIndex> stack;
-	std::ranges::copy_if(indexList, std::back_inserter(stack), [] (const QModelIndex & index) { return index.column() == 0; });
+	std::ranges::copy_if(indexList, std::back_inserter(stack), [] (const QModelIndex & index) { return !index.isValid() || index.column() == 0; });
 
 	while (!stack.empty())
 	{
@@ -137,10 +137,9 @@ QStringList FilteredProxyModel::CollectLanguages() const
 int FilteredProxyModel::GetCount() const
 {
 	int result = 0;
-	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex & child)
+	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex &)
 	{
-		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-			++result;
+		++result;
 	});
 
 	return result;
