@@ -93,12 +93,12 @@ public:
 		m_navigationModeName = std::move(navigationModeName);
 	}
 
-	void HideRemoved(const bool hideRemoved)
+	void ShowRemoved(const bool showRemoved)
 	{
-		m_hideRemoved = hideRemoved;
+		m_showRemoved = showRemoved;
 		if (auto * model = m_ui.treeView->model())
 		{
-			model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
+			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			OnCountChanged();
 			Find(m_currentId, Role::Id);
 		}
@@ -134,7 +134,7 @@ private: // ITreeViewController::IObserver
 			{
 				m_languageContextMenu.reset();
 				model->setData({}, true, Role::Checkable);
-				model->setData({}, m_hideRemoved, Role::HideRemovedFilter);
+				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			}
 		}
 
@@ -513,7 +513,7 @@ private:
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
-	bool m_hideRemoved { false };
+	bool m_showRemoved { false };
 };
 
 TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
@@ -543,9 +543,9 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 	m_impl->SetNavigationModeName(std::move(navigationModeName));
 }
 
-void TreeView::HideRemoved(const bool hideRemoved)
+void TreeView::ShowRemoved(const bool showRemoved)
 {
-	m_impl->HideRemoved(hideRemoved);
+	m_impl->ShowRemoved(showRemoved);
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)

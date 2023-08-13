@@ -25,7 +25,7 @@ struct Role
 		Languages,
 		TextFilter,
 		LanguageFilter,
-		HideRemovedFilter,
+		ShowRemovedFilter,
 		Selected,
 	};
 };

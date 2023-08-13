@@ -113,10 +113,9 @@ private:
 
         m_localeController->Setup(*m_ui.menuLanguage);
 
-        m_ui.actionHideRemoved->setChecked(m_settings->Get(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, false));
-        m_booksWidget->HideRemoved(m_ui.actionHideRemoved->isChecked());
-
         m_ui.logView->setModel(m_logController->GetModel());
+
+        OnShowRemovedChanged(m_settings->Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, true));
 
         if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
             m_logController->SetSeverity(severity.toInt());
@@ -141,11 +140,17 @@ private:
             m_settings->Set(Constant::Settings::FONT_SIZE_KEY, fontSize + value);
         };
 
-        connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [incrementFontSize]
+        const auto showRemoved = [&] (const bool value)
+        {
+            m_settings->Set(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, value);
+            OnShowRemovedChanged(value);
+        };
+
+        connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [=]
         {
             incrementFontSize(1);
         });
-        connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [incrementFontSize]
+        connect(m_ui.actionFontSizeDown, &QAction::triggered, &m_self, [=]
         {
             incrementFontSize(-1);
         });
@@ -161,10 +166,13 @@ private:
         {
             m_uiFactory->ShowAbout();
         });
-        connect(m_ui.actionHideRemoved, &QAction::triggered, &m_self, [&] (const bool checked)
+        connect(m_ui.actionHideRemoved, &QAction::triggered, &m_self, [=]
         {
-            m_settings->Set(Constant::Settings::HIDE_REMOVED_BOOKS_KEY, checked);
-            m_booksWidget->HideRemoved(checked);
+            showRemoved(false);
+        });
+        connect(m_ui.actionShowRemoved, &QAction::triggered, &m_self, [=]
+        {
+            showRemoved(true);
         });
         connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
         connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&]
@@ -200,6 +208,11 @@ private:
                 const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
                 Util::Serialize(*font, *m_settings);
             }
+        });
+        connect(m_ui.actionRestoreDefaultSettings, &QAction::triggered, &m_self, [&]
+        {
+            m_settings->Remove("ui");
+            Reboot();
         });
     }
 
@@ -244,6 +257,13 @@ private:
         const auto enabled = !m_ui.menuSelectCollection->isEmpty();
         m_ui.actionRemoveCollection->setEnabled(enabled);
         m_ui.menuSelectCollection->setEnabled(enabled);
+    }
+
+    void OnShowRemovedChanged(const bool showRemoved)
+    {
+        m_booksWidget->ShowRemoved(showRemoved);
+        m_ui.actionHideRemoved->setVisible(showRemoved);
+        m_ui.actionShowRemoved->setVisible(!showRemoved);
     }
 
     static void Reboot()

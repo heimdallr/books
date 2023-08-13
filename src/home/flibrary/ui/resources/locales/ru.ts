@@ -252,11 +252,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Font</source>
-        <translation>Шрифт</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation>Выбрать &amp;коллекцию</translation>
     </message>
@@ -287,11 +282,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Language</source>
-        <translation>Язык</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Help</source>
         <translation>&amp;Помощь</translation>
     </message>
@@ -308,7 +298,7 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Hide removed books</source>
-        <translation>Скрыть &amp;удалённые книги</translation>
+        <translation>&amp;Скрывать удалённые книги</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -355,6 +345,36 @@ Restart now?</source>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>E&amp;xport</source>
+        <translation>&amp;Экспорт (сохранение)</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>I&amp;mport</source>
+        <translation>&amp;Импорт (восстановление)</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Show removed books</source>
+        <translation>&amp;Показывать удалённы книги</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Language</source>
+        <translation>&amp;Язык</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Font</source>
+        <translation>&amp;Шрифт</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Restore default values</source>
+        <translation>&amp;Восстановить исходные значения</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -380,130 +400,7 @@ Restart now?</source>
     </message>
 </context>
 <context>
-    <name>QPlatformTheme</name>
-    <message>
-        <source>OK</source>
-        <translation type="vanished">OK</translation>
-    </message>
-    <message>
-        <source>Save</source>
-        <translation type="vanished">Сохранить</translation>
-    </message>
-    <message>
-        <source>Save All</source>
-        <translation type="vanished">Сохранить все</translation>
-    </message>
-    <message>
-        <source>Open</source>
-        <translation type="vanished">Открыть</translation>
-    </message>
-    <message>
-        <source>&amp;Yes</source>
-        <translation type="vanished">&amp;Да</translation>
-    </message>
-    <message>
-        <source>Yes to &amp;All</source>
-        <translation type="vanished">Да для &amp;всех</translation>
-    </message>
-    <message>
-        <source>&amp;No</source>
-        <translation type="vanished">&amp;Нет</translation>
-    </message>
-    <message>
-        <source>N&amp;o to All</source>
-        <translation type="vanished">Н&amp;ет для всех</translation>
-    </message>
-    <message>
-        <source>Abort</source>
-        <translation type="vanished">Прервать</translation>
-    </message>
-    <message>
-        <source>Retry</source>
-        <translation type="vanished">Повторить</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation type="vanished">Пропустить</translation>
-    </message>
-    <message>
-        <source>Close</source>
-        <translation type="vanished">Закрыть</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation type="vanished">Отмена</translation>
-    </message>
-    <message>
-        <source>Discard</source>
-        <translation type="vanished">Отказаться</translation>
-    </message>
-    <message>
-        <source>Help</source>
-        <translation type="vanished">Помощь</translation>
-    </message>
-    <message>
-        <source>Apply</source>
-        <translation type="vanished">Применить</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation type="vanished">Перезагрузить</translation>
-    </message>
-    <message>
-        <source>Restore Defaults</source>
-        <translation type="vanished">Восстановить по-умолчанию</translation>
-    </message>
-</context>
-<context>
     <name>Tray</name>
-    <message>
-        <source>Show Flibrary</source>
-        <translation type="vanished">Показать Flibrary</translation>
-    </message>
-    <message>
-        <source>Exit</source>
-        <translation type="vanished">Выход</translation>
-    </message>
-    <message>
-        <source>Collections</source>
-        <translation type="vanished">Управление коллекциями</translation>
-    </message>
-    <message>
-        <source>Add new collection...</source>
-        <translation type="vanished">Добавить коллекцию...</translation>
-    </message>
-    <message>
-        <source>Select collection</source>
-        <translation type="vanished">Выбрать коллекцию</translation>
-    </message>
-    <message>
-        <source>Remove collection</source>
-        <translation type="vanished">Удалить коллекцию</translation>
-    </message>
-    <message>
-        <source>User data</source>
-        <translation type="vanished">Пользовательские данные</translation>
-    </message>
-    <message>
-        <source>Export</source>
-        <translation type="vanished">Экспорт (сохранение)</translation>
-    </message>
-    <message>
-        <source>Import</source>
-        <translation type="vanished">Импорт (восстановление)</translation>
-    </message>
-    <message>
-        <source>View</source>
-        <translation type="vanished">Вид</translation>
-    </message>
-    <message>
-        <source>Show deleted books</source>
-        <translation type="vanished">Показать удалённые книги</translation>
-    </message>
-    <message>
-        <source>Hide deleted books</source>
-        <translation type="vanished">Скрыть удалённые книги</translation>
-    </message>
     <message>
         <source>Show annotation</source>
         <translation type="vanished">Показать аннотацию</translation>
@@ -511,40 +408,6 @@ Restart now?</source>
     <message>
         <source>Hide annotation</source>
         <translation type="vanished">Скрыть аннотацию</translation>
-    </message>
-    <message>
-        <source>Settings</source>
-        <translation type="vanished">Настройки</translation>
-    </message>
-    <message>
-        <source>Restore default values</source>
-        <translation type="vanished">Восстановить по-умолчанию</translation>
-    </message>
-    <message>
-        <source>Language</source>
-        <translation type="vanished">Язык</translation>
-    </message>
-    <message>
-        <source>Hide Flibrary</source>
-        <translation type="vanished">Скрыть Flibrary</translation>
-    </message>
-    <message>
-        <source>Help</source>
-        <translation type="vanished">Помощь</translation>
-    </message>
-    <message>
-        <source>About Flibrary</source>
-        <translation type="vanished">О Flibrary</translation>
-    </message>
-    <message>
-        <source>Another e-library book cataloger
-Version: %1</source>
-        <translation type="vanished">Ещё один каталогизатор книг электронной библиотеки
-Версия: %1</translation>
-    </message>
-    <message>
-        <source>About Flibrary...</source>
-        <translation type="vanished">О Flibrary...</translation>
     </message>
 </context>
 <context>

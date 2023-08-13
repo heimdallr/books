@@ -206,11 +206,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Font</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation></translation>
     </message>
@@ -237,11 +232,6 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Settings</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
-        <source>Language</source>
         <translation></translation>
     </message>
     <message>
@@ -307,6 +297,36 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.cpp" line="28"/>
         <source>Select font</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>E&amp;xport</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>I&amp;mport</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Show removed books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Font</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Restore default values</source>
         <translation></translation>
     </message>
 </context>

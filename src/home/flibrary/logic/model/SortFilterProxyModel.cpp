@@ -32,7 +32,7 @@ struct SortFilterProxyModel::Impl final
 	QString m_filter;
 	QString m_languageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
-	bool m_hideRemoved { false };
+	bool m_showRemoved { true };
 
 	explicit Impl(const std::shared_ptr<AbstractModelProvider> & modelProvider
 	)
@@ -90,8 +90,8 @@ bool SortFilterProxyModel::setData(const QModelIndex & index, const QVariant & v
 			case Role::TextFilter:
 				return Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
 
-			case Role::HideRemovedFilter:
-				return Set(m_impl->m_hideRemoved, value.toBool(), [&] { invalidateFilter(); });
+			case Role::ShowRemovedFilter:
+				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
 			case Role::LanguageFilter:
 				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
@@ -140,5 +140,5 @@ bool SortFilterProxyModel::filterAcceptsLanguage(const QModelIndex & index) cons
 
 bool SortFilterProxyModel::filterAcceptsRemoved(const QModelIndex & index) const
 {
-	return !(m_impl->m_hideRemoved && index.data(Role::IsRemoved).toBool());
+	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
 }

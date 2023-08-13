@@ -85,12 +85,12 @@
     <message>
         <location filename="../../constants/Localization.h" line="25"/>
         <source>en</source>
-        <translation>English</translation>
+        <translation>&amp;English</translation>
     </message>
     <message>
         <location filename="../../constants/Localization.h" line="26"/>
         <source>ru</source>
-        <translation>Русский</translation>
+        <translation>&amp;Русский</translation>
     </message>
 </context>
 <context>
