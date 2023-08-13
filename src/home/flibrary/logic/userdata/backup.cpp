@@ -69,7 +69,7 @@ void BackupUserDataGroups(DB::IDatabase & db, QXmlStreamWriter & stream)
 		QString title = query->Get<const char *>(0);
 		if (currentTitle != title)
 		{
-			currentTitle = title;
+			currentTitle = std::move(title);
 			group.reset();
 			std::make_unique<ScopedCall>([&] { stream.writeStartElement(Constant::UserData::Groups::GroupNode); }, [&] { stream.writeEndElement(); }).swap(group);
 			stream.writeAttribute(Constant::TITLE, currentTitle);

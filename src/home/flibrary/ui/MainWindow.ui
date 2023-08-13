@@ -235,6 +235,14 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menu_User_data">
+     <property name="title">
+      <string>&amp;User data</string>
+     </property>
+     <addaction name="actionExportUserData"/>
+     <addaction name="actionImportUserData"/>
+    </widget>
+    <addaction name="menu_User_data"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -271,18 +279,10 @@
       <string>Select &amp;collection</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menu_User_data">
-     <property name="title">
-      <string>&amp;User data</string>
-     </property>
-     <addaction name="actionExportUserData"/>
-     <addaction name="actionImportUserData"/>
-    </widget>
     <addaction name="actionAddNewCollection"/>
     <addaction name="menuSelectCollection"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
-    <addaction name="menu_User_data"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
