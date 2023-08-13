@@ -347,8 +347,9 @@ private:
 				{
 					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
 					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
-					if (m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false))
-						header->hideSection(logicalIndex);
+					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false)
+						? header->hideSection(logicalIndex)
+						: header->showSection(logicalIndex);
 				}
 			}
 
@@ -396,7 +397,7 @@ private:
 		auto menu = std::make_shared<QMenu>();
 		auto * header = m_ui.treeView->header();
 		const auto * model = header->model();
-		for (int i = 0, sz = header->count(); i < sz; ++i)
+		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
 			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=, this_ = this] (const bool checked)
