@@ -1,9 +1,8 @@
 #include "SortFilterProxyModel.h"
 
-#include "data/AbstractModelProvider.h"
-
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/Enums.h"
+#include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -34,14 +33,14 @@ struct SortFilterProxyModel::Impl final
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
 
-	explicit Impl(const std::shared_ptr<AbstractModelProvider> & modelProvider
+	explicit Impl(const std::shared_ptr<IModelProvider> & modelProvider
 	)
 		: m_sourceModel(modelProvider->GetSourceModel())
 	{
 	}
 };
 
-SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<AbstractModelProvider> & modelProvider
+SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<IModelProvider> & modelProvider
 	, QObject * parent
 )
 	: AbstractSortFilterProxyModel(parent)

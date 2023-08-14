@@ -13,35 +13,77 @@ using namespace HomeCompa::Flibrary;
 
 namespace {
 
-constexpr auto CONTENT_TYPE = "content-type";
 constexpr auto ID = "id";
 constexpr auto L_HREF = "l:href";
+constexpr auto A = "a";
+constexpr auto ANNOTATION = "FictionBook/description/title-info/annotation";
+constexpr auto ANNOTATION_P = "FictionBook/description/title-info/annotation/p";
+constexpr auto ANNOTATION_HREF = "FictionBook/description/title-info/annotation/a";
+constexpr auto ANNOTATION_HREF_P = "FictionBook/description/title-info/annotation/p/a";
+constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
+constexpr auto BINARY = "FictionBook/binary";
+constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
+constexpr auto SECTION = "section";
+constexpr auto SECTION_TITLE = "section/title";
+constexpr auto SECTION_TITLE_P = "section/title/p";
+constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
+constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
+constexpr auto EPIGRAPH_AUTHOR = "FictionBook/body/epigraph/text-author";
 
-#define XML_PARSE_MODE_ITEMS_X_MACRO    \
-		XML_PARSE_MODE_ITEM(annotation) \
-		XML_PARSE_MODE_ITEM(binary)     \
-		XML_PARSE_MODE_ITEM(coverpage)  \
-		XML_PARSE_MODE_ITEM(image)      \
-		XML_PARSE_MODE_ITEM(keywords)   \
-
-enum class XmlParseMode
+struct PszComparerEndsWithCaseInsensitive
 {
-	unknown = -1,
-#define XML_PARSE_MODE_ITEM(NAME) NAME,
-	XML_PARSE_MODE_ITEMS_X_MACRO
-#undef	XML_PARSE_MODE_ITEM
+	bool operator()(const std::string_view lhs, const std::string_view rhs) const
+	{
+		if (lhs.size() < rhs.size())
+			return false;
+
+		const auto * lp = lhs.data() + (lhs.size() - rhs.size()), * rp = rhs.data();
+		while (*lp && *rp && std::tolower(*lp++) == std::tolower(*rp++))
+			;
+
+		return !*lp && !*rp;
+	}
 };
 
-constexpr std::pair<const char *, XmlParseMode> g_parseModes[]
+
+class XmlStack
 {
-#define XML_PARSE_MODE_ITEM(NAME) { #NAME, XmlParseMode::NAME },
-		XML_PARSE_MODE_ITEMS_X_MACRO
-#undef	XML_PARSE_MODE_ITEM
+public:
+	void Push(const QStringView tag)
+	{
+		m_data.push_back(tag.toString());
+		m_key.reset();
+	}
+
+	void Pop(const QStringView tag)
+	{
+		assert(!m_data.isEmpty());
+		if (tag != m_data.back())
+			return;
+
+		m_data.pop_back();
+		m_key.reset();
+	}
+
+	const QString & ToString() const
+	{
+		if (!m_key)
+			m_key = m_data.join('/');
+
+		return *m_key;
+	}
+
+private:
+	mutable std::optional<QString> m_key;
+	QStringList m_data;
 };
 
 class XmlParser final
 	: QXmlStreamReader
 {
+	using ParseElementFunction = void(XmlParser::*)();
+	using ParseElementItem = std::pair<const char *, ParseElementFunction>;
+
 public:
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
@@ -50,8 +92,7 @@ public:
 
 	ArchiveParser::Data Parse()
 	{
-		using ParseType = void(XmlParser::*)();
-		static constexpr std::pair<TokenType, ParseType> s_parsers[]
+		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
 			{ StartElement, &XmlParser::OnStartElement },
 			{ EndElement, &XmlParser::OnEndElement },
@@ -61,10 +102,10 @@ public:
 		while (!atEnd() && !hasError())
 		{
 			const auto token = readNext();
-			if (token == QXmlStreamReader::Invalid)
+			if (token == Invalid)
 				PLOGE << error() << ":" << errorString();
 
-			const auto parser = FindSecond(s_parsers, token, &XmlParser::Stub, std::equal_to<>{});
+			const auto parser = FindSecond(PARSERS, token, &XmlParser::Stub<>);
 			std::invoke(parser, this);
 		}
 
@@ -72,100 +113,139 @@ public:
 	}
 
 private:
-	void Stub()
+	template<typename... ARGS>
+	void Stub(ARGS &&...)
 	{
 	}
 
 	void OnStartElement()
 	{
-		const auto nodeName = name();
-		if (m_mode == XmlParseMode::annotation)
+		const auto tag = name();
+		m_stack.Push(tag);
+
+		if (tag.compare(A, Qt::CaseInsensitive) == 0)
+			m_href = attributes().value(L_HREF).toString();
+
+		static constexpr ParseElementItem PARSERS[]
 		{
-			m_data.annotation.append(QString("<%1>").arg(nodeName));
-			return;
-		}
-
-		const auto mode = FindSecond(g_parseModes, nodeName.toUtf8(), XmlParseMode::unknown, PszComparer {});
-		if (mode == XmlParseMode::image && m_mode != XmlParseMode::coverpage)
-			return;
-
-		m_mode = mode;
-
-		using ParseType = void(XmlParser::*)();
-		static constexpr std::pair<XmlParseMode, ParseType> s_parsers[]
-		{
-			{ XmlParseMode::image, &XmlParser::OnStartElementCoverPageImage },
-			{ XmlParseMode::binary, &XmlParser::OnStartElementBinary },
+			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
+			{ BINARY, &XmlParser::OnStartElementBinary },
+			{ SECTION, &XmlParser::OnStartElementSection },
 		};
 
-		const auto parser = FindSecond(s_parsers, m_mode, &XmlParser::Stub, std::equal_to<>{});
-		std::invoke(parser, this);
+		Parse(PARSERS);
 	}
 
 	void OnEndElement()
 	{
-		const auto nodeName = name();
-		if (m_mode == XmlParseMode::annotation)
+		static constexpr ParseElementItem PARSERS[]
 		{
-			if (nodeName.compare("annotation") != 0)
-			{
-				m_data.annotation.append(QString("</%1>").arg(nodeName));
-				return;
-			}
-		}
+			{ SECTION, &XmlParser::OnEndElementSection },
+		};
 
-		m_mode = XmlParseMode::unknown;
+		Parse(PARSERS);
+
+		m_stack.Pop(name());
 	}
 
 	void OnCharacters()
 	{
-		using ParseType = void(XmlParser::*)();
-		static constexpr std::pair<XmlParseMode, ParseType> s_parsers[]
+		auto textValue = text().toString().simplified();
+		if (textValue.isEmpty())
+			return;
+
+		using ParseCharacterFunction = void(XmlParser::*)(QString&&);
+		using ParseCharacterItem = std::pair<const char *, ParseCharacterFunction>;
+		static constexpr ParseCharacterItem PARSERS[]
 		{
-			{ XmlParseMode::annotation, &XmlParser::OnCharactersAnnotation },
-			{ XmlParseMode::binary, &XmlParser::OnCharactersBinary },
-			{ XmlParseMode::keywords, &XmlParser::OnCharactersKeywords },
+			{ ANNOTATION, &XmlParser::ParseAnnotation },
+			{ ANNOTATION_P, &XmlParser::ParseAnnotation },
+			{ ANNOTATION_HREF, &XmlParser::ParseAnnotationHref },
+			{ ANNOTATION_HREF_P, &XmlParser::ParseAnnotationHref },
+			{ KEYWORDS, &XmlParser::ParseKeywords },
+			{ BINARY, &XmlParser::ParseBinary },
+			{ SECTION_TITLE, &XmlParser::ParseSectionTitle },
+			{ SECTION_TITLE_P, &XmlParser::ParseSectionTitle },
+			{ EPIGRAPH, &XmlParser::ParseEpigraph },
+			{ EPIGRAPH_P, &XmlParser::ParseEpigraph },
+			{ EPIGRAPH_AUTHOR, &XmlParser::ParseEpigraphAuthor },
 		};
 
-		const auto parser = FindSecond(s_parsers, m_mode, &XmlParser::Stub, std::equal_to<>{});
-		std::invoke(parser, this);
+		Parse(PARSERS, std::move(textValue));
 	}
 
-	void OnStartElementCoverPageImage()
+	void OnStartElementCoverpageImage()
 	{
-		auto coverPageId = attributes().value(L_HREF);
-		while (!coverPageId.isEmpty() && coverPageId.startsWith('#'))
-			coverPageId = coverPageId.right(coverPageId.length() - 1);
-		m_coverPageId = coverPageId.toString();
+		m_coverpage = attributes().value(L_HREF).toString();
+		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
+			m_coverpage.removeFirst();
 	}
 
 	void OnStartElementBinary()
 	{
-		const auto attrs = attributes();
-		const auto binaryId = attrs.value(ID), contentType = attrs.value(CONTENT_TYPE);
-		if (m_coverPageId == binaryId)
+		if (attributes().value(ID).toString() == m_coverpage)
 			m_data.coverIndex = static_cast<int>(m_data.covers.size());
 	}
 
-	void OnCharactersAnnotation()
+	void OnStartElementSection()
 	{
-		m_data.annotation.append(text());
+		m_currentContentItem = m_currentContentItem->AppendChild(NavigationItem::Create()).get();
 	}
 
-	void OnCharactersBinary()
+	void OnEndElementSection()
 	{
-		m_data.covers.push_back(QByteArray::fromBase64(text().toUtf8()));
+		m_currentContentItem = m_currentContentItem->GetParent();
 	}
 
-	void OnCharactersKeywords()
+	void ParseAnnotation(QString && value)
 	{
-		std::ranges::copy(text().toString().split(",", SkipEmptyParts), std::back_inserter(m_data.keywords));
+		m_data.annotation.append(QString("<p>%1</p>").arg(value));
+	}
+
+	void ParseAnnotationHref(QString && value)
+	{
+		m_data.annotation.append(QString(R"(<p><a href="%1">%2</a></p>)").arg(m_href).arg(value));
+	}
+
+	void ParseKeywords(QString && value)
+	{
+		std::ranges::copy(value.split(",", SkipEmptyParts), std::back_inserter(m_data.keywords));
+	}
+
+	void ParseBinary(QString && value)
+	{
+		m_data.covers.push_back(QByteArray::fromBase64(value.toUtf8()));
+	}
+
+	void ParseSectionTitle(QString && value)
+	{
+		m_currentContentItem->SetData(std::move(value), NavigationItem::Column::Title);
+	}
+
+	void ParseEpigraph(QString && value)
+	{
+		m_data.epigraph = std::move(value);
+	}
+
+	void ParseEpigraphAuthor(QString && value)
+	{
+		m_data.epigraphAuthor = std::move(value);
+	}
+
+	template <typename Value, size_t ArraySize, typename... ARGS>
+	void Parse(Value(&array)[ArraySize], ARGS &&... args)
+	{
+		const auto & key = m_stack.ToString();
+		const auto parser = FindSecond(array, key.toStdString().data(), &XmlParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
+		std::invoke(parser, *this, std::forward<ARGS>(args)...);
 	}
 
 private:
-	XmlParseMode m_mode { XmlParseMode::unknown };
-	QString m_coverPageId;
+	XmlStack m_stack;
 	ArchiveParser::Data m_data;
+	QString m_href;
+	QString m_coverpage;
+	IDataItem * m_currentContentItem { m_data.content.get() };
 };
 
 }

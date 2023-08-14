@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary {
 class AbstractListModel : public BaseModel
 {
 protected:
-	explicit AbstractListModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent);
+	explicit AbstractListModel(const std::shared_ptr<class IModelProvider> & modelProvider, QObject * parent);
 };
 
 class ListModel final : public AbstractListModel
@@ -17,7 +17,7 @@ class ListModel final : public AbstractListModel
 	NON_COPY_MOVABLE(ListModel)
 
 public:
-	explicit ListModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
+	explicit ListModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent = nullptr);
 	~ListModel() override;
 
 private: // QAbstractItemModel

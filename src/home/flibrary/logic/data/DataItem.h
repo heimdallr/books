@@ -21,10 +21,10 @@ public:
 	};
 
 protected:
-	explicit DataItem(size_t columnCount, const IDataItem * parent = nullptr);
+	explicit DataItem(size_t columnCount, IDataItem * parent = nullptr);
 
 protected: // IDataItem
-	[[nodiscard]] const IDataItem * GetParent() const noexcept override;
+	[[nodiscard]] IDataItem * GetParent() noexcept override;
 	Ptr & AppendChild(Ptr child) override;
 	void SetChildren(Items children) noexcept override;
 	[[nodiscard]] Ptr GetChild(size_t row) const noexcept override;
@@ -49,7 +49,7 @@ protected: // IDataItem
 
 protected:
 	size_t m_row { 0 };
-	const IDataItem * m_parent { nullptr };
+	IDataItem * m_parent { nullptr };
 	Items m_children;
 	QString m_id;
 	std::vector<QString> m_data;
@@ -58,8 +58,8 @@ protected:
 class NavigationItem final : public DataItem
 {
 public:
-	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
-	explicit NavigationItem(const IDataItem * parent);
+	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
+	explicit NavigationItem(IDataItem * parent);
 
 private: // DataItem
 	NavigationItem * ToNavigationItem() noexcept override;
@@ -80,8 +80,8 @@ public:
 		};
 	};
 
-	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
-	explicit AuthorItem(const IDataItem * parent);
+	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
+	explicit AuthorItem(IDataItem * parent);
 
 private: // DataItem
 	AuthorItem * ToAuthorItem() noexcept override;
@@ -146,10 +146,10 @@ public:
 	bool removed { false };
 	static const Mapping * mapping;
 
-	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
+	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
 	static int Remap(int column) noexcept;
 
-	explicit BookItem(const IDataItem * parent = nullptr);
+	explicit BookItem(IDataItem * parent = nullptr);
 
 private: // DataItem
 	[[nodiscard]] bool IsRemoved() const noexcept override;
@@ -176,8 +176,8 @@ public:
 		};
 	};
 
-	static std::shared_ptr<IDataItem> Create(const IDataItem * parent = nullptr);
-	explicit MenuItem(const IDataItem * parent);
+	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
+	explicit MenuItem(IDataItem * parent);
 
 private: // DataItem
 	MenuItem * ToMenuItem() noexcept override;

@@ -4,9 +4,8 @@
 #include <stack>
 
 #include "interface/constants/ModelRole.h"
-
-#include "data/AbstractModelProvider.h"
 #include "interface/constants/Enums.h"
+#include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -37,7 +36,7 @@ AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject * parent)
 {
 }
 
-FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent)
+FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class IModelProvider> & modelProvider, QObject * parent)
 	: AbstractFilteredProxyModel(parent)
 	, m_sourceModel(modelProvider->GetSourceModel())
 {

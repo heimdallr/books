@@ -34,6 +34,9 @@ constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto RECENT_ID_KEY = "ui/Navigation/%1/LastId";
 
+constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
+constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
+
 constexpr const char * CUSTOM_URL_SCHEMA[]
 {
 	AUTHORS,
@@ -94,7 +97,7 @@ struct Table
 
 	[[nodiscard]] QString ToString() const
 	{
-		return data.isEmpty() ? QString {} : QString("<table>%1</table>").arg(data.join("\n"));
+		return data.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(data.join("\n"));
 	}
 
 	QStringList data;
@@ -190,8 +193,11 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider & dataProvider) override
 	{
-		auto annotation = QString("<b>%1</b>").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Title));
+		QString annotation;
+		Add(annotation, dataProvider.GetBook().GetRawData(BookItem::Column::Title), TITLE_PATTERN);
 		Add(annotation, dataProvider.GetAnnotation());
+		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
+		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 		Add(annotation, Join(dataProvider.GetKeywords()), KEYWORDS);
 
 		Add(annotation, Table()

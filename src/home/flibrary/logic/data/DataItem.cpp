@@ -1,9 +1,6 @@
 #include "DataItem.h"
-#include "DataItem.h"
 
 #include <ranges>
-
-#include <QCoreApplication>
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -17,13 +14,13 @@ constexpr BookItem::Mapping FULL { BookItem::ALL };
 
 }
 
-DataItem::DataItem(const size_t columnCount, const IDataItem * parent)
+DataItem::DataItem(const size_t columnCount, IDataItem * parent)
 	: m_parent(parent)
 	, m_data(columnCount)
 {
 }
 
-const IDataItem * DataItem::GetParent() const noexcept
+IDataItem * DataItem::GetParent() noexcept
 {
 	return m_parent;
 }
@@ -138,12 +135,12 @@ DataItem * DataItem::ToDataItem() noexcept
 	return this;
 }
 
-NavigationItem::NavigationItem(const IDataItem * parent)
+NavigationItem::NavigationItem(IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> NavigationItem::Create(const IDataItem * parent)
+std::shared_ptr<IDataItem> NavigationItem::Create(IDataItem * parent)
 {
 	return std::make_shared<NavigationItem>(parent);
 }
@@ -158,12 +155,12 @@ ItemType NavigationItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-AuthorItem::AuthorItem(const IDataItem * parent)
+AuthorItem::AuthorItem(IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> AuthorItem::Create(const IDataItem * parent)
+std::shared_ptr<IDataItem> AuthorItem::Create(IDataItem * parent)
 {
 	return std::make_shared<AuthorItem>(parent);
 }
@@ -175,9 +172,9 @@ AuthorItem * AuthorItem::ToAuthorItem() noexcept
 
 void AuthorItem::Reduce()
 {
-	QString last = GetRawData(AuthorItem::Column::LastName);
-	QString first = GetRawData(AuthorItem::Column::FirstName);
-	QString middle = GetRawData(AuthorItem::Column::MiddleName);
+	QString last = GetRawData(Column::LastName);
+	QString first = GetRawData(Column::FirstName);
+	QString middle = GetRawData(Column::MiddleName);
 
 	for (int i = 0; i < 2; ++i)
 	{
@@ -215,12 +212,12 @@ ItemType AuthorItem::GetType() const noexcept
 
 const BookItem::Mapping * BookItem::mapping = &FULL;
 
-BookItem::BookItem(const IDataItem * parent)
+BookItem::BookItem(IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> BookItem::Create(const IDataItem * parent)
+std::shared_ptr<IDataItem> BookItem::Create(IDataItem * parent)
 {
 	return std::make_shared<BookItem>(parent);
 }
@@ -265,12 +262,12 @@ ItemType BookItem::GetType() const noexcept
 	return ItemType::Books;
 }
 
-std::shared_ptr<IDataItem> MenuItem::Create(const IDataItem * parent)
+std::shared_ptr<IDataItem> MenuItem::Create(IDataItem * parent)
 {
 	return std::make_shared<MenuItem>(parent);
 }
 
-MenuItem::MenuItem(const IDataItem * parent)
+MenuItem::MenuItem(IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {
 }

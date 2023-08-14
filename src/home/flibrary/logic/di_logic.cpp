@@ -51,7 +51,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{
 		return std::make_shared<ModelProvider>(*container);
-	}).as<AbstractModelProvider>().singleInstance();
+	}).as<IModelProvider>().singleInstance();
 
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext & ctx)
 	{

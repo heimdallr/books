@@ -13,7 +13,7 @@ class BaseModel : public QAbstractItemModel
 	NON_COPY_MOVABLE(BaseModel)
 
 protected:
-	explicit BaseModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent);
+	explicit BaseModel(const std::shared_ptr<class IModelProvider> & modelProvider, QObject * parent);
 	~BaseModel() override;
 
 protected: // QAbstractItemModel

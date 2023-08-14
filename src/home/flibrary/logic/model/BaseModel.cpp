@@ -2,13 +2,11 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IDataItem.h"
-
-#include "data/AbstractModelProvider.h"
+#include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
-BaseModel::BaseModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+BaseModel::BaseModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: QAbstractItemModel(parent)
 	, m_data(modelProvider->GetData())
 {

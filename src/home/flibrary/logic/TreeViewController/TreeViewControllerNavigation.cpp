@@ -30,7 +30,7 @@ namespace {
 
 constexpr auto CONTEXT = "Navigation";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (AbstractModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 using MenuRequester = IDataItem::Ptr(*)();
 
 IDataItem::Ptr MenuRequesterStub()
@@ -93,11 +93,11 @@ struct ModeDescriptor
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 {
-	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Authors } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Series } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &AbstractModelProvider::CreateTreeModel, NavigationMode::Genres } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &AbstractModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -246,7 +246,7 @@ private: // ITableSubscriptionHandler
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<AbstractModelProvider> modelProvider
+	, std::shared_ptr<IModelProvider> modelProvider
 	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<DatabaseController> databaseController

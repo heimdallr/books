@@ -94,11 +94,7 @@ bool ItemViewToolTipper::eventFilter(QObject * obj, QEvent * event)
 	if (view->model()->flags(index) & Qt::ItemIsUserCheckable)
 		rectWidth -= rect.height();
 
-	static constexpr auto richTextTemplate =
-		R"(<html><body style=" white-space: pre-wrap; font-weight:400; font-style:normal; text-decoration:none;">)"
-		R"(<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; )"
-		R"(font-family:%1; font-size:%2pt;">%3)"
-		R"(</p></body></html>)";
+	static constexpr auto richTextTemplate = R"(<p style=" font-family:%1; font-size:%2pt; ">%3</p>)";
 
 	itemTextWidth > rectWidth
 		? QToolTip::showText(helpEvent->globalPos(), QString(richTextTemplate).arg(m_impl->fontFamily).arg(m_impl->fontSize * 11 / 10).arg(itemTooltip), view)

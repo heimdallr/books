@@ -24,6 +24,8 @@ public:
 		[[nodiscard]] virtual const IDataItem & GetGroups() const noexcept = 0;
 
 		[[nodiscard]] virtual const QString & GetAnnotation() const noexcept = 0;
+		[[nodiscard]] virtual const QString & GetEpigraph() const noexcept = 0;
+		[[nodiscard]] virtual const QString & GetEpigraphAuthor() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QByteArray> & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;

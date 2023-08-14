@@ -3,7 +3,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "AbstractModelProvider.h"
+#include "interface/logic/IModelProvider.h"
 
 class QAbstractItemModel;
 
@@ -13,7 +13,7 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class ModelProvider final : virtual public AbstractModelProvider
+class ModelProvider final : virtual public IModelProvider
 {
 	NON_COPY_MOVABLE(ModelProvider)
 

@@ -18,7 +18,7 @@ class SortFilterProxyModel final : public AbstractSortFilterProxyModel
 	NON_COPY_MOVABLE(SortFilterProxyModel)
 
 public:
-	explicit SortFilterProxyModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider
+	explicit SortFilterProxyModel(const std::shared_ptr<class IModelProvider> & modelProvider
 		, QObject * parent = nullptr);
 	~SortFilterProxyModel() override;
 

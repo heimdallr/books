@@ -3,6 +3,7 @@
 #include <vector>
 #include <QString>
 
+#include "data/DataItem.h"
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
@@ -18,10 +19,12 @@ public:
 	struct Data
 	{
 		QString annotation;
+		QString epigraph;
+		QString epigraphAuthor;
 		std::vector<QString> keywords;
 		std::vector<QByteArray> covers;
 		int coverIndex { -1 };
-		IDataItem::Ptr content;
+		IDataItem::Ptr content { NavigationItem::Create() };
 	};
 
 public:

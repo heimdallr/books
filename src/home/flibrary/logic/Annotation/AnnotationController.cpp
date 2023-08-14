@@ -94,6 +94,16 @@ private: // IDataProvider
 		return m_archiveData.annotation;
 	}
 
+	[[nodiscard]] const QString & GetEpigraph() const noexcept override
+	{
+		return m_archiveData.epigraph;
+	}
+
+	[[nodiscard]] const QString & GetEpigraphAuthor() const noexcept override
+	{
+		return m_archiveData.epigraphAuthor;
+	}
+
 	[[nodiscard]] const std::vector<QString> & GetKeywords() const noexcept override
 	{
 		return m_archiveData.keywords;

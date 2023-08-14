@@ -6,10 +6,10 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class AbstractModelProvider  // NOLINT(cppcoreguidelines-special-member-functions)
+class IModelProvider  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~AbstractModelProvider() = default;
+	virtual ~IModelProvider() = default;
 
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, class IModelObserver & observer) const = 0;

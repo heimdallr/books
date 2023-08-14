@@ -2,16 +2,16 @@
 
 #include <plog/Log.h>
 
-#include "data/AbstractModelProvider.h"
+#include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
-AbstractListModel::AbstractListModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+AbstractListModel::AbstractListModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: BaseModel(modelProvider, parent)
 {
 }
 
-ListModel::ListModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent)
+ListModel::ListModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: AbstractListModel(modelProvider, parent)
 {
 	PLOGD << "ListModel created";

@@ -22,7 +22,7 @@ namespace {
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel>(AbstractModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel>(IModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 
 struct ModeDescriptor
 {
@@ -32,8 +32,8 @@ struct ModeDescriptor
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_NAMES[]
 {
-	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &AbstractModelProvider::CreateListModel} },
-	{ QT_TRANSLATE_NOOP("Books", "Tree"), { ViewMode::Tree, &AbstractModelProvider::CreateTreeModel} },
+	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &IModelProvider::CreateListModel} },
+	{ QT_TRANSLATE_NOOP("Books", "Tree"), { ViewMode::Tree, &IModelProvider::CreateTreeModel} },
 };
 
 static_assert(std::size(MODE_NAMES) == static_cast<size_t>(ViewMode::Last));
@@ -64,7 +64,7 @@ struct TreeViewControllerBooks::Impl final
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<AbstractModelProvider> modelProvider
+	, std::shared_ptr<IModelProvider> modelProvider
 	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IAnnotationController> annotationController
 )

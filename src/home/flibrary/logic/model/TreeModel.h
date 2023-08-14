@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary {
 class AbstractTreeModel : public BaseModel
 {
 protected:
-	explicit AbstractTreeModel(const std::shared_ptr<class AbstractModelProvider> & modelProvider, QObject * parent);
+	explicit AbstractTreeModel(const std::shared_ptr<class IModelProvider> & modelProvider, QObject * parent);
 };
 
 class TreeModel final : public AbstractTreeModel
@@ -17,7 +17,7 @@ class TreeModel final : public AbstractTreeModel
 	NON_COPY_MOVABLE(TreeModel)
 
 public:
-	explicit TreeModel(const std::shared_ptr<AbstractModelProvider> & modelProvider, QObject * parent = nullptr);
+	explicit TreeModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent = nullptr);
 	~TreeModel() override;
 
 private: // QAbstractItemModel
