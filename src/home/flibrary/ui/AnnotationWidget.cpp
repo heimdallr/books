@@ -174,6 +174,12 @@ public:
 		m_annotationController->UnregisterObserver(this);
 	}
 
+	void ShowContent(const bool value)
+	{
+		m_showContent = value;
+		m_ui.contentWidget->setVisible(value && m_ui.content->model());
+	}
+
 	void OnResize() const
 	{
 		if (m_covers.empty())
@@ -239,7 +245,8 @@ private: // IAnnotationController::IObserver
 
 		if (dataProvider.GetContent()->GetChildCount() > 0)
 		{
-			m_ui.contentWidget->setVisible(true);
+			if (m_showContent)
+				m_ui.contentWidget->setVisible(true);
 			m_contentModel.reset(m_modelProvider->CreateTreeModel(dataProvider.GetContent(), *this));
 			m_ui.content->setModel(m_contentModel.get());
 		}
@@ -276,6 +283,7 @@ private:
 	std::vector<QByteArray> m_covers;
 	int m_coverIndex { -1 };
 	int m_currentCoverIndex { -1 };
+	bool m_showContent { true };
 };
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
@@ -297,6 +305,11 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 AnnotationWidget::~AnnotationWidget()
 {
 	PLOGD << "AnnotationWidget destroyed";
+}
+
+void AnnotationWidget::ShowContent(const bool value)
+{
+	m_impl->ShowContent(value);
 }
 
 void AnnotationWidget::resizeEvent(QResizeEvent *)

@@ -24,6 +24,9 @@ public:
 	);
 	~AnnotationWidget() override;
 
+public:
+	void ShowContent(bool value);
+
 private:
 	void resizeEvent(QResizeEvent* event) override;
 

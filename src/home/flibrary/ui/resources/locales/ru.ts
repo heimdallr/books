@@ -356,6 +356,31 @@ Restart now?</source>
         <source>&amp;Restore default values</source>
         <translation>&amp;Восстановить исходные значения</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Annotation</source>
+        <translation>&amp;Аннотация</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Hide</source>
+        <translation>Скр&amp;ыть</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show &amp;content</source>
+        <translation>Показывать &amp;содержание</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Hide &amp;content</source>
+        <translation>Скрывать &amp;содержание</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show &amp;annotation</source>
+        <translation>Показать &amp;аннотацию</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

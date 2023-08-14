@@ -263,8 +263,18 @@
      <addaction name="actionShowCollectionStatistics"/>
      <addaction name="menuLogVerbosityLevel"/>
     </widget>
+    <widget class="QMenu" name="menuAnnotation">
+     <property name="title">
+      <string>&amp;Annotation</string>
+     </property>
+     <addaction name="actionHideAnnotation"/>
+     <addaction name="actionShowAnnotationContent"/>
+     <addaction name="actionHideAnnotationContent"/>
+    </widget>
     <addaction name="actionShowRemoved"/>
     <addaction name="actionHideRemoved"/>
+    <addaction name="menuAnnotation"/>
+    <addaction name="actionShowAnnotation"/>
     <addaction name="menuLog"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
@@ -388,13 +398,16 @@
    <property name="text">
     <string>&amp;Hide removed books</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionShowLog">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>&amp;Show log</string>
@@ -443,6 +456,9 @@
    <property name="text">
     <string>E&amp;xport</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -462,6 +478,9 @@
    <property name="text">
     <string>&amp;Show removed books</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -469,6 +488,53 @@
   <action name="actionRestoreDefaultSettings">
    <property name="text">
     <string>&amp;Restore default values</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionHideAnnotation">
+   <property name="text">
+    <string>&amp;Hide</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAnnotation">
+   <property name="text">
+    <string>Show &amp;annotation</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAnnotationContent">
+   <property name="text">
+    <string>Show &amp;content</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionHideAnnotationContent">
+   <property name="text">
+    <string>Hide &amp;content</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
