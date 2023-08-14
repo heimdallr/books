@@ -33,6 +33,19 @@ IDataItem::Ptr & DataItem::AppendChild(Ptr child)
 	return m_children.emplace_back(std::move(child));
 }
 
+void DataItem::RemoveChild(size_t row)
+{
+	assert(!m_children.empty());
+	if (row == INVALID_INDEX)
+		row = GetChildCount() - 1;
+
+	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)));
+	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [] (auto & item)
+	{
+		--item->template To<DataItem>()->m_row;
+	});
+}
+
 void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 {
 	m_children = std::move(children);

@@ -31,6 +31,7 @@ public:
 	virtual ~IDataItem() = default;
 	using Ptr = std::shared_ptr<IDataItem>;
 	using Items = std::vector<Ptr>;
+	static constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 protected:
 	IDataItem() = default;
@@ -39,6 +40,7 @@ public:
 	[[nodiscard]] virtual IDataItem * GetParent() noexcept = 0;
 	[[nodiscard]] virtual const IDataItem * GetParent() const noexcept { return const_cast<IDataItem *>(this)->GetParent(); }
 	virtual Ptr & AppendChild(Ptr child) = 0;
+	virtual void RemoveChild(size_t row = INVALID_INDEX) = 0;
 	virtual void SetChildren(Items children) noexcept = 0;
 	[[nodiscard]] virtual Ptr GetChild(size_t row) const noexcept = 0;
 	[[nodiscard]] virtual size_t GetChildCount() const noexcept = 0;

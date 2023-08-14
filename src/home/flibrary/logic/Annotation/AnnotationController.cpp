@@ -1,7 +1,5 @@
 #include "AnnotationController.h"
 
-#include <plog/Log.h>
-
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
@@ -12,6 +10,8 @@
 #include "shared/DatabaseUser.h"
 
 #include "util/UiTimer.h"
+
+#include <plog/Log.h>
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -119,9 +119,9 @@ private: // IDataProvider
 		return m_archiveData.coverIndex;
 	}
 
-	[[nodiscard]] const IDataItem & GetContent() const noexcept override
+	[[nodiscard]] IDataItem::Ptr GetContent() const noexcept override
 	{
-		return *m_archiveData.content;
+		return m_archiveData.content;
 	}
 
 private:

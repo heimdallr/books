@@ -11,7 +11,9 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IModelProvider.h"
 #include "logic/data/DataItem.h"
+#include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 
 #include "util/ISettings.h"
@@ -107,6 +109,7 @@ struct Table
 
 class AnnotationWidget::Impl final
 	: IAnnotationController::IObserver
+	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -114,11 +117,13 @@ public:
 	Impl(AnnotationWidget & self
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IAnnotationController> annotationController
+		, std::shared_ptr<IModelProvider> modelProvider
 		, const std::shared_ptr<ILogicFactory> & logicFactory
 	)
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_annotationController(std::move(annotationController))
+		, m_modelProvider(std::move(modelProvider))
 		, m_navigationController(std::shared_ptr<ITreeViewController>(logicFactory->GetTreeViewController(ItemType::Navigation)))
 	{
 		m_ui.setupUi(&m_self);
@@ -128,6 +133,8 @@ public:
 			m_ui.splitter->restoreState(value.toByteArray());
 
 		m_ui.scrollArea->viewport()->setStyleSheet("QWidget { background-color: white }");
+
+		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
 
 		m_annotationController->RegisterObserver(this);
 
@@ -183,6 +190,8 @@ public:
 private: // IAnnotationController::IObserver
 	void OnAnnotationRequested() override
 	{
+		m_ui.contentWidget->setVisible(false);
+		m_ui.content->setModel(nullptr);
 		m_ui.cover->setVisible(false);
 		m_ui.cover->setPixmap({});
 		m_ui.cover->setCursor(Qt::ArrowCursor);
@@ -228,6 +237,13 @@ private: // IAnnotationController::IObserver
 		if (m_covers.size() > 1)
 			m_ui.cover->setCursor(Qt::PointingHandCursor);
 
+		if (dataProvider.GetContent()->GetChildCount() > 0)
+		{
+			m_ui.contentWidget->setVisible(true);
+			m_contentModel.reset(m_modelProvider->CreateTreeModel(dataProvider.GetContent(), *this));
+			m_ui.content->setModel(m_contentModel.get());
+		}
+
 		OnResize();
 	}
 
@@ -253,7 +269,9 @@ private:
 	AnnotationWidget & m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
+	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
 	std::vector<QByteArray> m_covers;
 	int m_coverIndex { -1 };
@@ -262,11 +280,16 @@ private:
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IAnnotationController> annotationController
+	, std::shared_ptr<IModelProvider> modelProvider
 	, const std::shared_ptr<ILogicFactory> & logicFactory
 	, QWidget * parent
 )
 	: QWidget(parent)
-	, m_impl(*this, std::move(settings), std::move(annotationController), logicFactory)
+	, m_impl(*this
+		, std::move(settings)
+		, std::move(annotationController)
+		, std::move(modelProvider)
+		, logicFactory)
 {
 	PLOGD << "AnnotationWidget created";
 }

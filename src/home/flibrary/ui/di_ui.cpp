@@ -8,6 +8,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IModelProvider.h"
 
 #include "util/Settings.h"
 #include "dialogs/AddCollectionDialog.h"

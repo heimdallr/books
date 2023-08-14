@@ -5,6 +5,7 @@
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
+#include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
@@ -12,6 +13,10 @@
 using namespace HomeCompa::Flibrary;
 
 namespace {
+
+constexpr auto CONTEXT = "Annotation";
+constexpr auto CONTENT = QT_TRANSLATE_NOOP("Annotation", "Content");
+TR_DEF
 
 constexpr auto ID = "id";
 constexpr auto L_HREF = "l:href";
@@ -26,6 +31,7 @@ constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/i
 constexpr auto SECTION = "section";
 constexpr auto SECTION_TITLE = "section/title";
 constexpr auto SECTION_TITLE_P = "section/title/p";
+constexpr auto SECTION_TITLE_P_STRONG = "section/title/p/strong";
 constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
 constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
 constexpr auto EPIGRAPH_AUTHOR = "FictionBook/body/epigraph/text-author";
@@ -88,6 +94,7 @@ public:
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
 	{
+		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 	}
 
 	ArchiveParser::Data Parse()
@@ -114,6 +121,7 @@ public:
 
 private:
 	template<typename... ARGS>
+	// ReSharper disable once CppMemberFunctionMayBeStatic
 	void Stub(ARGS &&...)
 	{
 	}
@@ -166,6 +174,7 @@ private:
 			{ BINARY, &XmlParser::ParseBinary },
 			{ SECTION_TITLE, &XmlParser::ParseSectionTitle },
 			{ SECTION_TITLE_P, &XmlParser::ParseSectionTitle },
+			{ SECTION_TITLE_P_STRONG, &XmlParser::ParseSectionTitle },
 			{ EPIGRAPH, &XmlParser::ParseEpigraph },
 			{ EPIGRAPH_P, &XmlParser::ParseEpigraph },
 			{ EPIGRAPH_AUTHOR, &XmlParser::ParseEpigraphAuthor },
@@ -194,7 +203,10 @@ private:
 
 	void OnEndElementSection()
 	{
+		const auto remove = m_currentContentItem->GetData(NavigationItem::Column::Title).isEmpty();
 		m_currentContentItem = m_currentContentItem->GetParent();
+		if (remove)
+			m_currentContentItem->RemoveChild();
 	}
 
 	void ParseAnnotation(QString && value)
@@ -217,9 +229,14 @@ private:
 		m_data.covers.push_back(QByteArray::fromBase64(value.toUtf8()));
 	}
 
+	// ReSharper disable once CppMemberFunctionMayBeConst
 	void ParseSectionTitle(QString && value)
 	{
-		m_currentContentItem->SetData(std::move(value), NavigationItem::Column::Title);
+		if (std::ranges::all_of(value, [] (auto c) { return c.isDigit(); }))
+			return;
+
+		auto currentValue = m_currentContentItem->GetData(NavigationItem::Column::Title);
+		m_currentContentItem->SetData(currentValue.append(value), NavigationItem::Column::Title);
 	}
 
 	void ParseEpigraph(QString && value)

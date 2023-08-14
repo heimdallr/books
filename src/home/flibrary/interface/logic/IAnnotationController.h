@@ -2,11 +2,12 @@
 
 #include "fnd/observer.h"
 
+#include "interface/logic/IDataItem.h"
+
 class QByteArray;
 class QString;
 
 namespace HomeCompa::Flibrary {
-class IDataItem;
 
 class IAnnotationController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -29,7 +30,7 @@ public:
 		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QByteArray> & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
-		[[nodiscard]] virtual const IDataItem & GetContent() const noexcept = 0;
+		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 
 	};
 

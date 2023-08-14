@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>Annotation</name>
+    <message>
+        <location filename="../../Annotation/ArchiveParser.cpp" line="18"/>
+        <source>Content</source>
+        <translation>Содержание</translation>
+    </message>
+</context>
+<context>
     <name>BookContextMenu</name>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>

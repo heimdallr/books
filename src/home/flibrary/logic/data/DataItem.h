@@ -26,6 +26,7 @@ protected:
 protected: // IDataItem
 	[[nodiscard]] IDataItem * GetParent() noexcept override;
 	Ptr & AppendChild(Ptr child) override;
+	void RemoveChild(size_t row = INVALID_INDEX) override;
 	void SetChildren(Items children) noexcept override;
 	[[nodiscard]] Ptr GetChild(size_t row) const noexcept override;
 	[[nodiscard]] size_t GetChildCount() const noexcept override;

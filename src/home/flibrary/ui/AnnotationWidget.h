@@ -18,6 +18,7 @@ class AnnotationWidget final : public QWidget
 public:
 	AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IAnnotationController> annotationController
+		, std::shared_ptr<class IModelProvider> modelProvider
 		, const std::shared_ptr<class ILogicFactory> & logicFactory
 		, QWidget * parent = nullptr
 	);
