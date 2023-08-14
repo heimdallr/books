@@ -17,6 +17,7 @@
 #include "model/TreeModel.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
+#include "shared/ProgressController.h"
 #include "shared/TaskQueue.h"
 #include "userdata/UserDataController.h"
 #include "util/ISettings.h"
@@ -28,14 +29,15 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 {
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
-	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<DatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().singleInstance();
-	builder.registerType<ListModel>().as<AbstractListModel>();
-	builder.registerType<TreeModel>().as<AbstractTreeModel>();
-	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
+	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
+	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
+	builder.registerType<ProgressController>().as<IProgressController>().singleInstance();
+	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
+	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UserDataController>().as<IUserDataController>();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)

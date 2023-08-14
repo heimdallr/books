@@ -9,6 +9,7 @@
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
+#include "interface/logic/IProgressController.h"
 
 #include "util/Settings.h"
 #include "dialogs/AddCollectionDialog.h"
@@ -18,6 +19,7 @@
 #include "LocaleController.h"
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"
+#include "ProgressBar.h"
 #include "UiFactory.h"
 // ReSharper restore CppUnusedIncludeDirective
 

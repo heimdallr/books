@@ -322,7 +322,7 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="30"/>
+        <location filename="../../MainWindow.cpp" line="31"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
@@ -403,6 +403,14 @@ Restart now?</source>
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
         <translation>%1 б</translation>
+    </message>
+</context>
+<context>
+    <name>ProgressBar</name>
+    <message>
+        <location filename="../../ProgressBar.ui"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>

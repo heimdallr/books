@@ -295,7 +295,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="30"/>
+        <location filename="../../MainWindow.cpp" line="31"/>
         <source>Select font</source>
         <translation></translation>
     </message>
@@ -375,6 +375,14 @@ Restart now?</source>
     <message>
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ProgressBar</name>
+    <message>
+        <location filename="../../ProgressBar.ui"/>
+        <source>Cancel</source>
         <translation></translation>
     </message>
 </context>

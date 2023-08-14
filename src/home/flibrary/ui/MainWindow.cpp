@@ -16,6 +16,7 @@
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "ParentWidgetProvider.h"
+#include "ProgressBar.h"
 #include "util/ISettings.h"
 #include "util/serializer/QFont.h"
 #include "TreeView.h"
@@ -55,6 +56,7 @@ public:
 		, std::shared_ptr<AnnotationWidget> annotationWidget
 		, std::shared_ptr<LocaleController> localeController
 		, std::shared_ptr<ILogController> logController
+		, std::shared_ptr<ProgressBar> progressBar
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, m_self(self)
@@ -66,6 +68,7 @@ public:
 		, m_annotationWidget(std::move(annotationWidget))
 		, m_localeController(std::move(localeController))
 		, m_logController(std::move(logController))
+		, m_progressBar(std::move(progressBar))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
 	{
@@ -114,9 +117,10 @@ private:
 
 		m_parentWidgetProvider->SetWidget(&m_self);
 
+		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
-		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
+		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
 
 		m_localeController->Setup(*m_ui.menuLanguage);
 
@@ -308,6 +312,7 @@ private:
 	PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
 	PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
+	PropagateConstPtr<ProgressBar, std::shared_ptr> m_progressBar;
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -321,6 +326,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<AnnotationWidget> annotationWidget
 	, std::shared_ptr<LocaleController> localeController
 	, std::shared_ptr<ILogController> logController
+	, std::shared_ptr<ProgressBar> progressBar
 	, QWidget * parent
 )
 	: QMainWindow(parent)
@@ -333,6 +339,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(annotationWidget)
 		, std::move(localeController)
 		, std::move(logController)
+		, std::move(progressBar)
 	)
 {
 	PLOGD << "MainWindow created";
