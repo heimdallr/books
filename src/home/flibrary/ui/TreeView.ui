@@ -47,7 +47,14 @@
       <number>4</number>
      </property>
      <item>
-      <widget class="QComboBox" name="cbMode"/>
+      <widget class="QComboBox" name="cbMode">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLineEdit" name="value">
@@ -68,7 +75,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="cbValueMode"/>
+      <widget class="QComboBox" name="cbValueMode">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="lblCount">

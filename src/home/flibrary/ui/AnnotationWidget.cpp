@@ -210,9 +210,9 @@ private: // IAnnotationController::IObserver
 	{
 		QString annotation;
 		Add(annotation, dataProvider.GetBook().GetRawData(BookItem::Column::Title), TITLE_PATTERN);
-		Add(annotation, dataProvider.GetAnnotation());
 		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
+		Add(annotation, dataProvider.GetAnnotation());
 		Add(annotation, Join(dataProvider.GetKeywords()), KEYWORDS);
 
 		Add(annotation, Table()
