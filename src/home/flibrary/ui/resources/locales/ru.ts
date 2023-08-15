@@ -391,6 +391,16 @@ Restart now?</source>
         <source>Hide s&amp;tatus line</source>
         <translation>Скрыть строку с&amp;татуса</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show co&amp;ver</source>
+        <translation>Показывать &amp;обложку</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Hide co&amp;ver</source>
+        <translation>Скрывать &amp;обложку</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

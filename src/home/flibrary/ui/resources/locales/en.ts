@@ -364,6 +364,16 @@ Restart now?</source>
         <source>Hide s&amp;tatus line</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show co&amp;ver</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Hide co&amp;ver</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

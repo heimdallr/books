@@ -180,6 +180,12 @@ public:
 		m_ui.contentWidget->setVisible(value && m_ui.content->model());
 	}
 
+	void ShowCover(const bool value)
+	{
+		m_showCover = value;
+		m_ui.cover->setVisible(value);
+	}
+
 	void OnResize() const
 	{
 		if (m_covers.empty())
@@ -239,7 +245,9 @@ private: // IAnnotationController::IObserver
 			m_coverIndex = 0;
 		m_currentCoverIndex = m_coverIndex;
 
-		m_ui.cover->setVisible(true);
+		if (m_showCover)
+			m_ui.cover->setVisible(true);
+
 		if (m_covers.size() > 1)
 			m_ui.cover->setCursor(Qt::PointingHandCursor);
 
@@ -284,6 +292,7 @@ private:
 	int m_coverIndex { -1 };
 	int m_currentCoverIndex { -1 };
 	bool m_showContent { true };
+	bool m_showCover { true };
 };
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
@@ -310,6 +319,11 @@ AnnotationWidget::~AnnotationWidget()
 void AnnotationWidget::ShowContent(const bool value)
 {
 	m_impl->ShowContent(value);
+}
+
+void AnnotationWidget::ShowCover(const bool value)
+{
+	m_impl->ShowCover(value);
 }
 
 void AnnotationWidget::resizeEvent(QResizeEvent *)

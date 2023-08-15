@@ -26,6 +26,7 @@ public:
 
 public:
 	void ShowContent(bool value);
+	void ShowCover(bool value);
 
 private:
 	void resizeEvent(QResizeEvent* event) override;

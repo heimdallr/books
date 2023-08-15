@@ -268,6 +268,8 @@
       <string>&amp;Annotation</string>
      </property>
      <addaction name="actionHideAnnotation"/>
+     <addaction name="actionShowAnnotationCover"/>
+     <addaction name="actionHideAnnotationCover"/>
      <addaction name="actionShowAnnotationContent"/>
      <addaction name="actionHideAnnotationContent"/>
     </widget>
@@ -546,6 +548,9 @@
    <property name="text">
     <string>Show s&amp;tatus line</string>
    </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
    </property>
@@ -553,6 +558,25 @@
   <action name="actionHideStatusBar">
    <property name="text">
     <string>Hide s&amp;tatus line</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAnnotationCover">
+   <property name="text">
+    <string>Show co&amp;ver</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionHideAnnotationCover">
+   <property name="text">
+    <string>Hide co&amp;ver</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
