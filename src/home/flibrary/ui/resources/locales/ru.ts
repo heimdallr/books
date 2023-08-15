@@ -381,6 +381,16 @@ Restart now?</source>
         <source>Show &amp;annotation</source>
         <translation>Показать &amp;аннотацию</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show s&amp;tatus line</source>
+        <translation>Показать строку с&amp;татуса</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Hide s&amp;tatus line</source>
+        <translation>Скрыть строку с&amp;татуса</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

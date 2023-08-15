@@ -275,6 +275,8 @@
     <addaction name="actionHideRemoved"/>
     <addaction name="menuAnnotation"/>
     <addaction name="actionShowAnnotation"/>
+    <addaction name="actionShowStatusBar"/>
+    <addaction name="actionHideStatusBar"/>
     <addaction name="menuLog"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
@@ -535,6 +537,22 @@
    </property>
    <property name="shortcut">
     <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowStatusBar">
+   <property name="text">
+    <string>Show s&amp;tatus line</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionHideStatusBar">
+   <property name="text">
+    <string>Hide s&amp;tatus line</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
