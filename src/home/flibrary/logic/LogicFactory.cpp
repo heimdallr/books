@@ -12,6 +12,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IProgressController.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -21,6 +22,7 @@
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
 #include "shared/BooksContextMenuProvider.h"
+#include "shared/BooksExtractor.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/GroupController.h"
@@ -102,4 +104,9 @@ std::shared_ptr<ReaderController> LogicFactory::CreateReaderController() const
 std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() const
 {
 	return m_impl->container.resolve<IUserDataController>();
+}
+
+std::shared_ptr<BooksExtractor> LogicFactory::CreateBooksExtractor() const
+{
+	return m_impl->container.resolve<BooksExtractor>();
 }

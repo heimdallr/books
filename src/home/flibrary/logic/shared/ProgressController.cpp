@@ -30,8 +30,9 @@ public:
 	};
 
 public:
-	ProgressItem(IObserver & observer, const int64_t maximum)
-		: m_observer(observer)
+	ProgressItem(std::atomic_bool & stopped, IObserver & observer, const int64_t maximum)
+		: m_stopped(stopped)
+		, m_observer(observer)
 		, m_maximum(maximum)
 	{
 	}
@@ -49,7 +50,13 @@ private: // IProgressController::IProgressItem
 		m_observer.OnIncremented(value);
 	}
 
+	bool IsStopped() const noexcept override
+	{
+		return m_stopped;
+	}
+
 private:
+	std::atomic_bool & m_stopped;
 	IObserver & m_observer;
 	const int64_t m_maximum;
 	int64_t m_value { 0 };
@@ -61,20 +68,22 @@ struct ProgressController::Impl final
 	: Observable<IObserver>
 	, ProgressItem::IObserver
 {
+	std::atomic_bool stopped { false };
 	int64_t globalMaximum { 0 };
 	std::atomic_int64_t count { 0 };
 	std::atomic_int64_t globalValue { 0 };
 	Util::FunctorExecutionForwarder forwarder;
 
-	void Process()
-	{
-		Perform(&IProgressController::IObserver::OnValueChanged);
-	}
-
 	void OnIncremented(const int64_t value) override
 	{
+		if (stopped)
+			return;
+
 		globalValue += value;
-		forwarder.Forward([&] { m_timer->start(); });
+		forwarder.Forward([&]
+		{
+			Perform(&IProgressController::IObserver::OnValueChanged);
+		});
 	}
 
 	void OnDestroyed() override
@@ -89,8 +98,6 @@ struct ProgressController::Impl final
 			Perform(&IProgressController::IObserver::OnStartedChanged);
 		});
 	}
-
-	PropagateConstPtr<QTimer> m_timer { Util::CreateUiTimer([&]{Process(); })};
 };
 
 ProgressController::ProgressController()
@@ -120,13 +127,26 @@ void ProgressController::UnregisterObserver(IObserver * observer)
 
 std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(const int64_t value)
 {
+	const auto justStarted = m_impl->count == 0;
 	++m_impl->count;
 	m_impl->globalMaximum += value;
-	m_impl->Perform(&IObserver::OnStartedChanged);
-	return std::make_unique<ProgressItem>(*m_impl, value);
+	if (justStarted)
+	{
+		m_impl->stopped = false;
+		m_impl->forwarder.Forward([&]
+		{
+			m_impl->Perform(&IObserver::OnStartedChanged);
+		});
+	}
+	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);
 }
 
 double ProgressController::GetValue() const noexcept
 {
 	return static_cast<double>(m_impl->globalValue) / static_cast<double>(m_impl->globalMaximum);
+}
+
+void ProgressController::Stop()
+{
+	m_impl->stopped = true;
 }

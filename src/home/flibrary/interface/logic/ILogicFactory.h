@@ -31,6 +31,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ReaderController> CreateReaderController() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUserDataController> CreateUserDataController() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;
 };
 
 }

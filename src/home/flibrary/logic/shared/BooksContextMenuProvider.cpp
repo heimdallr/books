@@ -12,10 +12,13 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 
+#include "interface/ui/IUiFactory.h"
+
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "shared/ReaderController.h"
 
+#include "BooksExtractor.h"
 #include "DatabaseUser.h"
 #include "GroupController.h"
 
@@ -36,6 +39,8 @@ constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "Undo boo
 constexpr auto SEND_TO = QT_TRANSLATE_NOOP("BookContextMenu", "Send to device");
 constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "In zip archive");
 constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "In original format");
+constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
 
@@ -80,8 +85,6 @@ constexpr std::pair<MenuAction, IContextMenuHandler::Function> MENU_HANDLERS[]
 		MENU_ACTION_ITEMS_X_MACRO
 #undef	MENU_ACTION_ITEM
 };
-
-TR_DEF
 
 IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const MenuAction id = MenuAction::None)
 {
@@ -133,11 +136,13 @@ class BooksContextMenuProvider::Impl final
 public:
 	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
 		, std::shared_ptr<ILogicFactory> logicFactory
+		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<DataProvider> dataProvider
 	)
 		: m_databaseUser(std::move(databaseUser))
 		, m_logicFactory(std::move(logicFactory))
+		, m_uiFactory(std::move(uiFactory))
 		, m_groupController(std::move(groupController))
 		, m_dataProvider(std::move(dataProvider))
 	{
@@ -220,21 +225,43 @@ private: // IContextMenuHandler
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
 	}
 
-	void SendAsArchive(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	void SendAsArchive(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		callback(item);
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
 	}
 
-	void SendAsIs(QAbstractItemModel * /*model*/, const QModelIndex & /*index*/, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
-	{	
-		callback(item);
+	void SendAsIs(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
 private:
+	void Send(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
+	{
+		auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
+		if (dir.isEmpty())
+			return callback(item);
+
+		std::shared_ptr executor = m_logicFactory->GetExecutor();
+		BooksExtractor::Books books;
+		std::ranges::transform(GetSelected(model, index, indexList, { Role::Folder, Role::FileName, Role::Size }), std::back_inserter(books), [] (auto && item)
+		{
+			assert(item.size() == 3);
+			return BooksExtractor::Book { std::move(item[0]), std::move(item[1]), item[2].toLongLong() };
+		});
+
+		auto extractor = m_logicFactory->CreateBooksExtractor();
+		((*extractor).*f)(dir, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] () mutable
+		{
+			callback(item);
+			extractor.reset();
+		});
+	}
+
 	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction & f) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
-		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)] () mutable
+		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)]
 		{
 			callback(item);
 		});
@@ -242,14 +269,11 @@ private:
 
 	GroupController::Ids GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList) const
 	{
-		QModelIndexList selected;
-		model->setData({}, QVariant::fromValue(SelectedRequest { index, indexList, &selected }), Role::Selected);
+		auto selected = GetSelected(model, index, indexList, { Role::Id });
 
 		GroupController::Ids ids;
-		std::ranges::transform(selected, std::inserter(ids, ids.end()), [] (const auto & selectedIndex)
-		{
-			return selectedIndex.data(Role::Id).toLongLong();
-		});
+		ids.reserve(selected.size());
+		std::ranges::transform(selected, std::inserter(ids, ids.end()), [] (const auto & item) { return item.front().toLongLong(); });
 		return ids;
 	}
 
@@ -276,20 +300,40 @@ private:
 		} });
 	}
 
+	std::vector<std::vector<QString>> GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles) const
+	{
+		QModelIndexList selected;
+		model->setData({}, QVariant::fromValue(SelectedRequest { index, indexList, &selected }), Role::Selected);
+
+		std::vector<std::vector<QString>> result;
+		result.reserve(selected.size());
+		std::ranges::transform(selected, std::back_inserter(result), [&] (const auto & selectedIndex)
+		{
+			std::vector<QString> resultItem;
+			std::ranges::transform(roles, std::back_inserter(resultItem), [&] (const int role) { return selectedIndex.data(role).toString(); });
+			return resultItem;
+		});
+
+		return result;
+	}
+
 private:
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
+	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
 };
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
 	, std::shared_ptr<ILogicFactory> logicFactory
+	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
 )
 	: m_impl(std::move(databaseUser)
 		, std::move(logicFactory)
+		, std::move(uiFactory)
 		, std::move(groupController)
 		, std::move(dataProvider)
 	)

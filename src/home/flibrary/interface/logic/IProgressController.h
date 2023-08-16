@@ -19,6 +19,7 @@ public:
 	public:
 		virtual ~IProgressItem() = default;
 		virtual void Increment(int64_t value) = 0;
+		virtual bool IsStopped() const noexcept = 0;
 	};
 
 public:
@@ -27,6 +28,7 @@ public:
 	virtual bool IsStarted() const noexcept = 0;
 	virtual std::unique_ptr<IProgressItem> Add(int64_t value) = 0;
 	virtual double GetValue() const noexcept = 0;
+	virtual void Stop() = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;
