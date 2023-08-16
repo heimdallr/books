@@ -170,7 +170,7 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 
 }
 
-class BooksExtractor::Impl
+class BooksExtractor::Impl final
 	: virtual IPathChecker
 {
 public:
@@ -212,7 +212,7 @@ private:
 		const auto ext = path.extension().wstring();
 		for(int i = 1; ; ++i)
 		{
-			path = folder / (basePath + std::to_wstring(i) + ext);
+			path = folder / (basePath + std::to_wstring(i).append(ext));
 			if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
 				return;
 		}

@@ -12,59 +12,64 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="28"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="31"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="29"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="32"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="30"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
         <source>New group...</source>
         <translation>Новая группа...</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="31"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
         <source>Add to</source>
         <translation>Добавить в</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="32"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>In zip archive</source>
         <translation>Архивировать в zip</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <source>Select destination folder</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
