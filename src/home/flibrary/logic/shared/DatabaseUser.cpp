@@ -45,8 +45,8 @@ struct DatabaseUser::Impl
 
 	static std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory)
 	{
-		return logicFactory.GetExecutor({
-			  [] { }
+		return logicFactory.GetExecutor({1
+			, [] { }
 			, [] { QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
 			, [] { QGuiApplication::restoreOverrideCursor(); }
 			, [] { }

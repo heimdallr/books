@@ -242,7 +242,6 @@ private:
 		if (dir.isEmpty())
 			return callback(item);
 
-		std::shared_ptr executor = m_logicFactory->GetExecutor();
 		BooksExtractor::Books books;
 		std::ranges::transform(GetSelected(model, index, indexList, { Role::Folder, Role::FileName, Role::Size }), std::back_inserter(books), [] (auto && item)
 		{

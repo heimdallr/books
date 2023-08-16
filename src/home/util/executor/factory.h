@@ -21,6 +21,7 @@ enum class ExecutorImpl
 
 struct ExecutorInitializer
 {
+	int maxThreadCount = 1;
 	std::function<void()> onCreate { [] {} };
 	std::function<void()> beforeExecute { [] {} };
 	std::function<void()> afterExecute { [] {} };
