@@ -18,6 +18,10 @@ public:
 		QString folder;
 		QString file;
 		int64_t size;
+		QString author;
+		QString series;
+		int seqNumber;
+		QString title;
 	};
 	using Books = std::vector<Book>;
 	using Callback = std::function<void()>;

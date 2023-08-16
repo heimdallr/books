@@ -140,6 +140,14 @@ QString Join(const std::unordered_map<T, IDataItem::Ptr> & dictionary
 	return result;
 }
 
+QString GetAuthorFull(const IDataItem & author)
+{
+	auto result = author.GetData(AuthorItem::Column::LastName);
+	AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
+	AppendTitle(result, author.GetData(AuthorItem::Column::MiddleName));
+	return result;
+}
+
 }
 
 class BooksTreeGenerator::Impl
@@ -182,6 +190,13 @@ public:
 		{
 			return QStringWrapper { lhs->GetId() } < QStringWrapper { rhs->GetId() };
 		};
+
+		for (auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
+		{
+			const auto & author = m_authors.find(*authorIds.begin())->second;
+			auto authorStr = GetAuthorFull(*author);
+			book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
+		}
 
 		for (const auto& author : m_authors | std::views::values)
 			author->Reduce();
@@ -311,9 +326,7 @@ private:
 		QString authorsStr;
 		for (const auto & author : authors)
 		{
-			QString authorStr = author->GetData(AuthorItem::Column::LastName);
-			AppendTitle(authorStr, author->GetData(AuthorItem::Column::FirstName));
-			AppendTitle(authorStr, author->GetData(AuthorItem::Column::MiddleName));
+			const auto authorStr = GetAuthorFull(*author);
 			AppendTitle(authorsStr, authorStr, ", ");
 		}
 

@@ -1,7 +1,7 @@
 #include "FilteredProxyModel.h"
 
 #include <set>
-#include <stack>
+#include <queue>
 
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/Enums.h"
@@ -13,19 +13,21 @@ namespace {
 
 void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & indexList, const std::function<void(const QModelIndex&)> & f)
 {
-	std::vector<QModelIndex> stack;
-	std::ranges::copy_if(indexList, std::back_inserter(stack), [] (const QModelIndex & index) { return !index.isValid() || index.column() == 0; });
+	std::queue<QModelIndex> queue;
+	for (const auto & index : indexList)
+		if (!index.isValid() || index.column() == 0)
+			queue.push(index);
 
-	while (!stack.empty())
+	while (!queue.empty())
 	{
-		const auto parent = stack.back();
-		stack.pop_back();
+		const auto parent = queue.front();
+		queue.pop();
 		const auto rowCount = model.rowCount(parent);
 		if (rowCount == 0)
 			f(parent);
 
 		for (int i = 0; i < rowCount; ++i)
-			stack.push_back(model.index(i, 0, parent));
+			queue.push(model.index(i, 0, parent));
 	}
 }
 

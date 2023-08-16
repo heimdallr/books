@@ -238,15 +238,17 @@ private: // IContextMenuHandler
 private:
 	void Send(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
 	{
-		auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
+		const auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
 		if (dir.isEmpty())
 			return callback(item);
 
 		BooksExtractor::Books books;
-		std::ranges::transform(GetSelected(model, index, indexList, { Role::Folder, Role::FileName, Role::Size }), std::back_inserter(books), [] (auto && item)
+		const std::vector<int> roles { Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
+		const auto selected = GetSelected(model, index, indexList, roles);
+		std::ranges::transform(selected, std::back_inserter(books), [&] (auto && book)
 		{
-			assert(item.size() == 3);
-			return BooksExtractor::Book { std::move(item[0]), std::move(item[1]), item[2].toLongLong() };
+			assert(book.size() == roles.size());
+			return BooksExtractor::Book { std::move(book[0]), std::move(book[1]), book[2].toLongLong(), std::move(book[3]), std::move(book[4]), book[5].toInt(), std::move(book[6])};
 		});
 
 		auto extractor = m_logicFactory->CreateBooksExtractor();

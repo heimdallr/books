@@ -103,7 +103,8 @@ BOOKS_COLUMN_ITEM(Folder)          \
 BOOKS_COLUMN_ITEM(FileName)        \
 BOOKS_COLUMN_ITEM(LibRate)         \
 BOOKS_COLUMN_ITEM(UpdateDate)      \
-BOOKS_COLUMN_ITEM(Lang)
+BOOKS_COLUMN_ITEM(Lang)            \
+BOOKS_COLUMN_ITEM(AuthorFull)
 
 public:
 	struct Column
