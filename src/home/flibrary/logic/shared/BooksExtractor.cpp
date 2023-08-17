@@ -100,7 +100,7 @@ bool Write(QIODevice & input, const std::filesystem::path & path, IProgressContr
 bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, IProgressController::IProgressItem & progress)
 {
 	QuaZip zip(QString::fromStdWString(path));
-	//	zip.setFileNameCodec("IBM 866");
+	zip.setUtf8Enabled(true);
 	if (!zip.open(QuaZip::mdCreate))
 		throw std::runtime_error("Cannot create " + path.string());
 
@@ -113,18 +113,20 @@ bool Archive(QIODevice & input, const std::filesystem::path & path, const QStrin
 
 QString RemoveIllegalCharacters(QString str)
 {
-	if (str.remove(QRegularExpression(R"([/\\<>:"\|\?\*\.])")).isEmpty())
+	str.remove(QRegularExpression(R"([/\\<>:"\|\?\*\t])"));
+
+	while (!str.isEmpty() && str.endsWith('.'))
+		str.chop(1);
+
+	if (str.isEmpty())
 		str = "_";
 
 	return str;
 }
 
-//std::mutex guard;
-
 std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path dstPath, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool archive)
 {
-	std::pair result { false, std::filesystem::path{} };
-
+	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(dstPath) || create_directory(dstPath)))
 		return result;
 
@@ -142,16 +144,17 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem:
 	const auto ext = std::filesystem::path(book.file.toStdWString()).extension();
 	const auto fileName = (book.seqNumber > 0 ? QString::number(book.seqNumber) + "-" : "") + book.title;
 
-	result.second = (dstPath / (RemoveIllegalCharacters(fileName) + QString::fromStdWString(ext)).toStdWString()).make_preferred();
+	result.second = (dstPath / (RemoveIllegalCharacters(fileName).toStdWString() + ext.wstring())).make_preferred();
 	if (archive)
-		result.second.replace_extension("zip");
+		result.second.replace_extension(".zip");
 
 	pathChecker.Check(result.second);
 
-	if (exists(result.second) && !remove(result.second))
-		return result;
+	if (exists(result.second))
+		if(!remove(result.second))
+			return result;
 
-	result.first = archive ? Archive(input, result.second, fileName, progress) : Write(input, result.second, progress);
+	result.first = archive ? Archive(input, result.second, fileName + QString::fromStdWString(ext), progress) : Write(input, result.second, progress);
 
 	return result;
 }
@@ -213,6 +216,7 @@ private:
 		for(int i = 1; ; ++i)
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
+			path.make_preferred();
 			if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
 				return;
 		}
