@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <QRegularExpression>
+#include <QTimer>
 #include <quazip>
 
 #include "Util/IExecutor.h"
@@ -175,7 +176,10 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 
 class BooksExtractor::Impl final
 	: virtual IPathChecker
+	, IProgressController::IObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
@@ -185,6 +189,12 @@ public:
 		, m_progressController(std::move(progressController))
 		, m_logicFactory(std::move(logicFactory))
 	{
+		m_progressController->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		m_progressController->UnregisterObserver(this);
 	}
 
 	void Extract(const QString & dstFolder, Books && books, Callback callback, const bool asArchives)
@@ -203,7 +213,7 @@ public:
 		});
 	}
 
-private:
+private: // IPathChecker
 	void Check(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
@@ -220,6 +230,25 @@ private:
 			if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
 				return;
 		}
+	}
+
+private: // IProgressController::IObserver
+	void OnStartedChanged() override
+	{
+	}
+
+	void OnValueChanged() override
+	{
+	}
+
+	void OnStop() override
+	{
+		m_executor->Stop();
+		m_executor.reset();
+		QTimer::singleShot(0, [&]
+		{
+			m_callback();
+		});
 	}
 
 private:
