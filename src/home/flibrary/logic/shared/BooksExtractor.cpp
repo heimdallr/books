@@ -122,7 +122,7 @@ QString RemoveIllegalCharacters(QString str)
 	if (str.isEmpty())
 		str = "_";
 
-	return str;
+	return str.simplified();
 }
 
 std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path dstPath, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool archive)
