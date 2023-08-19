@@ -50,6 +50,11 @@ private: // IProgressController::IObserver
 		m_ui.bar->setValue(uiValue);
 	}
 
+	void OnStop() override
+	{
+		PLOGD << "Cancel progress requested";
+	}
+
 private:
 	ProgressBar & m_self;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;

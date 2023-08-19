@@ -149,4 +149,5 @@ double ProgressController::GetValue() const noexcept
 void ProgressController::Stop()
 {
 	m_impl->stopped = true;
+	m_impl->Perform(&IObserver::OnStop);
 }

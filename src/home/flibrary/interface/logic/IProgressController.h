@@ -12,6 +12,7 @@ public:
 	public:
 		virtual void OnStartedChanged() = 0;
 		virtual void OnValueChanged() = 0;
+		virtual void OnStop() = 0;
 	};
 
 	class IProgressItem  // NOLINT(cppcoreguidelines-special-member-functions)
