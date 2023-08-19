@@ -57,7 +57,7 @@ public:
 		: m_initializer(std::move(initializer))
 	{
 		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-		const auto maxThreadCount = std::min(cpuCount, m_initializer.maxThreadCount);
+		const auto maxThreadCount = std::min(std::max(cpuCount - 2, 1), m_initializer.maxThreadCount);
 		std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] ()
 		{
 			auto thread = std::make_unique<Thread>(*this);
@@ -69,14 +69,11 @@ public:
 
 	~Executor() override
 	{
-		m_running = false;
-		std::unique_lock lock(m_startMutex);
-		m_startCondition.notify_all();
-
+		Stop();
 		PLOGD << std::format("{} thread(s) executor destroyed", std::size(m_threads));
 	}
 
-private: // Util::Executor
+private: // Util::IExecutor
 	size_t operator()(Task && task, const int priority) override
 	{
 		const auto id = task.id;
@@ -88,6 +85,13 @@ private: // Util::Executor
 		m_startCondition.notify_one();
 
 		return id;
+	}
+
+	void Stop() override
+	{
+		m_running = false;
+		std::unique_lock lock(m_startMutex);
+		m_startCondition.notify_all();
 	}
 
 private:
@@ -130,7 +134,11 @@ private:
 			PLOGD << task.name << " started";
 			auto taskResult = task.task();
 			PLOGD << task.name << " finished";
-			m_forwarder.Forward([id = task.id, taskResult = std::move(taskResult)] { taskResult(id); });
+
+			m_forwarder.Forward([id = task.id, taskResult = std::move(taskResult)]
+			{
+				taskResult(id);
+			});
 			m_forwarder.Forward(m_initializer.afterExecute);
 		}
 
@@ -142,11 +150,11 @@ private:
 	std::atomic_bool m_running { true };
 	std::mutex m_startMutex;
 	std::condition_variable m_startCondition;
-	std::vector<std::unique_ptr<Thread>> m_threads;
 	std::mutex m_tasksGuard;
 	std::map<int, Task> m_tasks;
 	FunctorExecutionForwarder m_forwarder;
 	int m_priority { 1024 };
+	std::vector<std::unique_ptr<Thread>> m_threads;
 };
 
 }

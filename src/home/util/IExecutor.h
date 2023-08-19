@@ -33,6 +33,7 @@ public:
 	{
 		return (*const_cast<IExecutor *>(this))(std::move(task), priority);
 	}
+	virtual void Stop() = 0;
 };
 
 }

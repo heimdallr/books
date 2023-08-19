@@ -24,7 +24,7 @@ public:
 		m_initializer.onDestroy();
 	}
 
-private: // Util::Executor
+private: // Util::IExecutor
 	size_t operator()(Task && task, int /*priority*/) override
 	{
 		m_initializer.beforeExecute();
@@ -34,6 +34,10 @@ private: // Util::Executor
 		taskResult(task.id);
 		m_initializer.afterExecute();
 		return task.id;
+	}
+
+	void Stop() override
+	{
 	}
 
 private:
