@@ -28,7 +28,8 @@ void Serialize(const QFont & font, ISettings & settings)
 {
 	settings.Set(FAMILY, font.family());
 	settings.Set(POINT_SIZE_F, font.pointSizeF());
-	settings.Set(PIXEL_SIZE, font.pixelSize());
+	if (font.pixelSize() > 0)
+		settings.Set(PIXEL_SIZE, font.pixelSize());
 	settings.Set(STYLE_HINT, font.styleHint());
 	settings.Set(WEIGHT, font.weight());
 	settings.Set(STYLE, font.style());
@@ -47,7 +48,8 @@ void Deserialize(QFont & font, const ISettings & settings)
 {
 	font.setFamily(settings.Get(FAMILY, font.family()));
 	font.setPointSizeF(settings.Get(POINT_SIZE_F, font.pointSizeF()));
-	font.setPixelSize(settings.Get(PIXEL_SIZE, font.pixelSize()));
+	if (const auto pixelSize = settings.Get(PIXEL_SIZE, font.pixelSize()); pixelSize > 0)
+		font.setPixelSize(pixelSize);
 	font.setStyleHint(settings.Get(STYLE_HINT, font.styleHint()));
 	font.setWeight(settings.Get(WEIGHT, font.weight()));
 	font.setStyle(settings.Get(STYLE, font.style()));
