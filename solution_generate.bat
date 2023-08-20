@@ -1,4 +1,5 @@
 rem @echo off
+set WIN64BUILD=true
 
 set start_time=%DATE% %TIME%
 

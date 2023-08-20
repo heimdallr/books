@@ -44,6 +44,8 @@ include("${SCRIPTS_PATH}/cmake/thirdparty/quazip.cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
 set(WARN_DISABLE_DEPRECATED	ON)
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
@@ -72,5 +74,3 @@ include("src/ext/MyHomeLib.cmake")
 include("src/home/home.cmake")
 
 include("src/home/flibrary_old/src/flibrary.cmake")
-
-#include("${SCRIPTS_PATH}/cmake/PrepareWorkspace.cmake")
