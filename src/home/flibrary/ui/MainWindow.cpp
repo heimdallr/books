@@ -130,7 +130,7 @@ private: // plog::IAppender
 		QString message = record.getMessage();
 		m_forwarder.Forward([&, message = std::move(message)]
 		{
-			m_ui.statusBar->showMessage(message, 1000);
+			m_ui.statusBar->showMessage(message, 2000);
 		});
 	}
 
