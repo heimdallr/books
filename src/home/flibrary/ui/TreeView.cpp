@@ -289,6 +289,8 @@ private:
 			OnCountChanged();
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
+			if (m_ui.treeView->model()->rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
+				m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
