@@ -1,53 +1,46 @@
 #pragma once
 
+#include <memory>
+
 #include <QStringList>
 #include <QVariant>
 
-#include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
+#include "ISettings.h"
 
 #include "UtilLib.h"
 
 namespace HomeCompa {
 
-class ISettingsObserver;
-
-class UTIL_API Settings
+class UTIL_API Settings final : virtual public ISettings
 {
+	NON_COPY_MOVABLE(Settings)
+
 public:
 	Settings(const QString & organization, const QString & application);
-	~Settings();
+	~Settings() override;
 
 public:
-	QVariant Get(const QString & key, const QVariant & defaultValue = {}) const;
-	void Set(const QString & key, const QVariant & value);
+	[[nodiscard]] QVariant Get(const QString & key, const QVariant & defaultValue = {}) const override;
+	void Set(const QString & key, const QVariant & value) override;
 
-	bool HasKey(const QString & key) const;
-	bool HasGroup(const QString & group) const;
+	[[nodiscard]] bool HasKey(const QString & key) const override;
+	[[nodiscard]] bool HasGroup(const QString & group) const override;
 
-	QStringList GetKeys() const;
-	QStringList GetGroups() const;
+	[[nodiscard]] QStringList GetKeys() const override;
+	[[nodiscard]] QStringList GetGroups() const override;
 
-	void Remove(const QString & key);
+	void Remove(const QString & key) override;
 
-	void BeginGroup(const QString & group);
-	void EndGroup();
+	void BeginGroup(const QString & group) const override;
+	void EndGroup() const override;
 
-	void RegisterObserver(ISettingsObserver * observer);
-	void UnregisterObserver(ISettingsObserver * observer);
+	void RegisterObserver(ISettingsObserver * observer) override;
+	void UnregisterObserver(ISettingsObserver * observer) override;
 
 private:
 	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
-};
-
-class UTIL_API SettingsGroup
-{
-public:
-	SettingsGroup(Settings & settings, const QString & group);
-	~SettingsGroup();
-
-private:
-	Settings & m_settings;
+	std::unique_ptr<Impl> m_impl;
 };
 
 }

@@ -9,7 +9,7 @@ namespace HomeCompa {
 template <class T>
 class NotNull
 {
-	static_assert(std::is_assignable<T &, std::nullptr_t>::value, "T cannot be assigned nullptr.");
+	static_assert(std::is_assignable<T &, std::nullptr_t>::globalValue, "T cannot be assigned nullptr.");
 
 public:
 	NotNull(T t)
@@ -51,13 +51,13 @@ public:
 		return *this;
     }
 
-	template <typename U, typename Dummy = typename std::enable_if<std::is_convertible<U, T>::value>::type>
+	template <typename U, typename Dummy = typename std::enable_if<std::is_convertible<U, T>::globalValue>::type>
 	NotNull(const NotNull<U> & rhs)
 	{
 		*this = rhs;
 	}
 
-	template <typename U, typename Dummy = typename std::enable_if<std::is_convertible<U, T>::value>::type>
+	template <typename U, typename Dummy = typename std::enable_if<std::is_convertible<U, T>::globalValue>::type>
 	NotNull & operator=(const NotNull<U> & rhs)
 	{
 		m_ptr = rhs.Get();
@@ -151,6 +151,7 @@ public:
 	void swap(PropagateConstPtr & rhs) noexcept { rhs.m_p.swap(m_p); }
 	void reset() { m_p.reset(); }
 	void reset(T * p) noexcept { m_p.reset(p); }
+	void reset(P<T> p) noexcept { m_p = std::move(p); }
 
 	explicit operator bool() const noexcept { return !!get(); }
 	bool operator!() const noexcept { return !get(); }

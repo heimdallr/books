@@ -15,50 +15,92 @@ namespace HomeCompa::Util::ExecutorPrivate::Async {
 
 namespace {
 
-class Executor
-	: virtual public Util::IExecutor
+class IPool  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IPool() = default;
+	virtual void Work(std::promise<void> & initializePromise, std::promise<void> & startPromise) = 0;
+};
+
+class Thread
+{
+	NON_COPY_MOVABLE(Thread)
+
+public:
+	explicit Thread(IPool & pool)
+		: m_thread(&IPool::Work, std::ref(pool), std::ref(m_initializePromise), std::ref(m_startPromise))
+	{
+		m_initializePromise.get_future().get();
+		m_startPromise.get_future().get();
+	}
+
+	~Thread()
+	{
+		if (m_thread.joinable())
+			m_thread.join();
+	}
+
+private:
+	std::promise<void> m_initializePromise;
+	std::promise<void> m_startPromise;
+	std::thread m_thread;
+};
+
+class Executor final
+	: virtual public IExecutor
+	, virtual public IPool
 {
 	NON_COPY_MOVABLE(Executor)
 
 public:
 	explicit Executor(ExecutorInitializer initializer)
 		: m_initializer(std::move(initializer))
-		, m_thread(&Executor::Work, this)
 	{
-		m_initializePromise.get_future().get();
-		m_startPromise.get_future().get();
+		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+		const auto maxThreadCount = std::min(std::max(cpuCount - 2, 1), m_initializer.maxThreadCount);
+		std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] ()
+		{
+			auto thread = std::make_unique<Thread>(*this);
+			return thread;
+		});
+
+		PLOGD << std::format("{} thread(s) executor created", std::size(m_threads));
 	}
 
 	~Executor() override
 	{
-		m_running = false;
-		{
-			std::unique_lock lock(m_startMutex);
-			m_startCondition.notify_all();
-		}
-
-		if (m_thread.joinable())
-			m_thread.join();
+		Stop();
+		PLOGD << std::format("{} thread(s) executor destroyed", std::size(m_threads));
 	}
 
-private: // Util::Executor
-	void operator()(Task && task, int priority) override
+private: // Util::IExecutor
+	size_t operator()(Task && task, const int priority) override
 	{
+		const auto id = task.id;
 		{
 			std::lock_guard lock(m_tasksGuard);
 			m_tasks.insert_or_assign(priority ? priority : ++m_priority, std::move(task));
 		}
 		std::unique_lock lock(m_startMutex);
 		m_startCondition.notify_one();
+
+		return id;
+	}
+
+	void Stop() override
+	{
+		m_running = false;
+		std::unique_lock lock(m_startMutex);
+		m_startCondition.notify_all();
 	}
 
 private:
-	void Work()
+	void Work(std::promise<void> & initializePromise, std::promise<void> & startPromise) override
 	{
-		m_initializePromise.set_value();
+		initializePromise.set_value();
 		m_initializer.onCreate();
 
-		m_startPromise.set_value();
+		startPromise.set_value();
 		while (m_running)
 		{
 			{
@@ -92,7 +134,11 @@ private:
 			PLOGD << task.name << " started";
 			auto taskResult = task.task();
 			PLOGD << task.name << " finished";
-			m_forwarder.Forward(std::move(taskResult));
+
+			m_forwarder.Forward([id = task.id, taskResult = std::move(taskResult)]
+			{
+				taskResult(id);
+			});
 			m_forwarder.Forward(m_initializer.afterExecute);
 		}
 
@@ -104,18 +150,16 @@ private:
 	std::atomic_bool m_running { true };
 	std::mutex m_startMutex;
 	std::condition_variable m_startCondition;
-	std::promise<void> m_startPromise;
-	std::promise<void> m_initializePromise;
-	std::thread m_thread;
 	std::mutex m_tasksGuard;
 	std::map<int, Task> m_tasks;
 	FunctorExecutionForwarder m_forwarder;
 	int m_priority { 1024 };
+	std::vector<std::unique_ptr<Thread>> m_threads;
 };
 
 }
 
-std::unique_ptr<Util::IExecutor> CreateExecutor(ExecutorInitializer initializer)
+std::unique_ptr<IExecutor> CreateExecutor(ExecutorInitializer initializer)
 {
 	return std::make_unique<Executor>(std::move(initializer));
 }

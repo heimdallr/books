@@ -24,15 +24,20 @@ public:
 		m_initializer.onDestroy();
 	}
 
-private: // Util::Executor
-	void operator()(Task && task, int /*priority*/) override
+private: // Util::IExecutor
+	size_t operator()(Task && task, int /*priority*/) override
 	{
 		m_initializer.beforeExecute();
 		PLOGD << task.name << " started";
 		const auto taskResult = task.task();
 		PLOGD << task.name << " finished";
-		taskResult();
+		taskResult(task.id);
 		m_initializer.afterExecute();
+		return task.id;
+	}
+
+	void Stop() override
+	{
 	}
 
 private:

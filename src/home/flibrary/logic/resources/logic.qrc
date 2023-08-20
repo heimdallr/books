@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="data">
+		<file alias="CreateCollection.sql">data/CreateCollection.sql</file>
+		<file alias="genres.ini">data/genres.ini</file>
+		<file alias="UpdateCollection.sql">data/UpdateCollection.sql</file>
+	</qresource>
+</RCC>

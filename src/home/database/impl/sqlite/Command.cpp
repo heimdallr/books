@@ -1,6 +1,6 @@
 #include "sqlite3ppext.h"
 
-#include "database/interface/ICommand.h"
+#include "ICommand.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
 

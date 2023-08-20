@@ -1,9 +1,6 @@
 [submodule "src/ext/scripts"]
 	path = src/ext/scripts
 	url = ../scripts.git
-[submodule "src/ext/fmt"]
-	path = src/ext/fmt
-	url = ../fmt.git
 [submodule "src/ext/MyHomeLib"]
 	path = src/ext/MyHomeLib
 	url = ../MyHomeLib.git
@@ -16,12 +13,3 @@
 [submodule "src/ext/SimpleSaxParser"]
 	path = src/ext/SimpleSaxParser
 	url = ../SimpleSaxParser.git
-[submodule "src/ext/plog"]
-	path = src/ext/plog
-	url = ../plog.git
-[submodule "src/ext/zlib"]
-	path = src/ext/zlib
-	url = ../zlib.git
-[submodule "src/ext/quazip"]
-	path = src/ext/quazip
-	url = ../quazip.git

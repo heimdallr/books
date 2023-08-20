@@ -1,0 +1,10 @@
+AddTarget(
+	NAME DatabaseInt
+	TYPE header_only
+	SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}
+	PROJECT_GROUP Database
+	INCLUDE_DIRS
+		"${CMAKE_CURRENT_LIST_DIR}/../.."
+	COMPILER_OPTIONS
+		[ MSVC /WX /W4 ]
+)

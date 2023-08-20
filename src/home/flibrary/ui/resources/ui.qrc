@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="icons/">
+		<file alias="Filter.png">icons/filter.png</file>
+		<file alias="Find.png">icons/find.png</file>
+		<file alias="tray.png">icons/tray.png</file>
+	</qresource>
+</RCC>

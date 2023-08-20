@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "UtilLib.h"
@@ -20,6 +21,7 @@ enum class ExecutorImpl
 
 struct ExecutorInitializer
 {
+	int maxThreadCount = 1;
 	std::function<void()> onCreate { [] {} };
 	std::function<void()> beforeExecute { [] {} };
 	std::function<void()> afterExecute { [] {} };
