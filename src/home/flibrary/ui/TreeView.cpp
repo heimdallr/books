@@ -272,6 +272,7 @@ private:
 		});
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
 		{
+			m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData());
 			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
 			OnValueChanged();
 		});
