@@ -26,6 +26,7 @@ public:
 		, std::shared_ptr<class LocaleController> localeController
 		, std::shared_ptr<class ILogController> logController
 		, std::shared_ptr<class ProgressBar> progressBar
+		, std::shared_ptr<class LogItemDelegate> logItemDelegate
 		, QWidget * parent = nullptr);
 	~MainWindow() override;
 

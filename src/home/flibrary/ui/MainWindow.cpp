@@ -2,7 +2,9 @@
 #include "MainWindow.h"
 
 #include <QActionGroup>
+#include <QPainter>
 #include <QTimer>
+
 #include <plog/Log.h>
 
 #include "AnnotationWidget.h"
@@ -18,9 +20,11 @@
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
+#include "LogItemDelegate.h"
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
 #include "TreeView.h"
+#include "TreeViewDelegate.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/QFont.h"
@@ -61,7 +65,8 @@ public:
 		, std::shared_ptr<AnnotationWidget> annotationWidget
 		, std::shared_ptr<LocaleController> localeController
 		, std::shared_ptr<ILogController> logController
-		, std::shared_ptr<ProgressBar> progressBar
+		, std::shared_ptr<QWidget> progressBar
+		, std::shared_ptr<QStyledItemDelegate> logItemDelegate
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, m_self(self)
@@ -74,6 +79,7 @@ public:
 		, m_localeController(std::move(localeController))
 		, m_logController(std::move(logController))
 		, m_progressBar(std::move(progressBar))
+		, m_logItemDelegate(std::move(logItemDelegate))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
 	{
@@ -143,6 +149,7 @@ private:
 		m_localeController->Setup(*m_ui.menuLanguage);
 
 		m_ui.logView->setModel(m_logController->GetModel());
+		m_ui.logView->setItemDelegate(m_logItemDelegate.get());
 
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
@@ -249,6 +256,14 @@ private:
 			});
 		});
 
+		connect(m_ui.actionTestLogColors, &QAction::triggered, &m_self, [&]
+		{
+			if (!m_ui.actionShowLog->isChecked())
+				m_ui.actionShowLog->trigger();
+
+			m_logController->TestColors();
+		});
+
 		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&]
 		{
@@ -278,6 +293,9 @@ private:
 			group->addAction(action);
 			++n;
 		});
+
+		m_ui.menuLogVerbosityLevel->addSeparator();
+		m_ui.menuLogVerbosityLevel->addAction(m_ui.actionTestLogColors);
 	}
 
 	void CreateCollectionsMenu()
@@ -309,7 +327,7 @@ private:
 	}
 
 	template<typename T>
-	static void OnObjectVisibleChanged(T * obj, void(T:: * f)(bool), QAction * show, QAction * hide, const bool value)
+	static void OnObjectVisibleChanged(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const bool value)
 	{
 		((*obj).*f)(value);
 		hide->setVisible(value);
@@ -317,7 +335,7 @@ private:
 	}
 
 	template<typename T>
-	void ConnectShowHide(T * obj, void(T:: * f)(bool), QAction * show, QAction * hide, const char * key)
+	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key)
 	{
 		const auto showHide = [=, &settings = *m_settings] (const bool value)
 		{
@@ -355,7 +373,8 @@ private:
 	PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
 	PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
-	PropagateConstPtr<ProgressBar, std::shared_ptr> m_progressBar;
+	PropagateConstPtr<QWidget, std::shared_ptr> m_progressBar;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_logItemDelegate;
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -373,6 +392,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<LocaleController> localeController
 	, std::shared_ptr<ILogController> logController
 	, std::shared_ptr<ProgressBar> progressBar
+	, std::shared_ptr<LogItemDelegate> logItemDelegate
 	, QWidget * parent
 )
 	: QMainWindow(parent)
@@ -386,6 +406,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(localeController)
 		, std::move(logController)
 		, std::move(progressBar)
+		, std::move(logItemDelegate)
 	)
 {
 	PLOGD << "MainWindow created";

@@ -16,6 +16,7 @@ public:
 	virtual int GetSeverity() const = 0;
 	virtual void SetSeverity(int value) = 0;
 	virtual void ShowCollectionStatistics() const = 0;
+	virtual void TestColors() const = 0;
 };
 
 }

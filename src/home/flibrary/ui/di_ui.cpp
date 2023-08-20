@@ -16,6 +16,7 @@
 #include "dialogs/Dialog.h"
 
 #include "AnnotationWidget.h"
+#include "LogItemDelegate.h"
 #include "LocaleController.h"
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"

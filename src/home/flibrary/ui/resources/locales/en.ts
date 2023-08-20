@@ -295,7 +295,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="31"/>
+        <location filename="../../MainWindow.cpp" line="37"/>
         <source>Select font</source>
         <translation></translation>
     </message>
@@ -372,6 +372,11 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>Hide co&amp;ver</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Test colors</source>
         <translation></translation>
     </message>
 </context>

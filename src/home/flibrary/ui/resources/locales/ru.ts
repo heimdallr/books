@@ -322,7 +322,7 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="31"/>
+        <location filename="../../MainWindow.cpp" line="37"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
@@ -400,6 +400,11 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>Hide co&amp;ver</source>
         <translation>Скрывать &amp;обложку</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Test colors</source>
+        <translation>&amp;Цвета сообщений</translation>
     </message>
 </context>
 <context>

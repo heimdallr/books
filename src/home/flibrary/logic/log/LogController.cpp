@@ -1,46 +1,18 @@
 #include "LogController.h"
 
+#include <ranges>
+
 #include <QAbstractItemModel>
 
 #include <plog/Log.h>
-#include <plog/Severity.h>
 
 #include "interface/constants/Localization.h"
+#include "interface/constants/PLogSeverityLocalization.h"
+#include "interface/logic/LogModelRole.h"
 #include "model/LogModel.h"
 #include "shared/DatabaseUser.h"
 
 using namespace HomeCompa::Flibrary;
-
-namespace {
-
-static_assert(plog::Severity::none == 0);
-static_assert(plog::Severity::fatal == 1);
-static_assert(plog::Severity::error == 2);
-static_assert(plog::Severity::warning == 3);
-static_assert(plog::Severity::info == 4);
-static_assert(plog::Severity::debug == 5);
-static_assert(plog::Severity::verbose == 6);
-
-constexpr auto NONE = QT_TRANSLATE_NOOP("Logging", "NONE");
-constexpr auto FATAL = QT_TRANSLATE_NOOP("Logging", "FATAL");
-constexpr auto ERROR = QT_TRANSLATE_NOOP("Logging", "ERROR");
-constexpr auto WARN = QT_TRANSLATE_NOOP("Logging", "WARN");
-constexpr auto INFO = QT_TRANSLATE_NOOP("Logging", "INFO");
-constexpr auto DEBUG = QT_TRANSLATE_NOOP("Logging", "DEBUG");
-constexpr auto VERB = QT_TRANSLATE_NOOP("Logging", "VERB");
-
-constexpr const char * SEVERITIES[]
-{
-	NONE,
-	FATAL,
-	ERROR,
-	WARN,
-	INFO,
-	DEBUG,
-	VERB,
-};
-
-}
 
 struct LogController::Impl
 {
@@ -71,7 +43,13 @@ void LogController::Clear()
 
 std::vector<const char *> LogController::GetSeverities() const
 {
-	return { std::cbegin(SEVERITIES), std::cend(SEVERITIES) };
+	std::vector<const char *> result;
+	result.reserve(std::size(SEVERITIES));
+	std::ranges::transform(SEVERITIES, std::back_inserter(result), [] (const auto & item)
+	{
+		return item.first;
+	});
+	return result;
 }
 
 int LogController::GetSeverity() const
@@ -116,4 +94,13 @@ void LogController::ShowCollectionStatistics() const
 			PLOGI << stats;
 		};
 	} });
+}
+
+void LogController::TestColors() const
+{
+	std::ranges::for_each(SEVERITIES, [n = 0] (const auto & item) mutable
+	{
+		PLOG(static_cast<plog::Severity>(n)) << Loc::Tr(Loc::Ctx::LOGGING, item.first);
+		++n;
+	});
 }

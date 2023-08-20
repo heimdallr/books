@@ -10,9 +10,11 @@
 #include <plog/Severity.h>
 #include <plog/Appenders/IAppender.h>
 
-#include "fnd/observer.h"
 #include "fnd/observable.h"
+#include "fnd/observer.h"
+#include "interface/constants/PLogSeverityLocalization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/LogModelRole.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/UiTimer.h"
@@ -58,12 +60,13 @@ private: // plog::IAppender
 		tm t {};
 		plog::util::localtime_s(&t, &time);
 		{
-			auto str = QString("%1:%2:%3.%4 [%5] %6")
+			auto str = QString("%1:%2:%3.%4 [%5] %6 %7")
 				.arg(t.tm_hour, 2, 10, QChar('0'))
 				.arg(t.tm_min, 2, 10, QChar('0'))
 				.arg(t.tm_sec, 2, 10, QChar('0'))
 				.arg(millieTime, 3, 10, QChar('0'))
 				.arg(tId, 6, 10, QChar('0'))
+				.arg(SEVERITIES[record.getSeverity()].first[0])
 				.arg(record.getMessage())
 				;
 
@@ -148,8 +151,8 @@ private: // QAbstractListModel
 			case Role::Message:
 				return item.message;
 
-			case Role::Color:
-//				return m_controller.GetColor(item.severity);
+			case Role::Severity:
+				return item.severity;
 
 			default:
 				break;

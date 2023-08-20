@@ -1,7 +1,5 @@
 #pragma once
 
-#include <qnamespace.h>
-
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
@@ -11,17 +9,6 @@ class QAbstractItemModel;
 class QObject;
 
 namespace HomeCompa::Flibrary {
-
-struct LogModelRole
-{
-	enum Value
-	{
-		Message = Qt::UserRole + 1,
-		Severity,
-		Color,
-		Clear,
-	};
-};
 
 QAbstractItemModel * CreateLogModel(QObject * parent = nullptr);
 

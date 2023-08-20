@@ -103,4 +103,42 @@
         <translation>&amp;Русский</translation>
     </message>
 </context>
+<context>
+    <name>Logging</name>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="18"/>
+        <source>NONE</source>
+        <translation>Скрыть все записи</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="19"/>
+        <source>FATAL</source>
+        <translation>Фатальные ошибки</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="20"/>
+        <source>ERROR</source>
+        <translation>Ошибки</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="21"/>
+        <source>WARN</source>
+        <translation>Предупреждения</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="22"/>
+        <source>INFO</source>
+        <translation>Информация</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="23"/>
+        <source>DEBUG</source>
+        <translation>Отладка</translation>
+    </message>
+    <message>
+        <location filename="../../constants/PLogSeverityLocalization.h" line="24"/>
+        <source>VERB</source>
+        <translation>Подробная информация</translation>
+    </message>
+</context>
 </TS>

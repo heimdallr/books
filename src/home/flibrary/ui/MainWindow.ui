@@ -582,6 +582,17 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
+  <action name="actionTestLogColors">
+   <property name="text">
+    <string>&amp;Test colors</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

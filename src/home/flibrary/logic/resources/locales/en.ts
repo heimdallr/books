@@ -111,22 +111,22 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="102"/>
+        <location filename="../../log/LogController.cpp" line="80"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="103"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="104"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="105"/>
+        <location filename="../../log/LogController.cpp" line="83"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -164,44 +164,6 @@ Try again?</source>
         <source>Group %1 already exists.
 Try again?</source>
         <translation></translation>
-    </message>
-</context>
-<context>
-    <name>Logging</name>
-    <message>
-        <location filename="../../log/LogController.cpp" line="24"/>
-        <source>NONE</source>
-        <translation>None</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="25"/>
-        <source>FATAL</source>
-        <translation>Fatal</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="26"/>
-        <source>ERROR</source>
-        <translation>Errors</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="27"/>
-        <source>WARN</source>
-        <translation>Warnings</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="28"/>
-        <source>INFO</source>
-        <translation>Information</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="29"/>
-        <source>DEBUG</source>
-        <translation>Debug</translation>
-    </message>
-    <message>
-        <location filename="../../log/LogController.cpp" line="30"/>
-        <source>VERB</source>
-        <translation>Verbose</translation>
     </message>
 </context>
 <context>

@@ -22,6 +22,7 @@ private:
 	int GetSeverity() const override;
 	void SetSeverity(int value) override;
 	void ShowCollectionStatistics() const override;
+	void TestColors() const override;
 
 private:
 	struct Impl;
