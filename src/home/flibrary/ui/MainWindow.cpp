@@ -159,6 +159,9 @@ private:
 
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
 			m_logController->SetSeverity(severity.toInt());
+
+		if (const auto activeCollection = m_collectionController->GetActiveCollection())
+			m_self.setWindowTitle(QString("%1 - %2").arg(Constant::PRODUCT_ID).arg(activeCollection->name));
 	}
 
 	void RestoreWidgetsState()
