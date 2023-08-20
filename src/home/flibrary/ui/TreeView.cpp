@@ -136,6 +136,9 @@ private: // ITreeViewController::IObserver
 				model->setData({}, true, Role::Checkable);
 				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			}
+
+			if (model->rowCount() == 0)
+				m_controller->SetCurrentId({});
 		}
 
 		RestoreHeaderLayout();

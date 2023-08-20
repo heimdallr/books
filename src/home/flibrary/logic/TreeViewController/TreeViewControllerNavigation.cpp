@@ -297,7 +297,6 @@ std::vector<const char *> TreeViewControllerNavigation::GetModeNames() const
 
 void TreeViewControllerNavigation::SetCurrentId(QString id)
 {
-	assert(!id.isEmpty());
 	m_dataProvider->SetNavigationId(std::move(id));
 }
 

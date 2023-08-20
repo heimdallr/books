@@ -263,7 +263,7 @@ private:
 
 	void RequestBooksImpl() const
 	{
-		if (m_navigationId.isEmpty() || m_booksViewMode == ViewMode::Unknown)
+		if (m_booksViewMode == ViewMode::Unknown)
 			return;
 
 		const auto booksGeneratorReady = m_booksGenerator
