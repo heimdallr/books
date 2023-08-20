@@ -13,15 +13,17 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogController.h"
-#include "interface/ui/IUiFactory.h"
-#include "LocaleController.h"
-#include "ParentWidgetProvider.h"
-#include "ProgressBar.h"
-#include "util/ISettings.h"
-#include "util/serializer/QFont.h"
-#include "TreeView.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IUserDataController.h"
+#include "interface/ui/IUiFactory.h"
+#include "LocaleController.h"
+#include "logging/LogAppender.h"
+#include "ParentWidgetProvider.h"
+#include "ProgressBar.h"
+#include "TreeView.h"
+#include "util/FunctorExecutionForwarder.h"
+#include "util/ISettings.h"
+#include "util/serializer/QFont.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -45,6 +47,7 @@ class MainWindow::Impl final
 	: GeometryRestorable
 	, GeometryRestorable::IObserver
 	, ICollectionController::IObserver
+	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -110,6 +113,19 @@ private: // ICollectionController::IObserver
 	{
 		if (m_ui.actionShowLog->isChecked() != running)
 			m_ui.actionShowLog->trigger();
+	}
+
+private: // plog::IAppender
+	void write(const plog::Record & record) override
+	{
+		if (!m_ui.statusBar->isVisible())
+			return;
+
+		QString message = record.getMessage();
+		m_forwarder.Forward([&, message = std::move(message)]
+		{
+			m_ui.statusBar->showMessage(message, 1000);
+		});
 	}
 
 private:
@@ -185,11 +201,11 @@ private:
 		{
 			m_collectionController->RemoveCollection();
 		});
-		connect(m_ui.logView, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint & pos)
+		connect(m_ui.logView, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
 		{
 			m_ui.menuLog->exec(m_ui.logView->viewport()->mapToGlobal(pos));
 		});
-		connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&](const bool checked)
+		connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&] (const bool checked)
 		{
 			m_ui.stackedWidget->setCurrentIndex(checked ? 1 : 0);
 		});
@@ -219,16 +235,25 @@ private:
 		connect(m_ui.actionExportUserData, &QAction::triggered, &m_self, [&]
 		{
 			auto controller = m_logicFactory->CreateUserDataController();
-			controller->Backup([controller] () mutable { controller.reset(); });
+			controller->Backup([controller] () mutable
+			{
+				controller.reset();
+			});
 		});
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [&]
 		{
 			auto controller = m_logicFactory->CreateUserDataController();
-			controller->Restore([controller] () mutable { controller.reset(); });
+			controller->Restore([controller] () mutable
+			{
+				controller.reset();
+			});
 		});
 
 		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
-		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] { m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible()); });
+		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&]
+		{
+			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
+		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
@@ -269,7 +294,10 @@ private:
 		{
 			const auto active = collection->id == activeCollection->id;
 			auto * action = m_ui.menuSelectCollection->addAction(collection->name);
-			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] { m_collectionController->SetActiveCollection(id); });
+			connect(action, &QAction::triggered, &m_self, [&, id = collection->id]
+			{
+				m_collectionController->SetActiveCollection(id);
+			});
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
@@ -281,7 +309,7 @@ private:
 	}
 
 	template<typename T>
-	static void OnObjectVisibleChanged(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const bool value)
+	static void OnObjectVisibleChanged(T * obj, void(T:: * f)(bool), QAction * show, QAction * hide, const bool value)
 	{
 		((*obj).*f)(value);
 		hide->setVisible(value);
@@ -289,7 +317,7 @@ private:
 	}
 
 	template<typename T>
-	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key)
+	void ConnectShowHide(T * obj, void(T:: * f)(bool), QAction * show, QAction * hide, const char * key)
 	{
 		const auto showHide = [=, &settings = *m_settings] (const bool value)
 		{
@@ -297,14 +325,23 @@ private:
 			Impl::OnObjectVisibleChanged<T>(obj, f, show, hide, value);
 		};
 
-		connect(show, &QAction::triggered, &m_self, [=] { showHide(true); });
+		connect(show, &QAction::triggered, &m_self, [=]
+		{
+			showHide(true);
+		});
 
-		connect(hide, &QAction::triggered, &m_self, [=] { showHide(false); });
+		connect(hide, &QAction::triggered, &m_self, [=]
+		{
+			showHide(false);
+		});
 	}
 
 	static void Reboot()
 	{
-		QTimer::singleShot(0, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+		QTimer::singleShot(0, []
+		{
+			QCoreApplication::exit(Constant::RESTART_APP);
+		});
 	}
 
 private:
@@ -322,6 +359,9 @@ private:
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
+
+	Util::FunctorExecutionForwarder m_forwarder;
+	const Log::LogAppender m_logAppender { this };
 };
 
 MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory

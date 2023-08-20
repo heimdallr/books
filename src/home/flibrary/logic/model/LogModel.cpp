@@ -15,6 +15,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/UiTimer.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -42,24 +43,11 @@ class LogAppenderImpl final
 	: virtual public plog::IAppender
 	, public Observable<ILogAppenderObserver>
 {
-public:
-	LogAppenderImpl()
-	{
-		m_timer.setSingleShot(true);
-		m_timer.setInterval(std::chrono::milliseconds(100));
-		QObject::connect(&m_timer, &QTimer::timeout, [&]
-		{
-			OnLogUpdated();
-		});
-	}
-
 private: // plog::IAppender
 	void write(const plog::Record & record) override
 	{
 		std::lock_guard lock(m_itemsGuard);
-		auto splitted = QStringList() << QString::fromStdString(record.getMessage());
-//		auto splitted = QString::fromStdString(record.getMessage()).split('\n', Qt::SplitBehaviorFlags::SkipEmptyParts);
-		if (splitted.isEmpty())
+		if (!record.getMessage())
 			return;
 
 		const auto severity = record.getSeverity();
@@ -76,18 +64,17 @@ private: // plog::IAppender
 				.arg(t.tm_sec, 2, 10, QChar('0'))
 				.arg(millieTime, 3, 10, QChar('0'))
 				.arg(tId, 6, 10, QChar('0'))
-				.arg(splitted.front())
+				.arg(record.getMessage())
 				;
 
 			m_items.emplace_back(std::move(str), severity);
 		}
-		splitted.erase(splitted.begin());
-		for (auto && str : splitted)
-			m_items.emplace_back(std::move(str), severity);
 
-		m_forwarder.Forward([&]
+		m_forwarder.Forward([&, force = std::size(m_items) > 100]
 		{
-			m_timer.start();
+			force
+				? OnLogUpdated()
+				: m_timer->start();
 		});
 	}
 
@@ -119,7 +106,7 @@ private:
 private:
 	std::mutex m_itemsGuard;
 	Util::FunctorExecutionForwarder m_forwarder{};
-	QTimer m_timer;
+	std::unique_ptr<QTimer> m_timer {Util::CreateUiTimer([&] { OnLogUpdated(); })};
 	std::vector<Item> m_items;
 };
 
@@ -212,9 +199,6 @@ private: // ILogAppenderObserver
 	{
 		emit endRemoveRows();
 	}
-
-private:
-//	ILogModelController & m_controller;
 };
 
 class FilterProxyModel final
@@ -292,7 +276,7 @@ public:
 
 private:
 	LogAppenderImpl m_logAppenderImpl;
-	[[maybe_unused]] const Log::LogAppender m_logAppender { &m_logAppenderImpl };
+	const Log::LogAppender m_logAppender { &m_logAppenderImpl };
 	std::vector<Item> m_items;
 };
 
