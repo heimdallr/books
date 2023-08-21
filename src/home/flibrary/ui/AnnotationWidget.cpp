@@ -1,8 +1,11 @@
 #include "ui_AnnotationWidget.h"
 #include "AnnotationWidget.h"
 
-#include <QDesktopServices>
 #include <ranges>
+
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QGuiApplication>
 
 #include <plog/Log.h>
 
@@ -12,6 +15,7 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
+#include "interface/ui/IUiFactory.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
@@ -32,6 +36,8 @@ constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
+constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
+constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto RECENT_ID_KEY = "ui/Navigation/%1/LastId";
@@ -118,12 +124,14 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IAnnotationController> annotationController
 		, std::shared_ptr<IModelProvider> modelProvider
+		, std::shared_ptr<IUiFactory> uiFactory
 		, const std::shared_ptr<ILogicFactory> & logicFactory
 	)
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_annotationController(std::move(annotationController))
 		, m_modelProvider(std::move(modelProvider))
+		, m_uiFactory(std::move(uiFactory))
 		, m_navigationController(std::shared_ptr<ITreeViewController>(logicFactory->GetTreeViewController(ItemType::Navigation)))
 	{
 		m_ui.setupUi(&m_self);
@@ -165,6 +173,29 @@ public:
 			}
 
 			OnResize();
+		});
+
+		m_ui.cover->addAction(m_ui.actionSavePictureAs);
+		m_ui.cover->addAction(m_ui.actionCopyImage);
+
+		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
+		{
+			assert(!m_covers.empty());
+
+			const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER);
+
+			QPixmap pixmap;
+			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
+			pixmap.save(fileName);
+		});
+
+		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [&]
+		{
+			assert(!m_covers.empty());
+
+			QPixmap pixmap;
+			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
+			QGuiApplication::clipboard()->setImage(pixmap.toImage());
 		});
 	}
 
@@ -285,6 +316,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
+	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
@@ -298,6 +330,7 @@ private:
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IAnnotationController> annotationController
 	, std::shared_ptr<IModelProvider> modelProvider
+	, std::shared_ptr<IUiFactory> uiFactory
 	, const std::shared_ptr<ILogicFactory> & logicFactory
 	, QWidget * parent
 )
@@ -306,6 +339,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::move(settings)
 		, std::move(annotationController)
 		, std::move(modelProvider)
+		, std::move(uiFactory)
 		, logicFactory)
 {
 	PLOGD << "AnnotationWidget created";

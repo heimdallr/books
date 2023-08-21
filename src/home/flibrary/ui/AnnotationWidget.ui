@@ -53,6 +53,9 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ActionsContextMenu</enum>
+         </property>
          <property name="text">
           <string notr="true"/>
          </property>
@@ -149,6 +152,28 @@
     </widget>
    </item>
   </layout>
+  <action name="actionSavePictureAs">
+   <property name="text">
+    <string>&amp;Save picture as...</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCopyImage">
+   <property name="text">
+    <string>&amp;Copy image</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
