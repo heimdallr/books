@@ -214,7 +214,7 @@ void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
 	{
 		auto name = m_impl->GetNewGroupName(names);
 		if (name.isEmpty())
-			callback();
+			return callback();
 
 		m_impl->AddToGroup(id, std::move(ids), std::move(name), std::move(callback));
 	});
