@@ -166,6 +166,9 @@ public:
 		: navigationMode(navigationMode_)
 		, navigationId(std::move(navigationId_))
 	{
+		if (navigationId.isEmpty())
+			return;
+
 		const auto query = db.CreateQuery(QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString());
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
