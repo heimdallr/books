@@ -72,57 +72,57 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="27"/>
+        <location filename="../../AnnotationWidget.cpp" line="30"/>
         <source>Keywords: %1</source>
         <translation>Ключевые слова: %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="29"/>
+        <location filename="../../AnnotationWidget.cpp" line="32"/>
         <source>Series:</source>
         <translation>Серия:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="28"/>
+        <location filename="../../AnnotationWidget.cpp" line="31"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="30"/>
+        <location filename="../../AnnotationWidget.cpp" line="33"/>
         <source>Genres:</source>
         <translation>Жанры:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="31"/>
+        <location filename="../../AnnotationWidget.cpp" line="34"/>
         <source>Archives:</source>
         <translation>Архив:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="32"/>
+        <location filename="../../AnnotationWidget.cpp" line="35"/>
         <source>Groups:</source>
         <translation>Группы:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="33"/>
+        <location filename="../../AnnotationWidget.cpp" line="36"/>
         <source>File:</source>
         <translation>Файл:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="34"/>
+        <location filename="../../AnnotationWidget.cpp" line="37"/>
         <source>Size:</source>
         <translation>Размер:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="35"/>
+        <location filename="../../AnnotationWidget.cpp" line="38"/>
         <source>Updated:</source>
         <translation>Обновлён:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="36"/>
+        <location filename="../../AnnotationWidget.cpp" line="39"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="37"/>
+        <location filename="../../AnnotationWidget.cpp" line="40"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>

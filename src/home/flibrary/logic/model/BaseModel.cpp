@@ -35,6 +35,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 			return item->GetData(index.column());
 
 		case Qt::CheckStateRole:
+		case Role::CheckState:
 			return m_checkable && index.column() == 0 ? item->GetCheckState() : QVariant{};
 
 		case Role::Id:
