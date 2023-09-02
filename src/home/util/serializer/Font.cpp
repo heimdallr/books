@@ -1,4 +1,4 @@
-#include "QFont.h"
+#include "Font.h"
 
 #include <QtGui/QFont>
 

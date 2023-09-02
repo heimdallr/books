@@ -10,7 +10,7 @@
 
 #include "util/ISettingsObserver.h"
 #include "util/UiTimer.h"
-#include "util/serializer/QFont.h"
+#include "util/serializer/Font.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -99,7 +99,6 @@ private:
 	const QString m_name;
 	bool m_initialized { false };
 	PropagateConstPtr<QTimer> m_fontTimer { Util::CreateUiTimer([&] { OnFontChanged(); }) };
-	
 };
 
 GeometryRestorable::GeometryRestorable(IObserver & observer, std::shared_ptr<ISettings> settings, QString name)
