@@ -5,7 +5,7 @@
 
 #include "interface/logic/IDataItem.h"
 
-#include "logicLib.h"
+#include "logic_export.h"
 
 namespace HomeCompa::Flibrary {
 class DataItem : public IDataItem
@@ -90,7 +90,7 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-class LOGIC_API BookItem final : public DataItem
+class LOGIC_EXPORT BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 BOOKS_COLUMN_ITEM(Author)          \

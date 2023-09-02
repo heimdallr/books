@@ -2,10 +2,10 @@
 
 class QString;
 
-#include "verLib.h"
+#include "ver_export.h"
 
 namespace HomeCompa::Flibrary {
 
-VER_API QString GetApplicationVersion();
+VER_EXPORT QString GetApplicationVersion();
 
 }

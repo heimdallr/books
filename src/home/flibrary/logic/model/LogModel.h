@@ -3,7 +3,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "logicLib.h"
+#include "logic_export.h"
 
 class QAbstractItemModel;
 class QObject;
@@ -12,7 +12,7 @@ namespace HomeCompa::Flibrary {
 
 QAbstractItemModel * CreateLogModel(QObject * parent = nullptr);
 
-class LOGIC_API LogModelAppender
+class LOGIC_EXPORT LogModelAppender
 {
 	NON_COPY_MOVABLE(LogModelAppender)
 

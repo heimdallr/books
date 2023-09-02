@@ -4,11 +4,11 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 namespace HomeCompa::Util {
 
-class UTIL_API ObjectsConnector
+class UTIL_EXPORT ObjectsConnector
 	: public QObject
 {
 	NON_COPY_MOVABLE(ObjectsConnector)

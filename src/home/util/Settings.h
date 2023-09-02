@@ -8,11 +8,11 @@
 #include "fnd/NonCopyMovable.h"
 #include "ISettings.h"
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 namespace HomeCompa {
 
-class UTIL_API Settings final : virtual public ISettings
+class UTIL_EXPORT Settings final : virtual public ISettings
 {
 	NON_COPY_MOVABLE(Settings)
 

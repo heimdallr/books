@@ -1,8 +1,5 @@
-AddTarget(
-	NAME Fnd
-	TYPE header_only
+AddTarget(Fnd	header_only
 	PROJECT_GROUP Util
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
-	COMPILER_OPTIONS
-		[ MSVC /WX /W4 ]
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
 )

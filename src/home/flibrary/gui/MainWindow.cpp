@@ -27,7 +27,7 @@
 #include "TreeViewDelegate.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
-#include "util/serializer/QFont.h"
+#include "util/serializer/Font.h"
 
 using namespace HomeCompa::Flibrary;
 

@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary {
 
 QString GetApplicationVersion()
 {
-	return QString("%1.%2.%3").arg(PRODUCT_VERSION_MAJOR).arg(PRODUCT_VERSION_MINOR).arg(BUILD_NUMBER);
+	return QString("%1.%2").arg(PRODUCT_VERSION).arg(BUILD_NUMBER);
 }
 
 }

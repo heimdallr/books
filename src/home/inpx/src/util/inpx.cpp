@@ -472,7 +472,9 @@ SettingsTableData ReadSettings(const std::wstring & dbFileName)
 	auto & strDate = data.emplace(PROP_CREATIONDATE, std::string()).first->second;
 	strDate.resize(30);
 	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	(void)std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+	tm buf{};
+	(void)localtime_s(&buf, &now);
+	(void)std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", &buf);
 
 	return data;
 }

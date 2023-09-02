@@ -4,11 +4,11 @@
 #include <functional>
 #include <string>
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 namespace HomeCompa::Util {
 
-class UTIL_API IExecutor
+class UTIL_EXPORT IExecutor
 {
 	static std::atomic<size_t> s_id;
 

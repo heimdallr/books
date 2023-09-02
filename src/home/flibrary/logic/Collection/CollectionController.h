@@ -5,7 +5,7 @@
 
 #include "interface/logic/ICollectionController.h"
 
-#include "logicLib.h"
+#include "logic_export.h"
 
 namespace HomeCompa {
 class ISettings;
@@ -15,7 +15,7 @@ namespace HomeCompa::Flibrary {
 
 struct CollectionImpl;
 
-class LOGIC_API CollectionController final
+class LOGIC_EXPORT CollectionController final
 	: virtual public ICollectionController
 {
 	NON_COPY_MOVABLE(CollectionController)

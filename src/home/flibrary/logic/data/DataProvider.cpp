@@ -1,5 +1,6 @@
 #include "DataProvider.h"
 
+#include <ranges>
 #include <stack>
 #include <unordered_map>
 

@@ -1,13 +1,10 @@
-AddTarget(
-	NAME DatabaseFactory
-	TYPE shared_lib
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
+AddTarget(DatabaseFactory	shared_lib
 	PROJECT_GROUP Database
-	INCLUDE_DIRS
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
+	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
 	LINK_TARGETS
 		DatabaseInt
 		DatabaseSqlite
-	COMPILER_OPTIONS
-		[ MSVC /WX /W4 ]
 )

@@ -1,12 +1,9 @@
-AddTarget(
-	NAME ver
-	TYPE shared_lib
+AddTarget(ver	shared_lib
 	PROJECT_GROUP App
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
-	QT_USE
-		Core
-	COMPILER_OPTIONS
-		[ MSVC /WX /W4 ]
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
+	LINK_LIBRARIES
+		Qt6::Core
 )
 
 add_custom_command(TARGET ver

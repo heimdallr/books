@@ -4,11 +4,11 @@
 
 #include "fnd/memory.h"
 
-#include "loggingLib.h"
+#include "logging_export.h"
 
 namespace HomeCompa::Log {
 
-class LOGGING_API LoggingInitializer
+class LOGGING_EXPORT LoggingInitializer
 {
 public:
 	explicit LoggingInitializer(const std::filesystem::path & path);

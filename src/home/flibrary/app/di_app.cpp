@@ -3,7 +3,7 @@
 #include <Hypodermic/Hypodermic.h>
 
 #include "logic/di_logic.h"
-#include "ui/di_ui.h"
+#include "gui/di_ui.h"
 
 namespace HomeCompa::Flibrary {
 

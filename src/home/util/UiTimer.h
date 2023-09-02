@@ -3,12 +3,12 @@
 #include <functional>
 #include <memory>
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 class QTimer;
 
 namespace HomeCompa::Util {
 
-UTIL_API std::unique_ptr<QTimer> CreateUiTimer(std::function<void()> f);
+UTIL_EXPORT std::unique_ptr<QTimer> CreateUiTimer(std::function<void()> f);
 
 }

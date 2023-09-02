@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "export/DatabaseSqliteLib.h"
+#include "databasesqlite_export.h"
 
 namespace HomeCompa::DB {
 class IDatabase;
@@ -11,6 +11,6 @@ class IDatabase;
 
 namespace HomeCompa::DB::Impl::Sqlite {
 
-DATABASESQLITE_API std::unique_ptr<IDatabase> CreateDatabase(const std::string & connection);
+DATABASESQLITE_EXPORT std::unique_ptr<IDatabase> CreateDatabase(const std::string & connection);
 
 }

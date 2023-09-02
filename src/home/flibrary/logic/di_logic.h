@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "logicLib.h"
+#include "logic_export.h"
 
 namespace Hypodermic
 {
@@ -12,6 +12,6 @@ class ContainerBuilder;
 
 namespace HomeCompa::Flibrary {
 
-LOGIC_API void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
+LOGIC_EXPORT void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
 
 }

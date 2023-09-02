@@ -1,5 +1,4 @@
 rem @echo off
-set WIN64BUILD=true
 
 set start_time=%DATE% %TIME%
 
@@ -11,27 +10,20 @@ call src\ext\scripts\batch\check_executable.bat %tee_name%
 if NOT [%ERRORLEVEL%]==[0] goto end
 
 set originalDir=%CD%
-if [%WIN64BUILD%]==[true] (
-	set GENERATOR_PLATFORM=x64
-	set PLATFORM=64
-) else (
-	set GENERATOR_PLATFORM=Win32
-	set PLATFORM=86
-)
 
-echo | set /p="%PLATFORM%">%TEMP%\platform.ini
-
-set BUILD_DIR=build\x%PLATFORM%
+set BUILD_TYPE=Debug
+set BUILD_DIR=build
 mkdir %~dp0%BUILD_DIR%
 cd %~dp0%BUILD_DIR%
 del *.sln
 
 cmake ^
 --no-warn-unused-cli ^
--DCMAKE_GENERATOR_PLATFORM=%GENERATOR_PLATFORM% ^
+-DCMAKE_GENERATOR_PLATFORM=x64 ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
+-DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
 %* ^
--G %CMAKE_GENERATOR% %~dp0 2>&1 | %tee_name% generate_solution.log
+-G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% generate_solution.log
 
 echo -- Start: %start_time%
 echo -- Stop:  %DATE% %TIME%

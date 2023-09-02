@@ -1,5 +1,5 @@
 set(MODULES
-	ui
+	gui
 	logic
 	interface
 	version

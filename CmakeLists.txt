@@ -1,76 +1,66 @@
 cmake_minimum_required(VERSION 3.12)
-project(books)
+project(books VERSION 0.6.0)
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(PLATFORM "x64")
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(PLATFORM "x86")
-endif()
+set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(
-	/std:c++latest
-	/wd4250 # inherits via dominance
-	/wd4503	# decorated name length exceeded, name was truncated
-	/wd4566 # Ошибка в ассертах с русскими сиволами assert(true && "Превед") - character represented by universal-character-name
-	/wd4710 # function not inlined
-	/wd4711 # function selected for automatic inline expansion
-	/wd4820 # bytes padding added after data member
-	/wd5045 # compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+	/MP     # multi-processor compilation
+	/W4		# warnings level 4
+	/WX		# warning is error
 	/we5038 # reorder
-	/MP
-)
-add_definitions(
-	-DNOMINMAX
-	-D_UNICODE
-	-DUNICODE
-	-D_UTF8
-	-D_CRT_SECURE_NO_WARNINGS
-	-D_SCL_SECURE_NO_WARNINGS
-	-D_USE_MATH_DEFINES
-	${WINVER}
+	/wd4250 # inherits via dominance
+	/wd4251 # member (ala std::unique_ptr<some>) needs to have dll-interface to be used by clients of class 'some'
+	/wd4275 # non dll-interface class 'ISome' used as base for dll-interface class 'Some'
+	/wd4503	# decorated name length exceeded, name was truncated
+#	/wd4566 # Ошибка в ассертах с русскими сиволами assert(true && "Превед") - character represented by universal-character-name
+#	/wd4710 # function not inlined
+#	/wd4711 # function selected for automatic inline expansion
+#	/wd4820 # bytes padding added after data member
+#	/wd5045 # compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
 )
 
-set(SCRIPTS_PATH "src/ext/scripts")
-include("${SCRIPTS_PATH}/cmake/initialize.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/boost.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/Hypodermic.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/plog.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/zlib.cmake")
-include("${SCRIPTS_PATH}/cmake/thirdparty/qt.cmake")
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-
-include("${SCRIPTS_PATH}/cmake/thirdparty/quazip.cmake")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif ()
+
+# Подключаем сборочные скрипты
+set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts)
+set(CMAKE_MODULE_PATH ${BUILDSCRIPTS_ROOT}/cmake/modules)
+include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
+include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
+
+find_package(plog REQUIRED)
+find_package(Boost REQUIRED)
+find_package(Hypodermic REQUIRED)
+find_package(QuaZip REQUIRED)
+
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-set(WARN_DISABLE_DEPRECATED	ON)
-set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
+# PLOG_IMPORT нужен для правильного импорта. Используется со всеми таргетами, определим сразу.
+add_compile_definitions(PLOG_IMPORT)
+add_compile_definitions(UNICODE _UNICODE)
 
-#include("${SCRIPTS_PATH}/cmake/thirdparty/ThirdpartyModule.cmake")
-
-include("${SCRIPTS_PATH}/cmake/target.cmake")
-include("${SCRIPTS_PATH}/cmake/GenerateSettingsClass.cmake")
-include("${SCRIPTS_PATH}/cmake/GenerateTranslations.cmake")
-
-set(ORGANIZATION_NAME "HomeCompa")
-set(PRODUCT_NAME "Flibrary")
-set(PRODUCT_NAME_ABOUT "Flibrary")
-set(PRODUCT_NAME_FILE_DESCRIPTION "Flibrary: e-library cataloger")
-set(PRODUCT_VERSION_MAJOR "0")
-set(PRODUCT_VERSION_MINOR "5.0")
-set(PRODUCT_NAME_VERSIONED "${PRODUCT_NAME} ${PRODUCT_VERSION_MAJOR}.${PRODUCT_VERSION_MINOR}")
-if(WIN32)
-	CheckRequiredVariables(PRODUCT_VERSION_MINOR)
-	string(REPLACE "." "," PRODUCT_VERSION_MINOR_COMMA ${PRODUCT_VERSION_MINOR})
-endif()
-
+#add_definitions(
+#	-DNOMINMAX
+#	-D_UNICODE
+#	-DUNICODE
+#	-D_UTF8
+#	-D_CRT_SECURE_NO_WARNINGS
+#	-D_SCL_SECURE_NO_WARNINGS
+#	-D_USE_MATH_DEFINES
+#	${WINVER}
+#)
 
 include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 
 include("src/home/home.cmake")
 
-include("src/home/flibrary_old/src/flibrary.cmake")
+#include("src/home/flibrary_old/src/flibrary.cmake")

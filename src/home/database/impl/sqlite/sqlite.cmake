@@ -1,12 +1,10 @@
-AddTarget(
-	NAME DatabaseSqlite
-	TYPE shared_lib
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
-	INCLUDE_DIRS
+AddTarget(DatabaseSqlite	shared_lib
+	PROJECT_GROUP Database/Impl
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
+	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite3pp/src"
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite"
-	PROJECT_GROUP Database/Impl
-	INCLUDE_DIRS
 		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../interface"
 	LINK_TARGETS
@@ -14,11 +12,6 @@ AddTarget(
 		logging
 		sqlite
 		sqlite3pp
-	MODULES
-		plog
 	COMPILE_DEFINITIONS
 		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
-		[ WIN32 PLOG_IMPORT ]
-	COMPILER_OPTIONS
-		[ MSVC /WX /W4 ]
 )

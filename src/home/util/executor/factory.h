@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 namespace HomeCompa::Util {
 
@@ -32,6 +32,6 @@ struct ExecutorInitializer
 
 namespace HomeCompa::Util::ExecutorFactory {
 
-UTIL_API std::unique_ptr<IExecutor> Create(ExecutorImpl impl, ExecutorInitializer initializer = {});
+UTIL_EXPORT std::unique_ptr<IExecutor> Create(ExecutorImpl impl, ExecutorInitializer initializer = {});
 
 }

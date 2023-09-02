@@ -3,7 +3,7 @@
 #include <qglobal.h>
 #include <QCoreApplication>
 
-#include "flintLib.h"
+#include "flint_export.h"
 
 namespace HomeCompa::Flibrary::Loc::Ctx {
 constexpr auto COMMON = "Common";
@@ -44,7 +44,7 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 
 #endif
 
-FLINT_API QString Tr(const char * context, const char * str);
+FLINT_EXPORT QString Tr(const char * context, const char * str);
 
 inline QString Error() { return Tr(Ctx::COMMON, ERROR); }
 inline QString Information() { return Tr(Ctx::COMMON, INFORMATION); }

@@ -1,29 +1,22 @@
-AddTarget(
-	NAME logic
-	TYPE shared_lib
+AddTarget(logic	shared_lib
 	PROJECT_GROUP App
-	SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}"
-	INCLUDE_DIRS
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
+	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
-	QT_USE
-		Core
-		Gui
-	MODULES
+	LINK_LIBRARIES
 		Hypodermic
 		plog
-		quazip
+		QuaZip::QuaZip
+		Qt6::Gui
 	LINK_TARGETS
 		DatabaseFactory
 		flint
 		InpxLib
 		logging
 		Util
-	DEPENDENCIES
-		MyHomeLibSQLIteExt
-	COMPILE_DEFINITIONS
-		[ WIN32 PLOG_IMPORT ]
-	COMPILER_OPTIONS
-		[ MSVC /WX /W4 ]
+#	DEPENDENCIES
+#		MyHomeLibSQLIteExt
 )

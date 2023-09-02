@@ -4,11 +4,11 @@
 
 #include <QObject>
 
-#include "UtilLib.h"
+#include "util_export.h"
 
 namespace HomeCompa::Util {
 
-class UTIL_API FunctorExecutionForwarder
+class UTIL_EXPORT FunctorExecutionForwarder
 	: public QObject
 {
 	Q_OBJECT
