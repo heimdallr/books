@@ -38,6 +38,7 @@ public: // ICollectionController
 	[[nodiscard]] const Collections & GetCollections() const noexcept override;
 	[[nodiscard]] std::optional<const Collection> GetActiveCollection() const noexcept override;
 	void SetActiveCollection(const QString & id) override;
+	void CheckForUpdate() override;
 
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;

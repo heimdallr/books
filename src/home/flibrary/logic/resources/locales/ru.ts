@@ -69,7 +69,7 @@
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>Select destination folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Укажите папку</translation>
     </message>
 </context>
 <context>
@@ -88,25 +88,30 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="30"/>
+        <location filename="../../Collection/CollectionController.cpp" line="31"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан
 Продолжить?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="31"/>
+        <location filename="../../Collection/CollectionController.cpp" line="32"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <location filename="../../Collection/CollectionController.cpp" line="34"/>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="35"/>
+        <source>Looks like the collection has been updated. Apply changes?</source>
+        <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
 </context>
 <context>

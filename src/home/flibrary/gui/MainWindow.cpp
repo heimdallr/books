@@ -92,6 +92,8 @@ public:
 		{
 			if (m_collectionController->IsEmpty())
 				m_collectionController->AddCollection();
+			else
+				m_collectionController->CheckForUpdate();
 		});
 	}
 

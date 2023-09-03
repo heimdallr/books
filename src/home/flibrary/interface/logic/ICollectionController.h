@@ -46,6 +46,7 @@ public:
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
 	[[nodiscard]] virtual std::optional<const Collection> GetActiveCollection() const noexcept = 0;
 	virtual void SetActiveCollection(const QString & id) = 0;
+	virtual void CheckForUpdate() = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

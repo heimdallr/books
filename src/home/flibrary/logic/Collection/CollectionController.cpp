@@ -1,5 +1,6 @@
 #include "CollectionController.h"
 
+#include <QCryptographicHash>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -31,6 +32,7 @@ constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionControl
 constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
 constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
+constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 
 TR_DEF
 
@@ -80,6 +82,21 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
 
 	return result;
+}
+
+QString GetFileHash(const QString & fileName)
+{
+	QFile file(fileName);
+	file.open(QIODevice::ReadOnly);
+	constexpr auto size = 1024ll * 32;
+	const std::unique_ptr<char[]> buf(new char[size]);
+
+	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+
+	while (const auto readSize = file.read(buf.get(), size))
+		hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+
+	return hash.result().toHex();
 }
 
 }
@@ -169,6 +186,56 @@ public:
 		Perform(&IObserver::OnActiveCollectionChanged);
 	}
 
+	void CheckForUpdate()
+	{
+		std::shared_ptr executor = m_logicFactory->GetExecutor();
+		(*executor)({ "Check inpx for update", [&, executor, collection = GetActiveCollection()]() mutable
+		{
+			assert(collection);
+
+			auto [_, ini] = GetIniMap(collection->database, collection->folder, false);
+			const auto it = ini.find(INPX);
+			assert(it != ini.end());
+
+			auto hash = GetFileHash(QString::fromStdWString(it->second));
+			if (collection->discardedUpdate == hash)
+				return std::function([executor = std::move(executor)] (size_t) mutable { executor.reset(); });
+
+			return std::function([&, executor = std::move(executor)
+				, collection = std::move(collection)
+				, hash = std::move(hash)
+				, hasUpdate = Inpx::CheckUpdateCollection(std::move(ini))
+			] (size_t) mutable
+			{
+				if (hasUpdate)
+				{
+					switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes))  // NOLINT(clang-diagnostic-switch-enum)
+					{
+						case QMessageBox::No:
+							break;
+
+						case QMessageBox::Yes:
+							UpdateCollection();
+							break;
+
+						case QMessageBox::Discard:
+						{
+							auto updated_collection = *collection;
+							updated_collection.discardedUpdate = std::move(hash);
+							CollectionImpl::Serialize(updated_collection, *m_settings);
+							break;
+						}
+
+						default:
+							assert(false && "unexpected button");
+					}
+				}
+
+				executor.reset();
+			});
+		} });
+	}
+
 	std::optional<const Collection> GetActiveCollection() const noexcept
 	{
 		return FindCollectionById(CollectionImpl::GetActive(*m_settings));
@@ -223,7 +290,6 @@ private:
 	
 			return result;
 		}});
-
 	}
 
 	void Add(QString name, QString db, QString folder)
@@ -232,6 +298,24 @@ private:
 		CollectionImpl::Serialize(collection, *m_settings);
 		m_collections.push_back(std::make_unique<CollectionImpl>(std::move(collection)));
 		SetActiveCollection(m_collections.back()->id);
+	}
+
+	void UpdateCollection()
+	{
+		std::shared_ptr executor = m_logicFactory->GetExecutor({});
+		Perform(&IObserver::OnNewCollectionCreating, true);
+		(*executor)({ "Update collection", [&, executor, collection = GetActiveCollection()] () mutable
+		{
+			assert(collection);
+
+			auto [_, ini] = GetIniMap(collection->database, collection->folder, true);
+			Inpx::UpdateCollection(std::move(ini));
+			return [&, executor = std::move(executor)] (size_t) mutable
+			{
+				Perform(&IObserver::OnNewCollectionCreating, false);
+				executor.reset();
+			};
+		} });
 	}
 
 private:
@@ -309,6 +393,11 @@ std::optional<const Collection> CollectionController::GetActiveCollection() cons
 void CollectionController::SetActiveCollection(const QString & id)
 {
 	m_impl->SetActiveCollection(id);
+}
+
+void CollectionController::CheckForUpdate()
+{
+	m_impl->CheckForUpdate();
 }
 
 void CollectionController::RegisterObserver(IObserver * observer)
