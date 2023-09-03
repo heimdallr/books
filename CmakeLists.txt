@@ -46,5 +46,3 @@ include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 
 include("src/home/home.cmake")
-
-#include("src/home/flibrary_old/src/flibrary.cmake")
