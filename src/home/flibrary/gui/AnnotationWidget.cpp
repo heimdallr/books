@@ -214,7 +214,7 @@ public:
 	void ShowCover(const bool value)
 	{
 		m_showCover = value;
-		m_ui.cover->setVisible(value);
+		OnResize();
 	}
 
 	void OnResize() const
