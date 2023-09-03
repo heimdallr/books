@@ -5,7 +5,7 @@
 
 #include "interface/logic/ICollectionController.h"
 
-#include "logic_export.h"
+#include "export/logic.h"
 
 namespace HomeCompa {
 class ISettings;

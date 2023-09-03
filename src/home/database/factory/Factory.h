@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "databasefactory_export.h"
+#include "export/databasefactory.h"
 
 namespace HomeCompa::DB {
 class IDatabase;

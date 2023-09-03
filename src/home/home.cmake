@@ -17,5 +17,5 @@ execute_process(
 	OUTPUT_VARIABLE GIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/inpx/helpers/Configuration.h.in ${CMAKE_CURRENT_BINARY_DIR}/Configuration.h @ONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/script/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/git_hash.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/git_hash.h @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/version.h @ONLY)

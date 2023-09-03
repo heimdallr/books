@@ -2,7 +2,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "logging_export.h"
+#include "export/logging.h"
 
 namespace plog {
 class PLOG_LINKAGE IAppender;

@@ -8,7 +8,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "ISettings.h"
 
-#include "util_export.h"
+#include "export/util.h"
 
 namespace HomeCompa {
 

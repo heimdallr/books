@@ -3,7 +3,7 @@
 #include <qglobal.h>
 #include <QCoreApplication>
 
-#include "flint_export.h"
+#include "export/flint.h"
 
 namespace HomeCompa::Flibrary::Loc::Ctx {
 constexpr auto COMMON = "Common";

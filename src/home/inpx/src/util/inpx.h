@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "inpxlib_export.h"
+#include "export/inpxlib.h"
 
 namespace HomeCompa::Inpx {
 

@@ -5,7 +5,7 @@
 
 #include "interface/logic/IDataItem.h"
 
-#include "logic_export.h"
+#include "export/logic.h"
 
 namespace HomeCompa::Flibrary {
 class DataItem : public IDataItem

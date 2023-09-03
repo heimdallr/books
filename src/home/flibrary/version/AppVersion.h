@@ -2,7 +2,7 @@
 
 class QString;
 
-#include "ver_export.h"
+#include "export/ver.h"
 
 namespace HomeCompa::Flibrary {
 

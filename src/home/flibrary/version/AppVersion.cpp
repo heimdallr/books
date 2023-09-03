@@ -3,7 +3,7 @@
 #include "AppVersion.h"
 
 #include "build.h"
-#include "version.h"
+#include "config/version.h"
 
 namespace HomeCompa::Flibrary {
 

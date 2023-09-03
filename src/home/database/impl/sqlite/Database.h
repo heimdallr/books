@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "databasesqlite_export.h"
+#include "export/databasesqlite.h"
 
 namespace HomeCompa::DB {
 class IDatabase;

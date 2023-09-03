@@ -3,7 +3,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "logic_export.h"
+#include "export/logic.h"
 
 class QAbstractItemModel;
 class QObject;

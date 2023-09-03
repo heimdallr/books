@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util_export.h"
+#include "export/util.h"
 
 namespace HomeCompa {
 class ISettings;

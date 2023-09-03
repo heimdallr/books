@@ -17,7 +17,7 @@
 #include "di_app.h"
 #include "version/AppVersion.h"
 
-#include "Configuration.h"
+#include "config/git_hash.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

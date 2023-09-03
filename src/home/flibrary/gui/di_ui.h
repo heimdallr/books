@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "gui_export.h"
+#include "export/gui.h"
 
 namespace Hypodermic
 {

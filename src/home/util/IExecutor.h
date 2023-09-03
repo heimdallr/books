@@ -4,7 +4,7 @@
 #include <functional>
 #include <string>
 
-#include "util_export.h"
+#include "export/util.h"
 
 namespace HomeCompa::Util {
 

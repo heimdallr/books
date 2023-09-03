@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "logic_export.h"
+#include "export/logic.h"
 
 namespace Hypodermic
 {

@@ -4,7 +4,7 @@
 
 #include "fnd/memory.h"
 
-#include "logging_export.h"
+#include "export/logging.h"
 
 namespace HomeCompa::Log {
 
