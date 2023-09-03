@@ -4,8 +4,7 @@ set SOLUTION_PATH=%~dp0%1
 goto find
 
 :read
-set /p PLATFORM=< %TEMP%\platform.ini
-set SOLUTION_PATH=%~dp0build\x%PLATFORM%
+set SOLUTION_PATH=%~dp0build
 
 :find
 FOR %%F IN (%SOLUTION_PATH%\*.sln) DO (
