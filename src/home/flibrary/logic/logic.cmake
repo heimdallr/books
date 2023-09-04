@@ -17,6 +17,6 @@ AddTarget(logic	shared_lib
 		InpxLib
 		logging
 		Util
-#	DEPENDENCIES
-#		MyHomeLibSQLIteExt
+	DEPENDENCIES
+		MyHomeLibSQLIteExt
 )
