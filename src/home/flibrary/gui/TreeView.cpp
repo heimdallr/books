@@ -345,8 +345,8 @@ private:
 		auto sortOrder = Qt::AscendingOrder;
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-
-			for (const auto & column : m_settings->GetGroups())
+			const auto columns = m_settings->GetGroups();
+			for (const auto & column : columns)
 			{
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
@@ -358,6 +358,10 @@ private:
 						: header->showSection(logicalIndex);
 				}
 			}
+
+			if (columns.isEmpty())
+				for (auto i = 0, sz = header->count(); i < sz; ++i)
+					header->showSection(i);
 
 			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
