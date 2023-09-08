@@ -141,32 +141,6 @@
     </message>
 </context>
 <context>
-    <name>BookContextMenu</name>
-    <message>
-        <source>Selection</source>
-        <translation type="vanished">Выделение</translation>
-    </message>
-    <message>
-        <source>Select all</source>
-        <translation type="vanished">Выделить все</translation>
-    </message>
-    <message>
-        <source>Deselect all</source>
-        <translation type="vanished">Отменить выделение</translation>
-    </message>
-    <message>
-        <source>Invert selection</source>
-        <translation type="vanished">Инвертировать выделение</translation>
-    </message>
-</context>
-<context>
-    <name>Collection</name>
-    <message>
-        <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation type="vanished">Похоже, коллекция обновиласть. Применить изменения?</translation>
-    </message>
-</context>
-<context>
     <name>Dialog</name>
     <message>
         <location filename="../../dialogs/Dialog.cpp" line="17"/>
@@ -459,17 +433,6 @@ Restart now?</source>
         <location filename="../../ProgressBar.ui"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
-    </message>
-</context>
-<context>
-    <name>Tray</name>
-    <message>
-        <source>Show annotation</source>
-        <translation type="vanished">Показать аннотацию</translation>
-    </message>
-    <message>
-        <source>Hide annotation</source>
-        <translation type="vanished">Скрыть аннотацию</translation>
     </message>
 </context>
 <context>
