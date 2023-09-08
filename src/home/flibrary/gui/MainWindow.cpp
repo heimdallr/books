@@ -8,6 +8,7 @@
 #include <plog/Log.h>
 
 #include "AnnotationWidget.h"
+#include "config/version.h"
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -163,7 +164,7 @@ private:
 			m_logController->SetSeverity(severity.toInt());
 
 		if (const auto activeCollection = m_collectionController->GetActiveCollection())
-			m_self.setWindowTitle(QString("%1 - %2").arg(Constant::PRODUCT_ID).arg(activeCollection->name));
+			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(activeCollection->name));
 	}
 
 	void RestoreWidgetsState()

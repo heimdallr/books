@@ -18,13 +18,14 @@
 #include "version/AppVersion.h"
 
 #include "config/git_hash.h"
+#include "config/version.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 int main(int argc, char * argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), Constant::COMPANY_ID, Constant::PRODUCT_ID).toStdWString());
+	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
 	LogModelAppender logModelAppender;
 
 	PLOGI << "App started";

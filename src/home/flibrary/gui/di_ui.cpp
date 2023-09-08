@@ -22,6 +22,8 @@
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
 #include "UiFactory.h"
+
+#include "config/version.h"
 // ReSharper restore CppUnusedIncludeDirective
 
 namespace HomeCompa::Flibrary {
@@ -44,7 +46,7 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<MainWindow>().as<QMainWindow>().singleInstance();
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
-		return std::make_shared<Settings>(Constant::COMPANY_ID, Constant::PRODUCT_ID);
+		return std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
 	}).as<ISettings>().singleInstance();
 }
 
