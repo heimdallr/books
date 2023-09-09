@@ -1,13 +1,13 @@
 #include "LocaleController.h"
 
 #include <QActionGroup>
-#include <QDir>
-#include <QTranslator>
 #include <QMenu>
+#include <QTranslator>
 
 #include <plog/Log.h>
 
 #include "util/ISettings.h"
+#include "util/KeyboardLayout.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/ui/IUiFactory.h"
@@ -47,6 +47,7 @@ public:
 	void Setup(QMenu & menu)
 	{
 		const auto currentLocale = GetLocale();
+		SetKeyboardLayout(currentLocale.toStdString());
 		for (const auto * locale : Loc::LOCALES)
 		{
 			auto * action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale]
