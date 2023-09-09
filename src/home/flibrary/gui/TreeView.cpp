@@ -466,7 +466,6 @@ private:
 
 	void Find(const QVariant & value, const int role) const
 	{
-		[[maybe_unused]] const auto title =  m_ui.treeView->model()->index(0, 0).data(Role::Title).toString();
 		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
