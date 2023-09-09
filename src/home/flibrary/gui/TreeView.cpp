@@ -194,7 +194,7 @@ private: //	IValueApplier
 	void Find() override
 	{
 		if (!m_ui.value->text().isEmpty())
-			return Find(m_ui.value->text());
+			return Find(m_ui.value->text(), m_controller->GetItemType() == ItemType::Books ? static_cast<int>(Role::Title) : Qt::DisplayRole);
 
 		if (!m_currentId.isEmpty())
 			return Find(m_currentId, Role::Id);
@@ -464,8 +464,9 @@ private:
 		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
 
-	void Find(const QVariant & value, const int role = Qt::DisplayRole) const
+	void Find(const QVariant & value, const int role) const
 	{
+		[[maybe_unused]] const auto title =  m_ui.treeView->model()->index(0, 0).data(Role::Title).toString();
 		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
