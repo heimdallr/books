@@ -11,7 +11,10 @@ if NOT [%ERRORLEVEL%]==[0] goto end
 
 set originalDir=%CD%
 
-set BUILD_TYPE=Debug
+set BUILD_TYPE=%1
+if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
+echo %BUILD_TYPE%
+
 set BUILD_DIR=build
 mkdir %~dp0%BUILD_DIR%
 cd %~dp0%BUILD_DIR%

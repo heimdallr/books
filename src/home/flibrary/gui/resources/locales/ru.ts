@@ -209,7 +209,7 @@
 <context>
     <name>LocaleController</name>
     <message>
-        <location filename="../../LocaleController.cpp" line="23"/>
+        <location filename="../../LocaleController.cpp" line="20"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
