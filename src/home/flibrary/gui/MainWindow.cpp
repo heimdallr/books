@@ -96,7 +96,7 @@ public:
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
 				m_collectionController->AddCollection(commandLine->GetInpx());
 			else
-				m_collectionController->CheckForUpdate();
+				QTimer::singleShot(std::chrono::seconds(10), [&] { m_collectionController->CheckForUpdate(); });
 		});
 	}
 
