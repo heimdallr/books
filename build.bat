@@ -13,13 +13,16 @@ rem echo testing
 rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
+echo installer creating
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DRootDir=%~dp0 %~dp0src\home\flibrary\app\resources\flibrary.iss
+
 goto End
 
 :Error
-echo building failed
+echo someting went wrong :(
 exit /B 1
 
 :End
-echo building time
+echo working time
 echo -- Start: %start_time%
 echo -- Stop:  %DATE% %TIME%
