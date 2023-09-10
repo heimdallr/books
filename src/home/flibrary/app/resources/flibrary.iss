@@ -27,15 +27,21 @@ ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile={#RootDir}LICENSE
-; Remove the following line to run in administrative install mode (install for all users.)
-PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir={#RootDir}build\bin\installer
-OutputBaseFilename=flibrary_setup
+OutputBaseFilename=flibrary_setup_{#MyAppVersion}
 SetupIconFile={#RootDir}src\home\flibrary\app\resources\icons\main.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+ArchitecturesInstallIn64BitMode=x64
+UsePreviousAppDir=no
+UsePreviousGroup=no
+UsePreviousLanguage=no
+UsePreviousPrivileges=no
+UsePreviousSetupType=no
+UsePreviousTasks=no
+UsePreviousUserInfo=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
