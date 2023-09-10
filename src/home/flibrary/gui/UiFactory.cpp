@@ -61,6 +61,7 @@ struct UiFactory::Impl
 {
 	Hypodermic::Container & container;
 
+	mutable std::filesystem::path inpx;
 	mutable std::shared_ptr<AbstractTreeViewController> treeViewController;
 	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
 
@@ -92,8 +93,9 @@ std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) c
 	return m_impl->container.resolve<TreeView>();
 }
 
-std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog() const
+std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::filesystem::path inpx) const
 {
+	m_impl->inpx = std::move(inpx);
 	return m_impl->container.resolve<IAddCollectionDialog>();
 }
 
@@ -175,6 +177,13 @@ QString UiFactory::GetExistingDirectory(const QString & title, const QString & d
 	{
 		return QFileDialog::getExistingDirectory(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, options);
 	});
+}
+
+std::filesystem::path UiFactory::GetNewCollectionInpx() const noexcept
+{
+	auto result = std::move(m_impl->inpx);
+	m_impl->inpx = std::filesystem::path {};
+	return result;
 }
 
 std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const noexcept

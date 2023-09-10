@@ -1,6 +1,7 @@
 #include "ui_AddCollectionDialog.h"
 #include "AddCollectionDialog.h"
 
+#include <QStandardPaths>
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
@@ -9,6 +10,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
+
+#include "config/version.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -44,136 +47,139 @@ TR_DEF
 
 QString GetDatabase(const IUiFactory & uiController, const QString & file)
 {
-    return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), QFileDialog::DontConfirmOverwrite);
+	return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), QFileDialog::DontConfirmOverwrite);
 }
 
 QString GetFolder(const IUiFactory & uiController, const QString & dir)
 {
-    return uiController.GetExistingDirectory(Tr(SELECT_ARCHIVES_FOLDER), dir);
+	return uiController.GetExistingDirectory(Tr(SELECT_ARCHIVES_FOLDER), dir);
 }
 
 }
 
 class AddCollectionDialog::Impl final
-    : GeometryRestorable
-    , GeometryRestorable::IObserver
+	: GeometryRestorable
+	, GeometryRestorable::IObserver
 {
-    NON_COPY_MOVABLE(Impl)
+	NON_COPY_MOVABLE(Impl)
 
 public:
-    explicit Impl(AddCollectionDialog & self
-        , std::shared_ptr<ISettings> settings
-        , std::shared_ptr<ICollectionController> collectionController
-        , std::shared_ptr<IUiFactory> uiFactory
-    )
-        : GeometryRestorable(*this, settings, "AddCollectionDialog")
+	explicit Impl(AddCollectionDialog & self
+		, std::shared_ptr<ISettings> settings
+		, std::shared_ptr<ICollectionController> collectionController
+		, std::shared_ptr<IUiFactory> uiFactory
+	)
+		: GeometryRestorable(*this, settings, "AddCollectionDialog")
 		, m_self(self)
 		, m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_uiFactory(std::move(uiFactory))
-    {
-        m_ui.setupUi(&m_self);
+	{
+		m_ui.setupUi(&m_self);
 
-        m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME)).toString());
-        m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE)).toString());
-        m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
+		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
+		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
+		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
 
-        connect(m_ui.btnCreateNew, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::CreateNew)) m_self.done(Result::CreateNew); } );
-        connect(m_ui.btnAdd, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::Add)) m_self.done(Result::Add); } );
-        connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, [&] { m_self.done(Result::Cancel); } );
-        connect(m_ui.btnDatabase, &QAbstractButton::clicked, &m_self, [&]
-        {
-            if (const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName()); !file.isEmpty())
+		if (const auto inpx = m_uiFactory->GetNewCollectionInpx(); !inpx.empty())
+			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpx.parent_path())));
+
+		connect(m_ui.btnCreateNew, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::CreateNew)) m_self.done(Result::CreateNew); } );
+		connect(m_ui.btnAdd, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::Add)) m_self.done(Result::Add); } );
+		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, [&] { m_self.done(Result::Cancel); } );
+		connect(m_ui.btnDatabase, &QAbstractButton::clicked, &m_self, [&]
+		{
+			if (const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName()); !file.isEmpty())
 				m_ui.editDatabase->setText(file);
-        });
-        connect(m_ui.btnArchive, &QAbstractButton::clicked, &m_self, [&]
-        {
-            if (const auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
-                m_ui.editArchive->setText(dir);
-        });
+		});
+		connect(m_ui.btnArchive, &QAbstractButton::clicked, &m_self, [&]
+		{
+			if (const auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
+				m_ui.editArchive->setText(dir);
+		});
 
-        connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
-        connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
-        connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 
-        Init();
-    }
+		Init();
+	}
 
-    ~Impl() override
-    {
-        if (m_self.result() == Result::Cancel)
-            return;
+	~Impl() override
+	{
+		if (m_self.result() == Result::Cancel)
+			return;
 
-        m_settings->Set(QString(RECENT_TEMPLATE).arg(NAME), GetName());
-        m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
-        m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
-    }
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(NAME), GetName());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
+	}
 
-    QString GetName() const
-    {
-        return m_ui.editName->text().simplified();
-    }
+	QString GetName() const
+	{
+		return m_ui.editName->text().simplified();
+	}
 
-    QString GetDatabaseFileName() const
-    {
-        return m_ui.editDatabase->text();
-    }
+	QString GetDatabaseFileName() const
+	{
+		return m_ui.editDatabase->text();
+	}
 
-    QString GetArchiveFolder() const
-    {
-        return m_ui.editArchive->text();
-    }
+	QString GetArchiveFolder() const
+	{
+		return m_ui.editArchive->text();
+	}
 
 private: // GeometryRestorable::IObserver
-    QWidget & GetWidget() noexcept override
-    {
-        return m_self;
-    }
+	QWidget & GetWidget() noexcept override
+	{
+		return m_self;
+	}
 
-    void OnFontChanged(const QFont&) override
-    {
-        m_self.adjustSize();
-        const auto height = m_self.sizeHint().height();
-        m_self.setMinimumHeight(height);
-        m_self.setMaximumHeight(height);
-    }
+	void OnFontChanged(const QFont&) override
+	{
+		m_self.adjustSize();
+		const auto height = m_self.sizeHint().height();
+		m_self.setMinimumHeight(height);
+		m_self.setMaximumHeight(height);
+	}
 
 private:
-    bool CheckData(const int mode) const
-    {
-        SetErrorText(m_ui.editName);
-        SetErrorText(m_ui.editDatabase);
-        SetErrorText(m_ui.editArchive);
+	bool CheckData(const int mode) const
+	{
+		SetErrorText(m_ui.editName);
+		SetErrorText(m_ui.editDatabase);
+		SetErrorText(m_ui.editArchive);
 
-        return true
-            && CheckName()
+		return true
+			&& CheckName()
 			&& CheckDatabase(mode)
 			&& CheckFolder(mode)
-            ;
-    }
+			;
+	}
 
-    [[nodiscard]] bool CheckName() const
-    {
-        const auto name = GetName();
+	[[nodiscard]] bool CheckName() const
+	{
+		const auto name = GetName();
 
-        if (name.isEmpty())
-            return SetErrorText(m_ui.editName, Error(EMPTY_NAME));
+		if (name.isEmpty())
+			return SetErrorText(m_ui.editName, Error(EMPTY_NAME));
 
-        if (m_collectionController->IsCollectionNameExists(name))
-            return SetErrorText(m_ui.editName, Error(COLLECTION_NAME_ALREADY_EXISTS));
+		if (m_collectionController->IsCollectionNameExists(name))
+			return SetErrorText(m_ui.editName, Error(COLLECTION_NAME_ALREADY_EXISTS));
 
-        return true;
-    }
+		return true;
+	}
 
-    [[nodiscard]] bool CheckDatabase(const int mode) const
-    {
-        const auto db = GetDatabaseFileName();
+	[[nodiscard]] bool CheckDatabase(const int mode) const
+	{
+		const auto db = GetDatabaseFileName();
 
-        if (db.isEmpty())
-            return SetErrorText(m_ui.editDatabase, Error(EMPTY_DATABASE));
+		if (db.isEmpty())
+			return SetErrorText(m_ui.editDatabase, Error(EMPTY_DATABASE));
 
-        if (const auto name = m_collectionController->GetCollectionDatabaseName(db); !name.isEmpty())
-            return SetErrorText(m_ui.editDatabase, Error(COLLECTION_DATABASE_ALREADY_EXISTS).arg(name));
+		if (const auto name = m_collectionController->GetCollectionDatabaseName(db); !name.isEmpty())
+			return SetErrorText(m_ui.editDatabase, Error(COLLECTION_DATABASE_ALREADY_EXISTS).arg(name));
 
 		if (mode == Result::Add && !QFile(db).exists())
 			return SetErrorText(m_ui.editDatabase, Error(DATABASE_NOT_FOUND));
@@ -181,15 +187,15 @@ private:
 		if (mode == Result::CreateNew && QFileInfo(db).suffix().toLower() == "inpx")
 			return SetErrorText(m_ui.editDatabase, Error(BAD_DATABASE_EXT));
 
-        return true;
-    }
+		return true;
+	}
 
-    [[nodiscard]] bool CheckFolder(const int mode) const
-    {
-        const auto folder = GetArchiveFolder();
+	[[nodiscard]] bool CheckFolder(const int mode) const
+	{
+		const auto folder = GetArchiveFolder();
 
-        if (folder.isEmpty())
-            return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));
+		if (folder.isEmpty())
+			return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));
 
 		if (!QDir(folder).exists())
 			return SetErrorText(m_ui.editArchive, Error(ARCHIVES_FOLDER_NOT_FOUND));
@@ -200,62 +206,62 @@ private:
 		if (mode == Result::CreateNew && !m_collectionController->IsCollectionFolderHasInpx(folder))
 			return SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
 
-        return true;
-    }
+		return true;
+	}
 
-    bool SetErrorText(QWidget * widget, const QString & text = {}) const
-    {
-        widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
-        return text.isEmpty()
-            ? (m_ui.lblError->setText(""), true)
-            : (m_ui.lblError->setText(text), false)
-            ;
-    }
+	bool SetErrorText(QWidget * widget, const QString & text = {}) const
+	{
+		widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
+		return text.isEmpty()
+			? (m_ui.lblError->setText(""), true)
+			: (m_ui.lblError->setText(text), false)
+			;
+	}
 
 private:
-    AddCollectionDialog & m_self;
-    PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-    PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-    PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-    Ui::AddCollectionDialog m_ui {};
+	AddCollectionDialog & m_self;
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	Ui::AddCollectionDialog m_ui {};
 };
 
 AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
-    , std::shared_ptr<ISettings> settings
-    , std::shared_ptr<ICollectionController> collectionController
-    , std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<ISettings> settings
+	, std::shared_ptr<ICollectionController> collectionController
+	, std::shared_ptr<IUiFactory> uiFactory
 )
-    : QDialog(parentWidgetProvider->GetWidget())
+	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this
-        , std::move(settings)
-        , std::move(collectionController)
-        , std::move(uiFactory)
-    )
+		, std::move(settings)
+		, std::move(collectionController)
+		, std::move(uiFactory)
+	)
 {
-    PLOGD << "AddCollectionDialog created";
+	PLOGD << "AddCollectionDialog created";
 }
 
 AddCollectionDialog::~AddCollectionDialog()
 {
-    PLOGD << "AddCollectionDialog destroyed";
+	PLOGD << "AddCollectionDialog destroyed";
 }
 
 int AddCollectionDialog::Exec()
 {
-    return exec();
+	return exec();
 }
 
 QString AddCollectionDialog::GetName() const
 {
-    return m_impl->GetName();
+	return m_impl->GetName();
 }
 
 QString AddCollectionDialog::GetDatabaseFileName() const
 {
-    return m_impl->GetDatabaseFileName();
+	return m_impl->GetDatabaseFileName();
 }
 
 QString AddCollectionDialog::GetArchiveFolder() const
 {
-    return m_impl->GetArchiveFolder();
+	return m_impl->GetArchiveFolder();
 }

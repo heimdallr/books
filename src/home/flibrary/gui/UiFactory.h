@@ -22,7 +22,7 @@ private: // IUiFactory
 	[[nodiscard]] QObject * GetParentObject() const noexcept override;
 
 	[[nodiscard]] std::shared_ptr<TreeView> CreateTreeViewWidget(ItemType type) const override;
-	[[nodiscard]] std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog() const override;
+	[[nodiscard]] std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpx) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const override;
 
 	void ShowAbout() const override;
@@ -37,6 +37,8 @@ private: // IUiFactory
 	[[nodiscard]] QString GetSaveFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const override;
 	[[nodiscard]] QString GetExistingDirectory(const QString & title, const QString & dir = {}, QFileDialog::Options options = QFileDialog::ShowDirsOnly) const override;
 
+private: // special
+	[[nodiscard]] std::filesystem::path GetNewCollectionInpx() const noexcept override;
 	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const noexcept override;
 	[[nodiscard]] QAbstractScrollArea & GetAbstractScrollArea() const noexcept override;
 

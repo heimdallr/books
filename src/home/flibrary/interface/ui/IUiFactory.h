@@ -22,7 +22,7 @@ public:
 	[[nodiscard]] virtual QObject * GetParentObject() const noexcept = 0;
 
 	[[nodiscard]] virtual std::shared_ptr<class TreeView> CreateTreeViewWidget(enum class ItemType type) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpx) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const = 0;
 
 	virtual void ShowAbout() const = 0;
@@ -37,10 +37,10 @@ public:
 	[[nodiscard]] virtual QString GetSaveFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const = 0;
 	[[nodiscard]] virtual QString GetExistingDirectory(const QString & title, const QString & dir = {}, QFileDialog::Options options = QFileDialog::ShowDirsOnly) const = 0;
 
-	// special
+public: // special
+	[[nodiscard]] virtual std::filesystem::path GetNewCollectionInpx() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> GetTreeViewController() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractScrollArea & GetAbstractScrollArea() const noexcept = 0;
-
 };
 
 }

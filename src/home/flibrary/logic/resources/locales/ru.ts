@@ -138,6 +138,19 @@
     </message>
 </context>
 <context>
+    <name>CommandLine</name>
+    <message>
+        <location filename="../../shared/CommandLine.cpp" line="13"/>
+        <source>Input file</source>
+        <translation>Входной файл</translation>
+    </message>
+    <message>
+        <location filename="../../shared/CommandLine.cpp" line="14"/>
+        <source>%1: e-book cataloger</source>
+        <translation>%1: каталогизатор электронных книг</translation>
+    </message>
+</context>
+<context>
     <name>GroupController</name>
     <message>
         <location filename="../../shared/GroupController.cpp" line="18"/>

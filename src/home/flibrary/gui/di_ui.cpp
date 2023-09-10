@@ -6,6 +6,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICommandLine.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
@@ -41,8 +42,7 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{
 		return std::make_shared<UiFactory>(*container);
-	}
-	).as<IUiFactory>().singleInstance();
+	}).as<IUiFactory>().singleInstance();
 	builder.registerType<MainWindow>().as<QMainWindow>().singleInstance();
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
