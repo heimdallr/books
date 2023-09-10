@@ -14,7 +14,7 @@ rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
 echo installer creating
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DRootDir=%~dp0 %~dp0src\home\flibrary\app\resources\flibrary.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\flibrary.iss
 
 goto End
 
