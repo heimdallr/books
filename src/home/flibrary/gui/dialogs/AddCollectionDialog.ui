@@ -45,7 +45,14 @@
      <item row="1" column="2">
       <widget class="QToolButton" name="btnDatabase">
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/gui.qrc">
+         <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -83,7 +90,14 @@
      <item row="2" column="2">
       <widget class="QToolButton" name="btnArchive">
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/gui.qrc">
+         <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -192,6 +206,8 @@
   <tabstop>editDatabase</tabstop>
   <tabstop>editArchive</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/gui.qrc"/>
+ </resources>
  <connections/>
 </ui>
