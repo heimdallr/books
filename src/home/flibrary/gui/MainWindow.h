@@ -27,6 +27,7 @@ public:
 		, std::shared_ptr<class ILogController> logController
 		, std::shared_ptr<class ProgressBar> progressBar
 		, std::shared_ptr<class LogItemDelegate> logItemDelegate
+		, std::shared_ptr<class ICommandLine> commandLine
 		, QWidget * parent = nullptr);
 	~MainWindow() override;
 

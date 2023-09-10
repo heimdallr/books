@@ -15,6 +15,7 @@
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
+#include "shared/CommandLine.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ProgressController.h"
@@ -29,6 +30,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 {
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
+	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();

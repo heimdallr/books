@@ -7,6 +7,10 @@
 
 #include "fnd/observer.h"
 
+namespace std::filesystem {
+class path;
+}
+
 namespace HomeCompa::Flibrary {
 
 struct Collection
@@ -34,7 +38,7 @@ public:
 	virtual ~ICollectionController() = default;
 
 public:
-	virtual void AddCollection() = 0;
+	virtual void AddCollection(const std::filesystem::path & inpx) = 0;
 	virtual void RemoveCollection() = 0;
 
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;

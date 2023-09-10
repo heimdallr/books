@@ -26,6 +26,7 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
+#include "interface/logic/ICommandLine.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -68,6 +69,7 @@ public:
 		, std::shared_ptr<ILogController> logController
 		, std::shared_ptr<QWidget> progressBar
 		, std::shared_ptr<QStyledItemDelegate> logItemDelegate
+		, std::shared_ptr<ICommandLine> commandLine
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, m_self(self)
@@ -89,10 +91,10 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		RestoreWidgetsState();
-		QTimer::singleShot(0, [&]
+		QTimer::singleShot(0, [&, commandLine = std::move(commandLine)]
 		{
-			if (m_collectionController->IsEmpty())
-				m_collectionController->AddCollection();
+			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
+				m_collectionController->AddCollection(commandLine->GetInpx());
 			else
 				m_collectionController->CheckForUpdate();
 		});
@@ -200,7 +202,7 @@ private:
 		});
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&]
 		{
-			m_collectionController->AddCollection();
+			m_collectionController->AddCollection({});
 		});
 		connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&]
 		{
@@ -399,6 +401,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<ILogController> logController
 	, std::shared_ptr<ProgressBar> progressBar
 	, std::shared_ptr<LogItemDelegate> logItemDelegate
+	, std::shared_ptr<ICommandLine> commandLine
 	, QWidget * parent
 )
 	: QMainWindow(parent)
@@ -413,6 +416,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(logController)
 		, std::move(progressBar)
 		, std::move(logItemDelegate)
+		, std::move(commandLine)
 	)
 {
 	PLOGD << "MainWindow created";

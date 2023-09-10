@@ -124,9 +124,9 @@ public:
 		return m_collections;
 	}
 
-	void AddCollection()
+	void AddCollection(const std::filesystem::path & inpx = {})
 	{
-		switch (const auto dialog = m_uiFactory->CreateAddCollectionDialog(); dialog->Exec())
+		switch (const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx); dialog->Exec())
 		{
 			case IAddCollectionDialog::Result::CreateNew:
 				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
@@ -346,9 +346,9 @@ CollectionController::~CollectionController()
 	PLOGD << "CollectionController destroyed";
 }
 
-void CollectionController::AddCollection()
+void CollectionController::AddCollection(const std::filesystem::path & inpx)
 {
-	m_impl->AddCollection();
+	m_impl->AddCollection(inpx);
 }
 
 void CollectionController::RemoveCollection()
