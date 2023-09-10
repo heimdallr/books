@@ -25,7 +25,6 @@ DefaultDirName={autopf}\{#MyAppName}
 ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-LicenseFile={#RootDir}LICENSE
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir={#RootDir}build\bin\installer
 OutputBaseFilename=flibrary_setup_{#MyAppVersion}
@@ -43,8 +42,8 @@ UsePreviousTasks=no
 UsePreviousUserInfo=no
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"; LicenseFile: {#RootDir}LICENSE.ru
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
