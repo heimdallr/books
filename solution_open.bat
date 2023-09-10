@@ -1,4 +1,5 @@
 @echo off
+
 if "%*"=="" goto read
 set SOLUTION_PATH=%~dp0%1
 goto find
