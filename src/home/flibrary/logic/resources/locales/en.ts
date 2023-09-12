@@ -153,38 +153,32 @@
     <name>GroupController</name>
     <message>
         <location filename="../../shared/GroupController.cpp" line="18"/>
-        <location filename="../../shared/SearchController.cpp" line="18"/>
         <source>Input new group name</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="19"/>
-        <location filename="../../shared/SearchController.cpp" line="19"/>
         <source>Group name</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="20"/>
-        <location filename="../../shared/SearchController.cpp" line="20"/>
         <source>New group</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="21"/>
-        <location filename="../../shared/SearchController.cpp" line="21"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="22"/>
-        <location filename="../../shared/SearchController.cpp" line="22"/>
         <source>Group name too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="23"/>
-        <location filename="../../shared/SearchController.cpp" line="23"/>
         <source>Group %1 already exists.
 Try again?</source>
         <translation></translation>
@@ -193,49 +187,49 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
         <source>Remove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="89"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="92"/>
         <source>Create new group...</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="97"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="100"/>
         <source>Create new search...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="112"/>
-        <source>Authors</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="113"/>
-        <source>Series</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="114"/>
-        <source>Genres</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="115"/>
-        <source>Archives</source>
+        <source>Authors</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="116"/>
-        <source>Groups</source>
+        <source>Series</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="117"/>
+        <source>Genres</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="118"/>
+        <source>Archives</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="119"/>
+        <source>Groups</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="120"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -252,39 +246,67 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>SearchController</name>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="21"/>
+        <source>Input new search string</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="22"/>
+        <source>Search</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="23"/>
+        <source>Are you sure you want to delete the search results (%1)?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="24"/>
+        <source>Cannot create search query (%1)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="25"/>
+        <source>Search query is too short. At least %1 characters required</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>UserData</name>
     <message>
-        <location filename="../../userdata/backup.cpp" line="26"/>
+        <location filename="../../userdata/backup.cpp" line="27"/>
         <source>Cannot write to &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="26"/>
+        <location filename="../../userdata/restore.cpp" line="27"/>
         <source>Cannot read from %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="27"/>
+        <location filename="../../userdata/restore.cpp" line="28"/>
         <source>Invalid root node name, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="28"/>
+        <location filename="../../userdata/restore.cpp" line="29"/>
         <source>Cannot find version node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="29"/>
+        <location filename="../../userdata/restore.cpp" line="30"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="30"/>
+        <location filename="../../userdata/restore.cpp" line="31"/>
         <source>%1: must be integer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="31"/>
+        <location filename="../../userdata/restore.cpp" line="32"/>
         <source>Cannot find user data node, must be %1</source>
         <translation></translation>
     </message>

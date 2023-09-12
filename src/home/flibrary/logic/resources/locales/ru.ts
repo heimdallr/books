@@ -154,31 +154,26 @@
     <name>GroupController</name>
     <message>
         <location filename="../../shared/GroupController.cpp" line="18"/>
-        <location filename="../../shared/SearchController.cpp" line="18"/>
         <source>Input new group name</source>
         <translation>Укажите имя новой группы</translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="19"/>
-        <location filename="../../shared/SearchController.cpp" line="19"/>
         <source>Group name</source>
         <translation>Имя группы</translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="20"/>
-        <location filename="../../shared/SearchController.cpp" line="20"/>
         <source>New group</source>
         <translation>Новая группа</translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="21"/>
-        <location filename="../../shared/SearchController.cpp" line="21"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation>Уверены, что хотите удалить группы (%1)?</translation>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="22"/>
-        <location filename="../../shared/SearchController.cpp" line="22"/>
         <source>Group name too long.
 Try again?</source>
         <translation>Имя слишком длинное.
@@ -186,7 +181,6 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../shared/GroupController.cpp" line="23"/>
-        <location filename="../../shared/SearchController.cpp" line="23"/>
         <source>Group %1 already exists.
 Try again?</source>
         <translation>Группа %1 уже есть.
@@ -196,53 +190,49 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
-        <source>Create new...</source>
-        <translation type="vanished">Создать новую...</translation>
-    </message>
-    <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="89"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="92"/>
         <source>Create new group...</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новую группу...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="97"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="100"/>
         <source>Create new search...</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый поиск...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="112"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="115"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="113"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="116"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="114"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="117"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="115"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="118"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="116"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="119"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="117"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="120"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск</translation>
     </message>
 </context>
 <context>
@@ -259,39 +249,67 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>SearchController</name>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="21"/>
+        <source>Input new search string</source>
+        <translation>Введите подстроку для поиска</translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="22"/>
+        <source>Search</source>
+        <translation>Поиск</translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="23"/>
+        <source>Are you sure you want to delete the search results (%1)?</source>
+        <translation>Уверены, что хотите удалить поисковые запросы (%1)?</translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="24"/>
+        <source>Cannot create search query (%1)</source>
+        <translation>Не удалось создать поисковый запрос %1</translation>
+    </message>
+    <message>
+        <location filename="../../shared/SearchController.cpp" line="25"/>
+        <source>Search query is too short. At least %1 characters required</source>
+        <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1</translation>
+    </message>
+</context>
+<context>
     <name>UserData</name>
     <message>
-        <location filename="../../userdata/backup.cpp" line="26"/>
+        <location filename="../../userdata/backup.cpp" line="27"/>
         <source>Cannot write to &apos;%1&apos;</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="26"/>
+        <location filename="../../userdata/restore.cpp" line="27"/>
         <source>Cannot read from %1</source>
         <translation>Jib,rf xntybz bp %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="27"/>
+        <location filename="../../userdata/restore.cpp" line="28"/>
         <source>Invalid root node name, must be %1</source>
         <translation>Неправильное имя корневого узла, должно быть %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="28"/>
+        <location filename="../../userdata/restore.cpp" line="29"/>
         <source>Cannot find version node, must be %1</source>
         <translation>Не найден узел версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="29"/>
+        <location filename="../../userdata/restore.cpp" line="30"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation>Не найден атрибут узла версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="30"/>
+        <location filename="../../userdata/restore.cpp" line="31"/>
         <source>%1: must be integer</source>
         <translation>Номер версии %1 должен быть целым значением</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="31"/>
+        <location filename="../../userdata/restore.cpp" line="32"/>
         <source>Cannot find user data node, must be %1</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>
