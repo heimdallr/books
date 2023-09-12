@@ -1,10 +1,30 @@
 #include "BaseModel.h"
 
+#include "fnd/IsOneOf.h"
+
+#include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IModelProvider.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
+
+namespace {
+
+QVariant GetValue(const IDataItem & item, const int column)
+{
+	if (item.GetType() == ItemType::Books && IsOneOf(column, BookItem::Column::SeqNumber, BookItem::Column::Size))
+	{
+		bool ok = false;
+		const auto result = item.GetRawData(column).toLongLong(&ok);
+		return ok ? result : -1;
+	}
+
+	return item.GetRawData(column);
+}
+
+}
 
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: QAbstractItemModel(parent)
@@ -32,7 +52,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	{
 		case Qt::DisplayRole:
 		case Qt::ToolTipRole:
-			return item->GetData(index.column());
+			return GetValue(*item, item->RemapColumn(index.column()));
 
 		case Qt::CheckStateRole:
 		case Role::CheckState:
@@ -47,7 +67,7 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::IsRemoved:
 			return item->IsRemoved();
 
-#define	BOOKS_COLUMN_ITEM(NAME) case Role::NAME: return item->GetRawData(BookItem::Column::NAME);
+#define	BOOKS_COLUMN_ITEM(NAME) case Role::NAME: return GetValue(*item, BookItem::Column::NAME);
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef	BOOKS_COLUMN_ITEM
 
