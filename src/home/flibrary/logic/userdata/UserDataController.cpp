@@ -35,7 +35,7 @@ UserDataController::UserDataController(std::shared_ptr<DatabaseUser> databaseUse
 
 UserDataController::~UserDataController()
 {
-	PLOGD << "UserDataController created";
+	PLOGD << "UserDataController destroyed";
 }
 
 void UserDataController::Backup(Callback callback) const
