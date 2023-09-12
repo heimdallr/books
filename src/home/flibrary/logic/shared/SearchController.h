@@ -10,9 +10,9 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-class GroupController
+class SearchController
 {
-	NON_COPY_MOVABLE(GroupController)
+	NON_COPY_MOVABLE(SearchController)
 
 public:
 	using Callback = std::function<void()>;
@@ -20,16 +20,14 @@ public:
 	using Ids = std::unordered_set<Id>;
 
 public:
-	GroupController(std::shared_ptr<class DatabaseUser> databaseUser
+	SearchController(std::shared_ptr<class DatabaseUser> databaseUser
 		, std::shared_ptr<class IUiFactory> uiFactory
 	);
-	~GroupController();
+	~SearchController();
 
 public:
 	void CreateNew(Callback callback) const;
 	void Remove(Ids ids, Callback callback) const;
-	void AddToGroup(Id id, Ids ids, Callback callback) const;
-	void RemoveFromGroup(Id id, Ids ids, Callback callback) const;
 
 private:
 	struct Impl;

@@ -27,6 +27,7 @@
 #include "shared/DatabaseUser.h"
 #include "shared/GroupController.h"
 #include "shared/ReaderController.h"
+#include "shared/SearchController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -89,6 +90,11 @@ std::unique_ptr<Util::IExecutor> LogicFactory::GetExecutor(Util::ExecutorInitial
 std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
 {
 	return m_impl->container.resolve<GroupController>();
+}
+
+std::shared_ptr<SearchController> LogicFactory::CreateSearchController() const
+{
+	return m_impl->container.resolve<SearchController>();
 }
 
 std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const

@@ -169,7 +169,7 @@ GroupController::~GroupController()
 	PLOGD << "GroupController destroyed";
 }
 
-void GroupController::CreateNewGroup(Callback callback) const
+void GroupController::CreateNew(Callback callback) const
 {
 	m_impl->GetAllGroups([&, callback = std::move(callback)] (const Names & names) mutable
 	{
@@ -177,7 +177,7 @@ void GroupController::CreateNewGroup(Callback callback) const
 	});
 }
 
-void GroupController::RemoveGroups(Ids ids, Callback callback) const
+void GroupController::Remove(Ids ids, Callback callback) const
 {
 	if (false
 		|| ids.empty()

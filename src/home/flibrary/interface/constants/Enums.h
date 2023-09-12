@@ -10,6 +10,7 @@ enum class NavigationMode
 	Genres,
 	Archives,
 	Groups,
+	Search,
 	Last
 };
 
