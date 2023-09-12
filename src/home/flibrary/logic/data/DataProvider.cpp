@@ -122,7 +122,7 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
 
 }
 
-class DataProvider::Impl
+class DataProvider::Impl final
 	: virtual public INavigationQueryExecutor
 {
 public:
