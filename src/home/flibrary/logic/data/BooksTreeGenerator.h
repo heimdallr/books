@@ -66,10 +66,9 @@ struct QStringWrapper
 	const QString & data;
 	bool operator<(const QStringWrapper & rhs) const
 	{
-		return std::ranges::lexicographical_compare(data, rhs.data, [this] (const QChar & lhs, const QChar & rhs)
-		{
-			return std::tuple(Category(lhs), lhs.toLower()) < std::tuple(Category(rhs), rhs.toLower());
-		});
+		assert(!data.isEmpty() && !rhs.data.isEmpty());
+		const auto lCategory = Category(data[0]), rCategory = Category(rhs.data[0]);
+		return lCategory != rCategory ? lCategory < rCategory : QString::compare(data, rhs.data, Qt::CaseInsensitive) < 0;
 	}
 
 private:
