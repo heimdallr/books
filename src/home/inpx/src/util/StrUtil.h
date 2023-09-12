@@ -102,7 +102,7 @@ struct StringLess<void>
 };
 
 template<typename T>
-T To(std::wstring_view value, T defaultValue = 0)
+T To(const std::wstring_view value, T defaultValue = 0)
 {
 	return value.empty()
 		? defaultValue
@@ -112,6 +112,7 @@ T To(std::wstring_view value, T defaultValue = 0)
 template <typename It>
 std::wstring_view Next(It & beg, const It end, const wchar_t separator)
 {
+	beg = std::find_if(beg, end, [] (const wchar_t c) { return !iswspace(c); });
 	auto next = std::find(beg, end, separator);
 	const std::wstring_view result(beg, next);
 	beg = next != end ? std::next(next) : end;
