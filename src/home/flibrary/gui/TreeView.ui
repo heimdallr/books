@@ -123,14 +123,14 @@
       <bool>true</bool>
      </property>
      <attribute name="headerShowSortIndicator" stdset="0">
-      <bool>false</bool>
+      <bool>true</bool>
      </attribute>
     </widget>
    </item>
   </layout>
  </widget>
  <resources>
-  <include location="../resources/main.qrc"/>
+  <include location="resources/gui.qrc"/>
  </resources>
  <connections/>
 </ui>

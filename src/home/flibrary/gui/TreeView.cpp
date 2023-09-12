@@ -218,7 +218,8 @@ private:
 		{
 			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
 			m_ui.treeView->setItemDelegate(m_delegate.get());
-			m_ui.treeView->setSortingEnabled(true);
+			m_ui.treeView->header()->setSectionsClickable(true);
+			m_ui.treeView->header()->setStretchLastSection(false);
 
 			auto * widget = m_ui.treeView->header();
 			widget->setStretchLastSection(false);
@@ -300,6 +301,10 @@ private:
 		{
 			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
 		});
+		connect(m_ui.treeView->header(), &QHeaderView::sortIndicatorChanged, &m_self, [&] (const int logicalIndex, const Qt::SortOrder sortOrder)
+		{
+			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(logicalIndex, sortOrder)), Role::SortOrder);
+		});
 	}
 
 	void SaveHeaderLayout()
@@ -365,6 +370,7 @@ private:
 
 			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
+			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(sortIndex, sortOrder)), Role::SortOrder);
 		}
 
 		indices.erase(-1);

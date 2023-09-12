@@ -27,6 +27,7 @@ struct Role
 		LanguageFilter,
 		ShowRemovedFilter,
 		Selected,
+		SortOrder,
 	};
 };
 

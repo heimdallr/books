@@ -101,6 +101,13 @@ bool SortFilterProxyModel::setData(const QModelIndex & index, const QVariant & v
 
 				return false;
 
+			case Role::SortOrder:
+			{
+				const auto [column, order] = value.value<QPair<int, Qt::SortOrder>>();
+				sort(column, order);
+				return true;
+			}
+
 			default:
 				break;
 		}
@@ -114,13 +121,20 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
 	return true
-		&& filterAcceptsText(itemIndex)
-		&& filterAcceptsLanguage(itemIndex)
-		&& filterAcceptsRemoved(itemIndex)
+		&& FilterAcceptsText(itemIndex)
+		&& FilterAcceptsLanguage(itemIndex)
+		&& FilterAcceptsRemoved(itemIndex)
 		;
 }
 
-bool SortFilterProxyModel::filterAcceptsText(const QModelIndex & index) const
+bool SortFilterProxyModel::lessThan(const QModelIndex & sourceLeft, const QModelIndex & sourceRight) const
+{
+	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
+	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
+	return lhsType != rhsType ? lhsType < rhsType : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+}
+
+bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex & index) const
 {
 	if (m_impl->m_filter.isEmpty())
 		return true;
@@ -129,7 +143,7 @@ bool SortFilterProxyModel::filterAcceptsText(const QModelIndex & index) const
 	return text.toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 }
 
-bool SortFilterProxyModel::filterAcceptsLanguage(const QModelIndex & index) const
+bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex & index) const
 {
 	return false
 		|| m_impl->m_languageFilter.isEmpty()
@@ -137,7 +151,7 @@ bool SortFilterProxyModel::filterAcceptsLanguage(const QModelIndex & index) cons
 		;
 }
 
-bool SortFilterProxyModel::filterAcceptsRemoved(const QModelIndex & index) const
+bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex & index) const
 {
 	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
 }

@@ -29,11 +29,12 @@ private: // QAbstractItemModel
 
 private: // QSortFilterProxyModel
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
+	bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
 
 private:
-	bool filterAcceptsText(const QModelIndex & index) const;
-	bool filterAcceptsLanguage(const QModelIndex & index) const;
-	bool filterAcceptsRemoved(const QModelIndex & index) const;
+	bool FilterAcceptsText(const QModelIndex & index) const;
+	bool FilterAcceptsLanguage(const QModelIndex & index) const;
+	bool FilterAcceptsRemoved(const QModelIndex & index) const;
 
 private:
 	struct Impl;
