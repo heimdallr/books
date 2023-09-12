@@ -15,4 +15,4 @@ bool IsOneOf(T const & x, Args const &... args)
 	return ((args == x) || ...);
 }
 
-} // namespace Movavi
+}
