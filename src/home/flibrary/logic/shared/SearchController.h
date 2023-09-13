@@ -8,6 +8,10 @@
 
 class QString;
 
+namespace HomeCompa {
+class ISettings;
+}
+
 namespace HomeCompa::Flibrary {
 
 class SearchController
@@ -20,13 +24,14 @@ public:
 	using Ids = std::unordered_set<Id>;
 
 public:
-	SearchController(std::shared_ptr<class DatabaseUser> databaseUser
+	SearchController(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class DatabaseUser> databaseUser
 		, std::shared_ptr<class IUiFactory> uiFactory
 	);
 	~SearchController();
 
 public:
-	void CreateNew(Callback callback) const;
+	void CreateNew(Callback callback);
 	void Remove(Ids ids, Callback callback) const;
 
 private:
