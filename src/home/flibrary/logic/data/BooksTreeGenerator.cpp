@@ -170,8 +170,6 @@ public:
 			return;
 
 		const auto queryText = QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString();
-		PLOGV << queryText;
-
 		const auto query = db.CreateQuery(queryText);
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
