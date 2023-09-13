@@ -16,6 +16,7 @@
 
 #include "constants/books.h"
 #include "constants/groups.h"
+#include "constants/searches.h"
 
 #include "backup.h"
 
@@ -81,11 +82,25 @@ void BackupUserDataGroups(DB::IDatabase & db, QXmlStreamWriter & stream)
 	}
 }
 
+void BackupUserDataSearches(DB::IDatabase & db, QXmlStreamWriter & stream)
+{
+	static constexpr auto text = "select s.Title from Searches_User s ";
+
+	const auto query = db.CreateQuery(text);
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		ScopedCall item([&] { stream.writeStartElement(Constant::ITEM); }, [&] { stream.writeEndElement();});
+		QString title = query->Get<const char *>(0);
+		stream.writeAttribute(Constant::TITLE, title);
+	}
+}
+
 constexpr std::pair<const char *, BackupFunction> BACKUPERS[]
 {
-#define ITEM(NAME) { #NAME, &BackupUserData##NAME }
+#define ITEM(NAME) { Constant::UserData::NAME::RootNode, &BackupUserData##NAME }
 		ITEM(Books),
 		ITEM(Groups),
+		ITEM(Searches),
 #undef	ITEM
 };
 

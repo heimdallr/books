@@ -13,9 +13,10 @@
 
 namespace HomeCompa::Flibrary::UserData {
 
-#define RESTORE_ITEMS_X_MACRO   \
-		RESTORE_ITEM(Books, 1)  \
-		RESTORE_ITEM(Groups, 1) \
+#define RESTORE_ITEMS_X_MACRO     \
+		RESTORE_ITEM(Books, 1)    \
+		RESTORE_ITEM(Groups, 1)   \
+		RESTORE_ITEM(Searches, 1) \
 
 #define RESTORE_ITEM(NAME, VERSION) void Restore##NAME##VERSION(DB::IDatabase & db, QXmlStreamReader & reader);
 		RESTORE_ITEMS_X_MACRO
