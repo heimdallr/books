@@ -169,7 +169,8 @@ public:
 		if (navigationId.isEmpty())
 			return;
 
-		const auto query = db.CreateQuery(QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString());
+		const auto queryText = QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString();
+		const auto query = db.CreateQuery(queryText);
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
 		for (query->Execute(); !query->Eof(); query->Next())

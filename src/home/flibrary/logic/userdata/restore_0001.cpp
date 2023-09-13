@@ -7,6 +7,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "constants/books.h"
 #include "constants/groups.h"
+#include "constants/searches.h"
 #include "constants/UserData.h"
 #include "database/interface/IQuery.h"
 #include "shared/DatabaseUser.h"
@@ -108,6 +109,34 @@ void RestoreGroups1(DB::IDatabase & db, QXmlStreamReader & reader)
 
 			addBookToGroupCommand->Execute();
 		}
+	}
+}
+
+void RestoreSearches1(DB::IDatabase & db, QXmlStreamReader & reader)
+{
+	using namespace Constant::UserData;
+	assert(reader.name().compare(Searches::RootNode) == 0);
+
+	const auto transaction = db.CreateTransaction();
+	transaction->CreateCommand("delete from Searches_User")->Execute();
+	const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
+
+	while (!reader.atEnd() && !reader.hasError())
+	{
+		const auto token = reader.readNext();
+		if (token == QXmlStreamReader::EndElement && reader.name().compare(Searches::RootNode) == 0)
+			return transaction->Commit();
+
+		if (token != QXmlStreamReader::StartElement)
+			continue;
+
+		const auto mode = reader.name();
+		const auto attributes = reader.attributes();
+
+		assert(mode.compare(Constant::ITEM) == 0 && attributes.hasAttribute(Constant::TITLE));
+		const auto title = attributes.value(Constant::TITLE).toString().toStdString();
+		createSearchCommand->Bind(0, title);
+		createSearchCommand->Execute();
 	}
 }
 

@@ -22,6 +22,7 @@
 #include "model/IModelObserver.h"
 #include "shared/DatabaseController.h"
 #include "shared/GroupController.h"
+#include "shared/SearchController.h"
 #include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;
@@ -29,6 +30,7 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 constexpr auto CONTEXT = "Navigation";
+constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
 using MenuRequester = IDataItem::Ptr(*)();
@@ -38,13 +40,20 @@ IDataItem::Ptr MenuRequesterStub()
 	return nullptr;
 }
 
+#define MENU_ACTION_ITEMS_X_MACRO         \
+		MENU_ACTION_ITEM(CreateNewGroup)  \
+		MENU_ACTION_ITEM(RemoveGroup)     \
+		MENU_ACTION_ITEM(CreateNewSearch) \
+		MENU_ACTION_ITEM(RemoveSearch)
+
 enum class MenuAction
 {
-	CreateNewGroup,
-	RemoveGroup,
+#define MENU_ACTION_ITEM(NAME) NAME,
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
 };
 
-class ITableSubscriptionHandler
+class ITableSubscriptionHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Function = void(ITableSubscriptionHandler::*)();
@@ -52,6 +61,7 @@ public:
 	virtual ~ITableSubscriptionHandler() = default;
 	virtual void On_Groups_User_Changed() = 0;
 	virtual void On_Groups_List_User_Changed() = 0;
+	virtual void On_Searches_User_Changed() = 0;
 };
 
 constexpr std::pair<std::string_view, ITableSubscriptionHandler::Function> SUBSCRIBED_TABLES[]
@@ -59,6 +69,7 @@ constexpr std::pair<std::string_view, ITableSubscriptionHandler::Function> SUBSC
 #define ITEM(NAME) {#NAME, &ITableSubscriptionHandler::On_##NAME##_Changed}
 		ITEM(Groups_User),
 		ITEM(Groups_List_User),
+		ITEM(Searches_User),
 #undef	ITEM
 };
 
@@ -78,8 +89,16 @@ void Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
 IDataItem::Ptr MenuRequesterGroups()
 {
 	auto result = MenuItem::Create();
-	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new..."), MenuAction::CreateNewGroup);
-	Add(result, QT_TRANSLATE_NOOP("Navigation", "Remove"), MenuAction::RemoveGroup);
+	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
+	Add(result, REMOVE, MenuAction::RemoveGroup);
+	return result;
+}
+
+IDataItem::Ptr MenuRequesterSearches()
+{
+	auto result = MenuItem::Create();
+	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
+	Add(result, REMOVE, MenuAction::RemoveSearch);
 	return result;
 }
 
@@ -98,6 +117,7 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -110,16 +130,18 @@ class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IContextMenuHandler() = default;
-	virtual void OnCreateNewGroupTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-	virtual void OnRemoveGroupTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
 };
 
 using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
 
 constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 {
-	{ MenuAction::CreateNewGroup, &IContextMenuHandler::OnCreateNewGroupTriggered },
-	{ MenuAction::RemoveGroup, &IContextMenuHandler::OnRemoveGroupTriggered },
+#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
 };
 
 }
@@ -136,7 +158,6 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
-	mutable std::shared_ptr<GroupController> groupController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
@@ -162,36 +183,56 @@ struct TreeViewControllerNavigation::Impl final
 	}
 
 private: // IContextMenuHandler
-	void OnCreateNewGroupTriggered(const QList<QModelIndex> &, const QModelIndex &) const override
+	template <typename T>
+	using ControllerCreator = std::shared_ptr<T>(ILogicFactory::*)() const;
+	template <typename T>
+	void OnCreateNavigationItem(ControllerCreator<T> creator) const
 	{
-		if (!groupController)
-			groupController = logicFactory->CreateGroupController();
-
-		groupController->CreateNewGroup([&, gc = groupController] () mutable
+		auto controller = ((*logicFactory).*creator)();
+		controller->CreateNew([=] () mutable
 		{
-			gc.reset();
+			controller.reset();
 		});
 	}
 
-	void OnRemoveGroupTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const override
+	template <typename T>
+	void OnRemoveNavigationItem(const QList<QModelIndex> & indexList, const QModelIndex & index, ControllerCreator<T> creator) const
 	{
 		const auto toId = [] (const QModelIndex & ind)
 		{
-			return ind.data(Role::Id).toInt();
+			return ind.data(Role::Id).toLongLong();
 		};
 
-		GroupController::Ids ids { toId(index) };
+		typename T::Ids ids { toId(index) };
 		std::ranges::transform(indexList, std::inserter(ids, ids.end()), toId);
 		if (ids.empty())
 			return;
 
-		if (!groupController)
-			groupController = logicFactory->CreateGroupController();
-
-		groupController->RemoveGroups(std::move(ids), [&, gc = groupController]() mutable
+		auto controller = ((*logicFactory).*creator)();
+		controller->Remove(std::move(ids), [=] () mutable
 		{
-			gc.reset();
+			controller.reset();
 		});
+	}
+
+	void OnCreateNewGroupTriggered(const QList<QModelIndex> &, const QModelIndex &) const override
+	{
+		OnCreateNavigationItem(&ILogicFactory::CreateGroupController);
+	}
+
+	void OnRemoveGroupTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const override
+	{
+		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateGroupController);
+	}
+
+	void OnCreateNewSearchTriggered(const QList<QModelIndex> &, const QModelIndex &) const override
+	{
+		OnCreateNavigationItem(&ILogicFactory::CreateSearchController);
+	}
+
+	void OnRemoveSearchTriggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const override
+	{
+		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateSearchController);
 	}
 
 private: // DatabaseController::IObserver
@@ -239,6 +280,14 @@ private: // ITableSubscriptionHandler
 	{
 		if (static_cast<NavigationMode>(mode) == NavigationMode::Groups)
 			self.RequestBooks(true);
+	}
+
+	void On_Searches_User_Changed() override
+	{
+		if (static_cast<NavigationMode>(mode) == NavigationMode::Search)
+			self.RequestNavigation();
+		else
+			models[static_cast<int>(NavigationMode::Search)].reset();
 	}
 
 	NON_COPY_MOVABLE(Impl)
@@ -335,7 +384,7 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index)
 	Perform(&IObserver::OnContextMenuReady, index.data(Role::Id).toString(), std::cref(item));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item) const
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

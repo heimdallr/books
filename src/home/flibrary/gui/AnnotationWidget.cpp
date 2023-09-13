@@ -11,6 +11,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/ILogicFactory.h"
@@ -19,7 +20,6 @@
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
-
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -40,7 +40,6 @@ constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select 
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
-constexpr auto RECENT_ID_KEY = "ui/Navigation/%1/LastId";
 
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
 constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
@@ -307,7 +306,7 @@ private:
 			return;
 		}
 
-		m_settings->Set(QString(RECENT_ID_KEY).arg(url.front()), url.back());
+		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(url.front()), url.back());
 		m_navigationController->SetMode(url.front());
 	}
 
