@@ -75,7 +75,10 @@ private:
 	[[nodiscard]] int Category(const QChar & c) const noexcept
 	{
 		assert(c.category() < static_cast<int>(std::size(m_categories)));
-		return m_categories[c.category()];
+		if (const auto result = m_categories[c.category()]; result != 0)
+			return result;
+
+		return c.row() == 4 ? 0 : 1;
 	}
 
 private:
