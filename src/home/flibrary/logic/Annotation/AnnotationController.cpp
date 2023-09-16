@@ -147,9 +147,10 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
-		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]
+		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]() mutable
 		{
-			return [&, data = m_logicFactory->CreateArchiveParser()->Parse(*book)] (size_t) mutable
+			auto data = m_logicFactory->CreateArchiveParser()->Parse(*book);
+			return [&, book = std::move(book), data = std::move(data)] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
 					return;
