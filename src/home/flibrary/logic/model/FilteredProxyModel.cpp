@@ -23,7 +23,7 @@ void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & in
 		const auto parent = queue.front();
 		queue.pop();
 		const auto rowCount = model.rowCount(parent);
-		if (rowCount == 0)
+		if (parent.isValid() && rowCount == 0)
 			f(parent);
 
 		for (int i = 0; i < rowCount; ++i)
