@@ -3,8 +3,10 @@
 #include <plog/Log.h>
 
 #include "database/interface/ITransaction.h"
+#include "interface/constants/Enums.h"
 
 #include "interface/constants/Localization.h"
+#include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "shared/DatabaseUser.h"
@@ -27,7 +29,6 @@ constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
 constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, BookId) values(?, ?)";
 constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where BookID = ?";
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX = " and GroupID = ?";
-constexpr auto SELECT_ALL_GROUPS_QUERY = "select Title from Groups_User";
 
 using Names = std::unordered_set<QString>;
 
@@ -50,31 +51,28 @@ TR_DEF
 struct GroupController::Impl
 {
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 
 	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<IUiFactory> uiFactory
 	)
 		: databaseUser(std::move(databaseUser))
+		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
 	{
 	}
 
 	void GetAllGroups(std::function<void(const Names &)> callback) const
 	{
-		databaseUser->Execute({ "Extract groups", [&, callback = std::move(callback)] () mutable
+		navigationQueryExecutor->RequestNavigation(NavigationMode::Groups, [callback = std::move(callback)] (NavigationMode, const IDataItem::Ptr & root)
 		{
-			const auto db = databaseUser->Database();
-			const auto query = db->CreateQuery(SELECT_ALL_GROUPS_QUERY);
 			Names names;
-			for (query->Execute(); !query->Eof(); query->Next())
-				names.insert(query->Get<const char *>(0));
-
-			return [names = std::move(names), callback = std::move(callback)] (size_t) mutable
-			{
-				callback(names);
-			};
-		} });
+			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
+				names.insert(root->GetChild(i)->GetData());
+			callback(names);
+		});
 	}
 
 	void CreateNewGroup(const Names & names, Callback callback) const
@@ -147,7 +145,7 @@ struct GroupController::Impl
 			{
 				if (uiFactory->ShowWarning(Tr(GROUP_NAME_TOO_LONG), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 					continue;
-				
+
 				return {};
 			}
 
@@ -157,9 +155,10 @@ struct GroupController::Impl
 };
 
 GroupController::GroupController(std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	, std::shared_ptr<IUiFactory> uiFactory
 )
-	: m_impl(std::move(databaseUser), std::move(uiFactory))
+	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGD << "GroupController created";
 }

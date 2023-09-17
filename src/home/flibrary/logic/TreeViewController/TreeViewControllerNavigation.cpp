@@ -14,6 +14,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "ChangeNavigationController/GroupController.h"
+#include "ChangeNavigationController/SearchController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -21,8 +23,6 @@
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
 #include "shared/DatabaseController.h"
-#include "shared/GroupController.h"
-#include "shared/SearchController.h"
 #include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;

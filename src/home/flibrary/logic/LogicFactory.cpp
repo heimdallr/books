@@ -12,6 +12,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IUiFactory.h"
@@ -21,13 +22,14 @@
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 
+#include "ChangeNavigationController/GroupController.h"
+#include "ChangeNavigationController/SearchController.h"
+
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/BooksExtractor.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
-#include "shared/GroupController.h"
 #include "shared/ReaderController.h"
-#include "shared/SearchController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

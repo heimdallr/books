@@ -153,34 +153,34 @@
 <context>
     <name>GroupController</name>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="18"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="20"/>
         <source>Input new group name</source>
         <translation>Укажите имя новой группы</translation>
     </message>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="19"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="21"/>
         <source>Group name</source>
         <translation>Имя группы</translation>
     </message>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="20"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="22"/>
         <source>New group</source>
         <translation>Новая группа</translation>
     </message>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="21"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="23"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation>Уверены, что хотите удалить группы (%1)?</translation>
     </message>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="22"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="24"/>
         <source>Group name too long.
 Try again?</source>
         <translation>Имя слишком длинное.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../shared/GroupController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="25"/>
         <source>Group %1 already exists.
 Try again?</source>
         <translation>Группа %1 уже есть.
@@ -251,29 +251,45 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../shared/SearchController.cpp" line="21"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
         <source>Input new search string</source>
         <translation>Введите подстроку для поиска</translation>
     </message>
     <message>
-        <location filename="../../shared/SearchController.cpp" line="22"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../shared/SearchController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation>Уверены, что хотите удалить поисковые запросы (%1)?</translation>
     </message>
     <message>
-        <location filename="../../shared/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Cannot create search query (%1)</source>
         <translation>Не удалось создать поисковый запрос %1</translation>
     </message>
     <message>
-        <location filename="../../shared/SearchController.cpp" line="25"/>
-        <source>Search query is too short. At least %1 characters required</source>
-        <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1</translation>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <source>Search query is too short. At least %1 characters required.
+Try again?</source>
+        <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1
+Попробуете ещё раз?</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <source>Search query too long.
+Try again?</source>
+        <translation>Поисковый запрос слишком длинный.
+Попробуете ещё раз?</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <source>Search query %1 already exists.
+Try again?</source>
+        <translation>Поисковый запрос %1 уже есть.
+Попробуете ещё раз?</translation>
     </message>
 </context>
 <context>
