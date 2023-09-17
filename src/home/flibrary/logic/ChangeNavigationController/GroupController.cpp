@@ -145,7 +145,7 @@ struct GroupController::Impl
 			{
 				if (uiFactory->ShowWarning(Tr(GROUP_NAME_TOO_LONG), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 					continue;
-				
+
 				return {};
 			}
 
