@@ -21,6 +21,7 @@ public:
 
 public:
 	GroupController(std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<class IUiFactory> uiFactory
 	);
 	~GroupController();

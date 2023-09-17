@@ -3,9 +3,11 @@
 #include <plog/Log.h>
 
 #include "database/interface/ITransaction.h"
+#include "interface/constants/Enums.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "shared/DatabaseUser.h"
@@ -22,11 +24,15 @@ constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "In
 constexpr auto SEARCH                = QT_TRANSLATE_NOOP("SearchController", "Search");
 constexpr auto REMOVE_SEARCH_CONFIRM = QT_TRANSLATE_NOOP("SearchController", "Are you sure you want to delete the search results (%1)?");
 constexpr auto CANNOT_CREATE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot create search query (%1)");
-constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required");
+constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required.\nTry again?");
+constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
+constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query %1 already exists.\nTry again?");
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
+
+using Names = std::unordered_set<QString>;
 
 long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & name)
 {
@@ -48,26 +54,37 @@ struct SearchController::Impl
 {
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 
 	explicit Impl(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<IUiFactory> uiFactory
 	)
 		: settings(std::move(settings))
 		, databaseUser(std::move(databaseUser))
+		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
 	{
 	}
 
-	void CreateNewSearch(Callback callback)
+	void GetAllSearches(std::function<void(const Names &)> callback) const
 	{
-		auto searchString = uiFactory->GetText(Tr(INPUT_NEW_SEARCH), Tr(SEARCH));
+		navigationQueryExecutor->RequestNavigation(NavigationMode::Search, [callback = std::move(callback)] (NavigationMode, const IDataItem::Ptr & root)
+		{
+			Names names;
+			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
+				names.insert(root->GetChild(i)->GetData());
+			callback(names);
+		});
+	}
+
+	void CreateNewSearch(const Names & names, Callback callback)
+	{
+		auto searchString = GetNewSearchText(names);
 		if (searchString.isEmpty())
 			return;
-
-		if (searchString.length() < MINIMUM_SEARCH_LENGTH)
-			return (void)uiFactory->ShowWarning(Tr(TOO_SHORT_SEARCH).arg(MINIMUM_SEARCH_LENGTH));
 
 		databaseUser->Execute({ "Create search string", [&, searchString = std::move(searchString), callback = std::move(callback)] () mutable
 		{
@@ -86,13 +103,54 @@ struct SearchController::Impl
 			};
 		} });
 	}
+
+	QString GetNewSearchText(const Names & names) const
+	{
+		while (true)
+		{
+			auto searchString = uiFactory->GetText(Tr(INPUT_NEW_SEARCH), Tr(SEARCH));
+			if (searchString.isEmpty())
+				return {};
+
+			if (searchString.length() < MINIMUM_SEARCH_LENGTH)
+			{
+				if (uiFactory->ShowWarning(Tr(TOO_SHORT_SEARCH).arg(MINIMUM_SEARCH_LENGTH), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+					continue;
+
+				return {};
+			}
+
+			if (names.contains(searchString))
+			{
+				if (uiFactory->ShowWarning(Tr(SEARCH_ALREADY_EXISTS).arg(searchString), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+					continue;
+
+				return {};
+			}
+
+			if (searchString.length() > 148)
+			{
+				if (uiFactory->ShowWarning(Tr(SEARCH_TOO_LONG), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+					continue;
+
+				return {};
+			}
+
+			return searchString;
+		}
+	}
 };
 
 SearchController::SearchController(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	, std::shared_ptr<IUiFactory> uiFactory
 )
-	: m_impl(std::move(settings), std::move(databaseUser), std::move(uiFactory))
+	: m_impl(std::move(settings)
+		, std::move(databaseUser)
+		, std::move(navigationQueryExecutor)
+		, std::move(uiFactory)
+	)
 {
 	PLOGD << "SearchController created";
 }
@@ -104,7 +162,10 @@ SearchController::~SearchController()
 
 void SearchController::CreateNew(Callback callback)
 {
-	m_impl->CreateNewSearch(std::move(callback));
+	m_impl->GetAllSearches([&, callback = std::move(callback)] (const Names & names) mutable
+	{
+		m_impl->CreateNewSearch(names, std::move(callback));
+	});
 }
 
 void SearchController::Remove(Ids ids, Callback callback) const
