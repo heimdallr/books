@@ -20,7 +20,8 @@ private: // INavigationQueryExecutor
 	const QueryDescription & GetQueryDescription(NavigationMode navigationMode) const override;
 
 private:
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }

@@ -30,6 +30,8 @@ constexpr auto WHERE_ARCHIVE = "where b.Folder  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and b.SearchTitle like '%'||MHL_UPPER(su.Title)||'%'";
 
+using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
+
 QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
 {
 	QString title = query.Get<const char *>(index[2]);
@@ -66,26 +68,25 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
 	, const DatabaseUser& databaseUser
 	, const QueryDescription & queryDescription
+	, Cache & cache
 )
 {
 	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
+	assert(db);
 	databaseUser.Execute({ "Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
-		std::unordered_map<QString, IDataItem::Ptr> cache;
+		std::unordered_map<QString, IDataItem::Ptr> index;
 
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
-			cache.emplace(item->GetId(), item);
+			index.emplace(item->GetId(), item);
 		}
 
 		IDataItem::Items items;
-		items.reserve(std::size(cache));
-		std::ranges::copy(cache | std::views::values, std::back_inserter(items));
+		items.reserve(std::size(index));
+		std::ranges::copy(index | std::views::values, std::back_inserter(items));
 
 		std::ranges::sort(items, [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 		{
@@ -97,6 +98,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 
 		return [&, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
+			cache[mode] = root;
 			callback(mode, std::move(root));
 		};
 	} }, 1);
@@ -106,25 +108,24 @@ void RequestNavigationGenres(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
 	, const DatabaseUser & databaseUser
 	, const QueryDescription & queryDescription
+	, Cache & cache
 )
 {
 	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
+	assert(db);
 	databaseUser.Execute({"Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
-		std::unordered_map<QString, IDataItem::Ptr> cache;
+		std::unordered_map<QString, IDataItem::Ptr> index;
 
 		auto root = NavigationItem::Create();
 		std::unordered_multimap<QString, IDataItem::Ptr> items;
-		cache.emplace("0", root);
+		index.emplace("0", root);
 
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = items.emplace(query->Get<const char *>(2), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
-			cache.emplace(item->GetId(), std::move(item));
+			index.emplace(item->GetId(), std::move(item));
 		}
 
 		std::stack<QString> stack { {"0"} };
@@ -136,8 +137,8 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 			const auto parent = [&]
 			{
-				const auto it = cache.find(parentId);
-				assert(it != cache.end());
+				const auto it = index.find(parentId);
+				assert(it != index.end());
 				return it->second;
 			}();
 
@@ -150,8 +151,9 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 		assert(std::ranges::all_of(items | std::views::values, [] (const auto & item) { return !item; }));
 
-		return [&, mode, callback = std::move(callback), root = std::move(root), cache = std::move(cache)] (size_t) mutable
+		return [&, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
+			cache[mode] = root;
 			callback(mode, std::move(root));
 		};
 	}}, 1);
@@ -161,6 +163,7 @@ using NavigationRequest = void (*)(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
 	, const DatabaseUser & databaseUser
 	, const QueryDescription & queryDescription
+	, Cache & cache
 	);
 
 
@@ -192,10 +195,61 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(QUERIES));
 
+constexpr std::pair<const char *, NavigationMode> TABLES[]
+{
+	{ "Authors", NavigationMode::Authors },
+	{ "Series", NavigationMode::Series },
+	{ "Genres", NavigationMode::Genres },
+	{ "Groups_User", NavigationMode::Groups },
+	{ "Books", NavigationMode::Archives },
+	{ "Searches_User", NavigationMode::Search },
+};
+
 }
 
+struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
+{
+	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	mutable Cache cache;
+
+	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+		: databaseUser(std::move(databaseUser))
+	{
+		const auto db = this->databaseUser->Database();
+		assert(db);
+		db->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		const auto db = this->databaseUser->Database();
+		assert(db);
+		db->UnregisterObserver(this);
+	}
+
+private: // DB::IDatabaseObserver
+	void OnInsert(std::string_view, const std::string_view tableName, int64_t) override
+	{
+		OnTableUpdate(tableName);
+	}
+	void OnUpdate(std::string_view, std::string_view, int64_t) override{}
+	void OnDelete(std::string_view, const std::string_view tableName, int64_t) override
+	{
+		OnTableUpdate(tableName);
+	}
+
+private:
+	void OnTableUpdate(const std::string_view tableName) const
+	{
+		if (const auto it = FindPairIteratorByFirst(TABLES, tableName.data(), PszComparer {}); it != std::cend(TABLES))
+			cache.erase(it->second);
+	}
+
+	NON_COPY_MOVABLE(Impl)
+};
+
 NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<DatabaseUser> databaseUser)
-	: m_databaseUser(std::move(databaseUser))
+	: m_impl(std::move(databaseUser))
 {
 	PLOGD << "NavigationQueryExecutor created";
 }
@@ -207,8 +261,11 @@ NavigationQueryExecutor::~NavigationQueryExecutor()
 
 void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback) const
 {
+	if (const auto it = m_impl->cache.find(navigationMode); it != m_impl->cache.end())
+		return callback(navigationMode, it->second);
+
 	const auto & [request, description] = FindSecond(QUERIES, navigationMode);
-	std::invoke(request, navigationMode, std::move(callback), std::cref(*m_databaseUser), std::cref(description));
+	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, m_impl->cache);
 }
 
 const QueryDescription & NavigationQueryExecutor::GetQueryDescription(const NavigationMode navigationMode) const
