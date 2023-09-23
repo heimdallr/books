@@ -20,3 +20,5 @@ AddTarget(logic	shared_lib
 	DEPENDENCIES
 		MyHomeLibSQLIteExt
 )
+
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.ini DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
