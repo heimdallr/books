@@ -23,6 +23,7 @@
 #include "util/ISettings.h"
 
 #include "ItemViewToolTipper.h"
+#include "interface/logic/ICollectionController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -32,14 +33,12 @@ namespace {
 constexpr auto VALUE_MODE_ICON_TEMPLATE = ":/icons/%1.png";
 constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto VALUE_MODE_STYLE_SHEET = "QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}";
-constexpr auto COLUMNS_KEY = "ui/%1/%2/Columns/%3";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
-constexpr auto RECENT_ID_KEY = "ui/%1";
 
 class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -71,12 +70,14 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
+		, std::shared_ptr<ICollectionController> collectionController
 	)
 		: m_self(self)
 		, m_controller(std::move(controller))
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 		, m_itemViewToolTipper(std::move(itemViewToolTipper))
+		, m_collectionController(std::move(collectionController))
 	{
 		Setup();
 	}
@@ -488,16 +489,12 @@ private:
 
 	QString GetColumnSettingsKey(const char * value = nullptr) const
 	{
-		auto key = QString(COLUMNS_KEY)
+		return QString("ui/%1/%2/Columns/%3%4")
 			.arg(m_controller->TrContext())
 			.arg(m_recentMode)
 			.arg(m_navigationModeName)
+			.arg(value ? QString("/%1").arg(value) : QString{})
 			;
-
-		if (value)
-			key.append(QString("/%1").arg(value));
-
-		return key;
 	}
 
 	QString GetValueModeKey() const
@@ -507,14 +504,11 @@ private:
 
 	QString GetRecentIdKey() const
 	{
-		auto key = QString(RECENT_ID_KEY).arg(m_controller->TrContext());
-
-		if (m_controller->GetItemType() == ItemType::Navigation)
-			key.append(QString("/%1").arg(m_recentMode));
-
-		key.append("/LastId");
-
-		return key;
+		return QString("Collections/%1/%2%3/LastId")
+			.arg(m_collectionController->GetActiveCollection()->id)
+			.arg(m_controller->TrContext())
+			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode): QString{})
+			;
 	}
 
 private:
@@ -523,6 +517,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -537,6 +532,7 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
+	, std::shared_ptr<ICollectionController> collectionController
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -545,6 +541,7 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 		, std::move(settings)
 		, std::move(uiFactory)
 		, std::move(itemViewToolTipper)
+		, std::move(collectionController)
 	)
 {
 	PLOGD << "TreeView created";
