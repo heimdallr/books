@@ -27,8 +27,8 @@
 [[maybe_unused]] constexpr const char * SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
 [[maybe_unused]] constexpr std::wstring_view INP_EXT = L".inp";
-[[maybe_unused]] constexpr std::wstring_view UNKNOWN = L"unknown";
-[[maybe_unused]] constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code";
+[[maybe_unused]] constexpr std::wstring_view UNKNOWN = L"unknown_root";
+[[maybe_unused]] constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code_root";
 
 [[maybe_unused]] constexpr size_t LOG_INTERVAL = 10000;
 
