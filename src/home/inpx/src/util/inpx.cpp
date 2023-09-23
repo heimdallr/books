@@ -247,7 +247,6 @@ void ProcessVersionInfo(QIODevice & stream, SettingsTableData & settingsTableDat
 void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
 {
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
-	auto & unknownGenre = data.genres[unknownGenreId];
 
 	folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
 
@@ -289,10 +288,11 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			data.booksAuthors.emplace_back(id, idAuthor);
 
 		auto idGenres = ParseItem(genres, genresIndex,
-			[unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres] (std::wstring_view title)
-		{
+			[unknownGenreId, &unknownGenres, &data = data.genres](std::wstring_view title)
+			{
 				const auto result = std::size(data);
 				auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
+				auto & unknownGenre = data[unknownGenreId];
 				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
 				unknownGenres.push_back(genre.name);
 				return result;
