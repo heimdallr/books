@@ -218,7 +218,9 @@ public:
 
 	void OnResize() const
 	{
-		if (m_covers.empty())
+		m_ui.cover->setVisible(m_showCover);
+
+		if (m_covers.empty() || !m_ui.cover->isVisible())
 			return;
 
 		const auto maxHeight = m_ui.mainWidget->height();
@@ -274,9 +276,6 @@ private: // IAnnotationController::IObserver
 		if (m_coverIndex = dataProvider.GetCoverIndex(); m_coverIndex < 0)
 			m_coverIndex = 0;
 		m_currentCoverIndex = m_coverIndex;
-
-		if (m_showCover)
-			m_ui.cover->setVisible(true);
 
 		if (m_covers.size() > 1)
 			m_ui.cover->setCursor(Qt::PointingHandCursor);
