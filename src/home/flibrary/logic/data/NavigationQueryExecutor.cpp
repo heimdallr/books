@@ -18,7 +18,7 @@ namespace {
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto GENRES_QUERY = "select GenreCode, GenreAlias, ParentCode from Genres";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select distinct Folder from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
