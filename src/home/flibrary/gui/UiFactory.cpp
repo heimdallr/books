@@ -6,6 +6,7 @@
 #include <QFileInfo>
 
 #include "ParentWidgetProvider.h"
+#include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IDialog.h"

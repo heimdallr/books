@@ -7,6 +7,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/logic/ICollectionController.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -56,16 +57,19 @@ struct SearchController::Impl
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
 
 	explicit Impl(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<DatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<ICollectionController> collectionController
 	)
 		: settings(std::move(settings))
 		, databaseUser(std::move(databaseUser))
 		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
+		, collectionController(std::move(collectionController))
 	{
 	}
 
@@ -96,7 +100,7 @@ struct SearchController::Impl
 			return [&, id, searchString = std::move(searchString), callback = std::move(callback)] (size_t)
 			{
 				if (id)
-					settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg("Search"), QString::number(id));
+					settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collectionController->GetActiveCollection()->id).arg("Search"), QString::number(id));
 				else
 					uiFactory->ShowWarning(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
 				callback();
@@ -145,11 +149,13 @@ SearchController::SearchController(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DatabaseUser> databaseUser
 	, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<ICollectionController> collectionController
 )
 	: m_impl(std::move(settings)
 		, std::move(databaseUser)
 		, std::move(navigationQueryExecutor)
 		, std::move(uiFactory)
+		, std::move(collectionController)
 	)
 {
 	PLOGD << "SearchController created";

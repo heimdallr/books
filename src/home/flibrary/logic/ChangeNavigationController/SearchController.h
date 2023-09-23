@@ -28,6 +28,7 @@ public:
 		, std::shared_ptr<class DatabaseUser> databaseUser
 		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class ICollectionController> collectionController
 	);
 	~SearchController();
 

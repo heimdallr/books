@@ -13,30 +13,31 @@ namespace HomeCompa::Flibrary {
 
 class TreeView final : public QWidget
 {
-    Q_OBJECT
-    NON_COPY_MOVABLE(TreeView)
+	Q_OBJECT
+	NON_COPY_MOVABLE(TreeView)
 
 public:
-    TreeView(std::shared_ptr<class ITreeViewController> controller
-        , std::shared_ptr<ISettings> settings
-        , std::shared_ptr<class IUiFactory> uiFactory
-        , std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper
-        , QWidget * parent = nullptr);
-    ~TreeView() override;
+	TreeView(std::shared_ptr<class ITreeViewController> controller
+		, std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper
+		, std::shared_ptr<class ICollectionController> collectionController
+		, QWidget * parent = nullptr);
+	~TreeView() override;
 
 signals:
-    void NavigationModeNameChanged(QString navigationModeName) const;
+	void NavigationModeNameChanged(QString navigationModeName) const;
 
 public:
-    void SetNavigationModeName(QString navigationModeName);
-    void ShowRemoved(bool hideRemoved);
+	void SetNavigationModeName(QString navigationModeName);
+	void ShowRemoved(bool hideRemoved);
 
 private: // QWidget
-    void resizeEvent(QResizeEvent* event) override;
+	void resizeEvent(QResizeEvent* event) override;
 
 private:
-    class Impl;
-    PropagateConstPtr<Impl> m_impl;
+	class Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }
