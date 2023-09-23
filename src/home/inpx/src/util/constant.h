@@ -1,4 +1,4 @@
-#include <string_view>
+#pragma once
 
 [[maybe_unused]] constexpr wchar_t COMMENT_START     = '#';
 [[maybe_unused]] constexpr wchar_t DATE_SEPARATOR   = '-';
