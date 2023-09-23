@@ -28,7 +28,7 @@ constexpr auto EXTENSION = "extension";
 
 using ConnectionParameters = std::multimap<std::string, std::string>;
 
-using ObserverMethod = void(IDatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
+using ObserverMethod = void(IDatabaseObserver::*)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
 constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
 {
@@ -91,7 +91,7 @@ private:
 };
 
 class Database
-	: virtual public DB::IDatabase
+	: virtual public IDatabase
 	, public Observable<IDatabaseObserver>
 {
 	NON_COPY_MOVABLE(Database)
@@ -123,7 +123,7 @@ public:
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)
 			m_db.load_extension(begin->second.data());
 
-		m_db.set_update_handler([&](int opCode, char const * dbName, char const * tableName, int64_t rowId)
+		m_db.set_update_handler([&](const int opCode, char const * dbName, char const * tableName, const int64_t rowId)
 		{
 			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
 		});
@@ -142,7 +142,7 @@ private: // Database
 		return CreateTransactionImpl(m_guard, m_db);
 	}
 
-	[[nodiscard]] std::unique_ptr<IQuery> CreateQuery(std::string_view query) override
+	[[nodiscard]] std::unique_ptr<IQuery> CreateQuery(const std::string_view query) override
 	{
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
@@ -177,7 +177,7 @@ private:
 
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabase(const std::string & connection)
+std::unique_ptr<IDatabase> CreateDatabase(const std::string & connection)
 {
 	return std::make_unique<Database>(connection);
 }
