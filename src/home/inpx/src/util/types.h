@@ -1,23 +1,24 @@
 #pragma once
+
 #include "StrUtil.h"
 
 struct Book
 {
-	Book(size_t id_
-		, std::wstring_view libId_
-		, std::wstring_view title_
-		, int seriesId_
-		, int seriesNum_
-		, std::wstring_view date_
-		, int rate_
-		, std::wstring_view language_
-		, std::wstring_view folder_
-		, std::wstring_view fileName_
-		, size_t insideNo_
-		, std::wstring_view format_
-		, size_t size_
-		, bool isDeleted_
-		, std::wstring_view keywords_ = {}
+	Book(const size_t id_
+		, const std::wstring_view libId_
+		, const std::wstring_view title_
+		, const int seriesId_
+		, const int seriesNum_
+		, const std::wstring_view date_
+		, const int rate_
+		, const std::wstring_view language_
+		, const std::wstring_view folder_
+		, const std::wstring_view fileName_
+		, const size_t insideNo_
+		, const std::wstring_view format_
+		, const size_t size_
+		, const bool isDeleted_
+		, const std::wstring_view keywords_ = {}
 	)
 		: id(id_)
 		, libId(libId_)
@@ -55,7 +56,7 @@ struct Book
 	std::wstring keywords;
 
 private:
-	static std::wstring InsertDot(std::wstring_view format)
+	static std::wstring InsertDot(const std::wstring_view format)
 	{
 		std::wstring result(L".");
 		result.insert(result.end(), std::cbegin(format), std::cend(format));
@@ -74,11 +75,11 @@ struct Genre
 	size_t childrenCount{ 0 };
 	bool newGenre { true };
 
-	explicit Genre(std::wstring_view dbCode_)
+	explicit Genre(const std::wstring_view dbCode_)
 		: dbCode(dbCode_)
 	{
 	}
-	Genre(std::wstring_view code_, std::wstring_view parentCode_, std::wstring_view name_, size_t parentId_ = 0)
+	Genre(const std::wstring_view code_, const std::wstring_view parentCode_, const std::wstring_view name_, const size_t parentId_ = 0)
 		: code(code_)
 		, parentCore(parentCode_)
 		, name(name_)
