@@ -200,14 +200,16 @@ T Add(std::wstring_view value, Dictionary & container, const GetIdFunctor & getI
 	return static_cast<T>(it->second);
 }
 
-void ParseItem(size_t id, const std::wstring_view data, Dictionary & container, Links & links, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+std::set<size_t> ParseItem(const std::wstring_view data, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
+	std::set<size_t> result;
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
 	{
 		const auto value = Next(it, std::cend(data), LIST_SEPARATOR);
-		links.emplace_back(id, Add<size_t>(value, container, getId, find));
+		result.emplace(Add<size_t>(value, container, getId, find));
 	}
+	return result;
 }
 
 std::string & TrimRight(std::string & line)
@@ -283,10 +285,12 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 
 		files.emplace(ToMultiByte(fileName) + "." + ToMultiByte(ext));
 
-		ParseItem(id, authors, data.authors, data.booksAuthors);
-		ParseItem(id, genres, genresIndex, data.booksGenres,
-			[unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres](std::wstring_view title)
-			{
+		for (const auto idAuthor : ParseItem(authors, data.authors))
+			data.booksAuthors.emplace_back(id, idAuthor);
+
+		auto idGenres = ParseItem(genres, genresIndex,
+			[unknownGenreId, &unknownGenre, &unknownGenres, &data = data.genres] (std::wstring_view title)
+		{
 				const auto result = std::size(data);
 				auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
 				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
@@ -329,9 +333,13 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 
 				itIndexDate = add(dateCode, std::wstring(year).append(L".").append(month), itIndexYear);
 			}
-
-			data.booksGenres.emplace_back(id, itIndexDate->second);
+			idGenres.emplace(itIndexDate->second);
 		}
+
+		std::ranges::transform(idGenres, std::back_inserter(data.booksGenres), [&] (const size_t idGenre)
+		{
+			return std::make_pair(id, idGenre);
+		});
 
 		data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
 
