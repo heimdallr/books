@@ -280,6 +280,12 @@ public:
 		const auto collection = m_collectionController->GetActiveCollection();
 		assert(collection);
 		const auto folder = QString("%1/%2").arg(collection->folder, book.GetRawData(BookItem::Column::Folder));
+		if (!QFile::exists(folder))
+		{
+			PLOGW << folder << " not found";
+			return {};
+		}
+
 		QuaZip zip(folder);
 		zip.open(QuaZip::Mode::mdUnzip);
 		zip.setCurrentFile(book.GetRawData(BookItem::Column::FileName));

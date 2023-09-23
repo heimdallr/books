@@ -339,7 +339,14 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			PLOGI << n << " rows parsed";
 	}
 
-	QuaZip zip(QString::fromStdWString(rootFolder / folder));
+	const auto archiveFileName = QString::fromStdWString(rootFolder / folder);
+	if (!QFile::exists(archiveFileName))
+	{
+		PLOGW << archiveFileName << " not found";
+		return;
+	}
+
+	QuaZip zip(archiveFileName);
 	zip.open(QuaZip::mdUnzip);
 	for (const auto & fileName : zip.getFileNameList())
 	{
