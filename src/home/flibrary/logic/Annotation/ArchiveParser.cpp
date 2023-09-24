@@ -236,7 +236,7 @@ private:
 			return;
 
 		auto currentValue = m_currentContentItem->GetData(NavigationItem::Column::Title);
-		m_currentContentItem->SetData(currentValue.append(value), NavigationItem::Column::Title);
+		m_currentContentItem->SetData(currentValue.append(currentValue.isEmpty() ? "" : ". ").append(value), NavigationItem::Column::Title);
 	}
 
 	void ParseEpigraph(QString && value)
