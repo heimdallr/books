@@ -319,7 +319,7 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="39"/>
+        <location filename="../../MainWindow.cpp" line="41"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
