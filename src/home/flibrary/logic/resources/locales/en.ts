@@ -248,39 +248,39 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
         <source>Input new search string</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
         <source>Search</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
         <source>Cannot create search query (%1)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation></translation>

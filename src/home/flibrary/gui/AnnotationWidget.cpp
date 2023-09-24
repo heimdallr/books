@@ -125,7 +125,7 @@ public:
 		, std::shared_ptr<IAnnotationController> annotationController
 		, std::shared_ptr<IModelProvider> modelProvider
 		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<ICollectionController> collectionController
+		, const std::shared_ptr<ICollectionController> & collectionController
 		, const std::shared_ptr<ILogicFactory> & logicFactory
 	)
 		: m_self(self)
@@ -133,8 +133,8 @@ public:
 		, m_annotationController(std::move(annotationController))
 		, m_modelProvider(std::move(modelProvider))
 		, m_uiFactory(std::move(uiFactory))
-		, m_collectionController(std::move(collectionController))
 		, m_navigationController(std::shared_ptr<ITreeViewController>(logicFactory->GetTreeViewController(ItemType::Navigation)))
+		, m_currentCollectionId(collectionController->GetActiveCollection()->id)
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.cover->setVisible(false);
@@ -308,7 +308,7 @@ private:
 			return;
 		}
 
-		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionController->GetActiveCollection()->id).arg(url.front()), url.back());
+		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_currentCollectionId).arg(url.front()), url.back());
 		m_navigationController->SetMode(url.front());
 	}
 
@@ -318,11 +318,11 @@ private:
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
 	std::vector<QByteArray> m_covers;
+	const QString m_currentCollectionId;
 	int m_coverIndex { -1 };
 	int m_currentCoverIndex { -1 };
 	bool m_showContent { true };
@@ -333,7 +333,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IAnnotationController> annotationController
 	, std::shared_ptr<IModelProvider> modelProvider
 	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<ICollectionController> collectionController
+	, const std::shared_ptr<ICollectionController> & collectionController
 	, const std::shared_ptr<ILogicFactory> & logicFactory
 	, QWidget * parent
 )
@@ -343,7 +343,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::move(annotationController)
 		, std::move(modelProvider)
 		, std::move(uiFactory)
-		, std::move(collectionController)
+		, collectionController
 		, logicFactory)
 {
 	PLOGD << "AnnotationWidget created";
