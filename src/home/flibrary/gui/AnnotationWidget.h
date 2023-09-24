@@ -20,7 +20,7 @@ public:
 		, std::shared_ptr<class IAnnotationController> annotationController
 		, std::shared_ptr<class IModelProvider> modelProvider
 		, std::shared_ptr<class IUiFactory> uiFactory
-		, std::shared_ptr<class ICollectionController> collectionController
+		, const std::shared_ptr<class ICollectionController> & collectionController
 		, const std::shared_ptr<class ILogicFactory> & logicFactory
 		, QWidget * parent = nullptr
 	);

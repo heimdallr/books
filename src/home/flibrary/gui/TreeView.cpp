@@ -70,14 +70,14 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-		, std::shared_ptr<ICollectionController> collectionController
+		, const std::shared_ptr<ICollectionController> & collectionController
 	)
 		: m_self(self)
 		, m_controller(std::move(controller))
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 		, m_itemViewToolTipper(std::move(itemViewToolTipper))
-		, m_collectionController(std::move(collectionController))
+		, m_currentCollectionId(collectionController->GetActiveCollection()->id)
 	{
 		Setup();
 	}
@@ -313,7 +313,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		if (const auto currentIndex = m_ui.treeView->currentIndex(); currentIndex.isValid())
+		if (const auto currentIndex = m_ui.treeView->currentIndex(); currentIndex.isValid() && !m_currentId.isEmpty())
 			m_settings->Set(GetRecentIdKey(), m_currentId);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
@@ -504,11 +504,13 @@ private:
 
 	QString GetRecentIdKey() const
 	{
-		return QString("Collections/%1/%2%3/LastId")
-			.arg(m_collectionController->GetActiveCollection()->id)
+		auto key = QString("Collections/%1/%2%3/LastId")
+			.arg(m_currentCollectionId)
 			.arg(m_controller->TrContext())
 			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode): QString{})
 			;
+
+		return key;
 	}
 
 private:
@@ -517,7 +519,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	const QString m_currentCollectionId;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -532,7 +534,7 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-	, std::shared_ptr<ICollectionController> collectionController
+	, const std::shared_ptr<ICollectionController> & collectionController
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -541,7 +543,7 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 		, std::move(settings)
 		, std::move(uiFactory)
 		, std::move(itemViewToolTipper)
-		, std::move(collectionController)
+		, collectionController
 	)
 {
 	PLOGD << "TreeView created";
