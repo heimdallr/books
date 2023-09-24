@@ -390,6 +390,12 @@ std::optional<const Collection> CollectionController::GetActiveCollection() cons
 	return m_impl->GetActiveCollection();
 }
 
+QString CollectionController::GetActiveCollectionId() const
+{
+	const auto activeCollection = GetActiveCollection();
+	return activeCollection ? activeCollection->id : QString {};
+}
+
 void CollectionController::SetActiveCollection(const QString & id)
 {
 	m_impl->SetActiveCollection(id);

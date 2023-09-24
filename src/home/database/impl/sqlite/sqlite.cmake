@@ -7,6 +7,9 @@ AddTarget(DatabaseSqlite	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite"
 		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../interface"
+	LINK_LIBRARIES
+		plog
+		Qt6::Core
 	LINK_TARGETS
 		DatabaseInt
 		logging

@@ -37,6 +37,7 @@ public: // ICollectionController
 	[[nodiscard]] bool IsCollectionFolderHasInpx(const QString & folder) const override;
 	[[nodiscard]] const Collections & GetCollections() const noexcept override;
 	[[nodiscard]] std::optional<const Collection> GetActiveCollection() const noexcept override;
+	[[nodiscard]] QString GetActiveCollectionId() const override;
 	void SetActiveCollection(const QString & id) override;
 	void CheckForUpdate() override;
 

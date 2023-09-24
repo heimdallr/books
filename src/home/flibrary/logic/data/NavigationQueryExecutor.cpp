@@ -72,7 +72,9 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 )
 {
 	auto db = databaseUser.Database();
-	assert(db);
+	if (!db)
+		return;
+
 	databaseUser.Execute({ "Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
 		std::unordered_map<QString, IDataItem::Ptr> index;
@@ -112,7 +114,9 @@ void RequestNavigationGenres(NavigationMode navigationMode
 )
 {
 	auto db = databaseUser.Database();
-	assert(db);
+	if (!db)
+		return;
+
 	databaseUser.Execute({"Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
 		std::unordered_map<QString, IDataItem::Ptr> index;
@@ -215,16 +219,14 @@ struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
 		: databaseUser(std::move(databaseUser))
 	{
-		const auto db = this->databaseUser->Database();
-		assert(db);
-		db->RegisterObserver(this);
+		if (const auto db = this->databaseUser->Database())
+			db->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
-		const auto db = this->databaseUser->Database();
-		assert(db);
-		db->UnregisterObserver(this);
+		if (const auto db = this->databaseUser->Database())
+			db->UnregisterObserver(this);
 	}
 
 private: // DB::IDatabaseObserver
