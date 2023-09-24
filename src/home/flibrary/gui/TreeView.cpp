@@ -77,7 +77,7 @@ public:
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 		, m_itemViewToolTipper(std::move(itemViewToolTipper))
-		, m_currentCollectionId(collectionController->GetActiveCollection()->id)
+		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 		Setup();
 	}

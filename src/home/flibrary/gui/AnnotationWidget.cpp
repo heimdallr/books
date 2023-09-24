@@ -134,7 +134,7 @@ public:
 		, m_modelProvider(std::move(modelProvider))
 		, m_uiFactory(std::move(uiFactory))
 		, m_navigationController(std::shared_ptr<ITreeViewController>(logicFactory->GetTreeViewController(ItemType::Navigation)))
-		, m_currentCollectionId(collectionController->GetActiveCollection()->id)
+		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.cover->setVisible(false);

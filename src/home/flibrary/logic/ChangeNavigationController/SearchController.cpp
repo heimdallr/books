@@ -69,7 +69,7 @@ struct SearchController::Impl
 		, databaseUser(std::move(databaseUser))
 		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
-		, currentCollectionId(collectionController->GetActiveCollection()->id)
+		, currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 	}
 

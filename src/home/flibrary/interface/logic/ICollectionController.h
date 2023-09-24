@@ -49,6 +49,7 @@ public:
 
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
 	[[nodiscard]] virtual std::optional<const Collection> GetActiveCollection() const noexcept = 0;
+	[[nodiscard]] virtual QString GetActiveCollectionId() const = 0;
 	virtual void SetActiveCollection(const QString & id) = 0;
 	virtual void CheckForUpdate() = 0;
 
