@@ -31,6 +31,8 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
+#include "config/version.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace {
@@ -143,6 +145,8 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+
+		m_self.setWindowTitle(PRODUCT_ID);
 
 		m_parentWidgetProvider->SetWidget(&m_self);
 
