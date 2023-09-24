@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string notr="true">MainWindow</string>
+   <string notr="true">FLibrary</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -596,7 +596,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../resources/main.qrc"/>
+  <include location="resources/gui.qrc"/>
  </resources>
  <connections/>
 </ui>
