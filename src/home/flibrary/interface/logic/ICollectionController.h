@@ -45,6 +45,7 @@ public:
 
 	[[nodiscard]] virtual bool IsCollectionNameExists(const QString& name) const = 0;
 	[[nodiscard]] virtual QString GetCollectionDatabaseName(const QString & databaseFileName) const = 0;
+	[[nodiscard]] virtual QString GetInpx(const QString & archiveFolder) const = 0;
 	[[nodiscard]] virtual bool IsCollectionFolderHasInpx(const QString & archiveFolder) const = 0;
 
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;

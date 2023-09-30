@@ -36,7 +36,7 @@ constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "L
 
 TR_DEF
 
-QString GetInpx(const QString & folder)
+QString GetInpxImpl(const QString & folder)
 {
 	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
 	auto result = inpxList.isEmpty() ? QString() : QString("%1/%2").arg(folder, inpxList.front());
@@ -62,7 +62,7 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 		return fileName;
 	};
 
-	const auto inpx = GetInpx(folder);
+	const auto inpx = GetInpxImpl(folder);
 	if (inpx.isEmpty())
 	{
 		PLOGE << "Index file (*.inpx) not found";
@@ -373,6 +373,11 @@ QString CollectionController::GetCollectionDatabaseName(const QString & database
 {
 	const auto collection = m_impl->FindCollectionById(Util::md5(databaseFileName.toUtf8()));
 	return collection ? collection->name : QString{};
+}
+
+QString CollectionController::GetInpx(const QString & folder) const
+{
+	return GetInpxImpl(folder);
 }
 
 bool CollectionController::IsCollectionFolderHasInpx(const QString & folder) const

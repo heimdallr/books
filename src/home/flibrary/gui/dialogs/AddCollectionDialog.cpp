@@ -1,6 +1,7 @@
 #include "ui_AddCollectionDialog.h"
 #include "AddCollectionDialog.h"
 
+#include <quazip>
 #include <QStandardPaths>
 #include <plog/Log.h>
 
@@ -37,10 +38,16 @@ constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
 constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
+constexpr auto CANNOT_OPEN_INPX                   = QT_TRANSLATE_NOOP("Error", "Cannot open index file: %1");
+constexpr auto CANNOT_FOUND_COLLECTION_INFO       = QT_TRANSLATE_NOOP("Error", "Cannot found `collection.info` in index file");
+constexpr auto CANNOT_OPEN_COLLECTION_INFO        = QT_TRANSLATE_NOOP("Error", "Cannot open `collection.info` for reading");
 
 QString Error(const char * str)
 {
-    return Loc::Tr(Loc::Ctx::ERROR, str);
+	if (!str)
+		return {};
+
+	return Loc::Tr(Loc::Ctx::ERROR, str);
 }
 
 TR_DEF
@@ -77,6 +84,13 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
+		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&](const QString &text)
+		{
+			m_ui.btnSetDefaultName->setEnabled(!text.isEmpty());
+			if (m_ui.editName->text().isEmpty())
+				SetDefaultCollectionName();
+		});
+
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
@@ -84,6 +98,7 @@ public:
 		if (const auto inpx = m_uiFactory->GetNewCollectionInpx(); !inpx.empty())
 			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpx.parent_path())));
 
+		connect(m_ui.btnSetDefaultName, &QAbstractButton::clicked, &m_self, [&] { SetDefaultCollectionName(true); });
 		connect(m_ui.btnCreateNew, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::CreateNew)) m_self.done(Result::CreateNew); } );
 		connect(m_ui.btnAdd, &QAbstractButton::clicked, &m_self, [&] { if (CheckData(Result::Add)) m_self.done(Result::Add); } );
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, [&] { m_self.done(Result::Cancel); } );
@@ -147,9 +162,7 @@ private: // GeometryRestorable::IObserver
 private:
 	bool CheckData(const int mode) const
 	{
-		SetErrorText(m_ui.editName);
-		SetErrorText(m_ui.editDatabase);
-		SetErrorText(m_ui.editArchive);
+		ResetError();
 
 		return true
 			&& CheckName()
@@ -179,7 +192,7 @@ private:
 			return SetErrorText(m_ui.editDatabase, Error(EMPTY_DATABASE));
 
 		if (const auto name = m_collectionController->GetCollectionDatabaseName(db); !name.isEmpty())
-			return SetErrorText(m_ui.editDatabase, Error(COLLECTION_DATABASE_ALREADY_EXISTS).arg(name));
+			return SetErrorText(m_ui.editDatabase, Error(COLLECTION_DATABASE_ALREADY_EXISTS).arg(name).toStdString().data());
 
 		if (mode == Result::Add && !QFile(db).exists())
 			return SetErrorText(m_ui.editDatabase, Error(DATABASE_NOT_FOUND));
@@ -190,32 +203,66 @@ private:
 		return true;
 	}
 
-	[[nodiscard]] bool CheckFolder(const int mode) const
+	[[nodiscard]] bool CheckFolder(const int mode, const bool showError = true) const
 	{
 		const auto folder = GetArchiveFolder();
 
 		if (folder.isEmpty())
-			return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));
+			return showError && SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));
 
 		if (!QDir(folder).exists())
-			return SetErrorText(m_ui.editArchive, Error(ARCHIVES_FOLDER_NOT_FOUND));
+			return showError && SetErrorText(m_ui.editArchive, Error(ARCHIVES_FOLDER_NOT_FOUND));
 
 		if (QDir(folder).isEmpty())
-			return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_FOLDER));
+			return showError && SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_FOLDER));
 
 		if (mode == Result::CreateNew && !m_collectionController->IsCollectionFolderHasInpx(folder))
-			return SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
+			return showError && SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
 
 		return true;
 	}
 
 	bool SetErrorText(QWidget * widget, const QString & text = {}) const
 	{
+		if (!text.isEmpty())
+			PLOGW << text;
+
 		widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
-		return text.isEmpty()
-			? (m_ui.lblError->setText(""), true)
-			: (m_ui.lblError->setText(text), false)
-			;
+		m_ui.lblError->setText(text);
+		return text.isEmpty();
+	}
+
+	bool SetDefaultCollectionName(const bool buttonClicked = false) const
+	{
+		if (buttonClicked)
+			ResetError();
+
+		if (!CheckFolder(Result::CreateNew, buttonClicked))
+			return false;
+
+		const auto inpx = m_collectionController->GetInpx(GetArchiveFolder());
+		assert(!inpx.isEmpty() && QFile::exists(inpx));
+
+		QuaZip zip(inpx);
+		if (!zip.open(QuaZip::Mode::mdUnzip))
+			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_OPEN_INPX).arg(QFileInfo(inpx).fileName()));
+
+		if (!zip.setCurrentFile("collection.info"))
+			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_FOUND_COLLECTION_INFO));
+
+		QuaZipFile zipFile(&zip);
+		if (!zipFile.open(QIODevice::ReadOnly))
+			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_OPEN_COLLECTION_INFO));
+
+		m_ui.editName->setText(zipFile.readLine().simplified());
+		return true;
+	}
+
+	void ResetError() const
+	{
+		SetErrorText(m_ui.editName);
+		SetErrorText(m_ui.editDatabase);
+		SetErrorText(m_ui.editArchive);
 	}
 
 private:

@@ -5,5 +5,6 @@
 		<file alias="tray.png">icons/tray.png</file>
 		<file alias="add_file.png">icons/add_file.png</file>
 		<file alias="add_folder.png">icons/add_folder.png</file>
+		<file alias="set_default.png">icons/set_default.png</file>
 	</qresource>
 </RCC>
