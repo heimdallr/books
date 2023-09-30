@@ -48,7 +48,7 @@ QString Error(const char * str)
 		return {};
 
 	PLOGW << str;
-    return Loc::Tr(Loc::Ctx::ERROR, str);
+	return Loc::Tr(Loc::Ctx::ERROR, str);
 }
 
 TR_DEF
