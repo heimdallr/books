@@ -233,7 +233,7 @@
     <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
         <source>This collection has already been added: %1</source>
-        <translation>Эта база данных уже добавлена как коллекция %1</translation>
+        <translation>Эта коллекция уже добавлена под именем %1</translation>
     </message>
 </context>
 <context>
