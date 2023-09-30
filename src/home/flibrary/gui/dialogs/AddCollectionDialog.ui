@@ -101,6 +101,26 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="2">
+      <widget class="QToolButton" name="btnSetDefaultName">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Retrieve collection name from index file</string>
+       </property>
+       <property name="text">
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/gui.qrc">
+         <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
