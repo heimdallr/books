@@ -220,21 +220,6 @@
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
-        <source>Cannot open index file: %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
-        <source>Cannot found `collection.info` in index file</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
-        <source>Cannot open `collection.info` for reading</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>LocaleController</name>

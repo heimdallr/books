@@ -216,21 +216,6 @@
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
-        <source>Cannot open index file: %1</source>
-        <translation>Не удалось открыть индексный файл: %1</translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
-        <source>Cannot found `collection.info` in index file</source>
-        <translation>В индексном файле &apos;collection.info&apos; не найден</translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
-        <source>Cannot open `collection.info` for reading</source>
-        <translation>Не удалось прочитать `collection.info` в индексном файле</translation>
-    </message>
-    <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>

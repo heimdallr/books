@@ -39,9 +39,6 @@ constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
 constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
-constexpr auto CANNOT_OPEN_INPX                   = QT_TRANSLATE_NOOP("Error", "Cannot open index file: %1");
-constexpr auto CANNOT_FOUND_COLLECTION_INFO       = QT_TRANSLATE_NOOP("Error", "Cannot found `collection.info` in index file");
-constexpr auto CANNOT_OPEN_COLLECTION_INFO        = QT_TRANSLATE_NOOP("Error", "Cannot open `collection.info` for reading");
 
 QString Error(const char * str)
 {
