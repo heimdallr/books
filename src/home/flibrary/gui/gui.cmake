@@ -5,11 +5,10 @@ AddTarget(gui	shared_lib
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
-		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
+		"${CMAKE_CURRENT_LIST_DIR}/../../zip"
 	LINK_LIBRARIES
 		Hypodermic
 		plog
-		QuaZip::QuaZip
 		Qt6::Widgets
 	LINK_TARGETS
 		flint
@@ -17,4 +16,5 @@ AddTarget(gui	shared_lib
 		logic
 		Util
 		ver
+		zip
 )

@@ -1,6 +1,6 @@
 #include "ArchiveParser.h"
 
-#include <quazip>
+#include <QFile>
 #include <QXmlStreamReader>
 #include <plog/Log.h>
 
@@ -9,6 +9,7 @@
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
+#include "zip/zip.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -221,7 +222,7 @@ private:
 
 	void ParseKeywords(QString && value)
 	{
-		std::ranges::copy(value.split(",", SkipEmptyParts), std::back_inserter(m_data.keywords));
+		std::ranges::copy(value.split(",", Qt::SkipEmptyParts), std::back_inserter(m_data.keywords));
 	}
 
 	void ParseBinary(QString && value)
@@ -286,15 +287,15 @@ public:
 			return {};
 		}
 
-		QuaZip zip(folder);
-		zip.open(QuaZip::Mode::mdUnzip);
-		zip.setCurrentFile(book.GetRawData(BookItem::Column::FileName));
-
-		QuaZipFile zipFile(&zip);
-		zipFile.open(QIODevice::ReadOnly);
-
-		XmlParser parser(zipFile);
-		return parser.Parse();
+		try
+		{
+			const Zip::Zip zip(folder);
+			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
+			XmlParser parser(stream);
+			return parser.Parse();
+		}
+		catch(...) {}
+		return {};
 	}
 
 private:

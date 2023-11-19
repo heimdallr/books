@@ -1,7 +1,6 @@
 #include "ui_AddCollectionDialog.h"
 #include "AddCollectionDialog.h"
 
-#include <quazip>
 #include <QStandardPaths>
 #include <plog/Log.h>
 
@@ -11,6 +10,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
+
+#include "zip/zip.h"
 
 #include "config/version.h"
 
@@ -243,18 +244,15 @@ private:
 		const auto inpx = m_collectionController->GetInpx(GetArchiveFolder());
 		assert(!inpx.isEmpty() && QFile::exists(inpx));
 
-		QuaZip zip(inpx);
-		if (!zip.open(QuaZip::Mode::mdUnzip))
-			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_OPEN_INPX).arg(QFileInfo(inpx).fileName()));
+		try
+		{
+			m_ui.editName->setText(Zip::Zip(inpx).Read("collection.info").readLine().simplified());
+		}
+		catch(const std::exception & ex)
+		{
+			return buttonClicked && SetErrorText(m_ui.editArchive, ex.what());
+		}
 
-		if (!zip.setCurrentFile("collection.info"))
-			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_FOUND_COLLECTION_INFO));
-
-		QuaZipFile zipFile(&zip);
-		if (!zipFile.open(QIODevice::ReadOnly))
-			return buttonClicked && SetErrorText(m_ui.editArchive, Error(CANNOT_OPEN_COLLECTION_INFO));
-
-		m_ui.editName->setText(zipFile.readLine().simplified());
 		return true;
 	}
 

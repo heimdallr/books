@@ -9,7 +9,7 @@
 #include <numeric>
 #include <set>
 
-#include <quazip>
+#include <QFile>
 
 #include <plog/Log.h>
 
@@ -21,6 +21,10 @@
 #include "types.h"
 
 #include "inpx.h"
+
+#include "zip/zip.h"
+
+using namespace HomeCompa;
 
 namespace {
 
@@ -354,9 +358,8 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 		return;
 	}
 
-	QuaZip zip(archiveFileName);
-	zip.open(QuaZip::mdUnzip);
-	for (const auto & fileName : zip.getFileNameList())
+	Zip::Zip zip(archiveFileName);
+	for (const auto & fileName : zip.GetFileNameList())
 	{
 		if (files.contains(fileName.toStdString()))
 			continue;
@@ -376,11 +379,10 @@ InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 {
 	InpxContent inpxContent;
 
-	QuaZip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
+	const Zip::Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 
 	std::ifstream zipStream(inpxFileName, std::ios::binary);
-	zip.open(QuaZip::mdUnzip);
-	for (const auto & fileName : zip.getFileNameList())
+	for (const auto & fileName : zip.GetFileNameList())
 	{
 		auto folder = ToWide(fileName.toStdString());
 
@@ -397,26 +399,27 @@ InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 	return inpxContent;
 }
 
-std::unique_ptr<QIODevice> GetDecodedStream(QuaZip & zip, const std::wstring & file)
+void GetDecodedStream(const Zip::Zip & zip, const std::wstring & file, const std::function<void(QIODevice& stream)> & f)
 {
 	PLOGI << file;
-	zip.setCurrentFile(QString::fromStdWString(file));
-	auto zipFile = std::make_unique<QuaZipFile>(&zip);
-	if (!zipFile->open(QIODevice::ReadOnly))
-		throw std::runtime_error("Cannot open " + ToMultiByte(file));
-
-	return zipFile;
+	try
+	{
+		f(zip.Read(QString::fromStdWString(file)));
+	}
+	catch(...){}
 }
 
-void ParseInpxFiles(const std::filesystem::path & inpxFileName, QuaZip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
+void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip::Zip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
 {
 	std::vector<std::wstring> unknownGenres;
 
 	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
 	size_t n = 0;
 	for (const auto & fileName : inpxFiles)
-		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
-			ProcessInpx(*zipDecodedStream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
+		GetDecodedStream(zip, fileName, [&](QIODevice & zipDecodedStream)
+		{
+			ProcessInpx(zipDecodedStream, rootFolder, fileName, genresIndex, data, unknownGenres, n);
+		});
 
 	PLOGI << n << " rows parsed";
 
@@ -439,16 +442,19 @@ Data Parse(const std::filesystem::path & genresFileName, const std::filesystem::
 	data.genres = std::move(genresData);
 
 	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	QuaZip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
-	zip.open(QuaZip::mdUnzip);
+	Zip::Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 
 	for (const auto & fileName : inpxContent.collectionInfo)
-		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
-			ProcessCollectionInfo(*zipDecodedStream, data.settings);
+		GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+		{
+			ProcessCollectionInfo(zipDecodedStream, data.settings);
+		});
 
 	for (const auto & fileName : inpxContent.versionInfo)
-		if (auto zipDecodedStream = GetDecodedStream(zip, fileName))
-			ProcessVersionInfo(*zipDecodedStream, data.settings);
+		GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+		{
+			ProcessVersionInfo(zipDecodedStream, data.settings);
+		});
 
 	ParseInpxFiles(inpxFileName, zip, inpxContent.inpx, genresIndex, data);
 
@@ -853,8 +859,7 @@ bool UpdateDatabase(const Ini & ini)
 	Data newData = oldData;
 	Dictionary newGenresIndex = oldGenresIndex;
 	auto inpxFileName = ini(INPX, DEFAULT_INPX);
-	QuaZip zip(QString::fromStdWString(inpxFileName));
-	zip.open(QuaZip::mdUnzip);
+	Zip::Zip zip(QString::fromStdWString(inpxFileName));
 	ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini), newGenresIndex, newData);
 
 	const auto filter = [] (Dictionary & dst, const Dictionary & src)
@@ -916,8 +921,20 @@ bool CheckUpdateCollection(std::map<std::wstring, std::filesystem::path> data)
 
 bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data)
 {
-	const Ini ini(std::move(data));
-	return UpdateDatabase(ini);
+	try
+	{
+		const Ini ini(std::move(data));
+		return UpdateDatabase(ini);
+	}
+	catch (const std::exception & ex)
+	{
+		PLOGE << ex.what();
+	}
+	catch (...)
+	{
+		PLOGE << "unknown error";
+	}
+	return false;
 }
 
 }

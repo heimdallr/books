@@ -5,6 +5,7 @@ AddTarget(logic	shared_lib
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
+		"${CMAKE_CURRENT_LIST_DIR}/../../zip"
 		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
 	LINK_LIBRARIES
 		Hypodermic
@@ -17,6 +18,7 @@ AddTarget(logic	shared_lib
 		InpxLib
 		logging
 		Util
+		zip
 	DEPENDENCIES
 		MyHomeLibSQLIteExt
 )

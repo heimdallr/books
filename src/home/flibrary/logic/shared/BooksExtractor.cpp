@@ -14,6 +14,8 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
+#include "zip/zip.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -24,51 +26,6 @@ class IPathChecker  // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IPathChecker() = default;
 	virtual void Check(std::filesystem::path & path) = 0;
-};
-
-class ArchiveSrc
-{
-public:
-	ArchiveSrc(const std::filesystem::path & archiveFolder, const BooksExtractor::Book & book)
-		: m_zip(CreateZip(archiveFolder, book))
-		, m_zipFile(CreateZipFile(m_zip.get(), book))
-	{
-	}
-
-	QIODevice & GetDecoded() const noexcept
-	{
-		return *m_zipFile;
-	}
-
-private:
-	static std::unique_ptr<QuaZip> CreateZip(const std::filesystem::path & archiveFolder, const BooksExtractor::Book & book)
-	{
-		const auto archivePath = archiveFolder / book.folder.toStdWString();
-		if (!exists(archivePath))
-			throw std::runtime_error("Cannot find " + archivePath.generic_string());
-
-		auto zip = std::make_unique<QuaZip>(QString::fromStdWString(archivePath));
-		if (!zip->open(QuaZip::Mode::mdUnzip))
-			throw std::runtime_error("Cannot open " + archivePath.generic_string());
-
-		return zip;
-	}
-
-	static std::unique_ptr<QuaZipFile> CreateZipFile(QuaZip * zip, const BooksExtractor::Book & book)
-	{
-		if (!zip->setCurrentFile(book.file))
-			throw std::runtime_error("Cannot extract " + book.file.toStdString());
-
-		auto zipFile = std::make_unique<QuaZipFile>(zip);
-		if (!zipFile->open(QIODevice::ReadOnly))
-			throw std::runtime_error("Cannot open " + book.file.toStdString());
-
-		return zipFile;
-	}
-
-private:
-	const std::unique_ptr<QuaZip> m_zip {};
-	const std::unique_ptr<QuaZipFile> m_zipFile {};
 };
 
 bool Copy(QIODevice & input, QIODevice & output, IProgressController::IProgressItem & progress)
@@ -166,10 +123,9 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 	if (progress.IsStopped())
 		return;
 
-	const ArchiveSrc archiveSrc(archiveFolder, book);
-	const auto writeResult = Write(archiveSrc.GetDecoded(), dstFolder, book, progress, pathChecker, asArchives);
-	if (!writeResult.first && exists(writeResult.second))
-		remove(writeResult.second);
+	const Zip::Zip zip(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
+	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, book, progress, pathChecker, asArchives); !ok && exists(path))
+		remove(path);
 }
 
 }

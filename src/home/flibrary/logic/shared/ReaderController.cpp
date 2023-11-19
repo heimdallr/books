@@ -4,7 +4,6 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
-#include <quazip>
 #include <plog/Log.h>
 
 #include "util/IExecutor.h"
@@ -14,8 +13,10 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "util/ISettings.h"
+#include "zip/zip.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -44,6 +45,29 @@ public:
 private:
 	std::shared_ptr<QTemporaryDir> m_temporaryDir;
 };
+
+std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileName, QString & error)
+{
+	try
+	{
+		auto temporaryDir = std::make_shared<QTemporaryDir>();
+		const Zip::Zip zip(archive);
+		auto & stream = zip.Read(fileName);
+		fileName = temporaryDir->filePath(fileName);
+		const std::unique_ptr<char[]> buffer(new char[BUFFER_SIZE]);
+		if (QFile file(fileName); file.open(QIODevice::WriteOnly))
+			while (const auto size = stream.read(buffer.get(), BUFFER_SIZE))
+				file.write(buffer.get(), size);
+
+		return temporaryDir;
+	}
+	catch(const std::exception & ex)
+	{
+		error = ex.what();
+	}
+
+	return {};
+}
 
 }
 
@@ -107,28 +131,22 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 		, callback = std::move(callback)
 	] () mutable
 	{
-		auto temporaryDir = std::make_shared<QTemporaryDir>();
-		QuaZip zip(archive);
-		zip.open(QuaZip::Mode::mdUnzip);
-		zip.setCurrentFile(fileName);
-
-		QuaZipFile zipFile(&zip);
-		zipFile.open(QIODevice::ReadOnly);
-		fileName = temporaryDir->filePath(fileName);
-		const std::unique_ptr<char[]> buffer(new char[BUFFER_SIZE]);
-		if (QFile file(fileName); file.open(QIODevice::WriteOnly))
-			while (const auto size = zipFile.read(buffer.get(), BUFFER_SIZE))
-				file.write(buffer.get(), size);
-
+		QString error;
+		auto temporaryDir = Extract(archive, fileName, error);
 		return [&
 			, executor = std::move(executor)
 			, reader = std::move(reader)
 			, fileName = std::move(fileName)
 			, callback = std::move(callback)
 			, temporaryDir = std::move(temporaryDir)
+			, error(std::move(error))
 		] (size_t) mutable
 		{
-			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
+			if (temporaryDir)
+				new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
+			else
+				m_impl->uiFactory->ShowError(error);
+
 			callback();
 		};
 	} });
