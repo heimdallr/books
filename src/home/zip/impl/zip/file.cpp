@@ -2,22 +2,32 @@
 
 #include <quazip>
 
+#include "fnd/FindPair.h"
 #include "interface/error.h"
 #include "interface/file.h"
 
 namespace HomeCompa::Zip::Impl {
 
-class Reader final : virtual public IFile
+class QuaZipImpl final : virtual public IFile
 {
 public:
-	explicit Reader(QuaZip & zip, const QString & filename)
+	enum class Mode
+	{
+		Read,
+		Write,
+	};
+
+public:
+	explicit QuaZipImpl(QuaZip & zip, const QString & filename, const Mode mode)
 		: m_zipFile(&zip)
 	{
-		if (!zip.setCurrentFile(filename))
-			Error::CannotFindFileInArchive(filename);
-
-		if (!m_zipFile.open(QIODevice::ReadOnly))
-			Error::CannotExtractFileFromArchive(filename);
+		using Opener = void (QuaZipImpl::*)(const QString &);
+		static constexpr std::pair<Mode, Opener> openers[]
+		{
+			{Mode::Read, &QuaZipImpl::OpenRead},
+			{Mode::Write, &QuaZipImpl::OpenWrite},
+		};
+		std::invoke(FindSecond(openers, mode), this, filename);
 	}
 
 private: // IFile
@@ -26,13 +36,36 @@ private: // IFile
 		return m_zipFile;
 	}
 
+	QIODevice & Write() override
+	{
+		return m_zipFile;
+	}
+
+private:
+	void OpenRead(const QString & filename)
+	{
+		if (!m_zipFile.open(QIODevice::ReadOnly))
+			Error::CannotExtractFileFromArchive(filename);
+	}
+
+	void OpenWrite(const QString & filename)
+	{
+		if (!m_zipFile.open(QIODevice::WriteOnly, filename, nullptr, 0, Z_DEFLATED, Z_BEST_COMPRESSION))
+			Error::CannotAddFileToArchive(filename);
+	}
+
 private:
 	QuaZipFile m_zipFile;
 };
 
 std::unique_ptr<IFile> File::Read(QuaZip & zip, const QString & filename)
 {
-	return std::make_unique<Reader>(zip, filename);
+	return std::make_unique<QuaZipImpl>(zip, filename, QuaZipImpl::Mode::Read);
+}
+
+std::unique_ptr<IFile> File::Write(QuaZip & zip, const QString & filename)
+{
+	return std::make_unique<QuaZipImpl>(zip, filename, QuaZipImpl::Mode::Write);
 }
 
 }

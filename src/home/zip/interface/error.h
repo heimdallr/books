@@ -12,6 +12,8 @@ struct ZIPINTERFACE_EXPORT Error
 	[[noreturn]] static void CannotOpenArchive(const QString & filename);
 	[[noreturn]] static void CannotFindFileInArchive(const QString & filename);
 	[[noreturn]] static void CannotExtractFileFromArchive(const QString & filename);
+	[[noreturn]] static void CannotCreateArchive(const QString & filename);
+	[[noreturn]] static void CannotAddFileToArchive(const QString & filename);
 };
 
 }

@@ -13,6 +13,8 @@ constexpr auto CANNOT_OPEN_FILE = QT_TRANSLATE_NOOP("Error", "Cannot open file '
 constexpr auto CANNOT_OPEN_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot open archive '%1'");
 constexpr auto CANNOT_FIND = QT_TRANSLATE_NOOP("Error", "Cannot find file '%1'");
 constexpr auto CANNOT_EXTRACT = QT_TRANSLATE_NOOP("Error", "Cannot extract file '%1'");
+constexpr auto CANNOT_CREATE_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot create file '%1'");
+constexpr auto CANNOT_ADD_FILE_TO_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot add file '%1' to archive");
 
 [[noreturn]] void Throw(const char * str, const QString & filename)
 {
@@ -40,4 +42,14 @@ void Error::CannotFindFileInArchive(const QString & filename)
 void Error::CannotExtractFileFromArchive(const QString & filename)
 {
 	Throw(CANNOT_EXTRACT, filename);
+}
+
+void Error::CannotCreateArchive(const QString & filename)
+{
+	Throw(CANNOT_CREATE_ARCHIVE, filename);
+}
+
+void Error::CannotAddFileToArchive(const QString & filename)
+{
+	Throw(CANNOT_ADD_FILE_TO_ARCHIVE, filename);
 }

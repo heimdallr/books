@@ -14,7 +14,8 @@ namespace HomeCompa::Zip::Impl {
 
 struct Zip
 {
-	static ZIPWRAPPER_EXPORT std::unique_ptr<IZip> Create(const QString & filename);
+	static ZIPWRAPPER_EXPORT std::unique_ptr<IZip> CreateReader(const QString & filename);
+	static ZIPWRAPPER_EXPORT std::unique_ptr<IZip> CreateWriter(const QString & filename);
 };
 
 }

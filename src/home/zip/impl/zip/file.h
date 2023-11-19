@@ -14,6 +14,7 @@ namespace HomeCompa::Zip::Impl {
 struct File
 {
 	static std::unique_ptr<IFile> Read(QuaZip & zip, const QString & filename);
+	static std::unique_ptr<IFile> Write(QuaZip & zip, const QString & filename);
 };
 
 }

@@ -4,6 +4,7 @@ AddTarget(ZipWrapper	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}"
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
+		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/include"
 	LINK_LIBRARIES
 		Qt6::Core

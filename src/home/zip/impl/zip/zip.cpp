@@ -11,14 +11,27 @@ namespace HomeCompa::Zip::Impl {
 
 namespace {
 
-class ZipReader final : virtual public IZip
+class QuaZipImpl final : virtual public IZip
 {
 public:
-	explicit ZipReader(const QString & filename)
+	QuaZipImpl(const QString & filename, const QuaZip::Mode mode)
 		: m_zip(std::make_unique<QuaZip>(filename))
 	{
-		if (!m_zip->open(QuaZip::Mode::mdUnzip))
-			Error::CannotOpenFile(filename);
+		if (!m_zip->open(mode))
+			switch(mode)
+			{
+				case QuaZip::Mode::mdUnzip:
+					Error::CannotOpenFile(filename);
+
+				case QuaZip::Mode::mdCreate:
+					Error::CannotCreateArchive(filename);
+
+				default:
+					assert(false && "unexpected mode");
+			}
+
+		if (mode == QuaZip::Mode::mdCreate)
+			m_zip->setUtf8Enabled(true);
 	}
 
 private: // IZip
@@ -29,7 +42,15 @@ private: // IZip
 
 	std::unique_ptr<IFile> Read(const QString & filename) const override
 	{
+		if (!m_zip->setCurrentFile(filename))
+			Error::CannotFindFileInArchive(filename);
+
 		return File::Read(*m_zip, filename);
+	}
+
+	std::unique_ptr<IFile> Write(const QString & filename) override
+	{
+		return File::Write(*m_zip, filename);
 	}
 
 private:
@@ -38,9 +59,14 @@ private:
 
 }
 
-std::unique_ptr<IZip> Zip::Create(const QString & filename)
+std::unique_ptr<IZip> Zip::CreateReader(const QString & filename)
 {
-	return std::make_unique<ZipReader>(filename);
+	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdUnzip);
+}
+
+std::unique_ptr<IZip> Zip::CreateWriter(const QString & filename)
+{
+	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdCreate);
 }
 
 }

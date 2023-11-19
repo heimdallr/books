@@ -15,12 +15,17 @@ namespace {
 using Creator = std::unique_ptr<IZip>(*)(const QString & filename);
 constexpr std::pair<const char *, Creator> CREATORS_BY_EXT[]
 {
-	{"zip", &Impl::Zip::Create},
+	{"zip", &Impl::Zip::CreateReader},
 };
 
 constexpr std::pair<const char *, Creator> CREATORS_BY_SIGNATURE[]
 {
-	{"PK", &Impl::Zip::Create},
+	{"PK", &Impl::Zip::CreateReader},
+};
+
+constexpr std::pair<Factory::Format, Creator> CREATORS_BY_FORMAT[]
+{
+	{Factory::Format::Zip, &Impl::Zip::CreateWriter},
 };
 
 std::unique_ptr<IZip> CreateBySignature(const QString & filename)
@@ -41,4 +46,9 @@ std::unique_ptr<IZip> CreateBySignature(const QString & filename)
 std::unique_ptr<IZip> Factory::Create(const QString & filename)
 {
 	return FindSecond(CREATORS_BY_EXT, QFileInfo(filename).suffix().toStdString().data(), &CreateBySignature, PszComparer {})(filename);
+}
+
+std::unique_ptr<IZip> Factory::Create(const QString & filename, const Format format)
+{
+	return FindSecond(CREATORS_BY_FORMAT, format)(filename);
 }
