@@ -6,12 +6,12 @@ AddTarget(InpxLib	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/fmt/include"
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite3pp/src"
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite"
-		"${CMAKE_CURRENT_LIST_DIR}/../../../zip"
+		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 	LINK_TARGETS
 		logging
 		sqlite
 		sqlite3pp
-		zip
+		Util
 	LINK_LIBRARIES
 		Qt6::Core
 		plog

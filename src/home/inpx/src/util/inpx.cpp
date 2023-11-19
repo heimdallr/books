@@ -22,9 +22,9 @@
 
 #include "inpx.h"
 
-#include "zip/zip.h"
+#include "util/zip.h"
 
-using namespace HomeCompa;
+using namespace HomeCompa::Util;
 
 namespace {
 
@@ -358,7 +358,7 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 		return;
 	}
 
-	Zip::Zip zip(archiveFileName);
+	Zip zip(archiveFileName);
 	for (const auto & fileName : zip.GetFileNameList())
 	{
 		if (files.contains(fileName.toStdString()))
@@ -379,7 +379,7 @@ InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 {
 	InpxContent inpxContent;
 
-	const Zip::Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
+	const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 
 	std::ifstream zipStream(inpxFileName, std::ios::binary);
 	for (const auto & fileName : zip.GetFileNameList())
@@ -399,7 +399,7 @@ InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 	return inpxContent;
 }
 
-void GetDecodedStream(const Zip::Zip & zip, const std::wstring & file, const std::function<void(QIODevice& stream)> & f)
+void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::function<void(QIODevice& stream)> & f)
 {
 	PLOGI << file;
 	try
@@ -409,7 +409,7 @@ void GetDecodedStream(const Zip::Zip & zip, const std::wstring & file, const std
 	catch(...){}
 }
 
-void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip::Zip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
+void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zip, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data)
 {
 	std::vector<std::wstring> unknownGenres;
 
@@ -442,7 +442,7 @@ Data Parse(const std::filesystem::path & genresFileName, const std::filesystem::
 	data.genres = std::move(genresData);
 
 	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	Zip::Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
+	Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
 
 	for (const auto & fileName : inpxContent.collectionInfo)
 		GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
@@ -859,7 +859,7 @@ bool UpdateDatabase(const Ini & ini)
 	Data newData = oldData;
 	Dictionary newGenresIndex = oldGenresIndex;
 	auto inpxFileName = ini(INPX, DEFAULT_INPX);
-	Zip::Zip zip(QString::fromStdWString(inpxFileName));
+	Zip zip(QString::fromStdWString(inpxFileName));
 	ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini), newGenresIndex, newData);
 
 	const auto filter = [] (Dictionary & dst, const Dictionary & src)

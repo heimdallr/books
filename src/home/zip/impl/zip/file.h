@@ -9,7 +9,7 @@ namespace HomeCompa::Zip {
 class IFile;
 }
 
-namespace HomeCompa::Zip::Impl {
+namespace HomeCompa::Zip::Impl::Zip {
 
 struct File
 {

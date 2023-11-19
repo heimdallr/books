@@ -4,13 +4,13 @@
 
 #include <QStringList>
 
-#include "export/zip.h"
+#include "export/Util.h"
 
 class QIODevice;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::Util {
 
-class ZIP_EXPORT Zip
+class UTIL_EXPORT Zip
 {
 public:
 	enum class Format

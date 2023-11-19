@@ -14,7 +14,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
-#include "zip/zip.h"
+#include "util/zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -57,7 +57,7 @@ bool Write(QIODevice & input, const std::filesystem::path & path, IProgressContr
 
 bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, IProgressController::IProgressItem & progress)
 {
-	Zip::Zip zip(QString::fromStdWString(path), Zip::Zip::Format::Zip);
+	Util::Zip zip(QString::fromStdWString(path), Util::Zip::Format::Zip);
 	auto & stream = zip.Write(fileName);
 	return Copy(input, stream, progress);
 }
@@ -116,7 +116,7 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 	if (progress.IsStopped())
 		return;
 
-	const Zip::Zip zip(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
+	const Util::Zip zip(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
 	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, book, progress, pathChecker, asArchives); !ok && exists(path))
 		remove(path);
 }

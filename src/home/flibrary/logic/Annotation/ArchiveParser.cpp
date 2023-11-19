@@ -9,7 +9,7 @@
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
-#include "zip/zip.h"
+#include "util/zip.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -289,7 +289,7 @@ public:
 
 		try
 		{
-			const Zip::Zip zip(folder);
+			const Util::Zip zip(folder);
 			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 			XmlParser parser(stream);
 			return parser.Parse();

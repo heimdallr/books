@@ -13,7 +13,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "util/ISettings.h"
-#include "zip/zip.h"
+#include "util/zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -51,7 +51,7 @@ std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileNa
 	try
 	{
 		auto temporaryDir = std::make_shared<QTemporaryDir>();
-		const Zip::Zip zip(archive);
+		const Util::Zip zip(archive);
 		auto & stream = zip.Read(fileName);
 		fileName = temporaryDir->filePath(fileName);
 		const std::unique_ptr<char[]> buffer(new char[BUFFER_SIZE]);

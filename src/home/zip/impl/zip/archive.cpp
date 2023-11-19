@@ -1,4 +1,4 @@
-#include "zip.h"
+#include "archive.h"
 
 #include <quazip/quazip.h>
 
@@ -7,7 +7,7 @@
 #include "interface/file.h"
 #include "file.h"
 
-namespace HomeCompa::Zip::Impl {
+namespace HomeCompa::Zip::Impl::Zip {
 
 namespace {
 
@@ -18,7 +18,8 @@ public:
 		: m_zip(std::make_unique<QuaZip>(filename))
 	{
 		if (!m_zip->open(mode))
-			switch(mode)
+		{
+			switch (mode)
 			{
 				case QuaZip::Mode::mdUnzip:
 					Error::CannotOpenFile(filename);
@@ -29,6 +30,7 @@ public:
 				default:
 					assert(false && "unexpected mode");
 			}
+		}
 
 		if (mode == QuaZip::Mode::mdCreate)
 			m_zip->setUtf8Enabled(true);
@@ -59,12 +61,12 @@ private:
 
 }
 
-std::unique_ptr<IZip> Zip::CreateReader(const QString & filename)
+std::unique_ptr<IZip> Archive::CreateReader(const QString & filename)
 {
 	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdUnzip);
 }
 
-std::unique_ptr<IZip> Zip::CreateWriter(const QString & filename)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename)
 {
 	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdCreate);
 }

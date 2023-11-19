@@ -6,7 +6,7 @@
 #include "interface/error.h"
 #include "interface/file.h"
 
-namespace HomeCompa::Zip::Impl {
+namespace HomeCompa::Zip::Impl::Zip {
 
 class QuaZipImpl final : virtual public IFile
 {

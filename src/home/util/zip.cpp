@@ -3,10 +3,11 @@
 #include "fnd/FindPair.h"
 #include "fnd/memory.h"
 
-#include "interface/file.h"
-#include "interface/zip.h"
-#include "factory/factory.h"
+#include "zip/interface/file.h"
+#include "zip/interface/zip.h"
+#include "zip/factory/factory.h"
 
+using namespace HomeCompa::Util;
 using namespace HomeCompa::Zip;
 
 namespace {

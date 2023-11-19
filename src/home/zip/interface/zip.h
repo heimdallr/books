@@ -1,8 +1,7 @@
 #pragma once
 
 #include <memory>
-
-class QString;
+#include <QStringList>
 
 namespace HomeCompa::Zip {
 
