@@ -6,11 +6,9 @@ AddTarget(logic	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}/.."
 		"${CMAKE_CURRENT_LIST_DIR}/../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../zip"
-		"${CMAKE_CURRENT_LIST_DIR}/../../../ext/include"
 	LINK_LIBRARIES
 		Hypodermic
 		plog
-		QuaZip::QuaZip
 		Qt6::Gui
 	LINK_TARGETS
 		DatabaseFactory

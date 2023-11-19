@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
+#include <QFile>
 #include <QRegularExpression>
 #include <QTimer>
-#include <quazip>
 
 #include "Util/IExecutor.h"
 
@@ -57,16 +57,9 @@ bool Write(QIODevice & input, const std::filesystem::path & path, IProgressContr
 
 bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, IProgressController::IProgressItem & progress)
 {
-	QuaZip zip(QString::fromStdWString(path));
-	zip.setUtf8Enabled(true);
-	if (!zip.open(QuaZip::mdCreate))
-		throw std::runtime_error("Cannot create " + path.string());
-
-	QuaZipFile zipFile(&zip);
-	if (!zipFile.open(QIODevice::WriteOnly, fileName, nullptr, 0, Z_DEFLATED, Z_BEST_COMPRESSION))
-		throw std::runtime_error("Cannot add file to archive " + path.string());
-
-	return Copy(input, zipFile, progress);
+	Zip::Zip zip(QString::fromStdWString(path), Zip::Zip::Format::Zip);
+	auto & stream = zip.Write(fileName);
+	return Copy(input, stream, progress);
 }
 
 QString RemoveIllegalCharacters(QString str)

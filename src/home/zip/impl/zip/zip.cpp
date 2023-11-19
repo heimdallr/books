@@ -1,6 +1,6 @@
 #include "zip.h"
 
-#include <quazip>
+#include <quazip/quazip.h>
 
 #include "interface/error.h"
 #include "interface/zip.h"

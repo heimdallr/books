@@ -1,6 +1,6 @@
 #include "file.h"
 
-#include <quazip>
+#include <quazip/quazipfile.h>
 
 #include "fnd/FindPair.h"
 #include "interface/error.h"
