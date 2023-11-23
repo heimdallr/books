@@ -5,6 +5,7 @@ set(MODULES
 	database
 	inpx
 	flibrary
+	zip
 )
 
 foreach(module ${MODULES})

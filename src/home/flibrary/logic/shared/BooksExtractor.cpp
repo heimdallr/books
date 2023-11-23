@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
+#include <QFile>
 #include <QRegularExpression>
 #include <QTimer>
-#include <quazip>
 
 #include "Util/IExecutor.h"
 
@@ -13,6 +13,8 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
+
+#include "util/zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -24,51 +26,6 @@ class IPathChecker  // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IPathChecker() = default;
 	virtual void Check(std::filesystem::path & path) = 0;
-};
-
-class ArchiveSrc
-{
-public:
-	ArchiveSrc(const std::filesystem::path & archiveFolder, const BooksExtractor::Book & book)
-		: m_zip(CreateZip(archiveFolder, book))
-		, m_zipFile(CreateZipFile(m_zip.get(), book))
-	{
-	}
-
-	QIODevice & GetDecoded() const noexcept
-	{
-		return *m_zipFile;
-	}
-
-private:
-	static std::unique_ptr<QuaZip> CreateZip(const std::filesystem::path & archiveFolder, const BooksExtractor::Book & book)
-	{
-		const auto archivePath = archiveFolder / book.folder.toStdWString();
-		if (!exists(archivePath))
-			throw std::runtime_error("Cannot find " + archivePath.generic_string());
-
-		auto zip = std::make_unique<QuaZip>(QString::fromStdWString(archivePath));
-		if (!zip->open(QuaZip::Mode::mdUnzip))
-			throw std::runtime_error("Cannot open " + archivePath.generic_string());
-
-		return zip;
-	}
-
-	static std::unique_ptr<QuaZipFile> CreateZipFile(QuaZip * zip, const BooksExtractor::Book & book)
-	{
-		if (!zip->setCurrentFile(book.file))
-			throw std::runtime_error("Cannot extract " + book.file.toStdString());
-
-		auto zipFile = std::make_unique<QuaZipFile>(zip);
-		if (!zipFile->open(QIODevice::ReadOnly))
-			throw std::runtime_error("Cannot open " + book.file.toStdString());
-
-		return zipFile;
-	}
-
-private:
-	const std::unique_ptr<QuaZip> m_zip {};
-	const std::unique_ptr<QuaZipFile> m_zipFile {};
 };
 
 bool Copy(QIODevice & input, QIODevice & output, IProgressController::IProgressItem & progress)
@@ -100,16 +57,9 @@ bool Write(QIODevice & input, const std::filesystem::path & path, IProgressContr
 
 bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, IProgressController::IProgressItem & progress)
 {
-	QuaZip zip(QString::fromStdWString(path));
-	zip.setUtf8Enabled(true);
-	if (!zip.open(QuaZip::mdCreate))
-		throw std::runtime_error("Cannot create " + path.string());
-
-	QuaZipFile zipFile(&zip);
-	if (!zipFile.open(QIODevice::WriteOnly, fileName, nullptr, 0, Z_DEFLATED, Z_BEST_COMPRESSION))
-		throw std::runtime_error("Cannot add file to archive " + path.string());
-
-	return Copy(input, zipFile, progress);
+	Util::Zip zip(QString::fromStdWString(path), Util::Zip::Format::Zip);
+	auto & stream = zip.Write(fileName);
+	return Copy(input, stream, progress);
 }
 
 QString RemoveIllegalCharacters(QString str)
@@ -166,10 +116,9 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 	if (progress.IsStopped())
 		return;
 
-	const ArchiveSrc archiveSrc(archiveFolder, book);
-	const auto writeResult = Write(archiveSrc.GetDecoded(), dstFolder, book, progress, pathChecker, asArchives);
-	if (!writeResult.first && exists(writeResult.second))
-		remove(writeResult.second);
+	const Util::Zip zip(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
+	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, book, progress, pathChecker, asArchives); !ok && exists(path))
+		remove(path);
 }
 
 }

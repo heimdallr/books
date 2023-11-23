@@ -6,6 +6,7 @@
 #include <functional>
 #include <iterator>
 #include <span>
+#include <string>
 
 //.............................................................................
 
