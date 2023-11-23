@@ -7,6 +7,7 @@
 #include "interface/error.h"
 #include "interface/zip.h"
 #include "impl/zip/archive.h"
+#include "impl/7z/archive.h"
 
 using namespace HomeCompa::Zip;
 
@@ -16,16 +17,19 @@ using Creator = std::unique_ptr<IZip>(*)(const QString & filename);
 constexpr std::pair<const char *, Creator> CREATORS_BY_EXT[]
 {
 	{"zip", &Impl::Zip::Archive::CreateReader},
+	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 
 constexpr std::pair<const char *, Creator> CREATORS_BY_SIGNATURE[]
 {
 	{"PK", &Impl::Zip::Archive::Archive::CreateReader},
+	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 
 constexpr std::pair<Factory::Format, Creator> CREATORS_BY_FORMAT[]
 {
 	{Factory::Format::Zip, &Impl::Zip::Archive::CreateWriter},
+	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
 };
 
 std::unique_ptr<IZip> CreateBySignature(const QString & filename)

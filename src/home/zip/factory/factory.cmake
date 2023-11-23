@@ -11,4 +11,5 @@ AddTarget(ZipFactory	shared_lib
 		logging
 		ZipInterface
 		ZipWrapper
+		7zWrapper
 )
