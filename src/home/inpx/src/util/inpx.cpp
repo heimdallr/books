@@ -9,6 +9,7 @@
 #include <numeric>
 #include <set>
 
+#include <QDir>
 #include <QFile>
 
 #include <plog/Log.h>
@@ -252,7 +253,9 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 {
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 
-	folder = std::filesystem::path(folder).replace_extension(ZIP).wstring();
+	const auto mask = QString::fromStdWString(std::filesystem::path(folder).replace_extension("*"));
+	QStringList suitable_files = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
+	folder = suitable_files.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitable_files.front().toStdWString();
 
 	std::set<std::string> files;
 
