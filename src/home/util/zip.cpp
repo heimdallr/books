@@ -41,6 +41,7 @@ public:
 
 	QIODevice & Read(const QString & filename)
 	{
+		m_file.reset();
 		m_file.reset(m_zip->Read(filename));
 		return m_file->Read();
 	}
