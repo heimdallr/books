@@ -36,17 +36,17 @@
     <message>
         <location filename="../../error.cpp" line="19"/>
         <source>Cannot load %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось загрузить %1</translation>
     </message>
     <message>
         <location filename="../../error.cpp" line="20"/>
         <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось получить адрес функции %1</translation>
     </message>
     <message>
         <location filename="../../error.cpp" line="21"/>
         <source>Cannot  create object</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать объект</translation>
     </message>
 </context>
 </TS>
