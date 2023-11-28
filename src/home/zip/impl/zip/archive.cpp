@@ -61,12 +61,12 @@ private:
 
 }
 
-std::unique_ptr<IZip> Archive::CreateReader(const QString & filename)
+std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/)
 {
 	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdUnzip);
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/)
 {
 	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdCreate);
 }

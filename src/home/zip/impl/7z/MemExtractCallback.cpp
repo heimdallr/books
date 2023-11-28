@@ -3,7 +3,7 @@
 
 #include "MemExtractCallback.h"
 #include "OutMemStream.h"
-#include "ProgressCallback.h"
+#include "zip/interface/ProgressCallback.h"
 #include "PropVariant.h"
 
 using namespace HomeCompa::ZipDetails::Impl::SevenZip;
@@ -12,22 +12,17 @@ namespace {
 constexpr auto EMPTY_FILE_ALIAS = "[Content]";
 }
 
-CComPtr<MemExtractCallback> MemExtractCallback::Create(CComPtr<IInArchive> archiveHandler, QByteArray & buffer, QString password, ProgressCallback * callback)
+CComPtr<MemExtractCallback> MemExtractCallback::Create(CComPtr<IInArchive> archiveHandler, QByteArray & buffer, std::shared_ptr<ProgressCallback> callback, QString password)
 {
-	return new MemExtractCallback(std::move(archiveHandler), buffer, std::move(password), callback);
+	return new MemExtractCallback(std::move(archiveHandler), buffer, std::move(callback), std::move(password));
 }
 
-MemExtractCallback::MemExtractCallback(CComPtr<IInArchive> archiveHandler, QByteArray & buffer, QString password, ProgressCallback * callback)
+MemExtractCallback::MemExtractCallback(CComPtr<IInArchive> archiveHandler, QByteArray & buffer, std::shared_ptr<ProgressCallback> callback, QString password)
 	: m_archiveHandler(std::move(archiveHandler))
 	, m_buffer(buffer)
+	, m_callback(std::move(callback))
 	, m_password(std::move(password))
-	, m_callback(callback)
 {
-	if (!m_callback)
-	{
-		m_callbackStub = std::make_unique<ProgressCallbackStub>();
-		m_callback = m_callbackStub.get();
-	}
 }
 
 STDMETHODIMP MemExtractCallback::QueryInterface(REFIID iid, void ** ppvObject)

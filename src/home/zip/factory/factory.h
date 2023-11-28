@@ -7,10 +7,9 @@
 class QString;
 
 namespace HomeCompa::ZipDetails {
-class IZip;
-}
 
-namespace HomeCompa::ZipDetails {
+class IZip;
+class ProgressCallback;
 
 struct ZIPFACTORY_EXPORT Factory
 {
@@ -20,8 +19,8 @@ struct ZIPFACTORY_EXPORT Factory
 		SevenZip,
 	};
 
-	static std::unique_ptr<IZip> Create(const QString & filename);
-	static std::unique_ptr<IZip> Create(const QString & filename, Format format);
+	static std::unique_ptr<IZip> Create(const QString & filename, std::shared_ptr<ProgressCallback> progress);
+	static std::unique_ptr<IZip> Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, Format format);
 };
 
 }

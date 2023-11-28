@@ -3,7 +3,7 @@
 
 class QString;
 
-namespace HomeCompa::ZipDetails::Impl::SevenZip {
+namespace HomeCompa::ZipDetails {
 
 class ProgressCallback
 {
@@ -24,17 +24,6 @@ public:
 
 	// Called to determine if it's time to abort the zip operation. Return true to abort the current operation.
 	virtual bool OnCheckBreak() = 0;
-};
-
-class ProgressCallbackStub final
-	: public ProgressCallback
-{
-public:
-	void OnStartWithTotal(uint64_t) override {}
-	void OnProgress(uint64_t) override { }
-	void OnDone() override { }
-	void OnFileDone(const QString &, uint64_t) override { }
-	bool OnCheckBreak() override { return false; }
 };
 
 }

@@ -17,19 +17,41 @@ constexpr std::pair<Zip::Format, Factory::Format> FORMATS[]
 	{Zip::Format::Zip, Factory::Format::Zip},
 };
 
+class ProgressCallbackStub final
+	: public Zip::ProgressCallback
+{
+public:
+	void OnStartWithTotal(uint64_t) override
+	{
+	}
+	void OnProgress(uint64_t) override
+	{
+	}
+	void OnDone() override
+	{
+	}
+	void OnFileDone(const QString &, uint64_t) override
+	{
+	}
+	bool OnCheckBreak() override
+	{
+		return false;
+	}
+};
+
 }
 
 class Zip::Impl
 {
 public:
-	explicit Impl(const QString & filename)
-		: m_zip(Factory::Create(filename))
+	Impl(const QString & filename, std::shared_ptr<ProgressCallback> progress)
+		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>()))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
 
-	Impl(const QString & filename, const Format format)
-		: m_zip(Factory::Create(filename, FindSecond(FORMATS, format)))
+	Impl(const QString & filename, const Format format, std::shared_ptr<ProgressCallback> progress)
+		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format)))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
@@ -57,13 +79,13 @@ private:
 	PropagateConstPtr<IFile> m_file;
 };
 
-Zip::Zip(const QString & filename)
-	: m_impl(std::make_unique<Impl>(filename))
+Zip::Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress)
+	: m_impl(std::make_unique<Impl>(filename, std::move(progress)))
 {
 }
 
-Zip::Zip(const QString & filename, const Format format)
-	: m_impl(std::make_unique<Impl>(filename, format))
+Zip::Zip(const QString & filename, const Format format, std::shared_ptr<ProgressCallback> progress)
+	: m_impl(std::make_unique<Impl>(filename, format, std::move(progress)))
 {
 }
 

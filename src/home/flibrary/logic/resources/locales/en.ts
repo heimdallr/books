@@ -235,12 +235,12 @@ Try again?</source>
 <context>
     <name>ReaderController</name>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="24"/>
+        <location filename="../../shared/ReaderController.cpp" line="23"/>
         <source>Select %1 reader</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="25"/>
+        <location filename="../../shared/ReaderController.cpp" line="24"/>
         <source>Applications (*.exe)</source>
         <translation></translation>
     </message>
