@@ -8,12 +8,11 @@
 
 #include "7z/CPP/7zip/Archive/IArchive.h"
 
-#include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/zip.h"
-#include "interface/file.h"
-#include "interface/error.h"
+#include "zip/interface/zip.h"
+#include "zip/interface/file.h"
+#include "zip/interface/error.h"
 
 #include "ArchiveOpenCallback.h"
 #include "file.h"

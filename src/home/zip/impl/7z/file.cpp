@@ -2,11 +2,9 @@
 
 #include "file.h"
 
-
 #include <QBuffer>
 
-#include "interface/error.h"
-#include "interface/file.h"
+#include "zip/interface/file.h"
 #include "MemExtractCallback.h"
 
 #include "7z/CPP/7zip/Archive/IArchive.h"

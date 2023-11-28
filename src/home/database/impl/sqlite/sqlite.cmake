@@ -5,7 +5,6 @@ AddTarget(DatabaseSqlite	shared_lib
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite3pp/src"
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/sqlite/sqlite"
-		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../interface"
 	LINK_LIBRARIES
 		plog

@@ -2,9 +2,9 @@
 
 #include <quazip/quazip.h>
 
-#include "interface/error.h"
-#include "interface/zip.h"
-#include "interface/file.h"
+#include "zip/interface/error.h"
+#include "zip/interface/zip.h"
+#include "zip/interface/file.h"
 #include "file.h"
 
 namespace HomeCompa::Zip::Impl::Zip {

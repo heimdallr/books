@@ -3,11 +3,9 @@
 #include <Windows.h>
 
 #include <QCoreApplication>
-#include <qttranslation.h>
-//#include "GUIDs.h"
 
 #include "fnd/NonCopyMovable.h"
-#include "interface/error.h"
+#include "zip/interface/error.h"
 
 
 namespace HomeCompa::Zip::Impl::SevenZip

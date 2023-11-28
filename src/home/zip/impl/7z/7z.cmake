@@ -3,8 +3,6 @@ AddTarget(7zWrapper	shared_lib
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	INCLUDE_DIRECTORIES
-		"${CMAKE_CURRENT_LIST_DIR}/../.."
-		"${CMAKE_CURRENT_LIST_DIR}/../../.."
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/7z-sdk"
 	LINK_LIBRARIES
 		Qt6::Core

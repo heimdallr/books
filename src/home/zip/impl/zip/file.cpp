@@ -3,8 +3,8 @@
 #include <quazip/quazipfile.h>
 
 #include "fnd/FindPair.h"
-#include "interface/error.h"
-#include "interface/file.h"
+#include "zip/interface/error.h"
+#include "zip/interface/file.h"
 
 namespace HomeCompa::Zip::Impl::Zip {
 

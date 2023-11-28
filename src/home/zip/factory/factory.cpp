@@ -4,10 +4,10 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/error.h"
-#include "interface/zip.h"
-#include "impl/zip/archive.h"
-#include "impl/7z/archive.h"
+#include "zip/interface/error.h"
+#include "zip/interface/zip.h"
+#include "zip/impl/zip/archive.h"
+#include "zip/impl/7z/archive.h"
 
 using namespace HomeCompa::Zip;
 
