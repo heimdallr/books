@@ -262,14 +262,14 @@ void MemExtractCallback::GetPropertySize(const UInt32 index)
 void MemExtractCallback::EmitDoneCallback() const
 {
 	if (m_callback)
-		m_callback->OnDone("");
+		m_callback->OnDone();
 }
 
-void MemExtractCallback::EmitFileDoneCallback(const QString & /*path*/) const
+void MemExtractCallback::EmitFileDoneCallback(const QString & path) const
 {
 	if (!m_callback)
 		return;
 
-//	m_callback->OnProgress(m_archivePath, m_newFileSize);
-//	m_callback->OnFileDone(m_archivePath, path, m_newFileSize);
+	m_callback->OnProgress(m_newFileSize);
+	m_callback->OnFileDone(path, m_newFileSize);
 }
