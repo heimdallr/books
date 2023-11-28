@@ -6,14 +6,13 @@
 
 #include <plog/Log.h>
 
-#include "util/IExecutor.h"
-
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
+#include "util/IExecutor.h"
 #include "util/ISettings.h"
-#include "util/zip.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -51,7 +50,7 @@ std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileNa
 	try
 	{
 		auto temporaryDir = std::make_shared<QTemporaryDir>();
-		const Util::Zip zip(archive);
+		const Zip zip(archive);
 		auto & stream = zip.Read(fileName);
 		fileName = temporaryDir->filePath(fileName);
 		const std::unique_ptr<char[]> buffer(new char[BUFFER_SIZE]);

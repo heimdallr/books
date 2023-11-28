@@ -6,11 +6,11 @@
 
 class QString;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 class IZip;
 }
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 struct Archive
 {

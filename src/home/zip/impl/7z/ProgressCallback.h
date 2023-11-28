@@ -3,7 +3,7 @@
 
 class QString;
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 class ProgressCallback
 {

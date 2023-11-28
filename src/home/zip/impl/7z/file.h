@@ -5,11 +5,11 @@
 class QString;
 struct IInArchive;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 class IFile;
 }
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 struct File
 {

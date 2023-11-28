@@ -2,7 +2,7 @@
 #include <7z/CPP/Common/Defs.h>
 
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 CPropVariant::CPropVariant()
 	: PROPVARIANT()

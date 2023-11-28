@@ -6,7 +6,7 @@
 
 #include <plog/Log.h>
 
-using namespace HomeCompa::Zip;
+using namespace HomeCompa::ZipDetails;
 
 namespace {
 

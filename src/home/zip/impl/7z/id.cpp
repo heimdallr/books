@@ -4,7 +4,7 @@
 
 #include "fnd/FindPair.h"
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 namespace {
 

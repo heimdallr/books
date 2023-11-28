@@ -6,7 +6,7 @@
 #include "ProgressCallback.h"
 #include "PropVariant.h"
 
-using namespace HomeCompa::Zip::Impl::SevenZip;
+using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
 namespace {
 constexpr auto EMPTY_FILE_ALIAS = "[Content]";
@@ -84,21 +84,12 @@ STDMETHODIMP MemExtractCallback::SetCompleted(const UInt64 * /*completeValue*/)
 	- For ZIP format SetCompleted only called once per 1000 files in central directory and once per 100 in local ones.
 	- For 7Z format SetCompleted is never called.
 	*/
-	if (m_callback)
-	{
-		//Don't call this directly, it will be called per file which is more consistent across archive types
-		//TODO: incorporate better progress tracking
-		//m_callback->OnProgress(m_absPath, *completeValue);
-	}
 	return CheckBreak();
 }
 
 STDMETHODIMP MemExtractCallback::CheckBreak()
 {
-	if (m_callback)
-		return m_callback->OnCheckBreak() ? E_ABORT : S_OK;
-
-	return S_OK;
+	return m_callback->OnCheckBreak() ? E_ABORT : S_OK;
 }
 
 STDMETHODIMP MemExtractCallback::GetStream(const UInt32 index, ISequentialOutStream ** outStream, const Int32 askExtractMode)
@@ -261,15 +252,11 @@ void MemExtractCallback::GetPropertySize(const UInt32 index)
 
 void MemExtractCallback::EmitDoneCallback() const
 {
-	if (m_callback)
-		m_callback->OnDone();
+	m_callback->OnDone();
 }
 
 void MemExtractCallback::EmitFileDoneCallback(const QString & path) const
 {
-	if (!m_callback)
-		return;
-
 	m_callback->OnProgress(m_newFileSize);
 	m_callback->OnFileDone(path, m_newFileSize);
 }

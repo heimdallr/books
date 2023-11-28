@@ -4,7 +4,7 @@
 
 class QString;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 
 struct ZIPINTERFACE_EXPORT Error
 {

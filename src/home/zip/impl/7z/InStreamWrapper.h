@@ -2,7 +2,7 @@
 
 #include "7z/CPP/7zip/IStream.h"
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 class InStreamWrapper final
 	: public IInStream

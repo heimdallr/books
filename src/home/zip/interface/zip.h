@@ -3,7 +3,7 @@
 #include <memory>
 #include <QStringList>
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 
 class IFile;
 

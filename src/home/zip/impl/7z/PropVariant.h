@@ -4,7 +4,7 @@
 #include <7z/CPP/Common/MyTypes.h>
 
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 class CPropVariant : public PROPVARIANT
 {

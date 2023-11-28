@@ -2,7 +2,7 @@
 
 struct _GUID;
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 #define ARCHIVE_FORMAT_ITEMS_X_MACRO \
 		ARCHIVE_FORMAT_ITEM(Zip)     \

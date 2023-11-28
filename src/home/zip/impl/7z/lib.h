@@ -4,7 +4,7 @@
 
 struct _GUID;
 
-namespace HomeCompa::Zip::Impl::SevenZip
+namespace HomeCompa::ZipDetails::Impl::SevenZip
 {
 class Lib
 {

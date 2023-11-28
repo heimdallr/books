@@ -8,7 +8,7 @@
 #include "zip/interface/error.h"
 
 
-namespace HomeCompa::Zip::Impl::SevenZip
+namespace HomeCompa::ZipDetails::Impl::SevenZip
 {
 
 namespace {

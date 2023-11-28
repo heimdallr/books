@@ -2,7 +2,7 @@
 
 class QIODevice;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 
 class IFile
 {

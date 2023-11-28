@@ -21,7 +21,7 @@
 #include "lib.h"
 #include "PropVariant.h"
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 namespace {
 

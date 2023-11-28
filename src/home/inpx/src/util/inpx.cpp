@@ -23,9 +23,9 @@
 
 #include "inpx.h"
 
-#include "util/zip.h"
+#include "zip.h"
 
-using namespace HomeCompa::Util;
+using namespace HomeCompa;
 
 namespace {
 

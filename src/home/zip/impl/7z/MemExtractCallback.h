@@ -7,7 +7,7 @@
 #include "7z/CPP/7zip/Archive/IArchive.h"
 #include "7z/CPP/7zip/IPassword.h"
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 class ProgressCallback;
 

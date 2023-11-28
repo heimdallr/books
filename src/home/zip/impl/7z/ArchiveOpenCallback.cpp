@@ -2,7 +2,7 @@
 
 #include "ArchiveOpenCallback.h"
 
-using namespace HomeCompa::Zip::Impl::SevenZip;
+using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
 CComPtr<ArchiveOpenCallback> ArchiveOpenCallback::Create(QString password)
 {

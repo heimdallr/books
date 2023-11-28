@@ -9,7 +9,7 @@
 #include "zip/impl/zip/archive.h"
 #include "zip/impl/7z/archive.h"
 
-using namespace HomeCompa::Zip;
+using namespace HomeCompa::ZipDetails;
 
 namespace {
 

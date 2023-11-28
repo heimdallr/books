@@ -2,7 +2,7 @@
 
 #include "InStreamWrapper.h"
 
-using namespace HomeCompa::Zip::Impl::SevenZip;
+using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
 CComPtr<InStreamWrapper> InStreamWrapper::Create(CComPtr<IStream> baseStream)
 {

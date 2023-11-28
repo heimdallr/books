@@ -4,7 +4,7 @@
 
 #include <QByteArray>
 
-using namespace HomeCompa::Zip::Impl::SevenZip;
+using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
 CComPtr<ISequentialOutStream> OutMemStream::Create(QByteArray & buffer)
 {

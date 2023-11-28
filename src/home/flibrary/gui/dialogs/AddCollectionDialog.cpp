@@ -11,7 +11,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/zip.h"
+#include "zip.h"
 
 #include "config/version.h"
 
@@ -243,7 +243,7 @@ private:
 
 		try
 		{
-			m_ui.editName->setText(Util::Zip(inpx).Read("collection.info").readLine().simplified());
+			m_ui.editName->setText(Zip(inpx).Read("collection.info").readLine().simplified());
 		}
 		catch(const std::exception & ex)
 		{

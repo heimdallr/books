@@ -12,6 +12,7 @@ AddTarget(logic	shared_lib
 		InpxLib
 		logging
 		Util
+		zip
 	DEPENDENCIES
 		MyHomeLibSQLIteExt
 )

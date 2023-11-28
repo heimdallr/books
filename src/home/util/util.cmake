@@ -6,5 +6,4 @@ AddTarget(Util	shared_lib
 		Qt6::Gui
 	LINK_TARGETS
 		logging
-		ZipFactory
 )

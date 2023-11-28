@@ -9,7 +9,7 @@
 
 #include "7z/CPP/7zip/Archive/IArchive.h"
 
-namespace HomeCompa::Zip::Impl::SevenZip {
+namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 namespace {
 

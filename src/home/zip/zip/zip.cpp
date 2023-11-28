@@ -7,8 +7,8 @@
 #include "zip/interface/zip.h"
 #include "zip/factory/factory.h"
 
-using namespace HomeCompa::Util;
-using namespace HomeCompa::Zip;
+using namespace HomeCompa;
+using namespace ZipDetails;
 
 namespace {
 

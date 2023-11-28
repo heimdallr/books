@@ -12,4 +12,5 @@ AddTarget(gui	shared_lib
 		logic
 		Util
 		ver
+		zip
 )

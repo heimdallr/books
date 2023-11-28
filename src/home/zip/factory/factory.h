@@ -6,11 +6,11 @@
 
 class QString;
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 class IZip;
 }
 
-namespace HomeCompa::Zip {
+namespace HomeCompa::ZipDetails {
 
 struct ZIPFACTORY_EXPORT Factory
 {

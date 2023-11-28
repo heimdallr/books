@@ -11,6 +11,7 @@ AddTarget(InpxLib	shared_lib
 		sqlite
 		sqlite3pp
 		Util
+		zip
 	LINK_LIBRARIES
 		Qt6::Core
 		plog

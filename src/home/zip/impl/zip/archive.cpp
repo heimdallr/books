@@ -7,7 +7,7 @@
 #include "zip/interface/file.h"
 #include "file.h"
 
-namespace HomeCompa::Zip::Impl::Zip {
+namespace HomeCompa::ZipDetails::Impl::Zip {
 
 namespace {
 
