@@ -8,6 +8,7 @@
 #include "ArchiveParser.h"
 #include "data/DataItem.h"
 #include "shared/DatabaseUser.h"
+#include "shared/ZipProgressCallback.h"
 
 #include "util/UiTimer.h"
 
@@ -48,9 +49,11 @@ class AnnotationController::Impl final
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 	)
 		: m_logicFactory(std::move(logicFactory))
 		, m_databaseUser(std::move(databaseUser))
+		, m_zipProgressCallback(std::move(zipProgressCallback))
 		, m_executor(m_logicFactory->GetExecutor())
 	{
 	}
@@ -147,6 +150,7 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
+		m_zipProgressCallback->Stop();
 		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]() mutable
 		{
 			auto data = m_logicFactory->CreateArchiveParser()->Parse(*book);
@@ -224,6 +228,7 @@ private:
 private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	PropagateConstPtr<ZipProgressCallback, std::shared_ptr> m_zipProgressCallback;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 
@@ -242,8 +247,12 @@ private:
 
 AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 )
-	: m_impl(std::move(logicFactory), std::move(databaseUser))
+	: m_impl(std::move(logicFactory)
+		, std::move(databaseUser)
+		, std::move(zipProgressCallback)
+	)
 {
 	PLOGD << "AnnotationController created";
 }

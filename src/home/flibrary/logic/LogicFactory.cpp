@@ -30,6 +30,7 @@
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ReaderController.h"
+#include "shared/ZipProgressCallback.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

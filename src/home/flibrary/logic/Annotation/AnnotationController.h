@@ -14,6 +14,7 @@ class AnnotationController final : virtual public IAnnotationController
 public:
 	AnnotationController(std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class ZipProgressCallback> zipProgressCallback
 	);
 	~AnnotationController() override;
 

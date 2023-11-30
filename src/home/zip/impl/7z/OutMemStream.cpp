@@ -4,21 +4,24 @@
 
 #include <QByteArray>
 
+#include "zip/interface/ProgressCallback.h"
+
 using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
-CComPtr<ISequentialOutStream> OutMemStream::Create(QByteArray & buffer)
+CComPtr<ISequentialOutStream> OutMemStream::Create(QByteArray & buffer, std::shared_ptr<ProgressCallback> progress)
 {
-	return new OutMemStream(buffer);
+	return new OutMemStream(buffer, std::move(progress));
 }
 
-OutMemStream::OutMemStream(QByteArray & buffer)
+OutMemStream::OutMemStream(QByteArray & buffer, std::shared_ptr<ProgressCallback> progress)
 	: m_buffer(buffer)
+	, m_progress(std::move(progress))
 {
 }
 
 STDMETHODIMP OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
 {
-	if (iid == __uuidof(IUnknown))
+	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
 	{
 		*ppvObject = static_cast<IUnknown *>(this);
 		AddRef();
@@ -63,6 +66,8 @@ STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * 
 	const auto* byte_data = static_cast<const char *>(data);
 	m_buffer.append(byte_data, size);
 	*processedSize = size;
+
+	m_progress->OnIncrement(size);
 
 	return S_OK;
 }

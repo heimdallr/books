@@ -21,6 +21,7 @@
 #include "shared/DatabaseUser.h"
 #include "shared/ProgressController.h"
 #include "shared/TaskQueue.h"
+#include "shared/ZipProgressCallback.h"
 #include "userdata/UserDataController.h"
 #include "util/ISettings.h"
 // ReSharper restore CppUnusedIncludeDirective
@@ -43,6 +44,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UserDataController>().as<IUserDataController>();
+	builder.registerType<ZipProgressCallback>().singleInstance();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

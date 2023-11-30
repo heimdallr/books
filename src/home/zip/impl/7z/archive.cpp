@@ -94,8 +94,9 @@ class Reader final : virtual public IZip
 	using Files = std::unordered_map<QString, uint32_t>;
 
 public:
-	explicit Reader(QString filename)
+	explicit Reader(QString filename, std::shared_ptr<ProgressCallback> progress)
 		: m_filename(std::move(filename))
+		, m_progress(std::move(progress))
 	{
 	}
 
@@ -117,7 +118,7 @@ private: // IZip
 			Error::CannotFindFileInArchive(filename);
 
 		auto archive = CreateInputArchive(m_lib, m_filename, m_format);
-		return File::Read(std::move(archive), it->second);
+		return File::Read(std::move(archive), it->second, m_progress);
 	}
 
 	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
@@ -153,6 +154,7 @@ private:
 
 private:
 	QString m_filename;
+	std::shared_ptr<ProgressCallback> m_progress;
 	Lib m_lib;
 	mutable Files m_files;
 	mutable Format m_format { Unknown };
@@ -161,12 +163,12 @@ private:
 }
 
 
-std::unique_ptr<IZip> Archive::CreateReader(const QString & filename)
+std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 {
-	return std::make_unique<Reader>(filename);
+	return std::make_unique<Reader>(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, std::shared_ptr<ProgressCallback> /*progress*/)
 {
 	return nullptr;
 }

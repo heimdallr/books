@@ -13,7 +13,7 @@ using namespace HomeCompa::ZipDetails;
 
 namespace {
 
-using Creator = std::unique_ptr<IZip>(*)(const QString & filename);
+using Creator = std::unique_ptr<IZip>(*)(const QString & filename, std::shared_ptr<ProgressCallback> progress);
 constexpr std::pair<const char *, Creator> CREATORS_BY_EXT[]
 {
 	{"zip", &Impl::Zip::Archive::CreateReader},
@@ -32,7 +32,7 @@ constexpr std::pair<Factory::Format, Creator> CREATORS_BY_FORMAT[]
 	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
 };
 
-std::unique_ptr<IZip> CreateBySignature(const QString & filename)
+std::unique_ptr<IZip> CreateBySignature(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly))
@@ -42,17 +42,17 @@ std::unique_ptr<IZip> CreateBySignature(const QString & filename)
 	file.read(buf, 2);
 	buf[2] = 0;
 
-	return FindSecond(CREATORS_BY_SIGNATURE, buf, PszComparer {})(filename);
+	return FindSecond(CREATORS_BY_SIGNATURE, buf, PszComparer {})(filename, std::move(progress));
 }
 
 }
 
-std::unique_ptr<IZip> Factory::Create(const QString & filename)
+std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 {
-	return FindSecond(CREATORS_BY_EXT, QFileInfo(filename).suffix().toStdString().data(), &CreateBySignature, PszComparer {})(filename);
+	return FindSecond(CREATORS_BY_EXT, QFileInfo(filename).suffix().toStdString().data(), &CreateBySignature, PszComparer {})(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Factory::Create(const QString & filename, const Format format)
+std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, const Format format)
 {
-	return FindSecond(CREATORS_BY_FORMAT, format)(filename);
+	return FindSecond(CREATORS_BY_FORMAT, format)(filename, std::move(progress));
 }
