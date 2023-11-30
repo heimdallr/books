@@ -9,6 +9,8 @@
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
+#include "shared/ZipProgressCallback.h"
+
 #include "zip.h"
 
 using namespace HomeCompa::Flibrary;
@@ -271,8 +273,9 @@ private:
 class ArchiveParser::Impl
 {
 public:
-	explicit Impl(std::shared_ptr<ICollectionController> collectionController)
+	explicit Impl(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback)
 		: m_collectionController(std::move(collectionController))
+		, m_zipProgressCallback(std::move(zipProgressCallback))
 	{
 	}
 
@@ -289,7 +292,7 @@ public:
 
 		try
 		{
-			const Zip zip(folder);
+			const Zip zip(folder, m_zipProgressCallback);
 			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 			XmlParser parser(stream);
 			return parser.Parse();
@@ -300,10 +303,11 @@ public:
 
 private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	std::shared_ptr<ZipProgressCallback> m_zipProgressCallback;
 };
 
-ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionController)
-	: m_impl(std::move(collectionController))
+ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback)
+	: m_impl(std::move(collectionController), std::move(zipProgressCallback))
 {
 	PLOGD << "AnnotationParser created";
 }

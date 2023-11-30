@@ -11,6 +11,8 @@
 
 namespace HomeCompa::Flibrary {
 
+class ZipProgressCallback;
+
 class ArchiveParser final
 {
 	NON_COPY_MOVABLE(ArchiveParser)
@@ -28,7 +30,7 @@ public:
 	};
 
 public:
-	explicit ArchiveParser(std::shared_ptr<class ICollectionController> collectionController);
+	ArchiveParser(std::shared_ptr<class ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback);
 	~ArchiveParser();
 
 public:

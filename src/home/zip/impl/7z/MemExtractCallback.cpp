@@ -27,7 +27,7 @@ MemExtractCallback::MemExtractCallback(CComPtr<IInArchive> archiveHandler, QByte
 
 STDMETHODIMP MemExtractCallback::QueryInterface(REFIID iid, void ** ppvObject)
 {
-	if (iid == __uuidof(IUnknown))
+	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
 	{
 		*ppvObject = reinterpret_cast<IUnknown *>(this);
 		AddRef();
@@ -97,7 +97,6 @@ STDMETHODIMP MemExtractCallback::GetStream(const UInt32 index, ISequentialOutStr
 			return S_OK;
 
 		GetPropertyIsDir(index);
-		GetPropertySize(index);
 	}
 	catch (_com_error & ex)
 	{
@@ -106,7 +105,7 @@ STDMETHODIMP MemExtractCallback::GetStream(const UInt32 index, ISequentialOutStr
 
 	if (!m_isDir)
 	{
-		auto outStreamLoc = OutMemStream::Create(m_buffer);
+		auto outStreamLoc = OutMemStream::Create(m_buffer, m_callback);
 		m_outMemStream = outStreamLoc;
 		*outStream = outStreamLoc.Detach();
 	}
@@ -212,39 +211,6 @@ void MemExtractCallback::GetPropertyIsDir(const UInt32 index)
 	}
 }
 
-void MemExtractCallback::GetPropertySize(const UInt32 index)
-{
-	CPropVariant prop;
-	const HRESULT hr = m_archiveHandler->GetProperty(index, kpidSize, &prop);
-	if (hr != S_OK)
-	{
-		_com_issue_error(hr);
-	}
-
-	switch (prop.vt)
-	{
-		case VT_EMPTY:
-			m_hasNewFileSize = false;
-			return;
-		case VT_UI1:
-			m_newFileSize = prop.bVal;
-			break;
-		case VT_UI2:
-			m_newFileSize = prop.uiVal;
-			break;
-		case VT_UI4:
-			m_newFileSize = prop.ulVal;
-			break;
-		case VT_UI8:
-			m_newFileSize = (UInt64)prop.uhVal.QuadPart;
-			break;
-		default:
-			_com_issue_error(E_FAIL);
-	}
-
-	m_hasNewFileSize = true;
-}
-
 void MemExtractCallback::EmitDoneCallback() const
 {
 	m_callback->OnDone();
@@ -252,6 +218,5 @@ void MemExtractCallback::EmitDoneCallback() const
 
 void MemExtractCallback::EmitFileDoneCallback(const QString & path) const
 {
-	m_callback->OnProgress(m_newFileSize);
-	m_callback->OnFileDone(path, m_newFileSize);
+	m_callback->OnFileDone(path);
 }

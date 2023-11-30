@@ -4,7 +4,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../Annotation/ArchiveParser.cpp" line="19"/>
+        <location filename="../../Annotation/ArchiveParser.cpp" line="21"/>
         <source>Content</source>
         <translation></translation>
     </message>

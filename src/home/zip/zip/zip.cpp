@@ -21,16 +21,16 @@ class ProgressCallbackStub final
 	: public Zip::ProgressCallback
 {
 public:
-	void OnStartWithTotal(uint64_t) override
+	void OnStartWithTotal(int64_t) override
 	{
 	}
-	void OnProgress(uint64_t) override
+	void OnIncrement(int64_t) override
 	{
 	}
 	void OnDone() override
 	{
 	}
-	void OnFileDone(const QString &, uint64_t) override
+	void OnFileDone(const QString &) override
 	{
 	}
 	bool OnCheckBreak() override

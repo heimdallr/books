@@ -47,7 +47,6 @@ private:
 private:
 	void GetPropertyFilePath(UInt32 index);
 	void GetPropertyIsDir(UInt32 index);
-	void GetPropertySize(UInt32 index);
 
 	void EmitDoneCallback() const;
 	void EmitFileDoneCallback(const QString & path = {}) const;
@@ -61,8 +60,6 @@ private:
 	CComPtr<ISequentialOutStream> m_outMemStream;
 	long m_refCount { 0 };
 	bool m_isDir { false };
-	bool m_hasNewFileSize { false };
-	UInt64 m_newFileSize { 0 };
 	QString m_filePath;
 };
 

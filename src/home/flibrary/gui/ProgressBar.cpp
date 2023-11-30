@@ -38,6 +38,8 @@ private: // IProgressController::IObserver
 	void OnStartedChanged() override
 	{
 		m_self.setVisible(m_progressController->IsStarted());
+		if (!m_progressController->IsStarted())
+			m_ui.bar->setValue(0);
 	}
 
 	void OnValueChanged() override
