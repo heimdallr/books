@@ -1,8 +1,9 @@
 #include "ArchiveParser.h"
 
-#include <QFileInfo>
-#include <QXmlStreamReader>
+#include <QFile>
 #include <QRegularExpression>
+#include <QXmlStreamReader>
+
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -10,6 +11,7 @@
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
+#include "shared/ImageRestore.h"
 #include "shared/ZipProgressCallback.h"
 
 #include "zip.h"
@@ -281,26 +283,9 @@ private:
 		}))
 			return;
 
-		const auto zip = [&]
-		{
-			const auto basePath = QString("%1/%2.img").arg(rootFolder, QFileInfo(book.GetRawData(BookItem::Column::Folder)).completeBaseName());
-			for (const auto * ext : {".zip", ".7z"})
-			{
-				const auto fileName = basePath + ext;
-				if (!QFile::exists(fileName))
-					continue;
-
-				try
-				{
-					return std::make_unique<Zip>(fileName);
-				}
-				catch(const std::exception & ex)
-				{
-					PLOGE << ex.what();
-				}
-			}
-			return std::unique_ptr<Zip>();
-		}();
+		const auto zip = CreateImageArchive(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)));
+		if (!zip)
+			return;
 
 		const auto read = [&](const QString &id)
 		{

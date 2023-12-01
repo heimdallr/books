@@ -4,7 +4,7 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../Annotation/ArchiveParser.cpp" line="21"/>
+        <location filename="../../Annotation/ArchiveParser.cpp" line="23"/>
         <source>Content</source>
         <translation></translation>
     </message>
@@ -235,12 +235,12 @@ Try again?</source>
 <context>
     <name>ReaderController</name>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="23"/>
+        <location filename="../../shared/ReaderController.cpp" line="26"/>
         <source>Select %1 reader</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="24"/>
+        <location filename="../../shared/ReaderController.cpp" line="27"/>
         <source>Applications (*.exe)</source>
         <translation></translation>
     </message>
