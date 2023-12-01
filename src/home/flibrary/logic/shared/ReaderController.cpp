@@ -10,8 +10,11 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
+
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
+
+#include "ImageRestore.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -24,8 +27,6 @@ constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 r
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
 
 constexpr auto READER_KEY = "Reader/%1";
-
-constexpr auto BUFFER_SIZE = 16 * 1024;
 
 TR_DEF
 
@@ -49,15 +50,14 @@ std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileNa
 {
 	try
 	{
-		auto temporaryDir = std::make_shared<QTemporaryDir>();
 		const Zip zip(archive);
 		auto & stream = zip.Read(fileName);
-		fileName = temporaryDir->filePath(fileName);
-		const std::unique_ptr<char[]> buffer(new char[BUFFER_SIZE]);
-		if (QFile file(fileName); file.open(QIODevice::WriteOnly))
-			while (const auto size = stream.read(buffer.get(), BUFFER_SIZE))
-				file.write(buffer.get(), size);
+		auto temporaryDir = std::make_shared<QTemporaryDir>();
+		const auto fileNameDst = temporaryDir->filePath(fileName);
+		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
+			file.write(RestoreImages(stream.readAll(), archive, fileName));
 
+		fileName = fileNameDst;
 		return temporaryDir;
 	}
 	catch(const std::exception & ex)

@@ -1,7 +1,9 @@
 #include "ArchiveParser.h"
 
 #include <QFile>
+#include <QRegularExpression>
 #include <QXmlStreamReader>
+
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -9,11 +11,13 @@
 #include "interface/logic/ICollectionController.h"
 
 #include "data/DataItem.h"
+#include "shared/ImageRestore.h"
 #include "shared/ZipProgressCallback.h"
 
 #include "zip.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -100,7 +104,7 @@ public:
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 	}
 
-	ArchiveParser::Data Parse()
+	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book)
 	{
 		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
@@ -117,6 +121,18 @@ public:
 
 			const auto parser = FindSecond(PARSERS, token, &XmlParser::Stub<>);
 			std::invoke(parser, this);
+		}
+
+		update_covers(rootFolder, book);
+
+		for (auto&& [name, bytes] : m_covers)
+		{
+			if (bytes.isNull())
+				continue;
+
+			if (name == m_coverpage)
+				m_data.coverIndex = static_cast<int>(m_data.covers.size());
+			m_data.covers.push_back(std::move(bytes));
 		}
 
 		return m_data;
@@ -195,8 +211,7 @@ private:
 
 	void OnStartElementBinary()
 	{
-		if (attributes().value(ID).toString() == m_coverpage)
-			m_data.coverIndex = static_cast<int>(m_data.covers.size());
+		m_covers.emplace_back(attributes().value(ID).toString(), QByteArray {});
 	}
 
 	void OnStartElementSection()
@@ -229,7 +244,7 @@ private:
 
 	void ParseBinary(QString && value)
 	{
-		m_data.covers.push_back(QByteArray::fromBase64(value.toUtf8()));
+		m_covers.back().second = QByteArray::fromBase64(value.toUtf8());
 	}
 
 	// ReSharper disable once CppMemberFunctionMayBeConst
@@ -260,12 +275,43 @@ private:
 		std::invoke(parser, *this, std::forward<ARGS>(args)...);
 	}
 
+	void update_covers(const QString & rootFolder, const IDataItem & book)
+	{
+		if (std::ranges::none_of(m_covers, [] (const auto & item)
+		{
+			return item.second.isNull();
+		}))
+			return;
+
+		const auto zip = CreateImageArchive(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)));
+		if (!zip)
+			return;
+
+		const auto read = [&](const QString &id)
+		{
+			try
+			{
+				return zip->Read(QString("%1/%2").arg(book.GetRawData(BookItem::Column::FileName), id)).readAll();
+			}
+			catch(const std::exception & ex)
+			{
+				PLOGE << ex.what();
+			}
+			return QByteArray {};
+		};
+
+		for (auto & [id, bytes] : m_covers)
+			if (bytes.isNull())
+				bytes = read(id);
+	}
+
 private:
 	XmlStack m_stack;
 	ArchiveParser::Data m_data;
 	QString m_href;
 	QString m_coverpage;
 	IDataItem * m_currentContentItem { m_data.content.get() };
+	std::vector<std::pair<QString, QByteArray>> m_covers;
 };
 
 }
@@ -295,7 +341,7 @@ public:
 			const Zip zip(folder, m_zipProgressCallback);
 			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 			XmlParser parser(stream);
-			return parser.Parse();
+			return parser.Parse(collection->folder, book);
 		}
 		catch(...) {}
 		return {};

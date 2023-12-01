@@ -14,6 +14,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
+#include "ImageRestore.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -28,38 +29,28 @@ public:
 	virtual void Check(std::filesystem::path & path) = 0;
 };
 
-bool Copy(QIODevice & input, QIODevice & output, IProgressController::IProgressItem & progress)
-{
-	if (progress.IsStopped())
-		return false;
-
-	static constexpr auto bufferSize = 16 * 1024ll;
-	const std::unique_ptr<char[]> buffer(new char[bufferSize]);
-	while (const auto size = input.read(buffer.get(), bufferSize))
-	{
-		if (output.write(buffer.get(), size) != size)
-			return false;
-
-		progress.Increment(size);
-		if (progress.IsStopped())
-			return false;
-	}
-
-	return true;
-}
-
-bool Write(QIODevice & input, const std::filesystem::path & path, IProgressController::IProgressItem & progress)
+bool Write(const QByteArray & input, const std::filesystem::path & path)
 {
 	QFile output(QString::fromStdWString(path));
-	output.open(QIODevice::WriteOnly);
-	return Copy(input, output, progress);
+	return true
+		&& output.open(QIODevice::WriteOnly)
+		&& output.write(input) == input.size();
 }
 
-bool Archive(QIODevice & input, const std::filesystem::path & path, const QString & fileName, IProgressController::IProgressItem & progress)
+bool Archive(const QByteArray & input, const std::filesystem::path & path, const QString & fileName)
 {
-	Zip zip(QString::fromStdWString(path), Zip::Format::Zip);
-	auto & stream = zip.Write(fileName);
-	return Copy(input, stream, progress);
+	try
+	{
+		Zip zip(QString::fromStdWString(path), Zip::Format::Zip);
+		auto & stream = zip.Write(fileName);
+		stream.write(input);
+		return true;
+	}
+	catch(const std::exception & ex)
+	{
+		PLOGE << ex.what();
+	}
+	return false;
 }
 
 QString RemoveIllegalCharacters(QString str)
@@ -75,7 +66,7 @@ QString RemoveIllegalCharacters(QString str)
 	return str.simplified();
 }
 
-std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path dstPath, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool archive)
+std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path dstPath, const QString & folder, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool archive)
 {
 	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(dstPath) || create_directory(dstPath)))
@@ -105,7 +96,11 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem:
 		if(!remove(result.second))
 			return result;
 
-	result.first = archive ? Archive(input, result.second, fileName + QString::fromStdWString(ext), progress) : Write(input, result.second, progress);
+	const auto extractedBytes = input.readAll();
+	const auto bytes = RestoreImages(extractedBytes, folder, book.file);
+	progress.Increment(extractedBytes.size());
+
+	result.first = archive ? Archive(bytes, result.second, fileName + QString::fromStdWString(ext)) : Write(bytes, result.second);
 
 	return result;
 }
@@ -116,8 +111,9 @@ void Process(const std::filesystem::path & archiveFolder, const std::filesystem:
 	if (progress.IsStopped())
 		return;
 
-	const Zip zip(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
-	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, book, progress, pathChecker, asArchives); !ok && exists(path))
+	const auto folder = QString::fromStdWString(archiveFolder / book.folder.toStdWString());
+	const Zip zip(folder);
+	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, folder, book, progress, pathChecker, asArchives); !ok && exists(path))
 		remove(path);
 }
 
