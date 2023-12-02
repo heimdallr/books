@@ -3,14 +3,13 @@
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
-#include "database/interface/IQuery.h"
-
-#include "ArchiveParser.h"
 #include "data/DataItem.h"
+#include "database/interface/IQuery.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ZipProgressCallback.h"
-
 #include "util/UiTimer.h"
+
+#include "ArchiveParser.h"
 
 #include <plog/Log.h>
 
@@ -45,15 +44,14 @@ ENABLE_BITMASK_OPERATORS(Ready);
 class AnnotationController::Impl final
 	: public Observable<IObserver>
 	, public IDataProvider
+	, ZipProgressCallback::IObserver
 {
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<DatabaseUser> databaseUser
-		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 	)
 		: m_logicFactory(std::move(logicFactory))
 		, m_databaseUser(std::move(databaseUser))
-		, m_zipProgressCallback(std::move(zipProgressCallback))
 		, m_executor(m_logicFactory->GetExecutor())
 	{
 	}
@@ -61,7 +59,7 @@ public:
 public:
 	void SetCurrentBookId(QString bookId)
 	{
-		Perform(&IObserver::OnAnnotationRequested);
+		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
 			m_extractInfoTimer->start();
 	}
@@ -127,6 +125,12 @@ private: // IDataProvider
 		return m_archiveData.content;
 	}
 
+private: // ZipProgressCallback::IObserver
+	void OnProgress(const int percents) override
+	{
+		Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, percents);
+	}
+
 private:
 	void ExtractInfo()
 	{
@@ -150,10 +154,16 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
-		m_zipProgressCallback->Stop();
+		if (const auto progressCallback = m_parserProgressCallback.lock())
+			progressCallback->Stop();
+
 		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]() mutable
 		{
-			auto data = m_logicFactory->CreateArchiveParser()->Parse(*book);
+			const auto parser = m_logicFactory->CreateArchiveParser();
+			const auto progressCallback = parser->GetProgressCallback();
+			progressCallback->RegisterObserver(this);
+			m_parserProgressCallback = progressCallback;
+			auto data = parser->Parse(*book);
 			return [&, book = std::move(book), data = std::move(data)] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
@@ -162,7 +172,7 @@ private:
 				m_archiveData = std::move(data);
 
 				if ((m_ready |= Ready::Archive) == Ready::All)
-					Perform(&IObserver::OnAnnotationChanged, std::cref(*this));
+					Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} });
 	}
@@ -189,7 +199,7 @@ private:
 				m_groups = std::move(groups);
 
 				if ((m_ready |= Ready::Database) == Ready::All)
-					Perform(&IObserver::OnAnnotationChanged, std::cref(*this));
+					Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} }, 3);
 	}
@@ -228,7 +238,6 @@ private:
 private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	PropagateConstPtr<ZipProgressCallback, std::shared_ptr> m_zipProgressCallback;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 
@@ -236,6 +245,7 @@ private:
 
 	Ready m_ready { Ready::None };
 
+	std::weak_ptr<ZipProgressCallback> m_parserProgressCallback;
 	ArchiveParser::Data m_archiveData;
 
 	IDataItem::Ptr m_book;
@@ -247,11 +257,9 @@ private:
 
 AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<DatabaseUser> databaseUser
-	, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 )
 	: m_impl(std::move(logicFactory)
 		, std::move(databaseUser)
-		, std::move(zipProgressCallback)
 	)
 {
 	PLOGD << "AnnotationController created";

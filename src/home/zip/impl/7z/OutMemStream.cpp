@@ -55,13 +55,13 @@ STDMETHODIMP_(ULONG) OutMemStream::Release()
 STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * processedSize)
 {
 	if (processedSize)
-	{
 		*processedSize = 0;
-	}
+
 	if (!data || size == 0)
-	{
 		return E_FAIL;
-	}
+
+	if (m_progress->OnCheckBreak())
+		return E_ABORT;
 
 	const auto* byte_data = static_cast<const char *>(data);
 	m_buffer.append(byte_data, size);

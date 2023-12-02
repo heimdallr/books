@@ -325,6 +325,11 @@ public:
 	{
 	}
 
+	[[nodiscard]] std::shared_ptr<ZipProgressCallback> GetProgressCallback() const
+	{
+		return m_zipProgressCallback;
+	}
+
 	[[nodiscard]] Data Parse(const IDataItem & book) const
 	{
 		const auto collection = m_collectionController->GetActiveCollection();
@@ -361,6 +366,11 @@ ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionCo
 ArchiveParser::~ArchiveParser()
 {
 	PLOGD << "AnnotationParser destroyed";
+}
+
+std::shared_ptr<ZipProgressCallback> ArchiveParser::GetProgressCallback() const
+{
+	return m_impl->GetProgressCallback();
 }
 
 ArchiveParser::Data  ArchiveParser::Parse(const IDataItem & dataItem) const

@@ -21,6 +21,7 @@
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -294,6 +295,14 @@ private: // IAnnotationController::IObserver
 		OnResize();
 	}
 
+	void OnArchiveParserProgress(const int percents) override
+	{
+		m_forwarder.Forward([&, percents]
+		{
+			m_ui.info->setText(QString("%1%").arg(percents));
+		});
+	}
+
 private:
 	void OnLinkActivated(const QString & link)
 	{
@@ -327,6 +336,7 @@ private:
 	int m_currentCoverIndex { -1 };
 	bool m_showContent { true };
 	bool m_showCover { true };
+	Util::FunctorExecutionForwarder m_forwarder;
 };
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings

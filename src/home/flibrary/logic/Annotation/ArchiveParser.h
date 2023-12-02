@@ -34,6 +34,7 @@ public:
 	~ArchiveParser();
 
 public:
+	[[nodiscard]] std::shared_ptr<ZipProgressCallback> GetProgressCallback() const;
 	[[nodiscard]] Data Parse(const IDataItem & dataItem) const;
 
 private:
