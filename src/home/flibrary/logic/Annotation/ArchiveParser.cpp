@@ -17,6 +17,7 @@
 
 #include "zip.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IProgressController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -333,7 +334,9 @@ private:
 
 }
 
-class ArchiveParser::Impl : virtual ZipProgressCallback::IObserver
+class ArchiveParser::Impl
+	: virtual ZipProgressCallback::IObserver
+	, virtual IProgressController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -347,10 +350,12 @@ public:
 		, m_zipProgressCallback(std::move(zipProgressCallback))
 	{
 		m_zipProgressCallback->RegisterObserver(this);
+		m_progressController->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
+		m_progressController->UnregisterObserver(this);
 		m_zipProgressCallback->UnregisterObserver(this);
 	}
 
@@ -393,6 +398,20 @@ private: // ZipProgressCallback::IObserver
 		if (m_extractArchiveProgressItem)
 			m_extractArchiveProgressItem->Increment(percents - m_extractArchivePercents);
 		m_extractArchivePercents = percents;
+	}
+
+private: // IProgressController::IObserver
+	void OnStartedChanged() override
+	{
+	}
+
+	void OnValueChanged() override
+	{
+	}
+
+	void OnStop() override
+	{
+		m_zipProgressCallback->Stop();
 	}
 
 private:
