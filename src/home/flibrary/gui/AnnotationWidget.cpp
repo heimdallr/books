@@ -299,7 +299,8 @@ private: // IAnnotationController::IObserver
 	{
 		m_forwarder.Forward([&, percents]
 		{
-			m_ui.info->setText(QString("%1%").arg(percents));
+			if (percents)
+				m_ui.info->setText(QString("%1%").arg(percents));
 		});
 	}
 

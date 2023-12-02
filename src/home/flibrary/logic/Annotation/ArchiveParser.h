@@ -30,11 +30,14 @@ public:
 	};
 
 public:
-	ArchiveParser(std::shared_ptr<class ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback);
+	ArchiveParser(std::shared_ptr<class ICollectionController> collectionController
+		, std::shared_ptr<class IAnnotationProgressController> progressController
+		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+	);
 	~ArchiveParser();
 
 public:
-	[[nodiscard]] std::shared_ptr<ZipProgressCallback> GetProgressCallback() const;
+	[[nodiscard]] std::shared_ptr<class IProgressController> GetProgressController() const;
 	[[nodiscard]] Data Parse(const IDataItem & dataItem) const;
 
 private:

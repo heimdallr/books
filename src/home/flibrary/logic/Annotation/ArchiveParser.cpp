@@ -7,6 +7,7 @@
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
+
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 
@@ -15,6 +16,7 @@
 #include "shared/ZipProgressCallback.h"
 
 #include "zip.h"
+#include "interface/logic/IProgressController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -100,11 +102,13 @@ class XmlParser final
 public:
 	explicit XmlParser(QIODevice & ioDevice)
 		: QXmlStreamReader(&ioDevice)
+		, m_ioDevice(ioDevice)
+		, m_total(m_ioDevice.size())
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 	}
 
-	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book)
+	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book, IProgressController::IProgressItem & progress)
 	{
 		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
@@ -115,12 +119,22 @@ public:
 
 		while (!atEnd() && !hasError())
 		{
+			if (progress.IsStopped())
+				return m_data;
+
 			const auto token = readNext();
 			if (token == Invalid)
 				PLOGE << error() << ":" << errorString();
 
 			const auto parser = FindSecond(PARSERS, token, &XmlParser::Stub<>);
 			std::invoke(parser, this);
+
+			const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
+			if (m_percents >= percents)
+				continue;
+
+			progress.Increment(percents - m_percents);
+			m_percents = percents;
 		}
 
 		update_covers(rootFolder, book);
@@ -312,22 +326,37 @@ private:
 	QString m_coverpage;
 	IDataItem * m_currentContentItem { m_data.content.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
+	QIODevice & m_ioDevice;
+	int64_t m_total;
+	int64_t m_percents { 0 };
 };
 
 }
 
-class ArchiveParser::Impl
+class ArchiveParser::Impl : virtual ZipProgressCallback::IObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
-	explicit Impl(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback)
+	explicit Impl(std::shared_ptr<ICollectionController> collectionController
+		, std::shared_ptr<IProgressController> progressController
+		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+	)
 		: m_collectionController(std::move(collectionController))
+		, m_progressController(std::move(progressController))
 		, m_zipProgressCallback(std::move(zipProgressCallback))
 	{
+		m_zipProgressCallback->RegisterObserver(this);
 	}
 
-	[[nodiscard]] std::shared_ptr<ZipProgressCallback> GetProgressCallback() const
+	~Impl() override
 	{
-		return m_zipProgressCallback;
+		m_zipProgressCallback->UnregisterObserver(this);
+	}
+
+	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const
+	{
+		return m_progressController;
 	}
 
 	[[nodiscard]] Data Parse(const IDataItem & book) const
@@ -343,22 +372,45 @@ public:
 
 		try
 		{
+			m_extractArchivePercents = 0;
+			m_extractArchiveProgressItem = m_progressController->Add(100);
+			const auto parseProgressItem = m_progressController->Add(100);
+
 			const Zip zip(folder, m_zipProgressCallback);
 			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
+			m_extractArchiveProgressItem.reset();
+
 			XmlParser parser(stream);
-			return parser.Parse(collection->folder, book);
+			return parser.Parse(collection->folder, book, *parseProgressItem);
 		}
 		catch(...) {}
 		return {};
 	}
 
+private: // ZipProgressCallback::IObserver
+	void OnProgress(const int percents) override
+	{
+		if (m_extractArchiveProgressItem)
+			m_extractArchiveProgressItem->Increment(percents - m_extractArchivePercents);
+		m_extractArchivePercents = percents;
+	}
+
 private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	std::shared_ptr<IProgressController> m_progressController;
 	std::shared_ptr<ZipProgressCallback> m_zipProgressCallback;
+	mutable std::unique_ptr<IProgressController::IProgressItem> m_extractArchiveProgressItem;
+	mutable int m_extractArchivePercents { 0 };
 };
 
-ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<ZipProgressCallback> zipProgressCallback)
-	: m_impl(std::move(collectionController), std::move(zipProgressCallback))
+ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionController
+	, std::shared_ptr<IAnnotationProgressController> progressController
+	, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+)
+	: m_impl(std::move(collectionController)
+		, std::move(progressController)
+		, std::move(zipProgressCallback)
+	)
 {
 	PLOGD << "AnnotationParser created";
 }
@@ -368,9 +420,9 @@ ArchiveParser::~ArchiveParser()
 	PLOGD << "AnnotationParser destroyed";
 }
 
-std::shared_ptr<ZipProgressCallback> ArchiveParser::GetProgressCallback() const
+std::shared_ptr<IProgressController> ArchiveParser::GetProgressController() const
 {
-	return m_impl->GetProgressCallback();
+	return m_impl->GetProgressController();
 }
 
 ArchiveParser::Data  ArchiveParser::Parse(const IDataItem & dataItem) const

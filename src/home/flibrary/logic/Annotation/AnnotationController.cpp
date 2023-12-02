@@ -3,10 +3,11 @@
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
+#include "interface/logic/IProgressController.h"
+
 #include "data/DataItem.h"
 #include "database/interface/IQuery.h"
 #include "shared/DatabaseUser.h"
-#include "shared/ZipProgressCallback.h"
 #include "util/UiTimer.h"
 
 #include "ArchiveParser.h"
@@ -44,7 +45,7 @@ ENABLE_BITMASK_OPERATORS(Ready);
 class AnnotationController::Impl final
 	: public Observable<IObserver>
 	, public IDataProvider
-	, ZipProgressCallback::IObserver
+	, IProgressController::IObserver
 {
 public:
 	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
@@ -125,10 +126,21 @@ private: // IDataProvider
 		return m_archiveData.content;
 	}
 
-private: // ZipProgressCallback::IObserver
-	void OnProgress(const int percents) override
+private: // IProgressController::IObserver
+	void OnStartedChanged() override
 	{
-		Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, percents);
+		Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, 0);
+	}
+
+	void OnValueChanged() override
+	{
+		if (const auto progressController = m_archiveParserProgressController.lock())
+			Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, static_cast<int>(std::lround(progressController->GetValue() * 100)));
+	}
+
+	void OnStop() override
+	{
+		Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, 100);
 	}
 
 private:
@@ -154,15 +166,16 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
-		if (const auto progressCallback = m_parserProgressCallback.lock())
-			progressCallback->Stop();
+		if (const auto progressController = m_archiveParserProgressController.lock())
+			progressController->Stop();
 
-		(*m_executor)({ "Get archive book info", [&, book = std::move(book)]() mutable
+		auto parser = m_logicFactory->CreateArchiveParser();
+
+		(*m_executor)({ "Get archive book info", [&, book = std::move(book), parser = std::move(parser)] () mutable
 		{
-			const auto parser = m_logicFactory->CreateArchiveParser();
-			const auto progressCallback = parser->GetProgressCallback();
-			progressCallback->RegisterObserver(this);
-			m_parserProgressCallback = progressCallback;
+			const auto progressController = parser->GetProgressController();
+			progressController->RegisterObserver(this);
+			m_archiveParserProgressController = progressController;
 			auto data = parser->Parse(*book);
 			return [&, book = std::move(book), data = std::move(data)] (size_t) mutable
 			{
@@ -245,7 +258,7 @@ private:
 
 	Ready m_ready { Ready::None };
 
-	std::weak_ptr<ZipProgressCallback> m_parserProgressCallback;
+	std::weak_ptr<IProgressController> m_archiveParserProgressController;
 	ArchiveParser::Data m_archiveData;
 
 	IDataItem::Ptr m_book;

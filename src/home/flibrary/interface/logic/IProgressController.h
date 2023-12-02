@@ -39,4 +39,8 @@ class IBooksExtractorProgressController : virtual public IProgressController
 {
 };
 
+class IAnnotationProgressController : virtual public IProgressController
+{
+};
+
 }
