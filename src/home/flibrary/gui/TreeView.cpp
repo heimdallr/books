@@ -196,7 +196,8 @@ private: // ITreeViewController::IObserver
 	{
 		if (true
 			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs)
-			&& item->GetData(MenuItem::Column::HasError).toInt())
+			&& item->GetData(MenuItem::Column::HasError).toInt()
+			)
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
 

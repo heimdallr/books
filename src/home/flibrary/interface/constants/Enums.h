@@ -30,7 +30,7 @@ enum class ItemType
 	Last
 };
 
-#define BOOKS_MENU_ACTION_ITEMS_X_MACRO				\
+#define BOOKS_MENU_ACTION_ITEMS_X_MACRO             \
 		BOOKS_MENU_ACTION_ITEM(ReadBook)            \
 		BOOKS_MENU_ACTION_ITEM(RemoveBook)          \
 		BOOKS_MENU_ACTION_ITEM(UndoRemoveBook)      \
