@@ -40,7 +40,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
-	builder.registerType<ProgressController>().as<IProgressController>().singleInstance();
+	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UserDataController>().as<IUserDataController>();

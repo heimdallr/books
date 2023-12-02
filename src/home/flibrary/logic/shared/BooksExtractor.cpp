@@ -243,7 +243,7 @@ private:
 };
 
 BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collectionController
-	, std::shared_ptr<IProgressController> progressController
+	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, std::shared_ptr<ILogicFactory> logicFactory
 )
 	: m_impl(std::move(collectionController), std::move(progressController), std::move(logicFactory))

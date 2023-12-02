@@ -29,7 +29,7 @@ public:
 
 public:
 	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController
-		, std::shared_ptr<class IProgressController> progressController
+		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, std::shared_ptr<class ILogicFactory> logicFactory
 	);
 	~BooksExtractor();
