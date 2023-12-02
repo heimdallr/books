@@ -174,6 +174,7 @@ public:
 			Id,
 			Parameter,
 			Enabled,
+			HasError,
 			Last
 		};
 	};

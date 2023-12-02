@@ -46,25 +46,6 @@ constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1
 
 using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
 
-#define MENU_ACTION_ITEMS_X_MACRO     \
-MENU_ACTION_ITEM(ReadBook)            \
-MENU_ACTION_ITEM(RemoveBook)          \
-MENU_ACTION_ITEM(UndoRemoveBook)      \
-MENU_ACTION_ITEM(AddToNewGroup)       \
-MENU_ACTION_ITEM(AddToGroup)          \
-MENU_ACTION_ITEM(RemoveFromGroup)     \
-MENU_ACTION_ITEM(RemoveFromAllGroups) \
-MENU_ACTION_ITEM(SendAsArchive)       \
-MENU_ACTION_ITEM(SendAsIs)
-
-enum class MenuAction
-{
-	None = -1,
-#define MENU_ACTION_ITEM(NAME) NAME,
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
-};
-
 class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -73,20 +54,20 @@ public:
 public:
 	virtual ~IContextMenuHandler() = default;
 
-#define MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
+#define BOOKS_MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+		BOOKS_MENU_ACTION_ITEMS_X_MACRO
+#undef	BOOKS_MENU_ACTION_ITEM
 };
 
-constexpr std::pair<MenuAction, IContextMenuHandler::Function> MENU_HANDLERS[]
+constexpr std::pair<BooksMenuAction, IContextMenuHandler::Function> MENU_HANDLERS[]
 {
-	{ MenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
-#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::NAME },
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
+	{ BooksMenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
+#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME },
+		BOOKS_MENU_ACTION_ITEMS_X_MACRO
+#undef	BOOKS_MENU_ACTION_ITEM
 };
 
-IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const MenuAction id = MenuAction::None)
+IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const BooksMenuAction id = BooksMenuAction::None)
 {
 	auto item = MenuItem::Create();
 	item->SetData(std::move(title), MenuItem::Column::Title);
@@ -96,8 +77,8 @@ IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const MenuA
 
 void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDatabase & db)
 {
-	const auto add = Add(parent, Tr(GROUPS_ADD_TO), MenuAction::AddToGroup);
-	const auto remove = Add(parent, Tr(GROUPS_REMOVE_FROM), MenuAction::RemoveFromGroup);
+	const auto add = Add(parent, Tr(GROUPS_ADD_TO), BooksMenuAction::AddToGroup);
+	const auto remove = Add(parent, Tr(GROUPS_REMOVE_FROM), BooksMenuAction::RemoveFromGroup);
 
 	const auto query = db.CreateQuery(GROUPS_QUERY);
 	query->Bind(0, id.toInt());
@@ -105,14 +86,14 @@ void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDat
 	{
 		const auto needAdd = query->Get<long long>(2) < 0;
 		const auto & item = needAdd ? add : remove;
-		Add(item, query->Get<const char *>(1), needAdd ? MenuAction::AddToGroup : MenuAction::RemoveFromGroup)
+		Add(item, query->Get<const char *>(1), needAdd ? BooksMenuAction::AddToGroup : BooksMenuAction::RemoveFromGroup)
 			->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
 	}
 
 	if (remove->GetChildCount() > 0)
 	{
 		Add(remove);
-		Add(remove, Tr(GROUPS_REMOVE_FROM_ALL), MenuAction::RemoveFromAllGroups)
+		Add(remove, Tr(GROUPS_REMOVE_FROM_ALL), BooksMenuAction::RemoveFromAllGroups)
 			->SetData(QString::number(-1), MenuItem::Column::Parameter);
 	}
 	else
@@ -124,7 +105,7 @@ void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDat
 	if (add->GetChildCount() > 0)
 		Add(add);
 
-	Add(add, Tr(GROUPS_ADD_TO_NEW), MenuAction::AddToNewGroup)
+	Add(add, Tr(GROUPS_ADD_TO_NEW), BooksMenuAction::AddToNewGroup)
 		->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
@@ -162,19 +143,19 @@ public:
 			auto result = MenuItem::Create();
 
 			if (type == ItemType::Books)
-				Add(result, Tr(READ_BOOK), MenuAction::ReadBook);
+				Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
 			{
 				const auto & send = Add(result, Tr(SEND_TO));
-				Add(send, Tr(SEND_AS_ARCHIVE), MenuAction::SendAsArchive);
-				Add(send, Tr(SEND_AS_IS), MenuAction::SendAsIs);
+				Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
+				Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
 			}
 
 			if (type == ItemType::Books)
-				CreateGroupMenu(Add(result, Tr(GROUPS), MenuAction::None), id, *db);
+				CreateGroupMenu(Add(result, Tr(GROUPS), BooksMenuAction::None), id, *db);
 
 			if (type == ItemType::Books)
-				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? MenuAction::UndoRemoveBook : MenuAction::RemoveBook);
+				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
 
 			return [callback = std::move(callback), result = std::move(result)] (size_t)
 			{
@@ -252,8 +233,9 @@ private:
 		});
 
 		auto extractor = m_logicFactory->CreateBooksExtractor();
-		((*extractor).*f)(dir, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] () mutable
+		((*extractor).*f)(dir, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
 			callback(item);
 			extractor.reset();
 		});
@@ -354,6 +336,6 @@ void BooksContextMenuProvider::Request(const QModelIndex & index, Callback callb
 
 void BooksContextMenuProvider::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const
 {
-	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
+	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
 	std::invoke(invoker, *m_impl, model, std::cref(index), std::cref(indexList), std::move(item), std::move(callback));
 }

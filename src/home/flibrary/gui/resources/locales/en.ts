@@ -87,57 +87,57 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="31"/>
+        <location filename="../../AnnotationWidget.cpp" line="32"/>
         <source>Keywords: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="33"/>
+        <location filename="../../AnnotationWidget.cpp" line="34"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="32"/>
+        <location filename="../../AnnotationWidget.cpp" line="33"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="34"/>
+        <location filename="../../AnnotationWidget.cpp" line="35"/>
         <source>Genres:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="35"/>
+        <location filename="../../AnnotationWidget.cpp" line="36"/>
         <source>Archives:</source>
         <translation>Archive:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="36"/>
+        <location filename="../../AnnotationWidget.cpp" line="37"/>
         <source>Groups:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="37"/>
+        <location filename="../../AnnotationWidget.cpp" line="38"/>
         <source>File:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="38"/>
+        <location filename="../../AnnotationWidget.cpp" line="39"/>
         <source>Size:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="39"/>
+        <location filename="../../AnnotationWidget.cpp" line="40"/>
         <source>Updated:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="40"/>
+        <location filename="../../AnnotationWidget.cpp" line="41"/>
         <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="41"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation></translation>
     </message>
@@ -452,12 +452,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="55"/>
+        <location filename="../../TreeView.cpp" line="56"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="57"/>
         <source>Filter</source>
         <translation></translation>
     </message>

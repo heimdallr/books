@@ -24,7 +24,7 @@ public:
 		QString title;
 	};
 	using Books = std::vector<Book>;
-	using Callback = std::function<void()>;
+	using Callback = std::function<void(bool)>;
 	using Extract = void(BooksExtractor::*)(const QString &, Books &&, Callback);
 
 public:

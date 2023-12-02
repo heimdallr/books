@@ -4,57 +4,57 @@
 <context>
     <name>Book</name>
     <message>
-        <location filename="../../constants/Localization.h" line="33"/>
+        <location filename="../../constants/Localization.h" line="34"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="34"/>
+        <location filename="../../constants/Localization.h" line="35"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="35"/>
+        <location filename="../../constants/Localization.h" line="36"/>
         <source>Series</source>
         <translation>Серия</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="36"/>
+        <location filename="../../constants/Localization.h" line="37"/>
         <source>SeqNumber</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="37"/>
+        <location filename="../../constants/Localization.h" line="38"/>
         <source>Size</source>
         <translation>Размер</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="38"/>
+        <location filename="../../constants/Localization.h" line="39"/>
         <source>Genre</source>
         <translation>Жанр</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="39"/>
+        <location filename="../../constants/Localization.h" line="40"/>
         <source>Folder</source>
         <translation>Папка</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="40"/>
+        <location filename="../../constants/Localization.h" line="41"/>
         <source>FileName</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="41"/>
+        <location filename="../../constants/Localization.h" line="42"/>
         <source>LibRate</source>
         <translation>Рейтинг</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="42"/>
+        <location filename="../../constants/Localization.h" line="43"/>
         <source>UpdateDate</source>
         <translation>Обновлено</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="43"/>
+        <location filename="../../constants/Localization.h" line="44"/>
         <source>Lang</source>
         <translation>Язык</translation>
     </message>
@@ -89,16 +89,21 @@
         <source>Author not specified</source>
         <translation>Автор не указан</translation>
     </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="24"/>
+        <source>Retrieving books had errors</source>
+        <translation>Книги извлечены с ошибками</translation>
+    </message>
 </context>
 <context>
     <name>Language</name>
     <message>
-        <location filename="../../constants/Localization.h" line="27"/>
+        <location filename="../../constants/Localization.h" line="28"/>
         <source>en</source>
         <translation>&amp;English</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="28"/>
+        <location filename="../../constants/Localization.h" line="29"/>
         <source>ru</source>
         <translation>&amp;Русский</translation>
     </message>
