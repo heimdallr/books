@@ -14,7 +14,7 @@ QByteArray RestoreImages(const QByteArray & input, const QString & folder, const
 	QDomDocument doc;
 	QString errorMsg;
 	if (!doc.setContent(input, &errorMsg))
-		return {};
+		return input;
 
 	const auto root = doc.documentElement();
 
@@ -25,9 +25,12 @@ QByteArray RestoreImages(const QByteArray & input, const QString & folder, const
 		if (auto node = nodeList.item(i); node.nodeValue().isEmpty())
 			nodes.push_back(std::move(node));
 
+	if (nodes.empty())
+		return input;
+
 	const auto zip = CreateImageArchive(folder);
 	if (!zip)
-		return doc.toByteArray();
+		return input;
 
 	const auto read = [&] (const QString & id)
 	{
@@ -53,6 +56,8 @@ QByteArray RestoreImages(const QByteArray & input, const QString & folder, const
 		node.appendChild(doc.createTextNode(image));
 	}
 
+	doc.removeChild(doc.firstChild());
+	doc.insertBefore(doc.createProcessingInstruction("xml", R"(version="1.0" encoding="utf-8")"), doc.firstChild());
 	return doc.toByteArray();
 }
 
