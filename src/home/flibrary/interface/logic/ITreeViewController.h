@@ -22,6 +22,7 @@ public:
 		virtual void OnModeChanged(int index) = 0;
 		virtual void OnModelChanged(QAbstractItemModel * model) = 0;
 		virtual void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item) = 0;
+		virtual void OnContextMenuTriggered(const QString & id, const IDataItem::Ptr & item) = 0;
 	};
 
 public:
@@ -34,7 +35,7 @@ public:
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
 	virtual void RequestContextMenu(const QModelIndex & index) = 0;
-	virtual void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) const = 0;
+	virtual void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) = 0;
 	virtual void OnDoubleClicked(const QModelIndex & index) const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;

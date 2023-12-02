@@ -21,6 +21,7 @@ constexpr auto QUESTION = QT_TRANSLATE_NOOP("Common", "Question");
 constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning!");
 
 constexpr auto AUTHOR_NOT_SPECIFIED = QT_TRANSLATE_NOOP("Error", "Author not specified");
+constexpr auto BOOKS_EXTRACT_ERROR = QT_TRANSLATE_NOOP("Error", "Retrieving books had errors");
 
 constexpr const char * LOCALES[]
 {

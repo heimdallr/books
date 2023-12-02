@@ -12,7 +12,7 @@ class ProgressBar final : public QWidget
 	NON_COPY_MOVABLE(ProgressBar)
 
 public:
-	explicit ProgressBar(std::shared_ptr<class IProgressController> progressController
+	explicit ProgressBar(std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, QWidget * parent = nullptr
 	);
 	~ProgressBar() override;

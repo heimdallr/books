@@ -384,8 +384,9 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index)
 		Perform(&IObserver::OnContextMenuReady, index.data(Role::Id).toString(), std::cref(item));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item) const
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item)
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));
+	Perform(&IObserver::OnContextMenuTriggered, index.data(Role::Id).toString(), std::cref(item));
 }

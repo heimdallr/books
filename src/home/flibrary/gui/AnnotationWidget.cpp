@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -21,6 +22,7 @@
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -138,6 +140,8 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.cover->setVisible(false);
+		m_progressTimer.setSingleShot(true);
+		m_progressTimer.setInterval(std::chrono::milliseconds(300));
 
 		if (const auto value = m_settings->Get(SPLITTER_KEY); value.isValid())
 			m_ui.splitter->restoreState(value.toByteArray());
@@ -294,6 +298,22 @@ private: // IAnnotationController::IObserver
 		OnResize();
 	}
 
+	void OnArchiveParserProgress(const int percents) override
+	{
+		m_forwarder.Forward([&, percents]
+		{
+			if (percents)
+			{
+				if (!m_progressTimer.isActive())
+					m_ui.info->setText(QString("%1%").arg(percents));
+			}
+			else
+			{
+				m_progressTimer.start();
+			}
+		});
+	}
+
 private:
 	void OnLinkActivated(const QString & link)
 	{
@@ -327,6 +347,8 @@ private:
 	int m_currentCoverIndex { -1 };
 	bool m_showContent { true };
 	bool m_showCover { true };
+	Util::FunctorExecutionForwarder m_forwarder;
+	QTimer m_progressTimer;
 };
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings

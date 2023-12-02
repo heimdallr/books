@@ -13,6 +13,7 @@
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -189,6 +190,15 @@ private: // ITreeViewController::IObserver
 		}
 
 		menu.exec(QCursor::pos());
+	}
+
+	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
+	{
+		if (true
+			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs)
+			&& item->GetData(MenuItem::Column::HasError).toInt()
+			)
+			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
 private: //	IValueApplier

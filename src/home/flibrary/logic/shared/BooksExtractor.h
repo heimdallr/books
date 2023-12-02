@@ -24,12 +24,12 @@ public:
 		QString title;
 	};
 	using Books = std::vector<Book>;
-	using Callback = std::function<void()>;
+	using Callback = std::function<void(bool)>;
 	using Extract = void(BooksExtractor::*)(const QString &, Books &&, Callback);
 
 public:
 	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController
-		, std::shared_ptr<class IProgressController> progressController
+		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, std::shared_ptr<class ILogicFactory> logicFactory
 	);
 	~BooksExtractor();

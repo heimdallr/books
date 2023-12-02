@@ -30,4 +30,23 @@ enum class ItemType
 	Last
 };
 
+#define BOOKS_MENU_ACTION_ITEMS_X_MACRO             \
+		BOOKS_MENU_ACTION_ITEM(ReadBook)            \
+		BOOKS_MENU_ACTION_ITEM(RemoveBook)          \
+		BOOKS_MENU_ACTION_ITEM(UndoRemoveBook)      \
+		BOOKS_MENU_ACTION_ITEM(AddToNewGroup)       \
+		BOOKS_MENU_ACTION_ITEM(AddToGroup)          \
+		BOOKS_MENU_ACTION_ITEM(RemoveFromGroup)     \
+		BOOKS_MENU_ACTION_ITEM(RemoveFromAllGroups) \
+		BOOKS_MENU_ACTION_ITEM(SendAsArchive)       \
+		BOOKS_MENU_ACTION_ITEM(SendAsIs)
+
+enum class BooksMenuAction
+{
+	None = -1,
+#define BOOKS_MENU_ACTION_ITEM(NAME) NAME,
+		BOOKS_MENU_ACTION_ITEMS_X_MACRO
+#undef	BOOKS_MENU_ACTION_ITEM
+};
+
 }

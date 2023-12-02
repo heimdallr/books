@@ -39,6 +39,7 @@ public:
 	public:
 		virtual void OnAnnotationRequested() = 0;
 		virtual void OnAnnotationChanged(const IDataProvider & dataProvider) = 0;
+		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 
 public:

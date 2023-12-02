@@ -145,6 +145,7 @@ public:
 	void Extract(const QString & dstFolder, Books && books, Callback callback, const bool asArchives)
 	{
 		assert(!m_callback);
+		m_hasError = false;
 		m_callback = std::move(callback);
 		m_taskCount = std::size(books);
 		m_asArchives = asArchives;
@@ -192,7 +193,7 @@ private: // IProgressController::IObserver
 		m_executor.reset();
 		QTimer::singleShot(0, [&]
 		{
-			m_callback();
+			m_callback(m_hasError);
 		});
 	}
 
@@ -205,12 +206,22 @@ private:
 		{
 			std::move(taskName), [&, book = std::move(book), progressItem = std::move(progressItem)] ()
 			{
-				Process(m_archiveFolder, m_dstFolder, book, *progressItem, *this, m_asArchives);
-				return [&] (const size_t)
+				bool error = false;
+				try
 				{
+					Process(m_archiveFolder, m_dstFolder, book, *progressItem, *this, m_asArchives);
+				}
+				catch(const std::exception & ex)
+				{
+					PLOGE << ex.what();
+					error = true;
+				}
+				return [&, error] (const size_t)
+				{
+					m_hasError = error || m_hasError;
 					assert(m_taskCount > 0);
 					if (--m_taskCount == 0)
-						m_callback();
+						m_callback(m_hasError);
 				};
 			}
 		};
@@ -222,6 +233,7 @@ private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
+	bool m_hasError { false };
 	bool m_asArchives { false };
 	std::unique_ptr<Util::IExecutor> m_executor;
 	std::filesystem::path m_dstFolder;
@@ -231,7 +243,7 @@ private:
 };
 
 BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collectionController
-	, std::shared_ptr<IProgressController> progressController
+	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, std::shared_ptr<ILogicFactory> logicFactory
 )
 	: m_impl(std::move(collectionController), std::move(progressController), std::move(logicFactory))

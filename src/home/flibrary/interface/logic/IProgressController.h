@@ -35,4 +35,12 @@ public:
 	virtual void UnregisterObserver(IObserver * observer) = 0;
 };
 
+class IBooksExtractorProgressController : virtual public IProgressController
+{
+};
+
+class IAnnotationProgressController : virtual public IProgressController
+{
+};
+
 }
