@@ -17,7 +17,6 @@
 
 #include "zip.h"
 #include "interface/logic/IProgressController.h"
-#include "interface/logic/IProgressController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
