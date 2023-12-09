@@ -596,7 +596,7 @@
   </action>
   <action name="actionScripts">
    <property name="text">
-    <string>&amp;Scripts</string>
+    <string>&amp;Scripts...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

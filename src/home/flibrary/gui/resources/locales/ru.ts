@@ -420,8 +420,8 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>&amp;Scripts</source>
-        <translation>&amp;Скрипты</translation>
+        <source>&amp;Scripts...</source>
+        <translation>&amp;Скрипты...</translation>
     </message>
 </context>
 <context>
@@ -461,6 +461,36 @@ Restart now?</source>
         <location filename="../../dialogs/ScriptDialog.ui"/>
         <source>Scripts</source>
         <translation>Скрипты</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Add script</source>
+        <translation>Добавить скрипт</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Remove script</source>
+        <translation>Удалить скрипт</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Add command</source>
+        <translation>Добавить команду</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Remove command</source>
+        <translation>Удалить команду</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Save</source>
+        <translation>Сохранить</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
