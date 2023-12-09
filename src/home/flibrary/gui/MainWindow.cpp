@@ -32,7 +32,7 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-#include "config/version.h"
+//#include "config/version.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -41,8 +41,6 @@ namespace {
 constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 
-constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
-constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
@@ -93,7 +91,7 @@ public:
 		ConnectActions();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		RestoreWidgetsState();
+		Init();
 		QTimer::singleShot(0, [&, commandLine = std::move(commandLine)]
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
@@ -106,9 +104,6 @@ public:
 	~Impl() override
 	{
 		m_collectionController->UnregisterObserver(this);
-
-		m_settings->Set(VERTICAL_SPLITTER_KEY, m_ui.verticalSplitter->saveState());
-		m_settings->Set(HORIZONTAL_SPLITTER_KEY, m_ui.horizontalSplitter->saveState());
 	}
 
 private: // GeometryRestorable::IObserver
@@ -172,17 +167,6 @@ private:
 
 		if (const auto activeCollection = m_collectionController->GetActiveCollection())
 			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(activeCollection->name));
-	}
-
-	void RestoreWidgetsState()
-	{
-		if (const auto value = m_settings->Get(VERTICAL_SPLITTER_KEY); value.isValid())
-			m_ui.verticalSplitter->restoreState(value.toByteArray());
-
-		if (const auto value = m_settings->Get(HORIZONTAL_SPLITTER_KEY); value.isValid())
-			m_ui.horizontalSplitter->restoreState(value.toByteArray());
-
-		Init();
 	}
 
 	void ConnectActions()
