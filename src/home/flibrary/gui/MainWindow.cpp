@@ -52,7 +52,7 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 
 class MainWindow::Impl final
 	: GeometryRestorable
-	, GeometryRestorable::IObserver
+	, GeometryRestorableObserver
 	, ICollectionController::IObserver
 	, virtual plog::IAppender
 {
@@ -73,6 +73,7 @@ public:
 		, std::shared_ptr<ICommandLine> commandLine
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
+		, GeometryRestorableObserver(self)
 		, m_self(self)
 		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
@@ -104,12 +105,6 @@ public:
 	~Impl() override
 	{
 		m_collectionController->UnregisterObserver(this);
-	}
-
-private: // GeometryRestorable::IObserver
-	QWidget & GetWidget() noexcept override
-	{
-		return m_self;
 	}
 
 private: // ICollectionController::IObserver

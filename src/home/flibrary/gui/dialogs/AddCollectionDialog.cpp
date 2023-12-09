@@ -144,6 +144,18 @@ public:
 		return m_ui.editArchive->text();
 	}
 
+private: // GeometryRestorableObserver
+	void OnFontChanged(const QFont &) override
+	{
+		m_self.adjustSize();
+		const auto height = m_self.sizeHint().height();
+		if (height < 0)
+			return;
+
+		m_self.setMinimumHeight(height);
+		m_self.setMaximumHeight(height);
+	}
+
 private:
 	bool CheckData(const int mode) const
 	{

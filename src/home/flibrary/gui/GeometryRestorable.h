@@ -39,7 +39,6 @@ protected:
 
 protected: // GeometryRestorable::IObserver
 	QWidget & GetWidget() noexcept override;
-	void OnFontChanged(const QFont &) override;
 
 private:
 	QWidget & m_widget;
