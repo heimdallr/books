@@ -112,3 +112,24 @@ void GeometryRestorable::Init()
 {
 	m_impl->Init();
 }
+
+GeometryRestorableObserver::GeometryRestorableObserver(QWidget & widget)
+	: m_widget(widget)
+{
+}
+
+QWidget & GeometryRestorableObserver::GetWidget() noexcept
+{
+	return m_widget;
+}
+
+void GeometryRestorableObserver::OnFontChanged(const QFont &)
+{
+	m_widget.adjustSize();
+	const auto height = m_widget.sizeHint().height();
+	if (height < 0)
+		return;
+
+	m_widget.setMinimumHeight(height);
+	m_widget.setMaximumHeight(height);
+}

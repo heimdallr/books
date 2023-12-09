@@ -7,8 +7,6 @@
 
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-namespace Ui { class AddCollectionDialogClass; };
-
 namespace HomeCompa {
 class ISettings;
 }
@@ -29,7 +27,7 @@ public:
 	);
     ~AddCollectionDialog() override;
 
-public:
+private: // IAddCollectionDialog
 	[[nodiscard]] int Exec() override;
 	[[nodiscard]] QString GetName() const override;
 	[[nodiscard]] QString GetDatabaseFileName() const override;
