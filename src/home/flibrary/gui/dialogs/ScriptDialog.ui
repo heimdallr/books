@@ -22,10 +22,13 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="_4">
        <item>
-        <widget class="QTableWidget" name="viewScript">
+        <widget class="QTableView" name="viewScript">
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
         </widget>
        </item>
        <item>

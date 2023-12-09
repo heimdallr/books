@@ -6,11 +6,15 @@
 #include <Hypodermic/Container.h>
 #include <plog/Log.h>
 
+#include "interface/logic/IScriptController.h"
+
 #include "model/FilteredProxyModel.h"
 #include "model/IModelObserver.h"
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
+#include "model/script/ScriptCommandModel.h"
+#include "model/script/ScriptModel.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -51,6 +55,16 @@ ModelProvider::~ModelProvider()
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver & observer) const
 {
 	return m_impl->CreateModel<ListModel>(std::move(data), observer);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptModel() const
+{
+	return m_impl->container.resolve<ScriptModel>();
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() const
+{
+	return m_impl->container.resolve<ScriptCommandModel>();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver & observer) const

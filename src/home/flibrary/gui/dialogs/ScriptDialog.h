@@ -20,9 +20,9 @@ class ScriptDialog final
 	NON_COPY_MOVABLE(ScriptDialog)
 
 public:
-	explicit ScriptDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
+	ScriptDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
+		, const std::shared_ptr<const class IModelProvider> & modelProvider
 		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class IScriptController> scriptController
 	);
 	~ScriptDialog() override;
 
