@@ -2,6 +2,8 @@
 
 #include <plog/Log.h>
 
+#include "interface/logic/IScriptController.h"
+
 using namespace HomeCompa::Flibrary;
 
 class ScriptCommandModel::Impl
@@ -16,9 +18,9 @@ private:
 	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
 };
 
-ScriptCommandModel::ScriptCommandModel(std::shared_ptr<IScriptController> scriptController, QObject * parent)
+ScriptCommandModel::ScriptCommandModel(const std::shared_ptr<IScriptControllerProvider> & scriptControllerProvider, QObject * parent)
 	: QSortFilterProxyModel(parent)
-	, m_impl(std::move(scriptController))
+	, m_impl(scriptControllerProvider->GetScriptController())
 {
 	PLOGD << "ScriptCommandModel created";
 }

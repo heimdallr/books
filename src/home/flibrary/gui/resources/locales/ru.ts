@@ -458,39 +458,44 @@ Restart now?</source>
 <context>
     <name>ScriptDialog</name>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Scripts</source>
         <translation>Скрипты</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add script</source>
         <translation>Добавить скрипт</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove script</source>
         <translation>Удалить скрипт</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add command</source>
         <translation>Добавить команду</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove command</source>
         <translation>Удалить команду</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Save</source>
         <translation>Сохранить</translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

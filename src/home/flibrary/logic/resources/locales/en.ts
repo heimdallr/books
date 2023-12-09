@@ -246,6 +246,19 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ScriptModel</name>
+    <message>
+        <location filename="../../model/script/ScriptModel.cpp" line="47"/>
+        <source>Type</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../model/script/ScriptModel.cpp" line="48"/>
+        <source>Name</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>

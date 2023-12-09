@@ -23,6 +23,7 @@ public:
 	ScriptDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
 		, const std::shared_ptr<const class IModelProvider> & modelProvider
 		, std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class ScriptComboBoxDelegate> scriptDelegate
 	);
 	~ScriptDialog() override;
 

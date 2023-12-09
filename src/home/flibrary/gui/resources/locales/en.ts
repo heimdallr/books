@@ -457,39 +457,44 @@ Restart now?</source>
 <context>
     <name>ScriptDialog</name>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Scripts</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Save</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

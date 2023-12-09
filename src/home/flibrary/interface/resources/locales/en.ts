@@ -146,4 +146,12 @@
         <translation>Verbose</translation>
     </message>
 </context>
+<context>
+    <name>ScriptController</name>
+    <message>
+        <location filename="../../logic/IScriptController.h" line="71"/>
+        <source>ExportToDevice</source>
+        <translation>Export</translation>
+    </message>
+</context>
 </TS>

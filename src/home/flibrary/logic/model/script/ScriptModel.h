@@ -13,20 +13,22 @@ class ScriptModel final
 	NON_COPY_MOVABLE(ScriptModel)
 
 public:
-	explicit ScriptModel(std::shared_ptr<class IScriptController> scriptController, QObject * parent = nullptr);
+	explicit ScriptModel(const std::shared_ptr<class IScriptControllerProvider> & scriptControllerProvider, QObject * parent = nullptr);
 	~ScriptModel() override;
 
 private: // QAbstractItemModel
-	int	columnCount(const QModelIndex & parent) const override;
-	int	rowCount(const QModelIndex & parent) const override;
-	QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-	QVariant data(const QModelIndex & index, int role) const override;
-	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+	int	columnCount(const QModelIndex & /*parent*/ = QModelIndex()) const override;
+	int	rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const override;
+	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override;
+	QVariant data(const QModelIndex & index, const int role) const override;
+	bool setData(const QModelIndex & index, const QVariant & value, const int role) override;
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
+	bool insertRows(const int row, const int count, const QModelIndex & parent) override;
+	bool removeRows(const int row, const int count, const QModelIndex & /*parent*/) override;
 
 private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	PropagateConstPtr<class IScriptController, std::shared_ptr> m_scriptController;
+	class ISourceModelObserver * m_observer { nullptr };
 };
 
 }

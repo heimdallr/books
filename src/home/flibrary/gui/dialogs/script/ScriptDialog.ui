@@ -26,8 +26,14 @@
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>true</bool>
+         </attribute>
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
          </attribute>
         </widget>
        </item>
@@ -42,6 +48,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="btnRemoveScript">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Remove script</string>
            </property>
@@ -60,6 +69,40 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QToolButton" name="btnScriptUp">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnScriptDown">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -71,6 +114,12 @@
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -83,6 +132,9 @@
          </property>
          <item>
           <widget class="QPushButton" name="btnAddCommand">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Add command</string>
            </property>
@@ -90,6 +142,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="btnRemoveCommand">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Remove command</string>
            </property>
@@ -107,6 +162,40 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnCommandUp">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnCommandDown">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -159,6 +248,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../resources/gui.qrc"/>
+ </resources>
  <connections/>
 </ui>

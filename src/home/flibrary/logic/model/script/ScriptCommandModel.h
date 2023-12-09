@@ -13,7 +13,7 @@ class ScriptCommandModel final
 	NON_COPY_MOVABLE(ScriptCommandModel)
 
 public:
-	explicit ScriptCommandModel(std::shared_ptr<class IScriptController> scriptController, QObject * parent = nullptr);
+	explicit ScriptCommandModel(const std::shared_ptr<class IScriptControllerProvider> & scriptControllerProvider, QObject * parent = nullptr);
 	~ScriptCommandModel() override;
 
 private:

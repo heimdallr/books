@@ -15,6 +15,7 @@
 #include "model/TreeModel.h"
 #include "model/script/ScriptCommandModel.h"
 #include "model/script/ScriptModel.h"
+#include "model/script/ScriptSortFilterModel.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -59,12 +60,14 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Pt
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptModel() const
 {
-	return m_impl->container.resolve<ScriptModel>();
+	m_impl->sourceModel = m_impl->container.resolve<ScriptModel>();
+	return m_impl->container.resolve<ScriptSortFilterModel>();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() const
 {
-	return m_impl->container.resolve<ScriptCommandModel>();
+	m_impl->sourceModel = m_impl->container.resolve<ScriptCommandModel>();
+	return m_impl->container.resolve<ScriptSortFilterModel>();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver & observer) const

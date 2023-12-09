@@ -146,4 +146,12 @@
         <translation>Подробная информация</translation>
     </message>
 </context>
+<context>
+    <name>ScriptController</name>
+    <message>
+        <location filename="../../logic/IScriptController.h" line="71"/>
+        <source>ExportToDevice</source>
+        <translation>Экспорт</translation>
+    </message>
+</context>
 </TS>
