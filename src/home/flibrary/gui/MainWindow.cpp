@@ -18,6 +18,7 @@
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IUserDataController.h"
+#include "interface/ui/dialogs/IScriptDialog.h"
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
@@ -280,6 +281,11 @@ private:
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&]
 		{
 			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
+		});
+
+		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&]
+		{
+			m_uiFactory->CreateScriptDialog()->Exec();
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

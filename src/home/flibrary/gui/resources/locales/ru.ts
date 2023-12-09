@@ -334,7 +334,7 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="41"/>
+        <location filename="../../MainWindow.cpp" line="42"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
@@ -418,6 +418,11 @@ Restart now?</source>
         <source>&amp;Test colors</source>
         <translation>&amp;Цвета сообщений</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Scripts</source>
+        <translation>&amp;Скрипты</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -448,6 +453,14 @@ Restart now?</source>
         <location filename="../../ProgressBar.ui"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptDialog</name>
+    <message>
+        <location filename="../../dialogs/ScriptDialog.ui"/>
+        <source>Scripts</source>
+        <translation>Скрипты</translation>
     </message>
 </context>
 <context>
