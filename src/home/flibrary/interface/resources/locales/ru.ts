@@ -149,9 +149,19 @@
 <context>
     <name>ScriptController</name>
     <message>
-        <location filename="../../logic/IScriptController.h" line="71"/>
+        <location filename="../../logic/IScriptController.h" line="84"/>
         <source>ExportToDevice</source>
         <translation>Экспорт</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h" line="88"/>
+        <source>LaunchApp</source>
+        <translation>Запуск приложения</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h" line="89"/>
+        <source>System</source>
+        <translation>Системная команда</translation>
     </message>
 </context>
 </TS>
