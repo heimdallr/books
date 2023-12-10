@@ -7,7 +7,7 @@
 using namespace HomeCompa::Flibrary;
 
 namespace {
-using Role = IScriptController::Role;
+using Role = IScriptController::RoleBase;
 }
 
 QWidget * ComboBoxDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex &) const

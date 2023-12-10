@@ -15,7 +15,7 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
-using Role = IScriptController::Role;
+using Role = IScriptController::RoleScript;
 }
 
 ScriptModel::ScriptModel(const std::shared_ptr<IScriptControllerProvider> & scriptControllerProvider, QObject * parent)
@@ -78,11 +78,11 @@ QVariant ScriptModel::data(const QModelIndex & index, const int role) const
 		case Role::Type:
 			return static_cast<int>(item.type);
 
-		case Role::Name:
-			return item.name;
-
 		case Role::Number:
 			return item.number;
+
+		case Role::Uid:
+			return item.uid;
 
 		default:
 			break;
@@ -133,7 +133,7 @@ bool ScriptModel::setData(const QModelIndex & index, const QVariant & value, con
 			break;
 	}
 
-	return QAbstractTableModel::setData(index, value, role);
+	return assert(false && "unexpected role"), false;
 }
 
 Qt::ItemFlags ScriptModel::flags(const QModelIndex & index) const

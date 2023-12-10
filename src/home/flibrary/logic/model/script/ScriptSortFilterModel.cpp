@@ -10,7 +10,7 @@ using namespace Flibrary;
 
 namespace {
 
-using Role = IScriptController::Role;
+using Role = IScriptController::RoleBase;
 
 bool MoveRow(QSortFilterProxyModel & model, const QModelIndex & index, const int offset)
 {

@@ -16,9 +16,14 @@ public:
 	explicit ScriptCommandModel(const std::shared_ptr<class IScriptControllerProvider> & scriptControllerProvider, QObject * parent = nullptr);
 	~ScriptCommandModel() override;
 
+private: // QAbstractItemModel
+	bool setData(const QModelIndex & index, const QVariant & value, const int role) override;
+
+private: // QSortFilterProxyModel
+	bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const override;
+
 private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	PropagateConstPtr<QAbstractItemModel> m_source;
 };
 
 }

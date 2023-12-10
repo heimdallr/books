@@ -9,18 +9,27 @@ namespace HomeCompa::Flibrary {
 class IScriptController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	struct Role
+	struct RoleBase
 	{
 		enum
 		{
 			Mode = Qt::UserRole + 1,
 			Type,
-			Name,
 			Number,
 			Observer,
 			Up,
 			Down,
+			Uid,
+			Last,
 		};
+	};
+
+	struct RoleScript : RoleBase
+	{
+	};
+
+	struct RoleCommand : RoleBase
+	{
 	};
 
 	enum class Mode
@@ -58,8 +67,10 @@ public:
 		enum class Type
 		{
 			LaunchApp,
+			System,
 		};
 
+		QString scriptUid;
 		QString command;
 		QString args;
 		Type type { Type::LaunchApp };
@@ -72,6 +83,12 @@ public:
 	{
 		{ Script::Type::ExportToDevice, QT_TRANSLATE_NOOP("ScriptController", "ExportToDevice") },
 	};
+	static constexpr std::pair<Command::Type, const char *> s_commandTypes[]
+	{
+		{ Command::Type::LaunchApp, QT_TRANSLATE_NOOP("ScriptController", "LaunchApp") },
+		{ Command::Type::System, QT_TRANSLATE_NOOP("ScriptController", "System") },
+	};
+
 
 public:
 	virtual ~IScriptController() = default;
@@ -79,12 +96,17 @@ public:
 	virtual const Scripts & GetScripts() const noexcept = 0;
 	virtual bool InsertScripts(int row, int count) = 0;
 	virtual bool RemoveScripts(int row, int count) = 0;
-	virtual bool SetScriptType(int n, Script::Type type) = 0;
-	virtual bool SetScriptName(int n, QString name) = 0;
-	virtual bool SetScriptNumber(int n, int number) = 0;
+	virtual bool SetScriptType(int n, Script::Type value) = 0;
+	virtual bool SetScriptName(int n, QString value) = 0;
+	virtual bool SetScriptNumber(int n, int value) = 0;
 
 	virtual const Commands & GetCommands() const noexcept = 0;
 	virtual bool InsertCommand(const QString & uid, int row, int count) = 0;
+	virtual bool RemoveCommand(int row, int count) = 0;
+	virtual bool SetCommandType(int n, Command::Type value) = 0;
+	virtual bool SetCommandCommand(int n, QString value) = 0;
+	virtual bool SetCommandArgs(int n, QString value) = 0;
+	virtual bool SetCommandNumber(int n, int value) = 0;
 
 	virtual void Save() = 0;
 };
