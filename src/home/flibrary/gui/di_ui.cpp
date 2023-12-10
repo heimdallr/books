@@ -17,11 +17,12 @@
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/Dialog.h"
 #include "dialogs/script/ComboBoxDelegate.h"
+#include "dialogs/script/CommonLineEditDelegate.h"
 #include "dialogs/script/ScriptDialog.h"
 
 #include "AnnotationWidget.h"
-#include "LogItemDelegate.h"
 #include "LocaleController.h"
+#include "LogItemDelegate.h"
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"

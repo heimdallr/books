@@ -11,9 +11,10 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
 
+#include "ComboBoxDelegate.h"
+#include "CommonLineEditDelegate.h"
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
-#include "ComboBoxDelegate.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -78,6 +79,8 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IComboBoxDelegate> scriptTypeDelegate
 		, std::shared_ptr<IComboBoxDelegate> commandTypeDelegate
+		, std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
+		, std::shared_ptr<QStyledItemDelegate> commandArgLineEditDelegate
 	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
@@ -87,11 +90,16 @@ public:
 		, m_commandModel(modelProvider.CreateScriptCommandModel())
 		, m_scriptTypeDelegate(std::move(scriptTypeDelegate))
 		, m_commandTypeDelegate(std::move(commandTypeDelegate))
+		, m_scriptNameLineEditDelegate(std::move(scriptNameLineEditDelegate))
+		, m_commandArgLineEditDelegate(std::move(commandArgLineEditDelegate))
 	{
 		m_ui.setupUi(&m_self);
 
 		SetupView(m_self, *m_ui.viewScript, *m_scriptModel, *m_scriptTypeDelegate, IScriptController::s_scriptTypes, *m_settings);
 		SetupView(m_self, *m_ui.viewCommand, *m_commandModel, *m_commandTypeDelegate, IScriptController::s_commandTypes, *m_settings);
+
+		m_ui.viewScript->setItemDelegateForColumn(1, m_scriptNameLineEditDelegate.get());
+		m_ui.viewCommand->setItemDelegateForColumn(2, m_commandArgLineEditDelegate.get());
 
 		m_ui.viewCommand->setModel(m_commandModel.get());
 
@@ -205,6 +213,8 @@ private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_commandModel;
 	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_scriptTypeDelegate;
 	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_commandTypeDelegate;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandArgLineEditDelegate;
 	Ui::ScriptDialog m_ui{};
 };
 
@@ -213,6 +223,8 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentW
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate
 	, std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate
+	, std::shared_ptr<ScriptNameLineEditDelegate> scriptNameLineEditDelegate
+	, std::shared_ptr<CommandArgLineEditDelegate> commandArgLineEditDelegate
 )
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this
@@ -220,6 +232,8 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentW
 		, std::move(settings)
 		, std::move(scriptTypeDelegate)
 		, std::move(commandTypeDelegate)
+		, std::move(scriptNameLineEditDelegate)
+		, std::move(commandArgLineEditDelegate)
 	)
 {
 	PLOGD << "ScriptDialog created";

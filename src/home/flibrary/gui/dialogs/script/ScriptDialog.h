@@ -25,6 +25,8 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ScriptComboBoxDelegate> scriptTypeDelegate
 		, std::shared_ptr<class CommandComboBoxDelegate> commandTypeDelegate
+		, std::shared_ptr<class ScriptNameLineEditDelegate> scriptNameLineEditDelegate
+		, std::shared_ptr<class CommandArgLineEditDelegate> commandArgLineEditDelegate
 	);
 	~ScriptDialog() override;
 

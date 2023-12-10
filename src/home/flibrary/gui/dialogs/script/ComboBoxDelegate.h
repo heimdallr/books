@@ -16,7 +16,7 @@ public:
 class ScriptComboBoxDelegate : virtual public IComboBoxDelegate{};
 class CommandComboBoxDelegate : virtual public IComboBoxDelegate{};
 
-class ComboBoxDelegate
+class ComboBoxDelegate final
 	: public ScriptComboBoxDelegate
 	, public CommandComboBoxDelegate
 {
