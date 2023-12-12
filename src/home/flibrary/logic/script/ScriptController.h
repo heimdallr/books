@@ -21,7 +21,9 @@ class ScriptController final
 	NON_COPY_MOVABLE(ScriptController)
 
 public:
-	explicit ScriptController(std::shared_ptr<ISettings> settings);
+	ScriptController(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<const ICommandExecutor> commandExecutor
+	);
 	~ScriptController() override;
 
 private: // IScriptController
@@ -33,6 +35,7 @@ private: // IScriptController
 	bool SetScriptNumber(int n, int value) override;
 
 	const Commands & GetCommands() const noexcept override;
+	Commands GetCommands(const QString & scriptUid) const override;
 	bool InsertCommand(const QString & uid, int row, int count) override;
 	bool RemoveCommand(int row, int count) override;
 	bool SetCommandType(int n, Command::Type value) override;
@@ -40,6 +43,7 @@ private: // IScriptController
 	bool SetCommandArgs(int n, QString value) override;
 	bool SetCommandNumber(int n, int value) override;
 
+	bool Execute(const Command & command) const override;
 	void Save() override;
 
 private:

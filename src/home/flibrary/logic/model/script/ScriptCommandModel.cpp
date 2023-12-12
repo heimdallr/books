@@ -80,7 +80,7 @@ private: // QAbstractItemModel
 				switch (index.column())
 				{
 					case 0:
-						return Loc::Tr(IScriptController::s_context, FindSecond(IScriptController::s_commandTypes, item.type));
+						return Loc::Tr(IScriptController::s_context, FindSecond(IScriptController::s_commandTypes, item.type).type);
 
 					case 1:
 						return item.command;

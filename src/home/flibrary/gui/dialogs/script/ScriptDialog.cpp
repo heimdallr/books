@@ -49,16 +49,16 @@ void LoadLayout(const QObject & parent, const QTableView & view, const ISettings
 			view.horizontalHeader()->resizeSection(i, width.toInt());
 }
 
-template <typename Value, size_t ArraySize>
-void SetupView(const QObject & parent, QTableView & view, QAbstractItemModel & model, IComboBoxDelegate & delegate, Value(&array)[ArraySize], ISettings & settings)
+template <std::ranges::forward_range R, class Proj = std::identity>
+void SetupView(const QObject & parent, ISettings & settings, QTableView & view, QAbstractItemModel & model, IComboBoxDelegate & delegate, R && array, Proj proj = {})
 {
 	view.setModel(&model);
 	view.setItemDelegateForColumn(0, &delegate);
 	IComboBoxDelegate::Values types;
 	types.reserve(std::size(array));
-	std::ranges::transform(array, std::back_inserter(types), [] (const auto & item)
+	std::ranges::transform(array, std::back_inserter(types), [&] (const auto & item)
 	{
-		return std::make_pair(static_cast<int>(item.first), Loc::Tr(IScriptController::s_context, item.second));
+		return std::make_pair(static_cast<int>(item.first), Loc::Tr(IScriptController::s_context, std::invoke(proj, item.second)));
 	});
 	delegate.SetValues(std::move(types));
 
@@ -95,8 +95,8 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
-		SetupView(m_self, *m_ui.viewScript, *m_scriptModel, *m_scriptTypeDelegate, IScriptController::s_scriptTypes, *m_settings);
-		SetupView(m_self, *m_ui.viewCommand, *m_commandModel, *m_commandTypeDelegate, IScriptController::s_commandTypes, *m_settings);
+		SetupView(m_self, *m_settings, *m_ui.viewScript, *m_scriptModel, *m_scriptTypeDelegate, IScriptController::s_scriptTypes);
+		SetupView(m_self, *m_settings, *m_ui.viewCommand, *m_commandModel, *m_commandTypeDelegate, IScriptController::s_commandTypes, &IScriptController::CommandDescription::type);
 
 		m_ui.viewScript->setItemDelegateForColumn(1, m_scriptNameLineEditDelegate.get());
 		m_ui.viewCommand->setItemDelegateForColumn(2, m_commandArgLineEditDelegate.get());

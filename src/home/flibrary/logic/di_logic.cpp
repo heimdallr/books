@@ -16,11 +16,12 @@
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
+#include "script/CommaneExecutor.h"
+#include "script/ScriptController.h"
 #include "shared/CommandLine.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ProgressController.h"
-#include "shared/ScriptController.h"
 #include "shared/TaskQueue.h"
 #include "shared/ZipProgressCallback.h"
 #include "userdata/UserDataController.h"
@@ -62,6 +63,11 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	{
 		return std::make_shared<ScriptControllerProvider>(*container);
 	}).as<IScriptControllerProvider>().singleInstance();
+
+	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
+	{
+		return std::make_shared<CommandExecutor>();
+	}).as<IScriptController::ICommandExecutor>().singleInstance();
 
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext & ctx)
 	{

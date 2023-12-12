@@ -9,7 +9,6 @@
 
 #include "fnd/algorithm.h"
 #include "fnd/FindPair.h"
-#include "interface/logic/IScriptController.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -26,6 +25,15 @@ constexpr auto TYPE = "Type";
 constexpr auto COMMAND = "Command";
 constexpr auto ARGUMENTS = "Arguments";
 
+struct CommandDescriptionComparer
+{
+	bool operator()(const IScriptController::CommandDescription & lhs, const IScriptController::CommandDescription & rhs)const
+	{
+		return comparer(lhs.type, rhs.type);
+	}
+	PszComparer comparer;
+};
+
 }
 
 struct ScriptController::Impl
@@ -33,9 +41,13 @@ struct ScriptController::Impl
 	Scripts scripts;
 	Commands commands;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
+	std::shared_ptr<const ICommandExecutor> commandExecutor;
 
-	explicit Impl(std::shared_ptr<ISettings> settings)
+	Impl(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<const ICommandExecutor> commandExecutor
+	)
 		: settings(std::move(settings))
+		, commandExecutor(std::move(commandExecutor))
 	{
 		const SettingsGroup scriptsGuard(*this->settings, SCRIPTS);
 		std::ranges::transform(this->settings->GetGroups(), std::back_inserter(scripts), [&] (const QString & uid)
@@ -51,7 +63,7 @@ struct ScriptController::Impl
 				commands.push_back(Command { {commandUid, this->settings->Get(NUMBER).toInt() }
 					, uid, this->settings->Get(COMMAND).toString()
 					, this->settings->Get(ARGUMENTS).toString()
-					, FindFirst(s_commandTypes, this->settings->Get(TYPE).toString().toStdString().data(), PszComparer{})
+					, FindFirst(s_commandTypes, CommandDescription{this->settings->Get(TYPE).toString().toStdString().data()}, CommandDescriptionComparer{})
 					});
 			}
 			return script;
@@ -71,8 +83,12 @@ struct ScriptController::Impl
 	}
 };
 
-ScriptController::ScriptController(std::shared_ptr<ISettings> settings)
-	: m_impl(std::move(settings))
+ScriptController::ScriptController(std::shared_ptr<ISettings> settings
+	, std::shared_ptr<const ICommandExecutor> commandExecutor
+)
+	: m_impl(std::move(settings)
+		, std::move(commandExecutor)
+	)
 {
 	PLOGD << "ScriptController created";
 }
@@ -133,13 +149,20 @@ const IScriptController::Commands & ScriptController::GetCommands() const noexce
 	return m_impl->commands;
 }
 
+IScriptController::Commands ScriptController::GetCommands(const QString & scriptUid) const
+{
+	Commands commands;
+	std::ranges::copy(m_impl->commands | std::views::filter([&] (const auto & item) { return item.scriptUid == scriptUid; }), std::back_inserter(commands));
+	return commands;
+}
+
 bool ScriptController::InsertCommand(const QString & uid, const int row, const int count)
 {
 	auto filtered = m_impl->commands | std::views::filter([&] (const auto & item) { return item.scriptUid == uid; });
 	const auto it = std::ranges::max_element(filtered, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 	Commands commands;
 	commands.reserve(count);
-	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable
+	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number] () mutable
 	{
 		return Command { { QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated }, uid, {}, {}, Command::Type::LaunchApp };
 	});
@@ -180,9 +203,16 @@ bool ScriptController::SetCommandNumber(const int n, const int value)
 	return Util::Set(item.number, value, item, &Base::SetUpdated);
 }
 
+bool ScriptController::Execute(const Command & command) const
+{
+	const auto & [type, executor] = FindSecond(s_commandTypes, command.type);
+	PLOGD << type << ": " << command.command << " " << command.args;
+	return std::invoke(executor, *m_impl->commandExecutor, std::cref(command));
+}
+
 void ScriptController::Save()
 {
-	for (auto & script : m_impl->scripts | std::views::filter([](const auto & item){ return item.mode == Mode::Updated; }))
+	for (auto & script : m_impl->scripts | std::views::filter([] (const auto & item) { return item.mode == Mode::Updated; }))
 	{
 		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NAME), script.name);
 		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NUMBER), script.number);
@@ -190,19 +220,19 @@ void ScriptController::Save()
 		script.mode = Mode::None;
 	}
 
-	for (auto & script : m_impl->scripts | std::views::filter([](const auto & item){ return item.mode == Mode::Removed; }))
+	for (auto & script : m_impl->scripts | std::views::filter([] (const auto & item) { return item.mode == Mode::Removed; }))
 		m_impl->settings->Remove(QString(SCRIPT_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid));
 
-	for (auto & command : m_impl->commands | std::views::filter([](const auto & item){ return item.mode == Mode::Updated; }))
+	for (auto & command : m_impl->commands | std::views::filter([] (const auto & item) { return item.mode == Mode::Updated; }))
 	{
 		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(COMMAND), command.command);
 		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(ARGUMENTS), command.args);
 		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(NUMBER), command.number);
-		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(TYPE), FindSecond(s_commandTypes, command.type));
+		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(TYPE), FindSecond(s_commandTypes, command.type).type);
 		command.mode = Mode::None;
 	}
 
-	for (auto & command : m_impl->commands | std::views::filter([](const auto & item){ return item.mode == Mode::Removed; }))
+	for (auto & command : m_impl->commands | std::views::filter([] (const auto & item) { return item.mode == Mode::Removed; }))
 		m_impl->settings->Remove(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid));
 }
 

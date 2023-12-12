@@ -24,6 +24,7 @@ public:
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class GroupController> groupController
 		, std::shared_ptr<class DataProvider> dataProvider
+		, std::shared_ptr<class IScriptController> scriptController
 	);
 	~BooksContextMenuProvider();
 
