@@ -27,10 +27,12 @@ constexpr auto ARGUMENTS = "Arguments";
 
 struct CommandDescriptionComparer
 {
-	bool operator()(const IScriptController::CommandDescription & lhs, const IScriptController::CommandDescription & rhs)const
+	bool operator()(const IScriptController::CommandDescription & lhs, const IScriptController::CommandDescription & rhs) const
 	{
 		return comparer(lhs.type, rhs.type);
 	}
+
+private:
 	PszComparer comparer;
 };
 

@@ -28,10 +28,7 @@ constexpr auto COLUMN_WIDTH_KEY_TEMPLATE = "ui/%1/%2/Column%3Width";
 void RemoveRows(const QAbstractItemView& view)
 {
 	std::set<int> rows;
-	std::ranges::transform(view.selectionModel()->selection().indexes(), std::inserter(rows, rows.end()), [] (const QModelIndex & index)
-	{
-		return index.row();
-	});
+	std::ranges::transform(view.selectionModel()->selection().indexes(), std::inserter(rows, rows.end()), [] (const QModelIndex & index) { return index.row(); });
 	for (const auto & [begin, end] : Util::CreateRanges(rows) | std::views::reverse)
 		view.model()->removeRows(begin, end - begin);
 }

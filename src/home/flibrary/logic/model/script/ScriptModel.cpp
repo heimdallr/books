@@ -30,12 +30,12 @@ ScriptModel::~ScriptModel()
 	PLOGD << "ScriptModel destroyed";
 }
 
-int	ScriptModel::columnCount(const QModelIndex & /*parent*/) const
+int ScriptModel::columnCount(const QModelIndex & /*parent*/) const
 {
 	return 2;
 }
 
-int	ScriptModel::rowCount(const QModelIndex & /*parent*/) const
+int ScriptModel::rowCount(const QModelIndex & /*parent*/) const
 {
 	return static_cast<int>(m_scriptController->GetScripts().size());
 }

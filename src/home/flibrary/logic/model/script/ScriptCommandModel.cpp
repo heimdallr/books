@@ -60,18 +60,9 @@ private: // QAbstractItemModel
 	QVariant data(const QModelIndex & index, const int role) const override
 	{
 		if (!index.isValid())
-		{
-			switch(role)
-			{
-				case Role::Uid:
-					return m_uid;
+			return role == Role::Uid ? m_uid : (assert(false && "unexpected role"), QVariant {});
 
-				default:
-					break;
-			}
-			return assert(false && "unexpected role"), QVariant{};
-		}
-		assert(index.isValid() && index.row() >= 0 && index.row() < rowCount());
+		assert(index.row() >= 0 && index.row() < rowCount());
 		const auto & item = m_scriptController->GetCommands()[index.row()];
 
 		switch (role)
@@ -208,6 +199,7 @@ bool ScriptCommandModel::setData(const QModelIndex & index, const QVariant & val
 	const auto result = QSortFilterProxyModel::setData(index, value, role);
 	if (result && role == Role::Uid)
 		invalidateFilter();
+
 	return result;
 }
 
