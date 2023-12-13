@@ -195,7 +195,7 @@ private: // ITreeViewController::IObserver
 	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
 	{
 		if (true
-			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs)
+			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
 			&& item->GetData(MenuItem::Column::HasError).toInt()
 			)
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));

@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QEvent>
+#include <QSplitter>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
@@ -16,6 +17,7 @@ using namespace HomeCompa::Flibrary;
 
 namespace {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
+constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
 }
 
 class GeometryRestorable::Impl final
@@ -37,13 +39,20 @@ public:
 	{
 		m_settings->UnregisterObserver(this);
 
-		if (m_initialized)
-			m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
+		if (!m_initialized)
+			return;
+
+		m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
+		for (const auto * splitter : m_observer.GetWidget().findChildren<QSplitter *>())
+			m_settings->Set(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName()), splitter->saveState());
 	}
 
 	void Init()
 	{
 		m_observer.GetWidget().installEventFilter(this);
+		for (auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
+			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName())); value.isValid())
+				splitter->restoreState(value.toByteArray());
 	}
 
 	void OnShow()
@@ -111,4 +120,14 @@ GeometryRestorable::~GeometryRestorable() = default;
 void GeometryRestorable::Init()
 {
 	m_impl->Init();
+}
+
+GeometryRestorableObserver::GeometryRestorableObserver(QWidget & widget)
+	: m_widget(widget)
+{
+}
+
+QWidget & GeometryRestorableObserver::GetWidget() noexcept
+{
+	return m_widget;
 }

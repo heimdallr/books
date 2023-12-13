@@ -18,6 +18,7 @@
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IUserDataController.h"
+#include "interface/ui/dialogs/IScriptDialog.h"
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
@@ -31,7 +32,7 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-#include "config/version.h"
+//#include "config/version.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -40,8 +41,6 @@ namespace {
 constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 
-constexpr auto VERTICAL_SPLITTER_KEY = "ui/MainWindow/VSplitter";
-constexpr auto HORIZONTAL_SPLITTER_KEY = "ui/MainWindow/HSplitter";
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
@@ -53,7 +52,7 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 
 class MainWindow::Impl final
 	: GeometryRestorable
-	, GeometryRestorable::IObserver
+	, GeometryRestorableObserver
 	, ICollectionController::IObserver
 	, virtual plog::IAppender
 {
@@ -74,6 +73,7 @@ public:
 		, std::shared_ptr<ICommandLine> commandLine
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
+		, GeometryRestorableObserver(self)
 		, m_self(self)
 		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
@@ -92,7 +92,7 @@ public:
 		ConnectActions();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		RestoreWidgetsState();
+		Init();
 		QTimer::singleShot(0, [&, commandLine = std::move(commandLine)]
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
@@ -105,15 +105,6 @@ public:
 	~Impl() override
 	{
 		m_collectionController->UnregisterObserver(this);
-
-		m_settings->Set(VERTICAL_SPLITTER_KEY, m_ui.verticalSplitter->saveState());
-		m_settings->Set(HORIZONTAL_SPLITTER_KEY, m_ui.horizontalSplitter->saveState());
-	}
-
-private: // GeometryRestorable::IObserver
-	QWidget & GetWidget() noexcept override
-	{
-		return m_self;
 	}
 
 private: // ICollectionController::IObserver
@@ -171,17 +162,6 @@ private:
 
 		if (const auto activeCollection = m_collectionController->GetActiveCollection())
 			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(activeCollection->name));
-	}
-
-	void RestoreWidgetsState()
-	{
-		if (const auto value = m_settings->Get(VERTICAL_SPLITTER_KEY); value.isValid())
-			m_ui.verticalSplitter->restoreState(value.toByteArray());
-
-		if (const auto value = m_settings->Get(HORIZONTAL_SPLITTER_KEY); value.isValid())
-			m_ui.horizontalSplitter->restoreState(value.toByteArray());
-
-		Init();
 	}
 
 	void ConnectActions()
@@ -280,6 +260,11 @@ private:
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&]
 		{
 			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
+		});
+
+		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&]
+		{
+			m_uiFactory->CreateScriptDialog()->Exec();
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

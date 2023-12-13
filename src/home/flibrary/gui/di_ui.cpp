@@ -11,14 +11,18 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IScriptController.h"
 
 #include "util/Settings.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/Dialog.h"
+#include "dialogs/script/ComboBoxDelegate.h"
+#include "dialogs/script/CommonLineEditDelegate.h"
+#include "dialogs/script/ScriptDialog.h"
 
 #include "AnnotationWidget.h"
-#include "LogItemDelegate.h"
 #include "LocaleController.h"
+#include "LogItemDelegate.h"
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
@@ -38,7 +42,16 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<InfoDialog>().as<IInfoDialog>();
 	builder.registerType<InputTextDialog>().as<IInputTextDialog>();
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
+	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
+	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
+	{
+		return std::make_shared<ComboBoxDelegate>();
+	}).as<ScriptComboBoxDelegate>();
+	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
+	{
+		return std::make_shared<ComboBoxDelegate>();
+	}).as<CommandComboBoxDelegate>();
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{
 		return std::make_shared<UiFactory>(*container);

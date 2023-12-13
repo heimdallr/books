@@ -317,6 +317,7 @@
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuFont"/>
+    <addaction name="actionScripts"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -588,6 +589,14 @@
    </property>
    <property name="shortcut">
     <string notr="true"/>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionScripts">
+   <property name="text">
+    <string>&amp;Scripts...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

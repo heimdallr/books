@@ -7,30 +7,32 @@ namespace HomeCompa::Util {
 template
 	< typename T
 	, typename Obj
-	, typename Signal = void(Obj:: *)()
+	, typename Signal = void(Obj::*)()
 	>
-static bool Set(T & dst, const T & value, Obj & obj, const Signal signal)
+static bool Set(T & dst, T value, Obj & obj, const Signal signal = nullptr)
 {
 	if (dst == value)
 		return false;
 
-	dst = value;
-	(obj.*signal)();
+	dst = std::move(value);
+	if (signal)
+		(obj.*signal)();
 	return true;
 }
 
 template
 	< typename T
 	, typename Obj
-	, typename Signal = void(Obj:: *)() const
+	, typename Signal = void(Obj::*)() const
 	>
-static bool Set(T & dst, const T & value, const Obj & obj, const Signal signal)
+static bool Set(T & dst, T value, const Obj & obj, const Signal signal = nullptr)
 {
 	if (dst == value)
 		return false;
 
-	dst = value;
-	(obj.*signal)();
+	dst = std::move(value);
+	if (signal)
+		(obj.*signal)();
 	return true;
 }
 

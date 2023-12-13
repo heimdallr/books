@@ -333,7 +333,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="41"/>
+        <location filename="../../MainWindow.cpp" line="42"/>
         <source>Select font</source>
         <translation></translation>
     </message>
@@ -417,6 +417,11 @@ Restart now?</source>
         <source>&amp;Test colors</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Scripts...</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -447,6 +452,49 @@ Restart now?</source>
         <location filename="../../ProgressBar.ui"/>
         <source>Cancel</source>
         <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ScriptDialog</name>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Scripts</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Add script</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Remove script</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Add command</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Remove command</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Save</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

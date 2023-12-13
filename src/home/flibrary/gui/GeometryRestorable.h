@@ -10,7 +10,7 @@ class GeometryRestorable
 {
 	NON_COPY_MOVABLE(GeometryRestorable)
 
-protected:
+public:
 	class IObserver  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
@@ -29,6 +29,19 @@ protected:
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
+};
+
+class GeometryRestorableObserver
+	: virtual public GeometryRestorable::IObserver
+{
+protected:
+	explicit GeometryRestorableObserver(QWidget & widget);
+
+protected: // GeometryRestorable::IObserver
+	QWidget & GetWidget() noexcept override;
+
+private:
+	QWidget & m_widget;
 };
 
 }

@@ -10,6 +10,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IDialog.h"
+#include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "util/hash.h"
 #include "util/ISettings.h"
@@ -98,6 +99,11 @@ std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::
 {
 	m_impl->inpx = std::move(inpx);
 	return m_impl->container.resolve<IAddCollectionDialog>();
+}
+
+std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
+{
+	return m_impl->container.resolve<IScriptDialog>();
 }
 
 std::shared_ptr<QAbstractItemDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const

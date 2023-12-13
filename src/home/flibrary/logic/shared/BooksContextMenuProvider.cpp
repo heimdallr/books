@@ -1,5 +1,7 @@
 #include "BooksContextMenuProvider.h"
 
+#include <ranges>
+
 #include <QModelIndex>
 #include <QString>
 #include <plog/Log.h>
@@ -11,7 +13,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-
+#include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
@@ -120,24 +122,29 @@ public:
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<DataProvider> dataProvider
+		, std::shared_ptr<IScriptController> scriptController
 	)
 		: m_databaseUser(std::move(databaseUser))
 		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
 		, m_groupController(std::move(groupController))
 		, m_dataProvider(std::move(dataProvider))
+		, m_scriptController(std::move(scriptController))
 	{
 	}
 
 public:
 	void Request(const QModelIndex & index, Callback callback)
 	{
+		auto scripts = m_scriptController->GetScripts();
+		std::ranges::sort(scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 		m_databaseUser->Execute({ "Create context menu", [
 			  id = index.data(Role::Id).toString()
 			, type = index.data(Role::Type).value<ItemType>()
 			, removed = index.data(Role::IsRemoved).toBool()
 			, callback = std::move(callback)
 			, db = m_databaseUser->Database()
+			, scripts = std::move(scripts)
 		]() mutable
 		{
 			auto result = MenuItem::Create();
@@ -149,6 +156,12 @@ public:
 				const auto & send = Add(result, Tr(SEND_TO));
 				Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
 				Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
+
+				for (const auto & script : scripts)
+				{
+					const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
+					scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
+				}
 			}
 
 			if (type == ItemType::Books)
@@ -208,19 +221,26 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, true);
 	}
 
 	void SendAsIs(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs, true);
+	}
+
+	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		const auto commands = m_scriptController->GetCommands(item->GetData(MenuItem::Column::Parameter));
+		const auto hasUserDestinationFolder = std::ranges::any_of(commands, [] (const auto & item) { return item.HasMacro(IScriptController::Command::Macro::UserDestinationFolder); });
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsScript, hasUserDestinationFolder);
 	}
 
 private:
-	void Send(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
+	void Send(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f, const bool dstFolderRequired) const
 	{
-		const auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
-		if (dir.isEmpty())
+		const auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER) : QString();
+		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 
 		BooksExtractor::Books books;
@@ -233,7 +253,8 @@ private:
 		});
 
 		auto extractor = m_logicFactory->CreateBooksExtractor();
-		((*extractor).*f)(dir, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		const auto parameter = item->GetData(MenuItem::Column::Parameter);
+		((*extractor).*f)(dir, parameter, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
 			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
 			callback(item);
@@ -306,6 +327,7 @@ private:
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
+	std::shared_ptr<IScriptController> m_scriptController;
 };
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
@@ -313,12 +335,14 @@ BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser>
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
+	, std::shared_ptr<IScriptController> scriptController
 )
 	: m_impl(std::move(databaseUser)
 		, std::move(logicFactory)
 		, std::move(uiFactory)
 		, std::move(groupController)
 		, std::move(dataProvider)
+		, std::move(scriptController)
 	)
 {
 	PLOGD << "BooksContextMenuProvider created";

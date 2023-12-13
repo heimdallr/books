@@ -25,18 +25,20 @@ public:
 	};
 	using Books = std::vector<Book>;
 	using Callback = std::function<void(bool)>;
-	using Extract = void(BooksExtractor::*)(const QString &, Books &&, Callback);
+	using Extract = void(BooksExtractor::*)(const QString &, const QString &, Books &&, Callback);
 
 public:
 	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController
 		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, std::shared_ptr<class ILogicFactory> logicFactory
+		, std::shared_ptr<const class IScriptController> scriptController
 	);
 	~BooksExtractor();
 
 public:
-	void ExtractAsArchives(const QString & folder, Books && books, Callback callback);
-	void ExtractAsIs(const QString & folder, Books && books, Callback callback);
+	void ExtractAsArchives(const QString & folder, const QString & parameter, Books && books, Callback callback);
+	void ExtractAsIs(const QString & folder, const QString & parameter, Books && books, Callback callback);
+	void ExtractAsScript(const QString & folder, const QString & parameter, Books && books, Callback callback);
 
 private:
 	class Impl;

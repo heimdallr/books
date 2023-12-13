@@ -2,9 +2,10 @@
 
 #include <filesystem>
 
-#include <QFile>
 #include <QRegularExpression>
+#include <QTemporaryDir>
 #include <QTimer>
+#include <QUuid>
 
 #include "Util/IExecutor.h"
 
@@ -13,6 +14,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IScriptController.h"
 
 #include "ImageRestore.h"
 #include "zip.h"
@@ -66,7 +68,14 @@ QString RemoveIllegalCharacters(QString str)
 	return str.simplified();
 }
 
-std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem::path dstPath, const QString & folder, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool archive)
+std::pair<bool, std::filesystem::path> Write(QIODevice & input
+	, std::filesystem::path dstPath
+	, const QString & folder
+	, const BooksExtractor::Book & book
+	, IProgressController::IProgressItem & progress
+	, IPathChecker & pathChecker
+	, const bool archive
+)
 {
 	std::pair<bool, std::filesystem::path> result { false, std::filesystem::path{} };
 	if (!(exists(dstPath) || create_directory(dstPath)))
@@ -106,17 +115,66 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input, std::filesystem:
 }
 
 
-void Process(const std::filesystem::path & archiveFolder, const std::filesystem::path & dstFolder, const BooksExtractor::Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker, const bool asArchives)
+std::filesystem::path Process(const std::filesystem::path & archiveFolder
+	, const std::filesystem::path & dstFolder
+	, const BooksExtractor::Book & book
+	, IProgressController::IProgressItem & progress
+	, IPathChecker & pathChecker
+	, const bool asArchives
+)
 {
 	if (progress.IsStopped())
-		return;
+		return {};
 
 	const auto folder = QString::fromStdWString(archiveFolder / book.folder.toStdWString());
 	const Zip zip(folder);
-	if (const auto [ok, path] = Write(zip.Read(book.file), dstFolder, folder, book, progress, pathChecker, asArchives); !ok && exists(path))
+	auto [ok, path] = Write(zip.Read(book.file), dstFolder, folder, book, progress, pathChecker, asArchives);
+	if (!ok && exists(path))
 		remove(path);
+
+	return ok ? path : std::filesystem::path{};
 }
 
+void Process(const std::filesystem::path & archiveFolder
+	, const std::filesystem::path & dstFolder
+	, const BooksExtractor::Book & book
+	, IProgressController::IProgressItem & progress
+	, IPathChecker & pathChecker
+	, const IScriptController & scriptController
+	, const IScriptController::Commands & commands
+	, const QTemporaryDir & tempDir
+)
+{
+	const auto sourceFile = Process(archiveFolder, tempDir.filePath("").toStdWString(), book, progress, pathChecker, false);
+	const QFileInfo fileInfo(book.file);
+	for (auto command : commands)
+	{
+		command.SetMacro(IScriptController::Command::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
+		command.SetMacro(IScriptController::Command::Macro::UserDestinationFolder, QDir::toNativeSeparators(QString::fromStdWString(dstFolder)));
+		command.SetMacro(IScriptController::Command::Macro::Title, book.title);
+		command.SetMacro(IScriptController::Command::Macro::FileExt, fileInfo.suffix());
+		command.SetMacro(IScriptController::Command::Macro::FileName, fileInfo.fileName());
+		command.SetMacro(IScriptController::Command::Macro::BaseFileName, fileInfo.completeBaseName());
+		command.SetMacro(IScriptController::Command::Macro::Uid, QUuid::createUuid().toString(QUuid::WithoutBraces));
+		command.SetMacro(IScriptController::Command::Macro::Author, book.author);
+		command.SetMacro(IScriptController::Command::Macro::Series, book.series);
+		command.SetMacro(IScriptController::Command::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString{});
+		command.SetMacro(IScriptController::Command::Macro::FileSize, QString::number(book.size));
+
+		if (false
+			|| progress.IsStopped()
+			|| !scriptController.Execute(command)
+			)
+			return;
+	}
+}
+
+using ProcessFunctor = std::function<void(const std::filesystem::path & archiveFolder
+	, const std::filesystem::path & dstFolder
+	, const BooksExtractor::Book & book
+	, IProgressController::IProgressItem & progress
+	, IPathChecker & pathChecker
+	)>;
 }
 
 class BooksExtractor::Impl final
@@ -129,10 +187,12 @@ public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
 		, std::shared_ptr<ILogicFactory> logicFactory
+		, std::shared_ptr<const IScriptController> scriptController
 	)
 		: m_collectionController(std::move(collectionController))
 		, m_progressController(std::move(progressController))
 		, m_logicFactory(std::move(logicFactory))
+		, m_scriptController(std::move(scriptController))
 	{
 		m_progressController->RegisterObserver(this);
 	}
@@ -142,13 +202,13 @@ public:
 		m_progressController->UnregisterObserver(this);
 	}
 
-	void Extract(const QString & dstFolder, Books && books, Callback callback, const bool asArchives)
+	void Extract(const QString & dstFolder, Books && books, Callback callback, ProcessFunctor processFunctor)
 	{
 		assert(!m_callback);
 		m_hasError = false;
 		m_callback = std::move(callback);
 		m_taskCount = std::size(books);
-		m_asArchives = asArchives;
+		m_processFunctor = std::move(processFunctor);
 		m_logicFactory->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
 		m_dstFolder = dstFolder.toStdWString();
 		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
@@ -157,6 +217,11 @@ public:
 		{
 			(*m_executor)(CreateTask(std::move(book)));
 		});
+	}
+
+	std::shared_ptr<const IScriptController> GetScriptController() const
+	{
+		return m_scriptController;
 	}
 
 private: // IPathChecker
@@ -209,7 +274,7 @@ private:
 				bool error = false;
 				try
 				{
-					Process(m_archiveFolder, m_dstFolder, book, *progressItem, *this, m_asArchives);
+					m_processFunctor(m_archiveFolder, m_dstFolder, book, *progressItem, *this);
 				}
 				catch(const std::exception & ex)
 				{
@@ -231,10 +296,11 @@ private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
+	std::shared_ptr<const IScriptController> m_scriptController;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
 	bool m_hasError { false };
-	bool m_asArchives { false };
+	ProcessFunctor m_processFunctor { nullptr };
 	std::unique_ptr<Util::IExecutor> m_executor;
 	std::filesystem::path m_dstFolder;
 	std::filesystem::path m_archiveFolder;
@@ -245,8 +311,13 @@ private:
 BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, std::shared_ptr<ILogicFactory> logicFactory
+	, std::shared_ptr<const IScriptController> scriptController
 )
-	: m_impl(std::move(collectionController), std::move(progressController), std::move(logicFactory))
+	: m_impl(std::move(collectionController)
+		, std::move(progressController)
+		, std::move(logicFactory)
+		, std::move(scriptController)
+	)
 {
 	PLOGD << "BooksExtractor created";
 }
@@ -256,12 +327,40 @@ BooksExtractor::~BooksExtractor()
 	PLOGD << "BooksExtractor destroyed";
 }
 
-void BooksExtractor::ExtractAsArchives(const QString & folder, Books && books, Callback callback)
+void BooksExtractor::ExtractAsArchives(const QString & folder, const QString &/*parameter*/, Books && books, Callback callback)
 {
-	m_impl->Extract(folder, std::move(books), std::move(callback), true);
+	m_impl->Extract(folder, std::move(books), std::move(callback)
+		, [](const std::filesystem::path & archiveFolder, const std::filesystem::path & dstFolder, const Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker)
+	{
+		Process(archiveFolder, dstFolder, book, progress, pathChecker, false);
+	});
 }
 
-void BooksExtractor::ExtractAsIs(const QString & folder, Books && books, Callback callback)
+void BooksExtractor::ExtractAsIs(const QString & folder, const QString &/*parameter*/, Books && books, Callback callback)
 {
-	m_impl->Extract(folder, std::move(books), std::move(callback), false);
+	m_impl->Extract(folder, std::move(books), std::move(callback)
+		, [] (const std::filesystem::path & archiveFolder, const std::filesystem::path & dstFolder, const Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker)
+	{
+		Process(archiveFolder, dstFolder, book, progress, pathChecker, true);
+	});
+}
+
+void BooksExtractor::ExtractAsScript(const QString & folder, const QString &parameter, Books && books, Callback callback)
+{
+	auto scriptController = m_impl->GetScriptController();
+	auto commands = scriptController->GetCommands(parameter);
+	m_impl->Extract(folder, std::move(books), std::move(callback)
+		, [scriptController = std::move(scriptController)
+			, commands = std::move(commands)
+			, tempDir = std::make_shared<QTemporaryDir>()
+		]
+		(const std::filesystem::path & archiveFolder
+			, const std::filesystem::path & dstFolder
+			, const Book & book
+			, IProgressController::IProgressItem & progress
+			, IPathChecker & pathChecker
+			)
+	{
+		Process(archiveFolder, dstFolder, book, progress, pathChecker, *scriptController, commands, *tempDir);
+	});
 }

@@ -64,7 +64,7 @@ QString GetFolder(const IUiFactory & uiController, const QString & dir)
 
 class AddCollectionDialog::Impl final
 	: GeometryRestorable
-	, GeometryRestorable::IObserver
+	, GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -75,6 +75,7 @@ public:
 		, std::shared_ptr<IUiFactory> uiFactory
 	)
 		: GeometryRestorable(*this, settings, "AddCollectionDialog")
+		, GeometryRestorableObserver(self)
 		, m_self(self)
 		, m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
@@ -143,16 +144,14 @@ public:
 		return m_ui.editArchive->text();
 	}
 
-private: // GeometryRestorable::IObserver
-	QWidget & GetWidget() noexcept override
-	{
-		return m_self;
-	}
-
-	void OnFontChanged(const QFont&) override
+private: // GeometryRestorableObserver
+	void OnFontChanged(const QFont &) override
 	{
 		m_self.adjustSize();
 		const auto height = m_self.sizeHint().height();
+		if (height < 0)
+			return;
+
 		m_self.setMinimumHeight(height);
 		m_self.setMaximumHeight(height);
 	}

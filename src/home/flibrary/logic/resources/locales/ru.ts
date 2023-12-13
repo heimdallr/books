@@ -12,62 +12,62 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="31"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="32"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
         <source>New group...</source>
         <translation>Новая группа...</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>Add to</source>
         <translation>Добавить в</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>Remove from</source>
         <translation>Удалить из</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>Remove book</source>
         <translation>Удалить книгу</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>Undo book deletion</source>
         <translation>Отменить удаление книги</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>Send to device</source>
         <translation>Отправить на устройство</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>In zip archive</source>
         <translation>Архивировать в zip</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
         <source>In original format</source>
         <translation>В исходном формате</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
@@ -246,6 +246,37 @@ Try again?</source>
         <location filename="../../shared/ReaderController.cpp" line="27"/>
         <source>Applications (*.exe)</source>
         <translation>Приложения (*.exe)</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptCommandModel</name>
+    <message>
+        <location filename="../../model/script/ScriptCommandModel.cpp" line="52"/>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <location filename="../../model/script/ScriptCommandModel.cpp" line="53"/>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <location filename="../../model/script/ScriptCommandModel.cpp" line="54"/>
+        <source>Arguments</source>
+        <translation>Аргументы</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptModel</name>
+    <message>
+        <location filename="../../model/script/ScriptModel.cpp" line="47"/>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <location filename="../../model/script/ScriptModel.cpp" line="48"/>
+        <source>Name</source>
+        <translation>Имя</translation>
     </message>
 </context>
 <context>

@@ -14,6 +14,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IUiFactory.h"
 
