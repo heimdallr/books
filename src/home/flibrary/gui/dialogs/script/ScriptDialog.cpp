@@ -12,6 +12,7 @@
 #include "interface/logic/IScriptController.h"
 
 #include "ComboBoxDelegate.h"
+#include "CommandDelegate.h"
 #include "CommonLineEditDelegate.h"
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
@@ -77,6 +78,7 @@ public:
 		, std::shared_ptr<IComboBoxDelegate> scriptTypeDelegate
 		, std::shared_ptr<IComboBoxDelegate> commandTypeDelegate
 		, std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
+		, std::shared_ptr<QStyledItemDelegate> commandDelegate
 		, std::shared_ptr<QStyledItemDelegate> commandArgLineEditDelegate
 	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
@@ -88,6 +90,7 @@ public:
 		, m_scriptTypeDelegate(std::move(scriptTypeDelegate))
 		, m_commandTypeDelegate(std::move(commandTypeDelegate))
 		, m_scriptNameLineEditDelegate(std::move(scriptNameLineEditDelegate))
+		, m_commandDelegate(std::move(commandDelegate))
 		, m_commandArgLineEditDelegate(std::move(commandArgLineEditDelegate))
 	{
 		m_ui.setupUi(&m_self);
@@ -96,6 +99,7 @@ public:
 		SetupView(m_self, *m_settings, *m_ui.viewCommand, *m_commandModel, *m_commandTypeDelegate, IScriptController::s_commandTypes, &IScriptController::CommandDescription::type);
 
 		m_ui.viewScript->setItemDelegateForColumn(1, m_scriptNameLineEditDelegate.get());
+		m_ui.viewCommand->setItemDelegateForColumn(1, m_commandDelegate.get());
 		m_ui.viewCommand->setItemDelegateForColumn(2, m_commandArgLineEditDelegate.get());
 
 		m_ui.viewCommand->setModel(m_commandModel.get());
@@ -211,6 +215,7 @@ private:
 	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_scriptTypeDelegate;
 	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_commandTypeDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandArgLineEditDelegate;
 	Ui::ScriptDialog m_ui{};
 };
@@ -221,6 +226,7 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentW
 	, std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate
 	, std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate
 	, std::shared_ptr<ScriptNameLineEditDelegate> scriptNameLineEditDelegate
+	, std::shared_ptr<CommandDelegate> commandDelegate
 	, std::shared_ptr<CommandArgLineEditDelegate> commandArgLineEditDelegate
 )
 	: QDialog(parentWidgetProvider->GetWidget())
@@ -230,6 +236,7 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentW
 		, std::move(scriptTypeDelegate)
 		, std::move(commandTypeDelegate)
 		, std::move(scriptNameLineEditDelegate)
+		, std::move(commandDelegate)
 		, std::move(commandArgLineEditDelegate)
 	)
 {
