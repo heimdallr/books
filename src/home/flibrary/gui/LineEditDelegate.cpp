@@ -4,6 +4,11 @@
 
 using namespace HomeCompa::Flibrary;
 
+LineEditDelegate::LineEditDelegate(QObject * parent)
+	: QStyledItemDelegate(parent)
+{
+}
+
 QWidget * LineEditDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex &) const
 {
 	return new QLineEdit(parent);

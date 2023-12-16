@@ -448,6 +448,19 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>OpenFileDialogDelegateEditor</name>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
+        <source>Select Application</source>
+        <translation>Выберите приложение</translation>
+    </message>
+</context>
+<context>
     <name>ProgressBar</name>
     <message>
         <location filename="../../ProgressBar.ui"/>
@@ -491,11 +504,6 @@ Restart now?</source>
         <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
-        <source>...</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

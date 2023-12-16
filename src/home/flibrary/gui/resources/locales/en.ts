@@ -420,7 +420,7 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Scripts...</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -443,6 +443,19 @@ Restart now?</source>
     <message>
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>OpenFileDialogDelegateEditor</name>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
+        <source>Select Application</source>
         <translation></translation>
     </message>
 </context>
@@ -490,11 +503,6 @@ Restart now?</source>
         <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
-        <source>...</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

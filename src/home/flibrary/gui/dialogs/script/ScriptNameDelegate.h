@@ -4,12 +4,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class ScriptNameLineEditDelegate final
-	: public LineEditDelegate
-{
-};
-
-class CommandArgLineEditDelegate final
+class ScriptNameDelegate final
 	: public LineEditDelegate
 {
 };

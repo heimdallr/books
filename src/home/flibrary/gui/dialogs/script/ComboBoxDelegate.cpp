@@ -10,6 +10,11 @@ namespace {
 using Role = IScriptController::RoleBase;
 }
 
+ComboBoxDelegate::ComboBoxDelegate(QObject * parent)
+	: QStyledItemDelegate(parent)
+{
+}
+
 QWidget * ComboBoxDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex &) const
 {
 	auto * editor = new QComboBox(parent);

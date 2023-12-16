@@ -166,7 +166,7 @@
     <message>
         <location filename="../../logic/IScriptController.h" line="127"/>
         <source>%source_file%</source>
-        <translation>Full path to unpacked file in demporary folder</translation>
+        <translation>Full path to unpacked file in temporary folder</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h" line="128"/>
@@ -186,7 +186,7 @@
     <message>
         <location filename="../../logic/IScriptController.h" line="129"/>
         <source>%title%</source>
-        <translation>Title</translation>
+        <translation>Book title</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h" line="131"/>
