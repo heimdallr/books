@@ -17,6 +17,7 @@ public:
 	virtual void SetText(const QString & value) = 0;
 	virtual void SetParent(QWidget * parent);
 	virtual void SetModel(QAbstractItemModel * model, const QModelIndex & index);
+	virtual void OnSetModelData(const QString & value);
 
 protected:
 	QWidget * m_self;

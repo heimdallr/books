@@ -14,6 +14,7 @@ class CommandDelegate
 
 public:
 	CommandDelegate(std::shared_ptr<class OpenFileDialogDelegateEditor> openFileDialogDelegateEditor
+		, std::shared_ptr<class StorableComboboxDelegateEditor> storableComboboxDelegateEditor
 		, QObject * parent = nullptr
 	);
 	~CommandDelegate() override;

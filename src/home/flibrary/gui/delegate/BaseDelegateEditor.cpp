@@ -26,3 +26,7 @@ void BaseDelegateEditor::SetModel(QAbstractItemModel * model, const QModelIndex 
 	m_row = index.row();
 	m_column = index.column();
 }
+
+void BaseDelegateEditor::OnSetModelData(const QString &)
+{
+}
