@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string notr="true"/>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -35,7 +35,11 @@
    <item>
     <widget class="QToolButton" name="button">
      <property name="text">
-      <string>...</string>
+      <string notr="true"/>
+     </property>
+     <property name="icon">
+      <iconset resource="../resources/gui.qrc">
+       <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
      </property>
     </widget>
    </item>
@@ -45,6 +49,8 @@
   <tabstop>edit</tabstop>
   <tabstop>button</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/gui.qrc"/>
+ </resources>
  <connections/>
 </ui>

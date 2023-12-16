@@ -8,5 +8,6 @@
 		<file alias="set_default.png">icons/set_default.png</file>
 		<file alias="down.png">icons/down.png</file>
 		<file alias="up.png">icons/up.png</file>
+		<file alias="exe.png">icons/exe.png</file>
 	</qresource>
 </RCC>

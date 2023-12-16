@@ -450,24 +450,14 @@ Restart now?</source>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.ui"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.ui"/>
-        <source>...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
         <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
     </message>
     <message>
         <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
         <source>Select Application</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите приложение</translation>
     </message>
 </context>
 <context>
@@ -514,11 +504,6 @@ Restart now?</source>
         <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
-    </message>
-    <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
-        <source>...</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
