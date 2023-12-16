@@ -20,8 +20,8 @@
 #include "dialogs/Dialog.h"
 #include "dialogs/script/ComboBoxDelegate.h"
 #include "dialogs/script/CommandDelegate.h"
-#include "dialogs/script/CommonLineEditDelegate.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "dialogs/script/ScriptNameDelegate.h"
 
 #include "AnnotationWidget.h"
 #include "LocaleController.h"
@@ -47,14 +47,6 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
-	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
-	{
-		return std::make_shared<ComboBoxDelegate>();
-	}).as<ScriptComboBoxDelegate>();
-	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
-	{
-		return std::make_shared<ComboBoxDelegate>();
-	}).as<CommandComboBoxDelegate>();
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{
 		return std::make_shared<UiFactory>(*container);

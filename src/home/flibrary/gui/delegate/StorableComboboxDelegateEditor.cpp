@@ -11,7 +11,6 @@ using namespace HomeCompa::Flibrary;
 
 namespace {
 constexpr auto KEY_TEMPLATE = "%1/%2";
-
 }
 
 struct StorableComboboxDelegateEditor::Impl : QComboBox

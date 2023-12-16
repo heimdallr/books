@@ -12,10 +12,11 @@
 #include "interface/logic/IScriptController.h"
 
 #include "ComboBoxDelegate.h"
+#include "CommandArgDelegate.h"
 #include "CommandDelegate.h"
-#include "CommonLineEditDelegate.h"
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
+#include "ScriptNameDelegate.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -48,11 +49,11 @@ void LoadLayout(const QObject & parent, const QTableView & view, const ISettings
 }
 
 template <std::ranges::forward_range R, class Proj = std::identity>
-void SetupView(const QObject & parent, ISettings & settings, QTableView & view, QAbstractItemModel & model, IComboBoxDelegate & delegate, R && array, Proj proj = {})
+void SetupView(const QObject & parent, ISettings & settings, QTableView & view, QAbstractItemModel & model, ComboBoxDelegate & delegate, R && array, Proj proj = {})
 {
 	view.setModel(&model);
 	view.setItemDelegateForColumn(0, &delegate);
-	IComboBoxDelegate::Values types;
+	ComboBoxDelegate::Values types;
 	types.reserve(std::size(array));
 	std::ranges::transform(array, std::back_inserter(types), [&] (const auto & item)
 	{
@@ -75,8 +76,8 @@ public:
 	Impl(ScriptDialog& self
 		, const IModelProvider & modelProvider
 		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<IComboBoxDelegate> scriptTypeDelegate
-		, std::shared_ptr<IComboBoxDelegate> commandTypeDelegate
+		, std::shared_ptr<ComboBoxDelegate> scriptTypeDelegate
+		, std::shared_ptr<ComboBoxDelegate> commandTypeDelegate
 		, std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
 		, std::shared_ptr<QStyledItemDelegate> commandDelegate
 		, std::shared_ptr<QStyledItemDelegate> commandArgLineEditDelegate
@@ -212,8 +213,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_scriptModel;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_commandModel;
-	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_scriptTypeDelegate;
-	PropagateConstPtr<IComboBoxDelegate, std::shared_ptr> m_commandTypeDelegate;
+	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr> m_scriptTypeDelegate;
+	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr> m_commandTypeDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandArgLineEditDelegate;
@@ -225,9 +226,9 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentW
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate
 	, std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate
-	, std::shared_ptr<ScriptNameLineEditDelegate> scriptNameLineEditDelegate
+	, std::shared_ptr<ScriptNameDelegate> scriptNameLineEditDelegate
 	, std::shared_ptr<CommandDelegate> commandDelegate
-	, std::shared_ptr<CommandArgLineEditDelegate> commandArgLineEditDelegate
+	, std::shared_ptr<CommandArgDelegate> commandArgLineEditDelegate
 )
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this
