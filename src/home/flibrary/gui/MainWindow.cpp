@@ -39,7 +39,9 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 constexpr auto MAIN_WINDOW = "MainWindow";
+constexpr auto CONTEXT = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
+constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -47,7 +49,7 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
-
+TR_DEF
 }
 
 class MainWindow::Impl final
@@ -220,7 +222,7 @@ private:
 		});
 		connect(m_ui.actionFontSettings, &QAction::triggered, &m_self, [&]
 		{
-			if (const auto font = m_uiFactory->GetFont(Loc::Tr(MAIN_WINDOW, FONT_DIALOG_TITLE), m_self.font()))
+			if (const auto font = m_uiFactory->GetFont(Tr(FONT_DIALOG_TITLE), m_self.font()))
 			{
 				const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
 				Util::Serialize(*font, *m_settings);
@@ -228,6 +230,9 @@ private:
 		});
 		connect(m_ui.actionRestoreDefaultSettings, &QAction::triggered, &m_self, [&]
 		{
+			if (m_uiFactory->ShowQuestion(Tr(CONFIRM_RESTORE_DEFAULT_SETTINGS), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+				return;
+
 			m_settings->Remove("ui");
 			Reboot();
 		});

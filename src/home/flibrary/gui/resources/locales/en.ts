@@ -333,8 +333,13 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="42"/>
+        <location filename="../../MainWindow.cpp" line="43"/>
         <source>Select font</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp" line="44"/>
+        <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
     <message>
