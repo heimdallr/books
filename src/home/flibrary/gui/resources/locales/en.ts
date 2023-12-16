@@ -447,6 +447,29 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>OpenFileDialogDelegateEditor</name>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.ui"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.ui"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
+        <source>Select Application</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ProgressBar</name>
     <message>
         <location filename="../../ProgressBar.ui"/>

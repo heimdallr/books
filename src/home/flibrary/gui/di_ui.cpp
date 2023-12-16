@@ -19,6 +19,7 @@
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/Dialog.h"
 #include "dialogs/script/ComboBoxDelegate.h"
+#include "dialogs/script/CommandArgDelegate.h"
 #include "dialogs/script/CommandDelegate.h"
 #include "dialogs/script/ScriptDialog.h"
 #include "dialogs/script/ScriptNameDelegate.h"

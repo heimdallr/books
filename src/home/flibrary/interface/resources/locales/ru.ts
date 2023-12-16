@@ -186,7 +186,7 @@
     <message>
         <location filename="../../logic/IScriptController.h" line="129"/>
         <source>%title%</source>
-        <translation>Название</translation>
+        <translation>Название книги</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h" line="131"/>
