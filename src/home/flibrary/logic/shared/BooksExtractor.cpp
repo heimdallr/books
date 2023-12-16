@@ -332,7 +332,7 @@ void BooksExtractor::ExtractAsArchives(const QString & folder, const QString &/*
 	m_impl->Extract(folder, std::move(books), std::move(callback)
 		, [](const std::filesystem::path & archiveFolder, const std::filesystem::path & dstFolder, const Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker)
 	{
-		Process(archiveFolder, dstFolder, book, progress, pathChecker, false);
+		Process(archiveFolder, dstFolder, book, progress, pathChecker, true);
 	});
 }
 
@@ -341,7 +341,7 @@ void BooksExtractor::ExtractAsIs(const QString & folder, const QString &/*parame
 	m_impl->Extract(folder, std::move(books), std::move(callback)
 		, [] (const std::filesystem::path & archiveFolder, const std::filesystem::path & dstFolder, const Book & book, IProgressController::IProgressItem & progress, IPathChecker & pathChecker)
 	{
-		Process(archiveFolder, dstFolder, book, progress, pathChecker, true);
+		Process(archiveFolder, dstFolder, book, progress, pathChecker, false);
 	});
 }
 
