@@ -25,6 +25,7 @@
 #include "dialogs/script/ScriptNameDelegate.h"
 
 #include "AnnotationWidget.h"
+#include "LineOption.h"
 #include "LocaleController.h"
 #include "LogItemDelegate.h"
 #include "MainWindow.h"
@@ -39,24 +40,26 @@ namespace HomeCompa::Flibrary {
 
 void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
-	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
-	builder.registerType<ParentWidgetProvider>().singleInstance();
 	builder.registerType<AboutDialog>().as<IAboutDialog>();
+	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
 	builder.registerType<ErrorDialog>().as<IErrorDialog>();
 	builder.registerType<InfoDialog>().as<IInfoDialog>();
 	builder.registerType<InputTextDialog>().as<IInputTextDialog>();
+	builder.registerType<LineOption>().as<ILineOption>();
+	builder.registerType<MainWindow>().as<QMainWindow>().singleInstance();
+	builder.registerType<ParentWidgetProvider>().singleInstance();
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
-	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
-	{
-		return std::make_shared<UiFactory>(*container);
-	}).as<IUiFactory>().singleInstance();
-	builder.registerType<MainWindow>().as<QMainWindow>().singleInstance();
+
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
 		return std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
 	}).as<ISettings>().singleInstance();
+	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
+	{
+		return std::make_shared<UiFactory>(*container);
+	}).as<IUiFactory>().singleInstance();
 }
 
 }
