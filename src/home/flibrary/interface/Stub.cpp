@@ -34,29 +34,17 @@ QString RemoveIllegalCharacters(QString str)
 	return str.simplified();
 }
 
-}
-
-static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(IScriptController::s_commandMacros));
-#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(IScriptController::Macro::NAME == IScriptController::s_commandMacros[static_cast<int>(IScriptController::Macro::NAME)].first);
-SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
-#undef  SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
-
-bool IScriptController::HasMacro(const QString & str, const Macro macro)
+void SetMacroImpl(QString & str, const IScriptController::Macro macro, const QString & value)
 {
-	return str.contains(GetMacro(macro));
-}
-
-QString & IScriptController::SetMacro(QString & str, const Macro macro, const QString & value)
-{
-	const QString macroStr = GetMacro(macro);
+	const QString macroStr = IScriptController::GetMacro(macro);
 	const auto start = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
 	if (start < 0)
-		return str;
+		return;
 
-	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos) -> QString &
+	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos)
 	{
 		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
-		return str.insert(startPos, s);
+		str.insert(startPos, s);
 	};
 
 	if (start == 0 || str[start - 1] != '[')
@@ -79,6 +67,29 @@ QString & IScriptController::SetMacro(QString & str, const Macro macro, const QS
 	str.erase(itEnd);
 	str.erase(std::next(str.begin(), start) - 1);
 	return replace(value, start - 1, start + macroStr.length() - 1);
+}
+
+}
+
+static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(IScriptController::s_commandMacros));
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(IScriptController::Macro::NAME == IScriptController::s_commandMacros[static_cast<int>(IScriptController::Macro::NAME)].first);
+SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef  SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
+
+bool IScriptController::HasMacro(const QString & str, const Macro macro)
+{
+	return str.contains(GetMacro(macro));
+}
+
+QString & IScriptController::SetMacro(QString & str, const Macro macro, const QString & value)
+{
+	while(true)
+	{
+		QString tmp = str;
+		SetMacroImpl(str, macro, value);
+		if (tmp == str)
+			return str;
+	}
 }
 
 const char * IScriptController::GetMacro(const Macro macro)
