@@ -26,6 +26,9 @@ private: // ILineOption
 	void SetLineEdit(QLineEdit * lineEdit) noexcept override;
 	void SetSettingsKey(QString key, const QString & defaultValue) noexcept override;
 
+	void Register(IObserver * observer) override;
+	void Unregister(IObserver * observer) override;
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
