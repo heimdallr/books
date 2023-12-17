@@ -15,8 +15,10 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICommandLine.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 #include "interface/ui/ILineOption.h"
@@ -28,7 +30,6 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
-#include "interface/logic/ICommandLine.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -152,6 +153,7 @@ private: // ILineOption::IObserver
 
 	void OnOptionEditingFinished(const QString & /*value*/) override
 	{
+		m_ui.settingsLineEdit->actions().clear();
 		QTimer::singleShot(0, [&] { m_lineOption->Unregister(this); });
 	}
 
@@ -298,6 +300,7 @@ private:
 
 		connect(m_ui.actionExportTempate, &QAction::triggered, &m_self, [&]
 		{
+			IScriptController::SetMacroActions(m_ui.settingsLineEdit);
 			m_lineOption->Register(this);
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, Constant::Settings::EXPORT_TEMPLATE_DEFAULT);
 		});

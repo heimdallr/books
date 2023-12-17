@@ -1,4 +1,7 @@
+#include <ranges>
+
 #include <QFileInfo>
+#include <QLineEdit>
 #include <QRegularExpression>
 #include <QUuid>
 
@@ -51,6 +54,21 @@ QString & IScriptController::SetMacro(QString & str, const Macro macro, const QS
 const char * IScriptController::GetMacro(const Macro macro)
 {
 	return FindSecond(s_commandMacros, macro);
+}
+
+void IScriptController::SetMacroActions(QLineEdit * lineEdit)
+{
+	for (const auto & item : s_commandMacros | std::views::values)
+	{
+		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
+		lineEdit->addAction(menuItemTitle, [=, value = QString(item)]
+		{
+			auto currentText = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
+	}
 }
 
 std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles)

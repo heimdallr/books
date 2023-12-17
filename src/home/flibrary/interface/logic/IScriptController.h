@@ -6,6 +6,8 @@
 
 #include "export/flint.h"
 
+class QLineEdit;
+
 namespace HomeCompa::Flibrary {
 
 class IScriptController  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -138,6 +140,7 @@ public:
 	FLINT_EXPORT static bool HasMacro(const QString& str, Macro macro);
 	FLINT_EXPORT static QString & SetMacro(QString & str, Macro macro, const QString & value);
 	FLINT_EXPORT static const char * GetMacro(Macro macro);
+	FLINT_EXPORT static void SetMacroActions(QLineEdit * widget);
 
 public:
 	virtual ~IScriptController() = default;

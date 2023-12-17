@@ -31,7 +31,11 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QLineEdit" name="settingsLineEdit"/>
+     <widget class="QLineEdit" name="settingsLineEdit">
+      <property name="contextMenuPolicy">
+       <enum>Qt::ActionsContextMenu</enum>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
