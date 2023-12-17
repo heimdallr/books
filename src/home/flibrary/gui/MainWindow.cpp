@@ -302,7 +302,7 @@ private:
 		{
 			IScriptController::SetMacroActions(m_ui.settingsLineEdit);
 			m_lineOption->Register(this);
-			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, Constant::Settings::EXPORT_TEMPLATE_DEFAULT);
+			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

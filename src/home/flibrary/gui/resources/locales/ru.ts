@@ -334,12 +334,12 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="44"/>
+        <location filename="../../MainWindow.cpp" line="45"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="45"/>
+        <location filename="../../MainWindow.cpp" line="46"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
@@ -430,8 +430,8 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Export &amp;tempate</source>
-        <translation>Шаблон &amp;экспорта</translation>
+        <source>&amp;Book export tempate</source>
+        <translation>Шаблон &amp;экспорта книг</translation>
     </message>
 </context>
 <context>

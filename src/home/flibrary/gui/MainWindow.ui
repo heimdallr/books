@@ -326,6 +326,7 @@
     <addaction name="menuFont"/>
     <addaction name="actionScripts"/>
     <addaction name="actionExportTempate"/>
+    <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -612,7 +613,7 @@
   </action>
   <action name="actionExportTempate">
    <property name="text">
-    <string>Export &amp;tempate</string>
+    <string>&amp;Book export tempate</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

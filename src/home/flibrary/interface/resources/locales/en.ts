@@ -149,72 +149,72 @@
 <context>
     <name>ScriptController</name>
     <message>
-        <location filename="../../logic/IScriptController.h" line="103"/>
+        <location filename="../../logic/IScriptController.h" line="109"/>
         <source>ExportToDevice</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="121"/>
+        <location filename="../../logic/IScriptController.h" line="127"/>
         <source>LaunchApp</source>
         <translation>Launch application</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="122"/>
+        <location filename="../../logic/IScriptController.h" line="128"/>
         <source>System</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="127"/>
+        <location filename="../../logic/IScriptController.h" line="133"/>
         <source>%source_file%</source>
         <translation>Full path to unpacked file in temporary folder</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="128"/>
+        <location filename="../../logic/IScriptController.h" line="134"/>
         <source>%user_destination_folder%</source>
         <translation>Destination folder from dialog</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="132"/>
+        <location filename="../../logic/IScriptController.h" line="138"/>
         <source>%base_file_name%</source>
         <translation>File name without extension</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="130"/>
+        <location filename="../../logic/IScriptController.h" line="137"/>
         <source>%file_ext%</source>
         <translation>File extension</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="129"/>
+        <location filename="../../logic/IScriptController.h" line="135"/>
         <source>%title%</source>
         <translation>Book title</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="131"/>
+        <location filename="../../logic/IScriptController.h" line="136"/>
         <source>%file_name%</source>
         <translation>File name</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="133"/>
+        <location filename="../../logic/IScriptController.h" line="139"/>
         <source>%uid%</source>
         <translation>Unique identificator (GUID)</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="134"/>
+        <location filename="../../logic/IScriptController.h" line="140"/>
         <source>%author%</source>
         <translation>Author</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="135"/>
+        <location filename="../../logic/IScriptController.h" line="141"/>
         <source>%series%</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="136"/>
+        <location filename="../../logic/IScriptController.h" line="142"/>
         <source>%seq_number%</source>
         <translation>Serial number in the series</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="137"/>
+        <location filename="../../logic/IScriptController.h" line="143"/>
         <source>%file_size%</source>
         <translation>File size</translation>
     </message>

@@ -5,8 +5,6 @@
 #include <QRegularExpression>
 #include <QUuid>
 
-#include "fnd/FindPair.h"
-
 #include "constants/Localization.h"
 #include "constants/ModelRole.h"
 
@@ -33,13 +31,50 @@ QString RemoveIllegalCharacters(QString str)
 	while (!str.isEmpty() && str.endsWith('.'))
 		str.chop(1);
 
-	if (str.isEmpty())
-		str = "_";
-
 	return str.simplified();
 }
 
+void SetMacroImpl(QString & str, const IScriptController::Macro macro, const QString & value)
+{
+	const QString macroStr = IScriptController::GetMacro(macro);
+	const auto start = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
+	if (start < 0)
+		return;
+
+	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos)
+	{
+		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
+		str.insert(startPos, s);
+	};
+
+	if (start == 0 || str[start - 1] != '[')
+		return replace(value, start, start + macroStr.length());
+
+	const auto itEnd = std::find_if(std::next(str.cbegin(), start), str.cend(), [n = 1] (const QChar ch) mutable
+	{
+		if (ch == '[')
+			++n;
+
+		return ch == ']' && --n == 0;
+	});
+
+	if (itEnd == str.cend())
+		return replace(value, start, start + macroStr.length());
+
+	if (value.isEmpty())
+		return replace(value, start - 1, std::distance(str.cbegin(), itEnd) + 1);
+
+	str.erase(itEnd);
+	str.erase(std::next(str.begin(), start) - 1);
+	return replace(value, start - 1, start + macroStr.length() - 1);
 }
+
+}
+
+static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(IScriptController::s_commandMacros));
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(IScriptController::Macro::NAME == IScriptController::s_commandMacros[static_cast<int>(IScriptController::Macro::NAME)].first);
+SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef  SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
 
 bool IScriptController::HasMacro(const QString & str, const Macro macro)
 {
@@ -48,12 +83,18 @@ bool IScriptController::HasMacro(const QString & str, const Macro macro)
 
 QString & IScriptController::SetMacro(QString & str, const Macro macro, const QString & value)
 {
-	return str.replace(GetMacro(macro), value);
+	while(true)
+	{
+		QString tmp = str;
+		SetMacroImpl(str, macro, value);
+		if (tmp == str)
+			return str;
+	}
 }
 
 const char * IScriptController::GetMacro(const Macro macro)
 {
-	return FindSecond(s_commandMacros, macro);
+	return s_commandMacros[static_cast<int>(macro)].second;
 }
 
 void IScriptController::SetMacroActions(QLineEdit * lineEdit)
@@ -69,6 +110,18 @@ void IScriptController::SetMacroActions(QLineEdit * lineEdit)
 			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
 		});
 	}
+}
+
+QString IScriptController::GetDefaultOutputFileNameTemplate()
+{
+	return QString("%1/%2/[%3/[%4-]]%5.%6")
+		.arg(GetMacro(Macro::UserDestinationFolder))
+		.arg(GetMacro(Macro::Author))
+		.arg(GetMacro(Macro::Series))
+		.arg(GetMacro(Macro::SeqNumber))
+		.arg(GetMacro(Macro::Title))
+		.arg(GetMacro(Macro::FileExt))
+		;
 }
 
 std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles)

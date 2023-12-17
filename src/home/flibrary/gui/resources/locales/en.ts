@@ -333,12 +333,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="44"/>
+        <location filename="../../MainWindow.cpp" line="45"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="45"/>
+        <location filename="../../MainWindow.cpp" line="46"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
@@ -429,7 +429,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Export &amp;tempate</source>
+        <source>&amp;Book export tempate</source>
         <translation></translation>
     </message>
 </context>
