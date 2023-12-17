@@ -14,14 +14,19 @@ QString Tr(const char * context, const char * str)
 
 namespace HomeCompa::Flibrary {
 
-bool IScriptController::Command::HasMacro(const Macro macro) const
+bool IScriptController::HasMacro(const QString & str, const Macro macro)
 {
-	return args.contains(FindSecond(s_commandMacros, macro));
+	return str.contains(GetMacro(macro));
 }
 
-void IScriptController::Command::SetMacro(const Macro macro, const QString & value)
+QString & IScriptController::SetMacro(QString & str, const Macro macro, const QString & value)
 {
-	args.replace(FindSecond(s_commandMacros, macro), value);
+	return str.replace(GetMacro(macro), value);
+}
+
+const char * IScriptController::GetMacro(const Macro macro)
+{
+	return FindSecond(s_commandMacros, macro);
 }
 
 }

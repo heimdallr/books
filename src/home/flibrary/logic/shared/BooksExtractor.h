@@ -25,7 +25,7 @@ public:
 	};
 	using Books = std::vector<Book>;
 	using Callback = std::function<void(bool)>;
-	using Extract = void(BooksExtractor::*)(const QString &, const QString &, Books &&, Callback);
+	using Extract = void(BooksExtractor::*)(QString, const QString &, Books &&, QString, Callback);
 
 public:
 	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController
@@ -36,9 +36,11 @@ public:
 	~BooksExtractor();
 
 public:
-	void ExtractAsArchives(const QString & folder, const QString & parameter, Books && books, Callback callback);
-	void ExtractAsIs(const QString & folder, const QString & parameter, Books && books, Callback callback);
-	void ExtractAsScript(const QString & folder, const QString & parameter, Books && books, Callback callback);
+	void ExtractAsArchives(QString folder, const QString & parameter, Books && books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsIs(QString folder, const QString & parameter, Books && books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsScript(QString folder, const QString & parameter, Books && books, QString outputFileNameTemplate, Callback callback);
+
+	static void FillScriptTemplate(QString & scriptTemplate, const Book & book);
 
 private:
 	class Impl;
