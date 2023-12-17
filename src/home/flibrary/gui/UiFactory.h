@@ -40,7 +40,7 @@ private: // IUiFactory
 
 private: // special
 	[[nodiscard]] std::filesystem::path GetNewCollectionInpx() const noexcept override;
-	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> GetTreeViewController() const noexcept override;
+	[[nodiscard]] std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;
 	[[nodiscard]] QAbstractScrollArea & GetAbstractScrollArea() const noexcept override;
 
 private:

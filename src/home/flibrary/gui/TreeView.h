@@ -17,8 +17,7 @@ class TreeView final : public QWidget
 	NON_COPY_MOVABLE(TreeView)
 
 public:
-	TreeView(std::shared_ptr<class ITreeViewController> controller
-		, std::shared_ptr<ISettings> settings
+	TreeView(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper
 		, const std::shared_ptr<class ICollectionController> & collectionController

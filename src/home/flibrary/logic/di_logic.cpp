@@ -69,16 +69,6 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 		return std::make_shared<CommandExecutor>();
 	}).as<IScriptController::ICommandExecutor>().singleInstance();
 
-	builder.registerInstanceFactory([] (Hypodermic::ComponentContext & ctx)
-	{
-		return ctx.resolve<IUiFactory>()->GetTreeViewController();
-	}).as<ITreeViewController>();
-
-	builder.registerInstanceFactory([] (Hypodermic::ComponentContext & ctx)
-	{
-		return ctx.resolve<IUiFactory>()->GetTreeViewController();
-	}).as<ITreeViewController>();
-
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
 		static auto taskQueue = std::make_shared<TaskQueue>();

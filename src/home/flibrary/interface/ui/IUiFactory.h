@@ -40,7 +40,7 @@ public:
 
 public: // special
 	[[nodiscard]] virtual std::filesystem::path GetNewCollectionInpx() const noexcept = 0;
-	[[nodiscard]] virtual std::shared_ptr<class AbstractTreeViewController> GetTreeViewController() const noexcept = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController> GetTreeViewController() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractScrollArea & GetAbstractScrollArea() const noexcept = 0;
 };
 
