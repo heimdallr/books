@@ -121,10 +121,6 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
-static_assert(std::ranges::all_of(MODE_DESCRIPTORS, [] (const auto & )
-{
-	return true;
-}));
 
 class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
