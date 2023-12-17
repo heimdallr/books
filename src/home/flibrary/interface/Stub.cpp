@@ -5,8 +5,6 @@
 #include <QRegularExpression>
 #include <QUuid>
 
-#include "fnd/FindPair.h"
-
 #include "constants/Localization.h"
 #include "constants/ModelRole.h"
 
@@ -38,6 +36,11 @@ QString RemoveIllegalCharacters(QString str)
 
 }
 
+static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(IScriptController::s_commandMacros));
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(IScriptController::Macro::NAME == IScriptController::s_commandMacros[static_cast<int>(IScriptController::Macro::NAME)].first);
+SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef  SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
+
 bool IScriptController::HasMacro(const QString & str, const Macro macro)
 {
 	return str.contains(GetMacro(macro));
@@ -50,7 +53,7 @@ QString & IScriptController::SetMacro(QString & str, const Macro macro, const QS
 	if (start < 0)
 		return str;
 
-	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos) -> QString&
+	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos) -> QString &
 	{
 		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
 		return str.insert(startPos, s);
@@ -80,7 +83,7 @@ QString & IScriptController::SetMacro(QString & str, const Macro macro, const QS
 
 const char * IScriptController::GetMacro(const Macro macro)
 {
-	return FindSecond(s_commandMacros, macro);
+	return s_commandMacros[static_cast<int>(macro)].second;
 }
 
 void IScriptController::SetMacroActions(QLineEdit * lineEdit)
@@ -96,6 +99,18 @@ void IScriptController::SetMacroActions(QLineEdit * lineEdit)
 			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
 		});
 	}
+}
+
+QString IScriptController::GetDefaultOutputFileNameTemplate()
+{
+	return QString("%1/%2/[%3/[%4-]]%5.%6")
+		.arg(GetMacro(Macro::UserDestinationFolder))
+		.arg(GetMacro(Macro::Author))
+		.arg(GetMacro(Macro::Series))
+		.arg(GetMacro(Macro::SeqNumber))
+		.arg(GetMacro(Macro::Title))
+		.arg(GetMacro(Macro::FileExt))
+		;
 }
 
 std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles)

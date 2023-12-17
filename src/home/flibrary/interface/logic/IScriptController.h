@@ -43,19 +43,25 @@ public:
 		Removed,
 	};
 
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO              \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SourceFile)           \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(UserDestinationFolder)\
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Title)                \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)             \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)              \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)         \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)                  \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)               \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)               \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)            \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)
+
 	enum class Macro
 	{
-		SourceFile,
-		UserDestinationFolder,
-		Title,
-		FileName,
-		FileExt,
-		BaseFileName,
-		Uid,
-		Author,
-		Series,
-		SeqNumber,
-		FileSize,
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) NAME,
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef  SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
+		Last
 	};
 
 	struct Base
@@ -127,8 +133,8 @@ public:
 		{ Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController", "%source_file%") },
 		{ Macro::UserDestinationFolder, QT_TRANSLATE_NOOP("ScriptController", "%user_destination_folder%") },
 		{ Macro::Title, QT_TRANSLATE_NOOP("ScriptController", "%title%") },
-		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
 		{ Macro::FileName, QT_TRANSLATE_NOOP("ScriptController", "%file_name%") },
+		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
 		{ Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
 		{ Macro::Uid, QT_TRANSLATE_NOOP("ScriptController", "%uid%") },
 		{ Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
