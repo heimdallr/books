@@ -266,7 +266,7 @@ private:
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 
-		BooksExtractor::Books books = CreateBooks(model, index, indexList);
+		auto books = m_logicFactory->GetExtractedBooks(model, index, indexList);
 		auto extractor = m_logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
 		((*extractor).*f)(std::move(dir), parameter, std::move(books), std::move(outputFileNameTemplate), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
@@ -288,7 +288,7 @@ private:
 
 	GroupController::Ids GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList) const
 	{
-		auto selected = GetSelected(model, index, indexList, { Role::Id });
+		auto selected = m_logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Id });
 
 		GroupController::Ids ids;
 		ids.reserve(selected.size());
@@ -317,38 +317,6 @@ private:
 				m_dataProvider->RequestBooks(true);
 			};
 		} });
-	}
-
-	static std::vector<std::vector<QString>> GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles)
-	{
-		QModelIndexList selected;
-		model->setData({}, QVariant::fromValue(SelectedRequest { index, indexList, &selected }), Role::Selected);
-
-		std::vector<std::vector<QString>> result;
-		result.reserve(selected.size());
-		std::ranges::transform(selected, std::back_inserter(result), [&] (const auto & selectedIndex)
-		{
-			std::vector<QString> resultItem;
-			std::ranges::transform(roles, std::back_inserter(resultItem), [&] (const int role) { return selectedIndex.data(role).toString(); });
-			return resultItem;
-		});
-
-		return result;
-	}
-
-	static BooksExtractor::Books CreateBooks(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList)
-	{
-		BooksExtractor::Books books;
-
-		const std::vector<int> roles { Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
-		const auto selected = GetSelected(model, index, indexList, roles);
-		std::ranges::transform(selected, std::back_inserter(books), [&] (auto && book)
-		{
-			assert(book.size() == roles.size());
-			return BooksExtractor::Book { std::move(book[0]), std::move(book[1]), book[2].toLongLong(), std::move(book[3]), std::move(book[4]), book[5].toInt(), std::move(book[6]) };
-		});
-
-		return books;
 	}
 
 private:
