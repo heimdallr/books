@@ -50,10 +50,17 @@ void LineOption::SetLineEdit(QLineEdit * lineEdit) noexcept
 void LineOption::SetSettingsKey(QString key, const QString & defaultValue) noexcept
 {
 	m_impl->key = std::move(key);
-	const auto value = m_impl->settings->Get(m_impl->key, defaultValue);
-	m_impl->lineEdit->setText(value.isEmpty() ? defaultValue : value);
+	const auto value = [&]
+	{
+		auto result = m_impl->settings->Get(m_impl->key, defaultValue);
+		return result.isEmpty() ? defaultValue : result;
+	}();
+	const bool needPerform = value == m_impl->lineEdit->text();
+	m_impl->lineEdit->setText(value);
 	m_impl->lineEdit->setVisible(true);
 	m_impl->lineEdit->setFocus();
+	if (needPerform)
+		m_impl->Perform(&IObserver::OnOptionEditing, value);
 }
 
 void LineOption::Register(IObserver * observer)
