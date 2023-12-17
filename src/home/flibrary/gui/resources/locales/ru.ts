@@ -430,8 +430,8 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Export &amp;tempate</source>
-        <translation>Шаблон &amp;экспорта</translation>
+        <source>&amp;Book export tempate</source>
+        <translation>Шаблон &amp;экспорта книг</translation>
     </message>
 </context>
 <context>

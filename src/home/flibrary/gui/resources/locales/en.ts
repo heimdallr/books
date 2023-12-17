@@ -429,7 +429,7 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Export &amp;tempate</source>
+        <source>&amp;Book export tempate</source>
         <translation></translation>
     </message>
 </context>
