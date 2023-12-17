@@ -147,6 +147,7 @@ public:
 	FLINT_EXPORT static QString & SetMacro(QString & str, Macro macro, const QString & value);
 	FLINT_EXPORT static const char * GetMacro(Macro macro);
 	FLINT_EXPORT static void SetMacroActions(QLineEdit * widget);
+	FLINT_EXPORT static QString GetDefaultOutputFileNameTemplate();
 
 public:
 	virtual ~IScriptController() = default;
