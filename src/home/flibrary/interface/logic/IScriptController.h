@@ -6,6 +6,8 @@
 
 #include "export/flint.h"
 
+class QLineEdit;
+
 namespace HomeCompa::Flibrary {
 
 class IScriptController  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -41,6 +43,21 @@ public:
 		Removed,
 	};
 
+	enum class Macro
+	{
+		SourceFile,
+		UserDestinationFolder,
+		Title,
+		FileName,
+		FileExt,
+		BaseFileName,
+		Uid,
+		Author,
+		Series,
+		SeqNumber,
+		FileSize,
+	};
+
 	struct Base
 	{
 		QString uid;
@@ -72,27 +89,10 @@ public:
 			System,
 		};
 
-		enum class Macro
-		{
-			SourceFile,
-			UserDestinationFolder,
-			Title,
-			FileName,
-			FileExt,
-			BaseFileName,
-			Uid,
-			Author,
-			Series,
-			SeqNumber,
-			FileSize,
-		};
-
 		QString scriptUid;
 		QString command;
 		QString args;
 		Type type { Type::LaunchApp };
-		FLINT_EXPORT bool HasMacro(Macro macro) const;
-		FLINT_EXPORT void SetMacro(Macro macro, const QString & value);
 	};
 	using Commands = std::vector<Command>;
 
@@ -122,20 +122,25 @@ public:
 		{ Command::Type::System, {QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem} },
 	};
 
-	static constexpr std::pair<Command::Macro, const char *> s_commandMacros[]
+	static constexpr std::pair<Macro, const char *> s_commandMacros[]
 	{
-		{ Command::Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController", "%source_file%") },
-		{ Command::Macro::UserDestinationFolder, QT_TRANSLATE_NOOP("ScriptController", "%user_destination_folder%") },
-		{ Command::Macro::Title, QT_TRANSLATE_NOOP("ScriptController", "%title%") },
-		{ Command::Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
-		{ Command::Macro::FileName, QT_TRANSLATE_NOOP("ScriptController", "%file_name%") },
-		{ Command::Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
-		{ Command::Macro::Uid, QT_TRANSLATE_NOOP("ScriptController", "%uid%") },
-		{ Command::Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
-		{ Command::Macro::Series, QT_TRANSLATE_NOOP("ScriptController", "%series%") },
-		{ Command::Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController", "%seq_number%") },
-		{ Command::Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController", "%file_size%") },
+		{ Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController", "%source_file%") },
+		{ Macro::UserDestinationFolder, QT_TRANSLATE_NOOP("ScriptController", "%user_destination_folder%") },
+		{ Macro::Title, QT_TRANSLATE_NOOP("ScriptController", "%title%") },
+		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
+		{ Macro::FileName, QT_TRANSLATE_NOOP("ScriptController", "%file_name%") },
+		{ Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
+		{ Macro::Uid, QT_TRANSLATE_NOOP("ScriptController", "%uid%") },
+		{ Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
+		{ Macro::Series, QT_TRANSLATE_NOOP("ScriptController", "%series%") },
+		{ Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController", "%seq_number%") },
+		{ Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController", "%file_size%") },
 	};
+public:
+	FLINT_EXPORT static bool HasMacro(const QString& str, Macro macro);
+	FLINT_EXPORT static QString & SetMacro(QString & str, Macro macro, const QString & value);
+	FLINT_EXPORT static const char * GetMacro(Macro macro);
+	FLINT_EXPORT static void SetMacroActions(QLineEdit * widget);
 
 public:
 	virtual ~IScriptController() = default;

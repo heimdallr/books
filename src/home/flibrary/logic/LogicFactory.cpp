@@ -58,7 +58,7 @@ LogicFactory::~LogicFactory()
 	PLOGD << "LogicFactory destroyed";
 }
 
-std::shared_ptr<AbstractTreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const
+std::shared_ptr<ITreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const
 {
 	auto & controller = m_impl->controllers[static_cast<size_t>(type)];
 	if (!controller)

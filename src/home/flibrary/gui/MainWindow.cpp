@@ -15,10 +15,13 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICommandLine.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/ILineOption.h"
 #include "interface/ui/IUiFactory.h"
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
@@ -27,7 +30,6 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
-#include "interface/logic/ICommandLine.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -56,6 +58,7 @@ class MainWindow::Impl final
 	: GeometryRestorable
 	, GeometryRestorableObserver
 	, ICollectionController::IObserver
+	, ILineOption::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -73,6 +76,7 @@ public:
 		, std::shared_ptr<QWidget> progressBar
 		, std::shared_ptr<QStyledItemDelegate> logItemDelegate
 		, std::shared_ptr<ICommandLine> commandLine
+		, std::shared_ptr<ILineOption> lineOption
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -87,6 +91,7 @@ public:
 		, m_logController(std::move(logController))
 		, m_progressBar(std::move(progressBar))
 		, m_logItemDelegate(std::move(logItemDelegate))
+		, m_lineOption(std::move(lineOption))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
 	{
@@ -134,6 +139,24 @@ private: // plog::IAppender
 		});
 	}
 
+private: // ILineOption::IObserver
+	void OnOptionEditing(const QString & value) override
+	{
+		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetModel(), m_booksWidget->GetCurrentIndex());
+		if (books.empty())
+			return;
+
+		auto scriptTemplate = value;
+		ILogicFactory::FillScriptTemplate(scriptTemplate, books.front());
+		PLOGI << scriptTemplate;
+	}
+
+	void OnOptionEditingFinished(const QString & /*value*/) override
+	{
+		m_ui.settingsLineEdit->actions().clear();
+		QTimer::singleShot(0, [&] { m_lineOption->Unregister(this); });
+	}
+
 private:
 	void Setup()
 	{
@@ -152,6 +175,9 @@ private:
 
 		m_ui.logView->setModel(m_logController->GetModel());
 		m_ui.logView->setItemDelegate(m_logItemDelegate.get());
+
+		m_ui.settingsLineEdit->setVisible(false);
+		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
 
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
@@ -272,6 +298,13 @@ private:
 			m_uiFactory->CreateScriptDialog()->Exec();
 		});
 
+		connect(m_ui.actionExportTempate, &QAction::triggered, &m_self, [&]
+		{
+			IScriptController::SetMacroActions(m_ui.settingsLineEdit);
+			m_lineOption->Register(this);
+			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, Constant::Settings::EXPORT_TEMPLATE_DEFAULT);
+		});
+
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
@@ -377,6 +410,7 @@ private:
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
 	PropagateConstPtr<QWidget, std::shared_ptr> m_progressBar;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_logItemDelegate;
+	PropagateConstPtr<ILineOption, std::shared_ptr> m_lineOption;
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -396,6 +430,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<ProgressBar> progressBar
 	, std::shared_ptr<LogItemDelegate> logItemDelegate
 	, std::shared_ptr<ICommandLine> commandLine
+	, std::shared_ptr<ILineOption> lineOption
 	, QWidget * parent
 )
 	: QMainWindow(parent)
@@ -411,6 +446,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(progressBar)
 		, std::move(logItemDelegate)
 		, std::move(commandLine)
+		, std::move(lineOption)
 	)
 {
 	PLOGD << "MainWindow created";

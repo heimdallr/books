@@ -4,6 +4,8 @@
 
 #include "logic/data/DataItem.h"
 
+#include <QModelIndex>
+
 namespace HomeCompa::Flibrary {
 
 struct Role

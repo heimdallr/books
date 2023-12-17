@@ -31,6 +31,13 @@
      <number>0</number>
     </property>
     <item>
+     <widget class="QLineEdit" name="settingsLineEdit">
+      <property name="contextMenuPolicy">
+       <enum>Qt::ActionsContextMenu</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
        <number>0</number>
@@ -318,6 +325,7 @@
     <addaction name="menuLanguage"/>
     <addaction name="menuFont"/>
     <addaction name="actionScripts"/>
+    <addaction name="actionExportTempate"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -597,6 +605,14 @@
   <action name="actionScripts">
    <property name="text">
     <string>&amp;Scripts...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportTempate">
+   <property name="text">
+    <string>Export &amp;tempate</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

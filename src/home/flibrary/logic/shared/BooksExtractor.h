@@ -6,6 +6,8 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/ILogicFactory.h"
+
 namespace HomeCompa::Flibrary {
 
 class BooksExtractor
@@ -13,19 +15,8 @@ class BooksExtractor
 	NON_COPY_MOVABLE(BooksExtractor)
 
 public:
-	struct Book
-	{
-		QString folder;
-		QString file;
-		int64_t size;
-		QString author;
-		QString series;
-		int seqNumber;
-		QString title;
-	};
-	using Books = std::vector<Book>;
 	using Callback = std::function<void(bool)>;
-	using Extract = void(BooksExtractor::*)(const QString &, const QString &, Books &&, Callback);
+	using Extract = void(BooksExtractor::*)(QString, const QString &, ILogicFactory::ExtractedBooks &&, QString, Callback);
 
 public:
 	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController
@@ -36,9 +27,9 @@ public:
 	~BooksExtractor();
 
 public:
-	void ExtractAsArchives(const QString & folder, const QString & parameter, Books && books, Callback callback);
-	void ExtractAsIs(const QString & folder, const QString & parameter, Books && books, Callback callback);
-	void ExtractAsScript(const QString & folder, const QString & parameter, Books && books, Callback callback);
+	void ExtractAsArchives(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsIs(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsScript(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
 
 private:
 	class Impl;

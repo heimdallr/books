@@ -12,62 +12,62 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="33"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
         <source>Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>All</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>Remove book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>Undo book deletion</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
         <source>Send to device</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
         <source>In zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
         <source>In original format</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>

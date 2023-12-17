@@ -19,7 +19,7 @@ public:
 	~LogicFactory() override;
 
 private: // ILogicFactory
-	[[nodiscard]] std::shared_ptr<AbstractTreeViewController> GetTreeViewController(ItemType type) const override;
+	[[nodiscard]] std::shared_ptr<ITreeViewController> GetTreeViewController(ItemType type) const override;
 	[[nodiscard]] std::shared_ptr<ArchiveParser> CreateArchiveParser() const override;
 	[[nodiscard]] std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const override;
 	[[nodiscard]] std::shared_ptr<GroupController> CreateGroupController() const override;
@@ -28,7 +28,6 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<ReaderController> CreateReaderController() const override;
 	[[nodiscard]] std::shared_ptr<IUserDataController> CreateUserDataController() const override;
 	[[nodiscard]] std::shared_ptr<BooksExtractor> CreateBooksExtractor() const override;
-
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

@@ -9,6 +9,10 @@
 class QAbstractItemModel;
 class QModelIndex;
 
+namespace HomeCompa {
+class ISettings;
+}
+
 namespace HomeCompa::Flibrary {
 
 class BooksContextMenuProvider final
@@ -19,7 +23,8 @@ public:
 	using Callback = std::function<void(const IDataItem::Ptr &)>;
 
 public:
-	BooksContextMenuProvider(std::shared_ptr<class DatabaseUser> databaseUser
+	BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
+		, std::shared_ptr<class DatabaseUser> databaseUser
 		, std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class GroupController> groupController

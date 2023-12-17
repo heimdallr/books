@@ -67,14 +67,13 @@ class TreeView::Impl final
 
 public:
 	Impl(TreeView & self
-		, std::shared_ptr<ITreeViewController> controller
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
 		, const std::shared_ptr<ICollectionController> & collectionController
 	)
 		: m_self(self)
-		, m_controller(std::move(controller))
+		, m_controller(uiFactory->GetTreeViewController())
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 		, m_itemViewToolTipper(std::move(itemViewToolTipper))
@@ -105,6 +104,17 @@ public:
 			Find(m_currentId, Role::Id);
 		}
 	}
+
+	QAbstractItemModel * GetModel() const
+	{
+		return m_ui.treeView->model();
+	}
+
+	QModelIndex GetCurrentIndex() const
+	{
+		return m_ui.treeView->currentIndex();
+	}
+
 
 	void ResizeEvent(const QResizeEvent * event)
 	{
@@ -543,8 +553,7 @@ private:
 	bool m_showRemoved { false };
 };
 
-TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
-	, std::shared_ptr<ISettings> settings
+TreeView::TreeView(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
 	, const std::shared_ptr<ICollectionController> & collectionController
@@ -552,7 +561,6 @@ TreeView::TreeView(std::shared_ptr<ITreeViewController> controller
 )
 	: QWidget(parent)
 	, m_impl(*this
-		, std::move(controller)
 		, std::move(settings)
 		, std::move(uiFactory)
 		, std::move(itemViewToolTipper)
@@ -575,6 +583,16 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+QAbstractItemModel * TreeView::GetModel() const
+{
+	return m_impl->GetModel();
+}
+
+QModelIndex TreeView::GetCurrentIndex() const
+{
+	return m_impl->GetCurrentIndex();
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)

@@ -9,7 +9,9 @@
 #include "fnd/FindPair.h"
 
 #include "database/interface/ITransaction.h"
+#include "util/ISettings.h"
 
+#include "interface/constants/SettingsConstant.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
@@ -117,14 +119,16 @@ class BooksContextMenuProvider::Impl final
 	: public IContextMenuHandler
 {
 public:
-	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
+	explicit Impl(std::shared_ptr<const ISettings> settings
+		, std::shared_ptr<DatabaseUser> databaseUser
 		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<DataProvider> dataProvider
 		, std::shared_ptr<IScriptController> scriptController
 	)
-		: m_databaseUser(std::move(databaseUser))
+		: m_settings(std::move(settings))
+		, m_databaseUser(std::move(databaseUser))
 		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
 		, m_groupController(std::move(groupController))
@@ -221,40 +225,51 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, true);
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
 	}
 
 	void SendAsIs(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs, true);
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		const auto commands = m_scriptController->GetCommands(item->GetData(MenuItem::Column::Parameter));
-		const auto hasUserDestinationFolder = std::ranges::any_of(commands, [] (const auto & item) { return item.HasMacro(IScriptController::Command::Macro::UserDestinationFolder); });
-		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsScript, hasUserDestinationFolder);
+		const auto hasUserDestinationFolder = std::ranges::any_of(commands, [] (const auto & command) { return IScriptController::HasMacro(command.args, IScriptController::Macro::UserDestinationFolder); });
+		Send(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsScript
+			, QString("%1/%2")
+				.arg(IScriptController::GetMacro(IScriptController::Macro::UserDestinationFolder))
+				.arg(IScriptController::GetMacro(IScriptController::Macro::FileName))
+			, hasUserDestinationFolder);
 	}
 
 private:
-	void Send(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f, const bool dstFolderRequired) const
+	void SendAsImpl(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
 	{
-		const auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER) : QString();
+		auto outputFileNameTemplate = m_settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, Constant::Settings::EXPORT_TEMPLATE_DEFAULT);
+		const bool dstFolderRequired = IScriptController::HasMacro(outputFileNameTemplate, IScriptController::Macro::UserDestinationFolder);
+		Send(model, index, indexList, std::move(item), std::move(callback), f, std::move(outputFileNameTemplate), dstFolderRequired);
+	}
+
+	void Send(QAbstractItemModel * model
+		, const QModelIndex & index
+		, const QList<QModelIndex> & indexList
+		, IDataItem::Ptr item
+		, Callback callback
+		, const BooksExtractor::Extract f
+		, QString outputFileNameTemplate
+		, const bool dstFolderRequired
+	) const
+	{
+		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 
-		BooksExtractor::Books books;
-		const std::vector<int> roles { Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
-		const auto selected = GetSelected(model, index, indexList, roles);
-		std::ranges::transform(selected, std::back_inserter(books), [&] (auto && book)
-		{
-			assert(book.size() == roles.size());
-			return BooksExtractor::Book { std::move(book[0]), std::move(book[1]), book[2].toLongLong(), std::move(book[3]), std::move(book[4]), book[5].toInt(), std::move(book[6])};
-		});
-
+		auto books = m_logicFactory->GetExtractedBooks(model, index, indexList);
 		auto extractor = m_logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(dir, parameter, std::move(books), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		((*extractor).*f)(std::move(dir), parameter, std::move(books), std::move(outputFileNameTemplate), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
 			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
 			callback(item);
@@ -273,7 +288,7 @@ private:
 
 	GroupController::Ids GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList) const
 	{
-		auto selected = GetSelected(model, index, indexList, { Role::Id });
+		auto selected = m_logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Id });
 
 		GroupController::Ids ids;
 		ids.reserve(selected.size());
@@ -304,24 +319,8 @@ private:
 		} });
 	}
 
-	std::vector<std::vector<QString>> GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles) const
-	{
-		QModelIndexList selected;
-		model->setData({}, QVariant::fromValue(SelectedRequest { index, indexList, &selected }), Role::Selected);
-
-		std::vector<std::vector<QString>> result;
-		result.reserve(selected.size());
-		std::ranges::transform(selected, std::back_inserter(result), [&] (const auto & selectedIndex)
-		{
-			std::vector<QString> resultItem;
-			std::ranges::transform(roles, std::back_inserter(resultItem), [&] (const int role) { return selectedIndex.data(role).toString(); });
-			return resultItem;
-		});
-
-		return result;
-	}
-
 private:
+	std::shared_ptr<const ISettings> m_settings;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
@@ -330,14 +329,16 @@ private:
 	std::shared_ptr<IScriptController> m_scriptController;
 };
 
-BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<DatabaseUser> databaseUser
+BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
+	, std::shared_ptr<DatabaseUser> databaseUser
 	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
 	, std::shared_ptr<IScriptController> scriptController
 )
-	: m_impl(std::move(databaseUser)
+	: m_impl(std::move(settings)
+		, std::move(databaseUser)
 		, std::move(logicFactory)
 		, std::move(uiFactory)
 		, std::move(groupController)

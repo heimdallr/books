@@ -64,11 +64,11 @@ struct UiFactory::Impl
 	Hypodermic::Container & container;
 
 	mutable std::filesystem::path inpx;
-	mutable std::shared_ptr<AbstractTreeViewController> treeViewController;
+	mutable std::shared_ptr<ITreeViewController> treeViewController;
 	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
 
-	explicit Impl(Hypodermic::Container & container_)
-		: container(container_)
+	explicit Impl(Hypodermic::Container & container)
+		: container(container)
 	{
 	}
 };
@@ -193,7 +193,7 @@ std::filesystem::path UiFactory::GetNewCollectionInpx() const noexcept
 	return result;
 }
 
-std::shared_ptr<AbstractTreeViewController> UiFactory::GetTreeViewController() const noexcept
+std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const noexcept
 {
 	assert(m_impl->treeViewController);
 	return std::move(m_impl->treeViewController);

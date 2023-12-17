@@ -5,6 +5,9 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+class QAbstractItemModel;
+class QModelIndex;
+
 namespace HomeCompa {
 class ISettings;
 }
@@ -17,8 +20,7 @@ class TreeView final : public QWidget
 	NON_COPY_MOVABLE(TreeView)
 
 public:
-	TreeView(std::shared_ptr<class ITreeViewController> controller
-		, std::shared_ptr<ISettings> settings
+	TreeView(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper
 		, const std::shared_ptr<class ICollectionController> & collectionController
@@ -31,6 +33,8 @@ signals:
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
+	QAbstractItemModel * GetModel() const;
+	QModelIndex GetCurrentIndex() const;
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;
