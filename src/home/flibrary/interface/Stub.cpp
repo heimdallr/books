@@ -33,9 +33,6 @@ QString RemoveIllegalCharacters(QString str)
 	while (!str.isEmpty() && str.endsWith('.'))
 		str.chop(1);
 
-	if (str.isEmpty())
-		str = "_";
-
 	return str.simplified();
 }
 
@@ -48,7 +45,37 @@ bool IScriptController::HasMacro(const QString & str, const Macro macro)
 
 QString & IScriptController::SetMacro(QString & str, const Macro macro, const QString & value)
 {
-	return str.replace(GetMacro(macro), value);
+	const QString macroStr = GetMacro(macro);
+	const auto start = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
+	if (start < 0)
+		return str;
+
+	const auto replace = [&] (const QString & s, const qsizetype startPos, const qsizetype endPos) -> QString&
+	{
+		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
+		return str.insert(startPos, s);
+	};
+
+	if (start == 0 || str[start - 1] != '[')
+		return replace(value, start, start + macroStr.length());
+
+	const auto itEnd = std::find_if(std::next(str.cbegin(), start), str.cend(), [n = 1] (const QChar ch) mutable
+	{
+		if (ch == '[')
+			++n;
+
+		return ch == ']' && --n == 0;
+	});
+
+	if (itEnd == str.cend())
+		return replace(value, start, start + macroStr.length());
+
+	if (value.isEmpty())
+		return replace(value, start - 1, std::distance(str.cbegin(), itEnd) + 1);
+
+	str.erase(itEnd);
+	str.erase(std::next(str.begin(), start) - 1);
+	return replace(value, start - 1, start + macroStr.length() - 1);
 }
 
 const char * IScriptController::GetMacro(const Macro macro)
