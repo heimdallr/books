@@ -57,6 +57,7 @@ class MainWindow::Impl final
 	: GeometryRestorable
 	, GeometryRestorableObserver
 	, ICollectionController::IObserver
+	, ILineOption::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -135,6 +136,23 @@ private: // plog::IAppender
 		{
 			m_ui.statusBar->showMessage(message, 2000);
 		});
+	}
+
+private: // ILineOption::IObserver
+	void OnOptionEditing(const QString & value) override
+	{
+		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetModel(), m_booksWidget->GetCurrentIndex());
+		if (books.empty())
+			return;
+
+		auto scriptTemplate = value;
+		ILogicFactory::FillScriptTemplate(scriptTemplate, books.front());
+		PLOGI << scriptTemplate;
+	}
+
+	void OnOptionEditingFinished(const QString & /*value*/) override
+	{
+		QTimer::singleShot(0, [&] { m_lineOption->Unregister(this); });
 	}
 
 private:
@@ -280,6 +298,7 @@ private:
 
 		connect(m_ui.actionExportTempate, &QAction::triggered, &m_self, [&]
 		{
+			m_lineOption->Register(this);
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, Constant::Settings::EXPORT_TEMPLATE_DEFAULT);
 		});
 

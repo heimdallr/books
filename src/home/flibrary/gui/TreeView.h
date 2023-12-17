@@ -5,6 +5,9 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+class QAbstractItemModel;
+class QModelIndex;
+
 namespace HomeCompa {
 class ISettings;
 }
@@ -30,6 +33,8 @@ signals:
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
+	QAbstractItemModel * GetModel() const;
+	QModelIndex GetCurrentIndex() const;
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

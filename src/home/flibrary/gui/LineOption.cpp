@@ -43,7 +43,7 @@ void LineOption::SetLineEdit(QLineEdit * lineEdit) noexcept
 	}));
 	m_impl->connections.push_back(QObject::connect(m_impl->lineEdit, &QLineEdit::textChanged, m_impl->lineEdit, [&](const QString & text)
 	{
-		m_impl->Perform(&IObserver::OnOptionEditingFinished, text);
+		m_impl->Perform(&IObserver::OnOptionEditing, text);
 	}));
 }
 

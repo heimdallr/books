@@ -105,6 +105,17 @@ public:
 		}
 	}
 
+	QAbstractItemModel * GetModel() const
+	{
+		return m_ui.treeView->model();
+	}
+
+	QModelIndex GetCurrentIndex() const
+	{
+		return m_ui.treeView->currentIndex();
+	}
+
+
 	void ResizeEvent(const QResizeEvent * event)
 	{
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
@@ -572,6 +583,16 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+QAbstractItemModel * TreeView::GetModel() const
+{
+	return m_impl->GetModel();
+}
+
+QModelIndex TreeView::GetCurrentIndex() const
+{
+	return m_impl->GetCurrentIndex();
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)
