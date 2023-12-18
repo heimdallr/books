@@ -35,7 +35,6 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-//#include "config/version.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -147,7 +146,7 @@ private: // plog::IAppender
 private: // ILineOption::IObserver
 	void OnOptionEditing(const QString & value) override
 	{
-		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetModel(), m_booksWidget->GetCurrentIndex());
+		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetCurrentIndex());
 		if (books.empty())
 			return;
 

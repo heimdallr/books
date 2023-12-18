@@ -106,9 +106,9 @@ public:
 		}
 	}
 
-	QAbstractItemModel * GetModel() const
+	QAbstractItemView * GetView() const
 	{
-		return m_ui.treeView->model();
+		return m_ui.treeView;
 	}
 
 	QModelIndex GetCurrentIndex() const
@@ -555,9 +555,9 @@ void TreeView::ShowRemoved(const bool showRemoved)
 	m_impl->ShowRemoved(showRemoved);
 }
 
-QAbstractItemModel * TreeView::GetModel() const
+QAbstractItemView * TreeView::GetView() const
 {
-	return m_impl->GetModel();
+	return m_impl->GetView();
 }
 
 QModelIndex TreeView::GetCurrentIndex() const

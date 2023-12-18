@@ -5,7 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-class QAbstractItemModel;
+class QAbstractItemView;
 class QModelIndex;
 
 namespace HomeCompa {
@@ -33,7 +33,7 @@ signals:
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
-	QAbstractItemModel * GetModel() const;
+	QAbstractItemView * GetView() const;
 	QModelIndex GetCurrentIndex() const;
 
 private: // QWidget
