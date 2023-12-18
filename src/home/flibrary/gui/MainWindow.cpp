@@ -31,10 +31,12 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
+#include "interface/logic/ITreeViewController.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
+#include "FillMenu.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -307,6 +309,16 @@ private:
 			IScriptController::SetMacroActions(m_ui.settingsLineEdit);
 			m_lineOption->Register(this);
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+		});
+
+		connect(m_ui.menuBook, &QMenu::aboutToShow, &m_self, [&]
+		{
+			m_ui.menuBook->clear();
+			auto controller = m_logicFactory->GetTreeViewController(ItemType::Books);
+			controller->RequestContextMenu(m_booksWidget->GetCurrentIndex(), [&, controller] (const QString & /*id*/, const IDataItem::Ptr & item)
+			{
+				FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
+			});
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
