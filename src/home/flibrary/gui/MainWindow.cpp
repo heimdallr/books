@@ -12,6 +12,7 @@
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
@@ -315,9 +316,10 @@ private:
 		{
 			m_ui.menuBook->clear();
 			auto controller = m_logicFactory->GetTreeViewController(ItemType::Books);
-			controller->RequestContextMenu(m_booksWidget->GetCurrentIndex(), [&, controller] (const QString & /*id*/, const IDataItem::Ptr & item)
+			controller->RequestContextMenu(m_booksWidget->GetCurrentIndex(), [&, controller] (const QString & id, const IDataItem::Ptr & item)
 			{
-				FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
+				if (m_booksWidget->GetView()->currentIndex().data(Role::Id).toString() == id)
+					FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
 			});
 		});
 
