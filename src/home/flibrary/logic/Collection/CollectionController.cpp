@@ -1,6 +1,5 @@
 #include "CollectionController.h"
 
-#include <QCryptographicHash>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -82,21 +81,6 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
 
 	return result;
-}
-
-QString GetFileHash(const QString & fileName)
-{
-	QFile file(fileName);
-	file.open(QIODevice::ReadOnly);
-	constexpr auto size = 1024ll * 32;
-	const std::unique_ptr<char[]> buf(new char[size]);
-
-	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
-
-	while (const auto readSize = file.read(buf.get(), size))
-		hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
-
-	return hash.result().toHex();
 }
 
 }
@@ -186,54 +170,22 @@ public:
 		Perform(&IObserver::OnActiveCollectionChanged);
 	}
 
-	void CheckForUpdate()
+	void OnInpxUpdateFound(const Collection & updatedCollection)
 	{
-		std::shared_ptr executor = m_logicFactory->GetExecutor();
-		(*executor)({ "Check inpx for update", [&, executor, collection = GetActiveCollection()]() mutable
+		switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes))  // NOLINT(clang-diagnostic-switch-enum)
 		{
-			assert(collection);
+			case QMessageBox::No:
+				break;
 
-			auto [_, ini] = GetIniMap(collection->database, collection->folder, false);
-			const auto it = ini.find(INPX);
-			assert(it != ini.end());
+			case QMessageBox::Yes:
+				return UpdateCollection();
 
-			auto hash = GetFileHash(QString::fromStdWString(it->second));
-			if (collection->discardedUpdate == hash)
-				return std::function([executor = std::move(executor)] (size_t) mutable { executor.reset(); });
+			case QMessageBox::Discard:
+				return CollectionImpl::Serialize(updatedCollection, *m_settings);
 
-			return std::function([&, executor = std::move(executor)
-				, collection = std::move(collection)
-				, hash = std::move(hash)
-				, hasUpdate = Inpx::CheckUpdateCollection(std::move(ini))
-			] (size_t) mutable
-			{
-				if (hasUpdate)
-				{
-					switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes))  // NOLINT(clang-diagnostic-switch-enum)
-					{
-						case QMessageBox::No:
-							break;
-
-						case QMessageBox::Yes:
-							UpdateCollection();
-							break;
-
-						case QMessageBox::Discard:
-						{
-							auto updated_collection = *collection;
-							updated_collection.discardedUpdate = std::move(hash);
-							CollectionImpl::Serialize(updated_collection, *m_settings);
-							break;
-						}
-
-						default:
-							assert(false && "unexpected button");
-					}
-				}
-
-				executor.reset();
-			});
-		} });
+			default:
+				assert(false && "unexpected button");
+		}
 	}
 
 	std::optional<const Collection> GetActiveCollection() const noexcept
@@ -406,9 +358,9 @@ void CollectionController::SetActiveCollection(const QString & id)
 	m_impl->SetActiveCollection(id);
 }
 
-void CollectionController::CheckForUpdate()
+void CollectionController::OnInpxUpdateFound(const Collection & updatedCollection)
 {
-	m_impl->CheckForUpdate();
+	m_impl->OnInpxUpdateFound(updatedCollection);
 }
 
 void CollectionController::RegisterObserver(IObserver * observer)

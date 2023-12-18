@@ -15,6 +15,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -65,10 +66,11 @@ class MainWindow::Impl final
 
 public:
 	Impl(MainWindow & self
-		, std::shared_ptr<ILogicFactory> logicFactory
-		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<const ILogicFactory> logicFactory
+		, std::shared_ptr<const IUiFactory> uiFactory
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
+		, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker
 		, std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
 		, std::shared_ptr<AnnotationWidget> annotationWidget
 		, std::shared_ptr<LocaleController> localeController
@@ -100,12 +102,15 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
-		QTimer::singleShot(0, [&, commandLine = std::move(commandLine)]
+		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker)]
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
 				m_collectionController->AddCollection(commandLine->GetInpx());
 			else
-				QTimer::singleShot(std::chrono::seconds(10), [&] { m_collectionController->CheckForUpdate(); });
+				collectionUpdateChecker->CheckForUpdate([=](bool) mutable
+				{
+					collectionUpdateChecker.reset();
+				});
 		});
 	}
 
@@ -400,8 +405,8 @@ private:
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	std::shared_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
@@ -423,6 +428,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
+	, std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker
 	, std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
 	, std::shared_ptr<AnnotationWidget> annotationWidget
 	, std::shared_ptr<LocaleController> localeController
@@ -439,6 +445,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(uiFactory)
 		, std::move(settings)
 		, std::move(collectionController)
+		, std::move(collectionUpdateChecker)
 		, std::move(parentWidgetProvider)
 		, std::move(annotationWidget)
 		, std::move(localeController)

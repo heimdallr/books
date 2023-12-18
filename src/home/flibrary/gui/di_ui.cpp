@@ -6,6 +6,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"

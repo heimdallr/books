@@ -1,0 +1,19 @@
+#pragma once
+
+#include <functional>
+
+#include <QStringList>
+
+namespace HomeCompa::Flibrary {
+
+class ICollectionUpdateChecker  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	using Callback = std::function<void(bool updateFound)>;
+
+public:
+	virtual ~ICollectionUpdateChecker() = default;
+	virtual void CheckForUpdate(Callback callback) const = 0;
+};
+
+}
