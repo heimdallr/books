@@ -334,12 +334,12 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="46"/>
+        <location filename="../../MainWindow.cpp" line="47"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="47"/>
+        <location filename="../../MainWindow.cpp" line="48"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
@@ -430,7 +430,12 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>&amp;Book export tempate</source>
+        <source>&amp;Book</source>
+        <translation>&amp;Книга</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Book &amp;export tempate</source>
         <translation>Шаблон &amp;экспорта книг</translation>
     </message>
 </context>
@@ -519,12 +524,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="57"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="57"/>
+        <location filename="../../TreeView.cpp" line="58"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

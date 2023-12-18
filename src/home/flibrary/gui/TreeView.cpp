@@ -18,13 +18,14 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
 
+#include "FillMenu.h"
 #include "ItemViewToolTipper.h"
-#include "interface/logic/ICollectionController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -105,16 +106,10 @@ public:
 		}
 	}
 
-	QAbstractItemModel * GetModel() const
+	QAbstractItemView * GetView() const
 	{
-		return m_ui.treeView->model();
+		return m_ui.treeView;
 	}
-
-	QModelIndex GetCurrentIndex() const
-	{
-		return m_ui.treeView->currentIndex();
-	}
-
 
 	void ResizeEvent(const QResizeEvent * event)
 	{
@@ -158,50 +153,6 @@ private: // ITreeViewController::IObserver
 		OnValueChanged();
 	}
 
-	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item) override
-	{
-		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
-			return;
-
-		QMenu menu;
-		std::stack<std::pair<IDataItem::Ptr, QMenu *>> stack { {{item, &menu}} };
-		while (!stack.empty())
-		{
-			auto [parent, subMenu] = std::move(stack.top());
-			stack.pop();
-			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
-			{
-				auto child = parent->GetChild(i);
-				const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
-				const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
-				const auto title = child->GetData().toStdString();
-
-				if (child->GetChildCount() != 0)
-				{
-					auto * subSubMenu = stack.emplace(child, subMenu->addMenu(Loc::Tr(m_controller->TrContext(), title.data()))).second;
-					subSubMenu->setEnabled(enabled);
-					continue;
-				}
-
-				const auto childId = child->GetData(MenuItem::Column::Id).toInt();
-				if (childId < 0)
-				{
-					subMenu->addSeparator();
-					continue;
-				}
-
-				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)]() mutable
-				{
-					m_controller->OnContextMenuTriggered(m_ui.treeView->model(), m_ui.treeView->currentIndex(), m_ui.treeView->selectionModel()->selectedIndexes(), std::move(child));
-				});
-
-				action->setEnabled(enabled);
-			}
-		}
-
-		menu.exec(QCursor::pos());
-	}
-
 	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
 	{
 		if (true
@@ -229,6 +180,16 @@ private: //	IValueApplier
 	}
 
 private:
+	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item)
+	{
+		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
+			return;
+
+		QMenu menu;
+		FillMenu(menu, *item, *m_controller, *m_ui.treeView);
+		menu.exec(QCursor::pos());
+	}
+
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
@@ -319,7 +280,10 @@ private:
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
-			m_controller->RequestContextMenu(m_ui.treeView->currentIndex());
+			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), [&] (const QString & id, const IDataItem::Ptr & item)
+			{
+				OnContextMenuReady(id, item);
+			});
 		});
 		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&]
 		{
@@ -585,14 +549,9 @@ void TreeView::ShowRemoved(const bool showRemoved)
 	m_impl->ShowRemoved(showRemoved);
 }
 
-QAbstractItemModel * TreeView::GetModel() const
+QAbstractItemView * TreeView::GetView() const
 {
-	return m_impl->GetModel();
-}
-
-QModelIndex TreeView::GetCurrentIndex() const
-{
-	return m_impl->GetCurrentIndex();
+	return m_impl->GetView();
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)

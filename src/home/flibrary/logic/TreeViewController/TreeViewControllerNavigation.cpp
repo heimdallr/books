@@ -374,10 +374,10 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, RequestContextMenuCallback callback)
 {
 	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester())
-		Perform(&IObserver::OnContextMenuReady, index.data(Role::Id).toString(), std::cref(item));
+		callback(index.data(Role::Id).toString(), item);
 }
 
 void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item)

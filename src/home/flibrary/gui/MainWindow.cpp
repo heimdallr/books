@@ -12,6 +12,7 @@
 #include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
@@ -31,11 +32,12 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
+#include "interface/logic/ITreeViewController.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-//#include "config/version.h"
+#include "FillMenu.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -147,7 +149,7 @@ private: // plog::IAppender
 private: // ILineOption::IObserver
 	void OnOptionEditing(const QString & value) override
 	{
-		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetModel(), m_booksWidget->GetCurrentIndex());
+		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
 		if (books.empty())
 			return;
 
@@ -308,6 +310,17 @@ private:
 			IScriptController::SetMacroActions(m_ui.settingsLineEdit);
 			m_lineOption->Register(this);
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+		});
+
+		connect(m_ui.menuBook, &QMenu::aboutToShow, &m_self, [&]
+		{
+			m_ui.menuBook->clear();
+			auto controller = m_logicFactory->GetTreeViewController(ItemType::Books);
+			controller->RequestContextMenu(m_booksWidget->GetView()->currentIndex(), [&, controller] (const QString & id, const IDataItem::Ptr & item)
+			{
+				if (m_booksWidget->GetView()->currentIndex().data(Role::Id).toString() == id)
+					FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
+			});
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

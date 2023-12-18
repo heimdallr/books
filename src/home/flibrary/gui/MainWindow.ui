@@ -335,9 +335,15 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuBook">
+    <property name="title">
+     <string>&amp;Book</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuCollection"/>
+   <addaction name="menuBook"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -613,7 +619,7 @@
   </action>
   <action name="actionExportTempate">
    <property name="text">
-    <string>&amp;Book export tempate</string>
+    <string>Book &amp;export tempate</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
