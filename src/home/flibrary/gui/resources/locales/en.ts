@@ -333,12 +333,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="46"/>
+        <location filename="../../MainWindow.cpp" line="47"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="47"/>
+        <location filename="../../MainWindow.cpp" line="48"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
@@ -429,7 +429,12 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>&amp;Book export tempate</source>
+        <source>&amp;Book</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Book &amp;export tempate</source>
         <translation></translation>
     </message>
 </context>
@@ -518,12 +523,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="56"/>
+        <location filename="../../TreeView.cpp" line="57"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="57"/>
+        <location filename="../../TreeView.cpp" line="58"/>
         <source>Filter</source>
         <translation></translation>
     </message>
