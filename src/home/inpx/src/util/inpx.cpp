@@ -295,10 +295,10 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			data.booksAuthors.emplace_back(id, idAuthor);
 
 		auto idGenres = ParseItem(genres, genresIndex,
-			[unknownGenreId, &unknownGenres, &data = data.genres](std::wstring_view title)
+			[unknownGenreId, &unknownGenres, &data = data.genres](std::wstring_view newItemTitle)
 			{
 				const auto result = std::size(data);
-				auto & genre = data.emplace_back(title, L"", title, unknownGenreId);
+				auto & genre = data.emplace_back(newItemTitle, L"", newItemTitle, unknownGenreId);
 				auto & unknownGenre = data[unknownGenreId];
 				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
 				unknownGenres.push_back(genre.name);
@@ -306,8 +306,8 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			},
 			[&data = data.genres](const Dictionary & container, std::wstring_view value)
 			{
-				const auto it = container.find(value);
-				return it != container.end() ? it : std::ranges::find_if(container, [value, &data](const auto & item)
+				const auto itGenre = container.find(value);
+				return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data](const auto & item)
 				{
 					return IsStringEqual(value, data[item.second].name);
 				});
@@ -317,11 +317,11 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 			const auto add = [&index = genresIndex, &genres = data.genres](std::wstring_view code, std::wstring_view name, const auto parentIt)
 			{
 				assert(parentIt != index.end() && parentIt->second < std::size(genres));
-				const auto it = index.insert(std::make_pair(code, std::size(genres))).first;
+				const auto itGenre = index.insert(std::make_pair(code, std::size(genres))).first;
 				auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
 				auto & parentGenre = genres[parentIt->second];
 				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
-				return it;
+				return itGenre;
 			};
 
 			auto itDate = std::cbegin(date);
@@ -569,12 +569,12 @@ size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view pro
 	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const typename It::value_type & value)
 	{
 		f(cmd, value);
-		const auto result = 0
+		const auto localResult = 0
 			+ cmd.execute()
 			+ cmd.reset()
 			;
 
-		if (result == 0)
+		if (localResult == 0)
 		{
 			if (++rowsInserted % LOG_INTERVAL == 0)
 				log();
@@ -584,7 +584,7 @@ size_t StoreRange(const std::filesystem::path & dbFileName, std::string_view pro
 			PLOGE << db->error_code() << ": " << db->error_msg() << std::endl << value;
 		}
 
-		return init + result;
+		return init + localResult;
 	});
 
 	log();
@@ -914,12 +914,6 @@ bool CreateNewCollection(const std::filesystem::path & iniFile)
 bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data)
 {
 	return ParseInpxImpl(std::move(data));
-}
-
-bool CheckUpdateCollection(std::map<std::wstring, std::filesystem::path> data)
-{
-	const Ini ini(std::move(data));
-	return !GetNewInpxFolders(ini).empty();
 }
 
 bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data)
