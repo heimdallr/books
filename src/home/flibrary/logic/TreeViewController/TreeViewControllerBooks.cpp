@@ -126,12 +126,12 @@ ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
 	return m_impl->viewMode;
 }
 
-void TreeViewControllerBooks::RequestContextMenu(const QModelIndex & index)
+void TreeViewControllerBooks::RequestContextMenu(const QModelIndex & index, RequestContextMenuCallback callback)
 {
 	auto menuProvider = m_impl->logicFactory->CreateBooksContextMenuProvider();
-	menuProvider->Request(index, [&, menuProvider, id = index.data(Role::Id).toString()] (const IDataItem::Ptr & item) mutable
+	menuProvider->Request(index, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)] (const IDataItem::Ptr & item) mutable
 	{
-		Perform(&IObserver::OnContextMenuReady, std::cref(id), std::cref(item));
+		callback(id, item);
 		menuProvider.reset();
 	});
 }

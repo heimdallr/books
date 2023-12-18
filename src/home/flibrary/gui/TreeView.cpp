@@ -158,7 +158,34 @@ private: // ITreeViewController::IObserver
 		OnValueChanged();
 	}
 
-	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item) override
+	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
+	{
+		if (true
+			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
+			&& item->GetData(MenuItem::Column::HasError).toInt()
+			)
+			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
+	}
+
+private: //	IValueApplier
+	void Find() override
+	{
+		if (!m_ui.value->text().isEmpty())
+			return Find(m_ui.value->text(), m_controller->GetItemType() == ItemType::Books ? static_cast<int>(Role::Title) : Qt::DisplayRole);
+
+		if (!m_currentId.isEmpty())
+			return Find(m_currentId, Role::Id);
+
+		m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+	}
+
+	void Filter() override
+	{
+		m_filterTimer.start();
+	}
+
+private:
+	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item)
 	{
 		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
 			return;
@@ -190,7 +217,7 @@ private: // ITreeViewController::IObserver
 					continue;
 				}
 
-				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)]() mutable
+				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)] () mutable
 				{
 					m_controller->OnContextMenuTriggered(m_ui.treeView->model(), m_ui.treeView->currentIndex(), m_ui.treeView->selectionModel()->selectedIndexes(), std::move(child));
 				});
@@ -202,33 +229,6 @@ private: // ITreeViewController::IObserver
 		menu.exec(QCursor::pos());
 	}
 
-	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
-	{
-		if (true
-			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
-			&& item->GetData(MenuItem::Column::HasError).toInt()
-			)
-			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
-	}
-
-private: //	IValueApplier
-	void Find() override
-	{
-		if (!m_ui.value->text().isEmpty())
-			return Find(m_ui.value->text(), m_controller->GetItemType() == ItemType::Books ? static_cast<int>(Role::Title) : Qt::DisplayRole);
-
-		if (!m_currentId.isEmpty())
-			return Find(m_currentId, Role::Id);
-
-		m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
-	}
-
-	void Filter() override
-	{
-		m_filterTimer.start();
-	}
-
-private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
@@ -319,7 +319,10 @@ private:
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
-			m_controller->RequestContextMenu(m_ui.treeView->currentIndex());
+			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), [&] (const QString & id, const IDataItem::Ptr & item)
+			{
+				OnContextMenuReady(id, item);
+			});
 		});
 		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&]
 		{
