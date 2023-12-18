@@ -34,7 +34,6 @@ public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
 	QAbstractItemView * GetView() const;
-	QModelIndex GetCurrentIndex() const;
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

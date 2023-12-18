@@ -149,7 +149,7 @@ private: // plog::IAppender
 private: // ILineOption::IObserver
 	void OnOptionEditing(const QString & value) override
 	{
-		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetCurrentIndex());
+		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
 		if (books.empty())
 			return;
 
@@ -316,7 +316,7 @@ private:
 		{
 			m_ui.menuBook->clear();
 			auto controller = m_logicFactory->GetTreeViewController(ItemType::Books);
-			controller->RequestContextMenu(m_booksWidget->GetCurrentIndex(), [&, controller] (const QString & id, const IDataItem::Ptr & item)
+			controller->RequestContextMenu(m_booksWidget->GetView()->currentIndex(), [&, controller] (const QString & id, const IDataItem::Ptr & item)
 			{
 				if (m_booksWidget->GetView()->currentIndex().data(Role::Id).toString() == id)
 					FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
