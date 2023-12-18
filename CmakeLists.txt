@@ -12,6 +12,7 @@ add_compile_options(
 	/wd4251 # member (ala std::unique_ptr<some>) needs to have dll-interface to be used by clients of class 'some'
 	/wd4275 # non dll-interface class 'ISome' used as base for dll-interface class 'Some'
 	/wd4503	# decorated name length exceeded, name was truncated
+	/bigobj # number of sections exceeded object file format limit
 )
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
