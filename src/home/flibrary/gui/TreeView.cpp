@@ -186,6 +186,7 @@ private:
 			return;
 
 		QMenu menu;
+		menu.setFont(m_self.font());
 		FillMenu(menu, *item, *m_controller, *m_ui.treeView);
 		menu.exec(QCursor::pos());
 	}

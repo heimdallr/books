@@ -13,6 +13,7 @@ namespace HomeCompa::Flibrary {
 
 void FillMenu(QMenu & menu, const IDataItem & item, ITreeViewController & controller, const QAbstractItemView & view)
 {
+	const auto font = menu.font();
 	std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
 	while (!stack.empty())
 	{
@@ -29,6 +30,7 @@ void FillMenu(QMenu & menu, const IDataItem & item, ITreeViewController & contro
 			if (child->GetChildCount() != 0)
 			{
 				auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(Loc::Tr(controller.TrContext(), title.data()))).second;
+				subSubMenu->setFont(font);
 				subSubMenu->setEnabled(enabled);
 				continue;
 			}
