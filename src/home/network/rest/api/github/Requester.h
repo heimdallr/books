@@ -37,7 +37,7 @@ public:
 	 *
 	 * Request user information. Equivalent of fetching https://api.github.com/users/\<user>
 	 */
-	int64_t GetUserInfo(std::weak_ptr<IClient> client, const std::string & user);
+	void GetUserInfo(std::weak_ptr<IClient> client, const std::string & user);
 
 	/**
 	 * @brief Request releases for repository
@@ -47,7 +47,7 @@ public:
 	 *
 	 * Request list of releases for repository. Equivalent of fetching https://api.github.com/repos/\<user>/\<repo>/releases
 	 */
-	int64_t ListReleases(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo);
+	void ListReleases(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo);
 
 	/**
 	 * @brief Request latest release
@@ -57,7 +57,7 @@ public:
 	 *
 	 * Request details of latest release. Equivalent of fetching https://api.github.com/repos/<user>/<repo>/releases/latest
 	 */
-	int64_t GetLatestRelease(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo);
+	void GetLatestRelease(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo);
 
 	/**
 	 * @brief Request release details
@@ -69,14 +69,14 @@ public:
 	 * Request details of release. Equivalent of fetching https://api.github.com/repos/\<user>/\<repo>/releases/\<id>
 	 */
 
-	int64_t GetRelease(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo, int id);
+	void GetRelease(std::weak_ptr<IClient> client, const std::string & user, const std::string & repo, int id);
 	/**
 	 * @brief Request api limits
 	 * @param client request result receiver
 	 *
 	 * Request limits for api calls. Equivalent of fetching https://api.github.com/rate_limit
 	 */
-	int64_t GetRateLimit(std::weak_ptr<IClient> client);
+	void GetRateLimit(std::weak_ptr<IClient> client);
 
 	/**
 	 * @brief Request list of user repositories
@@ -85,7 +85,7 @@ public:
 	 *
 	 * Request list of repositories for user. Equivalent of fetching https://api.github.com/users/\<user>/repos
 	 */
-	int64_t ListUserRepo(std::weak_ptr<IClient> client, const std::string & user);
+	void ListUserRepo(std::weak_ptr<IClient> client, const std::string & user);
 
 	// --------------- user info related api
 
@@ -93,7 +93,7 @@ public:
 	 * @brief get the authenticated user info
 	 * @param client request result receiver
 	 */
-	int64_t GetAuthenticatedUser(std::weak_ptr<IClient> client);
+	void GetAuthenticatedUser(std::weak_ptr<IClient> client);
 
 	/**
 	 * @brief Lists all users, in the order that they
@@ -101,7 +101,7 @@ public:
 	 * signed up on GitHub. This list includes personal
 	 * user accounts and organization accounts.
 	 */
-	int64_t ListUsers(std::weak_ptr<IClient> client);
+	void ListUsers(std::weak_ptr<IClient> client);
 
 	/**
 	 * @brief Provides publicly available information about
@@ -110,7 +110,7 @@ public:
 	 *
 	 * @param username github user name
 	 */
-	int64_t GetUser(std::weak_ptr<IClient> client, const std::string & username);
+	void GetUser(std::weak_ptr<IClient> client, const std::string & username);
 
 	// issues related api methods
 	/**
@@ -121,7 +121,7 @@ public:
 	 * @param client request result receiver
 	 *
 	 */
-	int64_t ListIssues(std::weak_ptr<IClient> client);
+	void ListIssues(std::weak_ptr<IClient> client);
 
 	/**
 	 * @brief List issues in an organization assigned to the
@@ -130,7 +130,7 @@ public:
 	 * @param client request result receiver
 	 * @param org github organization
 	 */
-	int64_t ListOrgIssues(std::weak_ptr<IClient> client, const std::string & org);
+	void ListOrgIssues(std::weak_ptr<IClient> client, const std::string & org);
 
 	/**
 	 * @brief List issues in a repository.
@@ -139,7 +139,7 @@ public:
 	 * @param owner The account owner of the repository.
 	 * @param repo The name of the repository.
 	 */
-	int64_t ListRepoIssues(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListRepoIssues(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Lists details of a issue by providing its number.
@@ -149,7 +149,7 @@ public:
 	 * @param repo the name of the repository.
 	 * @param issueNumber The number that identifies the issue.
 	 */
-	int64_t GetIssue(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & issueNumber);
+	void GetIssue(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & issueNumber);
 
 	// pull request related api methods
 	/**
@@ -159,7 +159,7 @@ public:
 	 * @param owner The account owner of the repository.
 	 * @param repo The name of the repository.
 	 */
-	int64_t ListPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Lists details of a pull request by providing its number.
@@ -169,7 +169,7 @@ public:
 	 * @param repo the name of the repository.
 	 * @param pullNumber The number that identifies the PR.
 	 */
-	int64_t GetPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
+	void GetPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
 
 	/**
 	 * @brief Lists a maximum of 250 commits for a pull request
@@ -179,7 +179,7 @@ public:
 	 * @param repo the name of the repository
 	 * @param pullNumber The number that identifies the PR.
 	 */
-	int64_t ListPullRequestCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
+	void ListPullRequestCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
 
 	/**
 	 * @brief Responses include a maximum of 3000 files.
@@ -191,7 +191,7 @@ public:
 	 * @param repo the name of the repository
 	 * @param pullNumber The number that identifies the PR.
 	 */
-	int64_t ListPullRequestFiles(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
+	void ListPullRequestFiles(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
 
 	/**
 	 * @brief Check if a pull request has been merged
@@ -201,7 +201,7 @@ public:
 	 * @param repo the name of the repository
 	 * @param pullNumber The number that identifies the PR.
 	 */
-	int64_t IsPullRequestMerged(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
+	void IsPullRequestMerged(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & pullNumber);
 
 	// commits related api methods
 	/**
@@ -211,7 +211,7 @@ public:
 	 * @param owner The account owner of the repository.
 	 * @param repo The name of the repository.
 	 */
-	int64_t ListCommits(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListCommits(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List branches for HEAD commit
@@ -221,7 +221,7 @@ public:
 	 * @param repo the name of the repository
 	 * @param commitSha The SHA of the commit.
 	 */
-	int64_t ListBranchHeadCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & commitSha);
+	void ListBranchHeadCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & commitSha);
 
 	/**
 	 * @brief List pull requests associated with a commit
@@ -231,7 +231,7 @@ public:
 	 * @param repo the name of the repository
 	 * @param commitSha The SHA of the commit.
 	 */
-	int64_t ListCommitPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & commitSha);
+	void ListCommitPullRequest(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & commitSha);
 
 	/**
 	 * @brief Get a commit
@@ -241,7 +241,7 @@ public:
 	 * @param repo The name of the repository.
 	 * @param reference ref parameter
 	 */
-	int64_t GetCommits(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & reference);
+	void GetCommits(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo, const std::string & reference);
 
 	// metrics related api methods
 	/**
@@ -251,7 +251,7 @@ public:
 	 * @param owner The account owner of the repository.
 	 * @param repo the name of the repository.
 	 */
-	int64_t GetWeeklyCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetWeeklyCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get the last year of commit activity
@@ -260,7 +260,7 @@ public:
 	 * @param owner The account owner of the repository.
 	 * @param repo the name of the repository.
 	 */
-	int64_t GetLastYearCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetLastYearCommit(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get all contributor commit activity
@@ -276,7 +276,7 @@ public:
 			d - Number of deletions
 			c - Number of commits
 	*/
-	int64_t GetContributorsActivity(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetContributorsActivity(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get the weekly commit count
@@ -289,7 +289,7 @@ public:
 	 *         weeks. If you'd like to get the commit counts for non-owners, you
 	 *         can subtract owner from all.
 	 */
-	int64_t GetCommitCount(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetCommitCount(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get the hourly commit count for each day
@@ -302,7 +302,7 @@ public:
 	 *         For example, [2, 14, 25] indicates that there
 	 *         were 25 total commits, during the 2:00pm hour on Tuesdays
 	 */
-	int64_t GetHourlyCommitCount(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetHourlyCommitCount(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get community profile metrics
@@ -316,7 +316,7 @@ public:
 	 *         ISSUE_TEMPLATE, PULL_REQUEST_TEMPLATE,README, and CONTRIBUTING
 	 *         files
 	 */
-	int64_t GetCommunityProfileMetrics(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetCommunityProfileMetrics(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get repository clones
@@ -329,7 +329,7 @@ public:
 	 *         midnight of the beginning of the day or week. Week begins on
 	 *         Monday.
 	 */
-	int64_t GetRepoClones(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetRepoClones(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get top referral paths
@@ -340,7 +340,7 @@ public:
 	 * return lists of the top 10 popular contents over the last
 	 *         14 days.
 	 */
-	int64_t GetReferralPaths(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetReferralPaths(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get top referral sources
@@ -350,7 +350,7 @@ public:
 	 * @param repo The name of the repository.
 	 * Get the top 10 referrers over the last 14 days.
 	 */
-	int64_t GetTopReferralSource(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetTopReferralSource(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get page views. Get the total number of views and breakdown
@@ -361,7 +361,7 @@ public:
 	 * @param repo The name of the repository.
 	 * Get the top 10 referrers over the last 14 days.
 	 */
-	int64_t GetPageViews(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetPageViews(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	// event related apis
 	/**
@@ -373,7 +373,7 @@ public:
 	 * @param repo The name of the repository.
 	 * public event associated with repo
 	 */
-	int64_t ListNetworkRepoEvent(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListNetworkRepoEvent(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List public organization events
@@ -382,7 +382,7 @@ public:
 	 * @param org The organization name.
 	 * return public event associated with repo
 	 */
-	int64_t ListOrgEvent(std::weak_ptr<IClient> client, const std::string & org);
+	void ListOrgEvent(std::weak_ptr<IClient> client, const std::string & org);
 
 	/**
 	 * @brief List repository events
@@ -392,7 +392,7 @@ public:
 	 * @param repo The name of the repository.
 	 * return public event associated with repo
 	 */
-	int64_t ListRepoEvent(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListRepoEvent(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List events for the authenticated user
@@ -402,7 +402,7 @@ public:
 	 * return If you are authenticated as the given user, you will see your
 	 *         private events. Otherwise, you'll only see public events.
 	 */
-	int64_t ListUserEvent(std::weak_ptr<IClient> client, const std::string & username);
+	void ListUserEvent(std::weak_ptr<IClient> client, const std::string & username);
 
 	// staring related api methods
 
@@ -414,7 +414,7 @@ public:
 	 * @param repo The name of the repository.
 	 * returns Lists of people that have starred the repository.
 	 */
-	int64_t ListStargazers(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListStargazers(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List repositories starred by a user
@@ -423,7 +423,7 @@ public:
 	 * @param username The handle for the GitHub user account
 	 * returns a list of repositories a user has starred
 	 */
-	int64_t ListUserStarredRepo(std::weak_ptr<IClient> client, const std::string & username);
+	void ListUserStarredRepo(std::weak_ptr<IClient> client, const std::string & username);
 
 	// watching related api
 
@@ -435,7 +435,7 @@ public:
 	 * @param repo The name of the repository
 	 * return list of github account watching the repository
 	 */
-	int64_t ListRepoWatchers(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListRepoWatchers(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief Get a repository subscription.
@@ -445,7 +445,7 @@ public:
 	 * @param repo The name of the repository
 	 * return list of users subscribe to the repository
 	 */
-	int64_t GetRepoSubscription(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetRepoSubscription(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List repositories watched by a user
@@ -454,7 +454,7 @@ public:
 	 * @param username The handle for the GitHub user account
 	 * return Lists repositories a user is watching.
 	 */
-	int64_t ListUserWatchedRepos(std::weak_ptr<IClient> client, const std::string & username);
+	void ListUserWatchedRepos(std::weak_ptr<IClient> client, const std::string & username);
 
 	/**
 	 * @brief List repository collaborators
@@ -468,7 +468,7 @@ public:
 	 *          organization members with access through default
 	 *          organization permissions, and organization owners
 	 */
-	int64_t ListRepoCollaborators(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void ListRepoCollaborators(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List organization repositories
@@ -477,7 +477,7 @@ public:
 	 * @param org The organization name
 	 * return Lists repositories for the specified organization.
 	 */
-	int64_t GetOrgRepo(std::weak_ptr<IClient> client, const std::string & org);
+	void GetOrgRepo(std::weak_ptr<IClient> client, const std::string & org);
 
 	/**
 	 * @brief Get a repository
@@ -490,7 +490,7 @@ public:
 	 *          the repository this repository was forked from,
 	 *          source is the ultimate source for the network.
 	 */
-	int64_t GetRepository(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetRepository(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List repositories for the authenticated user
@@ -500,7 +500,7 @@ public:
 	 *         has explicit permission (:read, :write, or :admin)
 	 *         to access.
 	 */
-	int64_t ListAuthUserRepo(std::weak_ptr<IClient> client);
+	void ListAuthUserRepo(std::weak_ptr<IClient> client);
 
 	/**
 	 * @brief List repository languages
@@ -512,7 +512,7 @@ public:
 	 *         The value shown for each language is the number
 	 *         of bytes of code written in that language.
 	 */
-	int64_t GetRepoLang(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void GetRepoLang(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 	/**
 	 * @brief List repository contributors
@@ -524,7 +524,7 @@ public:
 	 *         and sorts them by the number of commits per
 	 *         contributor in descending order
 	 */
-	int64_t RepoContributors(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
+	void RepoContributors(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo);
 
 private:
 	class Impl;
