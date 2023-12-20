@@ -17,6 +17,9 @@ protected:
 	~Dialog() override;
 
 protected:
+	QMessageBox::StandardButton Show(QMessageBox::Icon icon, const QString & title, const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const;
+
+protected:
 	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentProvider;
 };
 

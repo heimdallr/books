@@ -123,7 +123,11 @@ void UiFactory::ShowAbout() const
 
 QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, const QMessageBox::ButtonRole defaultButton) const
 {
-	QMessageBox msgBox(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget());
+	auto * parentWidget = m_impl->container.resolve<ParentWidgetProvider>()->GetWidget();
+	m_impl->container.resolve<ISettings>();
+
+	QMessageBox msgBox(parentWidget);
+	msgBox.setFont(parentWidget->font());
 	msgBox.setIcon(icon);
 	msgBox.setWindowTitle(title);
 	msgBox.setText(text);
@@ -145,7 +149,7 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon
 
 QMessageBox::StandardButton UiFactory::ShowQuestion(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	const auto dialog = m_impl->container.resolve<IWarningDialog>();
+	const auto dialog = m_impl->container.resolve<IQuestionDialog>();
 	return dialog->Show(text, buttons, defaultButton);
 }
 

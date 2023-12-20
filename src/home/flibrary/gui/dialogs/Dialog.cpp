@@ -29,6 +29,21 @@ Dialog::~Dialog()
 	PLOGD << "Dialog destroyed";
 }
 
+QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QString & title, const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+{
+	auto * parent = m_parentProvider->GetWidget();
+	QMessageBox msgBox(parent);
+	msgBox.setFont(parent->font());
+	msgBox.setIcon(icon);
+	msgBox.setWindowTitle(title);
+	msgBox.setTextFormat(Qt::RichText);
+	msgBox.setText(text);
+	msgBox.setStandardButtons(buttons);
+	msgBox.setDefaultButton(defaultButton);
+	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
+}
+
+
 #define STANDARD_DIALOG_ITEM(NAME) \
 NAME##Dialog::NAME##Dialog(std::shared_ptr<ParentWidgetProvider> parentProvider) \
 	: Dialog(std::move(parentProvider)) {}
@@ -49,35 +64,37 @@ STANDARD_DIALOG_ITEMS_X_MACRO
 
 QMessageBox::StandardButton AboutDialog::Show(const QString & /*text*/, QMessageBox::StandardButtons /*buttons*/, QMessageBox::StandardButton /*defaultButton*/) const
 {
-	QMessageBox messageBox(m_parentProvider->GetWidget());
-	messageBox.setWindowTitle(Loc::Tr(CONTEXT, ABOUT_TITLE));
-	messageBox.setTextFormat(Qt::RichText);
-	messageBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), "https://github.com/heimdallr/books"));
-	messageBox.exec();
-	return QMessageBox::NoButton;
+	return Dialog::Show(QMessageBox::Information, Loc::Tr(CONTEXT, ABOUT_TITLE), Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), "https://github.com/heimdallr/books"));
 }
 
 QMessageBox::StandardButton QuestionDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	return QMessageBox::question(m_parentProvider->GetWidget(), Loc::Question(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Question, Loc::Question(), text, buttons, defaultButton);
 }
 
 QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	return QMessageBox::warning(m_parentProvider->GetWidget(), Loc::Warning(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Warning, Loc::Warning(), text, buttons, defaultButton);
 }
 
 QMessageBox::StandardButton InfoDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	return QMessageBox::information(m_parentProvider->GetWidget(), Loc::Information(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Information, Loc::Information(), text, buttons, defaultButton);
 }
 
 QMessageBox::StandardButton ErrorDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	return QMessageBox::critical(m_parentProvider->GetWidget(), Loc::Error(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Critical, Loc::Error(), text, buttons, defaultButton);
 }
 
 QString InputTextDialog::GetText(const QString & title, const QString & label, const QString & text, const QLineEdit::EchoMode mode) const
 {
-	return QInputDialog::getText(m_parentProvider->GetWidget(), title, label, mode, text);
+	auto * parent = m_parentProvider->GetWidget();
+	QInputDialog inputDialog(parent);
+	inputDialog.setFont(parent->font());
+	inputDialog.setWindowTitle(title);
+	inputDialog.setLabelText(label);
+	inputDialog.setTextEchoMode(mode);
+	inputDialog.setTextValue(text);
+	return inputDialog.exec() == QDialog::Accepted ? inputDialog.textValue() : QString {};
 }
