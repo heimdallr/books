@@ -60,7 +60,7 @@ public:
 		m_callback = std::move(callback);
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor();
-		(*executor)({ "Check for FLibrary updates", [&, executor, client = std::move(client)] () mutable
+		(*executor)({ "Check for app updates", [&, executor, client = std::move(client)] () mutable
 		{
 			Requester requester { CreateQtConnection("https://api.github.com") };
 			requester.GetLatestRelease(client, "heimdallr", "books");
