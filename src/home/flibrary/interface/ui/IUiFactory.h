@@ -27,6 +27,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const = 0;
 
 	virtual void ShowAbout() const = 0;
+	[[nodiscard]] virtual QMessageBox::ButtonRole ShowCustomDialog(const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, QMessageBox::ButtonRole defaultButton = QMessageBox::NoRole) const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	virtual QMessageBox::StandardButton ShowWarning(const QString & text, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	virtual void ShowInfo(const QString & text) const = 0;
