@@ -18,7 +18,7 @@ class NETWORK_EXPORT Downloader
 
 public:
 	using OnFinish = std::function<void(int code, const QString & message)>;
-	using OnProgress = std::function<void(int64_t bytesReceived, int64_t bytesTotal)>;
+	using OnProgress = std::function<void(int64_t bytesReceived, int64_t bytesTotal, bool & stopped)>;
 
 public:
 	Downloader();

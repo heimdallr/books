@@ -162,11 +162,18 @@ private:
 		auto installerFileName = QString("%1/%2").arg(installerFolder, m_release.assets.front().name);
 		auto file = std::make_shared<QFile>(installerFileName);
 		file->open(QIODevice::WriteOnly);
-		downloader->Download(m_release.assets.front().browser_download_url, *file, [&, downloader, file, installerFileName = std::move(installerFileName)] (int /*code*/, const QString & /*error*/) mutable
+		downloader->Download(m_release.assets.front().browser_download_url, *file, [&, downloader, file, installerFileName = std::move(installerFileName)] (const int code, const QString & error) mutable
 				{
 					file->close();
 					file.reset();
-					const auto startInstaller = m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
+					if (code != 0)
+					{
+						QFile::remove(installerFileName);
+						if (!error.isEmpty())
+							(void)m_uiFactory->ShowWarning(error);
+					}
+
+					const auto startInstaller = code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
 
 					QTimer::singleShot(0, [installerFileName = std::move(installerFileName)
 						, downloader = std::move(downloader)
@@ -180,15 +187,20 @@ private:
 							QProcess::startDetached(installerFileName);
 							QCoreApplication::exit();
 						}
+
 					});
 				}
-			, [&, progressItem = std::shared_ptr<IProgressController::IProgressItem>{} , bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal) mutable
+			, [&, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable
 				{
 					if (!progressItem)
 						progressItem = m_progressController->Add(bytesTotal);
 
 					progressItem->Increment(bytesReceived - bytesReceivedLast);
 					bytesReceivedLast = bytesReceived;
+					if (bytesReceived == bytesTotal)
+						progressItem.reset();
+					else
+						stopped = progressItem->IsStopped();
 				});
 	}
 

@@ -50,9 +50,12 @@ public:
 
 		if (progress)
 		{
-			QObject::connect(reply, &QNetworkReply::downloadProgress, &m_manager, [progress = std::move(progress)] (const qint64 bytesReceived, const qint64 bytesTotal)
+			QObject::connect(reply, &QNetworkReply::downloadProgress, &m_manager, [reply, progress = std::move(progress)] (const qint64 bytesReceived, const qint64 bytesTotal)
 			{
-				progress(bytesReceived, bytesTotal);
+				bool stopped = false;
+				progress(bytesReceived, bytesTotal, stopped);
+				if (stopped)
+					reply->close();
 			});
 		}
 	}
