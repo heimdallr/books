@@ -21,6 +21,8 @@
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IScriptController.h"
+#include "interface/logic/ITreeViewController.h"
+#include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 #include "interface/ui/ILineOption.h"
@@ -32,7 +34,6 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
-#include "interface/logic/ITreeViewController.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -114,6 +115,9 @@ public:
 					collectionUpdateChecker.reset();
 				});
 		});
+
+		auto updateChecker = m_logicFactory->CreateUpdateChecker();
+		updateChecker->CheckForUpdate([updateChecker] () mutable { updateChecker.reset(); });
 	}
 
 	~Impl() override

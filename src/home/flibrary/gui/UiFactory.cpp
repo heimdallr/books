@@ -4,8 +4,10 @@
 #include <plog/Log.h>
 
 #include <QFileInfo>
+#include <QPushButton>
 
-#include "ParentWidgetProvider.h"
+#include "fnd/FindPair.h"
+
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
@@ -18,6 +20,7 @@
 #include "dialogs/AddCollectionDialog.h"
 
 #include "ItemViewToolTipper.h"
+#include "ParentWidgetProvider.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
 
@@ -116,6 +119,28 @@ void UiFactory::ShowAbout() const
 {
 	const auto dialog = m_impl->container.resolve<IAboutDialog>();
 	(void)dialog->Show();
+}
+
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, const QMessageBox::ButtonRole defaultButton) const
+{
+	QMessageBox msgBox(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget());
+	msgBox.setIcon(icon);
+	msgBox.setWindowTitle(title);
+	msgBox.setText(text);
+
+	std::vector<std::pair<QAbstractButton *, QMessageBox::ButtonRole>> msgBoxButtons;
+	msgBoxButtons.reserve(buttons.size());
+	std::ranges::transform(buttons, std::back_inserter(msgBoxButtons), [&] (const auto & item)
+	{
+		auto * button = msgBox.addButton(item.second, item.first);
+		if (item.first == defaultButton)
+			msgBox.setDefaultButton(button);
+		return std::make_pair(button, item.first);
+	});
+
+	msgBox.exec();
+
+	return FindSecond(msgBoxButtons, msgBox.clickedButton(), QMessageBox::NoRole);
 }
 
 QMessageBox::StandardButton UiFactory::ShowQuestion(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const

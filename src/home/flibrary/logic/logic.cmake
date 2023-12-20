@@ -12,6 +12,8 @@ AddTarget(logic	shared_lib
 		flint
 		InpxLib
 		logging
+		network
+		rest
 		Util
 		zip
 	DEPENDENCIES

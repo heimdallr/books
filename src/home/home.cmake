@@ -8,6 +8,7 @@ set(MODULES
 	inpx
 	flibrary
 	zip
+	network
 )
 
 foreach(module ${MODULES})

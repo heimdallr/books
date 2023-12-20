@@ -15,6 +15,7 @@
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
+#include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -119,4 +120,9 @@ std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() co
 std::shared_ptr<BooksExtractor> LogicFactory::CreateBooksExtractor() const
 {
 	return m_impl->container.resolve<BooksExtractor>();
+}
+
+std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
+{
+	return m_impl->container.resolve<IUpdateChecker>();
 }

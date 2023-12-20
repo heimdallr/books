@@ -19,4 +19,5 @@ AddTarget(${PROJECT_NAME}	app
 		logic
 		gui
 		ver
+		rest
 )
