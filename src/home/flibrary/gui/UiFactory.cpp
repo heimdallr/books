@@ -121,9 +121,10 @@ void UiFactory::ShowAbout() const
 	(void)dialog->Show();
 }
 
-QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, const QMessageBox::ButtonRole defaultButton) const
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, const QMessageBox::ButtonRole defaultButton) const
 {
-	QMessageBox msgBox;
+	QMessageBox msgBox(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget());
+	msgBox.setIcon(icon);
 	msgBox.setWindowTitle(title);
 	msgBox.setText(text);
 

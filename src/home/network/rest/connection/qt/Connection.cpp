@@ -24,9 +24,7 @@ struct Connection::Impl
 	{
 		QNetworkRequest request;
 
-		const auto header_entries = m_self.GetHeaders();
-
-		for (const auto & [k, v] : header_entries)
+		for (const auto & [k, v] : m_self.GetHeaders())
 			request.setRawHeader(k.c_str(), v.c_str());
 
 		request.setRawHeader("User-Agent", "github_api/1.0");
@@ -61,12 +59,11 @@ IConnection::Headers Connection::GetPage(const std::string & page)
 	QObject::connect(reply, &QNetworkReply::readChannelFinished, &m_impl->networkManager, [&, reply] ()
 	{
 		const QByteArray rawData = reply->readAll();
-		PLOGV << rawData;
 
 		QJsonParseError error;
-		auto doc = QJsonDocument::fromJson(rawData, &error);
+		const auto doc = QJsonDocument::fromJson(rawData, &error);
 		if (error.error == QJsonParseError::NoError)
-			OnDataReceived(std::move(doc));
+			OnDataReceived(doc);
 
 		for (const auto & [name, value] : reply->rawHeaderPairs())
 			headers.emplace(QString::fromUtf8(name).toLower().simplified().toStdString(), QString::fromUtf8(value).simplified().toStdString());

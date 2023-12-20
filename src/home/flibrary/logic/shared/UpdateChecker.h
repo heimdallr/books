@@ -19,6 +19,7 @@ public:
 	UpdateChecker(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ILogicFactory> logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 	);
 	~UpdateChecker() override;
 
@@ -26,7 +27,7 @@ private: // IUpdateChecker
 	void CheckForUpdate(Callback callback) override;
 
 private:
-	struct Impl;
+	class Impl;
 	std::shared_ptr<Impl> m_impl;
 };
 
