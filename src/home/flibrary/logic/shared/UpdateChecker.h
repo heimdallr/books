@@ -5,6 +5,9 @@
 
 #include "interface/logic/IUpdateChecker.h"
 
+namespace HomeCompa {
+class ISettings;
+}
 namespace HomeCompa::Flibrary {
 
 class UpdateChecker final
@@ -13,7 +16,10 @@ class UpdateChecker final
 	NON_COPY_MOVABLE(UpdateChecker)
 
 public:
-	UpdateChecker();
+	UpdateChecker(std::shared_ptr<ISettings> settings
+		, std::shared_ptr<class ILogicFactory> logicFactory
+		, std::shared_ptr<class IUiFactory> uiFactory
+	);
 	~UpdateChecker() override;
 
 private: // IUpdateChecker

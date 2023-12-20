@@ -2,16 +2,12 @@
 
 #include <functional>
 
-namespace HomeCompa::RestAPI::Github {
-struct Release;
-}
-
 namespace HomeCompa::Flibrary {
 
 class IUpdateChecker  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Callback = std::function<void(RestAPI::Github::Release latestRelease)>;
+	using Callback = std::function<void()>;
 
 public:
 	virtual ~IUpdateChecker() = default;

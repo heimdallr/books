@@ -2,7 +2,6 @@
 #include "MainWindow.h"
 
 #include <QActionGroup>
-#include <QDesktopServices>
 #include <QPainter>
 #include <QTimer>
 
@@ -31,13 +30,11 @@
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
 #include "LogItemDelegate.h"
-#include "network/rest/api/github/Release.h"
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/IExecutor.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
@@ -58,7 +55,6 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
-constexpr auto DISCARDED_UPDATE_KEY = "ui/Update/SkippedVersion";
 TR_DEF
 }
 
@@ -120,25 +116,8 @@ public:
 				});
 		});
 
-		std::shared_ptr executor = m_logicFactory->GetExecutor();
-		(*executor)({"Check for FLibrary updates", [&, executor]()mutable
-		{
-			auto updateChecker = m_logicFactory->CreateUpdateChecker();
-			RestAPI::Github::Release release;
-			updateChecker->CheckForUpdate([&] (RestAPI::Github::Release latestRelease)
-			{
-				release = std::move(latestRelease);
-			});
-			updateChecker.reset();
-			const auto needUpdate = IsLatestReleaseNewer(release);
-
-			return [&, executor = std::move(executor), release = std::move(release), needUpdate] (size_t) mutable
-			{
-				if (needUpdate)
-					QTimer::singleShot(0, [&, release = std::move(release)] { ShowUpdateMessage(release); });
-				executor.reset();
-			};
-		}});
+		auto updateChecker = m_logicFactory->CreateUpdateChecker();
+		updateChecker->CheckForUpdate([updateChecker] () mutable { updateChecker.reset(); });
 	}
 
 	~Impl() override
@@ -430,69 +409,6 @@ private:
 		{
 			showHide(false);
 		});
-	}
-
-	void ShowUpdateMessage(const RestAPI::Github::Release & release)
-	{
-		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons
-		{
-			{ QMessageBox::AcceptRole, tr("Download") },
-			{ QMessageBox::DestructiveRole, tr("Visit download page") },
-			{ QMessageBox::ActionRole, tr("Skip this version") },
-			{ QMessageBox::RejectRole, tr("Cancel") },
-		};
-		if (release.assets.empty() || release.assets.front().browser_download_url.isEmpty())
-			buttons.erase(buttons.begin());
-
-		const auto defaultRole = buttons.front().first;
-
-		switch (m_uiFactory->ShowCustomDialog(tr("Warning"), tr("%1 released!").arg(release.name), buttons, defaultRole))  // NOLINT(clang-diagnostic-switch-enum)
-		{
-			case QMessageBox::AcceptRole:
-				return (void)QDesktopServices::openUrl(release.assets.front().browser_download_url);
-			case QMessageBox::DestructiveRole:
-				return (void)QDesktopServices::openUrl(release.html_url);
-			case QMessageBox::ActionRole:
-				return m_settings->Set(DISCARDED_UPDATE_KEY, release.id);
-			case QMessageBox::RejectRole:
-			case QMessageBox::NoRole:
-				return;
-			default:
-				assert(false && "unexpected case");
-		}
-	}
-
-	bool IsLatestReleaseNewer(const RestAPI::Github::Release & release)
-	{
-		const auto nameSplitted = release.name.split(' ', Qt::SkipEmptyParts);
-		if (nameSplitted.size() != 2)
-			return false;
-
-		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == release.id)
-			return false;
-
-		std::vector<int> latestVersion;
-		if (!std::ranges::all_of(nameSplitted.back().split('.', Qt::SkipEmptyParts), [&] (const QString & item)
-		{
-			bool ok = false;
-			latestVersion.push_back(item.toInt(&ok));
-			return ok;
-		}))
-			return false;
-
-		std::vector<int> currentVersion;
-		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [] (const QString & item)
-		{
-			bool ok = false;
-			const auto value = item.toInt(&ok);
-			assert(ok);
-			return value;
-		});
-
-		if (latestVersion.size() != currentVersion.size())
-			return false;
-
-		return std::ranges::lexicographical_compare(currentVersion, latestVersion);
 	}
 
 	static void Reboot()
