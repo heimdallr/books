@@ -249,13 +249,85 @@ void ProcessVersionInfo(QIODevice & stream, SettingsTableData & settingsTableDat
 	}
 }
 
-void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
+void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::set<size_t> & idGenres)
+{
+	const auto addGenre = [&index = genresIndex, &genres = data.genres] (std::wstring_view code, std::wstring_view name, const auto parentIt)
+	{
+		assert(parentIt != index.end() && parentIt->second < std::size(genres));
+		const auto itGenre = index.insert(std::make_pair(code, std::size(genres))).first;
+		auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
+		auto & parentGenre = genres[parentIt->second];
+		genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
+		return itGenre;
+	};
+
+	auto itDate = std::cbegin(buf.date);
+	const auto endDate = std::cend(buf.date);
+	const auto year = Next(itDate, endDate, DATE_SEPARATOR);
+	const auto month = Next(itDate, endDate, DATE_SEPARATOR);
+	const auto dateCode = ToWide(std::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
+
+	auto itIndexDate = genresIndex.find(dateCode);
+	if (itIndexDate == genresIndex.end())
+	{
+		const auto yearCode = ToWide(std::format("year_{0}", ToMultiByte(year)));
+		auto itIndexYear = genresIndex.find(yearCode);
+		if (itIndexYear == genresIndex.end())
+			itIndexYear = addGenre(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
+
+		itIndexDate = addGenre(dateCode, std::wstring(year).append(L".").append(month), itIndexYear);
+	}
+	idGenres.emplace(itIndexDate->second);
+}
+
+void AddBook(std::set<std::string> & files, size_t & insideNo, const BookBuf & buf, const std::wstring & folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
 {
 	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
 
+	const auto id = GetId();
+	files.emplace(ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext));
+
+	for (const auto idAuthor : ParseItem(buf.authors, data.authors))
+		data.booksAuthors.emplace_back(id, idAuthor);
+
+	auto idGenres = ParseItem(buf.genres, genresIndex,
+		[unknownGenreId, &unknownGenres, &data = data.genres] (std::wstring_view newItemTitle)
+		{
+			const auto result = std::size(data);
+			auto & genre = data.emplace_back(newItemTitle, L"", newItemTitle, unknownGenreId);
+			auto & unknownGenre = data[unknownGenreId];
+			genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
+			unknownGenres.push_back(genre.name);
+			return result;
+		},
+		[&data = data.genres] (const Dictionary & container, std::wstring_view value)
+		{
+			const auto itGenre = container.find(value);
+			return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data] (const auto & item)
+			{
+				return IsStringEqual(value, data[item.second].name);
+			});
+		}
+	);
+
+	AddGenres(buf, genresIndex, data, idGenres);
+
+	std::ranges::transform(idGenres, std::back_inserter(data.booksGenres), [&] (const size_t idGenre)
+	{
+		return std::make_pair(id, idGenre);
+	});
+
+	data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, insideNo++, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false)/*, keywords*/);
+
+	if ((++n % LOG_INTERVAL) == 0)
+		PLOGI << n << " rows parsed";
+}
+
+void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
+{
 	const auto mask = QString::fromStdWString(std::filesystem::path(folder).replace_extension("*"));
 	QStringList suitable_files = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
-	folder = suitable_files.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitable_files.front().toStdWString();
+	folder = *data.folders.insert(suitable_files.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitable_files.front().toStdWString()).first;
 
 	std::set<std::string> files;
 
@@ -267,94 +339,32 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 		if (byteArray.isEmpty())
 			break;
 
-		const auto id = GetId();
-
 		const auto line = ToWide(byteArray.constData());
 		auto it = std::cbegin(line);
 		const auto end = std::cend(line);
 
 		//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-		const auto authors = Next(it, end, FIELDS_SEPARATOR);
-		const auto genres = Next(it, end, FIELDS_SEPARATOR);
-		const auto title = Next(it, end, FIELDS_SEPARATOR);
-		const auto seriesName = Next(it, end, FIELDS_SEPARATOR);
-		const auto seriesNum = Next(it, end, FIELDS_SEPARATOR);
-		const auto fileName = Next(it, end, FIELDS_SEPARATOR);
-		const auto size = Next(it, end, FIELDS_SEPARATOR);
-		const auto libId = Next(it, end, FIELDS_SEPARATOR);
-		const auto del = Next(it, end, FIELDS_SEPARATOR);
-		const auto ext = Next(it, end, FIELDS_SEPARATOR);
-		const auto date = Next(it, end, FIELDS_SEPARATOR);
-		const auto lang = Next(it, end, FIELDS_SEPARATOR);
-		const auto rate = Next(it, end, FIELDS_SEPARATOR);
-//		const auto keywords   = Next(it, end, FIELDS_SEPARATOR);
+		BookBuf buf {
+			.authors = Next(it, end, FIELDS_SEPARATOR),
+			.genres = Next(it, end, FIELDS_SEPARATOR),
+			.title = Next(it, end, FIELDS_SEPARATOR),
+			.seriesName = Next(it, end, FIELDS_SEPARATOR),
+			.seriesNum = Next(it, end, FIELDS_SEPARATOR),
+			.fileName = Next(it, end, FIELDS_SEPARATOR),
+			.size = Next(it, end, FIELDS_SEPARATOR),
+			.libId = Next(it, end, FIELDS_SEPARATOR),
+			.del = Next(it, end, FIELDS_SEPARATOR),
+			.ext = Next(it, end, FIELDS_SEPARATOR),
+			.date = Next(it, end, FIELDS_SEPARATOR),
+			.lang = Next(it, end, FIELDS_SEPARATOR),
+			.rate = Next(it, end, FIELDS_SEPARATOR)
+//			.keywords = Next(it, end, FIELDS_SEPARATOR)
+		};
 
-		files.emplace(ToMultiByte(fileName) + "." + ToMultiByte(ext));
-
-		for (const auto idAuthor : ParseItem(authors, data.authors))
-			data.booksAuthors.emplace_back(id, idAuthor);
-
-		auto idGenres = ParseItem(genres, genresIndex,
-			[unknownGenreId, &unknownGenres, &data = data.genres](std::wstring_view newItemTitle)
-			{
-				const auto result = std::size(data);
-				auto & genre = data.emplace_back(newItemTitle, L"", newItemTitle, unknownGenreId);
-				auto & unknownGenre = data[unknownGenreId];
-				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
-				unknownGenres.push_back(genre.name);
-				return result;
-			},
-			[&data = data.genres](const Dictionary & container, std::wstring_view value)
-			{
-				const auto itGenre = container.find(value);
-				return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data](const auto & item)
-				{
-					return IsStringEqual(value, data[item.second].name);
-				});
-			}
-		);
-		{
-			const auto add = [&index = genresIndex, &genres = data.genres](std::wstring_view code, std::wstring_view name, const auto parentIt)
-			{
-				assert(parentIt != index.end() && parentIt->second < std::size(genres));
-				const auto itGenre = index.insert(std::make_pair(code, std::size(genres))).first;
-				auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
-				auto & parentGenre = genres[parentIt->second];
-				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
-				return itGenre;
-			};
-
-			auto itDate = std::cbegin(date);
-			const auto endDate = std::cend(date);
-			const auto year = Next(itDate, endDate, DATE_SEPARATOR);
-			const auto month = Next(itDate, endDate, DATE_SEPARATOR);
-			const auto dateCode = ToWide(std::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
-
-			auto itIndexDate = genresIndex.find(dateCode);
-			if (itIndexDate == genresIndex.end())
-			{
-				const auto yearCode = ToWide(std::format("year_{0}", ToMultiByte(year)));
-				auto itIndexYear = genresIndex.find(yearCode);
-				if (itIndexYear == genresIndex.end())
-					itIndexYear = add(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
-
-				itIndexDate = add(dateCode, std::wstring(year).append(L".").append(month), itIndexYear);
-			}
-			idGenres.emplace(itIndexDate->second);
-		}
-
-		std::ranges::transform(idGenres, std::back_inserter(data.booksGenres), [&] (const size_t idGenre)
-		{
-			return std::make_pair(id, idGenre);
-		});
-
-		data.books.emplace_back(id, libId, title, Add<int, -1>(seriesName, data.series), To<int>(seriesNum, -1), date, To<int>(rate), lang, folder, fileName, insideNo++, ext, To<size_t>(size), To<bool>(del, false)/*, keywords*/);
-
-		if ((++n % LOG_INTERVAL) == 0)
-			PLOGI << n << " rows parsed";
+		AddBook(files, insideNo, buf, folder, genresIndex, data, unknownGenres, n);
 	}
 
-	const auto archiveFileName = QString::fromStdWString(rootFolder / folder);
+	const auto archiveFileName = QDir::fromNativeSeparators(QString::fromStdWString(rootFolder / folder));
 	if (!QFile::exists(archiveFileName))
 	{
 		PLOGW << archiveFileName << " not found";
