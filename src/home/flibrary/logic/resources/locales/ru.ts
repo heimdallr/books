@@ -90,7 +90,7 @@
     <message>
         <location filename="../../Collection/CollectionController.cpp" line="30"/>
         <source>The existing database file will be overwritten. Continue?</source>
-        <translation>Существующий файл базы данных будет перезаписан
+        <translation>Существующий файл базы данных будет перезаписан.
 Продолжить?</translation>
     </message>
     <message>

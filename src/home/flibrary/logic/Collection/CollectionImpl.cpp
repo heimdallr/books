@@ -30,6 +30,7 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 		return collection;
 
 	SettingsGroup idGroup(settings, id);
+	collection->id = std::move(id);
 
 	if ((collection->name = settings.Get(NAME, {}).toString()).isEmpty())
 		return collection;
@@ -41,7 +42,6 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 		return collection;
 
 	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, {}).toString();
-	collection->id = std::move(id);
 
 	return collection;
 }

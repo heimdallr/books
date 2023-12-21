@@ -60,7 +60,6 @@ struct PszComparerEndsWithCaseInsensitive
 	}
 };
 
-
 class XmlStack
 {
 public:
