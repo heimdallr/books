@@ -6,6 +6,8 @@ set(PRODUCT_DESCRIPTION "${PROJECT_NAME}: e-book cataloger")
 string(REPLACE "." "," CMAKE_PROJECT_VERSION_COMMA ${CMAKE_PROJECT_VERSION})
 configure_file(${CMAKE_CURRENT_LIST_DIR}/../../script/helpers/win_resources.rc.in ${CMAKE_CURRENT_BINARY_DIR}/resources/app.rc @ONLY)
 
+file(COPY ${Qt6Translations_DIR}/qtbase_ru.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/locales)
+
 AddTarget(${PROJECT_NAME}	app
 	PROJECT_GROUP App
 	WIN_RC ${CMAKE_CURRENT_BINARY_DIR}/resources/app.rc

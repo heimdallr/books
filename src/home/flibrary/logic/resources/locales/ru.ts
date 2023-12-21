@@ -326,37 +326,37 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="33"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="34"/>
         <source>Download</source>
         <translation>Скачать</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="34"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="35"/>
         <source>Visit download page</source>
         <translation>Перейти на страницу новой версии</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="35"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
         <source>Skip this version</source>
         <translation>Пропустить это обновление</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>%1 released!</source>
         <translation>Новая версия: %1!</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>Select folder for app installer</source>
         <translation>Укажите папку для скачивания инсталлятора</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Run the installer?</source>
         <translation>Запустить инсталлятор?</translation>
     </message>
