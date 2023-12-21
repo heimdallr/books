@@ -232,7 +232,7 @@ void Requester::IsPullRequestMerged(std::weak_ptr<IClient> client, const std::st
 
 void Requester::ListCommits(std::weak_ptr<IClient> client, const std::string & owner, const std::string & repo)
 {
-	const std::string request = std::string("repos/") + owner + "/" + repo + "/issues";
+	const std::string request = std::string("repos/") + owner + "/" + repo + "/commits";
 	m_impl->DoRequest(std::move(client), request, RequestType::ListCommits);
 }
 
