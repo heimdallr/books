@@ -28,6 +28,7 @@ using namespace Github;
 
 namespace {
 constexpr auto DISCARDED_UPDATE_KEY = "ui/Update/SkippedVersion";
+constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
 
 constexpr auto CONTEXT          =                   "UpdateChecker";
 constexpr auto DOWNLOAD         = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
@@ -57,6 +58,9 @@ public:
 
 	void CheckForUpdate(std::shared_ptr<IClient> client, Callback callback)
 	{
+		if (!NeedCheckUpdate())
+			return callback();
+
 		m_callback = std::move(callback);
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor();
@@ -82,6 +86,18 @@ private: // IClient
 	void HandleLatestRelease(const Release & release) override
 	{
 		m_release = release;
+	}
+
+private:
+	bool NeedCheckUpdate()
+	{
+		const auto currentDateTime = QDateTime::currentDateTime();
+		if (const auto lastCheckVar = m_settings->Get(LAST_UPDATE_CHECK_KEY); lastCheckVar.isValid())
+			if (const auto lastCheckDateTime = QDateTime::fromString(lastCheckVar.toString(), Qt::ISODate); lastCheckDateTime.isValid() && lastCheckDateTime.addDays(1) > currentDateTime)
+				return false;
+
+		m_settings->Set(LAST_UPDATE_CHECK_KEY, currentDateTime.toString(Qt::ISODate));
+		return true;
 	}
 
 	bool IsLatestReleaseNewer()
@@ -235,5 +251,4 @@ UpdateChecker::~UpdateChecker()
 void UpdateChecker::CheckForUpdate(Callback callback)
 {
 	m_impl->CheckForUpdate(m_impl, std::move(callback));
-
 }
