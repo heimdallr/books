@@ -83,6 +83,16 @@
         <source>Retrieve collection name from index file</source>
         <translation>Извлечь имя коллекции из индексного файла</translation>
     </message>
+    <message>
+        <location filename="../../dialogs/AddCollectionDialog.ui"/>
+        <source>Add unindexed books</source>
+        <translation>Добавлять неиндексированные книги</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/AddCollectionDialog.ui"/>
+        <source>Scan unindexed archives</source>
+        <translation>Сканировать неиндексированные архивы</translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
