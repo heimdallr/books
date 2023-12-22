@@ -23,6 +23,8 @@ constexpr auto RECENT_TEMPLATE = "ui/AddCollectionDialog/%1";
 constexpr auto NAME = "Name";
 constexpr auto DATABASE = "DatabaseFileName";
 constexpr auto FOLDER = "ArchiveFolder";
+constexpr auto ADD_UN_INDEXED_BOOKS = "AddUnIndexedBooks";
+constexpr auto SCAN_UN_INDEXED_FOLDERS = "ScanUnIndexedFolders";
 
 constexpr auto CONTEXT                                    = "AddCollectionDialog";
 constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
@@ -93,6 +95,8 @@ public:
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
+		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), false));
+		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 
 		if (const auto inpx = m_uiFactory->GetNewCollectionInpx(); !inpx.empty())
 			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpx.parent_path())));
@@ -127,6 +131,8 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(NAME), GetName());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 	}
 
 	QString GetName() const
@@ -142,6 +148,16 @@ public:
 	QString GetArchiveFolder() const
 	{
 		return m_ui.editArchive->text();
+	}
+
+	bool AddUnIndexedBooks() const
+	{
+		return m_ui.checkBoxAddUnindexedBooks->isChecked();
+	}
+
+	bool ScanUnIndexedFolders() const
+	{
+		return m_ui.checkBoxScanUnindexedArchives->isChecked();
 	}
 
 private: // GeometryRestorableObserver
@@ -305,4 +321,14 @@ QString AddCollectionDialog::GetDatabaseFileName() const
 QString AddCollectionDialog::GetArchiveFolder() const
 {
 	return m_impl->GetArchiveFolder();
+}
+
+bool AddCollectionDialog::AddUnIndexedBooks() const
+{
+	return m_impl->AddUnIndexedBooks();
+}
+
+bool AddCollectionDialog::ScanUnIndexedFolders() const
+{
+	return m_impl->ScanUnIndexedFolders();
 }
