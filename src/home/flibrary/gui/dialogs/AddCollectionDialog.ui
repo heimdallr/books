@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
-    <height>129</height>
+    <width>517</width>
+    <height>182</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,7 +25,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="75,25">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="1" column="1">
@@ -128,6 +128,20 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxAddUnindexedBooks">
+     <property name="text">
+      <string>Add unindexed books</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxScanUnindexedArchives">
+     <property name="text">
+      <string>Scan unindexed archives</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="layoutButton" stretch="0,1,0,0,0">

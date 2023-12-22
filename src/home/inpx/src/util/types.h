@@ -93,6 +93,7 @@ using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
 using SettingsTableData = std::map<uint32_t, std::string>;
+using Folders = std::set<std::wstring>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
@@ -104,6 +105,7 @@ struct Data
 	Genres genres;
 	Links booksAuthors, booksGenres;
 	SettingsTableData settings;
+	Folders folders;
 };
 
 inline std::ostream & operator<<(std::ostream & stream, const Book & book)
@@ -115,3 +117,21 @@ inline std::ostream & operator<<(std::ostream & stream, const Genre & genre)
 {
 	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
 }
+
+struct BookBuf
+{
+	std::wstring_view authors;
+	std::wstring_view genres;
+	std::wstring_view title;
+	std::wstring_view seriesName;
+	std::wstring_view seriesNum;
+	std::wstring_view fileName;
+	std::wstring_view size;
+	std::wstring_view libId;
+	std::wstring_view del;
+	std::wstring_view ext;
+	std::wstring_view date;
+	std::wstring_view lang;
+	std::wstring_view rate;
+	std::wstring_view keywords;
+};

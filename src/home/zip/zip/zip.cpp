@@ -74,6 +74,11 @@ public:
 		return m_file->Write();
 	}
 
+	size_t GetFileSize(const QString & filename) const
+	{
+		return m_zip->GetFileSize(filename);
+	}
+
 private:
 	PropagateConstPtr<IZip> m_zip;
 	PropagateConstPtr<IFile> m_file;
@@ -104,4 +109,9 @@ QStringList Zip::GetFileNameList() const
 QIODevice & Zip::Write(const QString & filename)
 {
 	return m_impl->Write(filename);
+}
+
+size_t Zip::GetFileSize(const QString & filename) const
+{
+	return m_impl->GetFileSize(filename);
 }

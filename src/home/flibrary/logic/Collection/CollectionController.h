@@ -8,7 +8,7 @@
 #include "export/logic.h"
 
 namespace HomeCompa {
-class ISettings;
+	class ISettings;
 }
 
 namespace HomeCompa::Flibrary {
