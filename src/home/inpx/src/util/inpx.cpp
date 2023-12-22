@@ -11,6 +11,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QXmlStreamReader>
 
 #include <plog/Log.h>
 
@@ -22,6 +23,7 @@
 #include "types.h"
 
 #include "inpx.h"
+#include "Fb2Parser.h"
 
 #include "zip.h"
 
@@ -357,16 +359,40 @@ BookBuf ParseBook(const std::wstring & line)
 	};
 }
 
-BookBuf ParseBook(QIODevice & /*stream*/)
+QString ToString(const Fb2Parser::Data::Authors & authors)
 {
-	const auto line = std::wstring {};
-	return ParseBook(line);
+	QStringList values;
+	values.reserve(static_cast<int>(authors.size()));
+	std::ranges::transform(authors, std::back_inserter(values), [] (const Fb2Parser::Data::Author & author)
+	{
+		return (QStringList() << author.last << author.first << author.middle).join(NAMES_SEPARATOR);
+	});
+	return values.join(LIST_SEPARATOR) + LIST_SEPARATOR;
 }
 
-void ParseFile(std::set<std::string> & files, const std::wstring & folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n, const Zip & zip, const QString & fileName)
+void ParseFile(std::set<std::string> & files, const std::wstring & folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n, const Zip & zip, const QString & fileName, const size_t fileSize)
 {
+	QFileInfo fileInfo(fileName);
 	auto & stream = zip.Read(fileName);
-	const auto buf = ParseBook(stream);
+	Fb2Parser parser(stream);
+	const auto parserData = parser.Parse();
+	const auto values = QStringList()
+		<< ToString(parserData.authors)
+		<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
+		<< parserData.title
+		<< parserData.series
+		<< QString::number(parserData.seqNumber)
+		<< fileInfo.completeBaseName()
+		<< QString::number(fileSize)
+		<< fileInfo.completeBaseName()
+		<< "0"
+		<< fileInfo.suffix()
+		<< parserData.date
+		<< parserData.lang
+		<< "0"
+		;
+	const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
+	const auto buf = ParseBook(line);
 	AddBook(files, buf, folder, genresIndex, data, unknownGenres, n);
 }
 
@@ -397,15 +423,14 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 		return;
 	}
 
-	Zip zip(archiveFileName);
-	for (const auto & fileName : zip.GetFileNameList())
+	for (const Zip zip(archiveFileName); const auto & fileName : zip.GetFileNameList())
 	{
 		if (files.contains(fileName.toLower().toStdString()))
 			continue;
 
 		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 		if (!!(mode & CreateCollectionMode::AddUnIndexedFiles))
-			ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName);
+			ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
 	}
 }
 
@@ -484,15 +509,9 @@ void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipI
 			try
 			{
 				std::set<std::string> files;
-
-				const Zip zip(QString::fromStdWString(rootFolder / folder));
-				for (const auto & fileName : zip.GetFileNameList())
-				{
-					if (QFileInfo(fileName).suffix() != "fb2")
-						continue;
-
-					ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName);
-				}
+				for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+					if (QFileInfo(fileName).suffix() == "fb2")
+						ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
 			}
 			catch (const std::exception & ex)
 			{
