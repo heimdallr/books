@@ -921,12 +921,12 @@ bool CreateNewCollection(const std::filesystem::path & iniFile)
 	return ParseInpxImpl(iniFile);
 }
 
-bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data)
+bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode)
 {
 	return ParseInpxImpl(std::move(data));
 }
 
-bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data)
+bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode)
 {
 	try
 	{

@@ -110,14 +110,20 @@ public:
 
 	void AddCollection(const std::filesystem::path & inpx = {})
 	{
-		switch (const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx); dialog->Exec())
+		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
+		const auto action = dialog->Exec();
+		const auto mode = Inpx::CreateCollectionMode::None
+			| (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
+			| (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
+			;
+		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
+				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder());
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
 				break;
 
 			default:
@@ -178,7 +184,7 @@ public:
 				break;
 
 			case QMessageBox::Yes:
-				return UpdateCollection();
+				return UpdateCollection(updatedCollection);
 
 			case QMessageBox::Discard:
 				return CollectionImpl::Serialize(updatedCollection, *m_settings);
@@ -204,7 +210,7 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString db, QString folder)
+	void CreateNew(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
 	{
 		if (QFile(db).exists())
 		{
@@ -224,19 +230,19 @@ private:
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor({});
 		Perform(&IObserver::OnNewCollectionCreating, true);
-		(*executor)({"Create collection", [&, executor, name = std::move(name), db = std::move(db), folder = std::move(folder)]() mutable
+		(*executor)({"Create collection", [&, executor, name = std::move(name), db = std::move(db), folder = std::move(folder), mode]() mutable
 		{
 			auto result = std::function([&, executor](size_t)
 			{
 				Perform(&IObserver::OnNewCollectionCreating, false);
 			});
 
-			if (auto [_, ini] = GetIniMap(db, folder, true); Inpx::CreateNewCollection(std::move(ini)))
+			if (auto [_, ini] = GetIniMap(db, folder, true); CreateNewCollection(std::move(ini), mode))
 			{
 				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder)](size_t) mutable
 				{
 					Perform(&IObserver::OnNewCollectionCreating, false);
-					Add(std::move(name), std::move(db), std::move(folder));
+					Add(std::move(name), std::move(db), std::move(folder), mode);
 				});
 			}
 	
@@ -244,15 +250,16 @@ private:
 		}});
 	}
 
-	void Add(QString name, QString db, QString folder)
+	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
 	{
 		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		m_collections.push_back(std::make_unique<CollectionImpl>(std::move(collection)));
 		SetActiveCollection(m_collections.back()->id);
 	}
 
-	void UpdateCollection()
+	void UpdateCollection(const Collection & updatedCollection)
 	{
 		std::shared_ptr executor = m_logicFactory->GetExecutor({});
 		Perform(&IObserver::OnNewCollectionCreating, true);
@@ -261,7 +268,7 @@ private:
 			assert(collection);
 
 			auto [_, ini] = GetIniMap(collection->database, collection->folder, true);
-			Inpx::UpdateCollection(std::move(ini));
+			Inpx::UpdateCollection(std::move(ini), static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode));
 			return [&, executor = std::move(executor)] (size_t) mutable
 			{
 				Perform(&IObserver::OnNewCollectionCreating, false);
