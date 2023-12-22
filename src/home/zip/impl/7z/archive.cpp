@@ -91,7 +91,12 @@ CComPtr<IInArchive> CreateInputArchive(const Lib & lib, const QString & filename
 
 class Reader final : virtual public IZip
 {
-	using Files = std::unordered_map<QString, uint32_t>;
+	struct FileItem
+	{
+		uint32_t n;
+		size_t size;
+	};
+	using Files = std::unordered_map<QString, FileItem>;
 
 public:
 	explicit Reader(QString filename, std::shared_ptr<ProgressCallback> progress)
@@ -118,13 +123,23 @@ private: // IZip
 			Error::CannotFindFileInArchive(filename);
 
 		auto archive = CreateInputArchive(m_lib, m_filename, m_format);
-		return File::Read(std::move(archive), it->second, m_progress);
+		return File::Read(std::move(archive), it->second.n, m_progress);
 	}
 
 	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
 	{
 		assert(false && "Cannot write with reader");
 		return {};
+	}
+
+	size_t GetFileSize(const QString & filename) const override
+	{
+		CreateFileList();
+		const auto it = m_files.find(filename);
+		if (it == m_files.end())
+			Error::CannotFindFileInArchive(filename);
+
+		return it->second.size;
 	}
 
 private:
@@ -145,10 +160,12 @@ private:
 			if (prop.boolVal != VARIANT_FALSE)
 				continue;
 
-			// Get name of file
+			archive->GetProperty(i, kpidSize, &prop);
+			const auto size = prop.uhVal.QuadPart;
+
 			archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
-				m_files.emplace(QString::fromStdWString(prop.bstrVal), i);
+				m_files.emplace(QString::fromStdWString(prop.bstrVal), FileItem { i, size });
 		}
 	}
 

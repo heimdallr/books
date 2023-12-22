@@ -1,5 +1,7 @@
 #include "archive.h"
 
+#include <ranges>
+
 #include <quazip/quazip.h>
 
 #include "zip/interface/error.h"
@@ -13,6 +15,11 @@ namespace {
 
 class QuaZipImpl final : virtual public IZip
 {
+	struct FileItem
+	{
+		size_t size;
+	};
+
 public:
 	QuaZipImpl(const QString & filename, const QuaZip::Mode mode)
 		: m_zip(std::make_unique<QuaZip>(filename))
@@ -39,7 +46,11 @@ public:
 private: // IZip
 	QStringList GetFileNameList() const override
 	{
-		return m_zip->getFileNameList();
+		CreateFileList();
+		QStringList result;
+		result.reserve(static_cast<int>(m_files.size()));
+		std::ranges::copy(m_files | std::views::keys, std::back_inserter(result));
+		return result;
 	}
 
 	std::unique_ptr<IFile> Read(const QString & filename) const override
@@ -55,8 +66,29 @@ private: // IZip
 		return File::Write(*m_zip, filename);
 	}
 
+	size_t GetFileSize(const QString & filename) const override
+	{
+		CreateFileList();
+		const auto it = m_files.find(filename);
+		assert(it != m_files.end());
+		return it->second.size;
+	}
+
+private:
+	void CreateFileList() const
+	{
+		if (!m_files.empty())
+			return;
+
+		std::ranges::transform(m_zip->getFileInfoList64(), std::inserter(m_files, m_files.end()), [] (const auto & item)
+		{
+			return std::make_pair(item.name, FileItem {item.uncompressedSize});
+		});
+	}
+
 private:
 	std::unique_ptr<QuaZip> m_zip;
+	mutable std::unordered_map<QString, FileItem> m_files;
 };
 
 }

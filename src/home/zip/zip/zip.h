@@ -32,6 +32,8 @@ public:
 	[[nodiscard]] QStringList GetFileNameList() const;
 	[[nodiscard]] QIODevice & Read(const QString & filename) const;
 	[[nodiscard]] QIODevice & Write(const QString & filename);
+	[[nodiscard]] size_t GetFileSize(const QString & filename) const;
+
 
 public:
 	Zip(const Zip &) = delete;
