@@ -401,6 +401,12 @@ void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, s
 	const auto mask = QString::fromStdWString(std::filesystem::path(folder).replace_extension("*"));
 	QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 	std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
+	if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
+	{
+		const auto ext = QFileInfo(file).suffix();
+		return ext != "zip" && ext != "7z";
+	}); begin != end)
+		suitableFiles.erase(begin, end);
 	folder = *data.folders.insert(suitableFiles.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString()).first;
 
 	std::set<std::string> files;
@@ -508,6 +514,7 @@ void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipI
 
 			try
 			{
+				PLOGW << "Scan non-indexed archive " << folder;
 				std::set<std::string> files;
 				for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
 					if (QFileInfo(fileName).suffix() == "fb2")
@@ -799,6 +806,7 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 {
 	std::vector<std::wstring> result;
 
+	std::map<std::wstring, std::wstring> dbExt;
 	{
 		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH).generic_string();
 		DatabaseWrapper db(dbFileName.data(), SQLITE_OPEN_READONLY);
@@ -806,28 +814,38 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 			return result;
 
 		sqlite3pp::query query(db, "select distinct Folder from Books");
-		std::transform(std::begin(query), std::end(query), std::inserter(data.folders, std::end(data.folders)), [] (const auto & row)
+		std::transform(std::begin(query), std::end(query), std::inserter(data.folders, std::end(data.folders)), [&] (const auto & row)
 		{
 			auto folder = ToWide(row.template get<std::string>(0));
-			RemoveExt(ToLower(folder));
+			auto ext = RemoveExt(ToLower(folder));
+			dbExt.emplace(folder, std::move(ext));
 			return folder;
 		});
 	}
 
+	std::map<std::wstring, std::wstring> inpxExt;
 	std::set<std::wstring> inpxFolders;
-	std::map<std::wstring, std::wstring> extenstion;
-	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&extenstion] (std::wstring item)
+	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&inpxExt] (std::wstring item)
 	{
 		auto ext = RemoveExt(ToLower(item));
-		extenstion.emplace(item, std::move(ext));
+		inpxExt.emplace(item, std::move(ext));
 		return item;
 	});
 
 	std::ranges::set_difference(inpxFolders, data.folders, std::back_inserter(result));
-	std::ranges::transform(result, std::begin(result), [&extenstion] (const std::wstring & item)
+	std::ranges::transform(result, std::begin(result), [&inpxExt] (const std::wstring & item)
 	{
-		const auto it = extenstion.find(item);
-		assert(it != extenstion.end());
+		const auto it = inpxExt.find(item);
+		assert(it != inpxExt.end());
+		return item + L'.' + it->second;
+	});
+
+	const auto folders = std::move(data.folders);
+	data.folders = {};
+	std::ranges::transform(folders, std::inserter(data.folders, data.folders.end()), [&dbExt] (const std::wstring & item)
+	{
+		const auto it = dbExt.find(item);
+		assert(it != dbExt.end());
 		return item + L'.' + it->second;
 	});
 

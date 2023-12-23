@@ -1,5 +1,6 @@
 #include "Fb2Parser.h"
 
+#include <QDateTime>
 #include <QFile>
 #include <QRegularExpression>
 #include <QXmlStreamReader>
@@ -164,6 +165,7 @@ private:
 			{ BOOK_TITLE        , &Impl::ParseBookTitle },
 			{ DATE              , &Impl::ParseDate },
 			{ LANG              , &Impl::ParseLang },
+			{ DOCUMENT_INFO_DATE, &Impl::ParseDocumentInfoDate },
 		};
 
 		Parse(PARSERS, std::move(textValue));
@@ -218,6 +220,25 @@ private:
 	void ParseDate(QString && value)
 	{
 		m_data.date = std::move(value);
+		m_data.date.replace(".", "-");
+	}
+
+	void ParseDocumentInfoDate(QString && value)
+	{
+		if (!m_data.date.isEmpty())
+			return;
+
+		m_data.date = std::move(value);
+
+		constexpr const char * formats[] { "dd.MM.yyyy", "yyyy" };
+		for (const auto * format : formats)
+		{
+			if (const auto date = QDateTime::fromString(m_data.date, format); date.isValid())
+			{
+				m_data.date = date.toString("yyyy-MM-dd");
+				break;
+			}
+		}
 	}
 
 	void ParseLang(QString && value)
