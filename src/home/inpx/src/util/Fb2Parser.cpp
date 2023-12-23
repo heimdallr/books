@@ -109,6 +109,8 @@ public:
 			std::invoke(parser, this);
 		}
 
+		FixDate();
+
 		Data data = std::move(m_data);
 		m_data = {};
 		return data;
@@ -229,16 +231,6 @@ private:
 			return;
 
 		m_data.date = std::move(value);
-
-		constexpr const char * formats[] { "dd.MM.yyyy", "yyyy" };
-		for (const auto * format : formats)
-		{
-			if (const auto date = QDateTime::fromString(m_data.date, format); date.isValid())
-			{
-				m_data.date = date.toString("yyyy-MM-dd");
-				break;
-			}
-		}
 	}
 
 	void ParseLang(QString && value)
@@ -252,6 +244,19 @@ private:
 		const auto & key = m_stack.ToString();
 		const auto parser = FindSecond(array, key.toStdString().data(), &Impl::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
 		std::invoke(parser, *this, std::forward<ARGS>(args)...);
+	}
+
+	void FixDate()
+	{
+		constexpr const char * formats[] { "dd.MM.yyyy", "yyyy", "d/M/yyyy", "d MMMM yyyy", "yy-MM-dd"};
+		for (const auto * format : formats)
+		{
+			if (const auto date = QDateTime::fromString(m_data.date, format); date.isValid())
+			{
+				m_data.date = date.toString("yyyy-MM-dd");
+				break;
+			}
+		}
 	}
 
 private:

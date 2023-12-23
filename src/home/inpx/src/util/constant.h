@@ -29,6 +29,7 @@
 [[maybe_unused]] constexpr std::wstring_view INP_EXT = L".inp";
 [[maybe_unused]] constexpr std::wstring_view UNKNOWN = L"unknown_root";
 [[maybe_unused]] constexpr std::wstring_view DATE_ADDED_CODE = L"date_added_code_root";
+[[maybe_unused]] constexpr std::wstring_view NO_DATE_SPECIFIED = L"No date specified";
 
 [[maybe_unused]] constexpr size_t LOG_INTERVAL = 10000;
 
