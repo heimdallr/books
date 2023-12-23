@@ -271,6 +271,15 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 		return itGenre;
 	};
 
+	if (buf.date.empty())
+	{
+		auto itIndex = genresIndex.find(NO_DATE_SPECIFIED);
+		if (itIndex == genresIndex.end())
+			itIndex = addGenre(L"no_date_specified", NO_DATE_SPECIFIED, genresIndex.find(DATE_ADDED_CODE));
+		idGenres.emplace(itIndex->second);
+		return;
+	}
+
 	auto itDate = std::cbegin(buf.date);
 	const auto endDate = std::cend(buf.date);
 	const auto year = Next(itDate, endDate, DATE_SEPARATOR);
@@ -394,6 +403,7 @@ void ParseFile(std::set<std::string> & files, const std::wstring & folder, Dicti
 	const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 	const auto buf = ParseBook(line);
 	AddBook(files, buf, folder, genresIndex, data, unknownGenres, n);
+	PLOGI_IF(!(n % (LOG_INTERVAL / 100))) << n << " books parsed";
 }
 
 void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n, const CreateCollectionMode mode)
