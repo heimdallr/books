@@ -91,6 +91,11 @@ private: // IDataProvider
 		return *m_groups;
 	}
 
+	[[nodiscard]] const QString & GetError() const noexcept override
+	{
+		return m_archiveData.error;
+	}
+
 	[[nodiscard]] const QString & GetAnnotation() const noexcept override
 	{
 		return m_archiveData.annotation;

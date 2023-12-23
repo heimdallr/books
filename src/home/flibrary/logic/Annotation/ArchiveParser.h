@@ -27,6 +27,7 @@ public:
 		std::vector<QByteArray> covers;
 		int coverIndex { -1 };
 		IDataItem::Ptr content { NavigationItem::Create() };
+		QString error;
 	};
 
 public:

@@ -123,7 +123,10 @@ public:
 
 			const auto token = readNext();
 			if (token == Invalid)
-				PLOGE << error() << ":" << errorString();
+			{
+				m_data.error = QString("%1. %2").arg(error()).arg(errorString());
+				PLOGE << m_data.error;
+			}
 
 			const auto parser = FindSecond(PARSERS, token, &XmlParser::Stub<>);
 			std::invoke(parser, this);

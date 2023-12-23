@@ -44,6 +44,7 @@ constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg im
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 
+constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
 constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
 
@@ -273,6 +274,8 @@ private: // IAnnotationController::IObserver
 			.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
 			.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate))
 			.ToString());
+
+		Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
 
 		m_ui.info->setText(annotation);
 
