@@ -384,7 +384,7 @@ void ParseFile(std::set<std::string> & files, const std::wstring & folder, Dicti
 	QFileInfo fileInfo(fileName);
 	auto & stream = zip.Read(fileName);
 	Fb2Parser parser(stream);
-	const auto parserData = parser.Parse();
+	const auto parserData = parser.Parse(fileName);
 	const auto values = QStringList()
 		<< ToString(parserData.authors)
 		<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
@@ -488,7 +488,14 @@ void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::fun
 	{
 		f(zip.Read(QString::fromStdWString(file)));
 	}
-	catch(...){}
+	catch (const std::exception & ex)
+	{
+		PLOGE << file << ": " << ex.what();
+	}
+	catch (...)
+	{
+		PLOGE << file << ": unknown error";
+	}
 }
 
 void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipInpx, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data, const CreateCollectionMode mode)
@@ -527,16 +534,31 @@ void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipI
 				PLOGW << "Scan non-indexed archive " << folder;
 				std::set<std::string> files;
 				for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+				{
 					if (QFileInfo(fileName).suffix() == "fb2")
-						ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
+					{
+						try
+						{
+							ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
+						}
+						catch (const std::exception & ex)
+						{
+							PLOGE << fileName << ": " << ex.what();
+						}
+						catch (...)
+						{
+							PLOGE << fileName << ": unknown error";
+						}
+					}
+				}
 			}
 			catch (const std::exception & ex)
 			{
-				PLOGE << ex.what();
+				PLOGE << folder << ": " << ex.what();
 			}
 			catch (...)
 			{
-				PLOGE << "unknown error";
+				PLOGE << folder << ": unknown error";
 			}
 		}
 	}

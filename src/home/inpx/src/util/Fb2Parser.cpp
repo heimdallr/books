@@ -90,7 +90,7 @@ public:
 	{
 	}
 
-	Data Parse()
+	Data Parse(const QString & fileName)
 	{
 		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
@@ -103,7 +103,7 @@ public:
 		{
 			const auto token = readNext();
 			if (token == Invalid)
-				PLOGE << error() << ":" << errorString();
+				PLOGE << fileName << ": " << error() << ". " << errorString();
 
 			const auto parser = FindSecond(PARSERS, token, &Impl::Stub<>);
 			std::invoke(parser, this);
@@ -273,7 +273,7 @@ Fb2Parser::Fb2Parser(QIODevice & stream)
 
 Fb2Parser::~Fb2Parser() = default;
 
-Fb2Parser::Data Fb2Parser::Parse()
+Fb2Parser::Data Fb2Parser::Parse(const QString & fileName)
 {
-	return m_impl->Parse();
+	return m_impl->Parse(fileName);
 }

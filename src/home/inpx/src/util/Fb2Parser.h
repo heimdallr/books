@@ -38,7 +38,7 @@ public:
 	explicit Fb2Parser(QIODevice & stream);
 	~Fb2Parser();
 
-	Data Parse();
+	Data Parse(const QString & fileName);
 
 private:
 	class Impl;
