@@ -19,6 +19,7 @@ constexpr auto DATABASE = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
+constexpr auto CREATION_MODE = "creationMode";
 
 Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 {
@@ -32,16 +33,17 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 	SettingsGroup idGroup(settings, id);
 	collection->id = std::move(id);
 
-	if ((collection->name = settings.Get(NAME, {}).toString()).isEmpty())
+	if ((collection->name = settings.Get(NAME, QString{})).isEmpty())
 		return collection;
 
-	if ((collection->database = settings.Get(DATABASE, {}).toString()).isEmpty())
+	if ((collection->database = settings.Get(DATABASE, QString{})).isEmpty())
 		return collection;
 
-	if ((collection->folder = settings.Get(FOLDER, {}).toString()).isEmpty())
+	if ((collection->folder = settings.Get(FOLDER, QString{})).isEmpty())
 		return collection;
 
-	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, {}).toString();
+	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString{});
+	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
 
 	return collection;
 }
@@ -64,7 +66,7 @@ CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_
 QString CollectionImpl::GetActive(const ISettings & settings)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
-	return settings.Get(CURRENT).toString();
+	return settings.Get(CURRENT, QString{});
 }
 
 void CollectionImpl::Serialize(const Collection & collection, ISettings & settings)
@@ -76,6 +78,7 @@ void CollectionImpl::Serialize(const Collection & collection, ISettings & settin
 	settings.Set(DATABASE, collection.database);
 	settings.Set(FOLDER, collection.folder);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
+	settings.Set(CREATION_MODE, collection.createCollectionMode);
 }
 
 Collections CollectionImpl::Deserialize(ISettings & settings)
