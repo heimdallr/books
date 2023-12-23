@@ -239,7 +239,7 @@ private:
 
 			if (auto [_, ini] = GetIniMap(db, folder, true); CreateNewCollection(std::move(ini), mode))
 			{
-				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder)](size_t) mutable
+				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder), mode](size_t) mutable
 				{
 					Perform(&IObserver::OnNewCollectionCreating, false);
 					Add(std::move(name), std::move(db), std::move(folder), mode);
@@ -263,12 +263,12 @@ private:
 	{
 		std::shared_ptr executor = m_logicFactory->GetExecutor({});
 		Perform(&IObserver::OnNewCollectionCreating, true);
-		(*executor)({ "Update collection", [&, executor, collection = GetActiveCollection()] () mutable
+		(*executor)({ "Update collection", [&, executor, collection = GetActiveCollection(), mode = updatedCollection.createCollectionMode] () mutable
 		{
 			assert(collection);
 
 			auto [_, ini] = GetIniMap(collection->database, collection->folder, true);
-			Inpx::UpdateCollection(std::move(ini), static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode));
+			Inpx::UpdateCollection(std::move(ini), static_cast<Inpx::CreateCollectionMode>(mode));
 			return [&, executor = std::move(executor)] (size_t) mutable
 			{
 				Perform(&IObserver::OnNewCollectionCreating, false);
