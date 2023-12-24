@@ -83,8 +83,8 @@ class Parser final
 	using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 
 public:
-	explicit Parser(const QByteArray & data)
-		: QXmlStreamReader(data)
+	explicit Parser(QIODevice & stream)
+		: QXmlStreamReader(&stream)
 	{
 	}
 
@@ -269,19 +269,19 @@ private:
 struct Fb2Parser::Impl
 {
 private:
-	QByteArray m_data;
+	QIODevice & m_stream;
 
 public:
 	Parser parser;
-	explicit Impl(QByteArray data)
-		: m_data(std::move(data))
-		, parser(m_data)
+	explicit Impl(QIODevice & stream)
+		: m_stream(stream)
+		, parser(m_stream)
 	{
 	}
 };
 
-Fb2Parser::Fb2Parser(QByteArray data)
-	: m_impl(std::move(data))
+Fb2Parser::Fb2Parser(QIODevice & stream)
+	: m_impl(stream)
 {
 }
 

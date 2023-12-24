@@ -1,12 +1,9 @@
 #pragma warning(push, 0)
 
-#include <cassert>
-#include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <functional>
-#include <map>
-#include <numeric>
+#include <future>
+#include <queue>
 #include <set>
 
 #include <QDir>
@@ -23,12 +20,13 @@
 #include "types.h"
 
 #include "inpx.h"
-#include "Fb2Parser.h"
 
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
 
 #include "zip.h"
+
+#include "Fb2Parser.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
@@ -768,9 +766,39 @@ std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, c
 	return result;
 }
 
+class IPool  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IPool() = default;
+	virtual void Work(std::promise<void> & startPromise) = 0;
+};
+
+class Thread
+{
+	NON_COPY_MOVABLE(Thread)
+
+public:
+	explicit Thread(IPool & pool)
+		: m_thread(&IPool::Work, std::ref(pool), std::ref(m_startPromise))
+	{
+		m_startPromise.get_future().get();
+	}
+
+	~Thread()
+	{
+		if (m_thread.joinable())
+			m_thread.join();
+	}
+
+private:
+	std::promise<void> m_startPromise;
+	std::thread m_thread;
+};
+
 }
 
-class Parser::Impl
+class Parser::Impl final
+	: virtual public IPool
 {
 public:
 	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
@@ -803,6 +831,58 @@ public:
 				m_callback(true);
 			};
 		} });
+	}
+
+private: // IPool
+	void Work(std::promise<void> & startPromise) override
+	{
+		startPromise.set_value();
+
+		while(true)
+		{
+			std::wstring folder;
+			{
+				std::unique_lock lock(m_foldersToParseGuard);
+				if (m_foldersToParse.empty())
+					break;
+
+				folder = std::move(m_foldersToParse.front());
+				m_foldersToParse.pop();
+				if (m_foldersToParse.empty())
+					m_foldersToParseCondition.notify_one();
+			}
+			try
+			{
+				PLOGI << folder;
+				std::set<std::string> files;
+				for (const Zip zip(QString::fromStdWString(m_rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+				{
+					if (QFileInfo(fileName).suffix() == "fb2")
+					{
+						try
+						{
+							ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
+						}
+						catch (const std::exception & ex)
+						{
+							PLOGE << fileName << ": " << ex.what();
+						}
+						catch (...)
+						{
+							PLOGE << fileName << ": unknown error";
+						}
+					}
+				}
+			}
+			catch (const std::exception & ex)
+			{
+				PLOGE << folder << ": " << ex.what();
+			}
+			catch (...)
+			{
+				PLOGE << folder << ": unknown error";
+			}
+		}
 	}
 
 private:
@@ -883,24 +963,24 @@ private:
 
 	void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
-		const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
+		m_rootFolder = std::filesystem::path(inpxFileName).parent_path();
 		for (const auto & fileName : inpxFiles)
 			GetDecodedStream(zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessInpx(zipDecodedStream, rootFolder, fileName);
-		});
+			{
+				ProcessInpx(zipDecodedStream, m_rootFolder, fileName);
+			});
 
 		PLOGI << m_n << " rows parsed";
 
 		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 		{
-			for (auto const & entry : std::filesystem::recursive_directory_iterator(rootFolder))
+			for (auto const & entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
 			{
 				if (entry.is_directory())
 					continue;
 
 				auto folder = entry.path().wstring();
-				folder.erase(0, rootFolder.string().size() + 1);
+				folder.erase(0, m_rootFolder.string().size() + 1);
 				ToLower(folder);
 
 				if (const auto ext = entry.path().extension(); ext != ".zip" && ext != ".7z")
@@ -909,46 +989,32 @@ private:
 				if (m_data.folders.contains(folder))
 					continue;
 
-				try
+				m_foldersToParse.push(std::move(folder));
+			}
+
+			if (!m_foldersToParse.empty())
+			{
+				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+				const auto maxThreadCount = std::min(cpuCount, 2);
+				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+				while (true)
 				{
-					PLOGW << "Scan non-indexed archive " << folder;
-					std::set<std::string> files;
-					for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+					std::unique_lock lock(m_foldersToParseGuard);
+					m_foldersToParseCondition.wait(lock, [&]
 					{
-						if (QFileInfo(fileName).suffix() == "fb2")
-						{
-							try
-							{
-								ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
-							}
-							catch (const std::exception & ex)
-							{
-								PLOGE << fileName << ": " << ex.what();
-							}
-							catch (...)
-							{
-								PLOGE << fileName << ": unknown error";
-							}
-						}
-					}
+						return m_foldersToParse.empty();
+					});
+
+					if (m_foldersToParse.empty())
+						break;
 				}
-				catch (const std::exception & ex)
-				{
-					PLOGE << folder << ": " << ex.what();
-				}
-				catch (...)
-				{
-					PLOGE << folder << ": unknown error";
-				}
+
+				m_threads.clear();
 			}
 		}
 
-		if (!std::empty(m_unknownGenres))
-		{
-			PLOGW << "Unknown genres:";
-			for (const auto & genre : m_unknownGenres)
-				PLOGW << genre;
-		}
+		LogUnknownGenres();
 	}
 
 	void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder)
@@ -1002,22 +1068,7 @@ private:
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
-		QByteArray data;
-		while (true)
-		{
-			auto line = stream.readLine();
-			if (line.isEmpty())
-			{
-				PLOGE << fileName << " is broken";
-				return;
-			}
-
-			data.append(line);
-			if (line.contains("</description>"))
-				break;
-		}
-
-		Fb2Parser parser(std::move(data));
+		Fb2Parser parser(stream);
 		const auto parserData = parser.Parse(fileName);
 		const auto values = QStringList()
 			<< ToString(parserData.authors)
@@ -1035,10 +1086,12 @@ private:
 			<< "0"
 			;
 
-		const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
-		const auto buf = ParseBook(line);
+		[[maybe_unused]]const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
+		[[maybe_unused]]const auto buf = ParseBook(line);
+
+		std::lock_guard lock(m_dataGuard);
 		AddBook(files, buf, folder);
-		PLOGI_IF(++m_parsedN % (LOG_INTERVAL / 100) == 0) << m_parsedN << " books parsed";
+		PLOGI_IF(++m_parsedN % (LOG_INTERVAL / 10) == 0) << m_parsedN << " books parsed";
 	}
 
 	void AddBook(std::set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
@@ -1082,18 +1135,37 @@ private:
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
 
+	void LogUnknownGenres() const
+	{
+		if (std::empty(m_unknownGenres))
+			return;
+
+		PLOGW << "Unknown genres:";
+		for (const auto & genre : m_unknownGenres)
+			PLOGW << genre;
+	}
+
 private:
 	const Ini m_ini;
 	const CreateCollectionMode m_mode;
 	const Callback m_callback;
 	std::unique_ptr<Util::IExecutor> m_executor;
 
+	std::filesystem::path m_rootFolder;
 	Data m_data;
 	Dictionary m_genresIndex;
 	size_t m_n { 0 };
-	size_t m_parsedN { 0 };
+	std::atomic_uint64_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
+
+	std::queue<std::wstring> m_foldersToParse;
+	std::mutex m_foldersToParseGuard;
+	std::condition_variable m_foldersToParseCondition;
+
+	std::mutex m_dataGuard;
+
+	std::vector<std::unique_ptr<Thread>> m_threads;
 };
 
 Parser::Parser() = default;

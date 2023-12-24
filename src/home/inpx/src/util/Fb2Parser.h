@@ -35,7 +35,7 @@ public:
 	};
 
 public:
-	explicit Fb2Parser(QByteArray data);
+	explicit Fb2Parser(QIODevice & stream);
 	~Fb2Parser();
 
 	Data Parse(const QString & fileName);
