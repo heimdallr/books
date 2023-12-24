@@ -35,13 +35,13 @@ public:
 	};
 
 public:
-	explicit Fb2Parser(QIODevice & stream);
+	explicit Fb2Parser(QByteArray data);
 	~Fb2Parser();
 
 	Data Parse(const QString & fileName);
 
 private:
-	class Impl;
+	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

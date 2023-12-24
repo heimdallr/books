@@ -76,27 +76,25 @@ private:
 	QStringList m_data;
 };
 
-}
-
-class Fb2Parser::Impl final
+class Parser final
 	: QXmlStreamReader
 {
-	using ParseElementFunction = void(Impl::*)();
+	using ParseElementFunction = void(Parser::*)();
 	using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 
 public:
-	explicit Impl(QIODevice & ioDevice)
-		: QXmlStreamReader(&ioDevice)
+	explicit Parser(const QByteArray & data)
+		: QXmlStreamReader(data)
 	{
 	}
 
-	Data Parse(const QString & fileName)
+	Fb2Parser::Data Parse(const QString & fileName)
 	{
 		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
-			{ StartElement, &Impl::OnStartElement },
-			{ EndElement  , &Impl::OnEndElement },
-			{ Characters  , &Impl::OnCharacters },
+			{ StartElement, &Parser::OnStartElement },
+			{ EndElement  , &Parser::OnEndElement },
+			{ Characters  , &Parser::OnCharacters },
 		};
 
 		while (!m_stop && !atEnd() && !hasError())
@@ -105,13 +103,13 @@ public:
 			if (token == Invalid)
 				PLOGE << fileName << ": " << error() << ". " << errorString();
 
-			const auto parser = FindSecond(PARSERS, token, &Impl::Stub<>);
+			const auto parser = FindSecond(PARSERS, token, &Parser::Stub<>);
 			std::invoke(parser, this);
 		}
 
 		FixDate();
 
-		Data data = std::move(m_data);
+		Fb2Parser::Data data = std::move(m_data);
 		m_data = {};
 		return data;
 	}
@@ -130,9 +128,9 @@ private:
 
 		static constexpr ParseElementItem PARSERS[]
 		{
-			{ AUTHOR            , &Impl::OnStartElementAuthor },
-			{ SEQUENCE          , &Impl::OnStartElementSequence },
-			{ DOCUMENT_INFO_DATE, &Impl::OnStartDocumentInfoDate },
+			{ AUTHOR            , &Parser::OnStartElementAuthor },
+			{ SEQUENCE          , &Parser::OnStartElementSequence },
+			{ DOCUMENT_INFO_DATE, &Parser::OnStartDocumentInfoDate },
 		};
 
 		Parse(PARSERS);
@@ -142,7 +140,7 @@ private:
 	{
 		static constexpr ParseElementItem PARSERS[]
 		{
-			{ DESCRIPTION, &Impl::OnEndElementDescription },
+			{ DESCRIPTION, &Parser::OnEndElementDescription },
 		};
 
 		Parse(PARSERS);
@@ -156,18 +154,18 @@ private:
 		if (textValue.isEmpty())
 			return;
 
-		using ParseCharacterFunction = void(Impl::*)(QString&&);
+		using ParseCharacterFunction = void(Parser::*)(QString &&);
 		using ParseCharacterItem = std::pair<const char *, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[]
 		{
-			{ GENRE             , &Impl::ParseGenre },
-			{ AUTHOR_FIRST_NAME , &Impl::ParseAuthorFirstName },
-			{ AUTHOR_LAST_NAME  , &Impl::ParseAuthorLastName },
-			{ AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
-			{ BOOK_TITLE        , &Impl::ParseBookTitle },
-			{ DATE              , &Impl::ParseDate },
-			{ LANG              , &Impl::ParseLang },
-			{ DOCUMENT_INFO_DATE, &Impl::ParseDocumentInfoDate },
+			{ GENRE             , &Parser::ParseGenre },
+			{ AUTHOR_FIRST_NAME , &Parser::ParseAuthorFirstName },
+			{ AUTHOR_LAST_NAME  , &Parser::ParseAuthorLastName },
+			{ AUTHOR_MIDDLE_NAME, &Parser::ParseAuthorMiddleName },
+			{ BOOK_TITLE        , &Parser::ParseBookTitle },
+			{ DATE              , &Parser::ParseDate },
+			{ LANG              , &Parser::ParseLang },
+			{ DOCUMENT_INFO_DATE, &Parser::ParseDocumentInfoDate },
 		};
 
 		Parse(PARSERS, std::move(textValue));
@@ -242,13 +240,13 @@ private:
 	void Parse(Value(&array)[ArraySize], ARGS &&... args)
 	{
 		const auto & key = m_stack.ToString();
-		const auto parser = FindSecond(array, key.toStdString().data(), &Impl::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
+		const auto parser = FindSecond(array, key.toStdString().data(), &Parser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
 		std::invoke(parser, *this, std::forward<ARGS>(args)...);
 	}
 
 	void FixDate()
 	{
-		constexpr const char * formats[] { "dd.MM.yyyy", "yyyy", "d/M/yyyy", "d MMMM yyyy", "yy-MM-dd"};
+		constexpr const char * formats[] { "dd.MM.yyyy", "yyyy", "d/M/yyyy", "d MMMM yyyy", "yy-MM-dd" };
 		for (const auto * format : formats)
 		{
 			if (const auto date = QDateTime::fromString(m_data.date, format); date.isValid())
@@ -263,11 +261,27 @@ private:
 	XmlStack m_stack;
 	bool m_stop { false };
 
-	Data m_data{};
+	Fb2Parser::Data m_data {};
 };
 
-Fb2Parser::Fb2Parser(QIODevice & stream)
-	: m_impl(stream)
+}
+
+struct Fb2Parser::Impl
+{
+private:
+	QByteArray m_data;
+
+public:
+	Parser parser;
+	explicit Impl(QByteArray data)
+		: m_data(std::move(data))
+		, parser(m_data)
+	{
+	}
+};
+
+Fb2Parser::Fb2Parser(QByteArray data)
+	: m_impl(std::move(data))
 {
 }
 
@@ -275,5 +289,5 @@ Fb2Parser::~Fb2Parser() = default;
 
 Fb2Parser::Data Fb2Parser::Parse(const QString & fileName)
 {
-	return m_impl->Parse(fileName);
+	return m_impl->parser.Parse(fileName);
 }

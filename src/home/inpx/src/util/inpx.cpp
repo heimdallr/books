@@ -382,77 +382,6 @@ QString ToString(const Fb2Parser::Data::Authors & authors)
 	return values.join(LIST_SEPARATOR) + LIST_SEPARATOR;
 }
 
-void ParseFile(std::set<std::string> & files, const std::wstring & folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n, const Zip & zip, const QString & fileName, const size_t fileSize)
-{
-	QFileInfo fileInfo(fileName);
-	auto & stream = zip.Read(fileName);
-	Fb2Parser parser(stream);
-	const auto parserData = parser.Parse(fileName);
-	const auto values = QStringList()
-		<< ToString(parserData.authors)
-		<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
-		<< parserData.title
-		<< parserData.series
-		<< QString::number(parserData.seqNumber)
-		<< fileInfo.completeBaseName()
-		<< QString::number(fileSize)
-		<< fileInfo.completeBaseName()
-		<< "0"
-		<< fileInfo.suffix()
-		<< parserData.date
-		<< parserData.lang
-		<< "0"
-		;
-	const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
-	const auto buf = ParseBook(line);
-	AddBook(files, buf, folder, genresIndex, data, unknownGenres, n);
-	PLOGI_IF(!(n % (LOG_INTERVAL / 100))) << n << " books parsed";
-}
-
-void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n, const CreateCollectionMode mode)
-{
-	const auto mask = QString::fromStdWString(std::filesystem::path(folder).replace_extension("*"));
-	QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
-	std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
-	if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
-	{
-		const auto ext = QFileInfo(file).suffix();
-		return ext != "zip" && ext != "7z";
-	}); begin != end)
-		suitableFiles.erase(begin, end);
-	folder = *data.folders.insert(suitableFiles.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString()).first;
-
-	std::set<std::string> files;
-
-	while (true)
-	{
-		const auto byteArray = stream.readLine();
-		if (byteArray.isEmpty())
-			break;
-
-		const auto line = ToWide(byteArray.constData());
-		const auto buf = ParseBook(line);
-		AddBook(files, buf, folder, genresIndex, data, unknownGenres, n);
-	}
-
-	const auto archiveFileName = QDir::fromNativeSeparators(QString::fromStdWString(rootFolder / folder));
-	if (!QFile::exists(archiveFileName))
-	{
-		PLOGW << archiveFileName << " not found";
-		return;
-	}
-
-	for (const Zip zip(archiveFileName); const auto & fileName : zip.GetFileNameList())
-	{
-		if (files.contains(fileName.toLower().toStdString()))
-			continue;
-
-		PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
-		if (!!(mode & CreateCollectionMode::AddUnIndexedFiles))
-			ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
-	}
-}
-
 struct InpxContent
 {
 	std::vector<std::wstring> collectionInfo;
@@ -499,109 +428,6 @@ void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::fun
 	{
 		PLOGE << file << ": unknown error";
 	}
-}
-
-void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipInpx, const std::vector<std::wstring> & inpxFiles, Dictionary & genresIndex, Data & data, const CreateCollectionMode mode)
-{
-	std::vector<std::wstring> unknownGenres;
-
-	const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
-	size_t n = 0;
-	for (const auto & fileName : inpxFiles)
-		GetDecodedStream(zipInpx, fileName, [&](QIODevice & zipDecodedStream)
-		{
-			ProcessInpx(zipDecodedStream, rootFolder, fileName, genresIndex, data, unknownGenres, n, mode);
-		});
-
-	PLOGI << n << " rows parsed";
-
-	if (!!(mode & CreateCollectionMode::ScanUnIndexedFolders))
-	{
-		for (auto const & entry : std::filesystem::recursive_directory_iterator(rootFolder))
-		{
-			if (entry.is_directory())
-				continue;
-
-			auto folder = entry.path().wstring();
-			folder.erase(0, rootFolder.string().size() + 1);
-			ToLower(folder);
-
-			if (const auto ext = entry.path().extension(); ext != ".zip" && ext != ".7z")
-				continue;
-
-			if (data.folders.contains(folder))
-				continue;
-
-			try
-			{
-				PLOGW << "Scan non-indexed archive " << folder;
-				std::set<std::string> files;
-				for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
-				{
-					if (QFileInfo(fileName).suffix() == "fb2")
-					{
-						try
-						{
-							ParseFile(files, folder, genresIndex, data, unknownGenres, n, zip, fileName, zip.GetFileSize(fileName));
-						}
-						catch (const std::exception & ex)
-						{
-							PLOGE << fileName << ": " << ex.what();
-						}
-						catch (...)
-						{
-							PLOGE << fileName << ": unknown error";
-						}
-					}
-				}
-			}
-			catch (const std::exception & ex)
-			{
-				PLOGE << folder << ": " << ex.what();
-			}
-			catch (...)
-			{
-				PLOGE << folder << ": unknown error";
-			}
-		}
-	}
-
-	if (!std::empty(unknownGenres))
-	{
-		PLOGW << "Unknown genres:";
-		for (const auto & genre : unknownGenres)
-			PLOGW << genre;
-	}
-}
-
-Data Parse(const std::filesystem::path & genresFileName, const std::filesystem::path & inpxFileName, SettingsTableData && settingsTableData, const CreateCollectionMode mode)
-{
-	Timer t(L"parsing archives");
-
-	Data data;
-	data.settings = std::move(settingsTableData);
-
-	auto [genresData, genresIndex] = LoadGenres(genresFileName);
-	data.genres = std::move(genresData);
-
-	const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-	Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
-
-	for (const auto & fileName : inpxContent.collectionInfo)
-		GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessCollectionInfo(zipDecodedStream, data.settings);
-		});
-
-	for (const auto & fileName : inpxContent.versionInfo)
-		GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessVersionInfo(zipDecodedStream, data.settings);
-		});
-
-	ParseInpxFiles(inpxFileName, zip, inpxContent.inpx, genresIndex, data, mode);
-
-	return data;
 }
 
 bool TableExists(sqlite3pp::database & db, const std::string & table)
@@ -991,17 +817,19 @@ std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, c
 class Parser::Impl
 {
 public:
-	explicit Impl(Callback callback)
-		: m_callback(std::move(callback))
+	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
+		: m_ini(std::move(ini))
+		, m_mode(mode)
+		, m_callback(std::move(callback))
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async))
 	{
 	}
 
-	void Process(Ini ini, const CreateCollectionMode mode) const
+	void Process()
 	{
-		(*m_executor)({ "Create collection", [&, ini = std::move(ini), mode]
+		(*m_executor)({ "Create collection", [&]
 		{
-			ProcessImpl(ini, mode);
+			ProcessImpl();
 			return [&] (size_t)
 			{
 				m_callback(true);
@@ -1009,11 +837,11 @@ public:
 		} });
 	}
 
-	void UpdateDatabase(Ini ini, const CreateCollectionMode mode) const
+	void UpdateDatabase()
 	{
-		(*m_executor)({ "Update collection", [&, ini = std::move(ini), mode]
+		(*m_executor)({ "Update collection", [&]
 		{
-			UpdateDatabaseImpl(ini, mode);
+			UpdateDatabaseImpl();
 			return [&] (size_t)
 			{
 				m_callback(true);
@@ -1022,32 +850,33 @@ public:
 	}
 
 private:
-	void ProcessImpl(const Ini & ini, const CreateCollectionMode mode) const
+	void ProcessImpl()
 	{
 		Timer t(L"work");
 
-		const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 
 		auto settingsTableData = ReadSettings(dbFileName);
-		ExecuteScript(L"create database", dbFileName, ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
+		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 
-		const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData), mode);
-		if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
+		Parse(std::move(settingsTableData));
+		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
+		ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
 	}
 
-	void UpdateDatabaseImpl(const Ini & ini, const CreateCollectionMode mode) const
+	void UpdateDatabaseImpl()
 	{
-		const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
-		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, ini(GENRES, DEFAULT_GENRES));
+		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
+		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
 
-		Data newData = oldData;
-		Dictionary newGenresIndex = oldGenresIndex;
-		auto inpxFileName = ini(INPX, DEFAULT_INPX);
-		Zip zip(QString::fromStdWString(inpxFileName));
-		ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini, newData), newGenresIndex, newData, mode);
+		m_data = oldData;
+		m_genresIndex = oldGenresIndex;
+
+		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
+		const Zip zip(QString::fromStdWString(inpxFileName));
+		ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(m_ini, m_data));
 
 		const auto filter = [] (Dictionary & dst, const Dictionary & src)
 		{
@@ -1058,16 +887,210 @@ private:
 					++it;
 		};
 
-		filter(newData.authors, oldData.authors);
-		filter(newData.series, oldData.series);
+		filter(m_data.authors, oldData.authors);
+		filter(m_data.series, oldData.series);
 
-		if (const auto failsCount = Store(dbFileName, newData); failsCount != 0)
+		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 	}
 
+	void Parse(SettingsTableData && settingsTableData)
+	{
+		Timer t(L"parsing archives");
+
+		m_data.settings = std::move(settingsTableData);
+
+		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
+		m_data.genres = std::move(genresData);
+		m_genresIndex = std::move(genresIndex);
+
+		const std::filesystem::path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
+		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
+		const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
+
+		for (const auto & fileName : inpxContent.collectionInfo)
+			GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+		{
+			ProcessCollectionInfo(zipDecodedStream, m_data.settings);
+		});
+
+		for (const auto & fileName : inpxContent.versionInfo)
+			GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+		{
+			ProcessVersionInfo(zipDecodedStream, m_data.settings);
+		});
+
+		ParseInpxFiles(inpxFileName, zip, inpxContent.inpx);
+	}
+
+	void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipInpx, const std::vector<std::wstring> & inpxFiles)
+	{
+		const auto rootFolder = std::filesystem::path(inpxFileName).parent_path();
+		for (const auto & fileName : inpxFiles)
+			GetDecodedStream(zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
+		{
+			ProcessInpx(zipDecodedStream, rootFolder, fileName);
+		});
+
+		PLOGI << m_n << " rows parsed";
+
+		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+		{
+			for (auto const & entry : std::filesystem::recursive_directory_iterator(rootFolder))
+			{
+				if (entry.is_directory())
+					continue;
+
+				auto folder = entry.path().wstring();
+				folder.erase(0, rootFolder.string().size() + 1);
+				ToLower(folder);
+
+				if (const auto ext = entry.path().extension(); ext != ".zip" && ext != ".7z")
+					continue;
+
+				if (m_data.folders.contains(folder))
+					continue;
+
+				try
+				{
+					PLOGW << "Scan non-indexed archive " << folder;
+					std::set<std::string> files;
+					for (const Zip zip(QString::fromStdWString(rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+					{
+						if (QFileInfo(fileName).suffix() == "fb2")
+						{
+							try
+							{
+								ParseFile(files, folder, m_n, zip, fileName, zip.GetFileSize(fileName));
+							}
+							catch (const std::exception & ex)
+							{
+								PLOGE << fileName << ": " << ex.what();
+							}
+							catch (...)
+							{
+								PLOGE << fileName << ": unknown error";
+							}
+						}
+					}
+				}
+				catch (const std::exception & ex)
+				{
+					PLOGE << folder << ": " << ex.what();
+				}
+				catch (...)
+				{
+					PLOGE << folder << ": unknown error";
+				}
+			}
+		}
+
+		if (!std::empty(m_unknownGenres))
+		{
+			PLOGW << "Unknown genres:";
+			for (const auto & genre : m_unknownGenres)
+				PLOGW << genre;
+		}
+	}
+
+	void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder)
+	{
+		const auto mask = QString::fromStdWString(std::filesystem::path(folder).replace_extension("*"));
+		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
+		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file)
+		{
+			return file.toLower();
+		});
+		if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
+		{
+			const auto ext = QFileInfo(file).suffix();
+			return ext != "zip" && ext != "7z";
+		}); begin != end)
+			suitableFiles.erase(begin, end);
+		folder = *m_data.folders.insert(suitableFiles.isEmpty() ? std::filesystem::path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString()).first;
+
+		std::set<std::string> files;
+
+		while (true)
+		{
+			const auto byteArray = stream.readLine();
+			if (byteArray.isEmpty())
+				break;
+
+			const auto line = ToWide(byteArray.constData());
+			const auto buf = ParseBook(line);
+			AddBook(files, buf, folder, m_genresIndex, m_data, m_unknownGenres, m_n);
+		}
+
+		const auto archiveFileName = QDir::fromNativeSeparators(QString::fromStdWString(rootFolder / folder));
+		if (!QFile::exists(archiveFileName))
+		{
+			PLOGW << archiveFileName << " not found";
+			return;
+		}
+
+		for (const Zip zip(archiveFileName); const auto & fileName : zip.GetFileNameList())
+		{
+			if (files.contains(fileName.toLower().toStdString()))
+				continue;
+
+			PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
+			if (!!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
+				ParseFile(files, folder, m_n, zip, fileName, zip.GetFileSize(fileName));
+		}
+	}
+
+	void ParseFile(std::set<std::string> & files, const std::wstring & folder, size_t & n, const Zip & zip, const QString & fileName, const size_t fileSize)
+	{
+		QFileInfo fileInfo(fileName);
+		auto & stream = zip.Read(fileName);
+		QByteArray data;
+		while (true)
+		{
+			auto line = stream.readLine();
+			if (line.isEmpty())
+			{
+				PLOGE << fileName << " is broken";
+				return;
+			}
+
+			data.append(line);
+			if (line.contains("</description>"))
+				break;
+		}
+		Fb2Parser parser(std::move(data));
+		const auto parserData = parser.Parse(fileName);
+		const auto values = QStringList()
+			<< ToString(parserData.authors)
+			<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
+			<< parserData.title
+			<< parserData.series
+			<< QString::number(parserData.seqNumber)
+			<< fileInfo.completeBaseName()
+			<< QString::number(fileSize)
+			<< fileInfo.completeBaseName()
+			<< "0"
+			<< fileInfo.suffix()
+			<< parserData.date
+			<< parserData.lang
+			<< "0"
+			;
+		const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
+		const auto buf = ParseBook(line);
+		AddBook(files, buf, folder, m_genresIndex, m_data, m_unknownGenres, n);
+		PLOGI_IF(!(n % (LOG_INTERVAL / 100))) << n << " books parsed";
+	}
+
 private:
-	Callback m_callback;
+	const Ini m_ini;
+	const CreateCollectionMode m_mode;
+	const Callback m_callback;
 	std::unique_ptr<Util::IExecutor> m_executor;
+
+	Data m_data;
+	Dictionary m_genresIndex;
+	size_t m_n { 0 };
+	std::vector<std::wstring> m_unknownGenres;
 };
 
 Parser::Parser() = default;
@@ -1077,9 +1100,8 @@ void Parser::CreateNewCollection(std::map<std::wstring, std::filesystem::path> d
 {
 	try
 	{
-		std::make_unique<Impl>(std::move(callback)).swap(m_impl);
-		Ini ini(std::move(data));
-		m_impl->Process(std::move(ini), mode);
+		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+		m_impl->Process();
 	}
 	catch (const std::exception & ex)
 	{
@@ -1095,9 +1117,8 @@ void Parser::UpdateCollection(std::map<std::wstring, std::filesystem::path> data
 {
 	try
 	{
-		std::make_unique<Impl>(std::move(callback)).swap(m_impl);
-		Ini ini(std::move(data));
-		m_impl->UpdateDatabase(std::move(ini), mode);
+		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+		m_impl->UpdateDatabase();
 	}
 	catch (const std::exception & ex)
 	{
