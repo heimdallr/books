@@ -41,7 +41,7 @@ public:
 	Data Parse(const QString & fileName);
 
 private:
-	class Impl;
+	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

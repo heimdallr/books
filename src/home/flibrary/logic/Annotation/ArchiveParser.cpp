@@ -25,6 +25,7 @@ namespace {
 
 constexpr auto CONTEXT = "Annotation";
 constexpr auto CONTENT = QT_TRANSLATE_NOOP("Annotation", "Content");
+constexpr auto FILE_EMPTY = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
 constexpr auto ID = "id";
@@ -109,6 +110,13 @@ public:
 
 	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book, IProgressController::IProgressItem & progress)
 	{
+		if (m_total == 0)
+		{
+			m_data.error = Tr(FILE_EMPTY);
+			PLOGE << m_data.error;
+			return m_data;
+		}
+
 		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
 		{
 			{ StartElement, &XmlParser::OnStartElement },

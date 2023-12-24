@@ -2,9 +2,11 @@
 
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 
 #include "fnd/EnumBitmask.h"
+#include "fnd/NonCopyMovable.h"
 
 #include "export/inpxlib.h"
 
@@ -17,9 +19,25 @@ enum class CreateCollectionMode
 	ScanUnIndexedFolders = 1 << 1,
 };
 
-INPXLIB_EXPORT bool CreateNewCollection(const std::filesystem::path & iniFile);
-INPXLIB_EXPORT bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode);
-INPXLIB_EXPORT bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode);
+class INPXLIB_EXPORT Parser
+{
+	NON_COPY_MOVABLE(Parser)
+
+public:
+	using Callback = std::function<void(bool)>;
+
+public:
+	Parser();
+	~Parser();
+
+public:
+	void CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode, Callback callback);
+	void UpdateCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode, Callback callback);
+
+private:
+	class Impl;
+	std::unique_ptr<Impl> m_impl;
+};
 
 }
 
