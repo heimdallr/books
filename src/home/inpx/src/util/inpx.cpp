@@ -302,50 +302,6 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 	idGenres.emplace(itIndexDate->second);
 }
 
-void AddBook(std::set<std::string> & files, const BookBuf & buf, const std::wstring & folder, Dictionary & genresIndex, Data & data, std::vector<std::wstring> & unknownGenres, size_t & n)
-{
-	const auto unknownGenreId = genresIndex.find(UNKNOWN)->second;
-
-	const auto id = GetId();
-	auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
-	files.emplace(ToLower(file));
-
-	for (const auto idAuthor : ParseItem(buf.authors, data.authors))
-		data.booksAuthors.emplace_back(id, idAuthor);
-
-	auto idGenres = ParseItem(buf.genres, genresIndex,
-		[unknownGenreId, &unknownGenres, &data = data.genres] (std::wstring_view newItemTitle)
-		{
-			const auto result = std::size(data);
-			auto & genre = data.emplace_back(newItemTitle, L"", newItemTitle, unknownGenreId);
-			auto & unknownGenre = data[unknownGenreId];
-			genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
-			unknownGenres.push_back(genre.name);
-			return result;
-		},
-		[&data = data.genres] (const Dictionary & container, std::wstring_view value)
-		{
-			const auto itGenre = container.find(value);
-			return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data] (const auto & item)
-			{
-				return IsStringEqual(value, data[item.second].name);
-			});
-		}
-	);
-
-	AddGenres(buf, genresIndex, data, idGenres);
-
-	std::ranges::transform(idGenres, std::back_inserter(data.booksGenres), [&] (const size_t idGenre)
-	{
-		return std::make_pair(id, idGenre);
-	});
-
-	data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false)/*, keywords*/);
-
-	if ((++n % LOG_INTERVAL) == 0)
-		PLOGI << n << " rows parsed";
-}
-
 BookBuf ParseBook(const std::wstring & line)
 {
 	auto it = std::cbegin(line);
@@ -873,6 +829,7 @@ private:
 
 		m_data = oldData;
 		m_genresIndex = oldGenresIndex;
+		m_unknownGenreId = m_genresIndex.find(UNKNOWN)->second;
 
 		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const Zip zip(QString::fromStdWString(inpxFileName));
@@ -903,6 +860,7 @@ private:
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres = std::move(genresData);
 		m_genresIndex = std::move(genresIndex);
+		m_unknownGenreId = m_genresIndex.find(UNKNOWN)->second;
 
 		const std::filesystem::path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
@@ -961,7 +919,7 @@ private:
 						{
 							try
 							{
-								ParseFile(files, folder, m_n, zip, fileName, zip.GetFileSize(fileName));
+								ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
 							}
 							catch (const std::exception & ex)
 							{
@@ -1019,7 +977,7 @@ private:
 
 			const auto line = ToWide(byteArray.constData());
 			const auto buf = ParseBook(line);
-			AddBook(files, buf, folder, m_genresIndex, m_data, m_unknownGenres, m_n);
+			AddBook(files, buf, folder);
 		}
 
 		const auto archiveFileName = QDir::fromNativeSeparators(QString::fromStdWString(rootFolder / folder));
@@ -1036,11 +994,11 @@ private:
 
 			PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 			if (!!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
-				ParseFile(files, folder, m_n, zip, fileName, zip.GetFileSize(fileName));
+				ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
 		}
 	}
 
-	void ParseFile(std::set<std::string> & files, const std::wstring & folder, size_t & n, const Zip & zip, const QString & fileName, const size_t fileSize)
+	void ParseFile(std::set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const size_t fileSize)
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
@@ -1058,6 +1016,7 @@ private:
 			if (line.contains("</description>"))
 				break;
 		}
+
 		Fb2Parser parser(std::move(data));
 		const auto parserData = parser.Parse(fileName);
 		const auto values = QStringList()
@@ -1075,10 +1034,52 @@ private:
 			<< parserData.lang
 			<< "0"
 			;
+
 		const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(line);
-		AddBook(files, buf, folder, m_genresIndex, m_data, m_unknownGenres, n);
-		PLOGI_IF(!(n % (LOG_INTERVAL / 100))) << n << " books parsed";
+		AddBook(files, buf, folder);
+		PLOGI_IF(++m_parsedN % (LOG_INTERVAL / 100) == 0) << m_parsedN << " books parsed";
+	}
+
+	void AddBook(std::set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
+	{
+		const auto id = GetId();
+		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
+		files.emplace(ToLower(file));
+
+		for (const auto idAuthor : ParseItem(buf.authors, m_data.authors))
+			m_data.booksAuthors.emplace_back(id, idAuthor);
+
+		auto idGenres = ParseItem(buf.genres, m_genresIndex,
+			[&, &data = m_data.genres] (std::wstring_view newItemTitle)
+			{
+				const auto result = std::size(data);
+				auto & genre = data.emplace_back(newItemTitle, L"", newItemTitle, m_unknownGenreId);
+				auto & unknownGenre = data[m_unknownGenreId];
+				genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(unknownGenre.dbCode), ++unknownGenre.childrenCount));
+				m_unknownGenres.push_back(genre.name);
+				return result;
+			},
+			[&data = m_data.genres] (const Dictionary & container, std::wstring_view value)
+			{
+				const auto itGenre = container.find(value);
+				return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data] (const auto & item)
+				{
+					return IsStringEqual(value, data[item.second].name);
+				});
+			}
+		);
+
+		AddGenres(buf, m_genresIndex, m_data, idGenres);
+
+		std::ranges::transform(idGenres, std::back_inserter(m_data.booksGenres), [&] (const size_t idGenre)
+		{
+			return std::make_pair(id, idGenre);
+		});
+
+		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false)/*, keywords*/);
+
+		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
 
 private:
@@ -1090,7 +1091,9 @@ private:
 	Data m_data;
 	Dictionary m_genresIndex;
 	size_t m_n { 0 };
+	size_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
+	size_t m_unknownGenreId { 0 };
 };
 
 Parser::Parser() = default;
