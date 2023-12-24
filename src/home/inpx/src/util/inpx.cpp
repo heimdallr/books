@@ -25,6 +25,9 @@
 #include "inpx.h"
 #include "Fb2Parser.h"
 
+#include "util/executor/factory.h"
+#include "util/IExecutor.h"
+
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -807,24 +810,6 @@ size_t Store(const std::filesystem::path & dbFileName, const Data & data)
 	return result;
 }
 
-bool Process(const Ini & ini, const CreateCollectionMode mode)
-{
-	Timer t(L"work");
-
-	const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
-
-	auto settingsTableData = ReadSettings(dbFileName);
-	ExecuteScript(L"create database", dbFileName, ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
-
-	const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData), mode);
-	if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
-		PLOGE << "Something went wrong";
-
-	ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
-
-	return true;
-}
-
 std::wstring RemoveExt(std::wstring & str)
 {
 	const auto dotPos = str.find_last_of(L'.');
@@ -1001,42 +986,100 @@ std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, c
 	return result;
 }
 
-bool UpdateDatabase(const Ini & ini, const CreateCollectionMode mode)
-{
-	const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
-	const auto [oldData, oldGenresIndex] = ReadData(dbFileName, ini(GENRES, DEFAULT_GENRES));
-
-	Data newData = oldData;
-	Dictionary newGenresIndex = oldGenresIndex;
-	auto inpxFileName = ini(INPX, DEFAULT_INPX);
-	Zip zip(QString::fromStdWString(inpxFileName));
-	ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini, newData), newGenresIndex, newData, mode);
-
-	const auto filter = [] (Dictionary & dst, const Dictionary & src)
-	{
-		for (auto it = dst.begin(); it != dst.end(); )
-			if (src.contains(it->first))
-				it = dst.erase(it);
-			else
-				++it;
-	};
-
-	filter(newData.authors, oldData.authors);
-	filter(newData.series, oldData.series);
-
-	if (const auto failsCount = Store(dbFileName, newData); failsCount != 0)
-		PLOGE << "Something went wrong";
-
-	return true;
 }
 
-template<typename T>
-int ParseInpxImpl(T t, const CreateCollectionMode mode)
+class Parser::Impl
+{
+public:
+	explicit Impl(Callback callback)
+		: m_callback(std::move(callback))
+		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async))
+	{
+	}
+
+	void Process(Ini ini, const CreateCollectionMode mode) const
+	{
+		(*m_executor)({ "Create collection", [&, ini = std::move(ini), mode]
+		{
+			ProcessImpl(ini, mode);
+			return [&] (size_t)
+			{
+				m_callback(true);
+			};
+		} });
+	}
+
+	void UpdateDatabase(Ini ini, const CreateCollectionMode mode) const
+	{
+		(*m_executor)({ "Update collection", [&, ini = std::move(ini), mode]
+		{
+			UpdateDatabaseImpl(ini, mode);
+			return [&] (size_t)
+			{
+				m_callback(true);
+			};
+		} });
+	}
+
+private:
+	void ProcessImpl(const Ini & ini, const CreateCollectionMode mode) const
+	{
+		Timer t(L"work");
+
+		const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+
+		auto settingsTableData = ReadSettings(dbFileName);
+		ExecuteScript(L"create database", dbFileName, ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
+
+		const auto data = Parse(ini(GENRES, DEFAULT_GENRES), ini(INPX, DEFAULT_INPX), std::move(settingsTableData), mode);
+		if (const auto failsCount = Store(dbFileName, data); failsCount != 0)
+			PLOGE << "Something went wrong";
+
+		ExecuteScript(L"update database", dbFileName, ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
+	}
+
+	void UpdateDatabaseImpl(const Ini & ini, const CreateCollectionMode mode) const
+	{
+		const auto & dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, ini(GENRES, DEFAULT_GENRES));
+
+		Data newData = oldData;
+		Dictionary newGenresIndex = oldGenresIndex;
+		auto inpxFileName = ini(INPX, DEFAULT_INPX);
+		Zip zip(QString::fromStdWString(inpxFileName));
+		ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(ini, newData), newGenresIndex, newData, mode);
+
+		const auto filter = [] (Dictionary & dst, const Dictionary & src)
+		{
+			for (auto it = dst.begin(); it != dst.end(); )
+				if (src.contains(it->first))
+					it = dst.erase(it);
+				else
+					++it;
+		};
+
+		filter(newData.authors, oldData.authors);
+		filter(newData.series, oldData.series);
+
+		if (const auto failsCount = Store(dbFileName, newData); failsCount != 0)
+			PLOGE << "Something went wrong";
+	}
+
+private:
+	Callback m_callback;
+	std::unique_ptr<Util::IExecutor> m_executor;
+};
+
+Parser::Parser() = default;
+Parser::~Parser() = default;
+
+void Parser::CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode, Callback callback)
 {
 	try
 	{
-		const Ini ini(std::forward<T>(t));
-		return Process(ini, mode);
+		std::make_unique<Impl>(std::move(callback)).swap(m_impl);
+		Ini ini(std::move(data));
+		m_impl->Process(std::move(ini), mode);
 	}
 	catch (const std::exception & ex)
 	{
@@ -1046,29 +1089,15 @@ int ParseInpxImpl(T t, const CreateCollectionMode mode)
 	{
 		PLOGE << "unknown error";
 	}
-	return false;
 }
 
-}
-
-namespace HomeCompa::Inpx {
-
-bool CreateNewCollection(const std::filesystem::path & iniFile)
-{
-	return ParseInpxImpl(iniFile, CreateCollectionMode::None);
-}
-
-bool CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode)
-{
-	return ParseInpxImpl(std::move(data), mode);
-}
-
-bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode)
+void Parser::UpdateCollection(std::map<std::wstring, std::filesystem::path> data, const CreateCollectionMode mode, Callback callback)
 {
 	try
 	{
-		const Ini ini(std::move(data));
-		return UpdateDatabase(ini, mode);
+		std::make_unique<Impl>(std::move(callback)).swap(m_impl);
+		Ini ini(std::move(data));
+		m_impl->UpdateDatabase(std::move(ini), mode);
 	}
 	catch (const std::exception & ex)
 	{
@@ -1078,7 +1107,4 @@ bool UpdateCollection(std::map<std::wstring, std::filesystem::path> data, const 
 	{
 		PLOGE << "unknown error";
 	}
-	return false;
-}
-
 }

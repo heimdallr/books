@@ -8,7 +8,6 @@
 #include "fnd/observable.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
@@ -46,10 +45,10 @@ QString GetInpxImpl(const QString & folder)
 }
 
 using IniMap = std::map<std::wstring, std::filesystem::path>;
-using IniMapPair = std::pair<std::unique_ptr<QTemporaryDir>, IniMap>;
+using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, IniMap>;
 IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFiles)
 {
-	IniMapPair result { createFiles ? std::make_unique<QTemporaryDir>() : nullptr, IniMap{} };
+	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, IniMap{} };
 	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
 	{
 		auto fileName = QDir::fromNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + name);
@@ -90,12 +89,10 @@ class CollectionController::Impl final
 {
 public:
 	Impl(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ITaskQueue> taskQueue
 	)
 		: m_settings(std::move(settings))
-		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
 		, m_taskQueue(std::move(taskQueue))
 	{
@@ -228,26 +225,16 @@ private:
 			return;
 		}
 
-		std::shared_ptr executor = m_logicFactory->GetExecutor({});
-		Perform(&IObserver::OnNewCollectionCreating, true);
-		(*executor)({"Create collection", [&, executor, name = std::move(name), db = std::move(db), folder = std::move(folder), mode]() mutable
+		auto parser = std::make_shared<Inpx::Parser>();
+		auto [tmpDir, ini] = GetIniMap(db, folder, true);
+		auto callback = [&, parser, name, db, folder, mode, tmpDir = std::move(tmpDir)] (bool) mutable
 		{
-			auto result = std::function([&, executor](size_t)
-			{
-				Perform(&IObserver::OnNewCollectionCreating, false);
-			});
-
-			if (auto [_, ini] = GetIniMap(db, folder, true); CreateNewCollection(std::move(ini), mode))
-			{
-				result = std::function([&, executor = std::move(executor), name = std::move(name), db = std::move(db), folder = std::move(folder), mode](size_t) mutable
-				{
-					Perform(&IObserver::OnNewCollectionCreating, false);
-					Add(std::move(name), std::move(db), std::move(folder), mode);
-				});
-			}
-	
-			return result;
-		}});
+			Perform(&IObserver::OnNewCollectionCreating, false);
+			Add(std::move(name), std::move(db), std::move(folder), mode);
+			parser.reset();
+		};
+		Perform(&IObserver::OnNewCollectionCreating, true);
+		parser->CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
 	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
@@ -261,25 +248,21 @@ private:
 
 	void UpdateCollection(const Collection & updatedCollection)
 	{
-		std::shared_ptr executor = m_logicFactory->GetExecutor({});
-		Perform(&IObserver::OnNewCollectionCreating, true);
-		(*executor)({ "Update collection", [&, executor, collection = GetActiveCollection(), mode = updatedCollection.createCollectionMode] () mutable
+		const auto collection = GetActiveCollection();
+		assert(collection);
+		auto parser = std::make_shared<Inpx::Parser>();
+		auto [tmpDir, ini] = GetIniMap(collection->database, collection->folder, true);
+		auto callback = [&, parser, tmpDir = std::move(tmpDir)] (bool) mutable
 		{
-			assert(collection);
-
-			auto [_, ini] = GetIniMap(collection->database, collection->folder, true);
-			Inpx::UpdateCollection(std::move(ini), static_cast<Inpx::CreateCollectionMode>(mode));
-			return [&, executor = std::move(executor)] (size_t) mutable
-			{
-				Perform(&IObserver::OnNewCollectionCreating, false);
-				executor.reset();
-			};
-		} });
+			Perform(&IObserver::OnNewCollectionCreating, false);
+			parser.reset();
+		};
+		Perform(&IObserver::OnNewCollectionCreating, true);
+		parser->UpdateCollection(GetIniMap(collection->database, collection->folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
 	}
 
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ITaskQueue, std::shared_ptr> m_taskQueue;
 	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
@@ -287,12 +270,10 @@ private:
 };
 
 CollectionController::CollectionController(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ITaskQueue> taskQueue
 )
 	: m_impl(std::move(settings)
-		, std::move(logicFactory)
 		, std::move(uiFactory)
 		, std::move(taskQueue)
 	)
