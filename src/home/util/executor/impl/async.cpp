@@ -104,13 +104,13 @@ private:
 		while (m_running)
 		{
 			{
-				std::unique_lock lock(m_startMutex);
-				m_startCondition.wait(lock, [this] ()
+				std::unique_lock lockStart(m_startMutex);
+				m_startCondition.wait(lockStart, [this] ()
 				{
 					if (!m_running)
 						return true;
 
-					std::lock_guard lock(m_tasksGuard);
+					std::lock_guard lockTasks(m_tasksGuard);
 					return !m_tasks.empty();
 				});
 			}
