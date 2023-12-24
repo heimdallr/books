@@ -8,6 +8,11 @@
         <source>Content</source>
         <translation>Содержание</translation>
     </message>
+    <message>
+        <location filename="../../Annotation/ArchiveParser.cpp" line="28"/>
+        <source>File is empty</source>
+        <translation>Файл пуст</translation>
+    </message>
 </context>
 <context>
     <name>BookContextMenu</name>
@@ -88,28 +93,28 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="30"/>
+        <location filename="../../Collection/CollectionController.cpp" line="29"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан.
 Продолжить?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="31"/>
+        <location filename="../../Collection/CollectionController.cpp" line="30"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="31"/>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <location filename="../../Collection/CollectionController.cpp" line="32"/>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="34"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>
