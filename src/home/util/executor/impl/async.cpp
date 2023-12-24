@@ -125,9 +125,9 @@ private:
 					return Task{};
 
 				const auto it = m_tasks.begin();
-				auto task = std::move(it->second);
+				auto returnedTask = std::move(it->second);
 				m_tasks.erase(it);
-				return task;
+				return returnedTask;
 			}();
 
 			m_forwarder.Forward(m_initializer.beforeExecute);
