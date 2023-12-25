@@ -16,7 +16,6 @@ AddTarget(InpxLib	shared_lib
 		Qt6::Core
 		Qt6::Xml
 		plog
-		xercesc
 	COMPILE_DEFINITIONS
 		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 )

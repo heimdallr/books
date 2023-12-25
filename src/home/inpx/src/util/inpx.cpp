@@ -8,7 +8,6 @@
 
 #include <QDir>
 #include <QFile>
-#include <QXmlStreamReader>
 
 #include <plog/Log.h>
 
@@ -1068,8 +1067,8 @@ private:
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
-		Fb2Parser parser(stream);
-		const auto parserData = parser.Parse(fileName);
+		Fb2Parser parser(stream, fileName);
+		const auto parserData = parser.Parse();
 		PLOGI_IF(++m_parsedN % LOG_INTERVAL == 0) << m_parsedN << " books parsed";
 
 		if (!parserData.error.isEmpty())

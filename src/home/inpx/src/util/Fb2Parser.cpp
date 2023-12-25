@@ -1,17 +1,12 @@
 #include "Fb2Parser.h"
 
 #include <QDateTime>
-#include <QIODevice>
-
-#include <xercesc/parsers/SAXParser.hpp>
-#include <xercesc/sax/HandlerBase.hpp>
-#include <xercesc/sax/InputSource.hpp>
-#include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
+
+#include "util/SaxParser.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
@@ -33,373 +28,195 @@ constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
 constexpr auto DOCUMENT_INFO_DATE = "FictionBook/description/document-info/date";
 
-struct PszComparerEndsWithCaseInsensitive
-{
-	bool operator()(const std::string_view lhs, const std::string_view rhs) const
-	{
-		if (lhs.size() < rhs.size())
-			return false;
+}
 
-		const auto * lp = lhs.data() + (lhs.size() - rhs.size()), * rp = rhs.data();
-		while (*lp && *rp && std::tolower(*lp++) == std::tolower(*rp++))
-			;
-
-		return !*lp && !*rp;
-	}
-};
-
-class XmlStack
+class Fb2Parser::Impl final : public Util::SaxParser
 {
 public:
-	void Push(const QStringView tag)
-	{
-		m_data.push_back(tag.toString());
-		m_key.reset();
-	}
-
-	void Pop(const QStringView tag)
-	{
-		assert(!m_data.isEmpty());
-		if (tag != m_data.back())
-			return;
-
-		m_data.pop_back();
-		m_key.reset();
-	}
-
-	const QString & ToString() const
-	{
-		if (!m_key)
-			m_key = m_data.join('/');
-
-		return *m_key;
-	}
-
-private:
-	mutable std::optional<QString> m_key;
-	QStringList m_data;
-};
-
-namespace xercesc = xercesc_3_2;
-
-class BinInputStream final : public xercesc::BinInputStream
-{
-public:
-	explicit BinInputStream(QIODevice & source)
-		: m_source(source)
+	explicit Impl(QIODevice & stream, const QString & fileName)
+		: SaxParser(stream)
+		, m_fileName(fileName)
 	{
 	}
 
-	void SetStopped(const bool value) noexcept
+	Data GetData()
 	{
-		m_stopped = value;
-	}
+		SaxParser::Parse();
 
-private: // xercesc::BinInputStream
-	XMLFilePos curPos() const override
-	{
-		return m_source.pos();
-	}
-
-	const XMLCh* getContentType() const override
-	{
-		return nullptr;
-	}
-
-	XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override
-	{
-		return m_stopped ? 0 : m_source.read(reinterpret_cast<char*>(toFill), static_cast<qint64>(maxToRead));
-	}
-
-private:
-	QIODevice & m_source;
-	bool m_stopped { false };
-};
-
-class InputSource final : public xercesc::InputSource
-{
-public:
-	explicit InputSource(QIODevice & source)
-		: m_binInputStream(new BinInputStream(source))
-	{
-	}
-
-	void SetStopped(const bool value) const noexcept
-	{
-		m_binInputStream->SetStopped(value);
-	}
-
-private: // xercesc::InputSource
-	xercesc::BinInputStream* makeStream() const override
-	{
-		return m_binInputStream;
-	}
-
-private:
-	BinInputStream * m_binInputStream;
-};
-
-class SaxHandler : public xercesc::HandlerBase
-{
-public:
-	explicit SaxHandler(const QString & fileName, InputSource & inputSource)
-		: m_fileName(fileName)
-		, m_inputSource(inputSource)
-	{
-	}
-
-	Fb2Parser::Data GetData()
-	{
 		auto data = std::move(m_data);
 		m_data = {};
 		return data;
 	}
 
-private: // xercesc::DocumentHandler
-	void startElement(const XMLCh* const name, xercesc::AttributeList& args) override
+private:
+	bool OnStartElement(const QString & path, const Attributes & attributes) override
 	{
-		m_stack.Push(name);
-
-		using ParseElementFunction = void(SaxHandler::*)(xercesc::AttributeList & attrs);
+		using ParseElementFunction = bool(Impl::*)(const Attributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
-			{ AUTHOR            , &SaxHandler::OnStartElementAuthor },
-			{ SEQUENCE          , &SaxHandler::OnStartElementSequence },
-			{ DOCUMENT_INFO_DATE, &SaxHandler::OnStartDocumentInfoDate },
+			{ AUTHOR            , &Impl::OnStartElementAuthor },
+			{ SEQUENCE          , &Impl::OnStartElementSequence },
+			{ DOCUMENT_INFO_DATE, &Impl::OnStartDocumentInfoDate },
 		};
 
-		Parse(PARSERS, args);
+		return Parse(PARSERS, path, attributes);
 	}
 
-	void endElement(const XMLCh* const name) override
+	bool OnEndElement(const QString & path) override
 	{
-		using ParseElementFunction = void(SaxHandler::*)();
+		using ParseElementFunction = bool(Impl::*)();
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
-			{ DESCRIPTION, &SaxHandler::OnEndElementDescription },
+			{ DESCRIPTION, &Impl::OnEndElementDescription },
 		};
 
-		Parse(PARSERS);
-
-		m_stack.Pop(name);
+		return Parse(PARSERS, path);
 	}
 
-	void characters(const XMLCh* const chars, const XMLSize_t length) override
+	bool OnCharacters(const QString & path, const QString & value) override
 	{
-		if (length == 0)
-			return;
-
-		auto textValue = QString::fromStdU16String(chars).simplified();
-		if (textValue.isEmpty())
-			return;
-
-		using ParseCharacterFunction = void(SaxHandler::*)(QString &&);
+		using ParseCharacterFunction = bool(Impl::*)(const QString &);
 		using ParseCharacterItem = std::pair<const char *, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[]
 		{
-			{ GENRE             , &SaxHandler::ParseGenre },
-			{ AUTHOR_FIRST_NAME , &SaxHandler::ParseAuthorFirstName },
-			{ AUTHOR_LAST_NAME  , &SaxHandler::ParseAuthorLastName },
-			{ AUTHOR_MIDDLE_NAME, &SaxHandler::ParseAuthorMiddleName },
-			{ BOOK_TITLE        , &SaxHandler::ParseBookTitle },
-			{ DATE              , &SaxHandler::ParseDate },
-			{ LANG              , &SaxHandler::ParseLang },
-			{ DOCUMENT_INFO_DATE, &SaxHandler::ParseDocumentInfoDate },
+			{ GENRE             , &Impl::ParseGenre },
+			{ AUTHOR_FIRST_NAME , &Impl::ParseAuthorFirstName },
+			{ AUTHOR_LAST_NAME  , &Impl::ParseAuthorLastName },
+			{ AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
+			{ BOOK_TITLE        , &Impl::ParseBookTitle },
+			{ DATE              , &Impl::ParseDate },
+			{ LANG              , &Impl::ParseLang },
+			{ DOCUMENT_INFO_DATE, &Impl::ParseDocumentInfoDate },
 		};
 
-		Parse(PARSERS, std::move(textValue));
+		return Parse(PARSERS, path, value);
 	}
 
-private: // xercesc::ErrorHandler
-	void warning(const xercesc::SAXParseException & exc) override
+	bool OnWarning(const QString & text) override
 	{
-		if (m_stopped)
-			return;
-
-		PLOGW << m_fileName << ": " << QString::fromStdU16String(exc.getMessage());
+		PLOGW << m_fileName << text;
+		return true;
 	}
 
-	void error(const xercesc::SAXParseException & exc) override
+	bool OnError(const QString & text) override
 	{
-		if (m_stopped)
-			return;
-
-		m_data.error = QString::fromStdU16String(exc.getMessage());
-		PLOGE << m_fileName << ": " << m_data.error;
+		m_data.error = text;
+		PLOGE << m_fileName << text;
+		return false;
 	}
 
-	void fatalError(const xercesc::SAXParseException & exc) override
+	bool OnFatalError(const QString & text) override
 	{
-		error(exc);
+		return OnError(text);
 	}
 
 private:
 	template<typename... ARGS>
 	// ReSharper disable once CppMemberFunctionMayBeStatic
-	void Stub(ARGS &&...)
+	bool Stub(const ARGS &...)
 	{
+		return true;
 	}
 
-	void OnStartElementAuthor(xercesc::AttributeList &)
+	bool OnStartElementAuthor(const Attributes & )
 	{
 		m_data.authors.emplace_back();
+		return true;
 	}
 
-	void OnStartElementSequence(xercesc::AttributeList & attrs)
+	bool OnStartElementSequence(const Attributes & attributes)
 	{
-		if (auto * value = attrs.getValue(NAME))
-			m_data.series = QString::fromStdU16String(value);
-		if (auto * value = attrs.getValue(NUMBER))
-			m_data.seqNumber = QString::fromStdU16String(value).toInt();
+		m_data.series = attributes.GetAttribute(NAME);
+		m_data.seqNumber = attributes.GetAttribute(NUMBER).toInt();
+		return true;
 	}
 
-	void OnStartDocumentInfoDate(xercesc::AttributeList & attrs)
+	bool OnStartDocumentInfoDate(const Attributes & attributes)
 	{
-		if (auto * value = attrs.getValue(VALUE))
-			m_data.date = QString::fromStdU16String(value);
+		m_data.date = attributes.GetAttribute(VALUE);
+		return true;
 	}
 
-	void OnEndElementDescription()
+	bool OnEndElementDescription()
 	{
-		m_stopped = true;
-		m_inputSource.SetStopped(true);
+		return false;
 	}
 
-	void ParseGenre(QString && value)
+	bool ParseGenre(const QString & value)
 	{
-		m_data.genres.push_back(std::move(value));
+		m_data.genres.push_back(value);
+		return true;
 	}
 
-	void ParseAuthorFirstName(QString && value)
+	bool ParseAuthorFirstName(const QString & value)
 	{
-		m_data.authors.back().first = std::move(value);
+		m_data.authors.back().first = value;
+		return true;
 	}
 
-	void ParseAuthorLastName(QString && value)
+	bool ParseAuthorLastName(const QString & value)
 	{
-		m_data.authors.back().last = std::move(value);
+		m_data.authors.back().last = value;
+		return true;
 	}
 
-	void ParseAuthorMiddleName(QString && value)
+	bool ParseAuthorMiddleName(const QString & value)
 	{
-		m_data.authors.back().middle = std::move(value);
+		m_data.authors.back().middle = value;
+		return true;
 	}
 
-	void ParseBookTitle(QString && value)
+	bool ParseBookTitle(const QString & value)
 	{
-		m_data.title = std::move(value);
+		m_data.title = value;
+		return true;
 	}
 
-	void ParseDate(QString && value)
+	bool ParseDate(const QString & value)
 	{
-		m_data.date = std::move(value);
+		m_data.date = value;
 		m_data.date.replace(".", "-");
+		return true;
 	}
 
-	void ParseDocumentInfoDate(QString && value)
+	bool ParseDocumentInfoDate(const QString & value)
 	{
 		if (!m_data.date.isEmpty())
-			return;
+			return true;
 
-		m_data.date = std::move(value);
+		m_data.date = value;
+		return true;
 	}
 
-	void ParseLang(QString && value)
+	bool ParseLang(const QString & value)
 	{
-		m_data.lang = std::move(value);
+		m_data.lang = value;
+		return true;
 	}
 
 	template <typename Value, size_t ArraySize, typename... ARGS>
-	void Parse(Value(&array)[ArraySize], ARGS &&... args)
+	bool Parse(Value(&array)[ArraySize], const QString & key, const ARGS &... args)
 	{
-		const auto & key = m_stack.ToString();
-		[[maybe_unused]]const auto parser = FindSecond(array, key.toStdString().data(), &SaxHandler::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
-		std::invoke(parser, *this, std::forward<ARGS>(args)...);
+		[[maybe_unused]]const auto parser = FindSecond(array, key.toStdString().data(), &Impl::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
+		return std::invoke(parser, *this, std::cref(args)...);
 	}
 
 private:
-	XmlStack m_stack;
 	const QString & m_fileName;
-	InputSource & m_inputSource;
-	bool m_stopped { false };
 
-	Fb2Parser::Data m_data {};
+	Data m_data {};
 };
 
-class XMLPlatformInitializer
-{
-	NON_COPY_MOVABLE(XMLPlatformInitializer)
-
-public:
-	XMLPlatformInitializer()
-	{
-		xercesc::XMLPlatformUtils::Initialize();
-	}
-
-	~XMLPlatformInitializer()
-	{
-		xercesc::XMLPlatformUtils::Terminate();
-	}
-};
-
-[[maybe_unused]] XMLPlatformInitializer INITIALIZER;
-
-class Parser
-{
-public:
-	explicit Parser(QIODevice & stream)
-		: m_inputSource(stream)
-	{
-		m_saxParser.setValidationScheme(xercesc::SAXParser::Val_Auto);
-		m_saxParser.setDoNamespaces(false);
-		m_saxParser.setDoSchema(false);
-		m_saxParser.setHandleMultipleImports(true);
-		m_saxParser.setValidationSchemaFullChecking(false);
-	}
-
-	Fb2Parser::Data Parse(const QString & fileName)
-	{
-		SaxHandler handler(fileName, m_inputSource);
-		m_saxParser.setDocumentHandler(&handler);
-		m_saxParser.setErrorHandler(&handler);
-
-		m_saxParser.parse(m_inputSource);
-
-		return handler.GetData();
-	}
-
-private:
-	xercesc::SAXParser m_saxParser;
-	InputSource m_inputSource;
-};
-
-
-}
-
-struct Fb2Parser::Impl
-{
-private:
-	QIODevice & m_stream;
-
-public:
-	Parser parser;
-	explicit Impl(QIODevice & stream)
-		: m_stream(stream)
-		, parser(m_stream)
-	{
-	}
-};
-
-Fb2Parser::Fb2Parser(QIODevice & stream)
-	: m_impl(stream)
+Fb2Parser::Fb2Parser(QIODevice & stream, const QString & fileName)
+	: m_impl(stream, fileName)
 {
 }
 
 Fb2Parser::~Fb2Parser() = default;
 
-Fb2Parser::Data Fb2Parser::Parse(const QString & fileName)
+Fb2Parser::Data Fb2Parser::Parse()
 {
-	return m_impl->parser.Parse(fileName);
+	return m_impl->GetData();
 }
