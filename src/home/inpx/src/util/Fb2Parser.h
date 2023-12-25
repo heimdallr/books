@@ -32,6 +32,8 @@ public:
 		QString lang;
 		QString series;
 		int seqNumber { -1 };
+
+		QString error;
 	};
 
 public:
