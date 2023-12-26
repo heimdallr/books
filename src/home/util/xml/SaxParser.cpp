@@ -246,8 +246,7 @@ private: // xercesc::ErrorHandler
 private:
 	void ProcessCharacters()
 	{
-		m_characters = m_characters.simplified();
-		if (m_characters.isEmpty())
+		if (m_characters.simplified().isEmpty())
 			return;
 
 		if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))

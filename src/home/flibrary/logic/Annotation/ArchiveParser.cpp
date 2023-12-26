@@ -186,7 +186,9 @@ private:
 
 	bool OnEndElementSection()
 	{
-		const auto remove = m_currentContentItem->GetData(NavigationItem::Column::Title).isEmpty();
+		auto title = m_currentContentItem->GetData(NavigationItem::Column::Title).simplified();
+		const auto remove = title.isEmpty();
+		m_currentContentItem->SetData(std::move(title), NavigationItem::Column::Title);
 		m_currentContentItem = m_currentContentItem->GetParent();
 		if (remove)
 			m_currentContentItem->RemoveChild();
