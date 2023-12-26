@@ -13,7 +13,8 @@
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"
 #include "shared/ZipProgressCallback.h"
-#include "util/SaxParser.h"
+#include "util/xml/SaxParser.h"
+#include "util/xml/XmlAttributes.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -85,12 +86,12 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString & name, const QString & path, const Attributes & attributes) override
+	bool OnStartElement(const QString & name, const QString & path, const Util::XmlAttributes & attributes) override
 	{
 		if (name.compare(A, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(L_HREF);
 
-		using ParseElementFunction = bool(XmlParser::*)(const Attributes &);
+		using ParseElementFunction = bool(XmlParser::*)(const Util::XmlAttributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
@@ -102,7 +103,7 @@ private: // Util::SaxParser
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & path) override
+	bool OnEndElement(const QString & /*name*/, const QString & path) override
 	{
 		const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
 		if (m_percents < percents)
@@ -162,7 +163,7 @@ private: // Util::SaxParser
 	}
 
 private:
-	bool OnStartElementCoverpageImage(const Attributes & attributes)
+	bool OnStartElementCoverpageImage(const Util::XmlAttributes & attributes)
 	{
 		m_coverpage = attributes.GetAttribute(L_HREF);
 		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
@@ -171,13 +172,13 @@ private:
 		return true;
 	}
 
-	bool OnStartElementBinary(const Attributes & attributes)
+	bool OnStartElementBinary(const Util::XmlAttributes & attributes)
 	{
 		m_covers.emplace_back(attributes.GetAttribute(ID), QByteArray {});
 		return true;
 	}
 
-	bool OnStartElementSection(const Attributes &)
+	bool OnStartElementSection(const Util::XmlAttributes &)
 	{
 		m_currentContentItem = m_currentContentItem->AppendChild(NavigationItem::Create()).get();
 		return true;
@@ -185,7 +186,9 @@ private:
 
 	bool OnEndElementSection()
 	{
-		const auto remove = m_currentContentItem->GetData(NavigationItem::Column::Title).isEmpty();
+		auto title = m_currentContentItem->GetData(NavigationItem::Column::Title).simplified();
+		const auto remove = title.isEmpty();
+		m_currentContentItem->SetData(std::move(title), NavigationItem::Column::Title);
 		m_currentContentItem = m_currentContentItem->GetParent();
 		if (remove)
 			m_currentContentItem->RemoveChild();

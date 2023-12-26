@@ -11,18 +11,13 @@ class QIODevice;
 
 namespace HomeCompa::Util {
 
+class XmlAttributes;
+
 class UTIL_EXPORT SaxParser
 {
 	NON_COPY_MOVABLE(SaxParser)
 
 public:
-	class Attributes  // NOLINT(cppcoreguidelines-special-member-functions)
-	{
-	public:
-		virtual ~Attributes() = default;
-		virtual QString GetAttribute(const QString & key) const = 0;
-	};
-
 	struct PszComparerEndsWithCaseInsensitive
 	{
 		bool operator()(const std::string_view lhs, const std::string_view rhs) const
@@ -62,8 +57,9 @@ public:
 	void Parse();
 
 public:
-	virtual bool OnStartElement(const QString & name, const QString & path, const Attributes & attributes) = 0;
-	virtual bool OnEndElement(const QString & path) = 0;
+	virtual bool OnProcessingInstruction(const QString & /*target*/, const QString & /*data*/) { return true; }
+	virtual bool OnStartElement(const QString & name, const QString & path, const XmlAttributes & attributes) = 0;
+	virtual bool OnEndElement(const QString & name, const QString & path) = 0;
 	virtual bool OnCharacters(const QString & path, const QString & value) = 0;
 
 	virtual bool OnWarning(const QString & text) = 0;

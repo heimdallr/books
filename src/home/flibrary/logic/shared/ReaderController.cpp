@@ -55,7 +55,7 @@ std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileNa
 		auto temporaryDir = std::make_shared<QTemporaryDir>();
 		const auto fileNameDst = temporaryDir->filePath(fileName);
 		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-			file.write(RestoreImages(stream.readAll(), archive, fileName));
+			file.write(RestoreImages(stream, archive, fileName));
 
 		fileName = fileNameDst;
 		return temporaryDir;

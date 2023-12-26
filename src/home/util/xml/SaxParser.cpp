@@ -9,6 +9,8 @@
 #include <QIODevice>
 #include <QStringList>
 
+#include "XmlAttributes.h"
+
 using namespace HomeCompa::Util;
 namespace xercesc = xercesc_3_2;
 
@@ -32,7 +34,7 @@ public:
 
 [[maybe_unused]] XMLPlatformInitializer INITIALIZER;
 
-class AttributesImpl final : public SaxParser::Attributes
+class XmlAttributesImpl final : public XmlAttributes
 {
 public:
 	void SetAttributeList(const xercesc::AttributeList & attributes) noexcept
@@ -46,6 +48,23 @@ private: // SaxParser::Attributes
 		if (const auto value = m_attributes->getValue(key.toStdU16String().data()))
 			return QString::fromStdU16String(value);
 		return {};
+	}
+
+	size_t GetCount() const override
+	{
+		return m_attributes->getLength();
+	}
+
+	QString GetName(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return QString::fromStdU16String(m_attributes->getName(index));
+	}
+
+	QString GetValue(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return QString::fromStdU16String(m_attributes->getValue(index));
 	}
 
 private:
@@ -153,7 +172,8 @@ private:
 	BinInputStream * m_binInputStream;
 };
 
-class SaxHandler final : public xercesc::HandlerBase
+class SaxHandler final
+	: public xercesc::HandlerBase
 {
 public:
 	explicit SaxHandler(SaxParser & parser, InputSource & inputSource)
@@ -162,8 +182,16 @@ public:
 	{
 	}
 private: // xercesc::DocumentHandler
+	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
+	{
+		if (m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
+			m_inputSource.SetStopped(true);
+	}
+
 	void startElement(const XMLCh * const name, xercesc::AttributeList & args) override
 	{
+		ProcessCharacters();
+
 		m_stack.Push(name);
 		const auto & key = m_stack.ToString();
 		m_attributes.SetAttributeList(args);
@@ -173,14 +201,9 @@ private: // xercesc::DocumentHandler
 
 	void endElement(const XMLCh * const name) override
 	{
-		if (m_characters = m_characters.simplified(); !m_characters.isEmpty())
-		{
-			if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
-				m_inputSource.SetStopped(true);
-			m_characters.clear();
-		}
+		ProcessCharacters();
 
-		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(key))
+		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
 			m_inputSource.SetStopped(true);
 
 		m_stack.Pop(name);
@@ -221,8 +244,20 @@ private: // xercesc::ErrorHandler
 	}
 
 private:
+	void ProcessCharacters()
+	{
+		if (m_characters.simplified().isEmpty())
+			return;
+
+		if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
+			m_inputSource.SetStopped(true);
+
+		m_characters.clear();
+	}
+
+private:
 	XmlStack m_stack;
-	AttributesImpl m_attributes{};
+	XmlAttributesImpl m_attributes{};
 
 	SaxParser & m_parser;
 	InputSource & m_inputSource;
