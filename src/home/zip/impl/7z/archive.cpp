@@ -2,6 +2,8 @@
 
 #include <ranges>
 
+#include <QDir>
+
 #include <atlcomcli.h>
 #include <Windows.h>
 #include <Shlwapi.h>
@@ -118,7 +120,7 @@ private: // IZip
 	std::unique_ptr<IFile> Read(const QString & filename) const override
 	{
 		CreateFileList();
-		const auto it = m_files.find(filename);
+		const auto it = m_files.find(QDir::fromNativeSeparators(filename));
 		if (it == m_files.end())
 			Error::CannotFindFileInArchive(filename);
 
@@ -135,7 +137,7 @@ private: // IZip
 	size_t GetFileSize(const QString & filename) const override
 	{
 		CreateFileList();
-		const auto it = m_files.find(filename);
+		const auto it = m_files.find(QDir::fromNativeSeparators(filename));
 		if (it == m_files.end())
 			Error::CannotFindFileInArchive(filename);
 
@@ -165,7 +167,7 @@ private:
 
 			archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
-				m_files.emplace(QString::fromStdWString(prop.bstrVal), FileItem { i, size });
+				m_files.emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size });
 		}
 	}
 
