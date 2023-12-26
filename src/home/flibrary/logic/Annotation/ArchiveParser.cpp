@@ -195,7 +195,7 @@ private:
 
 	bool ParseAnnotation(const QString & value)
 	{
-		m_data.annotation.append(QString("<p>%1</p>").arg(value));
+		m_data.annotation.append(value);
 		return true;
 	}
 
