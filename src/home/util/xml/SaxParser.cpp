@@ -50,6 +50,23 @@ private: // SaxParser::Attributes
 		return {};
 	}
 
+	size_t GetCount() const override
+	{
+		return m_attributes->getLength();
+	}
+
+	QString GetName(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return QString::fromStdU16String(m_attributes->getName(index));
+	}
+
+	QString GetValue(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return QString::fromStdU16String(m_attributes->getValue(index));
+	}
+
 private:
 	const xercesc::AttributeList * m_attributes { nullptr };
 };
