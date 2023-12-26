@@ -190,6 +190,8 @@ private: // xercesc::DocumentHandler
 
 	void startElement(const XMLCh * const name, xercesc::AttributeList & args) override
 	{
+		ProcessCharacters();
+
 		m_stack.Push(name);
 		const auto & key = m_stack.ToString();
 		m_attributes.SetAttributeList(args);
@@ -199,12 +201,7 @@ private: // xercesc::DocumentHandler
 
 	void endElement(const XMLCh * const name) override
 	{
-		if (m_characters = m_characters.simplified(); !m_characters.isEmpty())
-		{
-			if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
-				m_inputSource.SetStopped(true);
-			m_characters.clear();
-		}
+		ProcessCharacters();
 
 		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
 			m_inputSource.SetStopped(true);
@@ -244,6 +241,19 @@ private: // xercesc::ErrorHandler
 
 		if (!m_parser.OnFatalError(QString::fromStdU16String(exc.getMessage())))
 			m_inputSource.SetStopped(true);
+	}
+
+private:
+	void ProcessCharacters()
+	{
+		m_characters = m_characters.simplified();
+		if (m_characters.isEmpty())
+			return;
+
+		if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
+			m_inputSource.SetStopped(true);
+
+		m_characters.clear();
 	}
 
 private:
