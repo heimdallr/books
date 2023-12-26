@@ -1,8 +1,6 @@
 #include "ArchiveParser.h"
 
 #include <QFile>
-#include <QRegularExpression>
-#include <QXmlStreamReader>
 
 #include <plog/Log.h>
 
@@ -10,13 +8,13 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"
 #include "shared/ZipProgressCallback.h"
-
+#include "util/SaxParser.h"
 #include "zip.h"
-#include "interface/logic/IProgressController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -46,69 +44,19 @@ constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
 constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
 constexpr auto EPIGRAPH_AUTHOR = "FictionBook/body/epigraph/text-author";
 
-struct PszComparerEndsWithCaseInsensitive
-{
-	bool operator()(const std::string_view lhs, const std::string_view rhs) const
-	{
-		if (lhs.size() < rhs.size())
-			return false;
-
-		const auto * lp = lhs.data() + (lhs.size() - rhs.size()), * rp = rhs.data();
-		while (*lp && *rp && std::tolower(*lp++) == std::tolower(*rp++))
-			;
-
-		return !*lp && !*rp;
-	}
-};
-
-class XmlStack
-{
-public:
-	void Push(const QStringView tag)
-	{
-		m_data.push_back(tag.toString());
-		m_key.reset();
-	}
-
-	void Pop(const QStringView tag)
-	{
-		assert(!m_data.isEmpty());
-		if (tag != m_data.back())
-			return;
-
-		m_data.pop_back();
-		m_key.reset();
-	}
-
-	const QString & ToString() const
-	{
-		if (!m_key)
-			m_key = m_data.join('/');
-
-		return *m_key;
-	}
-
-private:
-	mutable std::optional<QString> m_key;
-	QStringList m_data;
-};
-
 class XmlParser final
-	: QXmlStreamReader
+	: public Util::SaxParser
 {
-	using ParseElementFunction = void(XmlParser::*)();
-	using ParseElementItem = std::pair<const char *, ParseElementFunction>;
-
 public:
 	explicit XmlParser(QIODevice & ioDevice)
-		: QXmlStreamReader(&ioDevice)
+		: SaxParser(ioDevice)
 		, m_ioDevice(ioDevice)
 		, m_total(m_ioDevice.size())
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 	}
 
-	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book, IProgressController::IProgressItem & progress)
+	ArchiveParser::Data Parse(const QString & rootFolder, const IDataItem & book, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 	{
 		if (m_total == 0)
 		{
@@ -117,35 +65,9 @@ public:
 			return m_data;
 		}
 
-		static constexpr std::pair<TokenType, ParseElementFunction> PARSERS[]
-		{
-			{ StartElement, &XmlParser::OnStartElement },
-			{ EndElement, &XmlParser::OnEndElement },
-			{ Characters, &XmlParser::OnCharacters },
-		};
+		m_progressItem = std::move(progressItem);
 
-		while (!atEnd() && !hasError())
-		{
-			if (progress.IsStopped())
-				return m_data;
-
-			const auto token = readNext();
-			if (token == Invalid)
-			{
-				m_data.error = QString("%1. %2").arg(error()).arg(errorString());
-				PLOGE << m_data.error;
-			}
-
-			const auto parser = FindSecond(PARSERS, token, &XmlParser::Stub<>);
-			std::invoke(parser, this);
-
-			const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
-			if (m_percents >= percents)
-				continue;
-
-			progress.Increment(percents - m_percents);
-			m_percents = percents;
-		}
+		SaxParser::Parse();
 
 		update_covers(rootFolder, book);
 
@@ -162,21 +84,14 @@ public:
 		return m_data;
 	}
 
-private:
-	template<typename... ARGS>
-	// ReSharper disable once CppMemberFunctionMayBeStatic
-	void Stub(ARGS &&...)
+private: // Util::SaxParser
+	bool OnStartElement(const QString & name, const QString & path, const Attributes & attributes) override
 	{
-	}
+		if (name.compare(A, Qt::CaseInsensitive) == 0)
+			m_href = attributes.GetAttribute(L_HREF);
 
-	void OnStartElement()
-	{
-		const auto tag = name();
-		m_stack.Push(tag);
-
-		if (tag.compare(A, Qt::CaseInsensitive) == 0)
-			m_href = attributes().value(L_HREF).toString();
-
+		using ParseElementFunction = bool(XmlParser::*)(const Attributes &);
+		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
 			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
@@ -184,119 +99,144 @@ private:
 			{ SECTION, &XmlParser::OnStartElementSection },
 		};
 
-		Parse(PARSERS);
+		return SaxParser::Parse(*this, PARSERS, path, attributes);
 	}
 
-	void OnEndElement()
+	bool OnEndElement(const QString & path) override
 	{
+		const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
+		if (m_percents < percents)
+		{
+			m_progressItem->Increment(percents - m_percents);
+			m_percents = percents;
+		}
+
+		using ParseElementFunction = bool(XmlParser::*)();
+		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
 			{ SECTION, &XmlParser::OnEndElementSection },
 		};
 
-		Parse(PARSERS);
-
-		m_stack.Pop(name());
+		return SaxParser::Parse(*this, PARSERS, path);
 	}
 
-	void OnCharacters()
+	bool OnCharacters(const QString & path, const QString & value) override
 	{
-		auto textValue = text().toString().simplified();
-		if (textValue.isEmpty())
-			return;
-
-		using ParseCharacterFunction = void(XmlParser::*)(QString&&);
+		using ParseCharacterFunction = bool(XmlParser::*)(const QString &);
 		using ParseCharacterItem = std::pair<const char *, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[]
 		{
-			{ ANNOTATION, &XmlParser::ParseAnnotation },
-			{ ANNOTATION_P, &XmlParser::ParseAnnotation },
-			{ ANNOTATION_HREF, &XmlParser::ParseAnnotationHref },
-			{ ANNOTATION_HREF_P, &XmlParser::ParseAnnotationHref },
-			{ KEYWORDS, &XmlParser::ParseKeywords },
-			{ BINARY, &XmlParser::ParseBinary },
-			{ SECTION_TITLE, &XmlParser::ParseSectionTitle },
-			{ SECTION_TITLE_P, &XmlParser::ParseSectionTitle },
+			{ ANNOTATION            , &XmlParser::ParseAnnotation },
+			{ ANNOTATION_P          , &XmlParser::ParseAnnotation },
+			{ ANNOTATION_HREF       , &XmlParser::ParseAnnotationHref },
+			{ ANNOTATION_HREF_P     , &XmlParser::ParseAnnotationHref },
+			{ KEYWORDS              , &XmlParser::ParseKeywords },
+			{ BINARY                , &XmlParser::ParseBinary },
+			{ SECTION_TITLE         , &XmlParser::ParseSectionTitle },
+			{ SECTION_TITLE_P       , &XmlParser::ParseSectionTitle },
 			{ SECTION_TITLE_P_STRONG, &XmlParser::ParseSectionTitle },
-			{ EPIGRAPH, &XmlParser::ParseEpigraph },
-			{ EPIGRAPH_P, &XmlParser::ParseEpigraph },
-			{ EPIGRAPH_AUTHOR, &XmlParser::ParseEpigraphAuthor },
+			{ EPIGRAPH              , &XmlParser::ParseEpigraph },
+			{ EPIGRAPH_P            , &XmlParser::ParseEpigraph },
+			{ EPIGRAPH_AUTHOR       , &XmlParser::ParseEpigraphAuthor },
 		};
 
-		Parse(PARSERS, std::move(textValue));
+		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
 
-	void OnStartElementCoverpageImage()
+	bool OnWarning(const QString & text) override
 	{
-		m_coverpage = attributes().value(L_HREF).toString();
+		m_data.error = text;
+		PLOGW << text;
+		return true;
+	}
+
+	bool OnError(const QString & text) override
+	{
+		return OnWarning(text);
+	}
+
+	bool OnFatalError(const QString & text) override
+	{
+		return OnWarning(text);
+	}
+
+private:
+	bool OnStartElementCoverpageImage(const Attributes & attributes)
+	{
+		m_coverpage = attributes.GetAttribute(L_HREF);
 		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
 			m_coverpage.removeFirst();
+
+		return true;
 	}
 
-	void OnStartElementBinary()
+	bool OnStartElementBinary(const Attributes & attributes)
 	{
-		m_covers.emplace_back(attributes().value(ID).toString(), QByteArray {});
+		m_covers.emplace_back(attributes.GetAttribute(ID), QByteArray {});
+		return true;
 	}
 
-	void OnStartElementSection()
+	bool OnStartElementSection(const Attributes &)
 	{
 		m_currentContentItem = m_currentContentItem->AppendChild(NavigationItem::Create()).get();
+		return true;
 	}
 
-	void OnEndElementSection()
+	bool OnEndElementSection()
 	{
 		const auto remove = m_currentContentItem->GetData(NavigationItem::Column::Title).isEmpty();
 		m_currentContentItem = m_currentContentItem->GetParent();
 		if (remove)
 			m_currentContentItem->RemoveChild();
+
+		return true;
 	}
 
-	void ParseAnnotation(QString && value)
+	bool ParseAnnotation(const QString & value)
 	{
 		m_data.annotation.append(QString("<p>%1</p>").arg(value));
+		return true;
 	}
 
-	void ParseAnnotationHref(QString && value)
+	bool ParseAnnotationHref(const QString & value)
 	{
 		m_data.annotation.append(QString(R"(<p><a href="%1">%2</a></p>)").arg(m_href).arg(value));
+		return true;
 	}
 
-	void ParseKeywords(QString && value)
+	bool ParseKeywords(const QString & value)
 	{
 		std::ranges::copy(value.split(",", Qt::SkipEmptyParts), std::back_inserter(m_data.keywords));
+		return true;
 	}
 
-	void ParseBinary(QString && value)
+	bool ParseBinary(const QString & value)
 	{
 		m_covers.back().second = QByteArray::fromBase64(value.toUtf8());
+		return true;
 	}
 
-	// ReSharper disable once CppMemberFunctionMayBeConst
-	void ParseSectionTitle(QString && value)
+	bool ParseSectionTitle(const QString & value)
 	{
 		if (std::ranges::all_of(value, [] (auto c) { return c.isDigit(); }))
-			return;
+			return true;
 
 		auto currentValue = m_currentContentItem->GetData(NavigationItem::Column::Title);
 		m_currentContentItem->SetData(currentValue.append(currentValue.isEmpty() ? "" : ". ").append(value), NavigationItem::Column::Title);
+		return true;
 	}
 
-	void ParseEpigraph(QString && value)
+	bool ParseEpigraph(const QString & value)
 	{
-		m_data.epigraph = std::move(value);
+		m_data.epigraph = value;
+		return true;
 	}
 
-	void ParseEpigraphAuthor(QString && value)
+	bool ParseEpigraphAuthor(const QString & value)
 	{
-		m_data.epigraphAuthor = std::move(value);
-	}
-
-	template <typename Value, size_t ArraySize, typename... ARGS>
-	void Parse(Value(&array)[ArraySize], ARGS &&... args)
-	{
-		const auto & key = m_stack.ToString();
-		const auto parser = FindSecond(array, key.toStdString().data(), &XmlParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
-		std::invoke(parser, *this, std::forward<ARGS>(args)...);
+		m_data.epigraphAuthor = value;
+		return true;
 	}
 
 	void update_covers(const QString & rootFolder, const IDataItem & book)
@@ -330,14 +270,15 @@ private:
 	}
 
 private:
-	XmlStack m_stack;
+	QIODevice & m_ioDevice;
+	int64_t m_total;
+	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
+
 	ArchiveParser::Data m_data;
 	QString m_href;
 	QString m_coverpage;
 	IDataItem * m_currentContentItem { m_data.content.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
-	QIODevice & m_ioDevice;
-	int64_t m_total;
 	int64_t m_percents { 0 };
 };
 
@@ -388,14 +329,14 @@ public:
 		{
 			m_extractArchivePercents = 0;
 			m_extractArchiveProgressItem = m_progressController->Add(100);
-			const auto parseProgressItem = m_progressController->Add(100);
+			auto parseProgressItem = m_progressController->Add(100);
 
 			const Zip zip(folder, m_zipProgressCallback);
 			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 			m_extractArchiveProgressItem.reset();
 
 			XmlParser parser(stream);
-			return parser.Parse(collection->folder, book, *parseProgressItem);
+			return parser.Parse(collection->folder, book, std::move(parseProgressItem));
 		}
 		catch(...) {}
 		return {};
