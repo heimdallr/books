@@ -9,6 +9,8 @@
 #include <QIODevice>
 #include <QStringList>
 
+#include "XmlAttributes.h"
+
 using namespace HomeCompa::Util;
 namespace xercesc = xercesc_3_2;
 
@@ -32,7 +34,7 @@ public:
 
 [[maybe_unused]] XMLPlatformInitializer INITIALIZER;
 
-class AttributesImpl final : public SaxParser::Attributes
+class XmlAttributesImpl final : public XmlAttributes
 {
 public:
 	void SetAttributeList(const xercesc::AttributeList & attributes) noexcept
@@ -153,7 +155,8 @@ private:
 	BinInputStream * m_binInputStream;
 };
 
-class SaxHandler final : public xercesc::HandlerBase
+class SaxHandler final
+	: public xercesc::HandlerBase
 {
 public:
 	explicit SaxHandler(SaxParser & parser, InputSource & inputSource)
@@ -162,6 +165,12 @@ public:
 	{
 	}
 private: // xercesc::DocumentHandler
+	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
+	{
+		if (m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
+			m_inputSource.SetStopped(true);
+	}
+
 	void startElement(const XMLCh * const name, xercesc::AttributeList & args) override
 	{
 		m_stack.Push(name);
@@ -180,7 +189,7 @@ private: // xercesc::DocumentHandler
 			m_characters.clear();
 		}
 
-		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(key))
+		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
 			m_inputSource.SetStopped(true);
 
 		m_stack.Pop(name);
@@ -222,7 +231,7 @@ private: // xercesc::ErrorHandler
 
 private:
 	XmlStack m_stack;
-	AttributesImpl m_attributes{};
+	XmlAttributesImpl m_attributes{};
 
 	SaxParser & m_parser;
 	InputSource & m_inputSource;

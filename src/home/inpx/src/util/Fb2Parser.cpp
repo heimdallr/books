@@ -6,7 +6,8 @@
 
 #include "fnd/FindPair.h"
 
-#include "util/SaxParser.h"
+#include "util/xml/SaxParser.h"
+#include "util/xml/XmlAttributes.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
@@ -50,9 +51,9 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString & /*name*/, const QString & path, const Attributes & attributes) override
+	bool OnStartElement(const QString & /*name*/, const QString & path, const Util::XmlAttributes & attributes) override
 	{
-		using ParseElementFunction = bool(Impl::*)(const Attributes &);
+		using ParseElementFunction = bool(Impl::*)(const Util::XmlAttributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
@@ -64,7 +65,7 @@ private: // Util::SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & path) override
+	bool OnEndElement(const QString & /*name*/, const QString & path) override
 	{
 		using ParseElementFunction = bool(Impl::*)();
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
@@ -114,20 +115,20 @@ private: // Util::SaxParser
 	}
 
 private:
-	bool OnStartElementAuthor(const Attributes & )
+	bool OnStartElementAuthor(const Util::XmlAttributes & )
 	{
 		m_data.authors.emplace_back();
 		return true;
 	}
 
-	bool OnStartElementSequence(const Attributes & attributes)
+	bool OnStartElementSequence(const Util::XmlAttributes & attributes)
 	{
 		m_data.series = attributes.GetAttribute(NAME);
 		m_data.seqNumber = attributes.GetAttribute(NUMBER).toInt();
 		return true;
 	}
 
-	bool OnStartDocumentInfoDate(const Attributes & attributes)
+	bool OnStartDocumentInfoDate(const Util::XmlAttributes & attributes)
 	{
 		m_data.date = attributes.GetAttribute(VALUE);
 		return true;
