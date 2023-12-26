@@ -8,7 +8,6 @@
 
 #include <QDir>
 #include <QFile>
-#include <QXmlStreamReader>
 
 #include <plog/Log.h>
 
@@ -995,7 +994,7 @@ private:
 			if (!m_foldersToParse.empty())
 			{
 				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-				const auto maxThreadCount = std::min(cpuCount, 2);
+				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
 				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
 
 				while (true)
@@ -1014,7 +1013,7 @@ private:
 			}
 		}
 
-		LogUnknownGenres();
+		LogErrors();
 	}
 
 	void ProcessInpx(QIODevice & stream, const std::filesystem::path & rootFolder, std::wstring folder)
@@ -1068,8 +1067,17 @@ private:
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
-		Fb2Parser parser(stream);
-		const auto parserData = parser.Parse(fileName);
+		Fb2Parser parser(stream, fileName);
+		const auto parserData = parser.Parse();
+		PLOGI_IF(++m_parsedN % LOG_INTERVAL == 0) << m_parsedN << " books parsed";
+
+		if (!parserData.error.isEmpty())
+		{
+			std::lock_guard lock(m_dataGuard);
+			m_errors.push_back(QString("%1/%2: %3").arg(QString::fromStdWString(folder), fileName, parserData.error));
+			return;
+		}
+
 		const auto values = QStringList()
 			<< ToString(parserData.authors)
 			<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
@@ -1086,12 +1094,11 @@ private:
 			<< "0"
 			;
 
-		[[maybe_unused]]const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
-		[[maybe_unused]]const auto buf = ParseBook(line);
+		const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
+		const auto buf = ParseBook(line);
 
 		std::lock_guard lock(m_dataGuard);
 		AddBook(files, buf, folder);
-		PLOGI_IF(++m_parsedN % (LOG_INTERVAL / 10) == 0) << m_parsedN << " books parsed";
 	}
 
 	void AddBook(std::set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
@@ -1135,14 +1142,21 @@ private:
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
 
-	void LogUnknownGenres() const
+	void LogErrors() const
 	{
-		if (std::empty(m_unknownGenres))
-			return;
+		if (!std::empty(m_unknownGenres))
+		{
+			PLOGW << "Unknown genres:";
+			for (const auto & genre : m_unknownGenres)
+				PLOGW << genre;
+		}
 
-		PLOGW << "Unknown genres:";
-		for (const auto & genre : m_unknownGenres)
-			PLOGW << genre;
+		if (!std::empty(m_errors))
+		{
+			PLOGE << "Parsing skipped due to errors:";
+			for (const auto & error : m_errors)
+				PLOGE << error;
+		}
 	}
 
 private:
@@ -1158,6 +1172,8 @@ private:
 	std::atomic_uint64_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
+
+	std::vector<QString> m_errors;
 
 	std::queue<std::wstring> m_foldersToParse;
 	std::mutex m_foldersToParseGuard;

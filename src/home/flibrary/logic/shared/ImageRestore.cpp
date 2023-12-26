@@ -12,8 +12,7 @@ namespace HomeCompa::Flibrary {
 QByteArray RestoreImages(const QByteArray & input, const QString & folder, const QString & fileName)
 {
 	QDomDocument doc;
-	QString errorMsg;
-	if (!doc.setContent(input, &errorMsg))
+	if (!doc.setContent(input))
 		return input;
 
 	const auto root = doc.documentElement();

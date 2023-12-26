@@ -4,6 +4,7 @@ AddTarget(Util	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
 		Qt6::Gui
+		xercesc
 	LINK_TARGETS
 		logging
 )
