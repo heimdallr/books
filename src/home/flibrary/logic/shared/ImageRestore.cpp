@@ -7,10 +7,14 @@
 
 #include "zip.h"
 
-namespace HomeCompa::Flibrary {
+using namespace HomeCompa;
+using namespace Flibrary;
 
-QByteArray RestoreImages(const QByteArray & input, const QString & folder, const QString & fileName)
+namespace {
+
+QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const QString & fileName)
 {
+	auto input = stream.readAll();
 	QDomDocument doc;
 	if (!doc.setContent(input))
 		return input;
@@ -45,7 +49,7 @@ QByteArray RestoreImages(const QByteArray & input, const QString & folder, const
 	};
 
 
-	for (auto& node : nodes)
+	for (auto & node : nodes)
 	{
 		const auto bytes = read(node.attributes().namedItem("id").nodeValue());
 		if (bytes.isEmpty())
@@ -58,6 +62,15 @@ QByteArray RestoreImages(const QByteArray & input, const QString & folder, const
 	doc.removeChild(doc.firstChild());
 	doc.insertBefore(doc.createProcessingInstruction("xml", R"(version="1.0" encoding="utf-8")"), doc.firstChild());
 	return doc.toByteArray();
+}
+
+}
+
+namespace HomeCompa::Flibrary {
+
+QByteArray RestoreImages(QIODevice & input, const QString & folder, const QString & fileName)
+{
+	return RestoreImagesImpl(input, folder, fileName);
 }
 
 std::unique_ptr<Zip> CreateImageArchive(const QString & folder)

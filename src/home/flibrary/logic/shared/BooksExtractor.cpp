@@ -77,9 +77,8 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input
 		if(!remove(result.second))
 			return result;
 
-	const auto extractedBytes = input.readAll();
-	const auto bytes = RestoreImages(extractedBytes, folder, book.file);
-	progress.Increment(extractedBytes.size());
+	const auto bytes = RestoreImages(input, folder, book.file);
+	progress.Increment(input.size());
 
 	result.first = archive ? Archive(bytes, result.second, dstFileInfo.fileName()) : Write(bytes, result.second);
 
