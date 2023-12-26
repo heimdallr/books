@@ -87,8 +87,9 @@ private:
 class BinInputStream final : public xercesc_3_2::BinInputStream
 {
 public:
-	explicit BinInputStream(QIODevice & source)
+	BinInputStream(QIODevice & source, const int64_t maxChunkSize)
 		: m_source(source)
+		, m_maxChunkSize(maxChunkSize)
 	{
 	}
 
@@ -115,19 +116,20 @@ private: // xercesc::BinInputStream
 
 	XMLSize_t readBytes(XMLByte * const toFill, const XMLSize_t maxToRead) override
 	{
-		return m_stopped ? 0 : m_source.read(reinterpret_cast<char *>(toFill), static_cast<qint64>(maxToRead));
+		return m_stopped ? 0 : m_source.read(reinterpret_cast<char *>(toFill), std::min(static_cast<int64_t>(maxToRead), m_maxChunkSize));
 	}
 
 private:
 	QIODevice & m_source;
+	const int64_t m_maxChunkSize;
 	bool m_stopped { false };
 };
 
 class InputSource final : public xercesc::InputSource
 {
 public:
-	explicit InputSource(QIODevice & source)
-		: m_binInputStream(new BinInputStream(source))
+	InputSource(QIODevice & source, const int64_t maxChunkSize)
+		: m_binInputStream(new BinInputStream(source, maxChunkSize))
 	{
 	}
 
@@ -165,7 +167,7 @@ private: // xercesc::DocumentHandler
 		m_stack.Push(name);
 		const auto & key = m_stack.ToString();
 		m_attributes.SetAttributeList(args);
-		if (!m_parser.OnStartElement(key, m_attributes))
+		if (!m_parser.OnStartElement(QString::fromStdU16String(name), key, m_attributes))
 			m_inputSource.SetStopped(true);
 	}
 
@@ -231,9 +233,9 @@ private:
 class SaxParser::Impl
 {
 public:
-	explicit Impl(SaxParser & self, QIODevice & stream)
+	explicit Impl(SaxParser & self, QIODevice & stream, const int64_t maxChunkSize)
 		: m_self(self)
-		, m_inputSource(stream)
+		, m_inputSource(stream, maxChunkSize)
 	{
 		m_saxParser.setValidationScheme(xercesc::SAXParser::Val_Auto);
 		m_saxParser.setDoNamespaces(false);
@@ -257,8 +259,8 @@ private:
 	InputSource m_inputSource;
 };
 
-SaxParser::SaxParser(QIODevice & stream)
-	: m_impl(*this, stream)
+SaxParser::SaxParser(QIODevice & stream, const int64_t maxChunkSize)
+	: m_impl(*this, stream, maxChunkSize)
 {
 }
 

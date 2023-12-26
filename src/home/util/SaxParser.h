@@ -39,14 +39,30 @@ public:
 	};
 
 protected:
-	explicit SaxParser(QIODevice & stream);
+	explicit SaxParser(QIODevice & stream, int64_t maxChunkSize = std::numeric_limits<int64_t>::max());
 	virtual ~SaxParser();
+
+protected:
+	template <typename Obj, typename Value, size_t ArraySize, typename... ARGS>
+	bool Parse(Obj & obj, Value(&array)[ArraySize], const QString & key, const ARGS &... args)
+	{
+		const auto parser = FindSecond(array, key.toStdString().data(), &SaxParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
+		return std::invoke(parser, obj, std::cref(args)...);
+	}
+
+private:
+	template<typename... ARGS>
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	bool Stub(const ARGS &...)
+	{
+		return true;
+	}
 
 public:
 	void Parse();
 
 public:
-	virtual bool OnStartElement(const QString & path, const Attributes & attributes) = 0;
+	virtual bool OnStartElement(const QString & name, const QString & path, const Attributes & attributes) = 0;
 	virtual bool OnEndElement(const QString & path) = 0;
 	virtual bool OnCharacters(const QString & path, const QString & value) = 0;
 

@@ -30,26 +30,27 @@ constexpr auto DOCUMENT_INFO_DATE = "FictionBook/description/document-info/date"
 
 }
 
-class Fb2Parser::Impl final : public Util::SaxParser
+class Fb2Parser::Impl final
+	: public Util::SaxParser
 {
 public:
 	explicit Impl(QIODevice & stream, const QString & fileName)
-		: SaxParser(stream)
+		: SaxParser(stream, 512)
 		, m_fileName(fileName)
 	{
 	}
 
 	Data GetData()
 	{
-		SaxParser::Parse();
+		Parse();
 
 		auto data = std::move(m_data);
 		m_data = {};
 		return data;
 	}
 
-private:
-	bool OnStartElement(const QString & path, const Attributes & attributes) override
+private: // Util::SaxParser
+	bool OnStartElement(const QString & /*name*/, const QString & path, const Attributes & attributes) override
 	{
 		using ParseElementFunction = bool(Impl::*)(const Attributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
@@ -60,7 +61,7 @@ private:
 			{ DOCUMENT_INFO_DATE, &Impl::OnStartDocumentInfoDate },
 		};
 
-		return Parse(PARSERS, path, attributes);
+		return Parse(*this, PARSERS, path, attributes);
 	}
 
 	bool OnEndElement(const QString & path) override
@@ -72,7 +73,7 @@ private:
 			{ DESCRIPTION, &Impl::OnEndElementDescription },
 		};
 
-		return Parse(PARSERS, path);
+		return Parse(*this, PARSERS, path);
 	}
 
 	bool OnCharacters(const QString & path, const QString & value) override
@@ -91,7 +92,7 @@ private:
 			{ DOCUMENT_INFO_DATE, &Impl::ParseDocumentInfoDate },
 		};
 
-		return Parse(PARSERS, path, value);
+		return Parse(*this, PARSERS, path, value);
 	}
 
 	bool OnWarning(const QString & text) override
@@ -113,13 +114,6 @@ private:
 	}
 
 private:
-	template<typename... ARGS>
-	// ReSharper disable once CppMemberFunctionMayBeStatic
-	bool Stub(const ARGS &...)
-	{
-		return true;
-	}
-
 	bool OnStartElementAuthor(const Attributes & )
 	{
 		m_data.authors.emplace_back();
@@ -194,13 +188,6 @@ private:
 	{
 		m_data.lang = value;
 		return true;
-	}
-
-	template <typename Value, size_t ArraySize, typename... ARGS>
-	bool Parse(Value(&array)[ArraySize], const QString & key, const ARGS &... args)
-	{
-		[[maybe_unused]]const auto parser = FindSecond(array, key.toStdString().data(), &Impl::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
-		return std::invoke(parser, *this, std::cref(args)...);
 	}
 
 private:
