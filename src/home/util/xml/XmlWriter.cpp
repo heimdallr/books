@@ -1,5 +1,7 @@
 #include "XmlWriter.h"
 
+#include <set>
+
 #include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/util/XMLUniDefs.hpp>
 
@@ -11,6 +13,7 @@ using namespace HomeCompa::Util;
 using namespace xercesc_3_2;
 
 namespace {
+
 constexpr XMLCh gEndElement[] = { chOpenAngle, chForwardSlash, chNull };
 constexpr XMLCh gEndPI[] = { chQuestion, chCloseAngle, chNull };
 constexpr XMLCh gStartPI[] = { chOpenAngle, chQuestion, chNull };
@@ -26,7 +29,17 @@ constexpr XMLCh gXMLDecl1[] =
 
 constexpr XMLCh gXMLDecl2[] =
 {
-	chDoubleQuote, chQuestion, chCloseAngle, chLF, chNull
+	chDoubleQuote, chQuestion, chCloseAngle, chNull
+};
+
+constexpr XMLCh gXMLEndLine[] =
+{
+	chLF, chNull
+};
+
+constexpr XMLCh gXMLTab[] =
+{
+	chHTab, chNull
 };
 
 }
@@ -53,27 +66,46 @@ public:
 
 	void WriteStartElement(const QString & name, const XmlAttributes & attributes)
 	{
+		CloseTag();
+		BreakLine(name);
+		++m_level;
+
 		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
 
-		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			m_formatter << XMLFormatter::NoEscapes
-			<< chSpace << attributes.GetName(i).toStdU16String().data()
-			<< chEqual << chDoubleQuote
-			<< XMLFormatter::AttrEscapes
-			<< attributes.GetValue(i).toStdU16String().data()
-			<< XMLFormatter::NoEscapes
-			<< chDoubleQuote;
+		const auto attributeCount = attributes.GetCount();
+		if (attributeCount == 0)
+		{
+			m_tagOpened = true;
+			return;
+		}
+
+		for (size_t i = 0; i < attributeCount; ++i)
+			m_formatter
+				<< XMLFormatter::NoEscapes
+				<< chSpace << attributes.GetName(i).toStdU16String().data()
+				<< chEqual << chDoubleQuote
+				<< XMLFormatter::AttrEscapes
+				<< attributes.GetValue(i).toStdU16String().data()
+				<< XMLFormatter::NoEscapes
+				<< chDoubleQuote
+				;
 
 		m_formatter << chCloseAngle;
 	}
 
 	void WriteEndElement(const QString & name)
 	{
-		m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
+		--m_level;
+		if (m_tagOpened)
+			m_formatter << XMLFormatter::NoEscapes << chForwardSlash << chCloseAngle;
+		else
+			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
+		m_tagOpened = false;
 	}
 
 	void WriteCharacters(const QString & data)
 	{
+		CloseTag();
 		const auto chars = data.toStdU16String();
 		m_formatter.formatBuf(chars.data(), chars.length(), XMLFormatter::CharEscapes);
 	}
@@ -85,8 +117,33 @@ private: // XMLFormatTarget
 	}
 
 private:
+	void BreakLine(const QString & name)
+	{
+		if (m_unbreakableTags.contains(name))
+			return;
+
+		m_formatter << gXMLEndLine;
+		for (int i = 0; i < m_level; ++i)
+			m_formatter << gXMLTab;
+	}
+
+	void CloseTag()
+	{
+		if (!m_tagOpened)
+			return;
+
+		m_formatter << XMLFormatter::NoEscapes << chCloseAngle;
+		m_tagOpened = false;
+
+	}
+
+private:
 	QIODevice & m_stream;
 	XMLFormatter m_formatter;
+	int m_level { 0 };
+	bool m_tagOpened { false };
+
+	std::set<QString> m_unbreakableTags{ "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code"};
 };
 
 XmlWriter::XmlWriter(QIODevice & stream)

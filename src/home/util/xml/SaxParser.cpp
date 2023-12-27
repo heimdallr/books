@@ -9,9 +9,12 @@
 #include <QIODevice>
 #include <QStringList>
 
+#include "fnd/ScopedCall.h"
+
 #include "XmlAttributes.h"
 
-using namespace HomeCompa::Util;
+using namespace HomeCompa;
+using namespace Util;
 namespace xercesc = xercesc_3_2;
 
 namespace {
@@ -246,13 +249,13 @@ private: // xercesc::ErrorHandler
 private:
 	void ProcessCharacters()
 	{
+		ScopedCall clearGuard([&] { m_characters.clear(); });
+
 		if (m_characters.simplified().isEmpty())
 			return;
 
 		if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
 			m_inputSource.SetStopped(true);
-
-		m_characters.clear();
 	}
 
 private:
