@@ -363,37 +363,37 @@ Try again?</source>
 <context>
     <name>UserData</name>
     <message>
-        <location filename="../../userdata/backup.cpp" line="27"/>
+        <location filename="../../userdata/backup.cpp" line="30"/>
         <source>Cannot write to &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="27"/>
+        <location filename="../../userdata/restore.cpp" line="54"/>
         <source>Cannot read from %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="28"/>
+        <location filename="../../userdata/restore.cpp" line="58"/>
         <source>Invalid root node name, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="29"/>
+        <location filename="../../userdata/restore.cpp" line="59"/>
         <source>Cannot find version node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="30"/>
+        <location filename="../../userdata/restore.cpp" line="60"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="31"/>
+        <location filename="../../userdata/restore.cpp" line="61"/>
         <source>%1: must be integer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="32"/>
+        <location filename="../../userdata/restore.cpp" line="62"/>
         <source>Cannot find user data node, must be %1</source>
         <translation></translation>
     </message>

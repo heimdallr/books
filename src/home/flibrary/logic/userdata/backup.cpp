@@ -1,9 +1,11 @@
+#include "backup.h"
+
 #include <QFile>
 #include <QString>
-#include <QXmlStreamWriter>
 
 #include <plog/Log.h>
 
+#include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -18,7 +20,8 @@
 #include "constants/groups.h"
 #include "constants/searches.h"
 
-#include "backup.h"
+#include "util/xml/XmlAttributes.h"
+#include "util/xml/XmlWriter.h"
 
 namespace HomeCompa::Flibrary::UserData {
 
@@ -26,9 +29,58 @@ namespace {
 
 constexpr auto CANNOT_WRITE = QT_TRANSLATE_NOOP("UserData", "Cannot write to '%1'");
 
-using BackupFunction = void(*)(DB::IDatabase & db, QXmlStreamWriter & stream);
+using BackupFunction = void(*)(DB::IDatabase & db, Util::XmlWriter &);
 
-void BackupUserDataBooks(DB::IDatabase & db, QXmlStreamWriter & stream)
+class XmlAttributes final
+	: public Util::XmlAttributes
+{
+public:
+	template <std::ranges::input_range R>
+	XmlAttributes(const R & r, DB::IQuery & query)
+	{
+		m_values.reserve(std::size(r));
+		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0] (const auto & value) mutable
+		{
+			return std::pair(value, query.Get<const char *>(n++));
+		});
+	}
+
+	XmlAttributes() = default;
+
+	XmlAttributes(QString name, QString value)
+		: m_values({ std::make_pair(std::move(name), std::move(value)) })
+	{
+	}
+
+private: // Util::XmlAttributes
+	QString GetAttribute(const QString & key) const override
+	{
+		return FindSecond(m_values, key, s_empty);
+	}
+
+	size_t GetCount() const override
+	{
+		return std::size(m_values);
+	}
+
+	QString GetName(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return m_values[index].first;
+	}
+
+	QString GetValue(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return m_values[index].second;
+	}
+
+private:
+	std::vector<std::pair<QString, QString>> m_values;
+	const QString s_empty;
+};
+
+void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
 		"select b.Folder, b.FileName, u.IsDeleted "
@@ -46,52 +98,59 @@ void BackupUserDataBooks(DB::IDatabase & db, QXmlStreamWriter & stream)
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
 	{
-		ScopedCall item([&] { stream.writeStartElement(Constant::ITEM); }, [&] { stream.writeEndElement(); });
-		for (size_t i = 0, sz = std::size(fields); i < sz; ++i)
-			assert(query->ColumnName(i) == fields[i]), stream.writeAttribute(fields[i], query->Get<const char *>(i));
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
+		xmlWriter.WriteEndElement(Constant::ITEM);
 	}
 }
 
-void BackupUserDataGroups(DB::IDatabase & db, QXmlStreamWriter & stream)
+void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select g.Title, b.Folder, b.FileName "
+		"select b.Folder, b.FileName, g.Title "
 		"from Groups_User g "
 		"join Groups_List_User gl on gl.GroupID = g.GroupID "
 		"join Books b on b.BookID = gl.BookID "
 		"order by g.GroupID"
 		;
 
+	static constexpr const char * fields[] =
+	{
+		Constant::UserData::Books::Folder,
+		Constant::UserData::Books::FileName,
+	};
+
 	std::unique_ptr<ScopedCall> group;
 	QString currentTitle;
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		QString title = query->Get<const char *>(0);
+		QString title = query->Get<const char *>(2);
 		if (currentTitle != title)
 		{
 			currentTitle = std::move(title);
 			group.reset();
-			std::make_unique<ScopedCall>([&] { stream.writeStartElement(Constant::UserData::Groups::GroupNode); }, [&] { stream.writeEndElement(); }).swap(group);
-			stream.writeAttribute(Constant::TITLE, currentTitle);
+			std::make_unique<ScopedCall>([&] { xmlWriter.WriteStartElement(Constant::UserData::Groups::GroupNode, XmlAttributes(Constant::TITLE, currentTitle)); }, [&] { xmlWriter.WriteEndElement(Constant::UserData::Groups::GroupNode); }).swap(group);
 		}
 
-		ScopedCall item([&] { stream.writeStartElement(Constant::ITEM); }, [&] { stream.writeEndElement(); });
-		stream.writeAttribute(Constant::UserData::Books::Folder, query->Get<const char *>(1));
-		stream.writeAttribute(Constant::UserData::Books::FileName, query->Get<const char *>(2));
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
+		xmlWriter.WriteEndElement(Constant::ITEM);
 	}
 }
 
-void BackupUserDataSearches(DB::IDatabase & db, QXmlStreamWriter & stream)
+void BackupUserDataSearches(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text = "select s.Title from Searches_User s ";
+
+	static constexpr const char * fields[] =
+	{
+		Constant::TITLE,
+	};
 
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		ScopedCall item([&] { stream.writeStartElement(Constant::ITEM); }, [&] { stream.writeEndElement();});
-		QString title = query->Get<const char *>(0);
-		stream.writeAttribute(Constant::TITLE, title);
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
+		xmlWriter.WriteEndElement(Constant::ITEM);
 	}
 }
 
@@ -121,16 +180,14 @@ void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Ca
 			return result;
 		}
 
-		QXmlStreamWriter stream(&out);
-		stream.setAutoFormatting(true);
-		ScopedCall document([&] { stream.writeStartDocument(); }, [&] { stream.writeEndDocument(); });
-		ScopedCall rootElement([&] { stream.writeStartElement(Constant::FlibraryBackup); }, [&] { stream.writeEndElement(); });
-		ScopedCall ([&] { stream.writeStartElement(Constant::FlibraryBackupVersion); stream.writeAttribute(Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber)); }, [&] { stream.writeEndElement(); });
-		ScopedCall userData([&] { stream.writeStartElement(Constant::FlibraryUserData); }, [&] { stream.writeEndElement(); });
+		Util::XmlWriter xmlWriter(out);
+		ScopedCall rootElement([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryBackup); });
+		ScopedCall ([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion, XmlAttributes(Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber)));}, [&] { xmlWriter.WriteEndElement(Constant::FlibraryBackupVersion); });
+		ScopedCall userData([&] { xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryUserData); });
 		for (const auto & [name, functor] : BACKUPERS)
 		{
-			ScopedCall item([&] { stream.writeStartElement(name); }, [&] { stream.writeEndElement(); });
-			functor(db, stream);
+			ScopedCall item([&] { xmlWriter.WriteStartElement(name, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(name); });
+			functor(db, xmlWriter);
 		}
 
 		return result = [callback = std::move(callback)](size_t){ callback({}); };

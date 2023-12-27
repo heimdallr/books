@@ -2,6 +2,7 @@
 
 #include <QString>
 
+#include "fnd/FindPair.h"
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
@@ -41,15 +42,19 @@ protected:
 	template <typename Obj, typename Value, size_t ArraySize, typename... ARGS>
 	bool Parse(Obj & obj, Value(&array)[ArraySize], const QString & key, const ARGS &... args)
 	{
+		m_processed = true;
 		const auto parser = FindSecond(array, key.toStdString().data(), &SaxParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
 		return std::invoke(parser, obj, std::cref(args)...);
 	}
+
+	bool IsLastItemProcessed() const noexcept;
 
 private:
 	template<typename... ARGS>
 	// ReSharper disable once CppMemberFunctionMayBeStatic
 	bool Stub(const ARGS &...)
 	{
+		m_processed = false;
 		return true;
 	}
 
@@ -69,6 +74,7 @@ public:
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
+	bool m_processed { true };
 };
 
 }

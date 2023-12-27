@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 class QString;
 
 namespace HomeCompa::Flibrary::UserData {

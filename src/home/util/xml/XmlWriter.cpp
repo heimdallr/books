@@ -30,12 +30,19 @@ constexpr XMLCh gXMLDecl2[] = { chDoubleQuote, chQuestion, chCloseAngle, chNull 
 class XmlWriter::Impl final
 	: public XMLFormatTarget
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	explicit Impl(QIODevice & stream)
 		: m_stream(stream)
 		, m_formatter("utf-8", this, XMLFormatter::NoEscapes, XMLFormatter::UnRep_CharRef)
 	{
 		m_formatter << gXMLDecl1 << m_formatter.getEncodingName() << gXMLDecl2;
+	}
+
+	~Impl() override
+	{
+		m_formatter << chLF;
 	}
 
 	void WriteProcessingInstruction(const QString & target, const QString & data)
@@ -55,14 +62,7 @@ public:
 
 		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
 
-		const auto attributeCount = attributes.GetCount();
-		if (attributeCount == 0)
-		{
-			m_tagOpened = true;
-			return;
-		}
-
-		for (size_t i = 0; i < attributeCount; ++i)
+		for (size_t i = 0, attributeCount = attributes.GetCount(); i < attributeCount; ++i)
 			m_formatter
 				<< XMLFormatter::NoEscapes
 				<< chSpace << attributes.GetName(i).toStdU16String().data()
@@ -73,17 +73,23 @@ public:
 				<< chDoubleQuote
 				;
 
-		m_formatter << chCloseAngle;
+		m_tagOpened = true;
 	}
 
 	void WriteEndElement(const QString & name)
 	{
 		--m_level;
 		if (m_tagOpened)
+		{
 			m_formatter << XMLFormatter::NoEscapes << chForwardSlash << chCloseAngle;
+			m_tagOpened = false;
+		}
 		else
+		{
+			if (name != m_lastElement)
+				BreakLine(name);
 			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
-		m_tagOpened = false;
+		}
 	}
 
 	void WriteCharacters(const QString & data)
@@ -105,6 +111,8 @@ private:
 		if (m_unbreakableTags.contains(name))
 			return;
 
+		m_lastElement = name;
+
 		m_formatter << chLF;
 		for (int i = 0; i < m_level; ++i)
 			m_formatter << chHTab;
@@ -125,8 +133,9 @@ private:
 	XMLFormatter m_formatter;
 	int m_level { 0 };
 	bool m_tagOpened { false };
+	QString m_lastElement;
 
-	std::set<QString> m_unbreakableTags{ "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code"};
+	std::set<QString> m_unbreakableTags{ "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code", "image" };
 };
 
 XmlWriter::XmlWriter(QIODevice & stream)

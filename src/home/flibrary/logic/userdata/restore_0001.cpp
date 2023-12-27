@@ -1,143 +1,214 @@
-#include <QXmlStreamReader>
+#include "fnd/FindPair.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
+
 #include "constants/books.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
-#include "constants/UserData.h"
-#include "database/interface/IQuery.h"
+
 #include "shared/DatabaseUser.h"
+#include "util/xml/XmlAttributes.h"
+
+#include "restore.h"
 
 namespace HomeCompa::Flibrary::UserData {
 
-void RestoreBooks1(DB::IDatabase & db, QXmlStreamReader & reader)
+namespace {
+
+struct Book
 {
-	using namespace Constant::UserData::Books;
-	static constexpr auto commandText =
-		"insert into Books_User(BookID, IsDeleted) "
-		"select BookID, ? "
-		"from Books "
-		"where Folder = ? and FileName = ?"
-		;
-	assert(reader.name().compare(RootNode) == 0);
+	QString folder;
+	QString fileName;
 
-	const auto transaction = db.CreateTransaction();
-	transaction->CreateCommand("delete from Books_User")->Execute();
-
-	const auto command = transaction->CreateCommand(commandText);
-
-	while (!reader.atEnd() && !reader.hasError())
+	explicit Book(const Util::XmlAttributes & attributes)
+		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
+		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
 	{
-		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::EndElement && reader.name().compare(RootNode) == 0)
-			return transaction->Commit();
-
-		if (token != QXmlStreamReader::StartElement)
-			continue;
-
-		assert(reader.name().compare(Flibrary::Constant::ITEM) == 0);
-
-		const auto attributes = reader.attributes();
-		assert(true
-			&& attributes.hasAttribute(Folder)
-			&& attributes.hasAttribute(FileName)
-			&& attributes.hasAttribute(IsDeleted)
-		);
-		command->Bind(0, attributes.value(IsDeleted).toString().toInt());
-		command->Bind(1, attributes.value(Folder).toString().toStdString());
-		command->Bind(2, attributes.value(FileName).toString().toStdString());
-
-		command->Execute();
 	}
-}
+};
+using Books = std::vector<Book>;
 
-void RestoreGroups1(DB::IDatabase & db, QXmlStreamReader & reader)
+class BooksRestorer final
+	: virtual public IRestorer
 {
-	using namespace Constant::UserData;
-	assert(reader.name().compare(Groups::RootNode) == 0);
-
-	static constexpr auto addBookToGroupCommandText =
-		"insert into Groups_List_User(GroupID, BookID) "
-		"select ?, BookID "
-		"from Books "
-		"where Folder = ? and FileName = ?"
-		;
-
-	const auto transaction = db.CreateTransaction();
-	transaction->CreateCommand("delete from Groups_User")->Execute();
-
-	const auto createGroupCommand = transaction->CreateCommand(Groups::CreateNewGroupCommandText);
-	const auto addBookToGroupCommand = transaction->CreateCommand(addBookToGroupCommandText);
-
-	long long groupId = -1;
-
-	while (!reader.atEnd() && !reader.hasError())
+	struct Item : Book
 	{
-		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::EndElement && reader.name().compare(Groups::RootNode) == 0)
-			return transaction->Commit();
+		int isDeleted { 0 };
 
-		if (token != QXmlStreamReader::StartElement)
-			continue;
-
-		const auto mode = reader.name();
-		const auto attributes = reader.attributes();
-
-		if (mode.compare(Groups::GroupNode) == 0)
+		explicit Item(const Util::XmlAttributes & attributes)
+			: Book(attributes)
+			, isDeleted(attributes.GetAttribute(Constant::UserData::Books::IsDeleted).toInt())
 		{
-			assert(attributes.hasAttribute(Constant::TITLE));
-			const auto title = attributes.value(Constant::TITLE).toString().toStdString();
-			createGroupCommand->Bind(0, title);
+		}
+	};
+	using Items = std::vector<Item>;
+
+private: // IRestorer
+	void AddElement([[maybe_unused]]const QString & name, const Util::XmlAttributes & attributes) override
+	{
+		assert(name == Constant::ITEM);
+		using namespace Constant::UserData::Books;
+		m_items.emplace_back(attributes);
+	}
+
+	void Restore(DB::IDatabase & db) const override
+	{
+		using namespace Constant::UserData::Books;
+		static constexpr auto commandText =
+			"insert into Books_User(BookID, IsDeleted) "
+			"select BookID, ? "
+			"from Books "
+			"where Folder = ? and FileName = ?"
+			;
+
+		const auto transaction = db.CreateTransaction();
+		transaction->CreateCommand("delete from Books_User")->Execute();
+
+		const auto command = transaction->CreateCommand(commandText);
+		for (const auto & item : m_items)
+		{
+			command->Bind(0, item.isDeleted);
+			command->Bind(1, item.folder.toStdString());
+			command->Bind(2, item.fileName.toStdString());
+			command->Execute();
+		}
+
+		transaction->Commit();
+	}
+
+private:
+	Items m_items;
+};
+
+class GroupsRestorer final
+	: virtual public IRestorer
+{
+	struct Item
+	{
+		QString title;
+		Books books;
+	};
+	using Items = std::vector<Item>;
+
+private: // IRestorer
+	void AddElement(const QString & name, const Util::XmlAttributes & attributes) override
+	{
+		using Functor = void(GroupsRestorer::*)(const Util::XmlAttributes &);
+		constexpr std::pair<const char *, Functor> collectors[]
+		{
+#define		ITEM(NAME) {#NAME, &GroupsRestorer::Add##NAME}
+			ITEM(Group),
+			ITEM(Item),
+#undef		ITEM
+		};
+
+		const auto invoker = FindSecond(collectors, name.toStdString().data(), PszComparer{});
+		std::invoke(invoker, this, std::cref(attributes));
+	}
+
+	void Restore(DB::IDatabase & db) const override
+	{
+		static constexpr auto addBookToGroupCommandText =
+			"insert into Groups_List_User(GroupID, BookID) "
+			"select ?, BookID "
+			"from Books "
+			"where Folder = ? and FileName = ?"
+			;
+
+		const auto transaction = db.CreateTransaction();
+		transaction->CreateCommand("delete from Groups_User")->Execute();
+
+		const auto createGroupCommand = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		const auto addBookToGroupCommand = transaction->CreateCommand(addBookToGroupCommandText);
+
+		for (const auto & [group, books] : m_items)
+		{
+			createGroupCommand->Bind(0, group.toStdString());
 			createGroupCommand->Execute();
+
 			const auto getLastIdQuery = transaction->CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
-			groupId = getLastIdQuery->Get<long long>(0);
-			continue;
+			const auto groupId = getLastIdQuery->Get<long long>(0);
+
+			for (const auto & [folder, fileName] : books)
+			{
+				addBookToGroupCommand->Bind(0, groupId);
+				addBookToGroupCommand->Bind(1, folder.toStdString());
+				addBookToGroupCommand->Bind(2, fileName.toStdString());
+				addBookToGroupCommand->Execute();
+			}
 		}
 
-		if (mode.compare(Constant::ITEM) == 0)
-		{
-			assert(groupId >= 0);
-			assert(attributes.hasAttribute(Books::Folder) && attributes.hasAttribute(Books::FileName));
-			addBookToGroupCommand->Bind(0, groupId);
-			addBookToGroupCommand->Bind(1, attributes.value(Books::Folder).toString().toStdString());
-			addBookToGroupCommand->Bind(2, attributes.value(Books::FileName).toString().toStdString());
-
-			addBookToGroupCommand->Execute();
-		}
+		transaction->Commit();
 	}
+
+private:
+	void AddGroup(const Util::XmlAttributes & attributes)
+	{
+		m_items.emplace_back(attributes.GetAttribute(Constant::TITLE), Books {});
+	}
+
+	void AddItem(const Util::XmlAttributes & attributes)
+	{
+		assert(!m_items.empty());
+		m_items.back().books.emplace_back(attributes);
+	}
+
+private:
+	Items m_items;
+};
+
+class SearchesRestorer final
+	: virtual public IRestorer
+{
+private: // IRestorer
+	void AddElement(const QString & name, const Util::XmlAttributes & attributes) override
+	{
+		assert(name == Constant::ITEM);
+		m_items << attributes.GetAttribute(Constant::TITLE);
+	}
+
+	void Restore(DB::IDatabase & db) const override
+	{
+		using namespace Constant::UserData;
+		const auto transaction = db.CreateTransaction();
+		transaction->CreateCommand("delete from Searches_User")->Execute();
+		const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
+		for (const auto & item : m_items)
+		{
+			createSearchCommand->Bind(0, item.toStdString());
+			createSearchCommand->Execute();
+		}
+
+		transaction->Commit();
+	}
+
+private:
+	QStringList m_items;
+};
+
 }
 
-void RestoreSearches1(DB::IDatabase & db, QXmlStreamReader & reader)
+}
+
+namespace HomeCompa::Flibrary::UserData {
+
+std::unique_ptr<IRestorer> CreateBooksRestorer1()
 {
-	using namespace Constant::UserData;
-	assert(reader.name().compare(Searches::RootNode) == 0);
-
-	const auto transaction = db.CreateTransaction();
-	transaction->CreateCommand("delete from Searches_User")->Execute();
-	const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
-
-	while (!reader.atEnd() && !reader.hasError())
-	{
-		const auto token = reader.readNext();
-		if (token == QXmlStreamReader::EndElement && reader.name().compare(Searches::RootNode) == 0)
-			return transaction->Commit();
-
-		if (token != QXmlStreamReader::StartElement)
-			continue;
-
-		const auto mode = reader.name();
-		const auto attributes = reader.attributes();
-
-		assert(mode.compare(Constant::ITEM) == 0 && attributes.hasAttribute(Constant::TITLE));
-		const auto title = attributes.value(Constant::TITLE).toString().toStdString();
-		createSearchCommand->Bind(0, title);
-		createSearchCommand->Execute();
-	}
+	return std::make_unique<BooksRestorer>();
+}
+std::unique_ptr<IRestorer> CreateGroupsRestorer1()
+{
+	return std::make_unique<GroupsRestorer>();
+}
+std::unique_ptr<IRestorer> CreateSearchesRestorer1()
+{
+	return std::make_unique<SearchesRestorer>();
 }
 
 }

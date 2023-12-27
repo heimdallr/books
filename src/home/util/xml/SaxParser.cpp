@@ -309,3 +309,8 @@ void SaxParser::Parse()
 {
 	m_impl->Parse();
 }
+
+bool SaxParser::IsLastItemProcessed() const noexcept
+{
+	return m_processed;
+}
