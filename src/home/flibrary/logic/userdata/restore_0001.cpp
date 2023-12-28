@@ -49,7 +49,7 @@ class BooksRestorer final
 	using Items = std::vector<Item>;
 
 private: // IRestorer
-	void AddElement([[maybe_unused]]const QString & name, const Util::XmlAttributes & attributes) override
+	void AddElement([[maybe_unused]] const QString & name, const Util::XmlAttributes & attributes) override
 	{
 		assert(name == Constant::ITEM);
 		using namespace Constant::UserData::Books;
@@ -167,7 +167,7 @@ class SearchesRestorer final
 	: virtual public IRestorer
 {
 private: // IRestorer
-	void AddElement(const QString & name, const Util::XmlAttributes & attributes) override
+	void AddElement([[maybe_unused]] const QString & name, const Util::XmlAttributes & attributes) override
 	{
 		assert(name == Constant::ITEM);
 		m_items << attributes.GetAttribute(Constant::TITLE);
