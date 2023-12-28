@@ -11,6 +11,8 @@
 
 #include <plog/Log.h>
 
+#include "GenresLocalization.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -18,7 +20,7 @@ namespace {
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select distinct Folder from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
@@ -129,6 +131,8 @@ void RequestNavigationGenres(NavigationMode navigationMode
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = items.emplace(query->Get<const char *>(2), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
+			auto translated = Loc::Tr(GENRE, query->Get<const char *>(1));
+			item->SetData(translated == item->GetData() ? query->Get<const char *>(3) : std::move(translated));
 			index.emplace(item->GetId(), std::move(item));
 		}
 
