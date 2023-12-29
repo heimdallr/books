@@ -8,6 +8,7 @@
 #include "interface/constants/Localization.h"
 #include "shared/DatabaseUser.h"
 #include "BooksTreeGenerator.h"
+#include "inpx/src/util/constant.h"
 
 #include <plog/Log.h>
 
@@ -136,28 +137,44 @@ void RequestNavigationGenres(NavigationMode navigationMode
 			index.emplace(item->GetId(), std::move(item));
 		}
 
-		std::stack<QString> stack { {"0"} };
-
-		while (!stack.empty())
 		{
-			auto parentId = std::move(stack.top());
-			stack.pop();
+			std::stack<QString> stack { {"0"} };
 
-			const auto parent = [&]
+			while (!stack.empty())
 			{
-				const auto it = index.find(parentId);
-				assert(it != index.end());
-				return it->second;
-			}();
+				auto parentId = std::move(stack.top());
+				stack.pop();
 
-			for (auto && [it, end] = items.equal_range(parentId); it != end; ++it)
-			{
-				const auto & item = parent->AppendChild(std::move(it->second));
-				stack.push(item->GetId());
+				const auto parent = [&]
+				{
+					const auto it = index.find(parentId);
+					assert(it != index.end());
+					return it->second;
+				}();
+
+				for (auto && [it, end] = items.equal_range(parentId); it != end; ++it)
+				{
+					const auto & item = parent->AppendChild(std::move(it->second));
+					stack.push(item->GetId());
+				}
 			}
 		}
 
 		assert(std::ranges::all_of(items | std::views::values, [] (const auto & item) { return !item; }));
+		const auto rootName = Loc::Tr(GENRE, QString::fromStdWString(std::wstring(DATE_ADDED_CODE)).toStdString().data());
+		if (const auto dateRoot = root->FindChild([&] (const IDataItem & item) { return item.GetData() == rootName; }))
+		{
+			std::stack<IDataItem *> stack { {dateRoot.get()} };
+			while (!stack.empty())
+			{
+				auto * parent = stack.top();
+				stack.pop();
+
+				parent->SortChildren([] (const IDataItem & lhs, const IDataItem & rhs) { return lhs.GetData() < rhs.GetData(); });
+				for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
+					stack.push(parent->GetChild(i).get());
+			}
+		}
 
 		return [&, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
