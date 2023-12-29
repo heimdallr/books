@@ -854,13 +854,14 @@ private: // IPool
 			{
 				PLOGI << folder;
 				std::set<std::string> files;
-				for (const Zip zip(QString::fromStdWString(m_rootFolder / folder)); const auto & fileName : zip.GetFileNameList())
+				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
+				for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
 				{
 					if (QFileInfo(fileName).suffix() == "fb2")
 					{
 						try
 						{
-							ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
+							ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
 						}
 						catch (const std::exception & ex)
 						{
@@ -1045,25 +1046,25 @@ private:
 			AddBook(files, buf, folder);
 		}
 
-		const auto archiveFileName = QDir::fromNativeSeparators(QString::fromStdWString(rootFolder / folder));
-		if (!QFile::exists(archiveFileName))
+		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
+		if (!archiveFileInfo.exists())
 		{
-			PLOGW << archiveFileName << " not found";
+			PLOGW << archiveFileInfo.fileName() << " not found";
 			return;
 		}
 
-		for (const Zip zip(archiveFileName); const auto & fileName : zip.GetFileNameList())
+		for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
 		{
 			if (files.contains(fileName.toLower().toStdString()))
 				continue;
 
 			PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 			if (!!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
-				ParseFile(files, folder, zip, fileName, zip.GetFileSize(fileName));
+				ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
 		}
 	}
 
-	void ParseFile(std::set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const size_t fileSize)
+	void ParseFile(std::set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
@@ -1078,6 +1079,9 @@ private:
 			return;
 		}
 
+		const auto & fileDateTime = zip.GetFileTime(fileName);
+		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
+
 		const auto values = QStringList()
 			<< ToString(parserData.authors)
 			<< parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR
@@ -1085,11 +1089,11 @@ private:
 			<< parserData.series
 			<< QString::number(parserData.seqNumber)
 			<< fileInfo.completeBaseName()
-			<< QString::number(fileSize)
+			<< QString::number(zip.GetFileSize(fileName))
 			<< fileInfo.completeBaseName()
 			<< "0"
 			<< fileInfo.suffix()
-			<< parserData.date
+			<< std::move(dateTime)
 			<< parserData.lang
 			<< "0"
 			;

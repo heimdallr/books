@@ -8,6 +8,7 @@
 
 #include "zip/interface/ProgressCallback.h"
 
+class QDateTime;
 class QIODevice;
 
 namespace HomeCompa {
@@ -33,7 +34,7 @@ public:
 	[[nodiscard]] QIODevice & Read(const QString & filename) const;
 	[[nodiscard]] QIODevice & Write(const QString & filename);
 	[[nodiscard]] size_t GetFileSize(const QString & filename) const;
-
+	[[nodiscard]] const QDateTime & GetFileTime(const QString & filename) const;
 
 public:
 	Zip(const Zip &) = delete;

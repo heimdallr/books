@@ -97,6 +97,7 @@ class Reader final : virtual public IZip
 	{
 		uint32_t n;
 		size_t size;
+		QDateTime time;
 	};
 	using Files = std::unordered_map<QString, FileItem>;
 
@@ -144,6 +145,16 @@ private: // IZip
 		return it->second.size;
 	}
 
+	const QDateTime & GetFileTime(const QString & filename) const override
+	{
+		CreateFileList();
+		const auto it = m_files.find(filename);
+		if (it == m_files.end())
+			Error::CannotFindFileInArchive(filename);
+
+		return it->second.time;
+	}
+
 private:
 	void CreateFileList() const
 	{
@@ -165,9 +176,21 @@ private:
 			archive->GetProperty(i, kpidSize, &prop);
 			const auto size = prop.uhVal.QuadPart;
 
+			auto time = [&]
+			{
+				if (FAILED(archive->GetProperty(i, kpidCTime, &prop)) || !prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime)
+					return QDateTime {};
+
+				SYSTEMTIME systemTime {};
+				if (!FileTimeToSystemTime(&prop.filetime, &systemTime))
+					return QDateTime {};
+
+				return QDateTime(QDate(systemTime.wYear, systemTime.wMonth, systemTime.wDay), QTime(systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds));
+			}();
+
 			archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
-				m_files.emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size });
+				m_files.emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
 		}
 	}
 

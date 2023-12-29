@@ -1,7 +1,5 @@
 #include "Fb2Parser.h"
 
-#include <QDateTime>
-
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -16,7 +14,6 @@ namespace {
 
 constexpr auto NAME = "name";
 constexpr auto NUMBER = "number";
-constexpr auto VALUE = "value";
 constexpr auto DESCRIPTION = "FictionBook/description";
 constexpr auto GENRE = "FictionBook/description/title-info/genre";
 constexpr auto AUTHOR = "FictionBook/description/title-info/author";
@@ -24,10 +21,8 @@ constexpr auto AUTHOR_FIRST_NAME = "FictionBook/description/title-info/author/fi
 constexpr auto AUTHOR_LAST_NAME = "FictionBook/description/title-info/author/last-name";
 constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/middle-name";
 constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
-constexpr auto DATE = "FictionBook/description/title-info/date";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
-constexpr auto DOCUMENT_INFO_DATE = "FictionBook/description/document-info/date";
 
 }
 
@@ -59,7 +54,6 @@ private: // Util::SaxParser
 		{
 			{ AUTHOR            , &Impl::OnStartElementAuthor },
 			{ SEQUENCE          , &Impl::OnStartElementSequence },
-			{ DOCUMENT_INFO_DATE, &Impl::OnStartDocumentInfoDate },
 		};
 
 		return Parse(*this, PARSERS, path, attributes);
@@ -88,9 +82,7 @@ private: // Util::SaxParser
 			{ AUTHOR_LAST_NAME  , &Impl::ParseAuthorLastName },
 			{ AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
 			{ BOOK_TITLE        , &Impl::ParseBookTitle },
-			{ DATE              , &Impl::ParseDate },
 			{ LANG              , &Impl::ParseLang },
-			{ DOCUMENT_INFO_DATE, &Impl::ParseDocumentInfoDate },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -98,14 +90,14 @@ private: // Util::SaxParser
 
 	bool OnWarning(const QString & text) override
 	{
-		PLOGW << m_fileName << text;
+		PLOGW << m_fileName << ": " << text;
 		return true;
 	}
 
 	bool OnError(const QString & text) override
 	{
 		m_data.error = text;
-		PLOGE << m_fileName << text;
+		PLOGE << m_fileName << ": " << text;
 		return false;
 	}
 
@@ -125,12 +117,6 @@ private:
 	{
 		m_data.series = attributes.GetAttribute(NAME);
 		m_data.seqNumber = attributes.GetAttribute(NUMBER).toInt();
-		return true;
-	}
-
-	bool OnStartDocumentInfoDate(const Util::XmlAttributes & attributes)
-	{
-		m_data.date = attributes.GetAttribute(VALUE);
 		return true;
 	}
 
@@ -169,22 +155,6 @@ private:
 		return true;
 	}
 
-	bool ParseDate(const QString & value)
-	{
-		m_data.date = value;
-		m_data.date.replace(".", "-");
-		return true;
-	}
-
-	bool ParseDocumentInfoDate(const QString & value)
-	{
-		if (!m_data.date.isEmpty())
-			return true;
-
-		m_data.date = value;
-		return true;
-	}
-
 	bool ParseLang(const QString & value)
 	{
 		m_data.lang = value;
@@ -193,7 +163,6 @@ private:
 
 private:
 	const QString & m_fileName;
-
 	Data m_data {};
 };
 
