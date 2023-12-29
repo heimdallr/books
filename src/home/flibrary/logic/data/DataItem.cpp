@@ -143,6 +143,17 @@ void DataItem::Reduce()
 {
 }
 
+IDataItem::Ptr DataItem::FindChild(const std::function<bool(const IDataItem &)> & functor) const
+{
+	const auto it = std::ranges::find_if(m_children, [&] (const auto & item) { return functor(*item); });
+	return it == m_children.end() ? Ptr{} : *it;
+}
+
+void DataItem::SortChildren(const std::function<bool(const IDataItem & lhs, const IDataItem & rhs)> & comparer)
+{
+	std::ranges::sort(m_children, [&] (const auto & lhs, const auto & rhs) { return comparer(*lhs, *rhs); });
+}
+
 DataItem * DataItem::ToDataItem() noexcept
 {
 	return this;

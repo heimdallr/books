@@ -46,6 +46,9 @@ protected: // IDataItem
 	void SetCheckState(Qt::CheckState state) noexcept override;
 	void Reduce() override;
 
+	Ptr FindChild(const std::function<bool(const IDataItem &)> & functor) const override;
+	void SortChildren(const std::function<bool(const IDataItem & lhs, const IDataItem & rhs)> & comparer) override;
+
 	DataItem * ToDataItem() noexcept override;
 
 protected:

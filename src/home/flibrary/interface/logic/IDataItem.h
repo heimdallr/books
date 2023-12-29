@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -60,6 +61,9 @@ public:
 	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept = 0;
 	virtual void SetCheckState(Qt::CheckState state) noexcept = 0;
 	virtual void Reduce() = 0;
+
+	virtual Ptr FindChild(const std::function<bool(const IDataItem&)> & functor) const = 0;
+	virtual void SortChildren(const std::function<bool(const IDataItem & lhs, const IDataItem & rhs)> & comparer) = 0;
 
 public:
 	template<typename T>
