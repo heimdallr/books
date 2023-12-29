@@ -28,7 +28,6 @@ public:
 		Authors authors;
 		QStringList genres;
 		QString title;
-		QString date;
 		QString lang;
 		QString series;
 		int seqNumber { -1 };

@@ -18,6 +18,7 @@ class QuaZipImpl final : virtual public IZip
 	struct FileItem
 	{
 		size_t size;
+		QDateTime time;
 	};
 
 public:
@@ -26,7 +27,7 @@ public:
 	{
 		if (!m_zip->open(mode))
 		{
-			switch (mode)
+			switch (mode)  // NOLINT(clang-diagnostic-switch-enum)
 			{
 				case QuaZip::Mode::mdUnzip:
 					Error::CannotOpenFile(filename);
@@ -74,6 +75,14 @@ private: // IZip
 		return it->second.size;
 	}
 
+	const QDateTime & GetFileTime(const QString& filename) const override
+	{
+		CreateFileList();
+		const auto it = m_files.find(filename);
+		assert(it != m_files.end());
+		return it->second.time;
+	}
+
 private:
 	void CreateFileList() const
 	{
@@ -82,7 +91,7 @@ private:
 
 		std::ranges::transform(m_zip->getFileInfoList64(), std::inserter(m_files, m_files.end()), [] (const auto & item)
 		{
-			return std::make_pair(item.name, FileItem {item.uncompressedSize});
+			return std::make_pair(item.name, FileItem {item.uncompressedSize, item.dateTime});
 		});
 	}
 
