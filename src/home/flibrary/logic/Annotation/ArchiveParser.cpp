@@ -258,29 +258,28 @@ private:
 
 	bool ParseTranslatorFirstName(const QString & value)
 	{
-		assert(m_data.translators->GetChildCount() > 0);
-		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
-		translator->SetData(value, AuthorItem::Column::FirstName);
-		return true;
+		return ParseTranslatorName(value, AuthorItem::Column::FirstName);
 	}
 
 	bool ParseTranslatorLastName(const QString & value)
 	{
-		assert(m_data.translators->GetChildCount() > 0);
-		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
-		translator->SetData(value, AuthorItem::Column::LastName);
-		return true;
+		return ParseTranslatorName(value, AuthorItem::Column::LastName);
 	}
 
 	bool ParseTranslatorMiddleName(const QString & value)
 	{
-		assert(m_data.translators->GetChildCount() > 0);
-		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
-		translator->SetData(value, AuthorItem::Column::MiddleName);
-		return true;
+		return ParseTranslatorName(value, AuthorItem::Column::MiddleName);
 	}
 
 private:
+	bool ParseTranslatorName(const QString & value, const int column) const
+	{
+		assert(m_data.translators->GetChildCount() > 0);
+		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
+		translator->SetData(value, column);
+		return true;
+	}
+
 	void update_covers(const QString & rootFolder, const IDataItem & book)
 	{
 		if (std::ranges::none_of(m_covers, [] (const auto & item)
