@@ -322,4 +322,12 @@ void AppendTitle(QString & title, const QString & str, const QString & delimiter
 		title.append(delimiter).append(str);
 }
 
+QString GetAuthorFull(const IDataItem & author)
+{
+	auto result = author.GetData(AuthorItem::Column::LastName);
+	AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
+	AppendTitle(result, author.GetData(AuthorItem::Column::MiddleName));
+	return result;
+}
+
 }

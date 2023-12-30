@@ -140,14 +140,6 @@ QString Join(const std::unordered_map<T, IDataItem::Ptr> & dictionary
 	return result;
 }
 
-QString GetAuthorFull(const IDataItem & author)
-{
-	auto result = author.GetData(AuthorItem::Column::LastName);
-	AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
-	AppendTitle(result, author.GetData(AuthorItem::Column::MiddleName));
-	return result;
-}
-
 }
 
 class BooksTreeGenerator::Impl

@@ -143,11 +143,16 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="42"/>
+        <source>Translators:</source>
+        <translation>Перевод:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>
