@@ -131,6 +131,11 @@ private: // IDataProvider
 		return m_archiveData.content;
 	}
 
+	[[nodiscard]] IDataItem::Ptr GetTranslators() const noexcept override
+	{
+		return m_archiveData.translators;
+	}
+
 private: // IProgressController::IObserver
 	void OnStartedChanged() override
 	{

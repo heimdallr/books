@@ -30,6 +30,10 @@ TR_DEF
 constexpr auto ID = "id";
 constexpr auto L_HREF = "l:href";
 constexpr auto A = "a";
+constexpr auto TRANSLATOR = "FictionBook/description/title-info/translator";
+constexpr auto TRANSLATOR_FIRST_NAME = "FictionBook/description/title-info/translator/first-name";
+constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
+constexpr auto TRANSLATOR_LAST_NAME = "FictionBook/description/title-info/translator/last-name";
 constexpr auto ANNOTATION = "FictionBook/description/title-info/annotation";
 constexpr auto ANNOTATION_P = "FictionBook/description/title-info/annotation/p";
 constexpr auto ANNOTATION_HREF = "FictionBook/description/title-info/annotation/a";
@@ -98,6 +102,7 @@ private: // Util::SaxParser
 			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
 			{ BINARY, &XmlParser::OnStartElementBinary },
 			{ SECTION, &XmlParser::OnStartElementSection },
+			{ TRANSLATOR, &XmlParser::OnStartElementTranslator },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
@@ -140,6 +145,9 @@ private: // Util::SaxParser
 			{ EPIGRAPH              , &XmlParser::ParseEpigraph },
 			{ EPIGRAPH_P            , &XmlParser::ParseEpigraph },
 			{ EPIGRAPH_AUTHOR       , &XmlParser::ParseEpigraphAuthor },
+			{ TRANSLATOR_FIRST_NAME , &XmlParser::ParseTranslatorFirstName },
+			{ TRANSLATOR_LAST_NAME  , &XmlParser::ParseTranslatorLastName },
+			{ TRANSLATOR_MIDDLE_NAME, &XmlParser::ParseTranslatorMiddleName },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
@@ -181,6 +189,12 @@ private:
 	bool OnStartElementSection(const Util::XmlAttributes &)
 	{
 		m_currentContentItem = m_currentContentItem->AppendChild(NavigationItem::Create()).get();
+		return true;
+	}
+
+	bool OnStartElementTranslator(const Util::XmlAttributes &)
+	{
+		m_data.translators->AppendChild(AuthorItem::Create());
 		return true;
 	}
 
@@ -242,6 +256,31 @@ private:
 		return true;
 	}
 
+	bool ParseTranslatorFirstName(const QString & value)
+	{
+		assert(m_data.translators->GetChildCount() > 0);
+		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
+		translator->SetData(value, AuthorItem::Column::FirstName);
+		return true;
+	}
+
+	bool ParseTranslatorLastName(const QString & value)
+	{
+		assert(m_data.translators->GetChildCount() > 0);
+		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
+		translator->SetData(value, AuthorItem::Column::LastName);
+		return true;
+	}
+
+	bool ParseTranslatorMiddleName(const QString & value)
+	{
+		assert(m_data.translators->GetChildCount() > 0);
+		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
+		translator->SetData(value, AuthorItem::Column::MiddleName);
+		return true;
+	}
+
+private:
 	void update_covers(const QString & rootFolder, const IDataItem & book)
 	{
 		if (std::ranges::none_of(m_covers, [] (const auto & item)

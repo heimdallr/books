@@ -32,6 +32,7 @@ public:
 		[[nodiscard]] virtual const std::vector<QByteArray> & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
+		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;
 
 	};
 

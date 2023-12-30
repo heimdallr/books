@@ -39,6 +39,7 @@ constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
+constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 
@@ -268,6 +269,14 @@ private: // IAnnotationController::IObserver
 			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
 			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
 			.ToString());
+
+		if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
+		{
+			Table table;
+			for (size_t i = 0, sz = translators->GetChildCount(); i < sz; ++i)
+				table.Add(i == 0 ? TRANSLATORS : "", GetAuthorFull(*translators->GetChild(i)));
+			Add(annotation, table.ToString());
+		}
 
 		Add(annotation, Table()
 			.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))

@@ -191,5 +191,6 @@ private: // DataItem
 };
 
 void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
+LOGIC_EXPORT QString GetAuthorFull(const IDataItem & author);
 
 }
