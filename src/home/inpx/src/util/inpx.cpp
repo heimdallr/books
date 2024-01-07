@@ -344,6 +344,9 @@ struct InpxContent
 
 InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 {
+	if (!exists(inpxFileName))
+		return {};
+
 	InpxContent inpxContent;
 
 	const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
@@ -913,7 +916,7 @@ private:
 
 		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const Zip zip(QString::fromStdWString(inpxFileName));
-		ParseInpxFiles(inpxFileName, zip, GetNewInpxFolders(m_ini, m_data));
+		ParseInpxFiles(inpxFileName, &zip, GetNewInpxFolders(m_ini, m_data));
 
 		const auto filter = [] (Dictionary & dst, const Dictionary & src)
 		{
@@ -944,33 +947,48 @@ private:
 
 		const std::filesystem::path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-		const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
+
+		const auto zip = [&]
+		{
+			if (!exists(inpxFileName))
+				return std::unique_ptr<Zip>{};
+
+			try
+			{
+				return std::make_unique<Zip>(QString::fromStdWString(inpxFileName.generic_wstring()));
+			}
+			catch(...){}
+			return std::unique_ptr<Zip>{};
+		}();
 
 		for (const auto & fileName : inpxContent.collectionInfo)
-			GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
 		{
 			ProcessCollectionInfo(zipDecodedStream, m_data.settings);
 		});
 
 		for (const auto & fileName : inpxContent.versionInfo)
-			GetDecodedStream(zip, fileName, [&] (QIODevice & zipDecodedStream)
+			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
 		{
 			ProcessVersionInfo(zipDecodedStream, m_data.settings);
 		});
 
-		ParseInpxFiles(inpxFileName, zip, inpxContent.inpx);
+		ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 	}
 
-	void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip & zipInpx, const std::vector<std::wstring> & inpxFiles)
+	void ParseInpxFiles(const std::filesystem::path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
 		m_rootFolder = std::filesystem::path(inpxFileName).parent_path();
-		for (const auto & fileName : inpxFiles)
-			GetDecodedStream(zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
+		if (zipInpx)
+		{
+			for (const auto & fileName : inpxFiles)
+				GetDecodedStream(*zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
 			{
 				ProcessInpx(zipDecodedStream, m_rootFolder, fileName);
 			});
 
-		PLOGI << m_n << " rows parsed";
+			PLOGI << m_n << " rows parsed";
+		}
 
 		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 		{

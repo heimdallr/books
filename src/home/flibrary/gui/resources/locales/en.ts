@@ -230,11 +230,6 @@
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
-    <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
-        <source>Index file (*.inpx) not found</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>LocaleController</name>

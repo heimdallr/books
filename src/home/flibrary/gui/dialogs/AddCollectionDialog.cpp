@@ -40,7 +40,6 @@ constexpr auto BAD_DATABASE_EXT                   = QT_TRANSLATE_NOOP("Error", "
 constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "Archive folder name cannot be empty");
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
-constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
 
 QString Error(const char * str)
 {
@@ -216,7 +215,7 @@ private:
 		return true;
 	}
 
-	[[nodiscard]] bool CheckFolder(const int mode, const bool showError = true) const
+	[[nodiscard]] bool CheckFolder(const bool showError = true) const
 	{
 		const auto folder = GetArchiveFolder();
 
@@ -228,9 +227,6 @@ private:
 
 		if (QDir(folder).isEmpty())
 			return showError && SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_FOLDER));
-
-		if (mode == Result::CreateNew && !m_collectionController->IsCollectionFolderHasInpx(folder))
-			return showError && SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
 
 		return true;
 	}
@@ -250,7 +246,7 @@ private:
 		if (buttonClicked)
 			ResetError();
 
-		if (!CheckFolder(Result::CreateNew, buttonClicked))
+		if (!CheckFolder(buttonClicked))
 			return false;
 
 		const auto inpx = m_collectionController->GetInpx(GetArchiveFolder());

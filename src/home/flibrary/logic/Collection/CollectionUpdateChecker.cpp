@@ -19,7 +19,9 @@ namespace {
 QString GetFileHash(const QString & fileName)
 {
 	QFile file(fileName);
-	file.open(QIODevice::ReadOnly);
+	if (!file.open(QIODevice::ReadOnly))
+		return {};
+
 	constexpr auto size = 1024ll * 32;
 	const std::unique_ptr<char[]> buf(new char[size]);
 
@@ -62,13 +64,18 @@ QStringList GetInpxFolders(const ICollectionController & collectionController, C
 	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileName); updatedCollection.discardedUpdate == collection->discardedUpdate)
 		return {};
 
-	const Zip zip(inpxFileName);
-	auto folders = zip.GetFileNameList();
-	auto [begin, end] = std::ranges::remove_if(folders, [] (const auto & item)
+	QStringList folders;
+
+	if (QFile::exists(inpxFileName))
 	{
-		return QFileInfo(item).suffix().toLower() != "inp";
-	});
-	folders.erase(begin, end);
+		const Zip zip(inpxFileName);
+		folders = zip.GetFileNameList();
+		if (auto [begin, end] = std::ranges::remove_if(folders, [] (const auto & item)
+		{
+			return QFileInfo(item).suffix().toLower() != "inp";
+		}); begin != end)
+			folders.erase(begin, end);
+	}
 
 	return PrepareFolders(folders);
 }
