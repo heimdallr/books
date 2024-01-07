@@ -196,11 +196,6 @@
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
-        <source>Index file (*.inpx) not found</source>
-        <translation>Индексный файл (*.inpx) не найден</translation>
-    </message>
-    <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="39"/>
         <source>Bad database file extension (.inpx)</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
