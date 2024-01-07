@@ -37,11 +37,10 @@ TR_DEF
 QString GetInpxImpl(const QString & folder)
 {
 	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
-	auto result = inpxList.isEmpty() ? QString() : QString("%1/%2").arg(folder, inpxList.front());
-	if (result.isEmpty())
-		PLOGE << "Cannot find inpx in " << folder;
+	if (inpxList.isEmpty())
+		PLOGW << "Cannot find inpx in " << folder;
 
-	return result;
+	return QString("%1/%2").arg(folder, inpxList.isEmpty() ? QString("stub.inpx") : inpxList.front());
 }
 
 using IniMap = std::map<std::wstring, std::filesystem::path>;
@@ -61,11 +60,6 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 	};
 
 	const auto inpx = GetInpxImpl(folder);
-	if (inpx.isEmpty())
-	{
-		PLOGE << "Index file (*.inpx) not found";
-		return result;
-	}
 
 	result.second = IniMap
 	{
