@@ -21,7 +21,7 @@ namespace {
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select distinct Folder from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
@@ -131,9 +131,7 @@ void RequestNavigationGenres(NavigationMode navigationMode
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto item = items.emplace(query->Get<const char *>(2), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
-			auto translated = Loc::Tr(GENRE, query->Get<const char *>(1));
-			item->SetData(translated == item->GetData() ? query->Get<const char *>(3) : std::move(translated));
+			auto item = items.emplace(query->Get<const char *>(3), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
 			index.emplace(item->GetId(), std::move(item));
 		}
 
@@ -194,10 +192,12 @@ using NavigationRequest = void (*)(NavigationMode navigationMode
 
 constexpr int NAVIGATION_QUERY_INDEX_AUTHOR[] { 0, 1, 2, 3 };
 constexpr int NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
+constexpr int NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
 constexpr int NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM[] { 0, 0 };
 
 constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
 constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
+constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUser::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM };
 constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
@@ -212,7 +212,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 {
 	{ NavigationMode::Authors , { &RequestNavigationSimpleList, { AUTHORS_QUERY , QUERY_INFO_AUTHOR          , WHERE_AUTHOR , nullptr      , &BindInt   , &IBooksTreeCreator::CreateAuthorsTree, BookItem::Mapping(MAPPING_AUTHORS), BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Series  , { &RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr      , &BindInt   , &IBooksTreeCreator::CreateSeriesTree , BookItem::Mapping(MAPPING_SERIES) , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
-	{ NavigationMode::Genres  , { &RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_GENRE  , nullptr      , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES) , BookItem::Mapping(MAPPING_TREE_GENRES)}}},
+	{ NavigationMode::Genres  , { &RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_GENRE_ITEM      , WHERE_GENRE  , nullptr      , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES) , BookItem::Mapping(MAPPING_TREE_GENRES)}}},
 	{ NavigationMode::Groups  , { &RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS  , &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Archives, { &RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr      , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Search  , { &RequestNavigationSimpleList, { SEARCH_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_SEARCHES, &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
