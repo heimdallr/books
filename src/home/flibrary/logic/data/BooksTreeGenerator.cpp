@@ -27,7 +27,7 @@ constexpr const char * BOOKS_COLUMN_NAMES[] {
 constexpr auto BOOKS_QUERY =
 	"select %1 "
 	", a.AuthorID, a.LastName, a.FirstName, a.MiddleName "
-	", g.GenreCode, g.GenreAlias "
+	", g.GenreCode, g.GenreAlias, g.FB2Code "
 	", coalesce(b.SeriesID, -1), s.SeriesTitle "
 	"from Books b "
 	"join Author_List al on al.BookID = b.BookID "
@@ -78,7 +78,7 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 };
 
 constexpr int BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
-constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle };
+constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle, BookQueryFields::GenreFB2Code };
 
 IDataItem::Ptr CreateBooksRoot()
 {
@@ -173,7 +173,7 @@ public:
 				return item.GetId() != "-1";
 			});
 			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUser::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
-			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_GENRE), [] (const IDataItem & item)
+			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE), [] (const IDataItem & item)
 			{
 				return !(item.GetData().isEmpty() || item.GetData()[0].isDigit());
 			}));

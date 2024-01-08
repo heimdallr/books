@@ -6,6 +6,8 @@
 #include <plog/Log.h>
 
 #include "data/DataItem.h"
+#include "data/GenresLocalization.h"
+#include "interface/constants/Localization.h"
 #include "shared/DatabaseController.h"
 #include "util/executor/factory.h"
 
@@ -88,6 +90,19 @@ IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, cons
 
 	item->SetId(query.Get<const char *>(index[0]));
 	item->SetData(query.Get<const char *>(index[1]));
+
+	return item;
+}
+
+IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const int * index)
+{
+	auto item = IDataItem::Ptr(NavigationItem::Create());
+
+	item->SetId(query.Get<const char *>(index[0]));
+
+	const auto * fbCode = query.Get<const char *>(index[2]);
+	const auto translated = Loc::Tr(GENRE, fbCode);
+	item->SetData(translated != fbCode ? translated : query.Get<const char *>(index[1]));
 
 	return item;
 }

@@ -35,6 +35,7 @@ public:
 
 public:
 	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
+	static IDataItem::Ptr CreateGenreItem(const DB::IQuery & query, const int * index);
 	static IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * index);
 	static IDataItem::Ptr CreateBookItem(const DB::IQuery & query);
 
@@ -63,6 +64,7 @@ struct BookQueryFields
 		AuthorMiddleName,
 		GenreCode,
 		GenreTitle,
+		GenreFB2Code,
 		SeriesId,
 		SeriesTitle,
 	};
