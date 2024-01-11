@@ -40,6 +40,7 @@ enum class ItemType
 		BOOKS_MENU_ACTION_ITEM(RemoveFromAllGroups) \
 		BOOKS_MENU_ACTION_ITEM(SendAsArchive)       \
 		BOOKS_MENU_ACTION_ITEM(SendAsIs)            \
+		BOOKS_MENU_ACTION_ITEM(SendAsInpx)          \
 		BOOKS_MENU_ACTION_ITEM(SendAsScript)
 
 enum class BooksMenuAction

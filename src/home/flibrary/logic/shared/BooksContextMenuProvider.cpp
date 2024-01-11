@@ -2,7 +2,6 @@
 
 #include <ranges>
 
-#include <QModelIndex>
 #include <QString>
 #include <plog/Log.h>
 
@@ -40,9 +39,10 @@ constexpr auto GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "Remove
 constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "All");
 constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Remove book");
 constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "Undo book deletion");
-constexpr auto SEND_TO = QT_TRANSLATE_NOOP("BookContextMenu", "Send to device");
-constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "In zip archive");
-constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "In original format");
+constexpr auto EXPORT = QT_TRANSLATE_NOOP("BookContextMenu", "Export");
+constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "As zip archive");
+constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As original format");
+constexpr auto SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As inpx collection");
 constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 TR_DEF
 
@@ -157,15 +157,16 @@ public:
 				Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
 			{
-				const auto & send = Add(result, Tr(SEND_TO));
+				const auto & send = Add(result, Tr(EXPORT));
 				Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
 				Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
-
+				Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 				for (const auto & script : scripts)
 				{
 					const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
 					scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
 				}
+				Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpx);
 			}
 
 			if (type == ItemType::Books)
@@ -231,6 +232,10 @@ private: // IContextMenuHandler
 	void SendAsIs(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
+	}
+
+	void SendAsInpx(QAbstractItemModel* /*model*/, const QModelIndex& /*index*/, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr /*item*/, Callback /*callback*/) const override
+	{
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
