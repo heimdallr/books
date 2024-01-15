@@ -88,5 +88,6 @@ struct BookInfo
 	std::vector<IDataItem::Ptr> authors;
 	std::vector<IDataItem::Ptr> genres;
 };
+using BookInfoList = std::vector<BookInfo>;
 
 }
