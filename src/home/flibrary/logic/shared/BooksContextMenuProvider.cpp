@@ -248,13 +248,13 @@ private: // IContextMenuHandler
 		if (dir.isEmpty())
 			return callback(item);
 
-		auto extractor = m_logicFactory->CreateBooksExtractor();
-		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
-		{
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
-		});
+//		auto extractor = m_logicFactory->CreateBooksExtractor();
+//		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+//		{
+//			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+//			callback(item);
+//			extractor.reset();
+//		});
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override

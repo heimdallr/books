@@ -10,8 +10,6 @@
 
 namespace HomeCompa::Flibrary {
 
-class DataProvider;
-
 class BooksExtractor
 {
 	NON_COPY_MOVABLE(BooksExtractor)
