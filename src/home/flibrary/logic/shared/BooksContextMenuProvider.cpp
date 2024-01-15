@@ -124,7 +124,7 @@ public:
 		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
-		, std::shared_ptr<DataProvider> dataProvider
+		, std::shared_ptr<const DataProvider> dataProvider
 		, std::shared_ptr<IScriptController> scriptController
 	)
 		: m_settings(std::move(settings))
@@ -234,8 +234,27 @@ private: // IContextMenuHandler
 		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
-	void SendAsInpx(QAbstractItemModel* /*model*/, const QModelIndex& /*index*/, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr /*item*/, Callback /*callback*/) const override
+	void SendAsInpx(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
+		auto idList = m_logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		if (idList.empty())
+			return;
+
+		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id)
+		{
+			return std::move(id.front());
+		});
+		auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
+		if (dir.isEmpty())
+			return callback(item);
+
+		auto extractor = m_logicFactory->CreateBooksExtractor();
+		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		{
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+			callback(item);
+			extractor.reset();
+		});
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -330,7 +349,7 @@ private:
 	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
-	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
+	std::shared_ptr<const DataProvider> m_dataProvider;
 	std::shared_ptr<IScriptController> m_scriptController;
 };
 

@@ -91,6 +91,12 @@ public:
 		m_booksTimer->start();
 	}
 
+	BookInfo GetBookInfo(const long long id) const
+	{
+		assert(m_booksGenerator);
+		return m_booksGenerator->GetBookInfo(id);
+	}
+
 private:
 	void RequestNavigationImpl() const
 	{
@@ -215,4 +221,9 @@ void DataProvider::RequestNavigation() const
 void DataProvider::RequestBooks(const bool force) const
 {
 	m_impl->RequestBooks(force);
+}
+
+BookInfo DataProvider::GetBookInfo(const long long id) const
+{
+	return m_impl->GetBookInfo(id);
 }

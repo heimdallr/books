@@ -35,6 +35,8 @@ public:
 	void RequestNavigation() const;
 	void RequestBooks(bool force = false) const;
 
+	BookInfo GetBookInfo(long long id) const;
+
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
