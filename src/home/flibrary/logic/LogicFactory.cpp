@@ -27,8 +27,9 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "ChangeNavigationController/SearchController.h"
 
+#include "extract/BooksExtractor.h"
+
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/BooksExtractor.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ReaderController.h"

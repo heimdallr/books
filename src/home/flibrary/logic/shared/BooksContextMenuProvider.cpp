@@ -20,9 +20,9 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "extract/BooksExtractor.h"
 #include "shared/ReaderController.h"
 
-#include "BooksExtractor.h"
 #include "DatabaseUser.h"
 
 using namespace HomeCompa;

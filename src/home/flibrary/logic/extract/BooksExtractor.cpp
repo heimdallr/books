@@ -5,21 +5,21 @@
 #include <QTemporaryDir>
 #include <QTimer>
 
-#include "Util/IExecutor.h"
-
 #include <plog/Log.h>
+
+#include "Util/IExecutor.h"
+#include "inpx/src/util/constant.h"
 
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
 
-#include "ImageRestore.h"
-#include "zip.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "shared/ImageRestore.h"
 
-#include "inpx/src/util/constant.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
