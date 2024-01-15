@@ -350,8 +350,6 @@ InpxContent ExtractInpxFileNames(const std::filesystem::path & inpxFileName)
 	InpxContent inpxContent;
 
 	const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
-
-	std::ifstream zipStream(inpxFileName, std::ios::binary);
 	for (const auto & fileName : zip.GetFileNameList())
 	{
 		auto folder = ToWide(fileName.toStdString());
