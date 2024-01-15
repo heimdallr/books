@@ -216,12 +216,12 @@ struct BookWrapper
 
 	int64_t GetSize() const noexcept
 	{
-		return bookInfo.book ? bookInfo.book->GetData(BookItem::Column::Size).toLongLong() : extractedBook.size;
+		return bookInfo.book ? bookInfo.book->GetRawData(BookItem::Column::Size).toLongLong() : extractedBook.size;
 	}
 
 	const QString & GetFile() const noexcept
 	{
-		return bookInfo.book ? bookInfo.book->GetData(BookItem::Column::FileName) : extractedBook.file;
+		return bookInfo.book ? bookInfo.book->GetRawData(BookItem::Column::FileName) : extractedBook.file;
 	}
 };
 
@@ -450,6 +450,8 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString &parameter, I
 
 void BooksExtractor::ExtractAsInpxCollection(QString folder, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)
 {
+	PLOGD << QString("Extract %1 books as inpx-collection started").arg(idList.size());
+
 	std::vector<BookInfo> bookInfo;
 	std::ranges::transform(idList, std::back_inserter(bookInfo), [&] (const auto & id) { return dataProvider.GetBookInfo(id.toLongLong()); });
 	BookWrappers bookWrappers = CreateBookWrappers(std::move(bookInfo));
