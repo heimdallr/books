@@ -455,7 +455,21 @@ void BooksExtractor::ExtractAsInpxCollection(QString folder, const std::vector<Q
 	BookWrappers bookWrappers = CreateBookWrappers(std::move(bookInfo));
 	const auto archiveName = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
 	auto zip = std::make_shared<Zip>(QString("%1/%2.zip").arg(folder, archiveName), Zip::Format::Zip);
-	auto inpx = std::make_shared<Zip>(QString("%1/collection.inpx").arg(folder, archiveName), Zip::Format::Zip);
+	const auto inpxFileName = QString("%1/collection.inpx").arg(folder);
+	const auto inpxFileExists = QFile::exists(inpxFileName);
+	auto inpx = std::make_shared<Zip>(inpxFileName, Zip::Format::Zip, inpxFileExists);
+	if (!inpxFileExists)
+	{
+		{
+			auto & stream = inpx->Write("collection.info");
+			stream.write("Collection");
+		}
+		{
+			auto & stream = inpx->Write("version.info");
+			stream.write(archiveName.left(8).toUtf8());
+		}
+	}
+
 	auto & inpxStream = inpx->Write(QString("%1.inp").arg(archiveName));
 	m_impl->Extract(std::move(folder), std::move(bookWrappers), std::move(callback), [zip = std::move(zip), inpx = std::move(inpx), &inpxStream, n = size_t{0}]
 		(const std::filesystem::path & archiveFolder

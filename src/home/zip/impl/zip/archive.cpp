@@ -107,9 +107,9 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::share
 	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdUnzip);
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/, const bool appendMode)
 {
-	return std::make_unique<QuaZipImpl>(filename, QuaZip::Mode::mdCreate);
+	return std::make_unique<QuaZipImpl>(filename, appendMode ? QuaZip::Mode::mdAdd : QuaZip::Mode::mdCreate);
 }
 
 }

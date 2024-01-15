@@ -50,8 +50,8 @@ public:
 	{
 	}
 
-	Impl(const QString & filename, const Format format, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format)))
+	Impl(const QString & filename, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
+		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format), appendMode))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
@@ -70,6 +70,7 @@ public:
 
 	QIODevice & Write(const QString & filename)
 	{
+		m_file.reset();
 		m_file.reset(m_zip->Write(filename));
 		return m_file->Write();
 	}
@@ -94,8 +95,8 @@ Zip::Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 {
 }
 
-Zip::Zip(const QString & filename, const Format format, std::shared_ptr<ProgressCallback> progress)
-	: m_impl(std::make_unique<Impl>(filename, format, std::move(progress)))
+Zip::Zip(const QString & filename, const Format format, bool appendMode, std::shared_ptr<ProgressCallback> progress)
+	: m_impl(std::make_unique<Impl>(filename, format, appendMode, std::move(progress)))
 {
 }
 

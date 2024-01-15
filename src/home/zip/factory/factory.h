@@ -20,7 +20,7 @@ struct ZIPFACTORY_EXPORT Factory
 	};
 
 	static std::unique_ptr<IZip> Create(const QString & filename, std::shared_ptr<ProgressCallback> progress);
-	static std::unique_ptr<IZip> Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, Format format);
+	static std::unique_ptr<IZip> Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, Format format, bool appendMode);
 };
 
 }
