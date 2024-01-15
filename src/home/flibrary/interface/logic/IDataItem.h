@@ -16,6 +16,7 @@ enum class ItemType;
 #define DATA_ITEMS_X_MACRO \
 DATA_ITEM(DataItem)        \
 DATA_ITEM(NavigationItem)  \
+DATA_ITEM(GenreItem)       \
 DATA_ITEM(AuthorItem)      \
 DATA_ITEM(BookItem)        \
 DATA_ITEM(MenuItem)
@@ -79,6 +80,13 @@ private:
 #define DATA_ITEM(NAME) [[nodiscard]] virtual NAME* To##NAME() noexcept { return nullptr; }  // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
+};
+
+struct BookInfo
+{
+	IDataItem::Ptr book;
+	std::vector<IDataItem::Ptr> authors;
+	std::vector<IDataItem::Ptr> genres;
 };
 
 }

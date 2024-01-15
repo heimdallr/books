@@ -73,6 +73,7 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 {
 	BookQueryFields::AuthorId,
 	BookQueryFields::AuthorLastName,
+	BookQueryFields::AuthorLastName,
 	BookQueryFields::AuthorFirstName,
 	BookQueryFields::AuthorMiddleName,
 };

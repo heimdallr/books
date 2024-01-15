@@ -70,6 +70,28 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
+class GenreItem final : public DataItem
+{
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Title = 0,
+			Fb2Code,
+			Last
+		};
+	};
+
+public:
+	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
+	explicit GenreItem(IDataItem * parent);
+
+private: // DataItem
+	GenreItem * ToGenreItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
+};
+
 class AuthorItem final : public DataItem
 {
 public:
@@ -77,13 +99,15 @@ public:
 	{
 		enum Value
 		{
-			LastName = 0,
+			Name = 0,
+			LastName,
 			FirstName,
 			MiddleName,
 			Last
 		};
 	};
 
+public:
 	static std::shared_ptr<IDataItem> Create(IDataItem * parent = nullptr);
 	explicit AuthorItem(IDataItem * parent);
 

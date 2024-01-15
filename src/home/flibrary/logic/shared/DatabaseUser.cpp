@@ -96,12 +96,14 @@ IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, cons
 
 IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const int * index)
 {
-	auto item = IDataItem::Ptr(NavigationItem::Create());
+	auto item = IDataItem::Ptr(GenreItem::Create());
 
 	item->SetId(query.Get<const char *>(index[0]));
 
 	const auto * fbCode = query.Get<const char *>(index[2]);
 	const auto translated = Loc::Tr(GENRE, fbCode);
+
+	item->SetData(fbCode, GenreItem::Column::Fb2Code);
 	item->SetData(translated != fbCode ? translated : query.Get<const char *>(index[1]));
 
 	return item;
