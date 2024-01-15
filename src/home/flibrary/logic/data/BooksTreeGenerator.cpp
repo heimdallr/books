@@ -73,6 +73,7 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 {
 	BookQueryFields::AuthorId,
 	BookQueryFields::AuthorLastName,
+	BookQueryFields::AuthorLastName,
 	BookQueryFields::AuthorFirstName,
 	BookQueryFields::AuthorMiddleName,
 };
@@ -295,6 +296,20 @@ public:
 		return rootCached;
 	}
 
+	[[nodiscard]] BookInfo GetBookInfo(const long long id) const
+	{
+		const auto it = m_books.find(id);
+		assert(it != m_books.end());
+		const auto & [book, idSeries, idAuthors, idGenres] = it->second;
+
+		BookInfo bookInfo { book };
+
+		std::ranges::transform(idAuthors, std::back_inserter(bookInfo.authors), [&] (const auto idAuthor) { return m_authors.at(idAuthor); });
+		std::ranges::transform(idGenres, std::back_inserter(bookInfo.genres), [&] (const auto & idGenre) { return m_genres.at(idGenre); });
+
+		return bookInfo;
+	}
+
 private:
 	IDataItem::Items CreateBookItems(const IdsSet & idsSet) const
 	{
@@ -376,6 +391,11 @@ IDataItem::Ptr BooksTreeGenerator::GetCached() const noexcept
 void BooksTreeGenerator::SetBooksViewMode(const ViewMode viewMode) noexcept
 {
 	m_impl->viewMode = viewMode;
+}
+
+BookInfo BooksTreeGenerator::GetBookInfo(const long long id) const
+{
+	return m_impl->GetBookInfo(id);
 }
 
 // IBooksRootGenerator

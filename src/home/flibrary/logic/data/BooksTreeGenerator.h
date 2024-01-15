@@ -66,7 +66,9 @@ struct QStringWrapper
 	const QString & data;
 	bool operator<(const QStringWrapper & rhs) const
 	{
-		assert(!data.isEmpty() && !rhs.data.isEmpty());
+		if (data.isEmpty() || rhs.data.isEmpty())
+			return !rhs.data.isEmpty();
+
 		const auto lCategory = Category(data[0]), rCategory = Category(rhs.data[0]);
 		return lCategory != rCategory ? lCategory < rCategory : QString::compare(data, rhs.data, Qt::CaseInsensitive) < 0;
 	}
@@ -143,6 +145,7 @@ public:
 	enum class ViewMode GetBooksViewMode() const noexcept;
 	IDataItem::Ptr GetCached() const noexcept;
 	void SetBooksViewMode(ViewMode viewMode) noexcept;
+	BookInfo GetBookInfo(long long id) const;
 
 private: // IBooksRootGenerator
 	[[nodiscard]] IDataItem::Ptr GetList(Creator creator) const override;

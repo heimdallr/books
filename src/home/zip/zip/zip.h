@@ -27,7 +27,7 @@ public:
 
 public:
 	explicit Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress = {});
-	Zip(const QString & filename, Format format, std::shared_ptr<ProgressCallback> progress = {});
+	Zip(const QString & filename, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	~Zip();
 
 	[[nodiscard]] QStringList GetFileNameList() const;

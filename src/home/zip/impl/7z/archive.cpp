@@ -210,8 +210,9 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::share
 	return std::make_unique<Reader>(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, std::shared_ptr<ProgressCallback> /*progress*/)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
 {
+	assert(false);
 	return nullptr;
 }
 

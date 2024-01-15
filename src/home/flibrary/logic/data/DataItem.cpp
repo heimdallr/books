@@ -179,6 +179,26 @@ ItemType NavigationItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
+GenreItem::GenreItem(IDataItem * parent)
+	: DataItem(Column::Last, parent)
+{
+}
+
+std::shared_ptr<IDataItem> GenreItem::Create(IDataItem * parent)
+{
+	return std::make_shared<GenreItem>(parent);
+}
+
+GenreItem * GenreItem::ToGenreItem() noexcept
+{
+	return this;
+}
+
+ItemType GenreItem::GetType() const noexcept
+{
+	return ItemType::Navigation;
+}
+
 AuthorItem::AuthorItem(IDataItem * parent)
 	: DataItem(Column::Last, parent)
 {

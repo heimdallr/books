@@ -13,20 +13,21 @@ using namespace HomeCompa::ZipDetails;
 
 namespace {
 
-using Creator = std::unique_ptr<IZip>(*)(const QString & filename, std::shared_ptr<ProgressCallback> progress);
-constexpr std::pair<const char *, Creator> CREATORS_BY_EXT[]
+using ReaderCreator = std::unique_ptr<IZip>(*)(const QString & filename, std::shared_ptr<ProgressCallback> progress);
+constexpr std::pair<const char *, ReaderCreator> CREATORS_BY_EXT[]
 {
 	{"zip", &Impl::Zip::Archive::CreateReader},
 	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 
-constexpr std::pair<const char *, Creator> CREATORS_BY_SIGNATURE[]
+constexpr std::pair<const char *, ReaderCreator> CREATORS_BY_SIGNATURE[]
 {
 	{"PK", &Impl::Zip::Archive::Archive::CreateReader},
 	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 
-constexpr std::pair<Factory::Format, Creator> CREATORS_BY_FORMAT[]
+using WriterCreator = std::unique_ptr<IZip>(*)(const QString & filename, std::shared_ptr<ProgressCallback> progress, bool appendMode);
+constexpr std::pair<Factory::Format, WriterCreator> CREATORS_BY_FORMAT[]
 {
 	{Factory::Format::Zip, &Impl::Zip::Archive::CreateWriter},
 	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
@@ -52,7 +53,7 @@ std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<
 	return FindSecond(CREATORS_BY_EXT, QFileInfo(filename).suffix().toStdString().data(), &CreateBySignature, PszComparer {})(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, const Format format)
+std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, const Format format, const bool appendMode)
 {
-	return FindSecond(CREATORS_BY_FORMAT, format)(filename, std::move(progress));
+	return FindSecond(CREATORS_BY_FORMAT, format)(filename, std::move(progress), appendMode);
 }

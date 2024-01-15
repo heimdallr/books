@@ -16,6 +16,10 @@
 
 #include "ImageRestore.h"
 #include "zip.h"
+#include "data/DataItem.h"
+#include "data/DataProvider.h"
+
+#include "inpx/src/util/constant.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -28,6 +32,46 @@ public:
 	virtual ~IPathChecker() = default;
 	virtual void Check(std::filesystem::path & path) = 0;
 };
+
+void Write(QIODevice & stream, const BookInfo & book, size_t & n)
+{
+	auto seqNumber = book.book->GetRawData(BookItem::Column::SeqNumber);
+	if (seqNumber.toInt() <= 0)
+		seqNumber = "0";
+
+	const QFileInfo fileInfo(book.book->GetRawData(BookItem::Column::FileName));
+
+	QStringList authors;
+	for (const auto & author : book.authors)
+	{
+		const QStringList authorNames = QStringList()
+			<< author->GetRawData(AuthorItem::Column::LastName)
+			<< author->GetRawData(AuthorItem::Column::FirstName)
+			<< author->GetRawData(AuthorItem::Column::MiddleName)
+			;
+		authors << authorNames.join(NAMES_SEPARATOR) << QString(LIST_SEPARATOR);
+	}
+	stream.write((authors.join("") + FIELDS_SEPARATOR).toUtf8());
+
+	for (const auto & genre : book.genres)
+		stream.write((genre->GetRawData(GenreItem::Column::Fb2Code) + LIST_SEPARATOR).toUtf8());
+	stream.write(QString(FIELDS_SEPARATOR).toUtf8());
+
+	stream.write((book.book->GetRawData(BookItem::Column::Title) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetRawData(BookItem::Column::Series) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((seqNumber + FIELDS_SEPARATOR).toUtf8());
+	stream.write((fileInfo.completeBaseName() + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetRawData(BookItem::Column::Size) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetId() + FIELDS_SEPARATOR).toUtf8());
+	stream.write((QString(book.book->To<BookItem>()->removed ? "1" : "0") + FIELDS_SEPARATOR).toUtf8());
+	stream.write((fileInfo.suffix() + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetRawData(BookItem::Column::UpdateDate) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((QString::number(n++) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetRawData(BookItem::Column::Folder) + FIELDS_SEPARATOR).toUtf8());
+	stream.write((book.book->GetRawData(BookItem::Column::Lang) + FIELDS_SEPARATOR + FIELDS_SEPARATOR).toUtf8());
+
+	stream.write("\n");
+}
 
 bool Write(const QByteArray & input, const std::filesystem::path & path)
 {
@@ -136,9 +180,56 @@ void Process(const std::filesystem::path & archiveFolder
 	}
 }
 
+void Process(const std::filesystem::path & archiveFolder
+	, const BookInfo & book
+	, IProgressController::IProgressItem & progress
+	, Zip & zipOutput
+	, QIODevice & inpx
+	, size_t & n
+)
+{
+	const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
+	const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
+	auto & output = zipOutput.Write(fileName);
+	const Zip zipInput(folder);
+	auto & input = zipInput.Read(fileName);
+	const auto bytes = RestoreImages(input, folder, fileName);
+	output.write(bytes);
+	Write(inpx, book, n);
+	progress.Increment(input.size());
+}
+
+struct BookWrapper
+{
+	ILogicFactory::ExtractedBook extractedBook {};
+	BookInfo bookInfo {};
+
+	explicit BookWrapper(ILogicFactory::ExtractedBook && extractedBook)
+		: extractedBook(std::move(extractedBook))
+	{
+	}
+
+	explicit BookWrapper(BookInfo && bookInfo)
+		: bookInfo(std::move(bookInfo))
+	{
+	}
+
+	int64_t GetSize() const noexcept
+	{
+		return bookInfo.book ? bookInfo.book->GetRawData(BookItem::Column::Size).toLongLong() : extractedBook.size;
+	}
+
+	const QString & GetFile() const noexcept
+	{
+		return bookInfo.book ? bookInfo.book->GetRawData(BookItem::Column::FileName) : extractedBook.file;
+	}
+};
+
+using BookWrappers = std::vector<BookWrapper>;
+
 using ProcessFunctor = std::function<void(const std::filesystem::path & archiveFolder
 	, const QString & dstFolder
-	, const ILogicFactory::ExtractedBook & book
+	, const BookWrapper & book
 	, IProgressController::IProgressItem & progress
 	, IPathChecker & pathChecker
 	)>;
@@ -169,18 +260,18 @@ public:
 		m_progressController->UnregisterObserver(this);
 	}
 
-	void Extract(QString dstFolder, ILogicFactory::ExtractedBooks && books, Callback callback, ProcessFunctor processFunctor)
+	void Extract(QString dstFolder, BookWrappers && books, Callback callback, ProcessFunctor processFunctor, const int maxThreadCount = std::numeric_limits<int>::max())
 	{
 		assert(!m_callback);
 		m_hasError = false;
 		m_callback = std::move(callback);
 		m_taskCount = std::size(books);
 		m_processFunctor = std::move(processFunctor);
-		m_logicFactory->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
+		m_logicFactory->GetExecutor({ std::min(static_cast<int>(m_taskCount), maxThreadCount)}).swap(m_executor);
 		m_dstFolder = std::move(dstFolder);
 		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
 
-		std::for_each(std::make_move_iterator(std::begin(books)), std::make_move_iterator(std::end(books)), [&] (ILogicFactory::ExtractedBook && book)
+		std::for_each(std::make_move_iterator(std::begin(books)), std::make_move_iterator(std::end(books)), [&] (BookWrapper && book)
 		{
 			(*m_executor)(CreateTask(std::move(book)));
 		});
@@ -230,10 +321,10 @@ private: // IProgressController::IObserver
 	}
 
 private:
-	Util::IExecutor::Task CreateTask(ILogicFactory::ExtractedBook && book)
+	Util::IExecutor::Task CreateTask(BookWrapper && book)
 	{
-		std::shared_ptr progressItem = m_progressController->Add(book.size);
-		auto taskName = book.file.toStdString();
+		std::shared_ptr progressItem = m_progressController->Add(book.GetSize());
+		auto taskName = book.GetFile().toStdString();
 		return Util::IExecutor::Task
 		{
 			std::move(taskName), [&, book = std::move(book), progressItem = std::move(progressItem)] ()
@@ -294,39 +385,53 @@ BooksExtractor::~BooksExtractor()
 	PLOGD << "BooksExtractor destroyed";
 }
 
+template<typename T>
+BookWrappers CreateBookWrappers(T && books)
+{
+	BookWrappers bookWrappers;
+	std::transform(std::make_move_iterator(books.begin()), std::make_move_iterator(books.end()), std::back_inserter(bookWrappers), [] (typename T::value_type && book)
+	{
+		return BookWrapper(std::move(book));
+	});
+	return bookWrappers;
+}
+
 void BooksExtractor::ExtractAsArchives(QString folder, const QString &/*parameter*/, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)
 {
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	BookWrappers bookWrappers = CreateBookWrappers(std::move(books));
+	m_impl->Extract(std::move(folder), std::move(bookWrappers), std::move(callback)
 		, [outputFileNameTemplate = std::move(outputFileNameTemplate)] (const std::filesystem::path & archiveFolder
 			, const QString & dstFolder
-			, const ILogicFactory::ExtractedBook & book
+			, const BookWrapper & book
 			, IProgressController::IProgressItem & progress
 			, IPathChecker & pathChecker
 			)
 	{
-		Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, true);
+		Process(archiveFolder, dstFolder, book.extractedBook, outputFileNameTemplate, progress, pathChecker, true);
 	});
 }
 
 void BooksExtractor::ExtractAsIs(QString folder, const QString &/*parameter*/, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)
 {
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	BookWrappers bookWrappers = CreateBookWrappers(std::move(books));
+	m_impl->Extract(std::move(folder), std::move(bookWrappers), std::move(callback)
 		, [outputFileNameTemplate = std::move(outputFileNameTemplate)] (const std::filesystem::path & archiveFolder
 			, const QString & dstFolder
-			, const ILogicFactory::ExtractedBook & book
+			, const BookWrapper & book
 			, IProgressController::IProgressItem & progress
 			, IPathChecker & pathChecker
 			)
 	{
-		Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, false);
+		Process(archiveFolder, dstFolder, book.extractedBook, outputFileNameTemplate, progress, pathChecker, false);
 	});
 }
 
 void BooksExtractor::ExtractAsScript(QString folder, const QString &parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)
 {
+	BookWrappers bookWrappers = CreateBookWrappers(std::move(books));
 	auto scriptController = m_impl->GetScriptController();
 	auto commands = scriptController->GetCommands(parameter);
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	m_impl->Extract(std::move(folder), std::move(bookWrappers), std::move(callback)
 		, [scriptController = std::move(scriptController)
 			, commands = std::move(commands)
 			, tempDir = std::make_shared<QTemporaryDir>()
@@ -334,11 +439,48 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString &parameter, I
 		]
 		(const std::filesystem::path & archiveFolder
 			, const QString & dstFolder
-			, const ILogicFactory::ExtractedBook & book
+			, const BookWrapper & book
 			, IProgressController::IProgressItem & progress
 			, IPathChecker & pathChecker
 			)
 	{
-		Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir);
+		Process(archiveFolder, dstFolder, book.extractedBook, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir);
 	});
+}
+
+void BooksExtractor::ExtractAsInpxCollection(QString folder, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)
+{
+	PLOGD << QString("Extract %1 books as inpx-collection started").arg(idList.size());
+
+	std::vector<BookInfo> bookInfo;
+	std::ranges::transform(idList, std::back_inserter(bookInfo), [&] (const auto & id) { return dataProvider.GetBookInfo(id.toLongLong()); });
+	BookWrappers bookWrappers = CreateBookWrappers(std::move(bookInfo));
+	const auto archiveName = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
+	auto zip = std::make_shared<Zip>(QString("%1/%2.zip").arg(folder, archiveName), Zip::Format::Zip);
+	const auto inpxFileName = QString("%1/collection.inpx").arg(folder);
+	const auto inpxFileExists = QFile::exists(inpxFileName);
+	auto inpx = std::make_shared<Zip>(inpxFileName, Zip::Format::Zip, inpxFileExists);
+	if (!inpxFileExists)
+	{
+		{
+			auto & stream = inpx->Write("collection.info");
+			stream.write("Collection");
+		}
+		{
+			auto & stream = inpx->Write("version.info");
+			stream.write(archiveName.left(8).toUtf8());
+		}
+	}
+
+	auto & inpxStream = inpx->Write(QString("%1.inp").arg(archiveName));
+	m_impl->Extract(std::move(folder), std::move(bookWrappers), std::move(callback), [zip = std::move(zip), inpx = std::move(inpx), &inpxStream, n = size_t{0}]
+		(const std::filesystem::path & archiveFolder
+			, const QString & /*dstFolder*/
+			, const BookWrapper & book
+			, IProgressController::IProgressItem & progress
+			, IPathChecker &
+			) mutable
+	{
+		Process(archiveFolder, book.bookInfo, progress, *zip, inpxStream, n);
+	}, 1);
 }
