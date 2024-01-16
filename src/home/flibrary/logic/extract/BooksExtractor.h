@@ -10,8 +10,6 @@
 
 namespace HomeCompa::Flibrary {
 
-class DataProvider;
-
 class BooksExtractor
 {
 	NON_COPY_MOVABLE(BooksExtractor)
@@ -32,7 +30,6 @@ public:
 	void ExtractAsArchives(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
 	void ExtractAsIs(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
 	void ExtractAsScript(QString folder, const QString & parameter, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback);
-	void ExtractAsInpxCollection(QString folder, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback);
 
 private:
 	class Impl;

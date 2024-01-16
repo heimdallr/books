@@ -54,7 +54,9 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ReaderController> CreateReaderController() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUserDataController> CreateUserDataController() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class InpxCollectionExtractor> CreateInpxCollectionExtractor() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker> CreateUpdateChecker() const = 0;
+
 	FLINT_EXPORT static std::vector<std::vector<QString>> GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles);
 	FLINT_EXPORT static ExtractedBooks GetExtractedBooks(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList = {});
 	FLINT_EXPORT static void FillScriptTemplate(QString & scriptTemplate, const ILogicFactory::ExtractedBook & book);

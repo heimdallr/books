@@ -20,9 +20,10 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "extract/BooksExtractor.h"
+#include "extract/InpxCollectionExtractor.h"
 #include "shared/ReaderController.h"
 
-#include "BooksExtractor.h"
 #include "DatabaseUser.h"
 
 using namespace HomeCompa;
@@ -248,7 +249,7 @@ private: // IContextMenuHandler
 		if (dir.isEmpty())
 			return callback(item);
 
-		auto extractor = m_logicFactory->CreateBooksExtractor();
+		auto extractor = m_logicFactory->CreateInpxCollectionExtractor();
 		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
 			item->SetData(QString::number(hasError), MenuItem::Column::HasError);

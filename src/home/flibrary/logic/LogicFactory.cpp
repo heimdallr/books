@@ -27,8 +27,10 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "ChangeNavigationController/SearchController.h"
 
+#include "extract/BooksExtractor.h"
+#include "extract/InpxCollectionExtractor.h"
+
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/BooksExtractor.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ReaderController.h"
@@ -120,6 +122,11 @@ std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() co
 std::shared_ptr<BooksExtractor> LogicFactory::CreateBooksExtractor() const
 {
 	return m_impl->container.resolve<BooksExtractor>();
+}
+
+std::shared_ptr<InpxCollectionExtractor> LogicFactory::CreateInpxCollectionExtractor() const
+{
+	return m_impl->container.resolve<InpxCollectionExtractor>();
 }
 
 std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
