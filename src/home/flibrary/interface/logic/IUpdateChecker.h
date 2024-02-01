@@ -11,7 +11,7 @@ public:
 
 public:
 	virtual ~IUpdateChecker() = default;
-	virtual void CheckForUpdate(Callback callback) = 0;
+	virtual void CheckForUpdate(bool force, Callback callback) = 0;
 };
 
 }

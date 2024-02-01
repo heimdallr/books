@@ -333,6 +333,7 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionCheckForUpdates"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuBook">
@@ -620,6 +621,17 @@
   <action name="actionExportTempate">
    <property name="text">
     <string>Book &amp;export tempate</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCheckForUpdates">
+   <property name="text">
+    <string>Check for &amp;Updates</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

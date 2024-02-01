@@ -30,15 +30,28 @@ namespace {
 constexpr auto DISCARDED_UPDATE_KEY = "ui/Update/SkippedVersion";
 constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
 
-constexpr auto CONTEXT          =                   "UpdateChecker";
-constexpr auto DOWNLOAD         = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
-constexpr auto VISIT_HOME       = QT_TRANSLATE_NOOP("UpdateChecker", "Visit download page");
-constexpr auto SKIP             = QT_TRANSLATE_NOOP("UpdateChecker", "Skip this version");
-constexpr auto CANCEL           = QT_TRANSLATE_NOOP("UpdateChecker", "Cancel");
-constexpr auto RELEASED         = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!");
-constexpr auto INSTALLER_FOLDER = QT_TRANSLATE_NOOP("UpdateChecker", "Select folder for app installer");
-constexpr auto START_INSTALLER  = QT_TRANSLATE_NOOP("UpdateChecker", "Run the installer?");
+constexpr auto CONTEXT           =                   "UpdateChecker";
+constexpr auto DOWNLOAD          = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
+constexpr auto VISIT_HOME        = QT_TRANSLATE_NOOP("UpdateChecker", "Visit download page");
+constexpr auto SKIP              = QT_TRANSLATE_NOOP("UpdateChecker", "Skip this version");
+constexpr auto CANCEL            = QT_TRANSLATE_NOOP("UpdateChecker", "Cancel");
+constexpr auto RELEASED          = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!");
+constexpr auto INSTALLER_FOLDER  = QT_TRANSLATE_NOOP("UpdateChecker", "Select folder for app installer");
+constexpr auto START_INSTALLER   = QT_TRANSLATE_NOOP("UpdateChecker", "Run the installer?");
+constexpr auto CHECK_FAILED      = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
+constexpr auto VERSION_ACTUAL    = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
+constexpr auto VERSION_MIRACLE   = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
 TR_DEF
+
+enum class CheckResult
+{
+	Error,
+	Discard,
+	NeedUpdate,
+	Actual,
+	MoreActual,
+};
+
 }
 
 class UpdateChecker::Impl final : virtual public IClient
@@ -56,27 +69,23 @@ public:
 	{
 	}
 
-	void CheckForUpdate(std::shared_ptr<IClient> client, Callback callback)
+	void CheckForUpdate(std::shared_ptr<IClient> client, const bool force, Callback callback)
 	{
-		if (!NeedCheckUpdate())
+		if (!force && !NeedCheckUpdate())
 			return callback();
 
 		m_callback = std::move(callback);
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor();
-		(*executor)({ "Check for app updates", [&, executor, client = std::move(client)] () mutable
+		(*executor)({ "Check for app updates", [&, executor, client = std::move(client), force] () mutable
 		{
 			Requester requester { CreateQtConnection("https://api.github.com") };
 			requester.GetLatestRelease(client, "heimdallr", "books");
-			const auto needUpdate = IsLatestReleaseNewer();
+			const auto checkResult = Check();
 
-			return [&, executor = std::move(executor), needUpdate] (size_t) mutable
+			return [&, executor = std::move(executor), force, checkResult] (size_t) mutable
 			{
-				if (needUpdate)
-					QTimer::singleShot(0, [&] { ShowUpdateMessage(); });
-				else
-					m_callback();
-
+				QTimer::singleShot(0, [&, force, checkResult] { ShowMessage(force, checkResult); });
 				executor.reset();
 			};
 		} });
@@ -100,23 +109,23 @@ private:
 		return true;
 	}
 
-	bool IsLatestReleaseNewer()
+	CheckResult Check()
 	{
-		const auto nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
-		if (nameSplitted.size() != 2)
-			return false;
+		m_nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
+		if (m_nameSplitted.size() != 2)
+			return CheckResult::Error;
 
 		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
-			return false;
+			return CheckResult::Discard;
 
 		std::vector<int> latestVersion;
-		if (!std::ranges::all_of(nameSplitted.back().split('.', Qt::SkipEmptyParts), [&] (const QString & item)
+		if (!std::ranges::all_of(m_nameSplitted.back().split('.', Qt::SkipEmptyParts), [&] (const QString & item)
 		{
 			bool ok = false;
 			latestVersion.push_back(item.toInt(&ok));
 			return ok;
 		}))
-			return false;
+			return CheckResult::Error;
 
 		std::vector<int> currentVersion;
 		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [] (const QString & item)
@@ -128,12 +137,49 @@ private:
 		});
 
 		if (latestVersion.size() != currentVersion.size())
-			return false;
+			return CheckResult::Error;
 
-		return std::ranges::lexicographical_compare(currentVersion, latestVersion);
+		return
+			  std::ranges::lexicographical_compare(currentVersion, latestVersion) ? CheckResult::NeedUpdate
+			: std::ranges::lexicographical_compare(latestVersion, currentVersion) ? CheckResult::MoreActual
+			:																		CheckResult::Actual
+			;
 	}
 
 private:
+	void ShowMessage(const bool force, const CheckResult checkResult)
+	{
+		QString message;
+		switch (checkResult)
+		{
+			case CheckResult::NeedUpdate:
+				return ShowUpdateMessage();
+
+			case CheckResult::Error:
+				message = Tr(CHECK_FAILED);
+				break;
+
+			case CheckResult::Discard:
+				if (force)
+					return ShowUpdateMessage();
+
+				break;
+
+			case CheckResult::Actual:
+				message = Tr(VERSION_ACTUAL).arg(PRODUCT_VERSION);
+				break;
+
+			case CheckResult::MoreActual:
+				message = Tr(VERSION_MIRACLE).arg(m_nameSplitted.back()).arg(PRODUCT_VERSION);
+				break;
+		}
+
+		if (force)
+			m_uiFactory->ShowInfo(message);
+
+		m_callback();
+	}
+
 	void ShowUpdateMessage()
 	{
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons
@@ -227,6 +273,7 @@ private:
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Callback m_callback;
 	Release m_release;
+	QStringList m_nameSplitted;
 };
 
 UpdateChecker::UpdateChecker(std::shared_ptr<ISettings> settings
@@ -248,7 +295,7 @@ UpdateChecker::~UpdateChecker()
 	PLOGD << "UpdateChecker destroyed";
 }
 
-void UpdateChecker::CheckForUpdate(Callback callback)
+void UpdateChecker::CheckForUpdate(const bool force, Callback callback)
 {
-	m_impl->CheckForUpdate(m_impl, std::move(callback));
+	m_impl->CheckForUpdate(m_impl, force, std::move(callback));
 }
