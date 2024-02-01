@@ -2043,6 +2043,21 @@ Try again?</source>
         <source>Run the installer?</source>
         <translation>Запустить инсталлятор?</translation>
     </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <source>Update check failed</source>
+        <translation>Ошибка проверки обновлений</translation>
+    </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <source>Current version %1 is actual</source>
+        <translation>Текущая версия %1 актуальна</translation>
+    </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <source>Last version %1, your version %2. Did a miracle happen?</source>
+        <translation>Последняя версия %1, ваша версия %2. Случилось чудо?</translation>
+    </message>
 </context>
 <context>
     <name>UserData</name>

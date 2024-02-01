@@ -448,6 +448,11 @@ Restart now?</source>
         <source>Book &amp;export tempate</source>
         <translation>Шаблон &amp;экспорта книг</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Check for &amp;Updates</source>
+        <translation>Проверка &amp;обновлений</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

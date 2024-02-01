@@ -447,6 +447,11 @@ Restart now?</source>
         <source>Book &amp;export tempate</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Check for &amp;Updates</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
