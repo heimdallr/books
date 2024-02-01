@@ -116,8 +116,7 @@ public:
 				});
 		});
 
-		auto updateChecker = m_logicFactory->CreateUpdateChecker();
-		updateChecker->CheckForUpdate([updateChecker] () mutable { updateChecker.reset(); });
+		CheckForUpdates(false);
 	}
 
 	~Impl() override
@@ -226,6 +225,10 @@ private:
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&]
 		{
 			m_collectionController->AddCollection({});
+		});
+		connect(m_ui.actionCheckForUpdates, &QAction::triggered, &m_self, [&]
+		{
+			CheckForUpdates(true);
 		});
 		connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&]
 		{
@@ -381,6 +384,15 @@ private:
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
 		m_ui.actionRemoveCollection->setEnabled(enabled);
 		m_ui.menuSelectCollection->setEnabled(enabled);
+	}
+
+	void CheckForUpdates(const bool force) const
+	{
+		auto updateChecker = m_logicFactory->CreateUpdateChecker();
+		updateChecker->CheckForUpdate(force, [updateChecker] () mutable
+		{
+			updateChecker.reset();
+		});
 	}
 
 	template<typename T>

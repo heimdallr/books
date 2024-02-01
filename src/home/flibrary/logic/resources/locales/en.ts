@@ -2037,6 +2037,21 @@ Try again?</source>
         <source>Run the installer?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <source>Update check failed</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <source>Current version %1 is actual</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <source>Last version %1, your version %2. Did a miracle happen?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>UserData</name>

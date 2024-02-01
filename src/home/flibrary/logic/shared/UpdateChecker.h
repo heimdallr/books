@@ -24,7 +24,7 @@ public:
 	~UpdateChecker() override;
 
 private: // IUpdateChecker
-	void CheckForUpdate(Callback callback) override;
+	void CheckForUpdate(bool force, Callback callback) override;
 
 private:
 	class Impl;
