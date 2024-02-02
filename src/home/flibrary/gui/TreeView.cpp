@@ -122,6 +122,7 @@ public:
 private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
+		m_ui.value->setText({});
 		m_ui.cbMode->setCurrentIndex(index);
 	}
 
