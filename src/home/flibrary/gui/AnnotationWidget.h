@@ -31,9 +31,6 @@ public:
 	void ShowCover(bool value);
 
 private:
-	void resizeEvent(QResizeEvent* event) override;
-
-private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
