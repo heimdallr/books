@@ -118,7 +118,8 @@ struct Table
 }
 
 class AnnotationWidget::Impl final
-	: IAnnotationController::IObserver
+	: QObject
+	, IAnnotationController::IObserver
 	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -141,7 +142,14 @@ public:
 		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 		m_ui.setupUi(&m_self);
-		m_ui.cover->setVisible(false);
+
+		m_ui.mainWidget->installEventFilter(this);
+
+		m_ui.coverArea->setVisible(false);
+		auto palette = m_ui.coverArea->palette();
+		palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
+		m_ui.coverArea->setPalette(palette);
+
 		m_progressTimer.setSingleShot(true);
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
 
@@ -227,10 +235,14 @@ public:
 
 	void OnResize() const
 	{
-		m_ui.cover->setVisible(m_showCover);
+		m_ui.coverArea->setVisible(m_showCover);
 
-		if (m_covers.empty() || !m_ui.cover->isVisible())
+		if (m_covers.empty() || !m_ui.coverArea->isVisible())
+		{
+			m_ui.coverArea->setMinimumWidth(0);
+			m_ui.coverArea->setMaximumWidth(0);
 			return;
+		}
 
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth = m_ui.mainWidget->width() / 3;
@@ -245,6 +257,17 @@ public:
 			imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
 		m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		m_ui.coverArea->setMinimumWidth(imgWidth);
+		m_ui.coverArea->setMaximumWidth(imgWidth);
+	}
+
+private: // QObject
+	bool eventFilter(QObject * obj, QEvent * event) override
+	{
+		if (event->type() == QEvent::Type::Resize)
+			OnResize();
+
+		return QObject::eventFilter(obj, event);
 	}
 
 private: // IAnnotationController::IObserver
@@ -252,7 +275,7 @@ private: // IAnnotationController::IObserver
 	{
 		m_ui.contentWidget->setVisible(false);
 		m_ui.content->setModel(nullptr);
-		m_ui.cover->setVisible(false);
+		m_ui.coverArea->setVisible(false);
 		m_ui.cover->setPixmap({});
 		m_ui.cover->setCursor(Qt::ArrowCursor);
 		m_ui.info->setText({});
@@ -403,9 +426,4 @@ void AnnotationWidget::ShowContent(const bool value)
 void AnnotationWidget::ShowCover(const bool value)
 {
 	m_impl->ShowCover(value);
-}
-
-void AnnotationWidget::resizeEvent(QResizeEvent *)
-{
-	m_impl->OnResize();
 }
