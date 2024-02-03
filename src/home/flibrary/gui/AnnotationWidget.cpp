@@ -232,12 +232,19 @@ public:
 		if (m_covers.empty() || !m_ui.cover->isVisible())
 			return;
 
-		const auto maxHeight = m_ui.mainWidget->height();
-		const auto maxWidth = m_ui.scrollArea->width() / 2;
+		auto imgHeight = m_ui.mainWidget->height();
+		auto imgWidth = m_ui.mainWidget->width() / 3;
 
 		QPixmap pixmap;
 		[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
-		m_ui.cover->setPixmap(pixmap.scaled(maxWidth, maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		assert(ok);
+
+		if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
+			imgHeight = pixmap.height() * imgWidth / pixmap.width();
+		else
+			imgWidth = pixmap.width() * imgHeight / pixmap.height();
+
+		m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	}
 
 private: // IAnnotationController::IObserver
