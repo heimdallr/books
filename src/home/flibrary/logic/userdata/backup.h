@@ -14,6 +14,6 @@ class IExecutor;
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback);
+void Backup(const Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback);
 
 }

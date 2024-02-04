@@ -227,7 +227,7 @@ private:
 	QString m_error;
 };
 
-void RestoreImpl(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
+void RestoreImpl(const Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
 {
 	executor({ "Restore user data", [&db, fileName = std::move(fileName), callback = std::move(callback)] () mutable
 	{
@@ -253,7 +253,7 @@ void RestoreImpl(Util::IExecutor & executor, DB::IDatabase & db, QString fileNam
 
 }
 
-void Restore(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
+void Restore(const Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
 {
 	RestoreImpl(executor, db, std::move(fileName), std::move(callback));
 }

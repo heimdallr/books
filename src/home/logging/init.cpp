@@ -15,7 +15,7 @@ struct LoggingInitializer::Impl
 	LogAppender logAppender;
 	QtLogHandler qtLogHandler;
 
-	Impl(const std::filesystem::path & path)
+	explicit Impl(const std::filesystem::path & path)
 		: rollingFileAppender(path.string().data(), 10000000, 10000)
 		, logAppender(&rollingFileAppender)
 	{

@@ -15,7 +15,7 @@ class XmlAttributes;
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Restore(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback);
+void Restore(const Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback);
 
 class IRestorer  // NOLINT(cppcoreguidelines-special-member-functions)
 {

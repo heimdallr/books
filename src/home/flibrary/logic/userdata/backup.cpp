@@ -165,7 +165,7 @@ constexpr std::pair<const char *, BackupFunction> BACKUPERS[]
 
 }
 
-void Backup(Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
+void Backup(const Util::IExecutor & executor, DB::IDatabase & db, QString fileName, Callback callback)
 {
 	executor({ "Backup user data", [&db, fileName = std::move(fileName), callback = std::move(callback)] () mutable
 	{

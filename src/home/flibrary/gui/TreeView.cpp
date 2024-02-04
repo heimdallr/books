@@ -223,7 +223,7 @@ private:
 		FillComboBoxes();
 		Connect();
 
-		OnModeChanged(m_controller->GetModeIndex());
+		Impl::OnModeChanged(m_controller->GetModeIndex());
 		m_controller->RegisterObserver(this);
 
 		QTimer::singleShot(0, [&]
