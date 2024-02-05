@@ -178,7 +178,7 @@ private:
 
 			auto time = [&]
 			{
-				if (FAILED(archive->GetProperty(i, kpidCTime, &prop)) || !prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime)
+				if (FAILED(archive->GetProperty(i, kpidCTime, &prop)) || (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime))
 					return QDateTime {};
 
 				SYSTEMTIME systemTime {};

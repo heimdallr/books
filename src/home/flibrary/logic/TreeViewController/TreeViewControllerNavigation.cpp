@@ -104,9 +104,9 @@ IDataItem::Ptr MenuRequesterSearches()
 
 struct ModeDescriptor
 {
-	ViewMode viewMode;
-	ModelCreator modelCreator;
-	NavigationMode navigationMode;
+	ViewMode viewMode { ViewMode::Unknown };
+	ModelCreator modelCreator { nullptr };
+	NavigationMode navigationMode { NavigationMode::Unknown };
 	MenuRequester menuRequester { &MenuRequesterStub };
 };
 

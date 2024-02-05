@@ -122,12 +122,15 @@ private:
 		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
 			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
 
-		m_databaseUser->Execute({ "Get books",[&
+		m_databaseUser->Execute({ "Get books",[this
 			, navigationMode = m_navigationMode
 			, navigationId = m_navigationId
 			, viewMode = m_booksViewMode
 			, generator = std::move(m_booksGenerator)
 			, booksGeneratorReady
+			, &description
+			, &booksGenerator
+			, &columnMapper
 		] () mutable
 		{
 			if (!booksGeneratorReady)
@@ -138,7 +141,12 @@ private:
 
 			generator->SetBooksViewMode(viewMode);
 			auto root = (*generator.*booksGenerator)(description.treeCreator);
-			return [&, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator)] (size_t) mutable
+			return [this
+				, navigationId = std::move(navigationId)
+				, root = std::move(root)
+				, generator = std::move(generator)
+				, &description
+				, &columnMapper] (size_t) mutable
 			{
 				m_booksGenerator = std::move(generator);
 				SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());

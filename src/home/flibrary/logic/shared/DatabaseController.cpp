@@ -73,9 +73,6 @@ public:
 		if (m_db)
 			return m_db;
 
-		if (m_db)
-			const_cast<Impl*>(this)->Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
-
 		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
 		m_db = std::move(db);
 

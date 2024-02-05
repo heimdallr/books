@@ -155,22 +155,27 @@ private: // Util::SaxParser
 
 	bool OnWarning(const QString & text) override
 	{
-		m_data.error = text;
-		PLOGW << text;
-		return true;
+		return Log(text, plog::Severity::warning);
 	}
 
 	bool OnError(const QString & text) override
 	{
-		return OnWarning(text);
+		return Log(text, plog::Severity::error);
 	}
 
 	bool OnFatalError(const QString & text) override
 	{
-		return OnWarning(text);
+		return Log(text, plog::Severity::fatal);
 	}
 
 private:
+	bool Log(const QString & text, const plog::Severity severity)
+	{
+		m_data.error = text;
+		LOG(severity) << text;
+		return true;
+	}
+
 	bool OnStartElementCoverpageImage(const Util::XmlAttributes & attributes)
 	{
 		m_coverpage = attributes.GetAttribute(L_HREF);
@@ -379,7 +384,14 @@ public:
 			XmlParser parser(stream);
 			return parser.Parse(collection->folder, book, std::move(parseProgressItem));
 		}
-		catch(...) {}
+		catch (const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch (...)
+		{
+			PLOGE << "Unknown error";
+		}
 		return {};
 	}
 

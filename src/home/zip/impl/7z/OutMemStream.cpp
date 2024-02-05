@@ -65,7 +65,8 @@ STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * 
 
 	const auto* byte_data = static_cast<const char *>(data);
 	m_buffer.append(byte_data, size);
-	*processedSize = size;
+	if (processedSize)
+		*processedSize = size;
 
 	m_progress->OnIncrement(size);
 

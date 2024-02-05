@@ -67,7 +67,7 @@ public:
 	struct Base
 	{
 		QString uid;
-		int number;
+		int number { -1 };
 		Mode mode { Mode::None };
 		void SetUpdated() noexcept
 		{
@@ -119,8 +119,8 @@ public:
 	using CommandExecutorFunctor = bool(ICommandExecutor::*)(const Command & command) const;
 	struct CommandDescription
 	{
-		const char * type;
-		CommandExecutorFunctor executor = nullptr;
+		const char * type { nullptr };
+		CommandExecutorFunctor executor { nullptr };
 	};
 	static constexpr std::pair<Command::Type, CommandDescription> s_commandTypes[]
 	{

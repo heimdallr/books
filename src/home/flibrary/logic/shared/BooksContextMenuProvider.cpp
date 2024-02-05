@@ -171,10 +171,10 @@ public:
 			}
 
 			if (type == ItemType::Books)
+			{
 				CreateGroupMenu(Add(result, Tr(GROUPS), BooksMenuAction::None), id, *db);
-
-			if (type == ItemType::Books)
 				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+			}
 
 			return [callback = std::move(callback), result = std::move(result)] (size_t)
 			{
@@ -323,7 +323,7 @@ private:
 
 	void ChangeBookRemoved(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
 	{
-		m_databaseUser->Execute({ "Remove books", [&, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove] () mutable
+		m_databaseUser->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove] () mutable
 		{
 			const auto db = m_databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
@@ -336,7 +336,7 @@ private:
 			}
 			transaction->Commit();
 
-			return [&, item = std::move(item), callback = std::move(callback)] (size_t)
+			return [this, item = std::move(item), callback = std::move(callback)] (size_t)
 			{
 				callback(item);
 				m_dataProvider->RequestBooks(true);

@@ -23,7 +23,7 @@ public:
 	{
 		observer->RegisterObservableHelper(this);
 		[[maybe_unused]] auto inserted = m_observers.emplace(observer).second;
-		inserted = m_observersMap.emplace(observer, observer).second;
+		inserted = m_observersMap.emplace(observer, observer).second && inserted;
 		assert(inserted);
 	}
 

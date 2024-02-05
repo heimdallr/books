@@ -77,13 +77,13 @@ public:
 		m_callback = std::move(callback);
 
 		std::shared_ptr executor = m_logicFactory->GetExecutor();
-		(*executor)({ "Check for app updates", [&, executor, client = std::move(client), force] () mutable
+		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force] () mutable
 		{
 			Requester requester { CreateQtConnection("https://api.github.com") };
 			requester.GetLatestRelease(client, "heimdallr", "books");
 			const auto checkResult = Check();
 
-			return [&, executor = std::move(executor), force, checkResult] (size_t) mutable
+			return [this, executor = std::move(executor), force, checkResult] (size_t) mutable
 			{
 				QTimer::singleShot(0, [&, force, checkResult] { ShowMessage(force, checkResult); });
 				executor.reset();
@@ -224,7 +224,7 @@ private:
 		auto installerFileName = QString("%1/%2").arg(installerFolder, m_release.assets.front().name);
 		auto file = std::make_shared<QFile>(installerFileName);
 		file->open(QIODevice::WriteOnly);
-		downloader->Download(m_release.assets.front().browser_download_url, *file, [&, downloader, file, installerFileName = std::move(installerFileName)] (const int code, const QString & error) mutable
+		downloader->Download(m_release.assets.front().browser_download_url, *file, [this, downloader, file, installerFileName = std::move(installerFileName)] (const int code, const QString & error) mutable
 				{
 					file->close();
 					file.reset();
@@ -252,7 +252,7 @@ private:
 
 					});
 				}
-			, [&, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable
+			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable
 				{
 					if (!progressItem)
 						progressItem = m_progressController->Add(bytesTotal);

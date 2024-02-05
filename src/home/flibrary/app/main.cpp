@@ -42,8 +42,10 @@ int main(int argc, char * argv[])
 		while (true)
 		{
 			std::shared_ptr<Hypodermic::Container> container;
-			Hypodermic::ContainerBuilder builder;
-			DiInit(builder, container).swap(container);
+			{
+				Hypodermic::ContainerBuilder builder;
+				DiInit(builder, container);
+			}
 			PLOGD << "DI-container created";
 
 			container->resolve<ITaskQueue>()->Execute();

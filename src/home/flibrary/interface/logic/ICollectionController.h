@@ -1,15 +1,12 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <vector>
 
 #include <QString>
 
 #include "fnd/observer.h"
-
-namespace std::filesystem {
-class path;
-}
 
 namespace HomeCompa::Flibrary {
 

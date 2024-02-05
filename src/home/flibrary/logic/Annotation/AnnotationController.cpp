@@ -160,7 +160,7 @@ private:
 		m_databaseUser->Execute({ "Get database book info", [&, id = m_currentBookId.toLongLong()]
 		{
 			const auto db = m_databaseUser->Database();
-			return [&, book = CreateBook(*db, id)] (size_t) mutable
+			return [this, book = CreateBook(*db, id)] (size_t) mutable
 			{
 				if (book->GetId() == m_currentBookId)
 					ExtractInfo(std::move(book));
@@ -181,20 +181,21 @@ private:
 
 		auto parser = m_logicFactory->CreateArchiveParser();
 
-		(*m_executor)({ "Get archive book info", [&, book = std::move(book), parser = std::move(parser)] () mutable
+		(*m_executor)({ "Get archive book info", [this, book = std::move(book), parser = std::move(parser)] () mutable
 		{
 			const auto progressController = parser->GetProgressController();
 			progressController->RegisterObserver(this);
 			m_archiveParserProgressController = progressController;
 			auto data = parser->Parse(*book);
-			return [&, book = std::move(book), data = std::move(data)] (size_t) mutable
+			return [this, book = std::move(book), data = std::move(data)] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
 					return;
 
 				m_archiveData = std::move(data);
+				m_ready |= Ready::Archive;
 
-				if ((m_ready |= Ready::Archive) == Ready::All)
+				if (m_ready == Ready::All)
 					Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} });
@@ -202,7 +203,7 @@ private:
 
 	void ExtractDatabaseInfo(IDataItem::Ptr book)
 	{
-		m_databaseUser->Execute({ "Get database book additional info", [&, book = std::move(book)] () mutable
+		m_databaseUser->Execute({ "Get database book additional info", [this, book = std::move(book)] () mutable
 		{
 			const auto db = m_databaseUser->Database();
 			const auto bookId = book->GetId().toLongLong();
@@ -210,7 +211,7 @@ private:
 			auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUser::CreateFullAuthorItem);
 			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			return [&, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups)] (size_t) mutable
+			return [this, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups)] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
 					return;
@@ -220,8 +221,9 @@ private:
 				m_authors = std::move(authors);
 				m_genres = std::move(genres);
 				m_groups = std::move(groups);
+				m_ready |= Ready::Database;
 
-				if ((m_ready |= Ready::Database) == Ready::All)
+				if (m_ready == Ready::All)
 					Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
 			};
 		} }, 3);

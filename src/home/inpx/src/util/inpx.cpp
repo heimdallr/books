@@ -752,8 +752,7 @@ void SetNextId(sqlite3pp::database & db)
 
 std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, const std::filesystem::path & genresFileName)
 {
-	std::pair<Data, Dictionary> result;
-	auto & [data, index] = result;
+	Data data;
 
 	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
 	SetNextId(db);
@@ -761,9 +760,8 @@ std::pair<Data, Dictionary> ReadData(const std::filesystem::path & dbFileName, c
 	data.series = ReadDictionary("series", db, "select SeriesID, SeriesTitle from Series");
 	auto [genres, genresIndex] = ReadGenres(db, genresFileName);
 	data.genres = std::move(genres);
-	index = std::move(genresIndex);
 
-	return result;
+	return std::make_pair(std::move(data), std::move(genresIndex));
 }
 
 class IPool  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -903,6 +901,13 @@ private:
 		ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
 	}
 
+	void SetUnknownGenreId()
+	{
+		const auto it = m_genresIndex.find(UNKNOWN);
+		assert(it != m_genresIndex.end());
+		m_unknownGenreId = it->second;
+	}
+
 	void UpdateDatabaseImpl()
 	{
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
@@ -910,7 +915,7 @@ private:
 
 		m_data = oldData;
 		m_genresIndex = oldGenresIndex;
-		m_unknownGenreId = m_genresIndex.find(UNKNOWN)->second;
+		SetUnknownGenreId();
 
 		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const Zip zip(QString::fromStdWString(inpxFileName));
@@ -941,7 +946,7 @@ private:
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres = std::move(genresData);
 		m_genresIndex = std::move(genresIndex);
-		m_unknownGenreId = m_genresIndex.find(UNKNOWN)->second;
+		SetUnknownGenreId();
 
 		const std::filesystem::path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
@@ -955,7 +960,14 @@ private:
 			{
 				return std::make_unique<Zip>(QString::fromStdWString(inpxFileName.generic_wstring()));
 			}
-			catch(...){}
+			catch (const std::exception & ex)
+			{
+				PLOGE << ex.what();
+			}
+			catch(...)
+			{
+				PLOGE << "Unknown error";
+			}
 			return std::unique_ptr<Zip>{};
 		}();
 

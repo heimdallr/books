@@ -97,7 +97,7 @@ struct SearchController::Impl
 			const auto id = CreateNewSearchImpl(*transaction, searchString);
 			transaction->Commit();
 
-			return [&, id, searchString = std::move(searchString), callback = std::move(callback)] (size_t)
+			return [this, id, searchString = std::move(searchString), callback = std::move(callback)] (size_t)
 			{
 				if (id)
 					settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(currentCollectionId).arg("Search"), QString::number(id));

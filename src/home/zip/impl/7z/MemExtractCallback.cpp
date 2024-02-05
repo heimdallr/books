@@ -82,7 +82,7 @@ STDMETHODIMP MemExtractCallback::SetCompleted(const UInt64 * /*completeValue*/)
 	return CheckBreak();
 }
 
-STDMETHODIMP MemExtractCallback::CheckBreak()
+STDMETHODIMP MemExtractCallback::CheckBreak() const
 {
 	return m_callback->OnCheckBreak() ? E_ABORT : S_OK;
 }

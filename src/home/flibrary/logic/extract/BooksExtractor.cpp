@@ -237,7 +237,7 @@ private:
 		auto taskName = book.file.toStdString();
 		return Util::IExecutor::Task
 		{
-			std::move(taskName), [&, book = std::move(book), progressItem = std::move(progressItem)] ()
+			std::move(taskName), [this, book = std::move(book), progressItem = std::move(progressItem)] ()
 			{
 				bool error = false;
 				try
@@ -249,7 +249,7 @@ private:
 					PLOGE << ex.what();
 					error = true;
 				}
-				return [&, error] (const size_t)
+				return [this, error] (const size_t)
 				{
 					m_hasError = error || m_hasError;
 					assert(m_taskCount > 0);

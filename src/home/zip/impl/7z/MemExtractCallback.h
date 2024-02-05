@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <QString>
 
 #include "7z/CPP/7zip/Archive/IArchive.h"
@@ -34,7 +32,7 @@ private:
 	STDMETHOD(SetCompleted)(const UInt64 * completeValue) override;
 
 	// Early exit, this is not part of any interface
-	STDMETHOD(CheckBreak)();
+	STDMETHODIMP CheckBreak() const;
 
 	// IMemExtractCallback
 	STDMETHOD(GetStream)(UInt32 index, ISequentialOutStream ** outStream, Int32 askExtractMode) override;

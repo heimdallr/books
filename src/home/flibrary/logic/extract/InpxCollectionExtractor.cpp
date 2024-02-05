@@ -181,7 +181,7 @@ private:
 		auto taskName = uid.toStdString();
 		return Util::IExecutor::Task
 		{
-			std::move(taskName), [&, books = std::move(books), progressItem = std::move(progressItem), uid = std::move(uid)] () mutable
+			std::move(taskName), [this, books = std::move(books), progressItem = std::move(progressItem), uid = std::move(uid)] () mutable
 			{
 				bool error = false;
 				QByteArray inpx;
@@ -194,7 +194,7 @@ private:
 					PLOGE << ex.what();
 					error = true;
 				}
-				return [&, error, inpx = std::move(inpx), uid = std::move(uid)] (const size_t) mutable
+				return [this, error, inpx = std::move(inpx), uid = std::move(uid)] (const size_t) mutable
 				{
 					{
 						std::lock_guard lock(m_pathsGuard);

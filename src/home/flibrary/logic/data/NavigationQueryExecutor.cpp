@@ -78,7 +78,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 	if (!db)
 		return;
 
-	databaseUser.Execute({ "Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
+	databaseUser.Execute({ "Get navigation", [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
 		std::unordered_map<QString, IDataItem::Ptr> index;
 
@@ -101,7 +101,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 		auto root = NavigationItem::Create();
 		root->SetChildren(std::move(items));
 
-		return [&, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
+		return [&cache, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
 			cache[mode] = root;
 			callback(mode, std::move(root));
@@ -120,7 +120,7 @@ void RequestNavigationGenres(NavigationMode navigationMode
 	if (!db)
 		return;
 
-	databaseUser.Execute({"Get navigation", [&, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
+	databaseUser.Execute({"Get navigation", [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
 		std::unordered_map<QString, IDataItem::Ptr> index;
 
@@ -174,7 +174,7 @@ void RequestNavigationGenres(NavigationMode navigationMode
 			}
 		}
 
-		return [&, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
+		return [&cache, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
 			cache[mode] = root;
 			callback(mode, std::move(root));

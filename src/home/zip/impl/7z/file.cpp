@@ -34,7 +34,7 @@ private:
 		m_zip->GetProperty(m_index, kpidSize, &prop);
 		m_progress->OnStartWithTotal(prop.uhVal.QuadPart);
 
-		m_zip->Extract(indices, 1, false, callback);
+		m_zip->Extract(indices, 1, 0, callback);
 		m_progress->OnDone();
 
 		m_buffer = std::make_unique<QBuffer>(&m_bytes);

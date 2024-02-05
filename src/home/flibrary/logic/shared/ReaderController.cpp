@@ -122,7 +122,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 
 	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection()->folder, folderName);
 	std::shared_ptr executor = m_impl->logicFactory->GetExecutor();
-	(*executor)({ "Extract book", [&
+	(*executor)({ "Extract book", [this
 		, executor
 		, reader = std::move(reader)
 		, archive = std::move(archive)
@@ -132,7 +132,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	{
 		QString error;
 		auto temporaryDir = Extract(archive, fileName, error);
-		return [&
+		return [this
 			, executor = std::move(executor)
 			, reader = std::move(reader)
 			, fileName = std::move(fileName)
