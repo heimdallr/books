@@ -48,6 +48,7 @@ constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Sel
 TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
+constexpr auto DIALOG_KEY = "Export";
 
 using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
 
@@ -245,7 +246,7 @@ private: // IContextMenuHandler
 		{
 			return std::move(id.front());
 		});
-		auto dir = m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER);
+		auto dir = m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
 		if (dir.isEmpty())
 			return callback(item);
 
@@ -287,7 +288,7 @@ private:
 		, const bool dstFolderRequired
 	) const
 	{
-		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(SELECT_SEND_TO_FOLDER) : QString();
+		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 

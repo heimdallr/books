@@ -29,6 +29,7 @@ using namespace Github;
 namespace {
 constexpr auto DISCARDED_UPDATE_KEY = "ui/Update/SkippedVersion";
 constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
+constexpr auto DIALOG_KEY = "Installer";
 
 constexpr auto CONTEXT           =                   "UpdateChecker";
 constexpr auto DOWNLOAD          = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
@@ -217,7 +218,7 @@ private:
 	void Download()
 	{
 		auto downloader = std::make_shared<Network::Downloader>();
-		const auto installerFolder = m_uiFactory->GetExistingDirectory(Tr(INSTALLER_FOLDER));
+		const auto installerFolder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
 		if (installerFolder.isEmpty())
 			return m_callback();
 

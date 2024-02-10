@@ -13,6 +13,7 @@ namespace {
 constexpr auto CONTEXT = "OpenFileDialogDelegateEditor";
 constexpr auto APP_FILE_FILTER = QT_TRANSLATE_NOOP("OpenFileDialogDelegateEditor", "Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)");
 constexpr auto FILE_DIALOG_TITLE = QT_TRANSLATE_NOOP("OpenFileDialogDelegateEditor", "Select Application");
+constexpr auto DIALOG_KEY = "Script";
 
 TR_DEF
 
@@ -28,7 +29,7 @@ struct OpenFileDialogDelegateEditor::Impl
 		ui.edit->setFocus(Qt::FocusReason::TabFocusReason);
 		connect(ui.button, &QAbstractButton::clicked, &self, [&, uiFactory = std::move(uiFactory)]
 		{
-			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)));
+			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)));
 			if (fileName.isEmpty())
 				return;
 
