@@ -40,12 +40,12 @@ UserDataController::~UserDataController()
 
 void UserDataController::Backup(Callback callback) const
 {
-	Do(std::move(callback), m_uiFactory->GetSaveFileName(Tr(SELECT_EXPORT_FILE), {}, Tr(FILE_FILTER)), EXPORT_SUCCESS, &UserData::Backup);
+	Do(std::move(callback), m_uiFactory->GetSaveFileName(Tr(SELECT_EXPORT_FILE), Tr(FILE_FILTER)), EXPORT_SUCCESS, &UserData::Backup);
 }
 
 void UserDataController::Restore(Callback callback) const
 {
-	Do(std::move(callback), m_uiFactory->GetOpenFileName(Tr(SELECT_IMPORT_FILE), {}, Tr(FILE_FILTER)), IMPORT_SUCCESS, &UserData::Restore);
+	Do(std::move(callback), m_uiFactory->GetOpenFileName(Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER)), IMPORT_SUCCESS, &UserData::Restore);
 }
 
 void UserDataController::Do(Callback callback, QString fileName, const char * successMessage, const DoFunction f) const

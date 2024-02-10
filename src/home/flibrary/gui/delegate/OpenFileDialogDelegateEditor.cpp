@@ -28,7 +28,7 @@ struct OpenFileDialogDelegateEditor::Impl
 		ui.edit->setFocus(Qt::FocusReason::TabFocusReason);
 		connect(ui.button, &QAbstractButton::clicked, &self, [&, uiFactory = std::move(uiFactory)]
 		{
-			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(Tr(FILE_DIALOG_TITLE), {}, Tr(APP_FILE_FILTER)));
+			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)));
 			if (fileName.isEmpty())
 				return;
 

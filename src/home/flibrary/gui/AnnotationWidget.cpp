@@ -222,7 +222,7 @@ public:
 		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
 		{
 			assert(!m_covers.empty());
-			if (const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+			if (const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
 				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
 		});
 

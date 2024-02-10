@@ -53,7 +53,7 @@ TR_DEF
 
 QString GetDatabase(const IUiFactory & uiController, const QString & file)
 {
-	return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), QFileInfo(file).path(), Tr(DATABASE_FILENAME_FILTER), QFileDialog::DontConfirmOverwrite);
+	return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), Tr(DATABASE_FILENAME_FILTER), QFileInfo(file).path(), QFileDialog::DontConfirmOverwrite);
 }
 
 QString GetFolder(const IUiFactory & uiController, const QString & dir)
