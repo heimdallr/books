@@ -118,6 +118,15 @@ struct Table
 	QStringList data;
 };
 
+bool SaveImage(const QString & fileName, const QByteArray & bytes)
+{
+	QPixmap pixmap;
+	return true
+		&& pixmap.loadFromData(bytes)
+		&& pixmap.save(fileName)
+		;
+}
+
 }
 
 class AnnotationWidget::Impl final
@@ -215,10 +224,7 @@ public:
 			assert(!m_covers.empty());
 
 			const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER);
-
-			QPixmap pixmap;
-			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes);
-			pixmap.save(fileName);
+			SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
 		});
 
 		connect(m_ui.actionSaveAllPictures, &QAction::triggered, &m_self, [&]
@@ -227,13 +233,11 @@ public:
 			std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
 			std::shared_ptr executor = m_logicFactory->GetExecutor();
 
-			(*executor)({ "Save images", [executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)] () mutable
+			(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)] () mutable
 			{
 				for (const auto & [name, bytes] : covers)
 				{
-					QPixmap pixmap;
-					[[maybe_unused]] const auto ok = pixmap.loadFromData(bytes);
-					pixmap.save(QString("%1/%2").arg(folder).arg(name));
+					SaveImage(QString("%1/%2").arg(folder).arg(name), bytes);
 					progressItem->Increment(1);
 					if (progressItem->IsStopped())
 						break;
