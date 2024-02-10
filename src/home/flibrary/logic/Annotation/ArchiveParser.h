@@ -1,12 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <QString>
-
 #include "data/DataItem.h"
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary {
@@ -24,7 +22,7 @@ public:
 		QString epigraph;
 		QString epigraphAuthor;
 		std::vector<QString> keywords;
-		std::vector<QByteArray> covers;
+		IAnnotationController::IDataProvider::Covers covers;
 		int coverIndex { -1 };
 		IDataItem::Ptr content { NavigationItem::Create() };
 		IDataItem::Ptr translators { NavigationItem::Create() };

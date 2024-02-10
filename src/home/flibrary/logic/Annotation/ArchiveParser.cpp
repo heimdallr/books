@@ -83,7 +83,7 @@ public:
 
 			if (name == m_coverpage)
 				m_data.coverIndex = static_cast<int>(m_data.covers.size());
-			m_data.covers.push_back(std::move(bytes));
+			m_data.covers.push_back(IAnnotationController::IDataProvider::Cover { std::move(name), std::move(bytes) });
 		}
 
 		return m_data;
