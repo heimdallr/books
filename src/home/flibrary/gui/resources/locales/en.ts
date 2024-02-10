@@ -138,27 +138,37 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="43"/>
-        <source>Updated:</source>
+        <source>Images:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="44"/>
-        <source>Translators:</source>
+        <source>Updated:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="45"/>
-        <source>Select image file name</source>
+        <source>Translators:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="46"/>
-        <source>Select images folder</source>
+        <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="47"/>
+        <source>Select images folder</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="49"/>
+        <source>Save &amp;all %1 pictures...</source>
         <translation></translation>
     </message>
 </context>
@@ -172,11 +182,6 @@
     <message>
         <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Copy image</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.ui"/>
-        <source>Save &amp;all pictures...</source>
         <translation></translation>
     </message>
 </context>

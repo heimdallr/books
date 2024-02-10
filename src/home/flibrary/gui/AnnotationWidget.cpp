@@ -40,11 +40,13 @@ constexpr auto ARCHIVE = QT_TRANSLATE_NOOP("Annotation", "Archives:");
 constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
+constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
+constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all %1 pictures...");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -348,17 +350,30 @@ private: // IAnnotationController::IObserver
 			Add(annotation, table.ToString());
 		}
 
-		Add(annotation, Table()
-			.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
-			.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
-			.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate))
-			.ToString());
+		m_covers = dataProvider.GetCovers();
+		m_ui.actionSaveAllPictures->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
+
+		{
+			auto info = Table()
+				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
+				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
+				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
+			if (!m_covers.empty())
+			{
+				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
+				{
+					return init + cover.bytes.size();
+				});
+				info.Add(IMAGES, QString("%1 (%L2)").arg(m_covers.size()).arg(total));
+			}
+
+			Add(annotation, info.ToString());
+		}
 
 		Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
 
 		m_ui.info->setText(annotation);
 
-		m_covers = dataProvider.GetCovers();
 		if (m_covers.empty())
 			return;
 
