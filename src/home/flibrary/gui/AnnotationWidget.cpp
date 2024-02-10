@@ -45,6 +45,7 @@ constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
+constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all %1 pictures...");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -359,6 +360,7 @@ private: // IAnnotationController::IObserver
 		m_ui.info->setText(annotation);
 
 		m_covers = dataProvider.GetCovers();
+		m_ui.actionSaveAllPictures->setText(QString(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
 		if (m_covers.empty())
 			return;
 
