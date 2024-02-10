@@ -41,6 +41,10 @@ constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
 
+constexpr auto DIALOG_KEY_DB = "Database";
+constexpr auto DIALOG_KEY_ARCH = "Database";
+
+
 QString Error(const char * str)
 {
 	if (!str)
@@ -53,12 +57,12 @@ TR_DEF
 
 QString GetDatabase(const IUiFactory & uiController, const QString & file)
 {
-	return uiController.GetSaveFileName(Tr(SELECT_DATABASE_FILE), Tr(DATABASE_FILENAME_FILTER), QFileInfo(file).path(), QFileDialog::DontConfirmOverwrite);
+	return uiController.GetSaveFileName(DIALOG_KEY_DB, Tr(SELECT_DATABASE_FILE), Tr(DATABASE_FILENAME_FILTER), QFileInfo(file).path(), QFileDialog::DontConfirmOverwrite);
 }
 
 QString GetFolder(const IUiFactory & uiController, const QString & dir)
 {
-	return uiController.GetExistingDirectory(Tr(SELECT_ARCHIVES_FOLDER), dir);
+	return uiController.GetExistingDirectory(DIALOG_KEY_ARCH, Tr(SELECT_ARCHIVES_FOLDER), dir);
 }
 
 }

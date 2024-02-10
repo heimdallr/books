@@ -27,6 +27,7 @@ constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 r
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
 
 constexpr auto READER_KEY = "Reader/%1";
+constexpr auto DIALOG_KEY = "Reader";
 
 TR_DEF
 
@@ -114,7 +115,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	const auto ext = QFileInfo(fileName).suffix();
 	const auto key = QString(READER_KEY).arg(ext);
 	auto reader = m_impl->settings->Get(key).toString();
-	if (reader.isEmpty() && !(reader = m_impl->uiFactory->GetOpenFileName(Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER))).isEmpty())
+	if (reader.isEmpty() && !(reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER))).isEmpty())
 		m_impl->settings->Set(key, reader);
 
 	if (reader.isEmpty())

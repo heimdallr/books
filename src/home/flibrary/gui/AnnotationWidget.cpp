@@ -47,6 +47,7 @@ constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select ima
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
+constexpr auto DIALOG_KEY = "Image";
 
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
@@ -222,13 +223,13 @@ public:
 		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
 		{
 			assert(!m_covers.empty());
-			if (const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+			if (const auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
 				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
 		});
 
 		connect(m_ui.actionSaveAllPictures, &QAction::triggered, &m_self, [&]
 		{
-			auto folder = m_uiFactory->GetExistingDirectory(Tr(SELECT_IMAGE_FOLDER));
+			auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
 			if (folder.isEmpty())
 				return;
 

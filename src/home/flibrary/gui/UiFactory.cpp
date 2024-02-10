@@ -14,7 +14,6 @@
 #include "interface/ui/dialogs/IDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
-#include "util/hash.h"
 #include "util/ISettings.h"
 
 #include "dialogs/AddCollectionDialog.h"
@@ -33,9 +32,9 @@ constexpr auto RECENT_DIR_KEY = "ui/RecentDir/%1";
 class RecentDir
 {
 public:
-	RecentDir(std::shared_ptr<ISettings> settings, const QString & str)
+	RecentDir(std::shared_ptr<ISettings> settings, const QString & key)
 		: m_settings(std::move(settings))
-		, m_key(QString(RECENT_DIR_KEY).arg(Util::md5((str).toUtf8())))
+		, m_key(QString(RECENT_DIR_KEY).arg(key))
 	{
 	}
 
@@ -183,33 +182,33 @@ std::optional<QFont> UiFactory::GetFont(const QString & title, const QFont & fon
 	return QFontDialog::getFont(&ok, font, m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, options);
 }
 
-QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString & str, const QString & dir, const std::function<QString(const QString &)> & f)
+QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString & key, const QString & dir, const std::function<QString(const QString &)> & f)
 {
-	RecentDir recentDir(std::move(settings), str);
+	RecentDir recentDir(std::move(settings), key);
 	auto result = f(recentDir.GetDir(dir));
 	recentDir.SetDir(result);
 	return result;
 }
 
-QString UiFactory::GetOpenFileName(const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetOpenFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title + filter, dir, [&](const QString & recentDir)
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&](const QString & recentDir)
 	{
 		return QFileDialog::getOpenFileName(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
 	});
 }
 
-QString UiFactory::GetSaveFileName(const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetSaveFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title + filter, dir, [&] (const QString & recentDir)
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&] (const QString & recentDir)
 	{
 		return QFileDialog::getSaveFileName(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
 	});
 }
 
-QString UiFactory::GetExistingDirectory(const QString & title, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetExistingDirectory(const QString & key, const QString & title, const QString & dir, const QFileDialog::Options options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), title, dir, [&] (const QString & recentDir)
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&] (const QString & recentDir)
 	{
 		return QFileDialog::getExistingDirectory(m_impl->container.resolve<ParentWidgetProvider>()->GetWidget(), title, recentDir, options);
 	});
