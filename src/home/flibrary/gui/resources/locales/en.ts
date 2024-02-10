@@ -168,7 +168,7 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>Save &amp;all %1 pictures...</source>
+        <source>Save &amp;all pictures (%1)...</source>
         <translation></translation>
     </message>
 </context>
