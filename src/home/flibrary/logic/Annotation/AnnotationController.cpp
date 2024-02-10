@@ -116,7 +116,7 @@ private: // IDataProvider
 		return m_archiveData.keywords;
 	}
 
-	[[nodiscard]] const std::vector<QByteArray> & GetCovers() const noexcept override
+	[[nodiscard]] const Covers & GetCovers() const noexcept override
 	{
 		return m_archiveData.covers;
 	}

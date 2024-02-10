@@ -18,11 +18,13 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
+#include "interface/logic/IProgressController.h"
 #include "interface/ui/IUiFactory.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/IExecutor.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -41,6 +43,7 @@ constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
+constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
@@ -115,6 +118,15 @@ struct Table
 	QStringList data;
 };
 
+bool SaveImage(const QString & fileName, const QByteArray & bytes)
+{
+	QPixmap pixmap;
+	return true
+		&& pixmap.loadFromData(bytes)
+		&& pixmap.save(fileName)
+		;
+}
+
 }
 
 class AnnotationWidget::Impl final
@@ -129,16 +141,19 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IAnnotationController> annotationController
 		, std::shared_ptr<IModelProvider> modelProvider
+		, std::shared_ptr<ILogicFactory> logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<ICollectionController> & collectionController
-		, const std::shared_ptr<ILogicFactory> & logicFactory
 	)
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_annotationController(std::move(annotationController))
 		, m_modelProvider(std::move(modelProvider))
+		, m_logicFactory(std::move(logicFactory))
 		, m_uiFactory(std::move(uiFactory))
-		, m_navigationController(std::shared_ptr<ITreeViewController>(logicFactory->GetTreeViewController(ItemType::Navigation)))
+		, m_progressController(std::move(progressController))
+		, m_navigationController(m_logicFactory->GetTreeViewController(ItemType::Navigation))
 		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 		m_ui.setupUi(&m_self);
@@ -191,27 +206,51 @@ public:
 			OnResize();
 		});
 
-		m_ui.cover->addAction(m_ui.actionSavePictureAs);
 		m_ui.cover->addAction(m_ui.actionCopyImage);
-
-		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
-		{
-			assert(!m_covers.empty());
-
-			const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER);
-
-			QPixmap pixmap;
-			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
-			pixmap.save(fileName);
-		});
+		m_ui.cover->addAction(m_ui.actionSavePictureAs);
+		m_ui.cover->addAction(m_ui.actionSaveAllPictures);
 
 		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [&]
 		{
 			assert(!m_covers.empty());
 
 			QPixmap pixmap;
-			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
+			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes);
 			QGuiApplication::clipboard()->setImage(pixmap.toImage());
+		});
+
+		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
+		{
+			assert(!m_covers.empty());
+			if (const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
+		});
+
+		connect(m_ui.actionSaveAllPictures, &QAction::triggered, &m_self, [&]
+		{
+			auto folder = m_uiFactory->GetExistingDirectory(Tr(SELECT_IMAGE_FOLDER));
+			if (folder.isEmpty())
+				return;
+
+			std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
+			std::shared_ptr executor = m_logicFactory->GetExecutor();
+
+			(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)] () mutable
+			{
+				for (const auto & [name, bytes] : covers)
+				{
+					SaveImage(QString("%1/%2").arg(folder).arg(name), bytes);
+					progressItem->Increment(1);
+					if (progressItem->IsStopped())
+						break;
+				}
+
+				return [executor = std::move(executor), progressItem = std::move(progressItem)] (size_t) mutable
+				{
+					progressItem.reset();
+					executor.reset();
+				};
+			} });
 		});
 	}
 
@@ -248,7 +287,7 @@ public:
 		auto imgWidth = m_ui.mainWidget->width() / 3;
 
 		QPixmap pixmap;
-		[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex]);
+		[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes);
 		assert(ok);
 
 		if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
@@ -379,11 +418,13 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
+	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
-	std::vector<QByteArray> m_covers;
+	IAnnotationController::IDataProvider::Covers m_covers;
 	const QString m_currentCollectionId;
 	int m_coverIndex { -1 };
 	int m_currentCoverIndex { -1 };
@@ -396,9 +437,10 @@ private:
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IAnnotationController> annotationController
 	, std::shared_ptr<IModelProvider> modelProvider
+	, std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, const std::shared_ptr<ICollectionController> & collectionController
-	, const std::shared_ptr<ILogicFactory> & logicFactory
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -406,9 +448,11 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::move(settings)
 		, std::move(annotationController)
 		, std::move(modelProvider)
+		, std::move(logicFactory)
 		, std::move(uiFactory)
+		, std::move(progressController)
 		, collectionController
-		, logicFactory)
+	)
 {
 	PLOGD << "AnnotationWidget created";
 }

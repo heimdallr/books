@@ -1,11 +1,10 @@
 #pragma once
 
+#include <QString>
+
 #include "fnd/observer.h"
 
 #include "interface/logic/IDataItem.h"
-
-class QByteArray;
-class QString;
 
 namespace HomeCompa::Flibrary {
 
@@ -14,6 +13,14 @@ class IAnnotationController  // NOLINT(cppcoreguidelines-special-member-function
 public:
 	class IDataProvider  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
+	public:
+		struct Cover
+		{
+			QString name;
+			QByteArray bytes;
+		};
+		using Covers = std::vector<Cover>;
+
 	public:
 		virtual ~IDataProvider() = default;
 
@@ -29,7 +36,7 @@ public:
 		[[nodiscard]] virtual const QString & GetEpigraph() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetEpigraphAuthor() const noexcept = 0;
 		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;
-		[[nodiscard]] virtual const std::vector<QByteArray> & GetCovers() const noexcept = 0;
+		[[nodiscard]] virtual const Covers & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;

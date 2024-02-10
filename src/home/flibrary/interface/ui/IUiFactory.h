@@ -35,8 +35,8 @@ public:
 	[[nodiscard]] virtual QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
 	[[nodiscard]] virtual std::optional<QFont> GetFont(const QString & title, const QFont & font, QFontDialog::FontDialogOptions options = {}) const = 0;
 
-	[[nodiscard]] virtual QString GetOpenFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const = 0;
-	[[nodiscard]] virtual QString GetSaveFileName(const QString & title, const QString & dir = {}, const QString & filter = {}, QFileDialog::Options options = {}) const = 0;
+	[[nodiscard]] virtual QString GetOpenFileName(const QString & title, const QString & filter = {}, const QString & dir = {}, QFileDialog::Options options = {}) const = 0;
+	[[nodiscard]] virtual QString GetSaveFileName(const QString & title, const QString & filter = {}, const QString & dir = {}, QFileDialog::Options options = {}) const = 0;
 	[[nodiscard]] virtual QString GetExistingDirectory(const QString & title, const QString & dir = {}, QFileDialog::Options options = QFileDialog::ShowDirsOnly) const = 0;
 
 public: // special
