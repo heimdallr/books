@@ -222,14 +222,16 @@ public:
 		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
 		{
 			assert(!m_covers.empty());
-
-			const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER);
-			SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
+			if (const auto fileName = m_uiFactory->GetSaveFileName(Tr(SELECT_IMAGE_FILE_NAME), {}, IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
 		});
 
 		connect(m_ui.actionSaveAllPictures, &QAction::triggered, &m_self, [&]
 		{
 			auto folder = m_uiFactory->GetExistingDirectory(Tr(SELECT_IMAGE_FOLDER));
+			if (folder.isEmpty())
+				return;
+
 			std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
 			std::shared_ptr executor = m_logicFactory->GetExecutor();
 
