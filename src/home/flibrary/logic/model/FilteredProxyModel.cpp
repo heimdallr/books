@@ -71,44 +71,30 @@ bool FilteredProxyModel::setData(const QModelIndex & index, const QVariant & val
 {
 	if (index.isValid())
 	{
-		switch (role)
-		{
-			case Qt::CheckStateRole:
-				if (const auto checkState = index.data(Qt::CheckStateRole); checkState.isValid())
-				{
-					Check(index, checkState.value<Qt::CheckState>() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-					auto parent = index;
-					while (parent.isValid())
-					{
-						emit dataChanged(parent, parent, { Qt::CheckStateRole });
-						parent = parent.parent();
-					}
-					return true;
-				}
+		if (role != Qt::CheckStateRole)
+			return QIdentityProxyModel::setData(index, value, role);
 
-				return false;
-
-			default:
-				break;
-		}
-	}
-	else
-	{
-		switch (role)
+		if (const auto checkState = index.data(Qt::CheckStateRole); checkState.isValid())
 		{
-			case Role::Selected:
+			Check(index, checkState.value<Qt::CheckState>() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+			auto parent = index;
+			while (parent.isValid())
 			{
-				const auto request = value.value<SelectedRequest>();
-				GetSelected(request.current, request.selected, request.result);
-				return true;
+				emit dataChanged(parent, parent, { Qt::CheckStateRole });
+				parent = parent.parent();
 			}
-
-			default:
-				break;
+			return true;
 		}
+
+		return false;
 	}
 
-	return m_sourceModel->setData(mapToSource(index), value, role);
+	if (role != Role::Selected)
+		return QIdentityProxyModel::setData(index, value, role);
+
+	const auto request = value.value<SelectedRequest>();
+	GetSelected(request.current, request.selected, request.result);
+	return true;
 }
 
 
@@ -131,6 +117,7 @@ QStringList FilteredProxyModel::CollectLanguages() const
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 			languages.insert(child.data(Role::Lang).toString().toLower());
 	});
+	languages.erase(QString());
 
 	return { languages.cbegin(), languages.cend() };
 }
