@@ -360,7 +360,7 @@ private: // IAnnotationController::IObserver
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
 			if (!m_covers.empty())
 			{
-				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const qsizetype init, const IAnnotationController::IDataProvider::Cover & cover)
+				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
 				{
 					return init + cover.bytes.size();
 				});
