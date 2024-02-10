@@ -138,28 +138,38 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="43"/>
+        <source>Images:</source>
+        <translation>Картинки:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>Updated:</source>
         <translation>Обновлён:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>Translators:</source>
         <translation>Перевод:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="49"/>
+        <source>Save &amp;all %1 pictures...</source>
+        <translation>Сохранить &amp;все %1 изображения...</translation>
     </message>
 </context>
 <context>
@@ -173,11 +183,6 @@
         <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Copy image</source>
         <translation>&amp;Копировать изображение</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.ui"/>
-        <source>Save &amp;all pictures...</source>
-        <translation>Сохранить &amp;все изображения...</translation>
     </message>
 </context>
 <context>

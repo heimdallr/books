@@ -2003,52 +2003,52 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="34"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="35"/>
         <source>Download</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="35"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
         <source>Visit download page</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
         <source>Skip this version</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>%1 released!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Select folder for app installer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
         <source>Run the installer?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
         <source>Update check failed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
         <source>Current version %1 is actual</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
         <translation></translation>
     </message>
