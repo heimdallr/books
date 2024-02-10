@@ -131,6 +131,7 @@ QStringList FilteredProxyModel::CollectLanguages() const
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 			languages.insert(child.data(Role::Lang).toString().toLower());
 	});
+	languages.erase(QString());
 
 	return { languages.cbegin(), languages.cend() };
 }
