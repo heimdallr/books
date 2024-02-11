@@ -123,11 +123,23 @@ struct Table
 
 bool SaveImage(const QString & fileName, const QByteArray & bytes)
 {
-	QPixmap pixmap;
-	return true
-		&& pixmap.loadFromData(bytes)
-		&& pixmap.save(fileName)
-		;
+	if (QFile::exists(fileName))
+		PLOGW << fileName << " already exists and will be overwritten";
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		PLOGE << "Cannot open to write into " << fileName;
+		return false;
+	}
+
+	if (file.write(bytes) != bytes.size())
+	{
+		PLOGW << "Write incomplete into " << fileName;
+		return false;
+	}
+
+	return true;
 }
 
 }
