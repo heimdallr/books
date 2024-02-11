@@ -15,7 +15,7 @@ rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
 echo installer creating
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\flibrary.iss
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\installer\flibrary.iss
 
 goto End
 
