@@ -171,6 +171,21 @@
         <source>Save &amp;all pictures (%1)...</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="50"/>
+        <source>All %1 pictures were successfully saved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
+        <source>%1 out of %2 pictures were saved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
+        <source>%1 pictures out of %2 could not be saved</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>

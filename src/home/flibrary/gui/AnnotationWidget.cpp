@@ -47,6 +47,9 @@ constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select 
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all pictures (%1)...");
+constexpr auto SAVED_ALL = QT_TRANSLATE_NOOP("Annotation", "All %1 pictures were successfully saved");
+constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 pictures were saved");
+constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 pictures out of %2 could not be saved");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -123,11 +126,23 @@ struct Table
 
 bool SaveImage(const QString & fileName, const QByteArray & bytes)
 {
-	QPixmap pixmap;
-	return true
-		&& pixmap.loadFromData(bytes)
-		&& pixmap.save(fileName)
-		;
+	if (QFile::exists(fileName))
+		PLOGW << fileName << " already exists and will be overwritten";
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		PLOGE << "Cannot open to write into " << fileName;
+		return false;
+	}
+
+	if (file.write(bytes) != bytes.size())
+	{
+		PLOGW << "Write incomplete into " << fileName;
+		return false;
+	}
+
+	return true;
 }
 
 }
@@ -240,16 +255,26 @@ public:
 
 			(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)] () mutable
 			{
+				size_t savedCount = 0;
 				for (const auto & [name, bytes] : covers)
 				{
-					SaveImage(QString("%1/%2").arg(folder).arg(name), bytes);
+					if (SaveImage(QString("%1/%2").arg(folder).arg(name), bytes))
+						++savedCount;
+
 					progressItem->Increment(1);
 					if (progressItem->IsStopped())
 						break;
 				}
 
-				return [executor = std::move(executor), progressItem = std::move(progressItem)] (size_t) mutable
+				return [this, executor = std::move(executor), progressItem = std::move(progressItem), savedCount, totalCount = covers.size()] (size_t) mutable
 				{
+					if (savedCount == totalCount)
+						m_uiFactory->ShowInfo(Tr(SAVED_ALL).arg(savedCount));
+					else if (progressItem->IsStopped())
+						m_uiFactory->ShowInfo(Tr(SAVED_PARTIALLY).arg(savedCount).arg(totalCount));
+					else
+						m_uiFactory->ShowWarning(Tr(SAVED_WITH_ERRORS).arg(totalCount - savedCount).arg(totalCount));
+
 					progressItem.reset();
 					executor.reset();
 				};
