@@ -1,13 +1,12 @@
 <RCC>
 	<qresource prefix="icons/">
-		<file alias="Filter.png">icons/filter.png</file>
-		<file alias="Find.png">icons/find.png</file>
-		<file alias="tray.png">icons/tray.png</file>
-		<file alias="add_file.png">icons/add_file.png</file>
-		<file alias="add_folder.png">icons/add_folder.png</file>
-		<file alias="set_default.png">icons/set_default.png</file>
-		<file alias="down.png">icons/down.png</file>
-		<file alias="up.png">icons/up.png</file>
-		<file alias="exe.png">icons/exe.png</file>
+		<file alias="Filter.png">theme/light/icons/filter.png</file>
+		<file alias="Find.png">theme/light/icons/find.png</file>
+		<file alias="add_file.png">theme/light/icons/add_file.png</file>
+		<file alias="add_folder.png">theme/light/icons/add_folder.png</file>
+		<file alias="set_default.png">theme/light/icons/set_default.png</file>
+		<file alias="down.png">theme/light/icons/down.png</file>
+		<file alias="up.png">theme/light/icons/up.png</file>
+		<file alias="exe.png">theme/light/icons/exe.png</file>
 	</qresource>
 </RCC>

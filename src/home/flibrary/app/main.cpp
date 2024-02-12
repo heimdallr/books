@@ -1,6 +1,9 @@
 #include <QApplication>
+#include <QFile>
 #include <QMainWindow>
 #include <QStandardPaths>
+#include <QStyledItemDelegate>
+#include <QStyleFactory>
 
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
@@ -38,6 +41,20 @@ int main(int argc, char * argv[])
 		PLOGD << "QApplication created";
 
 		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
+
+		QFile f(":theme/light/lightstyle.qss");
+
+		if (f.open(QFile::ReadOnly | QFile::Text))
+		{
+			f.open(QFile::ReadOnly | QFile::Text);
+			QTextStream ts(&f);
+			app.setStyleSheet(ts.readAll());
+		}
+		else
+		{
+			PLOGE << "Unable to set stylesheet, file not found";
+		}
 
 		while (true)
 		{

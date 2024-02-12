@@ -17,6 +17,7 @@
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
 #include "ScriptNameDelegate.h"
+#include "StyleUtils.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -105,12 +106,10 @@ public:
 
 		m_ui.viewCommand->setModel(m_commandModel.get());
 
-		SetConnections();
+		StyleUtils::SetHeaderViewStyle(*m_ui.viewScript);
+		StyleUtils::SetHeaderViewStyle(*m_ui.viewCommand);
 
-		const auto headerColor = m_ui.viewScript->palette().color(QPalette::Base);
-		const auto style = QString("QHeaderView::section { background-color: rgb(%1, %2, %3) }").arg(headerColor.red()).arg(headerColor.green()).arg(headerColor.blue());
-		m_ui.viewScript->setStyleSheet(style);
-		m_ui.viewCommand->setStyleSheet(style);
+		SetConnections();
 
 		m_ui.viewScript->setCurrentIndex(m_scriptModel->index(0, 1));
 

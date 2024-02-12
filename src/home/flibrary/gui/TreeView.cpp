@@ -26,6 +26,7 @@
 
 #include "FillMenu.h"
 #include "ItemViewToolTipper.h"
+#include "StyleUtils.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -197,9 +198,7 @@ private:
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		const auto headerColor = m_ui.treeView->palette().color(QPalette::Base);
-		const auto style = QString("QHeaderView::section { background-color: rgb(%1, %2, %3) }").arg(headerColor.red()).arg(headerColor.green()).arg(headerColor.blue());
-		m_ui.treeView->setStyleSheet(style);
+		StyleUtils::SetHeaderViewStyle(*m_ui.treeView);
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
