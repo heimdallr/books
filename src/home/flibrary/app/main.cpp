@@ -2,13 +2,12 @@
 #include <QFile>
 #include <QMainWindow>
 #include <QStandardPaths>
-#include <QStyledItemDelegate>
-#include <QStyleFactory>
 
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
@@ -18,6 +17,9 @@
 #include "logic/model/LogModel.h"
 
 #include "di_app.h"
+
+#include "gui/StyleUtils.h"
+#include "util/ISettings.h"
 #include "version/AppVersion.h"
 
 #include "config/git_hash.h"
@@ -25,6 +27,34 @@
 
 using namespace HomeCompa;
 using namespace Flibrary;
+
+namespace {
+
+void SetTheme(QApplication & app, const ISettings & settings)
+{
+	qApp->setStyleSheet({});
+	StyleUtils::EnableSetHeaderViewStyle(true);
+
+	const auto theme = settings.Get(Constant::Settings::THEME_KEY).toString();
+	if (theme.isEmpty())
+		return;
+
+	{
+		QFile f(QString(":theme/%1/%1style.qss").arg(theme));
+
+		if (!f.open(QFile::ReadOnly | QFile::Text))
+		{
+			PLOGE << "Unable to set stylesheet, file not found";
+			return;
+		}
+
+		QTextStream ts(&f);
+		app.setStyleSheet(ts.readAll());
+		StyleUtils::EnableSetHeaderViewStyle(false);
+	}
+}
+
+}
 
 int main(int argc, char * argv[])
 {
@@ -42,20 +72,6 @@ int main(int argc, char * argv[])
 
 		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
-
-		QFile f(":theme/light/lightstyle.qss");
-
-		if (f.open(QFile::ReadOnly | QFile::Text))
-		{
-			f.open(QFile::ReadOnly | QFile::Text);
-			QTextStream ts(&f);
-			app.setStyleSheet(ts.readAll());
-		}
-		else
-		{
-			PLOGE << "Unable to set stylesheet, file not found";
-		}
-
 		while (true)
 		{
 			std::shared_ptr<Hypodermic::Container> container;
@@ -64,6 +80,8 @@ int main(int argc, char * argv[])
 				DiInit(builder, container);
 			}
 			PLOGD << "DI-container created";
+
+			SetTheme(app, *container->resolve<ISettings>());
 
 			container->resolve<ITaskQueue>()->Execute();
 			const auto logicFactory = container->resolve<ILogicFactory>();

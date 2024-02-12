@@ -48,6 +48,7 @@ constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto CONTEXT = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto THEME_CHANGED_CONFIRM_RESTART = QT_TRANSLATE_NOOP("MainWindow", "To apply the theme you need to restart the application.\nRestart now?");
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -55,7 +56,9 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto THEME_PROPERTY_NAME = "theme";
 TR_DEF
+
 }
 
 class MainWindow::Impl final
@@ -117,6 +120,7 @@ public:
 		});
 
 		CheckForUpdates(false);
+		SetupThemeActions();
 	}
 
 	~Impl() override
@@ -330,6 +334,10 @@ private:
 			});
 		});
 
+		connect(m_ui.actionThemeDefault, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeDefault); });
+		connect(m_ui.actionThemeLight, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeLight); });
+		connect(m_ui.actionThemeDark, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeDark); });
+
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
@@ -429,6 +437,25 @@ private:
 		{
 			QCoreApplication::exit(Constant::RESTART_APP);
 		});
+	}
+
+	void SetTheme(const QAction* action)
+	{
+		m_settings->Set(Constant::Settings::THEME_KEY, action->property(THEME_PROPERTY_NAME).toString());
+		if (m_uiFactory->ShowQuestion(Loc::Tr(CONTEXT, THEME_CHANGED_CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+			Reboot();
+	}
+
+	void SetupThemeActions()
+	{
+		const auto theme = m_settings->Get(Constant::Settings::THEME_KEY);
+		auto * actionGroup = new QActionGroup(&m_self);
+		actionGroup->setExclusive(true);
+		for (auto * themeAction : { m_ui.actionThemeDefault, m_ui.actionThemeLight, m_ui.actionThemeDark })
+		{
+			themeAction->setChecked(themeAction->property(THEME_PROPERTY_NAME).toString() == theme);
+			actionGroup->addAction(themeAction);
+		}
 	}
 
 private:
