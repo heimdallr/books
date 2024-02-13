@@ -102,6 +102,7 @@ public:
 		, m_lineOption(std::move(lineOption))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
+		, m_themeActionGroup(new QActionGroup(&m_self))
 	{
 		Setup();
 		ConnectActions();
@@ -120,12 +121,21 @@ public:
 		});
 
 		CheckForUpdates(false);
-		SetupThemeActions();
 	}
 
 	~Impl() override
 	{
 		m_collectionController->UnregisterObserver(this);
+	}
+
+	void AddThemeAction(const QString & id, const QString & title, bool const checked)
+	{
+		auto * action = m_ui.menuTheme->addAction(title);
+		connect(action, &QAction::triggered, [this, action] { SetTheme(action); });
+		action->setCheckable(true);
+		action->setChecked(checked);
+		action->setProperty(THEME_PROPERTY_NAME, id);
+		m_themeActionGroup->addAction(action);
 	}
 
 private: // ICollectionController::IObserver
@@ -192,6 +202,8 @@ private:
 
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
+
+		m_themeActionGroup->setExclusive(true);
 
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
@@ -334,10 +346,6 @@ private:
 			});
 		});
 
-		connect(m_ui.actionThemeDefault, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeDefault); });
-		connect(m_ui.actionThemeLight, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeLight); });
-		connect(m_ui.actionThemeDark, &QAction::triggered, [this] { SetTheme(m_ui.actionThemeDark); });
-
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
@@ -446,18 +454,6 @@ private:
 			Reboot();
 	}
 
-	void SetupThemeActions()
-	{
-		const auto theme = m_settings->Get(Constant::Settings::THEME_KEY);
-		auto * actionGroup = new QActionGroup(&m_self);
-		actionGroup->setExclusive(true);
-		for (auto * themeAction : { m_ui.actionThemeDefault, m_ui.actionThemeLight, m_ui.actionThemeDark })
-		{
-			themeAction->setChecked(themeAction->property(THEME_PROPERTY_NAME).toString() == theme);
-			actionGroup->addAction(themeAction);
-		}
-	}
-
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
@@ -476,6 +472,7 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
+	QActionGroup * m_themeActionGroup;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
 };
@@ -518,4 +515,14 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 MainWindow::~MainWindow()
 {
 	PLOGD << "MainWindow destroyed";
+}
+
+void MainWindow::Show()
+{
+	show();
+}
+
+void MainWindow::AddThemeAction(const QString & id, const QString & title, const bool checked)
+{
+	m_impl->AddThemeAction(id, title, checked);
 }

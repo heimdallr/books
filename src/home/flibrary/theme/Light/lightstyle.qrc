@@ -209,14 +209,6 @@
     <file>rc/window_undock_focus@2x.png</file>
     <file>rc/window_undock_pressed.png</file>
     <file>rc/window_undock_pressed@2x.png</file>
-    <file>icons/add_file.png</file>
-    <file>icons/add_folder.png</file>
-    <file>icons/down.png</file>
-    <file>icons/exe.png</file>
-    <file>icons/filter.png</file>
-    <file>icons/find.png</file>
-    <file>icons/set_default.png</file>
-    <file>icons/up.png</file>
   </qresource>
   <qresource prefix="theme/light">
       <file>lightstyle.qss</file>

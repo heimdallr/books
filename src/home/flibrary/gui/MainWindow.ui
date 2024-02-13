@@ -326,9 +326,6 @@
      <property name="title">
       <string>Theme</string>
      </property>
-     <addaction name="actionThemeDefault"/>
-     <addaction name="actionThemeLight"/>
-     <addaction name="actionThemeDark"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuTheme"/>
@@ -644,51 +641,6 @@
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionThemeDefault">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>De&amp;fault</string>
-   </property>
-   <property name="iconText">
-    <string>Default</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-   <property name="theme" stdset="0">
-    <string/>
-   </property>
-  </action>
-  <action name="actionThemeDark">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Dark</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-   <property name="theme" stdset="0">
-    <string>dark</string>
-   </property>
-  </action>
-  <action name="actionThemeLight">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Light</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-   <property name="theme" stdset="0">
-    <string>light</string>
    </property>
   </action>
  </widget>

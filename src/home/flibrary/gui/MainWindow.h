@@ -5,6 +5,8 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/ui/IMainWindow.h"
+
 namespace HomeCompa {
 class ISettings;
 }
@@ -13,6 +15,7 @@ namespace HomeCompa::Flibrary {
 
 class MainWindow final
 	: public QMainWindow
+	, virtual public IMainWindow
 {
 	NON_COPY_MOVABLE(MainWindow)
 
@@ -32,6 +35,10 @@ public:
 		, std::shared_ptr<class ILineOption> lineOption
 		, QWidget * parent = nullptr);
 	~MainWindow() override;
+
+private: // IMainWindow
+	void Show() override;
+	void AddThemeAction(const QString & id, const QString & title, bool checked) override;
 
 private:
 	class Impl;

@@ -47,7 +47,7 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<InfoDialog>().as<IInfoDialog>();
 	builder.registerType<InputTextDialog>().as<IInputTextDialog>();
 	builder.registerType<LineOption>().as<ILineOption>();
-	builder.registerType<MainWindow>().as<QMainWindow>().singleInstance();
+	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<ParentWidgetProvider>().singleInstance();
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();

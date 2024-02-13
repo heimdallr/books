@@ -384,6 +384,12 @@ Restart now?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
     <message>
+        <location filename="../../MainWindow.cpp" line="51"/>
+        <source>To apply the theme you need to restart the application.
+Restart now?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../MainWindow.ui"/>
         <source>E&amp;xport</source>
         <translation>&amp;Экспорт (сохранение)</translation>
@@ -482,6 +488,11 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
         <translation>Проверка &amp;обновлений</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Theme</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
