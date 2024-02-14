@@ -1,6 +1,6 @@
-#include <QCoreApplication>
 #include <QFile>
 #include <QString>
+#include <QTextStream>
 
 #include <plog/Log.h>
 
@@ -11,7 +11,6 @@
 namespace {
 
 constexpr auto ID = "light";
-constexpr auto CONTEXT = "Theme";
 constexpr auto TITLE = QT_TRANSLATE_NOOP("Theme", "&Light");
 
 class Theme final : virtual public HomeCompa::Flibrary::ITheme
@@ -37,9 +36,8 @@ class Theme final : virtual public HomeCompa::Flibrary::ITheme
 
 	QString GetThemeTitle() const override
 	{
-		return QCoreApplication::translate(CONTEXT, TITLE);
+		return TITLE;
 	}
-
 };
 
 }

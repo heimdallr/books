@@ -1,4 +1,3 @@
-#include <QCoreApplication>
 #include <QString>
 
 #include "interface/theme/ITheme.h"
@@ -8,7 +7,7 @@
 namespace {
 
 constexpr auto ID = "";
-constexpr auto CONTEXT = "Theme";
+constexpr auto TITLE = "De&fault";
 constexpr auto TITLE = QT_TRANSLATE_NOOP("Theme", "De&fault");
 
 class Theme final : virtual public HomeCompa::Flibrary::ITheme
@@ -25,9 +24,8 @@ class Theme final : virtual public HomeCompa::Flibrary::ITheme
 
 	QString GetThemeTitle() const override
 	{
-		return QCoreApplication::translate(CONTEXT, TITLE);
+		return TITLE;
 	}
-
 };
 
 }

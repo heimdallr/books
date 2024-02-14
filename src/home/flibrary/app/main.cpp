@@ -152,7 +152,7 @@ int main(int argc, char * argv[])
 			const auto logicFactory = container->resolve<ILogicFactory>();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			for (const auto & [id, title, selected] : themeHolder.actions)
-				mainWindow->AddThemeAction(id, title, selected);
+				mainWindow->AddThemeAction(id, QCoreApplication::translate("Theme", title.toStdString().data()), selected);
 			mainWindow->Show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)

@@ -324,7 +324,7 @@
     </widget>
     <widget class="QMenu" name="menuTheme">
      <property name="title">
-      <string>Theme</string>
+      <string>&amp;Theme</string>
      </property>
     </widget>
     <addaction name="menuLanguage"/>
@@ -646,7 +646,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources/gui.qrc"/>
+  <include location="../theme/Default/theme.qrc"/>
  </resources>
  <connections/>
 </ui>
