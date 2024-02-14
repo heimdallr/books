@@ -197,6 +197,7 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
+		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		StyleUtils::SetHeaderViewStyle(*m_ui.treeView);
 

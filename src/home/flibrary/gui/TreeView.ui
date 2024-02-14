@@ -130,7 +130,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="resources/gui.qrc"/>
+  <include location="../theme/Default/theme.qrc"/>
  </resources>
  <connections/>
 </ui>
