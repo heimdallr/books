@@ -6,7 +6,9 @@ class QWidget;
 
 namespace HomeCompa::Flibrary::StyleUtils {
 
-void SetHeaderViewStyle(QWidget & view);
-GUI_EXPORT void EnableSetHeaderViewStyle(bool enabled);
+void SetHeaderViewStyle(QWidget & widget);
+void SetLineEditWithErrorStyle(QWidget & widget);
+
+GUI_EXPORT void EnableStyleUtils(bool enabled);
 
 }

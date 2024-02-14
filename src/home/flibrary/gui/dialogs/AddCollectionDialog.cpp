@@ -2,6 +2,8 @@
 #include "AddCollectionDialog.h"
 
 #include <QStandardPaths>
+#include <QStyle>
+
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
@@ -11,6 +13,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "StyleUtils.h"
 #include "zip.h"
 
 #include "config/version.h"
@@ -122,6 +125,10 @@ public:
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
+
+		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editName);
+		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editDatabase);
+		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editArchive);
 
 		Init();
 	}
@@ -240,7 +247,10 @@ private:
 		if (!text.isEmpty())
 			PLOGW << text;
 
-		widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
+		widget->setProperty("errorTag", text.isEmpty() ? "false" : "true");
+		widget->style()->unpolish(widget);
+		widget->style()->polish(widget);
+
 		m_ui.lblError->setText(text);
 		return text.isEmpty();
 	}

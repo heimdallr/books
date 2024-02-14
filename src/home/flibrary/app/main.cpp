@@ -70,7 +70,7 @@ private: // IThemeRegistrar
 		if (!NeedInstall())
 			return;
 
-		StyleUtils::EnableSetHeaderViewStyle(m_themeId.isEmpty());
+		StyleUtils::EnableStyleUtils(m_themeId.isEmpty());
 		m_themeResult.actions.back().selected = true;
 		m_themeResult.lib = std::move(m_lib);
 		m_app.setStyleSheet(theme.GetStyleSheet());
@@ -97,7 +97,7 @@ private:
 
 ThemeResult SetTheme(QApplication & app, ISettings & settings)
 {
-	StyleUtils::EnableSetHeaderViewStyle(true);
+	StyleUtils::EnableStyleUtils(true);
 	const auto theme = settings.Get(Constant::Settings::THEME_KEY).toString();
 
 	ThemeResult result;

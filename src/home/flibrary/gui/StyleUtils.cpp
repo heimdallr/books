@@ -15,30 +15,46 @@ void SetHeaderViewStyleStub(QWidget &)
 {
 }
 
-void SetHeaderViewStyleImpl(QWidget & view)
+void SetHeaderViewStyleImpl(QWidget & widget)
 {
 	const auto style = QString("QHeaderView::section { background-color: %1; border: 1px solid %2; }")
-		.arg(Color(view.palette().color(QPalette::Base)))
-		.arg(Color(view.palette().color(QPalette::Disabled, QPalette::Text)))
+		.arg(Color(widget.palette().color(QPalette::Base)))
+		.arg(Color(widget.palette().color(QPalette::Disabled, QPalette::Text)))
 		;
-	view.setStyleSheet(style);
+	widget.setStyleSheet(style);
 }
 
-using SetHeaderViewStyleFunctor = void (*)(QWidget & view);
-
-SetHeaderViewStyleFunctor g_setHeaderViewStyleFunctor = &SetHeaderViewStyleImpl;
-
-}
-
-
-void SetHeaderViewStyle(QWidget & view)
+void SetLineEditWithErrorStyleStub(QWidget &)
 {
-	g_setHeaderViewStyleFunctor(view);
 }
 
-void EnableSetHeaderViewStyle(const bool enabled)
+void SetLineEditWithErrorStyleImpl(QWidget & widget)
+{
+	constexpr auto style = R"(QLineEdit[errorTag="true"] { border: 1px solid #FF0000; } QLineEdit[errorTag="false"] { border: 1px solid #000000; })";
+	widget.setStyleSheet(style);
+}
+
+using SetWidgetStyleFunctor = void (*)(QWidget &);
+SetWidgetStyleFunctor g_setHeaderViewStyleFunctor = &SetHeaderViewStyleImpl;
+SetWidgetStyleFunctor g_setLineEditWithErrorStyleFunctor = &SetLineEditWithErrorStyleImpl;
+
+}
+
+
+void SetHeaderViewStyle(QWidget & widget)
+{
+	g_setHeaderViewStyleFunctor(widget);
+}
+
+void SetLineEditWithErrorStyle(QWidget & widget)
+{
+	g_setLineEditWithErrorStyleFunctor(widget);
+}
+
+void EnableStyleUtils(const bool enabled)
 {
 	g_setHeaderViewStyleFunctor = enabled ? &SetHeaderViewStyleImpl : &SetHeaderViewStyleStub;
+	g_setLineEditWithErrorStyleFunctor = enabled ? &SetLineEditWithErrorStyleImpl : &SetLineEditWithErrorStyleStub;
 }
 
 }
