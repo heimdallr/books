@@ -49,30 +49,6 @@
     <file>rc/branch_closed_focus@2x.png</file>
     <file>rc/branch_closed_pressed.png</file>
     <file>rc/branch_closed_pressed@2x.png</file>
-    <file>rc/branch_end.png</file>
-    <file>rc/branch_end@2x.png</file>
-    <file>rc/branch_end_disabled.png</file>
-    <file>rc/branch_end_disabled@2x.png</file>
-    <file>rc/branch_end_focus.png</file>
-    <file>rc/branch_end_focus@2x.png</file>
-    <file>rc/branch_end_pressed.png</file>
-    <file>rc/branch_end_pressed@2x.png</file>
-    <file>rc/branch_line.png</file>
-    <file>rc/branch_line@2x.png</file>
-    <file>rc/branch_line_disabled.png</file>
-    <file>rc/branch_line_disabled@2x.png</file>
-    <file>rc/branch_line_focus.png</file>
-    <file>rc/branch_line_focus@2x.png</file>
-    <file>rc/branch_line_pressed.png</file>
-    <file>rc/branch_line_pressed@2x.png</file>
-    <file>rc/branch_more.png</file>
-    <file>rc/branch_more@2x.png</file>
-    <file>rc/branch_more_disabled.png</file>
-    <file>rc/branch_more_disabled@2x.png</file>
-    <file>rc/branch_more_focus.png</file>
-    <file>rc/branch_more_focus@2x.png</file>
-    <file>rc/branch_more_pressed.png</file>
-    <file>rc/branch_more_pressed@2x.png</file>
     <file>rc/branch_open.png</file>
     <file>rc/branch_open@2x.png</file>
     <file>rc/branch_open_disabled.png</file>

@@ -1786,18 +1786,6 @@ QTreeView:branch:selected, QTreeView:branch:hover {
   background: url(":/qss_icons/dark/rc/transparent.png");
 }
 
-QTreeView:branch:has-siblings:!adjoins-item {
-  border-image: url(":/qss_icons/dark/rc/branch_line.png") 0;
-}
-
-QTreeView:branch:has-siblings:adjoins-item {
-  border-image: url(":/qss_icons/dark/rc/branch_more.png") 0;
-}
-
-QTreeView:branch:!has-children:!has-siblings:adjoins-item {
-  border-image: url(":/qss_icons/dark/rc/branch_end.png") 0;
-}
-
 QTreeView:branch:has-children:!has-siblings:closed, QTreeView:branch:closed:has-children:has-siblings {
   border-image: none;
   image: url(":/qss_icons/dark/rc/branch_closed.png");
