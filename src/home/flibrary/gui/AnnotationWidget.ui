@@ -41,14 +41,17 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="handleWidth">
-      <number>10</number>
+      <number>0</number>
      </property>
      <widget class="QFrame" name="mainWidget">
       <property name="frameShape">
-       <enum>QFrame::Box</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -110,7 +113,7 @@
             <x>0</x>
             <y>0</y>
             <width>23</width>
-            <height>616</height>
+            <height>620</height>
            </rect>
           </property>
           <layout class="QVBoxLayout">
@@ -177,7 +180,7 @@
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
-                  <height>597</height>
+                  <height>601</height>
                  </size>
                 </property>
                </spacer>
@@ -208,8 +211,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>215</width>
-            <height>616</height>
+            <width>222</width>
+            <height>620</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -317,6 +320,12 @@
         <widget class="QTreeView" name="content">
          <property name="frameShape">
           <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
          </property>
          <property name="animated">
           <bool>true</bool>

@@ -1868,10 +1868,9 @@ QListView,
 QTableView,
 QColumnView {
   background-color: #FAFAFA;
-  border: 1px solid #C0C4C8;
+  border-style: none;
   color: #19232D;
   gridline-color: #C0C4C8;
-  border-radius: 4px;
 }
 
 QTreeView:disabled,
@@ -1888,13 +1887,6 @@ QTableView:selected,
 QColumnView:selected {
   background-color: #9FCBFF;
   color: #C0C4C8;
-}
-
-QTreeView:focus,
-QListView:focus,
-QTableView:focus,
-QColumnView:focus {
-  border: 1px solid #73C7FF;
 }
 
 QTreeView::item:pressed,
