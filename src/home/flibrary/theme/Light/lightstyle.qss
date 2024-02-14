@@ -78,7 +78,7 @@ QMainWindow::separator {
 }
 
 QMainWindow::separator:hover {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border: 0px solid #73C7FF;
 }
 
@@ -395,7 +395,7 @@ QMenu {
 
 QMenu::separator {
   height: 1px;
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   color: #19232D;
 }
 
@@ -552,32 +552,32 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qscrollbar
 
 --------------------------------------------------------------------------- */
 QScrollBar:horizontal {
-  height: 16px;
-  margin: 2px 16px 2px 16px;
+  height: 12px;
+  margin: 2px 12px 2px 12px;
   border: 1px solid #C0C4C8;
-  border-radius: 4px;
+  border-radius: 3px;
   background-color: #FAFAFA;
 }
 
 QScrollBar:vertical {
   background-color: #FAFAFA;
-  width: 16px;
-  margin: 16px 2px 16px 2px;
+  width: 12px;
+  margin: 12px 2px 12px 2px;
   border: 1px solid #C0C4C8;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 QScrollBar::handle:horizontal {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border: 1px solid #C0C4C8;
-  border-radius: 4px;
+  border-radius: 3px;
   min-width: 8px;
 }
 
 QScrollBar::handle:horizontal:hover {
   background-color: #9FCBFF;
   border: #9FCBFF;
-  border-radius: 4px;
+  border-radius: 3px;
   min-width: 8px;
 }
 
@@ -586,16 +586,16 @@ QScrollBar::handle:horizontal:focus {
 }
 
 QScrollBar::handle:vertical {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border: 1px solid #C0C4C8;
   min-height: 8px;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 QScrollBar::handle:vertical:hover {
   background-color: #9FCBFF;
   border: #9FCBFF;
-  border-radius: 4px;
+  border-radius: 3px;
   min-height: 8px;
 }
 
@@ -1021,14 +1021,14 @@ QPushButton:disabled {
 }
 
 QPushButton:checked {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border-radius: 4px;
   padding: 2px;
   outline: none;
 }
 
 QPushButton:checked:disabled {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   color: #9DA9B5;
   border-radius: 4px;
   padding: 2px;
@@ -1036,7 +1036,7 @@ QPushButton:checked:disabled {
 }
 
 QPushButton:checked:selected {
-  background: #ACB1B6;
+  background: #C0C4C8;
 }
 
 QPushButton:hover {
@@ -1045,11 +1045,11 @@ QPushButton:hover {
 }
 
 QPushButton:pressed {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
 }
 
 QPushButton:selected {
-  background: #ACB1B6;
+  background: #C0C4C8;
   color: #19232D;
 }
 
@@ -1089,14 +1089,14 @@ QToolButton:disabled {
 }
 
 QToolButton:checked {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border-radius: 4px;
   padding: 2px;
   outline: none;
 }
 
 QToolButton:checked:disabled {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   color: #9DA9B5;
   border-radius: 4px;
   padding: 2px;
@@ -1109,11 +1109,11 @@ QToolButton:checked:hover {
 }
 
 QToolButton:checked:pressed {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
 }
 
 QToolButton:checked:selected {
-  background: #ACB1B6;
+  background: #C0C4C8;
   color: #19232D;
 }
 
@@ -1123,11 +1123,11 @@ QToolButton:hover {
 }
 
 QToolButton:pressed {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
 }
 
 QToolButton:selected {
-  background: #ACB1B6;
+  background: #C0C4C8;
   color: #19232D;
 }
 
@@ -2042,7 +2042,7 @@ QToolBox::tab:disabled {
 }
 
 QToolBox::tab:selected {
-  background-color: #ACB1B6;
+  background-color: #C0C4C8;
   border-bottom: 2px solid #9FCBFF;
 }
 
