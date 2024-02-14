@@ -1,0 +1,10 @@
+QLabel[errorTag="true"] { color: #FF0000; }
+
+QLineEdit[errorTag="true"] { border: 1px solid #FF0000; }
+QLineEdit[errorTag="false"] { border: 1px solid #000000; }
+
+QHeaderView::section {
+  background-color: palette(window);
+  text-align: center;
+  border: 1px solid palette(midlight);
+}

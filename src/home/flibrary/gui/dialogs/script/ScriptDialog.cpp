@@ -17,7 +17,6 @@
 #include "GeometryRestorable.h"
 #include "ParentWidgetProvider.h"
 #include "ScriptNameDelegate.h"
-#include "StyleUtils.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -105,9 +104,6 @@ public:
 		m_ui.viewCommand->setItemDelegateForColumn(2, m_commandArgLineEditDelegate.get());
 
 		m_ui.viewCommand->setModel(m_commandModel.get());
-
-		StyleUtils::SetHeaderViewStyle(*m_ui.viewScript);
-		StyleUtils::SetHeaderViewStyle(*m_ui.viewCommand);
 
 		SetConnections();
 

@@ -4,6 +4,8 @@ AddTarget(ThemeDefault	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_TARGETS
 		flint
+		logging
 	LINK_LIBRARIES
+		plog
 		Qt6::Core
 )

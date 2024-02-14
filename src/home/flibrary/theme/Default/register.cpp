@@ -1,4 +1,8 @@
+#include <QFile>
 #include <QString>
+#include <QTextStream>
+
+#include <plog/Log.h>
 
 #include "interface/theme/ITheme.h"
 
@@ -7,14 +11,22 @@
 namespace {
 
 constexpr auto ID = "";
-constexpr auto TITLE = "De&fault";
 constexpr auto TITLE = QT_TRANSLATE_NOOP("Theme", "De&fault");
 
 class Theme final : virtual public HomeCompa::Flibrary::ITheme
 {
 	QString GetStyleSheet() const override
 	{
-		return {};
+		QFile f(QString(":theme/default/defaultstyle.qss"));
+
+		if (!f.open(QFile::ReadOnly | QFile::Text))
+		{
+			PLOGE << "Unable to set stylesheet, file not found";
+			return {};
+		}
+
+		QTextStream ts(&f);
+		return ts.readAll();
 	}
 
 	QString GetThemeId() const override

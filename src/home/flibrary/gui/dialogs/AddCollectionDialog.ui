@@ -51,7 +51,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset resource="../../theme/Default/theme.qrc">
          <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
        </property>
        <property name="autoRaise">
@@ -99,7 +99,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset resource="../../theme/Default/theme.qrc">
          <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
        </property>
        <property name="autoRaise">
@@ -119,7 +119,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset resource="../../theme/Default/theme.qrc">
          <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
        </property>
        <property name="autoRaise">
@@ -163,33 +163,6 @@
      </item>
      <item>
       <widget class="QLabel" name="lblError">
-       <property name="palette">
-        <palette>
-         <active>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>0</green>
-             <blue>0</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </active>
-         <inactive>
-          <colorrole role="WindowText">
-           <brush brushstyle="SolidPattern">
-            <color alpha="255">
-             <red>255</red>
-             <green>0</green>
-             <blue>0</blue>
-            </color>
-           </brush>
-          </colorrole>
-         </inactive>
-         <disabled/>
-        </palette>
-       </property>
        <property name="text">
         <string notr="true"/>
        </property>
@@ -198,6 +171,9 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="errorTag" stdset="0">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -247,7 +223,7 @@
   <tabstop>editArchive</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources/gui.qrc"/>
+  <include location="../../theme/Default/theme.qrc"/>
  </resources>
  <connections/>
 </ui>

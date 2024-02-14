@@ -26,7 +26,6 @@
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
-#include "StyleUtils.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -197,7 +196,6 @@ public:
 			m_ui.splitter->restoreState(value.toByteArray());
 
 		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
-		StyleUtils::SetHeaderViewStyle(*m_ui.content);
 
 		m_annotationController->RegisterObserver(this);
 

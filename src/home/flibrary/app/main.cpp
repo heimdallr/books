@@ -20,7 +20,6 @@
 
 #include "di_app.h"
 
-#include "gui/StyleUtils.h"
 #include "util/ISettings.h"
 #include "util/DyLib.h"
 #include "version/AppVersion.h"
@@ -70,7 +69,6 @@ private: // IThemeRegistrar
 		if (!NeedInstall())
 			return;
 
-		StyleUtils::EnableStyleUtils(m_themeId.isEmpty());
 		m_themeResult.actions.back().selected = true;
 		m_themeResult.lib = std::move(m_lib);
 		m_app.setStyleSheet(theme.GetStyleSheet());
@@ -97,7 +95,6 @@ private:
 
 ThemeResult SetTheme(QApplication & app, ISettings & settings)
 {
-	StyleUtils::EnableStyleUtils(true);
 	const auto theme = settings.Get(Constant::Settings::THEME_KEY).toString();
 
 	ThemeResult result;

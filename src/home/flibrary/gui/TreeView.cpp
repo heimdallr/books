@@ -26,7 +26,6 @@
 
 #include "FillMenu.h"
 #include "ItemViewToolTipper.h"
-#include "StyleUtils.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -199,7 +198,6 @@ private:
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		StyleUtils::SetHeaderViewStyle(*m_ui.treeView);
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{

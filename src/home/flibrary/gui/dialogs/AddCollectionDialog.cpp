@@ -13,7 +13,6 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "StyleUtils.h"
 #include "zip.h"
 
 #include "config/version.h"
@@ -125,10 +124,6 @@ public:
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
 		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(Result::Cancel); });
-
-		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editName);
-		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editDatabase);
-		StyleUtils::SetLineEditWithErrorStyle(*m_ui.editArchive);
 
 		Init();
 	}
@@ -250,6 +245,7 @@ private:
 		widget->setProperty("errorTag", text.isEmpty() ? "false" : "true");
 		widget->style()->unpolish(widget);
 		widget->style()->polish(widget);
+		widget->setFont(m_self.font());
 
 		m_ui.lblError->setText(text);
 		return text.isEmpty();
