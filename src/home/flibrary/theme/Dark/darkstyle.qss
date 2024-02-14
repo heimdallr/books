@@ -2073,14 +2073,6 @@ https://stackoverflow.com/questions/14581498/qt-stylesheet-for-hline-vline-color
 
 --------------------------------------------------------------------------- */
 /* (dot) .QFrame  fix #141, #126, #123 */
-.QFrame {
-  border-radius: 4px;
-  border: 1px solid #455364;
-  /* No frame */
-  /* HLine */
-  /* HLine */
-}
-
 .QFrame[frameShape="0"] {
   border-radius: 4px;
   border: 1px transparent #455364;
