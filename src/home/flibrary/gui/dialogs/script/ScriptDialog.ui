@@ -84,7 +84,7 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset resource="../../resources/gui.qrc">
+            <iconset resource="../../../theme/Default/theme.qrc">
              <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
            <property name="autoRaise">
@@ -101,7 +101,7 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset resource="../../resources/gui.qrc">
+            <iconset resource="../../../theme/Default/theme.qrc">
              <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
            </property>
            <property name="autoRaise">
@@ -187,7 +187,7 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset resource="../../resources/gui.qrc">
+            <iconset resource="../../../theme/Default/theme.qrc">
              <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
            <property name="autoRaise">
@@ -204,7 +204,7 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset resource="../../resources/gui.qrc">
+            <iconset resource="../../../theme/Default/theme.qrc">
              <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
            </property>
            <property name="autoRaise">
@@ -270,7 +270,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../resources/gui.qrc"/>
+  <include location="../../../theme/Default/theme.qrc"/>
  </resources>
  <connections/>
 </ui>
