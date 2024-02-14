@@ -14,6 +14,9 @@
    <string notr="true">Form</string>
   </property>
   <layout class="QHBoxLayout" name="_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -28,15 +31,27 @@
    </property>
    <item>
     <widget class="QSplitter" name="splitter">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
+     <property name="handleWidth">
+      <number>0</number>
+     </property>
      <widget class="QFrame" name="mainWidget">
       <property name="frameShape">
-       <enum>QFrame::Box</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -97,11 +112,14 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>20</width>
-            <height>616</height>
+            <width>23</width>
+            <height>620</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
@@ -115,33 +133,60 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
-             <property name="contextMenuPolicy">
-              <enum>Qt::ActionsContextMenu</enum>
+            <widget class="QFrame" name="frame_2">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
              </property>
-             <property name="visible">
-              <bool>true</bool>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
              </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::NoTextInteraction</set>
-             </property>
+             <layout class="QVBoxLayout" name="_4">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::ActionsContextMenu</enum>
+                </property>
+                <property name="visible">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::NoTextInteraction</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>601</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>
@@ -166,42 +211,90 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>217</width>
-            <height>616</height>
+            <width>222</width>
+            <height>620</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="_5">
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
-            <widget class="QLabel" name="info">
-             <property name="text">
-              <string notr="true"/>
+            <widget class="QFrame" name="frame">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
              </property>
-             <property name="textFormat">
-              <enum>Qt::RichText</enum>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
              </property>
-             <property name="wordWrap">
-              <bool>true</bool>
+             <property name="lineWidth">
+              <number>0</number>
              </property>
-             <property name="openExternalLinks">
-              <bool>false</bool>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="info">
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::RichText</enum>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+                <property name="margin">
+                 <number>9</number>
+                </property>
+                <property name="openExternalLinks">
+                 <bool>false</bool>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer_3">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
-           </item>
-           <item>
-            <spacer name="spacer_3">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>
@@ -227,6 +320,12 @@
         <widget class="QTreeView" name="content">
          <property name="frameShape">
           <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
          </property>
          <property name="animated">
           <bool>true</bool>

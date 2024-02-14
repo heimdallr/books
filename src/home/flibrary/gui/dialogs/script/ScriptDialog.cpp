@@ -107,11 +107,6 @@ public:
 
 		SetConnections();
 
-		const auto headerColor = m_ui.viewScript->palette().color(QPalette::Base);
-		const auto style = QString("QHeaderView::section { background-color: rgb(%1, %2, %3) }").arg(headerColor.red()).arg(headerColor.green()).arg(headerColor.blue());
-		m_ui.viewScript->setStyleSheet(style);
-		m_ui.viewCommand->setStyleSheet(style);
-
 		m_ui.viewScript->setCurrentIndex(m_scriptModel->index(0, 1));
 
 		Init();

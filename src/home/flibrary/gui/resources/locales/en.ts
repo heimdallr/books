@@ -54,17 +54,17 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="30"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="32"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="31"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="33"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="32"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
         <source>Select archives folder</source>
         <translation></translation>
     </message>
@@ -216,47 +216,47 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
         <source>Same named collection has already been added</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="39"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="40"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="39"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
         <source>Bad database file extension (.inpx)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="40"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
@@ -383,6 +383,12 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../MainWindow.cpp" line="51"/>
+        <source>To apply the theme you need to restart the application.
+Restart now?</source>
+        <translation></translation>
+    </message>
+    <message>
         <location filename="../../MainWindow.ui"/>
         <source>E&amp;xport</source>
         <translation></translation>
@@ -480,6 +486,11 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Theme</source>
         <translation></translation>
     </message>
 </context>

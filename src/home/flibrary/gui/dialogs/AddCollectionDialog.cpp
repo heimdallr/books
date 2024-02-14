@@ -2,6 +2,8 @@
 #include "AddCollectionDialog.h"
 
 #include <QStandardPaths>
+#include <QStyle>
+
 #include <plog/Log.h>
 
 #include "GeometryRestorable.h"
@@ -240,7 +242,11 @@ private:
 		if (!text.isEmpty())
 			PLOGW << text;
 
-		widget->setStyleSheet(QString("border: %1").arg(text.isEmpty() ? "1px solid black" : "2px solid red"));
+		widget->setProperty("errorTag", text.isEmpty() ? "false" : "true");
+		widget->style()->unpolish(widget);
+		widget->style()->polish(widget);
+		widget->setFont(m_self.font());
+
 		m_ui.lblError->setText(text);
 		return text.isEmpty();
 	}

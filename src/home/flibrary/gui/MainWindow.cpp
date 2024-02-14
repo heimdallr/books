@@ -48,6 +48,7 @@ constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto CONTEXT = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto THEME_CHANGED_CONFIRM_RESTART = QT_TRANSLATE_NOOP("MainWindow", "To apply the theme you need to restart the application.\nRestart now?");
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -55,7 +56,9 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto THEME_PROPERTY_NAME = "theme";
 TR_DEF
+
 }
 
 class MainWindow::Impl final
@@ -99,6 +102,7 @@ public:
 		, m_lineOption(std::move(lineOption))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
+		, m_themeActionGroup(new QActionGroup(&m_self))
 	{
 		Setup();
 		ConnectActions();
@@ -122,6 +126,16 @@ public:
 	~Impl() override
 	{
 		m_collectionController->UnregisterObserver(this);
+	}
+
+	void AddThemeAction(const QString & id, const QString & title, bool const checked)
+	{
+		auto * action = m_ui.menuTheme->addAction(title);
+		connect(action, &QAction::triggered, [this, action] { SetTheme(action); });
+		action->setCheckable(true);
+		action->setChecked(checked);
+		action->setProperty(THEME_PROPERTY_NAME, id);
+		m_themeActionGroup->addAction(action);
 	}
 
 private: // ICollectionController::IObserver
@@ -188,6 +202,8 @@ private:
 
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
+
+		m_themeActionGroup->setExclusive(true);
 
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
@@ -431,6 +447,13 @@ private:
 		});
 	}
 
+	void SetTheme(const QAction* action)
+	{
+		m_settings->Set(Constant::Settings::THEME_KEY, action->property(THEME_PROPERTY_NAME).toString());
+		if (m_uiFactory->ShowQuestion(Loc::Tr(CONTEXT, THEME_CHANGED_CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+			Reboot();
+	}
+
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
@@ -449,6 +472,7 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
+	QActionGroup * m_themeActionGroup;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
 };
@@ -491,4 +515,14 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 MainWindow::~MainWindow()
 {
 	PLOGD << "MainWindow destroyed";
+}
+
+void MainWindow::Show()
+{
+	show();
+}
+
+void MainWindow::AddThemeAction(const QString & id, const QString & title, const bool checked)
+{
+	m_impl->AddThemeAction(id, title, checked);
 }

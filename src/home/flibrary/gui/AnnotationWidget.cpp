@@ -178,18 +178,22 @@ public:
 
 		m_ui.mainWidget->installEventFilter(this);
 
+		const auto setCustomPalette = [] (QWidget& widget)
+		{
+			auto palette = widget.palette();
+			palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
+			widget.setPalette(palette);
+		};
+
 		m_ui.coverArea->setVisible(false);
-		auto palette = m_ui.coverArea->palette();
-		palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
-		m_ui.coverArea->setPalette(palette);
+		setCustomPalette(*m_ui.coverArea);
+		setCustomPalette(*m_ui.scrollArea->viewport());
 
 		m_progressTimer.setSingleShot(true);
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
 
 		if (const auto value = m_settings->Get(SPLITTER_KEY); value.isValid())
 			m_ui.splitter->restoreState(value.toByteArray());
-
-		m_ui.scrollArea->viewport()->setStyleSheet("QWidget { background-color: white }");
 
 		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
 

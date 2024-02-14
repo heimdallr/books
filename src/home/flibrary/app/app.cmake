@@ -22,4 +22,9 @@ AddTarget(${PROJECT_NAME}	app
 		gui
 		ver
 		rest
+		Util
+	DEPENDENCIES
+		ThemeDark
+		ThemeDefault
+		ThemeLight
 )
