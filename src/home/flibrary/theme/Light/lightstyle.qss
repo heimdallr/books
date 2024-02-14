@@ -2114,13 +2114,11 @@ QSplitter::handle:hover {
 }
 
 QSplitter::handle:horizontal {
-  width: 5px;
-  image: url(":/qss_icons/light/rc/line_vertical.png");
+  width: 0px;
 }
 
 QSplitter::handle:vertical {
-  height: 5px;
-  image: url(":/qss_icons/light/rc/line_horizontal.png");
+  height: 0px;
 }
 
 /* QDateEdit, QDateTimeEdit -----------------------------------------------
