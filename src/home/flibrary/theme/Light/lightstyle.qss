@@ -218,9 +218,6 @@ QGroupBox {
   font-weight: bold;
   border: 1px solid #C0C4C8;
   border-radius: 4px;
-  padding: 2px;
-  margin-top: 6px;
-  margin-bottom: 4px;
 }
 
 QGroupBox::title {
