@@ -12,3 +12,7 @@ QHeaderView::section {
   text-align: center;
   border: 1px solid palette(midlight);
 }
+
+QSplitter::handle:horizontal { width: 0px; }
+
+QSplitter::handle:vertical { height: 0px; }
