@@ -529,8 +529,6 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
 --------------------------------------------------------------------------- */
 QAbstractScrollArea {
   background-color: #FAFAFA;
-  border: 1px solid #C0C4C8;
-  border-radius: 4px;
   /* fix #159 */
   padding: 2px;
   /* remove min-height to fix #244 */
@@ -882,15 +880,16 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
 --------------------------------------------------------------------------- */
 QLabel {
   background-color: #FAFAFA;
-  border: 0px solid #C0C4C8;
-  padding: 2px;
   margin: 0px;
   color: #19232D;
 }
 
+QLabel[errorTag="true"] {
+  color: red;
+}
+
 QLabel:disabled {
   background-color: #FAFAFA;
-  border: 0px solid #C0C4C8;
   color: #9DA9B5;
 }
 
@@ -1444,6 +1443,10 @@ QLineEdit:focus {
 QLineEdit:selected {
   background-color: #9FCBFF;
   color: #C0C4C8;
+}
+
+QLineEdit[errorTag="true"] {
+  border: 1px solid red;
 }
 
 /* QTabWiget --------------------------------------------------------------
