@@ -195,6 +195,13 @@ private:
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
 
+		m_ui.menuTheme->setVisible(false);
+		QTimer::singleShot(0, [this]
+		{
+			if (m_ui.menuTheme->actions().count() < 2)
+				m_ui.menuSettings->removeAction(m_ui.menuTheme->menuAction());
+		});
+
 		m_localeController->Setup(*m_ui.menuLanguage);
 
 		m_ui.logView->setModel(m_logController->GetModel());
