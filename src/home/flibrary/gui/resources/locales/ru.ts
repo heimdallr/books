@@ -575,6 +575,11 @@ Restart now?</source>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Script commands</source>
+        <translation>Команды скрипта</translation>
+    </message>
 </context>
 <context>
     <name>TreeView</name>

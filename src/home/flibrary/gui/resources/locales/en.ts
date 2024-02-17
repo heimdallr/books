@@ -564,6 +564,11 @@ Restart now?</source>
         <source>Cancel</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../dialogs/script/ScriptDialog.ui"/>
+        <source>Script commands</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>TreeView</name>
