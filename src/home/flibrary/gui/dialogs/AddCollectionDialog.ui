@@ -51,7 +51,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/Default/theme.qrc">
+        <iconset resource="../resources/gui.qrc">
          <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
        </property>
        <property name="autoRaise">
@@ -99,7 +99,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/Default/theme.qrc">
+        <iconset resource="../resources/gui.qrc">
          <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
        </property>
        <property name="autoRaise">
@@ -119,7 +119,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/Default/theme.qrc">
+        <iconset resource="../resources/gui.qrc">
          <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
        </property>
        <property name="autoRaise">
@@ -172,9 +172,6 @@
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
-       <property name="errorTag" stdset="0">
-        <bool>true</bool>
-       </property>
       </widget>
      </item>
      <item>
@@ -223,7 +220,7 @@
   <tabstop>editArchive</tabstop>
  </tabstops>
  <resources>
-  <include location="../../theme/Default/theme.qrc"/>
+  <include location="../resources/gui.qrc"/>
  </resources>
  <connections/>
 </ui>

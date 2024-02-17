@@ -38,7 +38,6 @@ public:
 
 private: // IMainWindow
 	void Show() override;
-	void AddThemeAction(const QString & id, const QString & title, bool checked) override;
 
 private:
 	class Impl;

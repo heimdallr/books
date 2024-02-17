@@ -48,7 +48,6 @@ constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto CONTEXT = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
-constexpr auto THEME_CHANGED_CONFIRM_RESTART = QT_TRANSLATE_NOOP("MainWindow", "To apply the theme you need to restart the application.\nRestart now?");
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -56,7 +55,6 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
-constexpr auto THEME_PROPERTY_NAME = "theme";
 TR_DEF
 
 }
@@ -128,16 +126,6 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-	void AddThemeAction(const QString & id, const QString & title, bool const checked)
-	{
-		auto * action = m_ui.menuTheme->addAction(title);
-		connect(action, &QAction::triggered, [this, action] { SetTheme(action); });
-		action->setCheckable(true);
-		action->setChecked(checked);
-		action->setProperty(THEME_PROPERTY_NAME, id);
-		m_themeActionGroup->addAction(action);
-	}
-
 private: // ICollectionController::IObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -194,13 +182,6 @@ private:
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
-
-		m_ui.menuTheme->setVisible(false);
-		QTimer::singleShot(0, [this]
-		{
-			if (m_ui.menuTheme->actions().count() < 2)
-				m_ui.menuSettings->removeAction(m_ui.menuTheme->menuAction());
-		});
 
 		m_localeController->Setup(*m_ui.menuLanguage);
 
@@ -454,13 +435,6 @@ private:
 		});
 	}
 
-	void SetTheme(const QAction* action)
-	{
-		m_settings->Set(Constant::Settings::THEME_KEY, action->property(THEME_PROPERTY_NAME).toString());
-		if (m_uiFactory->ShowQuestion(Loc::Tr(CONTEXT, THEME_CHANGED_CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-			Reboot();
-	}
-
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
@@ -527,9 +501,4 @@ MainWindow::~MainWindow()
 void MainWindow::Show()
 {
 	show();
-}
-
-void MainWindow::AddThemeAction(const QString & id, const QString & title, const bool checked)
-{
-	m_impl->AddThemeAction(id, title, checked);
 }

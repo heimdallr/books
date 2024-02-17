@@ -322,13 +322,7 @@
      <addaction name="actionFontSizeUp"/>
      <addaction name="actionFontSizeDown"/>
     </widget>
-    <widget class="QMenu" name="menuTheme">
-     <property name="title">
-      <string>&amp;Theme</string>
-     </property>
-    </widget>
     <addaction name="menuLanguage"/>
-    <addaction name="menuTheme"/>
     <addaction name="menuFont"/>
     <addaction name="actionScripts"/>
     <addaction name="actionExportTempate"/>
@@ -646,7 +640,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../theme/Default/theme.qrc"/>
+  <include location="resources/gui.qrc"/>
  </resources>
  <connections/>
 </ui>
