@@ -1,5 +1,7 @@
 #include "BaseModel.h"
 
+#include <QIcon>
+
 #include "fnd/IsOneOf.h"
 
 #include "interface/constants/Enums.h"
@@ -36,10 +38,24 @@ BaseModel::~BaseModel() = default;
 
 QVariant BaseModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
-	if (!(orientation == Qt::Horizontal && role == Qt::DisplayRole))
+	if (orientation != Qt::Horizontal)
 		return {};
 
-	return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
+	const auto isLangSection = m_data->GetType() == ItemType::Books && BookItem::Remap(section) == BookItem::Column::Lang;
+
+	switch (role)
+	{
+		case Qt::DisplayRole:
+			return isLangSection ? QVariant{} : Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
+
+		case Qt::DecorationRole:
+			return isLangSection ? QIcon(":/icons/language.png") : QVariant {};
+
+		default:
+			break;
+	}
+
+	return {};
 }
 
 QVariant BaseModel::data(const QModelIndex & index, const int role) const
