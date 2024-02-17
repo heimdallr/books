@@ -38,7 +38,7 @@
       <string notr="true"/>
      </property>
      <property name="icon">
-      <iconset resource="../resources/gui.qrc">
+      <iconset resource="../resources/theme.qrc">
        <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
      </property>
     </widget>
@@ -50,7 +50,7 @@
   <tabstop>button</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources/gui.qrc"/>
+  <include location="../resources/theme.qrc"/>
  </resources>
  <connections/>
 </ui>

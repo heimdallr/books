@@ -23,8 +23,4 @@ AddTarget(${PROJECT_NAME}	app
 		ver
 		rest
 		Util
-	DEPENDENCIES
-		ThemeDark
-		ThemeDefault
-		ThemeLight
 )

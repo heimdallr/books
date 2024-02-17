@@ -383,12 +383,6 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="51"/>
-        <source>To apply the theme you need to restart the application.
-Restart now?</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../../MainWindow.ui"/>
         <source>E&amp;xport</source>
         <translation></translation>
@@ -486,11 +480,6 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
-        <source>&amp;Theme</source>
         <translation></translation>
     </message>
 </context>
