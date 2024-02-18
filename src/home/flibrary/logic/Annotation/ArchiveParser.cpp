@@ -100,9 +100,10 @@ private: // Util::SaxParser
 		static constexpr ParseElementItem PARSERS[]
 		{
 			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
-			{ BINARY, &XmlParser::OnStartElementBinary },
-			{ SECTION, &XmlParser::OnStartElementSection },
-			{ TRANSLATOR, &XmlParser::OnStartElementTranslator },
+			{ BINARY         , &XmlParser::OnStartElementBinary },
+			{ SECTION        , &XmlParser::OnStartElementSection },
+			{ TRANSLATOR     , &XmlParser::OnStartElementTranslator },
+			{ ANNOTATION_P   , &XmlParser::OnStartElementAnnotationP },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
@@ -200,6 +201,13 @@ private:
 	bool OnStartElementTranslator(const Util::XmlAttributes &)
 	{
 		m_data.translators->AppendChild(AuthorItem::Create());
+		return true;
+	}
+
+	bool OnStartElementAnnotationP(const Util::XmlAttributes &)
+	{
+		if (!m_data.annotation.isEmpty())
+			m_data.annotation.append("<p>");
 		return true;
 	}
 
