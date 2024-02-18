@@ -48,6 +48,10 @@ constexpr auto SECTION_TITLE_P_STRONG = "section/title/p/strong";
 constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
 constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
 constexpr auto EPIGRAPH_AUTHOR = "FictionBook/body/epigraph/text-author";
+constexpr auto PUBLISH_INFO_PUBLISHER = "FictionBook/description/publish-info/publisher";
+constexpr auto PUBLISH_INFO_CITY = "FictionBook/description/publish-info/city";
+constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
+constexpr auto PUBLISH_INFO_ISBN = "FictionBook/description/publish-info/isbn";
 
 class XmlParser final
 	: public Util::SaxParser
@@ -149,6 +153,10 @@ private: // Util::SaxParser
 			{ TRANSLATOR_FIRST_NAME , &XmlParser::ParseTranslatorFirstName },
 			{ TRANSLATOR_LAST_NAME  , &XmlParser::ParseTranslatorLastName },
 			{ TRANSLATOR_MIDDLE_NAME, &XmlParser::ParseTranslatorMiddleName },
+			{ PUBLISH_INFO_PUBLISHER, &XmlParser::ParsePublishInfoPublisher },
+			{ PUBLISH_INFO_CITY     , &XmlParser::ParsePublishInfoCity },
+			{ PUBLISH_INFO_YEAR     , &XmlParser::ParsePublishInfoYear },
+			{ PUBLISH_INFO_ISBN     , &XmlParser::ParsePublishInfoIsbn },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
@@ -282,6 +290,30 @@ private:
 	bool ParseTranslatorMiddleName(const QString & value)
 	{
 		return ParseTranslatorName(value, AuthorItem::Column::MiddleName);
+	}
+
+	bool ParsePublishInfoPublisher(const QString & value)
+	{
+		m_data.publishInfo.publisher = value;
+		return true;
+	}
+
+	bool ParsePublishInfoCity(const QString & value)
+	{
+		m_data.publishInfo.city = value;
+			return true;
+	}
+
+	bool ParsePublishInfoYear(const QString & value)
+	{
+		m_data.publishInfo.year = value;
+			return true;
+	}
+
+	bool ParsePublishInfoIsbn(const QString & value)
+	{
+		m_data.publishInfo.isbn = value;
+			return true;
 	}
 
 private:

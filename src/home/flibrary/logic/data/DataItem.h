@@ -214,7 +214,7 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
+LOGIC_EXPORT void AppendTitle(QString & title, const QString & str, const QString & delimiter = " ");
 LOGIC_EXPORT QString GetAuthorFull(const IDataItem & author);
 
 }

@@ -136,6 +136,26 @@ private: // IDataProvider
 		return m_archiveData.translators;
 	}
 
+	[[nodiscard]] const QString & GetPublisher() const noexcept override
+	{
+		return m_archiveData.publishInfo.publisher;
+	}
+
+	[[nodiscard]] const QString & GetPublishCity() const noexcept override
+	{
+		return m_archiveData.publishInfo.city;
+	}
+
+	[[nodiscard]] const QString & GetPublishYear() const noexcept override
+	{
+		return m_archiveData.publishInfo.year;
+	}
+
+	[[nodiscard]] const QString & GetPublishIsbn() const noexcept override
+	{
+		return m_archiveData.publishInfo.isbn;
+	}
+
 private: // IProgressController::IObserver
 	void OnStartedChanged() override
 	{
