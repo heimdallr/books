@@ -145,6 +145,15 @@ bool SaveImage(const QString & fileName, const QByteArray & bytes)
 	return true;
 }
 
+QString GetPublishInfo(const IAnnotationController::IDataProvider & dataProvider)
+{
+	QString result = dataProvider.GetPublisher();
+	AppendTitle(result, dataProvider.GetPublishCity(), ", ");
+	AppendTitle(result, dataProvider.GetPublishYear(), ", ");
+	AppendTitle(result, QString("ISBN %1").arg(dataProvider.GetPublishIsbn()), ". ");
+	return result;
+}
+
 }
 
 class AnnotationWidget::Impl final
@@ -398,6 +407,8 @@ private: // IAnnotationController::IObserver
 
 			Add(annotation, info.ToString());
 		}
+
+		Add(annotation, GetPublishInfo(dataProvider));
 
 		Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
 

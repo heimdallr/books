@@ -41,6 +41,10 @@ public:
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;
 
+		[[nodiscard]] virtual const QString & GetPublisher() const noexcept = 0;
+		[[nodiscard]] virtual const QString & GetPublishCity() const noexcept = 0;
+		[[nodiscard]] virtual const QString & GetPublishYear() const noexcept = 0;
+		[[nodiscard]] virtual const QString & GetPublishIsbn() const noexcept = 0;
 	};
 
 	class IObserver : public Observer

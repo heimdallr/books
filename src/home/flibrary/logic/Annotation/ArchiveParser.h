@@ -18,6 +18,13 @@ class ArchiveParser final
 public:
 	struct Data
 	{
+		struct PublishInfo
+		{
+			QString publisher;
+			QString city;
+			QString year;
+			QString isbn;
+		};
 		QString annotation;
 		QString epigraph;
 		QString epigraphAuthor;
@@ -26,6 +33,7 @@ public:
 		int coverIndex { -1 };
 		IDataItem::Ptr content { NavigationItem::Create() };
 		IDataItem::Ptr translators { NavigationItem::Create() };
+		PublishInfo publishInfo;
 		QString error;
 	};
 
