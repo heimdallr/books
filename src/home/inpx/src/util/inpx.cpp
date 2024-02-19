@@ -130,7 +130,7 @@ class DatabaseWrapper
 {
 public:
 	explicit DatabaseWrapper(const Parser::IniMap::value_type::second_type & dbFileName, const int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
-		: m_db(dbFileName.generic_string().data(), flags)
+		: m_db(QString::fromStdWString(dbFileName).toUtf8(), flags)
 		, m_func(m_db)
 	{
 		m_db.load_extension("MyHomeLibSQLIteExt");
@@ -390,11 +390,11 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 	return std::begin(query) != std::end(query);
 }
 
-SettingsTableData ReadSettings(const std::wstring & dbFileName)
+SettingsTableData ReadSettings(const Parser::IniMap::value_type::second_type & dbFileName)
 {
 	SettingsTableData data;
 
-	if (!std::filesystem::exists(dbFileName))
+	if (!exists(dbFileName))
 		return data;
 
 	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
@@ -605,8 +605,8 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 
 	std::map<std::wstring, std::wstring> dbExt;
 	{
-		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH).generic_string();
-		DatabaseWrapper db(dbFileName.data(), SQLITE_OPEN_READONLY);
+		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
+		DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
 		if (!TableExists(db, "Books"))
 			return result;
 
