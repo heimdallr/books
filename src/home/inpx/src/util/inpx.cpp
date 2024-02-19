@@ -32,6 +32,8 @@ using namespace Inpx;
 
 namespace {
 
+using Path = Parser::IniMap::value_type::second_type;
+
 size_t g_id = 0;
 size_t GetId()
 {
@@ -96,7 +98,7 @@ public:
 	{
 	}
 
-	explicit Ini(const Parser::IniMap::value_type::second_type & path)
+	explicit Ini(const Path & path)
 	{
 		if (!exists(path))
 			throw std::invalid_argument("Need inpx file as command line argument");
@@ -116,7 +118,7 @@ public:
 		}
 	}
 
-	const Parser::IniMap::value_type::second_type & operator()(const Parser::IniMap::value_type::first_type & key, const Parser::IniMap::value_type::second_type & defaultValue) const
+	const Path & operator()(const Parser::IniMap::value_type::first_type & key, const Path & defaultValue) const
 	{
 		const auto it = _data.find(key);
 		return it != _data.end() ? it->second : defaultValue;
@@ -129,7 +131,7 @@ private:
 class DatabaseWrapper
 {
 public:
-	explicit DatabaseWrapper(const Parser::IniMap::value_type::second_type & dbFileName, const int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
+	explicit DatabaseWrapper(const Path & dbFileName, const int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)
 		: m_db(QString::fromStdWString(dbFileName).toUtf8(), flags)
 		, m_func(m_db)
 	{
@@ -155,7 +157,7 @@ private:
 	sqlite3pp::ext::function m_func;
 };
 
-auto LoadGenres(const Parser::IniMap::value_type::second_type & genresIniFileName)
+auto LoadGenres(const Path & genresIniFileName)
 {
 	Genres genres;
 	Dictionary index;
@@ -342,7 +344,7 @@ struct InpxContent
 	std::vector<std::wstring> inpx;
 };
 
-InpxContent ExtractInpxFileNames(const Parser::IniMap::value_type::second_type & inpxFileName)
+InpxContent ExtractInpxFileNames(const Path & inpxFileName)
 {
 	if (!exists(inpxFileName))
 		return {};
@@ -390,7 +392,7 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 	return std::begin(query) != std::end(query);
 }
 
-SettingsTableData ReadSettings(const Parser::IniMap::value_type::second_type & dbFileName)
+SettingsTableData ReadSettings(const Path & dbFileName)
 {
 	SettingsTableData data;
 
@@ -423,7 +425,7 @@ SettingsTableData ReadSettings(const Parser::IniMap::value_type::second_type & d
 	return data;
 }
 
-void ExecuteScript(const std::wstring & action, const Parser::IniMap::value_type::second_type & dbFileName, const Parser::IniMap::value_type::second_type & scriptFileName)
+void ExecuteScript(const std::wstring & action, const Path & dbFileName, const Path & scriptFileName)
 {
 	Timer t(action);
 
@@ -468,7 +470,7 @@ void ExecuteScript(const std::wstring & action, const Parser::IniMap::value_type
 }
 
 template<typename It, typename Functor>
-size_t StoreRange(const Parser::IniMap::value_type::second_type & dbFileName, std::string_view process, const std::string_view query, It beg, It end, Functor && f)
+size_t StoreRange(const Path & dbFileName, std::string_view process, const std::string_view query, It beg, It end, Functor && f)
 {
 	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
 	if (rowsTotal == 0)
@@ -518,7 +520,7 @@ size_t StoreRange(const Parser::IniMap::value_type::second_type & dbFileName, st
 	return result;
 }
 
-size_t Store(const Parser::IniMap::value_type::second_type & dbFileName, const Data & data)
+size_t Store(const Path & dbFileName, const Data & data)
 {
 	size_t result = 0;
 	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
@@ -664,7 +666,7 @@ Dictionary ReadDictionary(const std::string_view name, sqlite3pp::database & db,
 	return data;
 }
 
-std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, const Parser::IniMap::value_type::second_type & genresFileName)
+std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, const Path & genresFileName)
 {
 	PLOGI << "Read genres";
 	std::pair<Genres, Dictionary> result;
@@ -750,7 +752,7 @@ void SetNextId(sqlite3pp::database & db)
 	PLOGI << "Next Id: " << g_id;
 }
 
-std::pair<Data, Dictionary> ReadData(const Parser::IniMap::value_type::second_type & dbFileName, const Parser::IniMap::value_type::second_type & genresFileName)
+std::pair<Data, Dictionary> ReadData(const Path & dbFileName, const Path & genresFileName)
 {
 	Data data;
 
@@ -948,7 +950,7 @@ private:
 		m_genresIndex = std::move(genresIndex);
 		SetUnknownGenreId();
 
-		const IniMap::value_type::second_type & inpxFileName = m_ini(INPX, DEFAULT_INPX);
+		const Path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
 
 		const auto zip = [&]
@@ -986,9 +988,9 @@ private:
 		ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 	}
 
-	void ParseInpxFiles(const IniMap::value_type::second_type & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
+	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
-		m_rootFolder = IniMap::value_type::second_type(inpxFileName).parent_path();
+		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
 		{
 			for (const auto & fileName : inpxFiles)
@@ -1045,9 +1047,9 @@ private:
 		LogErrors();
 	}
 
-	void ProcessInpx(QIODevice & stream, const IniMap::value_type::second_type & rootFolder, std::wstring folder)
+	void ProcessInpx(QIODevice & stream, const Path & rootFolder, std::wstring folder)
 	{
-		const auto mask = QString::fromStdWString(IniMap::value_type::second_type(folder).replace_extension("*"));
+		const auto mask = QString::fromStdWString(Path(folder).replace_extension("*"));
 		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file)
 		{
@@ -1059,7 +1061,7 @@ private:
 			return ext != "zip" && ext != "7z";
 		}); begin != end)
 			suitableFiles.erase(begin, end);
-		folder = *m_data.folders.insert(suitableFiles.isEmpty() ? IniMap::value_type::second_type(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString()).first;
+		folder = *m_data.folders.insert(suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString()).first;
 
 		std::set<std::string> files;
 
@@ -1197,7 +1199,7 @@ private:
 	const Callback m_callback;
 	std::unique_ptr<Util::IExecutor> m_executor;
 
-	IniMap::value_type::second_type m_rootFolder;
+	Path m_rootFolder;
 	Data m_data;
 	Dictionary m_genresIndex;
 	size_t m_n { 0 };
