@@ -25,14 +25,15 @@ class INPXLIB_EXPORT Parser
 
 public:
 	using Callback = std::function<void(bool)>;
+	using IniMap = std::map<std::wstring, std::filesystem::path>;
 
 public:
 	Parser();
 	~Parser();
 
 public:
-	void CreateNewCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode, Callback callback);
-	void UpdateCollection(std::map<std::wstring, std::filesystem::path> data, CreateCollectionMode mode, Callback callback);
+	void CreateNewCollection(IniMap data, CreateCollectionMode mode, Callback callback);
+	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 
 private:
 	class Impl;
