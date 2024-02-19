@@ -19,7 +19,8 @@
 #include "util/hash.h"
 #include "util/IExecutor.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -43,11 +44,10 @@ QString GetInpxImpl(const QString & folder)
 	return QString("%1/%2").arg(folder, inpxList.isEmpty() ? QString("stub.inpx") : inpxList.front());
 }
 
-using IniMap = std::map<std::wstring, std::filesystem::path>;
-using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, IniMap>;
+using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, Inpx::Parser::IniMap>;
 IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFiles)
 {
-	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, IniMap{} };
+	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap{} };
 	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
 	{
 		auto fileName = QDir::fromNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + name);
@@ -61,7 +61,7 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 
 	const auto inpx = GetInpxImpl(folder);
 
-	result.second = IniMap
+	result.second = Inpx::Parser::IniMap
 	{
 		{ DB_PATH, db.toStdWString() },
 		{ GENRES, getFile("genres.ini").toStdWString() },
