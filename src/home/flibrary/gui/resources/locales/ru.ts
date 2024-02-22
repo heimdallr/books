@@ -326,7 +326,7 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Collection</source>
-        <translation>&amp;Коллекция</translation>
+        <translation>Ко&amp;ллекция</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -382,12 +382,6 @@ Restart now?</source>
         <location filename="../../MainWindow.cpp" line="50"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
-    </message>
-    <message>
-        <source>To apply the theme you need to restart the application.
-Restart now?</source>
-        <translation type="vanished">Для применения темы необходимо перезапустить приложение.
-Перезагрузить сейчас?</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -488,10 +482,6 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
         <translation>Проверка &amp;обновлений</translation>
-    </message>
-    <message>
-        <source>&amp;Theme</source>
-        <translation type="vanished">&amp;Тема</translation>
     </message>
 </context>
 <context>

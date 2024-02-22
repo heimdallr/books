@@ -32,18 +32,18 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto CONTEXT = "BookContextMenu";
-constexpr auto READ_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Read");
-constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "Groups");
-constexpr auto GROUPS_ADD_TO_NEW = QT_TRANSLATE_NOOP("BookContextMenu", "New group...");
-constexpr auto GROUPS_ADD_TO = QT_TRANSLATE_NOOP("BookContextMenu", "Add to");
-constexpr auto GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "Remove from");
-constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "All");
-constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Remove book");
-constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "Undo book deletion");
-constexpr auto EXPORT = QT_TRANSLATE_NOOP("BookContextMenu", "Export");
-constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "As zip archive");
-constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As original format");
-constexpr auto SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As inpx collection");
+constexpr auto READ_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "&Read");
+constexpr auto EXPORT = QT_TRANSLATE_NOOP("BookContextMenu", "E&xport");
+constexpr auto     SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "As &zip archive");
+constexpr auto     SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As &original format");
+constexpr auto     SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
+constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
+constexpr auto     GROUPS_ADD_TO = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
+constexpr auto         GROUPS_ADD_TO_NEW = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
+constexpr auto     GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
+constexpr auto         GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
+constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
+constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 TR_DEF
 

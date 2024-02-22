@@ -18,62 +18,62 @@
     <name>BookContextMenu</name>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
-        <source>Read</source>
+        <source>&amp;Read</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
-        <source>Groups</source>
+        <source>E&amp;xport</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
-        <source>New group...</source>
+        <source>As &amp;zip archive</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
-        <source>Add to</source>
+        <source>As &amp;original format</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
-        <source>Remove from</source>
+        <source>As &amp;inpx collection</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
-        <source>All</source>
+        <source>&amp;Groups</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
-        <source>Remove book</source>
+        <source>&amp;Add to</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
-        <source>Undo book deletion</source>
+        <source>&amp;New group...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
-        <source>Export</source>
+        <source>&amp;Remove from</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
-        <source>As zip archive</source>
+        <source>&amp;All</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
-        <source>As original format</source>
+        <source>R&amp;emove</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
-        <source>As inpx collection</source>
+        <source>&amp;Undo deletion</source>
         <translation></translation>
     </message>
     <message>

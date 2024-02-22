@@ -18,63 +18,63 @@
     <name>BookContextMenu</name>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
-        <source>Read</source>
-        <translation>Читать</translation>
+        <source>&amp;Read</source>
+        <translation>&amp;Читать</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
-        <source>Groups</source>
-        <translation>Группы</translation>
+        <source>E&amp;xport</source>
+        <translation>&amp;Экспорт</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
-        <source>New group...</source>
-        <translation>Новая группа...</translation>
+        <source>As &amp;zip archive</source>
+        <translation>В &amp;zip-архиве</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
-        <source>Add to</source>
-        <translation>Добавить в</translation>
+        <source>As &amp;original format</source>
+        <translation>В исходном &amp;формате</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
-        <source>Remove from</source>
-        <translation>Удалить из</translation>
+        <source>As &amp;inpx collection</source>
+        <translation>В виде &amp;inpx-коллекции</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
-        <source>All</source>
-        <translation>Все</translation>
+        <source>&amp;Groups</source>
+        <translation>&amp;Группы</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
-        <source>Remove book</source>
-        <translation>Удалить книгу</translation>
+        <source>&amp;Add to</source>
+        <translation>&amp;Добавить в</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
-        <source>Undo book deletion</source>
-        <translation>Отменить удаление книги</translation>
+        <source>&amp;New group...</source>
+        <translation>&amp;Новая группа...</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
-        <source>Export</source>
-        <translation>Экспорт</translation>
+        <source>&amp;Remove from</source>
+        <translation>&amp;Удалить из</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
-        <source>As zip archive</source>
-        <translation>В zip-архиве</translation>
+        <source>&amp;All</source>
+        <translation>&amp;Все</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
-        <source>As original format</source>
-        <translation>В исходном формате</translation>
+        <source>R&amp;emove</source>
+        <translation>&amp;Удалить</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
-        <source>As inpx collection</source>
-        <translation>В виде inpx-коллекции</translation>
+        <source>&amp;Undo deletion</source>
+        <translation>Отменить &amp;удаление</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
