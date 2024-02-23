@@ -80,6 +80,9 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::Type:
 			return QVariant::fromValue(item->GetType());
 
+		case Role::IsTree:
+			return false;
+
 		case Role::IsRemoved:
 			return item->IsRemoved();
 

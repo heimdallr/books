@@ -2,6 +2,7 @@
 
 #include <plog/Log.h>
 
+#include "interface/constants/ModelRole.h"
 #include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
@@ -56,4 +57,9 @@ int TreeModel::rowCount(const QModelIndex & parent) const
 int TreeModel::columnCount(const QModelIndex & /*parent*/) const
 {
 	return m_data->GetColumnCount();
+}
+
+QVariant TreeModel::data(const QModelIndex & index, const int role) const
+{
+	return role == Role::IsTree ? QVariant { true } : AbstractTreeModel::data(index, role);
 }
