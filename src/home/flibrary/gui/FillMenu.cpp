@@ -43,7 +43,10 @@ void FillMenu(QMenu & menu, const IDataItem & item, ITreeViewController & contro
 
 			auto * action = subMenu->addAction(Loc::Tr(controller.TrContext(), title.data()), [&, child = std::move(child)] () mutable
 			{
-				controller.OnContextMenuTriggered(view.model(), view.currentIndex(), view.selectionModel()->selectedIndexes(), std::move(child));
+				auto selected = view.selectionModel()->selectedIndexes();
+				const auto [begin, end] = std::ranges::remove_if(selected, [] (const auto & index) { return index.column() != 0; });
+				selected.erase(begin, end);
+				controller.OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
 			});
 
 			action->setEnabled(enabled);

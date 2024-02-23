@@ -68,16 +68,36 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
-        <source>R&amp;emove</source>
+        <source>&amp;Check</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
-        <source>&amp;Undo deletion</source>
+        <source>&amp;Check all</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <source>&amp;Uncheck all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <source>&amp;Invert</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <source>R&amp;emove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <source>&amp;Undo deletion</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
