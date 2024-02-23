@@ -31,20 +31,24 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto CONTEXT = "BookContextMenu";
-constexpr auto READ_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "&Read");
-constexpr auto EXPORT = QT_TRANSLATE_NOOP("BookContextMenu", "E&xport");
-constexpr auto     SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "As &zip archive");
-constexpr auto     SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As &original format");
-constexpr auto     SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
-constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
-constexpr auto     GROUPS_ADD_TO = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
-constexpr auto         GROUPS_ADD_TO_NEW = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
-constexpr auto     GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
+constexpr auto CONTEXT                        =                   "BookContextMenu";
+constexpr auto READ_BOOK                      = QT_TRANSLATE_NOOP("BookContextMenu", "&Read");
+constexpr auto EXPORT                         = QT_TRANSLATE_NOOP("BookContextMenu", "E&xport");
+constexpr auto     SEND_AS_ARCHIVE            = QT_TRANSLATE_NOOP("BookContextMenu", "As &zip archive");
+constexpr auto     SEND_AS_IS                 = QT_TRANSLATE_NOOP("BookContextMenu", "As &original format");
+constexpr auto     SEND_AS_INPX               = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
+constexpr auto GROUPS                         = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
+constexpr auto     GROUPS_ADD_TO              = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
+constexpr auto         GROUPS_ADD_TO_NEW      = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
+constexpr auto     GROUPS_REMOVE_FROM         = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
 constexpr auto         GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
-constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
-constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
-constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+constexpr auto CHECK                          = QT_TRANSLATE_NOOP("BookContextMenu", "&Check");
+constexpr auto     CHECK_ALL                  = QT_TRANSLATE_NOOP("BookContextMenu", "&Check all");
+constexpr auto     UNCHECK_ALL                = QT_TRANSLATE_NOOP("BookContextMenu", "&Uncheck all");
+constexpr auto     INVERT_CHECK               = QT_TRANSLATE_NOOP("BookContextMenu", "&Invert");
+constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
+constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
+constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
@@ -81,8 +85,10 @@ IDataItem::Ptr & Add(const IDataItem::Ptr & dst, QString title = {}, const Books
 	return dst->AppendChild(std::move(item));
 }
 
-void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDatabase & db)
+void CreateGroupMenu(const IDataItem::Ptr & root, const QString & id, DB::IDatabase & db)
 {
+	const auto parent = Add(root, Tr(GROUPS));
+
 	const auto add = Add(parent, Tr(GROUPS_ADD_TO), BooksMenuAction::AddToGroup);
 	const auto remove = Add(parent, Tr(GROUPS_REMOVE_FROM), BooksMenuAction::RemoveFromGroup);
 
@@ -113,6 +119,28 @@ void CreateGroupMenu(const IDataItem::Ptr & parent, const QString & id, DB::IDat
 
 	Add(add, Tr(GROUPS_ADD_TO_NEW), BooksMenuAction::AddToNewGroup)
 		->SetData(QString::number(-1), MenuItem::Column::Parameter);
+}
+
+void CreateSendMenu(const IDataItem::Ptr & root, const IScriptController::Scripts & scripts)
+{
+	const auto & send = Add(root, Tr(EXPORT));
+	Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
+	Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
+	Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	for (const auto & script : scripts)
+	{
+		const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
+		scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
+	}
+	Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpx);
+}
+
+void CreateCheckMenu(const IDataItem::Ptr & root)
+{
+	const auto parent = Add(root, Tr(CHECK));
+	Add(parent, Tr(CHECK_ALL), BooksMenuAction::CheckAll);
+	Add(parent, Tr(UNCHECK_ALL), BooksMenuAction::UncheckAll);
+	Add(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
 }
@@ -158,24 +186,15 @@ public:
 			if (type == ItemType::Books)
 				Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
-			{
-				const auto & send = Add(result, Tr(EXPORT));
-				Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
-				Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
-				Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-				for (const auto & script : scripts)
-				{
-					const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
-					scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
-				}
-				Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpx);
-			}
+			CreateSendMenu(result, scripts);
 
 			if (type == ItemType::Books)
-			{
-				CreateGroupMenu(Add(result, Tr(GROUPS), BooksMenuAction::None), id, *db);
+				CreateGroupMenu(result, id, *db);
+
+			CreateCheckMenu(result);
+
+			if (type == ItemType::Books)
 				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-			}
 
 			return [callback = std::move(callback), result = std::move(result)] (size_t)
 			{
@@ -199,6 +218,24 @@ private: // IContextMenuHandler
 	void RemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), true);
+	}
+
+	void CheckAll(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		model->setData({}, QVariant::fromValue(indexList), Role::CheckAll);
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void UncheckAll(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		model->setData({}, QVariant::fromValue(indexList), Role::UncheckAll);
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void InvertCheck(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		model->setData({}, QVariant::fromValue(indexList), Role::InvertCheck);
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
 	}
 
 	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override

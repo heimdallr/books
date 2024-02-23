@@ -30,6 +30,9 @@ struct Role
 		ShowRemovedFilter,
 		Selected,
 		SortOrder,
+		CheckAll,
+		UncheckAll,
+		InvertCheck,
 	};
 };
 
