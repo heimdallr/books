@@ -24,7 +24,6 @@
 
 #include "util/ISettings.h"
 
-#include "FillMenu.h"
 #include "ItemViewToolTipper.h"
 
 using namespace HomeCompa;
@@ -57,6 +56,52 @@ constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 	{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
 	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
 };
+
+void GenerateMenu(QMenu & menu, const IDataItem & item, ITreeViewController & controller, const QAbstractItemView & view)
+{
+	const auto font = menu.font();
+	std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
+	while (!stack.empty())
+	{
+		auto [parent, subMenu] = stack.top();
+		stack.pop();
+
+		for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
+		{
+			auto child = parent->GetChild(i);
+			const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
+			const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
+			const auto title = child->GetData().toStdString();
+
+			if (child->GetChildCount() != 0)
+			{
+				auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(Loc::Tr(controller.TrContext(), title.data()))).second;
+				subSubMenu->setFont(font);
+				subSubMenu->setEnabled(enabled);
+				continue;
+			}
+
+			if (const auto childId = child->GetData(MenuItem::Column::Id).toInt(); childId < 0)
+			{
+				subMenu->addSeparator();
+				continue;
+			}
+
+			auto * action = subMenu->addAction(Loc::Tr(controller.TrContext(), title.data()), [&, child = std::move(child)] () mutable
+			{
+				auto selected = view.selectionModel()->selectedIndexes();
+				const auto [begin, end] = std::ranges::remove_if(selected, [] (const auto & index)
+				{
+					return index.column() != 0;
+				});
+				selected.erase(begin, end);
+				controller.OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
+			});
+
+			action->setEnabled(enabled);
+		}
+	}
+}
 
 }
 
@@ -109,6 +154,15 @@ public:
 	QAbstractItemView * GetView() const
 	{
 		return m_ui.treeView;
+	}
+
+	void FillContextMenu(QMenu & menu)
+	{
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&] (const QString & id, const IDataItem::Ptr & item)
+		{
+			if (m_ui.treeView->currentIndex().data(Role::Id).toString() == id)
+				GenerateMenu(menu, *item, *m_controller, *m_ui.treeView);
+		});
 	}
 
 	void ResizeEvent(const QResizeEvent * event)
@@ -188,7 +242,7 @@ private:
 
 		QMenu menu;
 		menu.setFont(m_self.font());
-		FillMenu(menu, *item, *m_controller, *m_ui.treeView);
+		GenerateMenu(menu, *item, *m_controller, *m_ui.treeView);
 		menu.exec(QCursor::pos());
 	}
 
@@ -280,7 +334,7 @@ private:
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
-			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), [&] (const QString & id, const IDataItem::Ptr & item)
+			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&] (const QString & id, const IDataItem::Ptr & item)
 			{
 				OnContextMenuReady(id, item);
 			});
@@ -552,6 +606,11 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView * TreeView::GetView() const
 {
 	return m_impl->GetView();
+}
+
+void TreeView::FillMenu(QMenu & menu)
+{
+	m_impl->FillContextMenu(menu);
 }
 
 void TreeView::resizeEvent(QResizeEvent * event)
