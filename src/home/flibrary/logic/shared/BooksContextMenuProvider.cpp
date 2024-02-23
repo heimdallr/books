@@ -168,7 +168,7 @@ public:
 	}
 
 public:
-	void Request(const QModelIndex & index, Callback callback)
+	void Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
 	{
 		auto scripts = m_scriptController->GetScripts();
 		std::ranges::sort(scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
@@ -176,6 +176,7 @@ public:
 			  id = index.data(Role::Id).toString()
 			, type = index.data(Role::Type).value<ItemType>()
 			, removed = index.data(Role::IsRemoved).toBool()
+			, options
 			, callback = std::move(callback)
 			, db = m_databaseUser->Database()
 			, scripts = std::move(scripts)
@@ -417,9 +418,9 @@ BooksContextMenuProvider::~BooksContextMenuProvider()
 	PLOGD << "BooksContextMenuProvider destroyed";
 }
 
-void BooksContextMenuProvider::Request(const QModelIndex & index, Callback callback)
+void BooksContextMenuProvider::Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
 {
-	m_impl->Request(index, std::move(callback));
+	m_impl->Request(index, options, std::move(callback));
 }
 
 void BooksContextMenuProvider::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const

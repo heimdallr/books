@@ -235,6 +235,11 @@ private: //	IValueApplier
 	}
 
 private:
+	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
+	{
+		return ITreeViewController::RequestContextMenuOptions::None;
+	}
+
 	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item)
 	{
 		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)

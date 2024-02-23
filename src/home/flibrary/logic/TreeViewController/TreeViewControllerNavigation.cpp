@@ -1,8 +1,6 @@
 #include "TreeViewControllerNavigation.h"
 
-#include <qglobal.h>
-#include <QModelIndex>
-#include <QVariant>
+#include <QString>
 
 #include <plog/Log.h>
 
@@ -374,7 +372,7 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, RequestContextMenuCallback callback)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, RequestContextMenuOptions /*options*/, RequestContextMenuCallback callback)
 {
 	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester())
 		callback(index.data(Role::Id).toString(), item);
