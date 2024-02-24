@@ -38,8 +38,6 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-#include "FillMenu.h"
-
 using namespace HomeCompa::Flibrary;
 
 namespace {
@@ -326,12 +324,7 @@ private:
 		connect(m_ui.menuBook, &QMenu::aboutToShow, &m_self, [&]
 		{
 			m_ui.menuBook->clear();
-			auto controller = m_logicFactory->GetTreeViewController(ItemType::Books);
-			controller->RequestContextMenu(m_booksWidget->GetView()->currentIndex(), [&, controller] (const QString & id, const IDataItem::Ptr & item)
-			{
-				if (m_booksWidget->GetView()->currentIndex().data(Role::Id).toString() == id)
-					FillMenu(*m_ui.menuBook, *item, *controller, *m_booksWidget->GetView());
-			});
+			m_booksWidget->FillMenu(*m_ui.menuBook);
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

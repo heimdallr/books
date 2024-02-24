@@ -5,6 +5,7 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/ITreeViewController.h"
 
 class QAbstractItemModel;
 class QModelIndex;
@@ -21,6 +22,7 @@ class BooksContextMenuProvider final
 
 public:
 	using Callback = std::function<void(const IDataItem::Ptr &)>;
+	static void AddTreeMenuItems(const IDataItem::Ptr & root, ITreeViewController::RequestContextMenuOptions options);
 
 public:
 	BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
@@ -34,7 +36,7 @@ public:
 	~BooksContextMenuProvider();
 
 public:
-	void Request(const QModelIndex & index, Callback callback);
+	void Request(const QModelIndex & index, ITreeViewController::RequestContextMenuOptions options, Callback callback);
 	void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const;
 
 private:

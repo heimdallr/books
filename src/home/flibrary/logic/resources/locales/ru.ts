@@ -88,16 +88,41 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <source>&amp;Tree</source>
+        <translation>&amp;Дерево</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <source>C&amp;ollapse</source>
+        <translation>С&amp;вернуть</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <source>E&amp;xpand</source>
+        <translation>Ра&amp;звернуть</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <source>&amp;Collapse all</source>
+        <translation>&amp;Свернуть все</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <source>&amp;Expand all</source>
+        <translation>&amp;Развернуть все</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>&amp;Undo deletion</source>
         <translation>Отменить &amp;удаление</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
@@ -1893,47 +1918,47 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="33"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="92"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="102"/>
         <source>Create new group...</source>
         <translation>Создать новую группу...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="100"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="110"/>
         <source>Create new search...</source>
         <translation>Новый поиск...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="115"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="125"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="116"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="126"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="117"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="127"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="118"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="128"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="119"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="129"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="120"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="130"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>

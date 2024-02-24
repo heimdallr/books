@@ -34,6 +34,7 @@ public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
 	QAbstractItemView * GetView() const;
+	void FillMenu(QMenu & menu);
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

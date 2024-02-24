@@ -41,6 +41,10 @@ enum class ItemType
 		BOOKS_MENU_ACTION_ITEM(CheckAll)            \
 		BOOKS_MENU_ACTION_ITEM(UncheckAll)          \
 		BOOKS_MENU_ACTION_ITEM(InvertCheck)         \
+		BOOKS_MENU_ACTION_ITEM(Collapse)            \
+		BOOKS_MENU_ACTION_ITEM(Expand)              \
+		BOOKS_MENU_ACTION_ITEM(CollapseAll)         \
+		BOOKS_MENU_ACTION_ITEM(ExpandAll)           \
 		BOOKS_MENU_ACTION_ITEM(SendAsArchive)       \
 		BOOKS_MENU_ACTION_ITEM(SendAsIs)            \
 		BOOKS_MENU_ACTION_ITEM(SendAsInpx)          \
@@ -48,10 +52,11 @@ enum class ItemType
 
 enum class BooksMenuAction
 {
-	None = -1,
+		None = -1,
 #define BOOKS_MENU_ACTION_ITEM(NAME) NAME,
 		BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef	BOOKS_MENU_ACTION_ITEM
+		Last
 };
 
 }

@@ -33,6 +33,7 @@ struct Role
 		CheckAll,
 		UncheckAll,
 		InvertCheck,
+		IsTree,
 	};
 };
 

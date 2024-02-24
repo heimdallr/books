@@ -1,8 +1,6 @@
 #include "TreeViewControllerNavigation.h"
 
-#include <qglobal.h>
-#include <QModelIndex>
-#include <QVariant>
+#include <QString>
 
 #include <plog/Log.h>
 
@@ -22,6 +20,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
+#include "shared/BooksContextMenuProvider.h"
 #include "shared/DatabaseController.h"
 #include "util/FunctorExecutionForwarder.h"
 
@@ -33,11 +32,11 @@ constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver &) const;
-using MenuRequester = IDataItem::Ptr(*)();
+using MenuRequester = IDataItem::Ptr(*)(ITreeViewController::RequestContextMenuOptions options);
 
-IDataItem::Ptr MenuRequesterStub()
+IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
 {
-	return nullptr;
+	return {};
 }
 
 #define MENU_ACTION_ITEMS_X_MACRO         \
@@ -48,9 +47,11 @@ IDataItem::Ptr MenuRequesterStub()
 
 enum class MenuAction
 {
+		Unknown = BooksMenuAction::Last,
 #define MENU_ACTION_ITEM(NAME) NAME,
 		MENU_ACTION_ITEMS_X_MACRO
 #undef	MENU_ACTION_ITEM
+		Last
 };
 
 class ITableSubscriptionHandler  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -86,7 +87,17 @@ void Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
 	dst->AppendChild(std::move(item));
 }
 
-IDataItem::Ptr MenuRequesterGroups()
+IDataItem::Ptr MenuRequesterGenres(const ITreeViewController::RequestContextMenuOptions options)
+{
+	if (!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
+		return {};
+
+	auto item = MenuItem::Create();
+	BooksContextMenuProvider::AddTreeMenuItems(item, options);
+	return item;
+}
+
+IDataItem::Ptr MenuRequesterGroups(ITreeViewController::RequestContextMenuOptions)
 {
 	auto result = MenuItem::Create();
 	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
@@ -94,7 +105,7 @@ IDataItem::Ptr MenuRequesterGroups()
 	return result;
 }
 
-IDataItem::Ptr MenuRequesterSearches()
+IDataItem::Ptr MenuRequesterSearches(ITreeViewController::RequestContextMenuOptions)
 {
 	auto result = MenuItem::Create();
 	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
@@ -114,7 +125,7 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 {
 	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches } },
@@ -126,6 +137,7 @@ class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IContextMenuHandler() = default;
+	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
 #define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
 		MENU_ACTION_ITEMS_X_MACRO
 #undef	MENU_ACTION_ITEM
@@ -209,6 +221,10 @@ private: // IContextMenuHandler
 		{
 			controller.reset();
 		});
+	}
+
+	void OnContextMenuTriggeredStub(const QList<QModelIndex> &, const QModelIndex &) const override
+	{
 	}
 
 	void OnCreateNewGroupTriggered(const QList<QModelIndex> &, const QModelIndex &) const override
@@ -374,15 +390,15 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, RequestContextMenuCallback callback)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
 {
-	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester())
+	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester(options))
 		callback(index.data(Role::Id).toString(), item);
 }
 
 void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item)
 {
-	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
+	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));
 	Perform(&IObserver::OnContextMenuTriggered, index.data(Role::Id).toString(), std::cref(item));
 }

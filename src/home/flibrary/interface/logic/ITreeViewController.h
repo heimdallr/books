@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 
+#include "fnd/EnumBitmask.h"
 #include "fnd/observer.h"
 
 #include "IDataItem.h"
@@ -18,6 +19,15 @@ class ITreeViewController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using RequestContextMenuCallback = std::function<void(const QString & id, const IDataItem::Ptr & item)>;
+	enum class RequestContextMenuOptions
+	{
+		None          = 0,
+		IsTree        = 1 << 0,
+		HasExpanded   = 1 << 1,
+		HasCollapsed  = 1 << 2,
+		NodeExpanded  = 1 << 3,
+		NodeCollapsed = 1 << 4,
+	};
 
 public:
 	class IObserver : public Observer
@@ -37,7 +47,7 @@ public:
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
-	virtual void RequestContextMenu(const QModelIndex & index, RequestContextMenuCallback callback) = 0;
+	virtual void RequestContextMenu(const QModelIndex & index, RequestContextMenuOptions options, RequestContextMenuCallback callback) = 0;
 	virtual void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) = 0;
 	virtual void OnDoubleClicked(const QModelIndex & index) const = 0;
 
@@ -46,3 +56,5 @@ public:
 };
 
 }
+
+ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::ITreeViewController::RequestContextMenuOptions);

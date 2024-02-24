@@ -46,6 +46,11 @@ constexpr auto CHECK                          = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto     CHECK_ALL                  = QT_TRANSLATE_NOOP("BookContextMenu", "&Check all");
 constexpr auto     UNCHECK_ALL                = QT_TRANSLATE_NOOP("BookContextMenu", "&Uncheck all");
 constexpr auto     INVERT_CHECK               = QT_TRANSLATE_NOOP("BookContextMenu", "&Invert");
+constexpr auto TREE                           = QT_TRANSLATE_NOOP("BookContextMenu", "&Tree");
+constexpr auto     TREE_COLLAPSE              = QT_TRANSLATE_NOOP("BookContextMenu", "C&ollapse");
+constexpr auto     TREE_EXPAND                = QT_TRANSLATE_NOOP("BookContextMenu", "E&xpand");
+constexpr auto     TREE_COLLAPSE_ALL          = QT_TRANSLATE_NOOP("BookContextMenu", "&Collapse all");
+constexpr auto     TREE_EXPAND_ALL            = QT_TRANSLATE_NOOP("BookContextMenu", "&Expand all");
 constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
@@ -143,6 +148,12 @@ void CreateCheckMenu(const IDataItem::Ptr & root)
 	Add(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
+void CreateTreeMenu(const IDataItem::Ptr & root, const ITreeViewController::RequestContextMenuOptions options)
+{
+	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
+		BooksContextMenuProvider::AddTreeMenuItems(Add(root, Tr(TREE)), options);
+}
+
 }
 
 class BooksContextMenuProvider::Impl final
@@ -168,7 +179,7 @@ public:
 	}
 
 public:
-	void Request(const QModelIndex & index, Callback callback)
+	void Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
 	{
 		auto scripts = m_scriptController->GetScripts();
 		std::ranges::sort(scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
@@ -176,6 +187,7 @@ public:
 			  id = index.data(Role::Id).toString()
 			, type = index.data(Role::Type).value<ItemType>()
 			, removed = index.data(Role::IsRemoved).toBool()
+			, options
 			, callback = std::move(callback)
 			, db = m_databaseUser->Database()
 			, scripts = std::move(scripts)
@@ -192,6 +204,7 @@ public:
 				CreateGroupMenu(result, id, *db);
 
 			CreateCheckMenu(result);
+			CreateTreeMenu(result, options);
 
 			if (type == ItemType::Books)
 				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
@@ -220,21 +233,41 @@ private: // IContextMenuHandler
 		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), true);
 	}
 
-	void CheckAll(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	void CheckAll(QAbstractItemModel * model, const QModelIndex &, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::CheckAll);
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
 	}
 
-	void UncheckAll(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	void UncheckAll(QAbstractItemModel * model, const QModelIndex &, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::UncheckAll);
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
 	}
 
-	void InvertCheck(QAbstractItemModel * model, const QModelIndex & /*index*/, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	void InvertCheck(QAbstractItemModel * model, const QModelIndex &, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::InvertCheck);
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void Collapse(QAbstractItemModel *, const QModelIndex &, const QList<QModelIndex> &, IDataItem::Ptr item, Callback callback) const override
+	{
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void Expand(QAbstractItemModel *, const QModelIndex &, const QList<QModelIndex> &, IDataItem::Ptr item, Callback callback) const override
+	{
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void CollapseAll(QAbstractItemModel *, const QModelIndex &, const QList<QModelIndex> &, IDataItem::Ptr item, Callback callback) const override
+	{
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
+	}
+
+	void ExpandAll(QAbstractItemModel *, const QModelIndex &, const QList<QModelIndex> &, IDataItem::Ptr item, Callback callback) const override
+	{
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
 	}
 
@@ -392,6 +425,18 @@ private:
 	std::shared_ptr<IScriptController> m_scriptController;
 };
 
+void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, const ITreeViewController::RequestContextMenuOptions options)
+{
+	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeCollapsed))
+		Add(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
+	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
+		Add(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
+	if (const auto node = Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
+		node->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	if (const auto node = Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed))
+		node->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+}
+
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
 	, std::shared_ptr<DatabaseUser> databaseUser
 	, std::shared_ptr<ILogicFactory> logicFactory
@@ -417,9 +462,9 @@ BooksContextMenuProvider::~BooksContextMenuProvider()
 	PLOGD << "BooksContextMenuProvider destroyed";
 }
 
-void BooksContextMenuProvider::Request(const QModelIndex & index, Callback callback)
+void BooksContextMenuProvider::Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
 {
-	m_impl->Request(index, std::move(callback));
+	m_impl->Request(index, options, std::move(callback));
 }
 
 void BooksContextMenuProvider::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const
