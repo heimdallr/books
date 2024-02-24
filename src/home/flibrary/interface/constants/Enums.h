@@ -52,10 +52,11 @@ enum class ItemType
 
 enum class BooksMenuAction
 {
-	None = -1,
+		None = -1,
 #define BOOKS_MENU_ACTION_ITEM(NAME) NAME,
 		BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef	BOOKS_MENU_ACTION_ITEM
+		Last
 };
 
 }

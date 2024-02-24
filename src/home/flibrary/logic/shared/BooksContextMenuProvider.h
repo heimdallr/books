@@ -22,6 +22,7 @@ class BooksContextMenuProvider final
 
 public:
 	using Callback = std::function<void(const IDataItem::Ptr &)>;
+	static void AddTreeMenuItems(const IDataItem::Ptr & root, ITreeViewController::RequestContextMenuOptions options);
 
 public:
 	BooksContextMenuProvider(std::shared_ptr<const ISettings> settings

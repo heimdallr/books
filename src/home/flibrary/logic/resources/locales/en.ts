@@ -1915,47 +1915,47 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="31"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
         <source>Remove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="90"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="102"/>
         <source>Create new group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="98"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="110"/>
         <source>Create new search...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="113"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="125"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="114"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="126"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="115"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="127"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="116"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="128"/>
         <source>Archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="117"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="129"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="118"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="130"/>
         <source>Search</source>
         <translation></translation>
     </message>
