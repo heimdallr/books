@@ -210,6 +210,20 @@ private: // ITreeViewController::IObserver
 
 	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
 	{
+		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))
+		{
+			case BooksMenuAction::Collapse:
+				return m_ui.treeView->collapse(m_ui.treeView->currentIndex());
+			case BooksMenuAction::Expand:
+				return m_ui.treeView->expand(m_ui.treeView->currentIndex());
+			case BooksMenuAction::CollapseAll:
+				return m_ui.treeView->collapseAll();
+			case BooksMenuAction::ExpandAll:
+				return m_ui.treeView->expandAll();
+			default:
+				break;
+		}
+
 		if (true
 			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
 			&& item->GetData(MenuItem::Column::HasError).toInt()
@@ -237,7 +251,45 @@ private: //	IValueApplier
 private:
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
 	{
-		return ITreeViewController::RequestContextMenuOptions::None;
+		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
+
+		ITreeViewController::RequestContextMenuOptions options = m_ui.treeView->model()->data({}, Role::IsTree).toBool()
+			? ITreeViewController::RequestContextMenuOptions::IsTree
+			: ITreeViewController::RequestContextMenuOptions::None;
+
+		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
+		{
+			const auto checkIndex = [&] (const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions onExpanded, const ITreeViewController::RequestContextMenuOptions onCollapsed)
+			{
+				assert(index.isValid());
+				const auto result = m_ui.treeView->model()->rowCount(index) > 0;
+				if (result)
+					options |= m_ui.treeView->isExpanded(index) ? onExpanded : onCollapsed;
+				return result;
+			};
+
+			if (m_ui.treeView->currentIndex().isValid())
+				checkIndex(m_ui.treeView->currentIndex(), ITreeViewController::RequestContextMenuOptions::NodeExpanded, ITreeViewController::RequestContextMenuOptions::NodeCollapsed);
+
+			std::stack<QModelIndex> stack { {QModelIndex{}} };
+			while (!stack.empty())
+			{
+				const auto parent = stack.top();
+				stack.pop();
+
+				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
+					break;
+
+				for (int i = 0, sz = m_ui.treeView->model()->rowCount(parent); i < sz; ++i)
+				{
+					const auto index = m_ui.treeView->model()->index(i, 0, parent);
+					if (checkIndex(index, ITreeViewController::RequestContextMenuOptions::HasExpanded, ITreeViewController::RequestContextMenuOptions::HasCollapsed))
+						stack.push(index);
+				}
+			}
+		}
+
+		return options;
 	}
 
 	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item)

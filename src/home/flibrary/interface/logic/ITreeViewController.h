@@ -21,8 +21,12 @@ public:
 	using RequestContextMenuCallback = std::function<void(const QString & id, const IDataItem::Ptr & item)>;
 	enum class RequestContextMenuOptions
 	{
-		None = 0,
-		IsTree = 1 << 0,
+		None          = 0,
+		IsTree        = 1 << 0,
+		HasExpanded   = 1 << 1,
+		HasCollapsed  = 1 << 2,
+		NodeExpanded  = 1 << 3,
+		NodeCollapsed = 1 << 4,
 	};
 
 public:
