@@ -10,6 +10,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/ui/IUiFactory.h"
+#include "interface/util/util.h"
 
 #include "network/network/downloader.h"
 
@@ -42,6 +43,7 @@ constexpr auto START_INSTALLER   = QT_TRANSLATE_NOOP("UpdateChecker", "Run the i
 constexpr auto CHECK_FAILED      = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
 constexpr auto VERSION_ACTUAL    = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
 constexpr auto VERSION_MIRACLE   = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
+constexpr auto ARCHIVE_READY     = QT_TRANSLATE_NOOP("UpdateChecker", "Last version downloaded succesfully. Open the folder with the downloaded archive?");
 TR_DEF
 
 enum class CheckResult
@@ -218,39 +220,62 @@ private:
 	void Download()
 	{
 		auto downloader = std::make_shared<Network::Downloader>();
-		const auto installerFolder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
-		if (installerFolder.isEmpty())
+		auto downloadFolder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
+		if (downloadFolder.isEmpty())
 			return m_callback();
 
-		auto installerFileName = QString("%1/%2").arg(installerFolder, m_release.assets.front().name);
-		auto file = std::make_shared<QFile>(installerFileName);
+		const auto isPortable = IsPortable();
+		const auto it = std::ranges::find_if(m_release.assets, [=] (const Asset & asset)
+		{
+			const auto ext = QFileInfo(asset.name).suffix();
+			return isPortable && ext == "7z" || !isPortable && ext == "exe";
+		});
+		if (it == m_release.assets.end())
+			return assert(false), m_callback();
+
+		auto downloadFileName = QString("%1/%2").arg(downloadFolder, it->name);
+		auto file = std::make_shared<QFile>(downloadFileName);
 		file->open(QIODevice::WriteOnly);
-		downloader->Download(m_release.assets.front().browser_download_url, *file, [this, downloader, file, installerFileName = std::move(installerFileName)] (const int code, const QString & error) mutable
+		downloader->Download(it->browser_download_url, *file, [this
+			, downloader
+			, isPortable
+			, file
+			, downloadFolder = std::move(downloadFolder)
+			, downloadFileName = std::move(downloadFileName)
+			] (const int code, const QString & error) mutable
 				{
 					file->close();
 					file.reset();
 					if (code != 0)
 					{
-						QFile::remove(installerFileName);
+						QFile::remove(downloadFileName);
 						if (!error.isEmpty())
 							(void)m_uiFactory->ShowWarning(error);
 					}
 
-					const auto startInstaller = code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
+					const auto startInstaller = !isPortable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
+					const auto startUnPacker = isPortable && code == 0;
 
-					QTimer::singleShot(0, [installerFileName = std::move(installerFileName)
+					QTimer::singleShot(0, [uiFactory = m_uiFactory
+						, downloadFolder = std::move(downloadFolder)
+						, downloadFileName = std::move(downloadFileName)
 						, downloader = std::move(downloader)
-						, callback = std::move(m_callback), startInstaller
+						, callback = std::move(m_callback)
+						, startInstaller
+						, startUnPacker
 					] () mutable
 					{
 						downloader.reset();
 						callback();
 						if (startInstaller)
 						{
-							QProcess::startDetached(installerFileName);
+							QProcess::startDetached(downloadFileName);
 							QCoreApplication::exit();
+						} else if (startUnPacker)
+						{
+							if (uiFactory->ShowQuestion(Tr(ARCHIVE_READY), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+								QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder));
 						}
-
 					});
 				}
 			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable

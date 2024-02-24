@@ -13,6 +13,7 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
+#include "interface/util/util.h"
 
 #include "util/Settings.h"
 #include "delegate/OpenFileDialogDelegateEditor.h"
@@ -55,9 +56,8 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
-		const auto fileNameTemplate = QString("%1/%2").arg(QApplication::applicationDirPath()).arg("%1");
-		return QFile::exists(fileNameTemplate.arg("portable"))
-			? std::make_shared<Settings>(fileNameTemplate.arg(QString("%1.ini").arg(PRODUCT_ID)))
+		return IsPortable()
+			? std::make_shared<Settings>(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
 			: std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
 	}).as<ISettings>().singleInstance();
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
