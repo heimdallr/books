@@ -55,7 +55,10 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 
 	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
 	{
-		return std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
+		const auto fileNameTemplate = QString("%1/%2").arg(QApplication::applicationDirPath()).arg("%1");
+		return QFile::exists(fileNameTemplate.arg("portable"))
+			? std::make_shared<Settings>(fileNameTemplate.arg(QString("%1.ini").arg(PRODUCT_ID)))
+			: std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
 	}).as<ISettings>().singleInstance();
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
 	{

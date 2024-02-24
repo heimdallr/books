@@ -10,8 +10,13 @@ namespace HomeCompa {
 struct Settings::Impl final
 	: Observable<ISettingsObserver>
 {
+	explicit Impl(const QString & fileName)
+		: settings(fileName, QSettings::Format::IniFormat)
+	{
+	}
+
 	Impl(const QString & organization, const QString & application)
-		: settings(organization, application)
+		: settings(QSettings::NativeFormat, QSettings::UserScope, organization, application)
 	{
 	}
 
@@ -23,6 +28,11 @@ struct Settings::Impl final
 	QSettings settings;
 	std::vector<QString> group{1};
 };
+
+Settings::Settings(const QString & fileName)
+	: m_impl(std::make_unique<Impl>(fileName))
+{
+}
 
 Settings::Settings(const QString & organization, const QString & application)
 	: m_impl(std::make_unique<Impl>(organization, application))
