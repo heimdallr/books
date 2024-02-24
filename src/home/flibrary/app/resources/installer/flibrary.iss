@@ -50,7 +50,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#RootDir}build\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\bin\Release\*.ini"          ; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\bin\Release\*.lst"          ; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\bin\Release\*.dll"          ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\bin\Release\*.qm"           ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

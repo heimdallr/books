@@ -12,10 +12,10 @@
 [[maybe_unused]] constexpr const wchar_t * DB_CREATE_SCRIPT         = L"db_create_script";
 [[maybe_unused]] constexpr const wchar_t * DB_PATH                  = L"db_path";
 [[maybe_unused]] constexpr const wchar_t * DB_UPDATE_SCRIPT         = L"db_update_script";
-[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_CREATE_SCRIPT = L"db_create.sql";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_CREATE_SCRIPT = L"CreateCollection.sql";
 [[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_PATH          = L"db.hlc2";
-[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_UPDATE_SCRIPT = L"db_update.sql";
-[[maybe_unused]] constexpr const wchar_t * DEFAULT_GENRES           = L"genres.ini";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_DB_UPDATE_SCRIPT = L"UpdateCollection.sql";
+[[maybe_unused]] constexpr const wchar_t * DEFAULT_GENRES           = L"genres.lst";
 [[maybe_unused]] constexpr const wchar_t * DEFAULT_INPX             = L"db.inpx";
 [[maybe_unused]] constexpr const wchar_t * GENRES                   = L"genres";
 [[maybe_unused]] constexpr const wchar_t * INI_EXT                  = L"ini";

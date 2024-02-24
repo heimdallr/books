@@ -17,6 +17,7 @@ class UTIL_EXPORT Settings final : virtual public ISettings
 	NON_COPY_MOVABLE(Settings)
 
 public:
+	explicit Settings(const QString & fileName);
 	Settings(const QString & organization, const QString & application);
 	~Settings() override;
 
