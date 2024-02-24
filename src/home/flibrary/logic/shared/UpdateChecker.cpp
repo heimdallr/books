@@ -43,7 +43,7 @@ constexpr auto START_INSTALLER   = QT_TRANSLATE_NOOP("UpdateChecker", "Run the i
 constexpr auto CHECK_FAILED      = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
 constexpr auto VERSION_ACTUAL    = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
 constexpr auto VERSION_MIRACLE   = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
-constexpr auto ARCHIVE_READY     = QT_TRANSLATE_NOOP("UpdateChecker", "Last version downloaded succesfully. Open the folder with the downloaded archive?");
+constexpr auto ARCHIVE_READY     = QT_TRANSLATE_NOOP("UpdateChecker", "Latest version package downloaded succesfully. Open the folder with the archive?");
 TR_DEF
 
 enum class CheckResult
