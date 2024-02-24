@@ -64,9 +64,9 @@ IniMapPair GetIniMap(const QString & db, const QString & folder, bool createFile
 	result.second = Inpx::Parser::IniMap
 	{
 		{ DB_PATH, db.toStdWString() },
-		{ GENRES, getFile("genres.ini").toStdWString() },
 		{ DB_CREATE_SCRIPT, getFile("CreateCollection.sql").toStdWString() },
 		{ DB_UPDATE_SCRIPT, getFile("UpdateCollection.sql").toStdWString() },
+		{ GENRES, getFile(QString::fromStdWString(DEFAULT_GENRES)).toStdWString() },
 		{ INPX, inpx.toStdWString() },
 	};
 
