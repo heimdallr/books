@@ -34,6 +34,7 @@ struct Role
 		UncheckAll,
 		InvertCheck,
 		IsTree,
+		HeaderTitle,
 	};
 };
 
