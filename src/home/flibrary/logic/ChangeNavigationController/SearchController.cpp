@@ -11,7 +11,7 @@
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 #include "userdata/constants/searches.h"
 #include "util/ISettings.h"
 

@@ -7,7 +7,7 @@
 
 #include "interface/logic/ICollectionController.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 
 #include "zip.h"
 

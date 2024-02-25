@@ -34,6 +34,7 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "TreeViewDelegate.h"
+#include "interface/logic/IDatabaseChecker.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -46,6 +47,7 @@ constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto CONTEXT = "MainWindow";
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -81,6 +83,7 @@ public:
 		, std::shared_ptr<QStyledItemDelegate> logItemDelegate
 		, std::shared_ptr<ICommandLine> commandLine
 		, std::shared_ptr<ILineOption> lineOption
+		, std::shared_ptr<IDatabaseChecker> databaseChecker
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -105,15 +108,24 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
-		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker)]
+		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
+			{
 				m_collectionController->AddCollection(commandLine->GetInpx());
+			}
+			else if (!databaseChecker->IsDatabaseValid())
+			{
+				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection()->database));
+				return QCoreApplication::exit(1);
+			}
 			else
-				collectionUpdateChecker->CheckForUpdate([=](bool) mutable
+			{
+				collectionUpdateChecker->CheckForUpdate([=] (bool) mutable
 				{
 					collectionUpdateChecker.reset();
 				});
+			}
 		});
 
 		CheckForUpdates(false);
@@ -464,6 +476,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 	, std::shared_ptr<LogItemDelegate> logItemDelegate
 	, std::shared_ptr<ICommandLine> commandLine
 	, std::shared_ptr<ILineOption> lineOption
+	, std::shared_ptr<IDatabaseChecker> databaseChecker
 	, QWidget * parent
 )
 	: QMainWindow(parent)
@@ -481,6 +494,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 		, std::move(logItemDelegate)
 		, std::move(commandLine)
 		, std::move(lineOption)
+		, std::move(databaseChecker)
 	)
 {
 	PLOGD << "MainWindow created";

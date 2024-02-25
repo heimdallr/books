@@ -6,8 +6,8 @@
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
+#include "database/DatabaseUser.h"
 #include "database/interface/IQuery.h"
-#include "shared/DatabaseUser.h"
 #include "util/UiTimer.h"
 
 #include "ArchiveParser.h"

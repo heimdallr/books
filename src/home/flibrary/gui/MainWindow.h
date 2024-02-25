@@ -33,6 +33,7 @@ public:
 		, std::shared_ptr<class LogItemDelegate> logItemDelegate
 		, std::shared_ptr<class ICommandLine> commandLine
 		, std::shared_ptr<class ILineOption> lineOption
+		, std::shared_ptr<class IDatabaseChecker> databaseChecker
 		, QWidget * parent = nullptr);
 	~MainWindow() override;
 

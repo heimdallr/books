@@ -59,7 +59,7 @@ public:
 
 	FLINT_EXPORT static std::vector<std::vector<QString>> GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles);
 	FLINT_EXPORT static ExtractedBooks GetExtractedBooks(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList = {});
-	FLINT_EXPORT static void FillScriptTemplate(QString & scriptTemplate, const ILogicFactory::ExtractedBook & book);
+	FLINT_EXPORT static void FillScriptTemplate(QString & scriptTemplate, const ExtractedBook & book);
 };
 
 }

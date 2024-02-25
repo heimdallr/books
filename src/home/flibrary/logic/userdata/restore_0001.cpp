@@ -11,7 +11,7 @@
 #include "constants/groups.h"
 #include "constants/searches.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"

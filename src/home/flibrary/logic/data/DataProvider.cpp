@@ -16,7 +16,7 @@
 
 #include "util/UiTimer.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 
 #include "BooksTreeGenerator.h"
 #include "DataItem.h"

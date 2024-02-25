@@ -30,9 +30,10 @@
 #include "extract/BooksExtractor.h"
 #include "extract/InpxCollectionExtractor.h"
 
+#include "database/DatabaseController.h"
+#include "database/DatabaseUser.h"
+
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/DatabaseController.h"
-#include "shared/DatabaseUser.h"
 #include "shared/ReaderController.h"
 #include "shared/ZipProgressCallback.h"
 

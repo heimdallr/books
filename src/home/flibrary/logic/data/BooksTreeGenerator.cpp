@@ -9,7 +9,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

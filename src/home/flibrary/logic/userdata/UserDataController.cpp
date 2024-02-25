@@ -5,7 +5,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 
 #include "backup.h"
 #include "restore.h"
