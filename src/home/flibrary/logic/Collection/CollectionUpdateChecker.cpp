@@ -40,11 +40,10 @@ QStringList & PrepareFolders(QStringList & folders)
 	return folders;
 }
 
-QStringList GetDbFolders(const DatabaseUser & databaseUser)
+QStringList GetDbFolders(DB::IDatabase & db)
 {
 	QStringList folders;
-	const auto db = databaseUser.Database();
-	const auto query = db->CreateQuery("select distinct Folder from Books");
+	const auto query = db.CreateQuery("select distinct Folder from Books");
 	for (query->Execute(); !query->Eof(); query->Next())
 		folders << query->Get<const char *>(0);
 
@@ -113,7 +112,8 @@ CollectionUpdateChecker::~CollectionUpdateChecker()
 
 void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 {
-	m_impl->databaseUser->Execute({ "Check for collection index updated", [&, callback = std::move(callback)] () mutable
+	auto db = m_impl->databaseUser->Database();
+	m_impl->databaseUser->Execute({ "Check for collection index updated", [&, db = std::move(db), callback = std::move(callback)] () mutable
 	{
 		const auto collection = m_impl->collectionController->GetActiveCollection();
 		Collection updatedCollection;
@@ -140,7 +140,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 		if (inpxFolders.isEmpty())
 			return getResult();
 
-		const auto dbFolders = GetDbFolders(*m_impl->databaseUser);
+		const auto dbFolders = GetDbFolders(*db);
 		std::ranges::set_difference(inpxFolders, dbFolders, std::back_inserter(addedFolders));
 
 		return getResult();

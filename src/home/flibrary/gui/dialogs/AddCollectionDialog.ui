@@ -144,7 +144,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layoutButton" stretch="0,1,0,0,0">
+    <layout class="QHBoxLayout" name="layoutButton" stretch="0,1,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
@@ -171,16 +171,6 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnCreateNew">
-       <property name="text">
-        <string>Create new</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -213,7 +203,6 @@
   <tabstop>editName</tabstop>
   <tabstop>btnDatabase</tabstop>
   <tabstop>btnArchive</tabstop>
-  <tabstop>btnCreateNew</tabstop>
   <tabstop>btnAdd</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>editDatabase</tabstop>
