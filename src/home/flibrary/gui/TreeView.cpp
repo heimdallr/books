@@ -210,7 +210,7 @@ private: // ITreeViewController::IObserver
 
 	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
 	{
-		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))
+		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case BooksMenuAction::Collapse:
 				return m_ui.treeView->collapse(m_ui.treeView->currentIndex());
@@ -515,7 +515,7 @@ private:
 		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal).toString(), &m_self, [=, this_ = this] (const bool checked)
+			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [=, this_ = this] (const bool checked)
 			{
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));

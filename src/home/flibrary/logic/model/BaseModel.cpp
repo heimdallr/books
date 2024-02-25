@@ -51,6 +51,9 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 		case Qt::DecorationRole:
 			return isLangSection ? QIcon(":/icons/language.png") : QVariant {};
 
+		case Role::HeaderTitle:
+			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
+
 		default:
 			break;
 	}
