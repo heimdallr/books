@@ -17,112 +17,112 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
         <source>&amp;Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
         <source>E&amp;xport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>As &amp;zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>As &amp;original format</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>As &amp;inpx collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>&amp;Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>&amp;Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>&amp;New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>&amp;Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
         <source>&amp;All</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
         <source>&amp;Check</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
         <source>&amp;Check all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>&amp;Uncheck all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
         <source>&amp;Invert</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
         <source>&amp;Tree</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
         <source>C&amp;ollapse</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
         <source>E&amp;xpand</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>&amp;Collapse all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
         <source>&amp;Expand all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
         <source>R&amp;emove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>&amp;Undo deletion</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
