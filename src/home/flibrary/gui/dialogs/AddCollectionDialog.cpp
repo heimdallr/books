@@ -120,6 +120,7 @@ public:
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(); });
 		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&](const QString & db) { OnDatabaseNameChanged(db); });
 		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(); });
+		connect(m_ui.checkBoxScanUnindexedArchives, &QCheckBox::stateChanged, &m_self, [&] { (void)CheckData(); });
 
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
