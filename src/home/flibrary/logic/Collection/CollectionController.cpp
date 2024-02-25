@@ -38,10 +38,7 @@ TR_DEF
 QString GetInpxImpl(const QString & folder)
 {
 	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
-	if (inpxList.isEmpty())
-		PLOGW << "Cannot find inpx in " << folder;
-
-	return QString("%1/%2").arg(folder, inpxList.isEmpty() ? QString("stub.inpx") : inpxList.front());
+	return inpxList.isEmpty() ? QString{} : QString("%1/%2").arg(folder, inpxList.front());
 }
 
 using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, Inpx::Parser::IniMap>;
