@@ -20,6 +20,7 @@
 #include "script/CommaneExecutor.h"
 #include "script/ScriptController.h"
 #include "shared/CommandLine.h"
+#include "shared/DatabaseChecker.h"
 #include "shared/DatabaseController.h"
 #include "shared/DatabaseUser.h"
 #include "shared/ProgressController.h"
@@ -38,6 +39,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
+	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
 	builder.registerType<DatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();

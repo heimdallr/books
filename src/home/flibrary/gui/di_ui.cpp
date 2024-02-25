@@ -8,6 +8,7 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
+#include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
