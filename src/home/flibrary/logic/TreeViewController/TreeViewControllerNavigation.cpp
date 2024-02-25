@@ -17,11 +17,11 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/DatabaseController.h"
 #include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;

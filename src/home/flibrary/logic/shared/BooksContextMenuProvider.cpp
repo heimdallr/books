@@ -20,11 +20,10 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
+#include "database/DatabaseUser.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxCollectionExtractor.h"
 #include "shared/ReaderController.h"
-
-#include "DatabaseUser.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

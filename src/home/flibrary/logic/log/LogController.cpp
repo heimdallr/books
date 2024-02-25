@@ -9,8 +9,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/PLogSeverityLocalization.h"
 #include "interface/logic/LogModelRole.h"
+#include "database/DatabaseUser.h"
 #include "model/LogModel.h"
-#include "shared/DatabaseUser.h"
 
 using namespace HomeCompa::Flibrary;
 

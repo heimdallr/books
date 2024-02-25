@@ -6,7 +6,7 @@
 #include "fnd/FindPair.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
-#include "shared/DatabaseUser.h"
+#include "database/DatabaseUser.h"
 #include "BooksTreeGenerator.h"
 #include "inpx/src/util/constant.h"
 

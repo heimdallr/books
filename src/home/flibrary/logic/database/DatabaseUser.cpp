@@ -7,8 +7,8 @@
 
 #include "data/DataItem.h"
 #include "data/GenresLocalization.h"
+#include "database/DatabaseController.h"
 #include "interface/constants/Localization.h"
-#include "shared/DatabaseController.h"
 #include "util/executor/factory.h"
 
 using namespace HomeCompa;
