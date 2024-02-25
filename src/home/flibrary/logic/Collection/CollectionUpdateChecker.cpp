@@ -58,7 +58,8 @@ QStringList GetInpxFolders(const ICollectionController & collectionController, C
 
 	updatedCollection = *collection;
 	const auto inpxFileName = collectionController.GetInpx(collection->folder);
-	assert(!inpxFileName.isEmpty());
+	if (inpxFileName.isEmpty())
+		return {};
 
 	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileName); updatedCollection.discardedUpdate == collection->discardedUpdate)
 		return {};
