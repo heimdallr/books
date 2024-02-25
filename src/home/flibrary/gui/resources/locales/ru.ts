@@ -380,14 +380,19 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="47"/>
+        <location filename="../../MainWindow.cpp" line="48"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="49"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp" line="50"/>
+        <source>Database file &quot;%1&quot; is probably corrupted</source>
+        <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
