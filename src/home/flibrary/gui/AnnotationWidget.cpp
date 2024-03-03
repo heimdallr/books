@@ -150,7 +150,8 @@ QString GetPublishInfo(const IAnnotationController::IDataProvider & dataProvider
 	QString result = dataProvider.GetPublisher();
 	AppendTitle(result, dataProvider.GetPublishCity(), ", ");
 	AppendTitle(result, dataProvider.GetPublishYear(), ", ");
-	AppendTitle(result, QString("ISBN %1").arg(dataProvider.GetPublishIsbn()), ". ");
+	const auto isbn = dataProvider.GetPublishIsbn().isEmpty() ? QString {} : QString("ISBN %1").arg(dataProvider.GetPublishIsbn());
+	AppendTitle(result, isbn, ". ");
 	return result;
 }
 
