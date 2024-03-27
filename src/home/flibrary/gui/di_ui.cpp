@@ -1,6 +1,8 @@
 // ReSharper disable CppUnusedIncludeDirective
 #include "di_ui.h"
 
+#include <QCoreApplication>
+
 #include <Hypodermic/Hypodermic.h>
 
 #include "interface/constants/ProductConstant.h"
