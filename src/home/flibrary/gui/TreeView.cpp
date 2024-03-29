@@ -377,7 +377,7 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 		if (m_controller->GetItemType() == ItemType::Books)
-			m_ui.treeView->setHeader((m_headerView = new HeaderView(&m_self)));
+			m_ui.treeView->setHeader(new HeaderView(&m_self));
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
@@ -698,7 +698,6 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_showRemoved { false };
-	HeaderView * m_headerView { nullptr };
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings
