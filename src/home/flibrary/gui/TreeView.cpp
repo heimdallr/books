@@ -51,7 +51,7 @@ public:
 	virtual void Filter() = 0;
 };
 
-using ApplyValue = void(IValueApplier:: *)();
+using ApplyValue = void(IValueApplier::*)();
 
 constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 {
@@ -125,22 +125,48 @@ private: // QHeaderView
 		if (!model())
 			return QHeaderView::paintSection(painter, rect, logicalIndex);
 
+		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
 		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
-		if (!icon.isValid())
-			return QHeaderView::paintSection(painter, rect, logicalIndex);
-
-		if (!m_svgRenderer.isValid() && !m_svgRenderer.load(model()->headerData(logicalIndex, orientation(), Qt::DecorationRole).toString()))
-			return QHeaderView::paintSection(painter, rect, logicalIndex);
 
 		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
 		painter->setPen(QPen(QApplication::palette().color(QPalette::Dark), 2));
 		painter->fillRect(rect, QApplication::palette().color(QPalette::Base));
 		painter->drawRect(rect);
 
+		icon.isValid() && (m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString()))
+			? PaintIcon(painter, rect)
+			: PaintText(painter, rect, text);
+
+		if (logicalIndex != sortIndicatorSection())
+			return;
+
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->setBrush(QApplication::palette().color(QPalette::Text));
+
+		const auto size = rect.height() / 4.0;
+		const auto triangle = sortIndicatorOrder() == Qt::DescendingOrder
+			? QPolygonF({ QPointF{0.0, 0.0}, QPointF{size, 0.0}, QPointF{size / 2, size / 2}, QPointF{0.0, 0.0} } )
+			: QPolygonF({ QPointF{0.0, size / 2}, QPointF{size, size / 2}, QPointF{size / 2.0, 0.0}, QPointF{0.0, size / 2} })
+			;
+		painter->drawPolygon(triangle.translated(rect.left() + size / 3, size / 2));
+	}
+
+private:
+	void PaintIcon(QPainter * painter, const QRect & rect) const
+	{
 		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
 		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 60 * (rect.height() - size) / 90 };
 		const QRect dstRect(topLeft, topLeft + QPoint { size, size });
 		m_svgRenderer.render(painter, dstRect);
+	}
+
+	static void PaintText(QPainter * painter, const QRect & rect, const QString& text)
+	{
+		const auto metrics = painter->fontMetrics();
+		const auto textRect = metrics.boundingRect(text);
+		metrics.xHeight();
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->drawText(QPoint { rect.x() + (rect.width() - textRect.width()) / 2, -5*(rect.height() - metrics.xHeight()) / 13 + rect.height() }, text);
 	}
 
 private:
@@ -241,9 +267,6 @@ private: // ITreeViewController::IObserver
 				m_languageContextMenu.reset();
 				model->setData({}, true, Role::Checkable);
 				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-
-				assert(m_headerView);
-				//				m_headerView->setModel(model);
 			}
 
 			if (model->rowCount() == 0)
