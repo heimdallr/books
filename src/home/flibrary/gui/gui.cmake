@@ -6,6 +6,7 @@ AddTarget(gui	shared_lib
 		Hypodermic
 		plog
 		Qt6::Widgets
+		Qt6::Svg
 	LINK_TARGETS
 		flint
 		logging

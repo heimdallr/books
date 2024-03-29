@@ -9,11 +9,13 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
+#include <QSvgRenderer>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -102,6 +104,74 @@ void GenerateMenu(QMenu & menu, const IDataItem & item, ITreeViewController & co
 		}
 	}
 }
+
+class HeaderView final
+	: public QHeaderView
+{
+public:
+	explicit HeaderView(QWidget * parent = nullptr)
+		: QHeaderView(Qt::Horizontal, parent)
+	{
+	}
+
+	void setModel(QAbstractItemModel * model) override
+	{
+		QHeaderView::setModel(model);
+	}
+
+private: // QHeaderView
+	void paintSection(QPainter * painter, const QRect & rect, const int logicalIndex) const override
+	{
+		if (!model())
+			return QHeaderView::paintSection(painter, rect, logicalIndex);
+
+		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
+		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+		painter->setPen(QPen(QApplication::palette().color(QPalette::Dark), 2));
+		painter->fillRect(rect, QApplication::palette().color(QPalette::Base));
+		painter->drawRect(rect);
+
+		icon.isValid() && (m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString()))
+			? PaintIcon(painter, rect)
+			: PaintText(painter, rect, text);
+
+		if (logicalIndex != sortIndicatorSection())
+			return;
+
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->setBrush(QApplication::palette().color(QPalette::Text));
+
+		const auto size = rect.height() / 4.0;
+		const auto triangle = sortIndicatorOrder() == Qt::DescendingOrder
+			? QPolygonF({ QPointF{0.0, 0.0}, QPointF{size, 0.0}, QPointF{size / 2, size / 2}, QPointF{0.0, 0.0} } )
+			: QPolygonF({ QPointF{0.0, size / 2}, QPointF{size, size / 2}, QPointF{size / 2.0, 0.0}, QPointF{0.0, size / 2} })
+			;
+		painter->drawPolygon(triangle.translated(rect.left() + size / 3, size / 2));
+	}
+
+private:
+	void PaintIcon(QPainter * painter, const QRect & rect) const
+	{
+		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
+		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 60 * (rect.height() - size) / 90 };
+		const QRect dstRect(topLeft, topLeft + QPoint { size, size });
+		m_svgRenderer.render(painter, dstRect);
+	}
+
+	static void PaintText(QPainter * painter, const QRect & rect, const QString& text)
+	{
+		const auto metrics = painter->fontMetrics();
+		const auto textRect = metrics.boundingRect(text);
+		metrics.xHeight();
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->drawText(QPoint { rect.x() + (rect.width() - textRect.width()) / 2, -5*(rect.height() - metrics.xHeight()) / 13 + rect.height() }, text);
+	}
+
+private:
+	mutable QSvgRenderer m_svgRenderer;
+};
 
 }
 
@@ -306,6 +376,8 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+		if (m_controller->GetItemType() == ItemType::Books)
+			m_ui.treeView->setHeader(new HeaderView(&m_self));
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
@@ -591,7 +663,7 @@ private:
 			.arg(m_controller->TrContext())
 			.arg(m_recentMode)
 			.arg(m_navigationModeName)
-			.arg(value ? QString("/%1").arg(value) : QString{})
+			.arg(value ? QString("/%1").arg(value) : QString {})
 			;
 	}
 
@@ -605,7 +677,7 @@ private:
 		auto key = QString("Collections/%1/%2%3/LastId")
 			.arg(m_currentCollectionId)
 			.arg(m_controller->TrContext())
-			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode): QString{})
+			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {})
 			;
 
 		return key;
