@@ -9,11 +9,13 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
+#include <QSvgRenderer>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -49,7 +51,7 @@ public:
 	virtual void Filter() = 0;
 };
 
-using ApplyValue = void(IValueApplier::*)();
+using ApplyValue = void(IValueApplier:: *)();
 
 constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 {
@@ -102,6 +104,48 @@ void GenerateMenu(QMenu & menu, const IDataItem & item, ITreeViewController & co
 		}
 	}
 }
+
+class HeaderView final
+	: public QHeaderView
+{
+public:
+	explicit HeaderView(QWidget * parent = nullptr)
+		: QHeaderView(Qt::Horizontal, parent)
+	{
+	}
+
+	void setModel(QAbstractItemModel * model) override
+	{
+		QHeaderView::setModel(model);
+	}
+
+private: // QHeaderView
+	void paintSection(QPainter * painter, const QRect & rect, const int logicalIndex) const override
+	{
+		if (!model())
+			return QHeaderView::paintSection(painter, rect, logicalIndex);
+
+		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		if (!icon.isValid())
+			return QHeaderView::paintSection(painter, rect, logicalIndex);
+
+		if (!m_svgRenderer.isValid() && !m_svgRenderer.load(model()->headerData(logicalIndex, orientation(), Qt::DecorationRole).toString()))
+			return QHeaderView::paintSection(painter, rect, logicalIndex);
+
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+		painter->setPen(QPen(QApplication::palette().color(QPalette::Dark), 2));
+		painter->fillRect(rect, QApplication::palette().color(QPalette::Base));
+		painter->drawRect(rect);
+
+		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
+		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 60 * (rect.height() - size) / 90 };
+		const QRect dstRect(topLeft, topLeft + QPoint { size, size });
+		m_svgRenderer.render(painter, dstRect);
+	}
+
+private:
+	mutable QSvgRenderer m_svgRenderer;
+};
 
 }
 
@@ -197,6 +241,9 @@ private: // ITreeViewController::IObserver
 				m_languageContextMenu.reset();
 				model->setData({}, true, Role::Checkable);
 				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+
+				assert(m_headerView);
+				//				m_headerView->setModel(model);
 			}
 
 			if (model->rowCount() == 0)
@@ -306,6 +353,8 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+		if (m_controller->GetItemType() == ItemType::Books)
+			m_ui.treeView->setHeader((m_headerView = new HeaderView(&m_self)));
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
@@ -591,7 +640,7 @@ private:
 			.arg(m_controller->TrContext())
 			.arg(m_recentMode)
 			.arg(m_navigationModeName)
-			.arg(value ? QString("/%1").arg(value) : QString{})
+			.arg(value ? QString("/%1").arg(value) : QString {})
 			;
 	}
 
@@ -605,7 +654,7 @@ private:
 		auto key = QString("Collections/%1/%2%3/LastId")
 			.arg(m_currentCollectionId)
 			.arg(m_controller->TrContext())
-			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode): QString{})
+			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {})
 			;
 
 		return key;
@@ -626,6 +675,7 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_showRemoved { false };
+	HeaderView * m_headerView { nullptr };
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings

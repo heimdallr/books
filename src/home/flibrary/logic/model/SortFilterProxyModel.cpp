@@ -55,9 +55,22 @@ SortFilterProxyModel::~SortFilterProxyModel() = default;
 
 QVariant SortFilterProxyModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
-	return orientation == Qt::Horizontal && role == Qt::DisplayRole && BookItem::Remap(section) == BookItem::Column::Lang && !m_impl->m_languageFilter.isEmpty()
-		? m_impl->m_languageFilter
-		: AbstractSortFilterProxyModel::headerData(section, orientation, role);
+	if (!(orientation == Qt::Horizontal && BookItem::Remap(section) == BookItem::Column::Lang))
+		return AbstractSortFilterProxyModel::headerData(section, orientation, role);
+
+	switch (role)
+	{
+		case Qt::DisplayRole:
+			return m_impl->m_languageFilter.isEmpty() ? QVariant {} : m_impl->m_languageFilter;
+
+		case Qt::DecorationRole:
+			return m_impl->m_languageFilter.isEmpty() ? QString(":/icons/language.svg") : QVariant {};
+
+		default:
+			break;
+	}
+
+	return AbstractSortFilterProxyModel::headerData(section, orientation, role);
 }
 
 QVariant SortFilterProxyModel::data(const QModelIndex & index, const int role) const
