@@ -125,17 +125,16 @@ private: // QHeaderView
 		if (!model())
 			return QHeaderView::paintSection(painter, rect, logicalIndex);
 
-		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+
 		const auto palette = QApplication::palette();
 
-		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
 		painter->setPen(QPen(palette.color(QPalette::Dark), 2));
 		painter->fillRect(rect, palette.color(QPalette::Base));
 		painter->drawRect(rect);
 
-		if (!(icon.isValid() && PaintIcon(painter, rect, icon)))
-			PaintText(painter, rect, text);
+		if (!PaintIcon(painter, rect, logicalIndex))
+			PaintText(painter, rect, logicalIndex);
 
 		if (logicalIndex != sortIndicatorSection())
 			return;
@@ -153,8 +152,12 @@ private: // QHeaderView
 	}
 
 private:
-	bool PaintIcon(QPainter * painter, const QRect & rect, const QVariant & icon) const
+	bool PaintIcon(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
+		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		if (!icon.isValid())
+			return false;
+
 		if (!(m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString())))
 			return false;
 
@@ -167,8 +170,9 @@ private:
 		return true;
 	}
 
-	static void PaintText(QPainter * painter, const QRect & rect, const QString & text)
+	void PaintText(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
+		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
 		painter->setPen(QApplication::palette().color(QPalette::Text));
 		painter->drawText(rect, Qt::AlignCenter, text);
 	}
