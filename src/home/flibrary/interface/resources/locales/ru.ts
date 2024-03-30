@@ -149,72 +149,72 @@
 <context>
     <name>ScriptController</name>
     <message>
-        <location filename="../../logic/IScriptController.h" line="109"/>
+        <location filename="../../logic/IScriptController.h" line="111"/>
         <source>ExportToDevice</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="127"/>
+        <location filename="../../logic/IScriptController.h" line="129"/>
         <source>LaunchApp</source>
         <translation>Запуск приложения</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="128"/>
+        <location filename="../../logic/IScriptController.h" line="130"/>
         <source>System</source>
         <translation>Системная команда</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="133"/>
+        <location filename="../../logic/IScriptController.h" line="135"/>
         <source>%source_file%</source>
         <translation>Полный путь к распакованному файлу во временной папке</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="134"/>
+        <location filename="../../logic/IScriptController.h" line="136"/>
         <source>%user_destination_folder%</source>
         <translation>Папка назначения из диалога</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="138"/>
+        <location filename="../../logic/IScriptController.h" line="140"/>
         <source>%base_file_name%</source>
         <translation>Имя файла без расширения</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="137"/>
+        <location filename="../../logic/IScriptController.h" line="139"/>
         <source>%file_ext%</source>
         <translation>Расширение файла</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="135"/>
+        <location filename="../../logic/IScriptController.h" line="137"/>
         <source>%title%</source>
         <translation>Название книги</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="136"/>
+        <location filename="../../logic/IScriptController.h" line="138"/>
         <source>%file_name%</source>
         <translation>Имя файла</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="139"/>
+        <location filename="../../logic/IScriptController.h" line="141"/>
         <source>%uid%</source>
         <translation>Уникальный идентификатор (GUID)</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="140"/>
+        <location filename="../../logic/IScriptController.h" line="142"/>
         <source>%author%</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="141"/>
+        <location filename="../../logic/IScriptController.h" line="143"/>
         <source>%series%</source>
         <translation>Серия</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="142"/>
+        <location filename="../../logic/IScriptController.h" line="144"/>
         <source>%seq_number%</source>
         <translation>Порядковый номер в серии</translation>
     </message>
     <message>
-        <location filename="../../logic/IScriptController.h" line="143"/>
+        <location filename="../../logic/IScriptController.h" line="145"/>
         <source>%file_size%</source>
         <translation>Размер файла</translation>
     </message>
