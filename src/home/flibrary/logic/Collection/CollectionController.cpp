@@ -81,11 +81,11 @@ class CollectionController::Impl final
 public:
 	Impl(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<ITaskQueue> taskQueue
+		, const std::shared_ptr<ITaskQueue>& taskQueue
 	)
 		: m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
-		, m_taskQueue(std::move(taskQueue))
+		, m_taskQueue(taskQueue)
 	{
 		if (std::ranges::none_of(m_collections, [id = CollectionImpl::GetActive(*m_settings)] (const auto & item) { return item->id == id; }))
 			SetActiveCollection(m_collections.empty() ? QString {} : m_collections.front()->id);
@@ -141,7 +141,7 @@ public:
 
 		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
 		{
-			m_taskQueue->Enqueue([db = std::move(db)]
+			ITaskQueue::Lock(m_taskQueue)->Enqueue([db = std::move(db)]
 			{
 				for (int i = 0; i < 20; ++i, std::this_thread::sleep_for(std::chrono::milliseconds(50)))
 					if (QFile::remove(db) && !QFile::exists(db))
@@ -255,18 +255,18 @@ private:
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	PropagateConstPtr<ITaskQueue, std::shared_ptr> m_taskQueue;
+	std::weak_ptr<ITaskQueue> m_taskQueue;
 	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
 	int m_overwriteConfirmCount { 0 };
 };
 
 CollectionController::CollectionController(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<ITaskQueue> taskQueue
+	, const std::shared_ptr<ITaskQueue>& taskQueue
 )
 	: m_impl(std::move(settings)
 		, std::move(uiFactory)
-		, std::move(taskQueue)
+		, taskQueue
 	)
 {
 	PLOGD << "CollectionController created";

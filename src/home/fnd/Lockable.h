@@ -14,6 +14,12 @@ public:
 		assert(ptr);
 		return ptr;
 	}
+	static std::shared_ptr<T> Lock(const std::weak_ptr<T> & weak)
+	{
+		auto ptr = weak.lock();
+		assert(ptr);
+		return ptr;
+	}
 };
 
 }

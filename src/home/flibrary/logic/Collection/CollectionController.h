@@ -23,7 +23,7 @@ class LOGIC_EXPORT CollectionController final
 public:
 	CollectionController(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IUiFactory> uiFactory
-		, std::shared_ptr<class ITaskQueue> taskQueue
+		, const std::shared_ptr<class ITaskQueue>& taskQueue
 	);
 	~CollectionController() override;
 
