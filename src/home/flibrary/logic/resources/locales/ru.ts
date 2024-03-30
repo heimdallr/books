@@ -1966,14 +1966,19 @@ Try again?</source>
 <context>
     <name>ReaderController</name>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="26"/>
+        <location filename="../../shared/ReaderController.cpp" line="29"/>
         <source>Select %1 reader</source>
         <translation>Укажите читалку для %1</translation>
     </message>
     <message>
-        <location filename="../../shared/ReaderController.cpp" line="27"/>
+        <location filename="../../shared/ReaderController.cpp" line="30"/>
         <source>Applications (*.exe)</source>
         <translation>Приложения (*.exe)</translation>
+    </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp" line="31"/>
+        <source>Use the default reader?</source>
+        <translation>Использовать системную читалку?</translation>
     </message>
 </context>
 <context>
