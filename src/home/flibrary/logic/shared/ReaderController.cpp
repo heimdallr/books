@@ -80,17 +80,17 @@ struct ReaderController::Impl
 {
 	std::shared_ptr<ISettings> settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> logicFactory;
+	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 
 	Impl(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
-		, std::shared_ptr<ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 	)
 		: settings(std::move(settings))
 		, collectionController(std::move(collectionController))
-		, logicFactory(std::move(logicFactory))
+		, logicFactory(logicFactory)
 		, uiFactory(std::move(uiFactory))
 	{
 	}
@@ -98,12 +98,12 @@ struct ReaderController::Impl
 
 ReaderController::ReaderController(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 )
 	: m_impl(std::move(settings)
 		, std::move(collectionController)
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(uiFactory)
 	)
 {
@@ -142,7 +142,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 		return;
 
 	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection()->folder, folderName);
-	std::shared_ptr executor = m_impl->logicFactory->GetExecutor();
+	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 	(*executor)({ "Extract book", [this
 		, executor
 		, reader = std::move(reader)
@@ -152,7 +152,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	] () mutable
 	{
 		QString error;
-		auto temporaryDir = Extract(*m_impl->logicFactory, archive, fileName, error);
+		auto temporaryDir = Extract(*ILogicFactory::Lock(m_impl->logicFactory), archive, fileName, error);
 		return [this
 			, executor = std::move(executor)
 			, reader = std::move(reader)

@@ -11,6 +11,7 @@
 #include "export/flint.h"
 
 class QAbstractItemModel;
+class QTemporaryDir;
 
 namespace HomeCompa::DB {
 class IDatabase;
@@ -28,6 +29,14 @@ namespace HomeCompa::Flibrary {
 
 class ILogicFactory  // NOLINT(cppcoreguidelines-special-member-functions)
 {
+public:
+	static std::shared_ptr<const ILogicFactory> Lock(const std::weak_ptr<const ILogicFactory>& factory)
+	{
+		auto factoryPtr = factory.lock();
+		assert(factoryPtr);
+		return factoryPtr;
+	}
+
 public:
 	struct ExtractedBook
 	{

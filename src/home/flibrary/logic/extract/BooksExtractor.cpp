@@ -154,12 +154,12 @@ class BooksExtractor::Impl final
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
-		, std::shared_ptr<ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IScriptController> scriptController
 	)
 		: m_collectionController(std::move(collectionController))
 		, m_progressController(std::move(progressController))
-		, m_logicFactory(std::move(logicFactory))
+		, m_logicFactory(logicFactory)
 		, m_scriptController(std::move(scriptController))
 	{
 		m_progressController->RegisterObserver(this);
@@ -177,7 +177,7 @@ public:
 		m_callback = std::move(callback);
 		m_taskCount = std::size(books);
 		m_processFunctor = std::move(processFunctor);
-		m_logicFactory->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
+		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
 		m_dstFolder = std::move(dstFolder);
 		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
 
@@ -263,7 +263,7 @@ private:
 private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IScriptController> m_scriptController;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
@@ -278,12 +278,12 @@ private:
 
 BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<const IScriptController> scriptController
 )
 	: m_impl(std::move(collectionController)
 		, std::move(progressController)
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(scriptController)
 	)
 {

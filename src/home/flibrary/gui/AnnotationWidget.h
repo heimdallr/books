@@ -19,7 +19,7 @@ public:
 	AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IAnnotationController> annotationController
 		, std::shared_ptr<class IModelProvider> modelProvider
-		, std::shared_ptr<class ILogicFactory> logicFactory
+		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<class ICollectionController> & collectionController

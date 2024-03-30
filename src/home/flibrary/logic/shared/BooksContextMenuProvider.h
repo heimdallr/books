@@ -27,7 +27,7 @@ public:
 public:
 	BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
 		, std::shared_ptr<class DatabaseUser> databaseUser
-		, std::shared_ptr<class ILogicFactory> logicFactory
+		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class GroupController> groupController
 		, std::shared_ptr<class DataProvider> dataProvider

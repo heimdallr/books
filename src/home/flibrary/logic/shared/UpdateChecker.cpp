@@ -61,12 +61,12 @@ class UpdateChecker::Impl final : virtual public IClient
 {
 public:
 	Impl(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<const ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IUiFactory> uiFactory
 		, std::shared_ptr<IProgressController> progressController
 	)
 		: m_settings(std::move(settings))
-		, m_logicFactory(std::move(logicFactory))
+		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_progressController(std::move(progressController))
 	{
@@ -79,7 +79,7 @@ public:
 
 		m_callback = std::move(callback);
 
-		std::shared_ptr executor = m_logicFactory->GetExecutor();
+		std::shared_ptr executor = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
 		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force] () mutable
 		{
 			Requester requester { CreateQtConnection("https://api.github.com") };
@@ -294,7 +294,7 @@ private:
 
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	std::shared_ptr<const ILogicFactory> m_logicFactory;
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Callback m_callback;
@@ -303,12 +303,12 @@ private:
 };
 
 UpdateChecker::UpdateChecker(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 )
 	: m_impl(std::make_shared<Impl>(std::move(settings)
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(uiFactory)
 		, std::move(progressController)
 	))
