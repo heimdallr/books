@@ -1,12 +1,13 @@
 #pragma once
 
+#include "fnd/Lockable.h"
 #include "interface/logic/IDataItem.h"
 
 class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class IModelProvider  // NOLINT(cppcoreguidelines-special-member-functions)
+class IModelProvider : public Lockable<IModelProvider> // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IModelProvider() = default;

@@ -48,12 +48,12 @@ class AnnotationController::Impl final
 	, IProgressController::IObserver
 {
 public:
-	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
+	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<DatabaseUser> databaseUser
 	)
-		: m_logicFactory(std::move(logicFactory))
+		: m_logicFactory(logicFactory)
 		, m_databaseUser(std::move(databaseUser))
-		, m_executor(m_logicFactory->GetExecutor())
+		, m_executor(logicFactory->GetExecutor())
 	{
 	}
 
@@ -199,7 +199,7 @@ private:
 		if (const auto progressController = m_archiveParserProgressController.lock())
 			progressController->Stop();
 
-		auto parser = m_logicFactory->CreateArchiveParser();
+		auto parser = ILogicFactory::Lock(m_logicFactory)->CreateArchiveParser();
 
 		(*m_executor)({ "Get archive book info", [this, book = std::move(book), parser = std::move(parser)] () mutable
 		{
@@ -281,7 +281,7 @@ private:
 	}
 
 private:
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
@@ -300,10 +300,10 @@ private:
 	IDataItem::Ptr m_groups;
 };
 
-AnnotationController::AnnotationController(std::shared_ptr<ILogicFactory> logicFactory
+AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<DatabaseUser> databaseUser
 )
-	: m_impl(std::move(logicFactory)
+	: m_impl(logicFactory
 		, std::move(databaseUser)
 	)
 {

@@ -70,7 +70,7 @@ class MainWindow::Impl final
 
 public:
 	Impl(MainWindow & self
-		, std::shared_ptr<const ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IUiFactory> uiFactory
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
@@ -88,7 +88,7 @@ public:
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
 		, m_self(self)
-		, m_logicFactory(std::move(logicFactory))
+		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
@@ -292,7 +292,7 @@ private:
 		});
 		connect(m_ui.actionExportUserData, &QAction::triggered, &m_self, [&]
 		{
-			auto controller = m_logicFactory->CreateUserDataController();
+			auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
 			controller->Backup([controller] () mutable
 			{
 				controller.reset();
@@ -300,7 +300,7 @@ private:
 		});
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [&]
 		{
-			auto controller = m_logicFactory->CreateUserDataController();
+			auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
 			controller->Restore([controller] () mutable
 			{
 				controller.reset();
@@ -397,7 +397,7 @@ private:
 
 	void CheckForUpdates(const bool force) const
 	{
-		auto updateChecker = m_logicFactory->CreateUpdateChecker();
+		auto updateChecker = ILogicFactory::Lock(m_logicFactory)->CreateUpdateChecker();
 		updateChecker->CheckForUpdate(force, [updateChecker] () mutable
 		{
 			updateChecker.reset();
@@ -443,7 +443,7 @@ private:
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
-	std::shared_ptr<const ILogicFactory> m_logicFactory;
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
@@ -463,7 +463,7 @@ private:
 	const Log::LogAppender m_logAppender { this };
 };
 
-MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
+MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
@@ -481,7 +481,7 @@ MainWindow::MainWindow(std::shared_ptr<ILogicFactory> logicFactory
 )
 	: QMainWindow(parent)
 	, m_impl(*this
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(uiFactory)
 		, std::move(settings)
 		, std::move(collectionController)

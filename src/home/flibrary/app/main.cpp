@@ -7,7 +7,6 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
 
@@ -72,7 +71,6 @@ int main(int argc, char * argv[])
 			PLOGD << "DI-container created";
 
 			container->resolve<ITaskQueue>()->Execute();
-			const auto logicFactory = container->resolve<ILogicFactory>();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			mainWindow->Show();
 

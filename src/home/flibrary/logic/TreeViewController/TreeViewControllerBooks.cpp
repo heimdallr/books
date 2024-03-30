@@ -50,10 +50,10 @@ struct TreeViewControllerBooks::Impl final
 {
 	ViewMode viewMode { ViewMode::Unknown };
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel>() };
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> logicFactory;
+	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 
-	explicit Impl(std::shared_ptr<ILogicFactory> logicFactory
+	explicit Impl(std::weak_ptr<const ILogicFactory> logicFactory
 		, std::shared_ptr<IAnnotationController> annotationController
 	)
 		: logicFactory(std::move(logicFactory))
@@ -64,16 +64,16 @@ struct TreeViewControllerBooks::Impl final
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<IModelProvider> modelProvider
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const IModelProvider>& modelProvider
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IAnnotationController> annotationController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
-		, std::move(modelProvider)
+		, modelProvider
 	)
-	, m_impl(std::move(logicFactory), std::move(annotationController))
+	, m_impl(logicFactory, std::move(annotationController))
 {
 	Setup();
 
@@ -81,7 +81,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	{
 		assert(m_impl->viewMode != ViewMode::Unknown);
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-		m_impl->model.reset(((*m_modelProvider).*invoker)(std::move(data), *m_impl));
+		m_impl->model.reset(((*IModelProvider::Lock(m_modelProvider)).*invoker)(std::move(data), *m_impl));
 		Perform(&IObserver::OnModelChanged, m_impl->model.get());
 	});
 
@@ -128,7 +128,7 @@ ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
 
 void TreeViewControllerBooks::RequestContextMenu(const QModelIndex & index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
 {
-	auto menuProvider = m_impl->logicFactory->CreateBooksContextMenuProvider();
+	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
 	menuProvider->Request(index, options, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)] (const IDataItem::Ptr & item) mutable
 	{
 		callback(id, item);
@@ -138,7 +138,7 @@ void TreeViewControllerBooks::RequestContextMenu(const QModelIndex & index, cons
 
 void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item)
 {
-	auto menuProvider = m_impl->logicFactory->CreateBooksContextMenuProvider();
+	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
 	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [&, menuProvider, id = index.data(Role::Id).toString()] (const IDataItem::Ptr & itemResult) mutable
 	{
 		Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
@@ -151,7 +151,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
 
-	auto readerController = m_impl->logicFactory->CreateReaderController();
+	auto readerController = ILogicFactory::Lock(m_impl->logicFactory)->CreateReaderController();
 	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController]() mutable
 	{
 		readerController.reset();

@@ -20,7 +20,7 @@ class MainWindow final
 	NON_COPY_MOVABLE(MainWindow)
 
 public:
-	MainWindow(std::shared_ptr<class ILogicFactory> logicFactory
+	MainWindow(const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ICollectionController> collectionController

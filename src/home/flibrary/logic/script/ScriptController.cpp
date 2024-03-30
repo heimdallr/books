@@ -43,13 +43,13 @@ struct ScriptController::Impl
 	Scripts scripts;
 	Commands commands;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
-	std::shared_ptr<const ICommandExecutor> commandExecutor;
+	std::weak_ptr<const ICommandExecutor> commandExecutor;
 
 	Impl(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<const ICommandExecutor> commandExecutor
+		, const std::shared_ptr<const ICommandExecutor>& commandExecutor
 	)
 		: settings(std::move(settings))
-		, commandExecutor(std::move(commandExecutor))
+		, commandExecutor(commandExecutor)
 	{
 		const SettingsGroup scriptsGuard(*this->settings, SCRIPTS);
 		std::ranges::transform(this->settings->GetGroups(), std::back_inserter(scripts), [&] (const QString & uid)
@@ -86,10 +86,10 @@ struct ScriptController::Impl
 };
 
 ScriptController::ScriptController(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<const ICommandExecutor> commandExecutor
+	, const std::shared_ptr<const ICommandExecutor>& commandExecutor
 )
 	: m_impl(std::move(settings)
-		, std::move(commandExecutor)
+		, commandExecutor
 	)
 {
 	PLOGD << "ScriptController created";
@@ -209,7 +209,7 @@ bool ScriptController::Execute(const Command & command) const
 {
 	const auto & [type, executor] = FindSecond(s_commandTypes, command.type);
 	PLOGD << type << ": " << command.command << " " << command.args;
-	return std::invoke(executor, *m_impl->commandExecutor, std::cref(command));
+	return std::invoke(executor, ICommandExecutor::Lock(m_impl->commandExecutor), std::cref(command));
 }
 
 void ScriptController::Save()

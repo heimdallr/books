@@ -6,11 +6,13 @@
 #include <QModelIndex>
 #include <QString>
 
+#include "fnd/Lockable.h"
 #include "util/executor/factory.h"
 
 #include "export/flint.h"
 
 class QAbstractItemModel;
+class QTemporaryDir;
 
 namespace HomeCompa::DB {
 class IDatabase;
@@ -26,7 +28,7 @@ enum class Impl;
 
 namespace HomeCompa::Flibrary {
 
-class ILogicFactory  // NOLINT(cppcoreguidelines-special-member-functions)
+class ILogicFactory : public Lockable<ILogicFactory>  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	struct ExtractedBook
@@ -56,6 +58,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class InpxCollectionExtractor> CreateInpxCollectionExtractor() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker> CreateUpdateChecker() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QTemporaryDir> CreateTemporaryDir() const = 0;
 
 	FLINT_EXPORT static std::vector<std::vector<QString>> GetSelectedBookIds(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, const std::vector<int> & roles);
 	FLINT_EXPORT static ExtractedBooks GetExtractedBooks(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList = {});

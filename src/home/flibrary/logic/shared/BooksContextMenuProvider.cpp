@@ -161,7 +161,7 @@ class BooksContextMenuProvider::Impl final
 public:
 	explicit Impl(std::shared_ptr<const ISettings> settings
 		, std::shared_ptr<DatabaseUser> databaseUser
-		, std::shared_ptr<ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<const DataProvider> dataProvider
@@ -169,7 +169,7 @@ public:
 	)
 		: m_settings(std::move(settings))
 		, m_databaseUser(std::move(databaseUser))
-		, m_logicFactory(std::move(logicFactory))
+		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_groupController(std::move(groupController))
 		, m_dataProvider(std::move(dataProvider))
@@ -219,7 +219,7 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & index, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto readerController = m_logicFactory->CreateReaderController();
+		auto readerController = ILogicFactory::Lock(m_logicFactory)->CreateReaderController();
 		readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController, item = std::move(item), callback = std::move(callback)] () mutable
 		{
 			callback(item);
@@ -307,7 +307,7 @@ private: // IContextMenuHandler
 
 	void SendAsInpx(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto idList = m_logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
 		if (idList.empty())
 			return;
 
@@ -319,7 +319,7 @@ private: // IContextMenuHandler
 		if (dir.isEmpty())
 			return callback(item);
 
-		auto extractor = m_logicFactory->CreateInpxCollectionExtractor();
+		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
 		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
 			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
@@ -361,8 +361,9 @@ private:
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 
-		auto books = m_logicFactory->GetExtractedBooks(model, index, indexList);
-		auto extractor = m_logicFactory->CreateBooksExtractor();
+		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books = logicFactory->GetExtractedBooks(model, index, indexList);
+		auto extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
 		((*extractor).*f)(std::move(dir), parameter, std::move(books), std::move(outputFileNameTemplate), [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
 		{
@@ -383,7 +384,7 @@ private:
 
 	GroupController::Ids GetSelected(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList) const
 	{
-		auto selected = m_logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		auto selected = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
 
 		GroupController::Ids ids;
 		ids.reserve(selected.size());
@@ -417,7 +418,7 @@ private:
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> m_logicFactory;
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<const DataProvider> m_dataProvider;
@@ -438,7 +439,7 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
 	, std::shared_ptr<DatabaseUser> databaseUser
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
@@ -446,7 +447,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettin
 )
 	: m_impl(std::move(settings)
 		, std::move(databaseUser)
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(uiFactory)
 		, std::move(groupController)
 		, std::move(dataProvider)

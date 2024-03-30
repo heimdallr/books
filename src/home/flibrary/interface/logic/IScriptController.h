@@ -4,6 +4,8 @@
 
 #include <QString>
 
+#include "fnd/Lockable.h"
+
 #include "export/flint.h"
 
 class QLineEdit;
@@ -109,7 +111,7 @@ public:
 		{ Script::Type::ExportToDevice, QT_TRANSLATE_NOOP("ScriptController", "ExportToDevice") },
 	};
 
-	class ICommandExecutor  // NOLINT(cppcoreguidelines-special-member-functions)
+	class ICommandExecutor : public Lockable<ICommandExecutor>  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~ICommandExecutor() = default;

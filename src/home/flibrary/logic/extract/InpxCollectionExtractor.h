@@ -18,7 +18,7 @@ public:
 public:
 	InpxCollectionExtractor(std::shared_ptr<class ICollectionController> collectionController
 		, std::shared_ptr<class IBooksExtractorProgressController> progressController
-		, std::shared_ptr<class ILogicFactory> logicFactory
+		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 	);
 	~InpxCollectionExtractor();
 

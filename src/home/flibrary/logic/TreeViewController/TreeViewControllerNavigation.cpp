@@ -163,19 +163,19 @@ struct TreeViewControllerNavigation::Impl final
 {
 	TreeViewControllerNavigation & self;
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
-	PropagateConstPtr<ILogicFactory, std::shared_ptr> logicFactory;
+	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
 	Impl(TreeViewControllerNavigation & self
-		, std::shared_ptr<ILogicFactory> logicFactory
+		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<DatabaseController> databaseController
 	)
 		: self(self)
-		, logicFactory(std::move(logicFactory))
+		, logicFactory(logicFactory)
 		, uiFactory(std::move(uiFactory))
 		, databaseController(std::move(databaseController))
 	{
@@ -196,7 +196,7 @@ private: // IContextMenuHandler
 	template <typename T>
 	void OnCreateNavigationItem(ControllerCreator<T> creator) const
 	{
-		auto controller = ((*logicFactory).*creator)();
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
 		controller->CreateNew([=] () mutable
 		{
 			controller.reset();
@@ -216,7 +216,7 @@ private: // IContextMenuHandler
 		if (ids.empty())
 			return;
 
-		auto controller = ((*logicFactory).*creator)();
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
 		controller->Remove(std::move(ids), [=] () mutable
 		{
 			controller.reset();
@@ -307,18 +307,18 @@ private: // ITableSubscriptionHandler
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<IModelProvider> modelProvider
-	, std::shared_ptr<ILogicFactory> logicFactory
+	, const std::shared_ptr<const IModelProvider>& modelProvider
+	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<DatabaseController> databaseController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
-		, std::move(modelProvider)
+		, modelProvider
 	)
 	, m_impl(*this
-		, std::move(logicFactory)
+		, logicFactory
 		, std::move(uiFactory)
 		, std::move(databaseController)
 	)
@@ -328,7 +328,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	m_dataProvider->SetNavigationRequestCallback([&] (IDataItem::Ptr data)
 	{
 		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-		auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));
+		auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl));
 		m_impl->models[m_impl->mode].reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});

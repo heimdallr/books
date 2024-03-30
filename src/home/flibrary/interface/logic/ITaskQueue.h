@@ -2,9 +2,11 @@
 
 #include <functional>
 
+#include "fnd/Lockable.h"
+
 namespace HomeCompa::Flibrary {
 
-class ITaskQueue  // NOLINT(cppcoreguidelines-special-member-functions)
+class ITaskQueue : public Lockable<ITaskQueue> // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Task = std::function<bool()>;

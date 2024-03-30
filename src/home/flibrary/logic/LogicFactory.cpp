@@ -1,5 +1,7 @@
 #include "LogicFactory.h"
 
+#include <QTemporaryDir>
+
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
@@ -44,6 +46,7 @@ struct LogicFactory::Impl final
 {
 	Hypodermic::Container & container;
 	mutable std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
+	mutable std::vector<std::shared_ptr<QTemporaryDir>> temporaryDirs;
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -133,4 +136,11 @@ std::shared_ptr<InpxCollectionExtractor> LogicFactory::CreateInpxCollectionExtra
 std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
 {
 	return m_impl->container.resolve<IUpdateChecker>();
+}
+
+std::shared_ptr<QTemporaryDir> LogicFactory::CreateTemporaryDir() const
+{
+	auto temporaryDir = std::make_shared<QTemporaryDir>();
+	m_impl->temporaryDirs.push_back(temporaryDir);
+	return temporaryDir;
 }

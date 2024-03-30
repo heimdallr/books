@@ -24,12 +24,12 @@ struct AbstractTreeViewController::Impl final
 AbstractTreeViewController::AbstractTreeViewController(const char * const context
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<IModelProvider> modelProvider
+	, const std::shared_ptr<const IModelProvider>& modelProvider
 )
 	: m_context(context)
 	, m_settings(std::move(settings))
 	, m_dataProvider(std::move(dataProvider))
-	, m_modelProvider(std::move(modelProvider))
+	, m_modelProvider(modelProvider)
 	, m_impl(*this)
 {
 }
