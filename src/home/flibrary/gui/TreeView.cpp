@@ -8,8 +8,8 @@
 #include <QMenu>
 #include <QPainter>
 #include <QResizeEvent>
-#include <QTimer>
 #include <QSvgRenderer>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -125,48 +125,56 @@ private: // QHeaderView
 		if (!model())
 			return QHeaderView::paintSection(painter, rect, logicalIndex);
 
-		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
-
 		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
-		painter->setPen(QPen(QApplication::palette().color(QPalette::Dark), 2));
-		painter->fillRect(rect, QApplication::palette().color(QPalette::Base));
+
+		const auto palette = QApplication::palette();
+
+		painter->setPen(QPen(palette.color(QPalette::Dark), 2));
+		painter->fillRect(rect, palette.color(QPalette::Base));
 		painter->drawRect(rect);
 
-		icon.isValid() && (m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString()))
-			? PaintIcon(painter, rect)
-			: PaintText(painter, rect, text);
+		if (!PaintIcon(painter, rect, logicalIndex))
+			PaintText(painter, rect, logicalIndex);
 
 		if (logicalIndex != sortIndicatorSection())
 			return;
 
-		painter->setPen(QApplication::palette().color(QPalette::Text));
-		painter->setBrush(QApplication::palette().color(QPalette::Text));
+		painter->setPen(palette.color(QPalette::Text));
+		painter->setBrush(palette.color(QPalette::Text));
 
 		const auto size = rect.height() / 4.0;
-		const auto triangle = sortIndicatorOrder() == Qt::DescendingOrder
-			? QPolygonF({ QPointF{0.0, 0.0}, QPointF{size, 0.0}, QPointF{size / 2, size / 2}, QPointF{0.0, 0.0} } )
-			: QPolygonF({ QPointF{0.0, size / 2}, QPointF{size, size / 2}, QPointF{size / 2.0, 0.0}, QPointF{0.0, size / 2} })
-			;
-		painter->drawPolygon(triangle.translated(rect.left() + size / 3, size / 2));
+		const auto height = std::sqrt(2.0) * size / 2;
+		auto triangle = QPolygonF({ QPointF{0.0, height}, QPointF{size, height}, QPointF{size / 2, 0}, QPointF{0.0, height} });
+		if (sortIndicatorOrder() == Qt::DescendingOrder)
+			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
+
+		painter->drawPolygon(triangle.translated(rect.right() - 4 * size / 3, size / 2));
 	}
 
 private:
-	void PaintIcon(QPainter * painter, const QRect & rect) const
+	bool PaintIcon(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
+		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		if (!icon.isValid())
+			return false;
+
+		if (!(m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString())))
+			return false;
+
+		auto iconSize = m_svgRenderer.defaultSize();
 		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
-		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 60 * (rect.height() - size) / 90 };
-		const QRect dstRect(topLeft, topLeft + QPoint { size, size });
-		m_svgRenderer.render(painter, dstRect);
+		iconSize = iconSize.width() > iconSize.height() ? QSize { size, size * iconSize.height() / iconSize.width() } : QSize { size * iconSize.width() / iconSize.height(), size };
+		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 2 * (rect.height() - size) / 3 };
+		m_svgRenderer.render(painter, QRect { topLeft, iconSize });
+
+		return true;
 	}
 
-	static void PaintText(QPainter * painter, const QRect & rect, const QString& text)
+	void PaintText(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
-		const auto metrics = painter->fontMetrics();
-		const auto textRect = metrics.boundingRect(text);
-		metrics.xHeight();
+		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
 		painter->setPen(QApplication::palette().color(QPalette::Text));
-		painter->drawText(QPoint { rect.x() + (rect.width() - textRect.width()) / 2, -5*(rect.height() - metrics.xHeight()) / 13 + rect.height() }, text);
+		painter->drawText(rect, Qt::AlignCenter, text);
 	}
 
 private:
