@@ -8,8 +8,8 @@
 #include <QMenu>
 #include <QPainter>
 #include <QResizeEvent>
-#include <QTimer>
 #include <QSvgRenderer>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -127,10 +127,11 @@ private: // QHeaderView
 
 		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
 		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		const auto palette = QApplication::palette();
 
 		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
-		painter->setPen(QPen(QApplication::palette().color(QPalette::Dark), 2));
-		painter->fillRect(rect, QApplication::palette().color(QPalette::Base));
+		painter->setPen(QPen(palette.color(QPalette::Dark), 2));
+		painter->fillRect(rect, palette.color(QPalette::Base));
 		painter->drawRect(rect);
 
 		if (!(icon.isValid() && PaintIcon(painter, rect, icon)))
@@ -139,15 +140,15 @@ private: // QHeaderView
 		if (logicalIndex != sortIndicatorSection())
 			return;
 
-		painter->setPen(QApplication::palette().color(QPalette::Text));
-		painter->setBrush(QApplication::palette().color(QPalette::Text));
+		painter->setPen(palette.color(QPalette::Text));
+		painter->setBrush(palette.color(QPalette::Text));
 
 		const auto size = rect.height() / 4.0;
 		const auto height = std::sqrt(2.0) * size / 2;
-		const auto triangle = sortIndicatorOrder() == Qt::DescendingOrder
-			? QPolygonF({ QPointF{0.0, 0.0}, QPointF{size, 0.0}, QPointF{size / 2, height}, QPointF{0.0, 0.0} })
-			: QPolygonF({ QPointF{0.0, height}, QPointF{size, height}, QPointF{size / 2, 0.0}, QPointF{0.0, height} })
-			;
+		auto triangle = QPolygonF({ QPointF{0.0, height}, QPointF{size, height}, QPointF{size / 2, 0}, QPointF{0.0, height} });
+		if (sortIndicatorOrder() == Qt::DescendingOrder)
+			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
+
 		painter->drawPolygon(triangle.translated(rect.right() - 4 * size / 3, size / 2));
 	}
 
