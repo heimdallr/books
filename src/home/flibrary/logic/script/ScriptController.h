@@ -22,7 +22,7 @@ class ScriptController final
 
 public:
 	ScriptController(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<const ICommandExecutor> commandExecutor
+		, const std::shared_ptr<const ICommandExecutor>& commandExecutor
 	);
 	~ScriptController() override;
 
