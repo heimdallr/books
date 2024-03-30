@@ -64,14 +64,14 @@ struct TreeViewControllerBooks::Impl final
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<IModelProvider> modelProvider
+	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IAnnotationController> annotationController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
-		, std::move(modelProvider)
+		, modelProvider
 	)
 	, m_impl(logicFactory, std::move(annotationController))
 {
@@ -81,7 +81,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	{
 		assert(m_impl->viewMode != ViewMode::Unknown);
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-		m_impl->model.reset(((*m_modelProvider).*invoker)(std::move(data), *m_impl));
+		m_impl->model.reset(((*IModelProvider::Lock(m_modelProvider)).*invoker)(std::move(data), *m_impl));
 		Perform(&IObserver::OnModelChanged, m_impl->model.get());
 	});
 

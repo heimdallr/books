@@ -6,6 +6,7 @@
 #include <QModelIndex>
 #include <QString>
 
+#include "fnd/Lockable.h"
 #include "util/executor/factory.h"
 
 #include "export/flint.h"
@@ -27,16 +28,8 @@ enum class Impl;
 
 namespace HomeCompa::Flibrary {
 
-class ILogicFactory  // NOLINT(cppcoreguidelines-special-member-functions)
+class ILogicFactory : public Lockable<ILogicFactory>  // NOLINT(cppcoreguidelines-special-member-functions)
 {
-public:
-	static std::shared_ptr<const ILogicFactory> Lock(const std::weak_ptr<const ILogicFactory>& factory)
-	{
-		auto factoryPtr = factory.lock();
-		assert(factoryPtr);
-		return factoryPtr;
-	}
-
 public:
 	struct ExtractedBook
 	{

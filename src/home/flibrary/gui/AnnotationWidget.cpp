@@ -168,7 +168,7 @@ public:
 	Impl(AnnotationWidget & self
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IAnnotationController> annotationController
-		, std::shared_ptr<IModelProvider> modelProvider
+		, const std::shared_ptr<const IModelProvider>& modelProvider
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<IBooksExtractorProgressController> progressController
@@ -177,7 +177,7 @@ public:
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_annotationController(std::move(annotationController))
-		, m_modelProvider(std::move(modelProvider))
+		, m_modelProvider(modelProvider)
 		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_progressController(std::move(progressController))
@@ -429,7 +429,7 @@ private: // IAnnotationController::IObserver
 		{
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
-			m_contentModel.reset(m_modelProvider->CreateTreeModel(dataProvider.GetContent(), *this));
+			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), *this));
 			m_ui.content->setModel(m_contentModel.get());
 		}
 
@@ -474,7 +474,7 @@ private:
 	AnnotationWidget & m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
-	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
+	std::weak_ptr<const IModelProvider> m_modelProvider;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
@@ -493,7 +493,7 @@ private:
 
 AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IAnnotationController> annotationController
-	, std::shared_ptr<IModelProvider> modelProvider
+	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
@@ -504,7 +504,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, m_impl(*this
 		, std::move(settings)
 		, std::move(annotationController)
-		, std::move(modelProvider)
+		, modelProvider
 		, logicFactory
 		, std::move(uiFactory)
 		, std::move(progressController)

@@ -307,7 +307,7 @@ private: // ITableSubscriptionHandler
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<DataProvider> dataProvider
-	, std::shared_ptr<IModelProvider> modelProvider
+	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<DatabaseController> databaseController
@@ -315,7 +315,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
-		, std::move(modelProvider)
+		, modelProvider
 	)
 	, m_impl(*this
 		, logicFactory
@@ -328,7 +328,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	m_dataProvider->SetNavigationRequestCallback([&] (IDataItem::Ptr data)
 	{
 		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-		auto model = std::invoke(modelCreator, m_modelProvider, std::move(data), std::ref(*m_impl));
+		auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl));
 		m_impl->models[m_impl->mode].reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});

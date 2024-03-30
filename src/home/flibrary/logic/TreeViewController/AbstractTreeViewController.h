@@ -27,7 +27,7 @@ protected:
 	explicit AbstractTreeViewController(const char * context
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class DataProvider> dataProvider
-		, std::shared_ptr<class IModelProvider> modelProvider
+		, const std::shared_ptr<const class IModelProvider>& modelProvider
 	);
 	~AbstractTreeViewController() override;
 
@@ -59,7 +59,7 @@ protected:
 	const char * const m_context;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
-	PropagateConstPtr<IModelProvider, std::shared_ptr> m_modelProvider;
+	std::weak_ptr<const IModelProvider> m_modelProvider;
 
 private:
 	struct Impl;
