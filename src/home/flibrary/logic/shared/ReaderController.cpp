@@ -1,10 +1,13 @@
 #include "ReaderController.h"
 
+#include <QDesktopServices>
 #include <QFileInfo>
 #include <QProcess>
 #include <QTemporaryDir>
 
 #include <plog/Log.h>
+
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
@@ -25,9 +28,11 @@ namespace {
 constexpr auto CONTEXT = "ReaderController";
 constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 reader");
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
+constexpr auto USE_DEFAULT = QT_TRANSLATE_NOOP("ReaderController", "Use the default reader?");
 
 constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
+constexpr auto DEFAULT = "default";
 
 TR_DEF
 
@@ -47,13 +52,13 @@ private:
 	std::shared_ptr<QTemporaryDir> m_temporaryDir;
 };
 
-std::shared_ptr<QTemporaryDir> Extract(const QString & archive, QString & fileName, QString & error)
+std::shared_ptr<QTemporaryDir> Extract(const ILogicFactory& logicFactory, const QString & archive, QString & fileName, QString & error)
 {
 	try
 	{
 		const Zip zip(archive);
 		auto & stream = zip.Read(fileName);
-		auto temporaryDir = std::make_shared<QTemporaryDir>();
+		auto temporaryDir = logicFactory.CreateTemporaryDir();
 		const auto fileNameDst = temporaryDir->filePath(fileName);
 		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 			file.write(RestoreImages(stream, archive, fileName));
@@ -115,7 +120,22 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	const auto ext = QFileInfo(fileName).suffix();
 	const auto key = QString(READER_KEY).arg(ext);
 	auto reader = m_impl->settings->Get(key).toString();
-	if (reader.isEmpty() && !(reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER))).isEmpty())
+	if (reader.isEmpty())
+	{
+		switch(m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes))
+		{
+			case QMessageBox::Yes:
+				reader = DEFAULT;
+				break;
+			case QMessageBox::No:
+				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+				break;
+			case QMessageBox::Cancel:
+			default:
+				return;
+		}
+	}
+	if (!reader.isEmpty())
 		m_impl->settings->Set(key, reader);
 
 	if (reader.isEmpty())
@@ -132,7 +152,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	] () mutable
 	{
 		QString error;
-		auto temporaryDir = Extract(archive, fileName, error);
+		auto temporaryDir = Extract(*m_impl->logicFactory, archive, fileName, error);
 		return [this
 			, executor = std::move(executor)
 			, reader = std::move(reader)
@@ -142,12 +162,15 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 			, error(std::move(error))
 		] (size_t) mutable
 		{
-			if (temporaryDir)
-				new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
-			else
-				m_impl->uiFactory->ShowError(error);
+			const ScopedCall callbackGuard([&, callback = std::move(callback)] () mutable { callback(); });
 
-			callback();
+			if (!temporaryDir)
+				return m_impl->uiFactory->ShowError(error);
+
+			if (reader == DEFAULT)
+				return (void)QDesktopServices::openUrl(fileName);
+
+			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
 		};
 	} });
 }
