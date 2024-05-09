@@ -200,7 +200,7 @@ public:
 
 		for (auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			book->SetData(Join(m_authors, authorIds, AuthorComparator {}), BookItem::Column::Author);
+			book->SetData(std::size(authorIds) > 1 ? Join(m_authors, authorIds, AuthorComparator {}) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
 			book->SetData(Join(m_genres, genreIds, genresComparator), BookItem::Column::Genre);
 		}
 	}
