@@ -334,14 +334,11 @@
     </widget>
    </item>
   </layout>
-  <action name="actionSavePictureAs">
+  <action name="actionSaveImageAs">
    <property name="text">
-    <string>&amp;Save picture as...</string>
+    <string>&amp;Save image as...</string>
    </property>
    <property name="statusTip">
-    <string notr="true"/>
-   </property>
-   <property name="shortcut">
     <string notr="true"/>
    </property>
    <property name="menuRole">
@@ -362,7 +359,7 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="actionSaveAllPictures">
+  <action name="actionSaveAllImages">
    <property name="text">
     <string notr="true"/>
    </property>
@@ -371,6 +368,11 @@
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionOpenImage">
+   <property name="text">
+    <string>&amp;Open image</string>
    </property>
   </action>
  </widget>
