@@ -257,6 +257,8 @@ public:
 				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
 		};
 
+		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
+
 		connect(m_ui.actionOpenImage, &QAction::triggered, &m_self, openImage);
 
 		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this]
