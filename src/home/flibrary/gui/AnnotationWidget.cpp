@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QTemporaryDir>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -46,10 +47,12 @@ constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
-constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all pictures (%1)...");
-constexpr auto SAVED_ALL = QT_TRANSLATE_NOOP("Annotation", "All %1 pictures were successfully saved");
-constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 pictures were saved");
-constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 pictures out of %2 could not be saved");
+constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all images (%1)...");
+constexpr auto SAVED_ALL = QT_TRANSLATE_NOOP("Annotation", "All %1 images were successfully saved");
+constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 images were saved");
+constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
+constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
+constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -238,11 +241,27 @@ public:
 			OnResize();
 		});
 
+		m_ui.cover->addAction(m_ui.actionOpenImage);
 		m_ui.cover->addAction(m_ui.actionCopyImage);
-		m_ui.cover->addAction(m_ui.actionSavePictureAs);
-		m_ui.cover->addAction(m_ui.actionSaveAllPictures);
+		m_ui.cover->addAction(m_ui.actionSaveImageAs);
+		m_ui.cover->addAction(m_ui.actionSaveAllImages);
 
-		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [&]
+		const auto openImage = [this]
+		{
+			assert(!m_covers.empty());
+			const auto & [name, bytes] = m_covers[m_currentCoverIndex];
+			const auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
+			if (!SaveImage(path, bytes))
+				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
+			if (!QDesktopServices::openUrl(path))
+				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
+		};
+
+		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
+
+		connect(m_ui.actionOpenImage, &QAction::triggered, &m_self, openImage);
+
+		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this]
 		{
 			assert(!m_covers.empty());
 
@@ -251,14 +270,14 @@ public:
 			QGuiApplication::clipboard()->setImage(pixmap.toImage());
 		});
 
-		connect(m_ui.actionSavePictureAs, &QAction::triggered, &m_self, [&]
+		connect(m_ui.actionSaveImageAs, &QAction::triggered, &m_self, [this]
 		{
 			assert(!m_covers.empty());
 			if (const auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
 				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
 		});
 
-		connect(m_ui.actionSaveAllPictures, &QAction::triggered, &m_self, [&]
+		connect(m_ui.actionSaveAllImages, &QAction::triggered, &m_self, [this]
 		{
 			auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
 			if (folder.isEmpty())
@@ -390,7 +409,7 @@ private: // IAnnotationController::IObserver
 		}
 
 		m_covers = dataProvider.GetCovers();
-		m_ui.actionSaveAllPictures->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
+		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
 
 		{
 			auto info = Table()
