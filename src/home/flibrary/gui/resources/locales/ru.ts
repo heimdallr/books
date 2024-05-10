@@ -98,107 +98,122 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="35"/>
+        <location filename="../../AnnotationWidget.cpp" line="36"/>
         <source>Keywords: %1</source>
         <translation>Ключевые слова: %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="37"/>
+        <location filename="../../AnnotationWidget.cpp" line="38"/>
         <source>Series:</source>
         <translation>Серия:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="36"/>
+        <location filename="../../AnnotationWidget.cpp" line="37"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="38"/>
+        <location filename="../../AnnotationWidget.cpp" line="39"/>
         <source>Genres:</source>
         <translation>Жанры:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="39"/>
+        <location filename="../../AnnotationWidget.cpp" line="40"/>
         <source>Archives:</source>
         <translation>Архив:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="40"/>
+        <location filename="../../AnnotationWidget.cpp" line="41"/>
         <source>Groups:</source>
         <translation>Группы:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="41"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>File:</source>
         <translation>Файл:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="42"/>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Size:</source>
         <translation>Размер:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>Images:</source>
         <translation>Картинки:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>Updated:</source>
         <translation>Обновлён:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>Translators:</source>
         <translation>Перевод:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="48"/>
+        <location filename="../../AnnotationWidget.cpp" line="49"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>Save &amp;all pictures (%1)...</source>
+        <location filename="../../AnnotationWidget.cpp" line="50"/>
+        <source>Save &amp;all images (%1)...</source>
         <translation>Сохранить &amp;все изображения (%1)...</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="50"/>
-        <source>All %1 pictures were successfully saved</source>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
+        <source>All %1 images were successfully saved</source>
         <translation>Все %1 изображения успешно сохранены</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="51"/>
-        <source>%1 out of %2 pictures were saved</source>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
+        <source>%1 out of %2 images were saved</source>
         <translation>Были сохранены %1 изображения из %2</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="52"/>
-        <source>%1 pictures out of %2 could not be saved</source>
+        <location filename="../../AnnotationWidget.cpp" line="53"/>
+        <source>%1 images out of %2 could not be saved</source>
         <translation>%1 изображений из %2 сохранить не удалось</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="54"/>
+        <source>Cannot save image to %1</source>
+        <translation>Не удалось сохранить изображение в %1</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="55"/>
+        <source>Cannot open %1</source>
+        <translation>Не удалось открыть %1</translation>
     </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
     <message>
         <location filename="../../AnnotationWidget.ui"/>
-        <source>&amp;Save picture as...</source>
+        <source>&amp;Copy image</source>
+        <translation>&amp;Копировать изображение</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.ui"/>
+        <source>&amp;Save image as...</source>
         <translation>&amp;Сохранить изображение как...</translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.ui"/>
-        <source>&amp;Copy image</source>
-        <translation>&amp;Копировать изображение</translation>
+        <source>&amp;Open image</source>
+        <translation>&amp;Открыть изображение</translation>
     </message>
 </context>
 <context>
