@@ -97,13 +97,28 @@ QString Url(const char * type, const QString & id, const QString & str)
 	return str.isEmpty() ? QString{} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 }
 
-QString Urls(const char * type, const IDataItem & parent)
+QString GetTitle(const IDataItem & item)
+{
+	return item.GetData(DataItem::Column::Title);
+}
+
+QString GetTitleAuthor(const IDataItem & item)
+{
+	auto result = item.GetData(AuthorItem::Column::LastName);
+	AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
+	AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
+	return result;
+}
+
+using TitleGetter = QString(*)(const IDataItem & item);
+
+QString Urls(const char * type, const IDataItem & parent, const TitleGetter tileGetter = &GetTitle)
 {
 	std::vector<QString> urls;
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
 		const auto item = parent.GetChild(i);
-		urls.push_back(Url(type, item->GetId(), item->GetData(DataItem::Column::Title)));
+		urls.push_back(Url(type, item->GetId(), tileGetter(*item)));
 	}
 
 	return Join(urls);
@@ -393,7 +408,7 @@ private: // IAnnotationController::IObserver
 		Add(annotation, Join(dataProvider.GetKeywords()), KEYWORDS);
 
 		Add(annotation, Table()
-			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors()))
+			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 			.Add(SERIES, Url(SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
 			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
 			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
