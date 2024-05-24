@@ -2,17 +2,22 @@
 
 #include <QStyledItemDelegate>
 
+#include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
+
 class QAbstractScrollArea;
 
 namespace HomeCompa::Flibrary {
 
 class TreeViewDelegateBooks final : public QStyledItemDelegate
 {
+	NON_COPY_MOVABLE(TreeViewDelegateBooks)
+
 public:
 	using TextDelegate = QString(*)(const QVariant & value);
 
 public:
-	explicit TreeViewDelegateBooks(const std::shared_ptr<class IUiFactory> & uiFactory, QObject * parent = nullptr);
+	explicit TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory> & uiFactory, QObject * parent = nullptr);
 	~TreeViewDelegateBooks() override;
 
 private: // QStyledItemDelegate
@@ -20,8 +25,8 @@ private: // QStyledItemDelegate
 	QString displayText(const QVariant & value, const QLocale & /*locale*/) const override;
 
 private:
-	QWidget & m_view;
-	mutable TextDelegate m_textDelegate;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }

@@ -42,8 +42,6 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
-
 		case Role::HeaderTitle:
 			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
 
