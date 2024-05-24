@@ -43,6 +43,7 @@ constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
+constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
@@ -431,6 +432,8 @@ private: // IAnnotationController::IObserver
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
 				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
+			if (dataProvider.GetBook().GetRawData(BookItem::Column::LibRate).toInt() > 0)
+				info.Add(RATE, dataProvider.GetBook().GetRawData(BookItem::Column::LibRate));
 			if (!m_covers.empty())
 			{
 				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
