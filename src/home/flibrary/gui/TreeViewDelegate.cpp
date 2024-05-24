@@ -57,6 +57,7 @@ struct TreeViewDelegateBooks::Impl
 	TreeViewDelegateBooks & self;
 	mutable TextDelegate textDelegate;
 	mutable QPixmap stars[5];
+	mutable QString starsFileContent;
 
 	Impl(TreeViewDelegateBooks & self, const IUiFactory & uiFactory)
 		: view(uiFactory.GetAbstractScrollArea())
@@ -76,14 +77,19 @@ struct TreeViewDelegateBooks::Impl
 		auto & star = stars[rate - 1];
 		if (star.isNull() || star.height() != height)
 		{
-			QFile file(QString(":/icons/stars.svg").arg(rate));
-			file.open(QIODevice::ReadOnly);
+			if (starsFileContent.isEmpty())
+			{
+				QFile file(":/icons/stars.svg");
+				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+				assert(ok);
+				starsFileContent = QString::fromUtf8(file.readAll());
+			}
 			const char * colors[5];
 			for (int i = 0; i < rate; ++i)
 				colors[i] = COLOR;
 			for (int i = rate; i < 5; ++i)
 				colors[i] = TRANSPARENT;
-			const auto content = QString::fromUtf8(file.readAll()).arg(colors[0]).arg(colors[1]).arg(colors[2]).arg(colors[3]).arg(colors[4]);
+			const auto content = starsFileContent.arg(colors[0]).arg(colors[1]).arg(colors[2]).arg(colors[3]).arg(colors[4]);
 			QSvgRenderer renderer(content.toUtf8());
 			assert(renderer.isValid());
 
