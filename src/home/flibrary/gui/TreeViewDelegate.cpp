@@ -2,7 +2,6 @@
 
 #include <QAbstractScrollArea>
 #include <QPainter>
-#include <QSvgRenderer>
 
 #include <plog/Log.h>
 
@@ -12,16 +11,14 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/ui/IRateStarsProvider.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "Measure.h"
-#include "interface/ui/IUiFactory.h"
 
 using namespace HomeCompa::Flibrary;
 
 namespace {
-
-constexpr auto TRANSPARENT = "transparent";
-constexpr auto COLOR = "#CCCC00";
 
 QString PassThruDelegate(const QVariant & value)
 {
@@ -55,13 +52,16 @@ struct TreeViewDelegateBooks::Impl
 {
 	QWidget & view;
 	TreeViewDelegateBooks & self;
+	std::shared_ptr<const IRateStarsProvider> rateStarsProvider;
 	mutable TextDelegate textDelegate;
-	mutable QPixmap stars[5];
-	mutable QString starsFileContent;
 
-	Impl(TreeViewDelegateBooks & self, const IUiFactory & uiFactory)
+	Impl(TreeViewDelegateBooks & self
+		, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
+		, const IUiFactory & uiFactory
+	)
 		: view(uiFactory.GetAbstractScrollArea())
 		, self(self)
+		, rateStarsProvider(std::move(rateStarsProvider))
 		, textDelegate(&PassThruDelegate)
 	{
 	}
@@ -72,37 +72,10 @@ struct TreeViewDelegateBooks::Impl
 		if (rate < 1 || rate > 5)
 			return;
 
-		const auto height = 3 * o.rect.height() / 5;
-
-		auto & star = stars[rate - 1];
-		if (star.isNull() || star.height() != height)
-		{
-			if (starsFileContent.isEmpty())
-			{
-				QFile file(":/icons/stars.svg");
-				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-				assert(ok);
-				starsFileContent = QString::fromUtf8(file.readAll());
-			}
-			const char * colors[5];
-			for (int i = 0; i < rate; ++i)
-				colors[i] = COLOR;
-			for (int i = rate; i < 5; ++i)
-				colors[i] = TRANSPARENT;
-			const auto content = starsFileContent.arg(colors[0]).arg(colors[1]).arg(colors[2]).arg(colors[3]).arg(colors[4]);
-			QSvgRenderer renderer(content.toUtf8());
-			assert(renderer.isValid());
-
-			const auto defaultSize = renderer.defaultSize();
-			star = QPixmap(height * defaultSize.width() / defaultSize.height(), height);
-			star.fill(Qt::transparent);
-			QPainter p(&star);
-			renderer.render(&p, QRect(QPoint{}, star.size()));
-		}
-
-		const auto margin = o.rect.height() - height;
+		const auto stars = rateStarsProvider->GetStars(rate);
+		const auto margin = o.rect.height() - stars.height();
 		const auto width = o.rect.width() - 2 * margin / 3;
-		const auto pixmap = star.width() <= width ? star : star.copy(0, 0, width, height);
+		const auto pixmap = stars.width() <= width ? stars : stars.copy(0, 0, width, stars.height());
 		painter->drawPixmap(o.rect.topLeft() + QPoint(margin / 2, 2 * margin / 3), pixmap);
 	}
 
@@ -124,9 +97,12 @@ struct TreeViewDelegateBooks::Impl
 	}
 };
 
-TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory, QObject * parent)
+TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory
+	, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
+	, QObject * parent
+)
 	: QStyledItemDelegate(parent)
-	, m_impl(*this, *uiFactory)
+	, m_impl(*this, std::move(rateStarsProvider), *uiFactory)
 {
 	PLOGD << "TreeViewDelegateBooks created";
 }

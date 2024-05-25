@@ -13,6 +13,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/IRateStarsProvider.h"
 
 #include "util/ISettings.h"
 
