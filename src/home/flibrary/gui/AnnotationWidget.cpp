@@ -3,6 +3,7 @@
 
 #include <ranges>
 
+#include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
@@ -20,6 +21,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/ui/IRateStarsProvider.h"
 #include "interface/ui/IUiFactory.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
@@ -130,7 +132,7 @@ struct Table
 	Table & Add(const char * name, const QString & value)
 	{
 		if (!value.isEmpty())
-			data << QString("<tr><td>%1</td><td>%2</td></tr>").arg(Tr(name)).arg(value);
+			data << QString(R"(<tr><td>%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
 
 		return *this;
 	}
@@ -192,6 +194,7 @@ public:
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<ICollectionController> & collectionController
+		, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 	)
 		: m_self(self)
 		, m_settings(std::move(settings))
@@ -200,6 +203,7 @@ public:
 		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_progressController(std::move(progressController))
+		, m_rateStarsProvider(std::move(rateStarsProvider))
 		, m_navigationController(logicFactory->GetTreeViewController(ItemType::Navigation))
 		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
@@ -432,8 +436,16 @@ private: // IAnnotationController::IObserver
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
 				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
-			if (dataProvider.GetBook().GetRawData(BookItem::Column::LibRate).toInt() > 0)
-				info.Add(RATE, dataProvider.GetBook().GetRawData(BookItem::Column::LibRate));
+			if (const auto rate = dataProvider.GetBook().GetRawData(BookItem::Column::LibRate).toInt(); rate > 0 && rate <= 5)
+			{
+				const auto stars = m_rateStarsProvider->GetStars(rate);
+				QByteArray byteArray;
+				{
+					QBuffer buffer(&byteArray);
+					stars.save(&buffer, "PNG");
+				}
+				info.Add(RATE, QString(R"(<img src="data:image/png;base64,%1"/>)").arg(byteArray.toBase64()));
+			}
 			if (!m_covers.empty())
 			{
 				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
@@ -515,6 +527,7 @@ private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
+	std::shared_ptr<const IRateStarsProvider> m_rateStarsProvider;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
@@ -535,6 +548,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, const std::shared_ptr<ICollectionController> & collectionController
+	, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -546,6 +560,7 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::move(uiFactory)
 		, std::move(progressController)
 		, collectionController
+		, std::move(rateStarsProvider)
 	)
 {
 	PLOGD << "AnnotationWidget created";
