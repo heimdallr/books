@@ -36,6 +36,7 @@
 #include "MainWindow.h"
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
+#include "RateStarsProvider.h"
 #include "UiFactory.h"
 
 #include "config/version.h"
@@ -54,6 +55,7 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<ParentWidgetProvider>().singleInstance();
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
+	builder.registerType<RateStarsProvider>().as<IRateStarsProvider>().singleInstance();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
 
