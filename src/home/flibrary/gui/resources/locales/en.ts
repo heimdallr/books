@@ -513,6 +513,11 @@ Restart now?</source>
         <source>Check for &amp;Updates</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Permanent language filter</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -604,12 +609,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="58"/>
+        <location filename="../../TreeView.cpp" line="59"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="59"/>
+        <location filename="../../TreeView.cpp" line="60"/>
         <source>Filter</source>
         <translation></translation>
     </message>

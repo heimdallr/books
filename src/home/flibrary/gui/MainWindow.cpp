@@ -208,6 +208,7 @@ private:
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, m_settings->Get(SHOW_ANNOTATION_CONTENT_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, m_settings->Get(SHOW_ANNOTATION_COVER_KEY, true));
 		OnObjectVisibleChanged<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, m_settings->Get(SHOW_STATUS_BAR_KEY, true));
+		m_ui.actionPermanentLanguageFilter->setChecked(m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false));
 
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
 			m_logController->SetSeverity(severity.toInt());
@@ -337,6 +338,11 @@ private:
 		{
 			m_ui.menuBook->clear();
 			m_booksWidget->FillMenu(*m_ui.menuBook);
+		});
+
+		connect(m_ui.actionPermanentLanguageFilter, &QAction::triggered, &m_self, [&](const bool checked)
+		{
+			m_settings->Set(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, checked);
 		});
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);

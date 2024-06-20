@@ -20,6 +20,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
@@ -275,6 +276,7 @@ private: // ITreeViewController::IObserver
 				m_languageContextMenu.reset();
 				model->setData({}, true, Role::Checkable);
 				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+				SetLanguageFilter();
 			}
 
 			if (model->rowCount() == 0)
@@ -648,6 +650,15 @@ private:
 		}
 
 		return m_languageContextMenu;
+	}
+
+	void SetLanguageFilter() const
+	{
+		if (!m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false))
+			return;
+
+		if (const auto language = m_settings->Get(RECENT_LANG_FILTER_KEY, QString {}); !language.isEmpty())
+			m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
 	}
 
 	void OnValueChanged()
