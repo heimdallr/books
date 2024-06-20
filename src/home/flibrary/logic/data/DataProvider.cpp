@@ -59,13 +59,15 @@ public:
 	void SetNavigationId(QString id)
 	{
 		m_navigationId = std::move(id);
-		m_booksTimer->start();
+		if (m_booksViewMode != ViewMode::Unknown)
+			m_booksTimer->start();
 	}
 
 	void SetBooksViewMode(const ViewMode viewMode)
 	{
 		m_booksViewMode = viewMode;
-		m_booksTimer->start();
+		if (!m_navigationId.isEmpty())
+			m_booksTimer->start();
 	}
 
 	void SetNavigationRequestCallback(Callback callback)
