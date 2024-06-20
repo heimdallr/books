@@ -326,6 +326,7 @@
     <addaction name="menuFont"/>
     <addaction name="actionScripts"/>
     <addaction name="actionExportTempate"/>
+    <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
@@ -635,6 +636,14 @@
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionPermanentLanguageFilter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Permanent language filter</string>
    </property>
   </action>
  </widget>
