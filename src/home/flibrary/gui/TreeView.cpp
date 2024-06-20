@@ -522,6 +522,12 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
+		auto lastRestoredLayoutKey = QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
+		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
+			return;
+
+		m_lastRestoredLayoutKey = std::move(lastRestoredLayoutKey);
+
 		auto * header = m_ui.treeView->header();
 		std::map<int, int> widths;
 		std::map<int, int> indices;
@@ -706,6 +712,7 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_showRemoved { false };
+	QString m_lastRestoredLayoutKey;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings
