@@ -265,19 +265,15 @@ private: // DB::IDatabaseObserver
 		if (auto invoker = GetSubscribedTable(tableName))
 			forwarder.Forward([this, invoker]
 		{
-			((*this).*invoker)();
+			std::invoke(invoker, static_cast<ITableSubscriptionHandler*>(this));
 		});
 	}
 	void OnUpdate(std::string_view /*dbName*/, std::string_view /*tableName*/, int64_t /*rowId*/) override
 	{
 	}
-	void OnDelete(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
+	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
 	{
-		if (auto invoker = GetSubscribedTable(tableName))
-			forwarder.Forward([this, invoker]
-		{
-			((*this).*invoker)();
-		});
+		OnInsert(dbName, tableName, rowId);
 	}
 
 private: // ITableSubscriptionHandler

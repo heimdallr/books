@@ -33,7 +33,6 @@
 #include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
 #include "TreeView.h"
-#include "TreeViewDelegate.h"
 #include "interface/logic/IDatabaseChecker.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
