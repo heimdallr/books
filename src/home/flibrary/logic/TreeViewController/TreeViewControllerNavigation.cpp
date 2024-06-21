@@ -113,12 +113,32 @@ IDataItem::Ptr MenuRequesterSearches(ITreeViewController::RequestContextMenuOpti
 	return result;
 }
 
+class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IContextMenuHandler() = default;
+	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+	MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
+using ContextMenuHandlerFunction = void (IContextMenuHandler:: *)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
+
+constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
+{
+#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
 struct ModeDescriptor
 {
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };
 	MenuRequester menuRequester { &MenuRequesterStub };
+	ContextMenuHandlerFunction createNewAction { nullptr };
 };
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
@@ -127,30 +147,11 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
-
-class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~IContextMenuHandler() = default;
-	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
-};
-
-using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
-
-constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
-{
-#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
-};
 
 }
 
@@ -401,4 +402,15 @@ void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, 
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));
 	Perform(&IObserver::OnContextMenuTriggered, index.data(Role::Id).toString(), std::cref(item));
+}
+
+ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const
+{
+	if (const auto creator = MODE_DESCRIPTORS[m_impl->mode].second.createNewAction)
+		return [creator, &impl = *m_impl]
+	{
+		std::invoke(creator, impl, QList<QModelIndex>{}, QModelIndex {});
+	};
+
+	return {};
 }

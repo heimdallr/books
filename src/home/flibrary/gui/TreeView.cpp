@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QSvgRenderer>
+#include <QSvgWidget>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -246,6 +247,12 @@ public:
 
 	void ResizeEvent(const QResizeEvent * event)
 	{
+		auto size = m_ui.cbMode->height();
+		m_ui.btnNew->setMinimumSize(size, size);
+		m_ui.btnNew->setMaximumSize(size, size);
+		size /= 10;
+		m_btnNewLayout->setContentsMargins(size, size, size, size);
+
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
@@ -277,6 +284,17 @@ private: // ITreeViewController::IObserver
 				model->setData({}, true, Role::Checkable);
 				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 				SetLanguageFilter();
+			}
+
+			if (auto newItemCreator = m_controller->GetNewItemCreator())
+			{
+				m_ui.btnNew->setVisible(true);
+				m_ui.btnNew->disconnect();
+				connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
+			}
+			else
+			{
+				m_ui.btnNew->setVisible(false);
 			}
 
 			if (model->rowCount() == 0)
@@ -392,6 +410,8 @@ private:
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 
+		SetupNewItemButton();
+
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
 			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
@@ -421,6 +441,28 @@ private:
 		{
 			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
 		});
+	}
+
+	void SetupNewItemButton() const
+	{
+		m_ui.btnNew->setVisible(false);
+		m_ui.btnNew->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		auto * icon = new QSvgWidget(m_ui.btnNew);
+
+		QFile file(":/icons/plus.svg");
+		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+		assert(ok);
+
+		const auto getColor = [this] (const QPalette::ColorRole role)
+		{
+			const auto color = m_self.palette().color(role);
+			return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
+		};
+		const auto content = QString::fromUtf8(file.readAll()).arg(getColor(QPalette::Mid)).arg(getColor(QPalette::Base));
+
+		icon->load(content.toUtf8());
+		m_ui.btnNew->setLayout(m_btnNewLayout);
+		m_ui.btnNew->layout()->addWidget(icon);
 	}
 
 	void FillComboBoxes()
@@ -724,6 +766,7 @@ private:
 	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_showRemoved { false };
 	QString m_lastRestoredLayoutKey;
+	QLayout * m_btnNewLayout { new QHBoxLayout(m_ui.btnNew) };
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings
