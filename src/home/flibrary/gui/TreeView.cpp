@@ -588,7 +588,7 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
-		auto lastRestoredLayoutKey = QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
+		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
 			return;
 
