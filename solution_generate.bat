@@ -1,7 +1,7 @@
 rem @echo off
 
 set start_time=%DATE% %TIME%
-set PRODUCT_VERSION=1.3.0
+set PRODUCT_VERSION=1.3.1
 
 call src\ext\scripts\batch\check_executable.bat cmake
 if NOT [%ERRORLEVEL%]==[0] goto end
