@@ -290,6 +290,8 @@ private: // ITreeViewController::IObserver
 				SetLanguageFilter();
 			}
 
+			m_delegate->OnModelChanged();
+
 			if (auto newItemCreator = m_controller->GetNewItemCreator())
 			{
 				m_ui.btnNew->setVisible(true);
@@ -434,6 +436,10 @@ private:
 			{
 				CreateHeaderContextMenu(pos);
 			});
+		}
+		else
+		{
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
