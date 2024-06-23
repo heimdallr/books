@@ -101,6 +101,9 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 			case Role::CheckState:
 				return item->SetCheckState(value.value<Qt::CheckState>()), true;
 
+			case Qt::EditRole:
+				return true;
+
 			default:
 				return assert(false && "unexpected role"), false;
 		}

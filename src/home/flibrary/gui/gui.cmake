@@ -7,6 +7,7 @@ AddTarget(gui	shared_lib
 		plog
 		Qt6::Widgets
 		Qt6::Svg
+		Qt6::SvgWidgets
 	LINK_TARGETS
 		flint
 		logging

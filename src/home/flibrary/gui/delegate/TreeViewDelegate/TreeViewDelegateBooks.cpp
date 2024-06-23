@@ -1,12 +1,14 @@
-#include "TreeViewDelegate.h"
+#include "TreeViewDelegateBooks.h"
 
 #include <QAbstractScrollArea>
 #include <QPainter>
+#include <QStyledItemDelegate>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
+#include "fnd/observable.h"
 #include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
@@ -48,31 +50,47 @@ constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[]
 
 }
 
-struct TreeViewDelegateBooks::Impl
+class TreeViewDelegateBooks::Impl final
+	: public QStyledItemDelegate
+	, public Observable<ITreeViewDelegate::IObserver>
 {
-	QWidget & view;
-	TreeViewDelegateBooks & self;
-	std::shared_ptr<const IRateStarsProvider> rateStarsProvider;
-	mutable TextDelegate textDelegate;
-
-	Impl(TreeViewDelegateBooks & self
-		, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
+public:
+	Impl(std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 		, const IUiFactory & uiFactory
 	)
-		: view(uiFactory.GetAbstractScrollArea())
-		, self(self)
-		, rateStarsProvider(std::move(rateStarsProvider))
-		, textDelegate(&PassThruDelegate)
+		: m_view(uiFactory.GetAbstractScrollArea())
+		, m_rateStarsProvider(std::move(rateStarsProvider))
+		, m_textDelegate(&PassThruDelegate)
 	{
 	}
 
+private: // QStyledItemDelegate
+	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
+	{
+		auto o = option;
+		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
+			return RenderBooks(painter, o, index);
+
+		if (index.column() != 0)
+			return;
+
+		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
+		QStyledItemDelegate::paint(painter, o, index);
+	}
+
+	QString displayText(const QVariant & value, const QLocale & /*locale*/) const override
+	{
+		return m_textDelegate(value);
+	}
+
+private:
 	void RenderLibRate(QPainter * painter, const QStyleOptionViewItem & o, const QModelIndex & index) const
 	{
 		const auto rate = index.data(Role::LibRate).toInt();
 		if (rate < 1 || rate > 5)
 			return;
 
-		const auto stars = rateStarsProvider->GetStars(rate);
+		const auto stars = m_rateStarsProvider->GetStars(rate);
 		const auto margin = o.rect.height() - stars.height();
 		const auto width = o.rect.width() - 2 * margin / 3;
 		const auto pixmap = stars.width() <= width ? stars : stars.copy(0, 0, width, stars.height());
@@ -90,19 +108,23 @@ struct TreeViewDelegateBooks::Impl
 		else if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		ValueGuard valueGuard(textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		self.QStyledItemDelegate::paint(painter, o, index);
+		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
+		QStyledItemDelegate::paint(painter, o, index);
 		if (column == BookItem::Column::LibRate)
 			RenderLibRate(painter, o, index);
 	}
+
+private:
+	QWidget & m_view;
+	std::shared_ptr<const IRateStarsProvider> m_rateStarsProvider;
+	mutable TextDelegate m_textDelegate;
+
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory
 	, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
-	, QObject * parent
 )
-	: QStyledItemDelegate(parent)
-	, m_impl(*this, std::move(rateStarsProvider), *uiFactory)
+	: m_impl(std::move(rateStarsProvider), *uiFactory)
 {
 	PLOGD << "TreeViewDelegateBooks created";
 }
@@ -112,20 +134,25 @@ TreeViewDelegateBooks::~TreeViewDelegateBooks()
 	PLOGD << "TreeViewDelegateBooks destroyed";
 }
 
-void TreeViewDelegateBooks::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
+QAbstractItemDelegate * TreeViewDelegateBooks::GetDelegate() noexcept
 {
-	auto o = option;
-	if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
-		return m_impl->RenderBooks(painter, o, index);
-
-	if (index.column() != 0)
-		return;
-
-	o.rect.setWidth(m_impl->view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
-	QStyledItemDelegate::paint(painter, o, index);
+	return m_impl.get();
 }
 
-QString TreeViewDelegateBooks::displayText(const QVariant & value, const QLocale & /*locale*/) const
+void TreeViewDelegateBooks::OnModelChanged()
 {
-	return m_impl->textDelegate(value);
+}
+
+void TreeViewDelegateBooks::SetEnabled(bool /*enabled*/) noexcept
+{
+}
+
+void TreeViewDelegateBooks::RegisterObserver(IObserver * observer)
+{
+	m_impl->Register(observer);
+}
+
+void TreeViewDelegateBooks::UnregisterObserver(IObserver * observer)
+{
+	m_impl->Unregister(observer);
 }

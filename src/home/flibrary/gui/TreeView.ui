@@ -57,6 +57,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="btnNew">
+       <property name="text">
+        <string notr="true"/>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLineEdit" name="value">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">

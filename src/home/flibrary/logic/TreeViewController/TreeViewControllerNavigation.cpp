@@ -113,12 +113,33 @@ IDataItem::Ptr MenuRequesterSearches(ITreeViewController::RequestContextMenuOpti
 	return result;
 }
 
+class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IContextMenuHandler() = default;
+	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
+	MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
+using ContextMenuHandlerFunction = void (IContextMenuHandler:: *)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
+
+constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
+{
+#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
+		MENU_ACTION_ITEMS_X_MACRO
+#undef	MENU_ACTION_ITEM
+};
+
 struct ModeDescriptor
 {
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };
 	MenuRequester menuRequester { &MenuRequesterStub };
+	ContextMenuHandlerFunction createNewAction { nullptr };
+	ContextMenuHandlerFunction createRemoveAction { nullptr };
 };
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
@@ -127,30 +148,11 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
-
-class IContextMenuHandler  // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~IContextMenuHandler() = default;
-	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
-};
-
-using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
-
-constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
-{
-#define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
-		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
-};
 
 }
 
@@ -264,19 +266,15 @@ private: // DB::IDatabaseObserver
 		if (auto invoker = GetSubscribedTable(tableName))
 			forwarder.Forward([this, invoker]
 		{
-			((*this).*invoker)();
+			std::invoke(invoker, static_cast<ITableSubscriptionHandler*>(this));
 		});
 	}
 	void OnUpdate(std::string_view /*dbName*/, std::string_view /*tableName*/, int64_t /*rowId*/) override
 	{
 	}
-	void OnDelete(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
+	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
 	{
-		if (auto invoker = GetSubscribedTable(tableName))
-			forwarder.Forward([this, invoker]
-		{
-			((*this).*invoker)();
-		});
+		OnInsert(dbName, tableName, rowId);
 	}
 
 private: // ITableSubscriptionHandler
@@ -401,4 +399,27 @@ void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, 
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));
 	Perform(&IObserver::OnContextMenuTriggered, index.data(Role::Id).toString(), std::cref(item));
+}
+
+ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const
+{
+	if (const auto creator = MODE_DESCRIPTORS[m_impl->mode].second.createNewAction)
+		return [creator, &impl = *m_impl]
+	{
+		std::invoke(creator, impl, QList<QModelIndex>{}, QModelIndex {});
+	};
+
+	return {};
+}
+
+ITreeViewController::RemoveItems TreeViewControllerNavigation::GetRemoveItems() const
+{
+	if (const auto creator = MODE_DESCRIPTORS[m_impl->mode].second.createRemoveAction)
+		return [creator, &impl = *m_impl](const QList<QModelIndex> & list)
+	{
+		assert(!list.empty());
+		std::invoke(creator, impl, std::cref(list), list.front());
+	};
+
+	return {};
 }

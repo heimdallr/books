@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QSvgRenderer>
+#include <QSvgWidget>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -23,8 +24,10 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITreeViewController.h"
+#include "interface/ui/ITreeViewDelegate.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "util/ColorUtil.h"
 #include "util/ISettings.h"
 
 #include "ItemViewToolTipper.h"
@@ -186,6 +189,7 @@ private:
 
 class TreeView::Impl final
 	: ITreeViewController::IObserver
+	, ITreeViewDelegate::IObserver
 	, IValueApplier
 {
 	NON_COPY_MOVABLE(Impl)
@@ -202,6 +206,7 @@ public:
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
 		, m_itemViewToolTipper(std::move(itemViewToolTipper))
+		, m_delegate(std::shared_ptr<ITreeViewDelegate>())
 		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
 		Setup();
@@ -211,6 +216,7 @@ public:
 	{
 		SaveHeaderLayout();
 		m_controller->UnregisterObserver(this);
+		m_delegate->UnregisterObserver(this);
 	}
 
 	void SetNavigationModeName(QString navigationModeName)
@@ -246,6 +252,12 @@ public:
 
 	void ResizeEvent(const QResizeEvent * event)
 	{
+		auto size = m_ui.cbMode->height();
+		m_ui.btnNew->setMinimumSize(size, size);
+		m_ui.btnNew->setMaximumSize(size, size);
+		size /= 10;
+		m_ui.btnNew->layout()->setContentsMargins(size, size, size, size);
+
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
@@ -262,26 +274,7 @@ private: // ITreeViewController::IObserver
 	void OnModelChanged(QAbstractItemModel * model) override
 	{
 		if (m_ui.treeView->model() != model)
-		{
-			m_ui.treeView->setModel(model);
-			m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
-
-			connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
-			{
-				m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
-			});
-
-			if (m_controller->GetItemType() == ItemType::Books)
-			{
-				m_languageContextMenu.reset();
-				model->setData({}, true, Role::Checkable);
-				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-				SetLanguageFilter();
-			}
-
-			if (model->rowCount() == 0)
-				m_controller->SetCurrentId({});
-		}
+			OnModelChangedImpl(model);
 
 		RestoreHeaderLayout();
 		OnCountChanged();
@@ -311,6 +304,13 @@ private: // ITreeViewController::IObserver
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
+private: // ITreeViewDelegate::IObserver
+	void OnButtonClicked(const QModelIndex&) override
+	{
+		assert(m_removeItems);
+		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
+	}
+
 private: //	IValueApplier
 	void Find() override
 	{
@@ -329,6 +329,45 @@ private: //	IValueApplier
 	}
 
 private:
+	void OnModelChangedImpl(QAbstractItemModel * model)
+	{
+		m_ui.treeView->setModel(model);
+		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
+
+		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
+		{
+			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
+		});
+
+		if (m_controller->GetItemType() == ItemType::Books)
+		{
+			m_languageContextMenu.reset();
+			model->setData({}, true, Role::Checkable);
+			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+			SetLanguageFilter();
+		}
+		else
+		{
+			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+		}
+
+		m_delegate->OnModelChanged();
+
+		if (auto newItemCreator = m_controller->GetNewItemCreator(); !newItemCreator)
+		{
+			m_ui.btnNew->setVisible(false);
+		}
+		else
+		{
+			m_ui.btnNew->setVisible(true);
+			m_ui.btnNew->disconnect();
+			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
+		}
+
+		if (model->rowCount() == 0)
+			m_controller->SetCurrentId({});
+	}
+
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
 	{
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
@@ -386,16 +425,19 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+
 		if (m_controller->GetItemType() == ItemType::Books)
 			m_ui.treeView->setHeader(new HeaderView(&m_self));
+
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 
+		SetupNewItemButton();
+
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
-			m_delegate = m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView);
-			m_ui.treeView->setItemDelegate(m_delegate.get());
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView));
 			m_ui.treeView->header()->setSectionsClickable(true);
 			m_ui.treeView->header()->setStretchLastSection(false);
 
@@ -407,6 +449,13 @@ private:
 				CreateHeaderContextMenu(pos);
 			});
 		}
+		else
+		{
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
+		}
+
+		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
+		m_delegate->RegisterObserver(this);
 
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));
@@ -421,6 +470,27 @@ private:
 		{
 			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
 		});
+	}
+
+	void SetupNewItemButton() const
+	{
+		m_ui.btnNew->setVisible(false);
+		m_ui.btnNew->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		auto * icon = new QSvgWidget(m_ui.btnNew);
+
+		QFile file(":/icons/plus.svg");
+		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+		assert(ok);
+
+		const auto content = QString::fromUtf8(file.readAll())
+			.arg(0)
+			.arg(Util::ToString(m_self.palette(), QPalette::Base))
+			.arg(Util::ToString(m_self.palette(), QPalette::Text))
+			.toUtf8();
+
+		icon->load(content);
+		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
+		m_ui.btnNew->layout()->addWidget(icon);
 	}
 
 	void FillComboBoxes()
@@ -524,7 +594,7 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
-		auto lastRestoredLayoutKey = QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
+		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
 			return;
 
@@ -714,6 +784,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	const QString m_currentCollectionId;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
@@ -721,9 +792,9 @@ private:
 	QString m_recentMode;
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
-	std::shared_ptr<QAbstractItemDelegate> m_delegate;
 	bool m_showRemoved { false };
 	QString m_lastRestoredLayoutKey;
+	ITreeViewController::RemoveItems m_removeItems;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings

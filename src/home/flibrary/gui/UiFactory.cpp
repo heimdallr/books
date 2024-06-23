@@ -17,12 +17,14 @@
 
 #include "util/ISettings.h"
 
+#include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
+#include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
+
 #include "dialogs/AddCollectionDialog.h"
 
 #include "ItemViewToolTipper.h"
 #include "ParentWidgetProvider.h"
 #include "TreeView.h"
-#include "TreeViewDelegate.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -69,6 +71,7 @@ struct UiFactory::Impl
 	mutable std::filesystem::path inpx;
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
 	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
+	mutable QAbstractItemView * abstractItemView { nullptr };
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -109,10 +112,16 @@ std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 	return m_impl->container.resolve<IScriptDialog>();
 }
 
-std::shared_ptr<QAbstractItemDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
 {
 	m_impl->abstractScrollArea = &parent;
 	return m_impl->container.resolve<TreeViewDelegateBooks>();
+}
+
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const
+{
+	m_impl->abstractItemView = &parent;
+	return m_impl->container.resolve<TreeViewDelegateNavigation>();
 }
 
 void UiFactory::ShowAbout() const
@@ -232,6 +241,12 @@ QAbstractScrollArea & UiFactory::GetAbstractScrollArea() const noexcept
 {
 	assert(m_impl->abstractScrollArea);
 	return *m_impl->abstractScrollArea;
+}
+
+QAbstractItemView & UiFactory::GetAbstractItemView() const noexcept
+{
+	assert(m_impl->abstractItemView);
+	return *m_impl->abstractItemView;
 }
 
 }

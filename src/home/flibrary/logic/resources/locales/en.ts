@@ -1930,32 +1930,32 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="126"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="147"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="127"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="148"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="128"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="149"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="129"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
         <source>Archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="130"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="131"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
         <source>Search</source>
         <translation></translation>
     </message>
