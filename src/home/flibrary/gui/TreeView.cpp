@@ -306,6 +306,8 @@ private: // ITreeViewController::IObserver
 private: // ITreeViewDelegate::IObserver
 	void OnButtonClicked(const QModelIndex&) override
 	{
+		assert(m_removeItems);
+		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
 	}
 
 private: //	IValueApplier
@@ -331,8 +333,6 @@ private:
 		m_ui.treeView->setModel(model);
 		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
 
-		m_delegate->OnModelChanged();
-
 		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
 		{
 			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
@@ -345,6 +345,12 @@ private:
 			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			SetLanguageFilter();
 		}
+		else
+		{
+			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+		}
+
+		m_delegate->OnModelChanged();
 
 		if (auto newItemCreator = m_controller->GetNewItemCreator(); !newItemCreator)
 		{
@@ -480,7 +486,7 @@ private:
 			const auto color = m_self.palette().color(role);
 			return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
 		};
-		const auto content = QString::fromUtf8(file.readAll()).arg(getColor(QPalette::Mid)).arg(getColor(QPalette::Base)).arg(0);
+		const auto content = QString::fromUtf8(file.readAll()).arg(0).arg(getColor(QPalette::Base)).arg(getColor(QPalette::Text));
 
 		icon->load(content.toUtf8());
 		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
@@ -788,6 +794,7 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
 	QString m_lastRestoredLayoutKey;
+	ITreeViewController::RemoveItems m_removeItems;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings

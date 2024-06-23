@@ -139,6 +139,7 @@ struct ModeDescriptor
 	NavigationMode navigationMode { NavigationMode::Unknown };
 	MenuRequester menuRequester { &MenuRequesterStub };
 	ContextMenuHandlerFunction createNewAction { nullptr };
+	ContextMenuHandlerFunction createRemoveAction { nullptr };
 };
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
@@ -147,8 +148,8 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -406,6 +407,18 @@ ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreat
 		return [creator, &impl = *m_impl]
 	{
 		std::invoke(creator, impl, QList<QModelIndex>{}, QModelIndex {});
+	};
+
+	return {};
+}
+
+ITreeViewController::RemoveItems TreeViewControllerNavigation::GetRemoveItems() const
+{
+	if (const auto creator = MODE_DESCRIPTORS[m_impl->mode].second.createRemoveAction)
+		return [creator, &impl = *m_impl](const QList<QModelIndex> & list)
+	{
+		assert(!list.empty());
+		std::invoke(creator, impl, std::cref(list), list.front());
 	};
 
 	return {};

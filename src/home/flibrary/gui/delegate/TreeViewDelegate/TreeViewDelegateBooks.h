@@ -27,6 +27,7 @@ public:
 private: // QStyledItemDelegate
 	QAbstractItemDelegate * GetDelegate() noexcept override;
 	void OnModelChanged() override;
+	void SetEnabled(bool enabled) noexcept override;
 
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;

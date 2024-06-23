@@ -20,6 +20,7 @@ class ITreeViewController  // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	using RequestContextMenuCallback = std::function<void(const QString & id, const IDataItem::Ptr & item)>;
 	using CreateNewItem = std::function<void()>;
+	using RemoveItems = std::function<void(const QList<QModelIndex> & indexList)>;
 	enum class RequestContextMenuOptions
 	{
 		None          = 0,
@@ -52,6 +53,7 @@ public:
 	virtual void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) = 0;
 	virtual void OnDoubleClicked(const QModelIndex & index) const = 0;
 	virtual CreateNewItem GetNewItemCreator() const = 0;
+	virtual RemoveItems GetRemoveItems() const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

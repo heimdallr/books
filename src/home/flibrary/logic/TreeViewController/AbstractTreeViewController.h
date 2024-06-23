@@ -39,6 +39,7 @@ private: // ITreeViewController
 	void SetMode(const QString & mode) override;
 	void OnDoubleClicked(const QModelIndex &) const override {}
 	CreateNewItem GetNewItemCreator() const override { return {}; }
+	RemoveItems GetRemoveItems() const override { return {}; }
 
 protected:
 	void Setup();

@@ -29,7 +29,7 @@ QByteArray GetSvgWidgetContent(const QPalette & palette)
 		return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
 	};
 
-	return QString::fromUtf8(file.readAll()).arg(getColor(QPalette::Mid)).arg(getColor(QPalette::Base)).arg(45).toUtf8();
+	return QString::fromUtf8(file.readAll()).arg(45).arg(getColor(QPalette::Base)).arg(getColor(QPalette::Text)).toUtf8();
 }
 
 }
@@ -48,12 +48,21 @@ public:
 	void OnModelChanged()
 	{
 		disconnect(m_connection);
-		m_connection = connect(m_view.selectionModel(), &QItemSelectionModel::selectionChanged, this, &Impl::OnSelectionChanged);
+		if (m_enabled)
+			m_connection = connect(m_view.selectionModel(), &QItemSelectionModel::selectionChanged, this, &Impl::OnSelectionChanged);
+	}
+
+	void SetEnabled(const bool enabled) noexcept
+	{
+		m_enabled = enabled;
 	}
 
 private: // QStyledItemDelegate
-	QWidget * createEditor(QWidget * parent, [[maybe_unused]] const QStyleOptionViewItem & option, const QModelIndex & index) const override
+	QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override
 	{
+		if (!m_enabled)
+			return QStyledItemDelegate::createEditor(parent, option, index);
+
 		auto * btn = new QToolButton(parent);
 		btn->setAutoRaise(true);
 		QPersistentModelIndex persistentIndex { index };
@@ -96,6 +105,7 @@ private:
 	QAbstractItemView & m_view;
 	QMetaObject::Connection m_connection;
 	QByteArray m_svgWidgetContent;
+	bool m_enabled { false };
 };
 
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory> & uiFactory)
@@ -117,6 +127,11 @@ QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate() noexcept
 void TreeViewDelegateNavigation::OnModelChanged()
 {
 	m_impl->OnModelChanged();
+}
+
+void TreeViewDelegateNavigation::SetEnabled(const bool enabled) noexcept
+{
+	m_impl->SetEnabled(enabled);
 }
 
 void TreeViewDelegateNavigation::RegisterObserver(IObserver * observer)

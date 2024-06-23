@@ -41,6 +41,7 @@ private: // AbstractTreeViewController
 	void RequestContextMenu(const QModelIndex & index, RequestContextMenuOptions options, RequestContextMenuCallback callback) override;
 	void OnContextMenuTriggered(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item) override;
 	CreateNewItem GetNewItemCreator() const override;
+	RemoveItems GetRemoveItems() const override;
 
 private:
 	struct Impl;

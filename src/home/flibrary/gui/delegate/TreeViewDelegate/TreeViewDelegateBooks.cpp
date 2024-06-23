@@ -143,6 +143,10 @@ void TreeViewDelegateBooks::OnModelChanged()
 {
 }
 
+void TreeViewDelegateBooks::SetEnabled(bool /*enabled*/) noexcept
+{
+}
+
 void TreeViewDelegateBooks::RegisterObserver(IObserver * observer)
 {
 	m_impl->Register(observer);
