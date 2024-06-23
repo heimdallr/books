@@ -19,7 +19,7 @@ public:
 public:
 	virtual ~ITreeViewDelegate() = default;
 
-	virtual QAbstractItemDelegate* GetDelegate() = 0;
+	virtual QAbstractItemDelegate* GetDelegate() noexcept = 0;
 	virtual void OnModelChanged() = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;

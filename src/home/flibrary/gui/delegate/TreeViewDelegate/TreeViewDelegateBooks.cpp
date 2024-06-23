@@ -134,7 +134,7 @@ TreeViewDelegateBooks::~TreeViewDelegateBooks()
 	PLOGD << "TreeViewDelegateBooks destroyed";
 }
 
-QAbstractItemDelegate * TreeViewDelegateBooks::GetDelegate()
+QAbstractItemDelegate * TreeViewDelegateBooks::GetDelegate() noexcept
 {
 	return m_impl.get();
 }

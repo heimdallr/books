@@ -109,7 +109,7 @@ TreeViewDelegateNavigation::~TreeViewDelegateNavigation()
 	PLOGD << "TreeViewDelegateNavigation destroyed";
 }
 
-QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate()
+QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate() noexcept
 {
 	return m_impl.get();
 }

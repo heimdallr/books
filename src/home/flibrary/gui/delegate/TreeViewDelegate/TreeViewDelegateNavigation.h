@@ -23,7 +23,7 @@ public:
 	~TreeViewDelegateNavigation() override;
 
 private: // QStyledItemDelegate
-	QAbstractItemDelegate * GetDelegate() override;
+	QAbstractItemDelegate * GetDelegate() noexcept override;
 	void OnModelChanged() override;
 
 	void RegisterObserver(IObserver * observer) override;

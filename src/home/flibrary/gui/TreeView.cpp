@@ -273,39 +273,7 @@ private: // ITreeViewController::IObserver
 	void OnModelChanged(QAbstractItemModel * model) override
 	{
 		if (m_ui.treeView->model() != model)
-		{
-			m_ui.treeView->setModel(model);
-			m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
-
-			connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
-			{
-				m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
-			});
-
-			if (m_controller->GetItemType() == ItemType::Books)
-			{
-				m_languageContextMenu.reset();
-				model->setData({}, true, Role::Checkable);
-				model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-				SetLanguageFilter();
-			}
-
-			m_delegate->OnModelChanged();
-
-			if (auto newItemCreator = m_controller->GetNewItemCreator())
-			{
-				m_ui.btnNew->setVisible(true);
-				m_ui.btnNew->disconnect();
-				connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
-			}
-			else
-			{
-				m_ui.btnNew->setVisible(false);
-			}
-
-			if (model->rowCount() == 0)
-				m_controller->SetCurrentId({});
-		}
+			OnModelChangedImpl(model);
 
 		RestoreHeaderLayout();
 		OnCountChanged();
@@ -358,6 +326,41 @@ private: //	IValueApplier
 	}
 
 private:
+	void OnModelChangedImpl(QAbstractItemModel * model)
+	{
+		m_ui.treeView->setModel(model);
+		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
+
+		m_delegate->OnModelChanged();
+
+		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
+		{
+			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
+		});
+
+		if (m_controller->GetItemType() == ItemType::Books)
+		{
+			m_languageContextMenu.reset();
+			model->setData({}, true, Role::Checkable);
+			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+			SetLanguageFilter();
+		}
+
+		if (auto newItemCreator = m_controller->GetNewItemCreator(); !newItemCreator)
+		{
+			m_ui.btnNew->setVisible(false);
+		}
+		else
+		{
+			m_ui.btnNew->setVisible(true);
+			m_ui.btnNew->disconnect();
+			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
+		}
+
+		if (model->rowCount() == 0)
+			m_controller->SetCurrentId({});
+	}
+
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
 	{
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
@@ -415,8 +418,10 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+
 		if (m_controller->GetItemType() == ItemType::Books)
 			m_ui.treeView->setHeader(new HeaderView(&m_self));
+
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
