@@ -17,12 +17,13 @@
 
 #include "util/ISettings.h"
 
+#include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
+
 #include "dialogs/AddCollectionDialog.h"
 
 #include "ItemViewToolTipper.h"
 #include "ParentWidgetProvider.h"
 #include "TreeView.h"
-#include "TreeViewDelegate.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -109,7 +110,7 @@ std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 	return m_impl->container.resolve<IScriptDialog>();
 }
 
-std::shared_ptr<QAbstractItemDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
 {
 	m_impl->abstractScrollArea = &parent;
 	return m_impl->container.resolve<TreeViewDelegateBooks>();
