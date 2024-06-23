@@ -10,10 +10,11 @@
 #include <plog/Log.h>
 
 #include "fnd/observable.h"
-
 #include "interface/ui/IUiFactory.h"
+#include "util/ColorUtil.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -23,13 +24,11 @@ QByteArray GetSvgWidgetContent(const QPalette & palette)
 	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
 	assert(ok);
 
-	const auto getColor = [&] (const QPalette::ColorRole role)
-	{
-		const auto color = palette.color(role);
-		return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
-	};
-
-	return QString::fromUtf8(file.readAll()).arg(45).arg(getColor(QPalette::Base)).arg(getColor(QPalette::Text)).toUtf8();
+	return QString::fromUtf8(file.readAll())
+		.arg(45)
+		.arg(Util::ToString(palette, QPalette::Base))
+		.arg(Util::ToString(palette, QPalette::Text))
+		.toUtf8();
 }
 
 }

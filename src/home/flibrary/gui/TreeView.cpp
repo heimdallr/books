@@ -27,6 +27,7 @@
 #include "interface/ui/ITreeViewDelegate.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "util/ColorUtil.h"
 #include "util/ISettings.h"
 
 #include "ItemViewToolTipper.h"
@@ -481,14 +482,13 @@ private:
 		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
 		assert(ok);
 
-		const auto getColor = [this] (const QPalette::ColorRole role)
-		{
-			const auto color = m_self.palette().color(role);
-			return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
-		};
-		const auto content = QString::fromUtf8(file.readAll()).arg(0).arg(getColor(QPalette::Base)).arg(getColor(QPalette::Text));
+		const auto content = QString::fromUtf8(file.readAll())
+			.arg(0)
+			.arg(Util::ToString(m_self.palette(), QPalette::Base))
+			.arg(Util::ToString(m_self.palette(), QPalette::Text))
+			.toUtf8();
 
-		icon->load(content.toUtf8());
+		icon->load(content);
 		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
 		m_ui.btnNew->layout()->addWidget(icon);
 	}
