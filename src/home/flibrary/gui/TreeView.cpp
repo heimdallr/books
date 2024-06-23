@@ -469,7 +469,7 @@ private:
 			const auto color = m_self.palette().color(role);
 			return QString("#%1%2%3").arg(color.red(), 2, 16, QChar { '0' }).arg(color.green(), 2, 16, QChar { '0' }).arg(color.blue(), 2, 16, QChar { '0' });
 		};
-		const auto content = QString::fromUtf8(file.readAll()).arg(getColor(QPalette::Mid)).arg(getColor(QPalette::Base));
+		const auto content = QString::fromUtf8(file.readAll()).arg(getColor(QPalette::Mid)).arg(getColor(QPalette::Base)).arg(0);
 
 		icon->load(content.toUtf8());
 		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
