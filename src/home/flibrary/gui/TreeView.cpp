@@ -594,13 +594,17 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
+		auto * header = m_ui.treeView->header();
+
 		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
+		{
+			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(header->sortIndicatorSection(), header->sortIndicatorOrder())), Role::SortOrder);
 			return;
+		}
 
 		m_lastRestoredLayoutKey = std::move(lastRestoredLayoutKey);
 
-		auto * header = m_ui.treeView->header();
 		std::map<int, int> widths;
 		std::map<int, int> indices;
 		auto sortIndex = 0;
