@@ -36,6 +36,23 @@ private:
 	PszComparer comparer;
 };
 
+template <typename T>
+auto GetModeFilter(const IScriptController::Mode mode)
+{
+	return std::views::filter([=] (const T & item)
+	{
+		return item.mode == mode;
+	});
+}
+
+auto GetScriptUidFilter(const QString & uid)
+{
+	return std::views::filter([&] (const IScriptController::Command & item)
+	{
+		return item.scriptUid == uid;
+	});
+}
+
 }
 
 struct ScriptController::Impl
@@ -71,10 +88,7 @@ struct ScriptController::Impl
 			return script;
 		});
 
-		const auto undefined = [] (const Script & item)
-		{
-			return item.type == Script::Type::Undefined;
-		};
+		const auto undefined = [] (const Script & item) { return item.type == Script::Type::Undefined; };
 		for (const auto & script : scripts | std::views::filter(undefined))
 			this->settings->Remove(script.uid);
 		if (const auto [begin, end] = std::ranges::remove_if(scripts, undefined); begin != end)
@@ -116,10 +130,7 @@ const IScriptController::Scripts & ScriptController::GetScripts() const noexcept
 
 bool ScriptController::InsertScripts(const int row, const int count)
 {
-	const auto it = std::ranges::max_element(m_impl->scripts, [] (const auto & lhs, const auto & rhs)
-	{
-		return lhs.number < rhs.number;
-	});
+	const auto it = std::ranges::max_element(m_impl->scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 
 	Scripts scripts;
 	scripts.reserve(count);
@@ -166,23 +177,14 @@ const IScriptController::Commands & ScriptController::GetCommands() const noexce
 IScriptController::Commands ScriptController::GetCommands(const QString & scriptUid) const
 {
 	Commands commands;
-	std::ranges::copy(m_impl->commands | std::views::filter([&] (const auto & item)
-	{
-		return item.scriptUid == scriptUid;
-	}), std::back_inserter(commands));
+	std::ranges::copy(m_impl->commands | GetScriptUidFilter(scriptUid), std::back_inserter(commands));
 	return commands;
 }
 
 bool ScriptController::InsertCommand(const QString & uid, const int row, const int count)
 {
-	auto filtered = m_impl->commands | std::views::filter([&] (const auto & item)
-	{
-		return item.scriptUid == uid;
-	});
-	const auto it = std::ranges::max_element(filtered, [] (const auto & lhs, const auto & rhs)
-	{
-		return lhs.number < rhs.number;
-	});
+	auto filtered = m_impl->commands | GetScriptUidFilter(uid);
+	const auto it = std::ranges::max_element(filtered, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 	Commands commands;
 	commands.reserve(count);
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number] () mutable
@@ -235,10 +237,7 @@ bool ScriptController::Execute(const Command & command) const
 
 void ScriptController::Save()
 {
-	for (auto & script : m_impl->scripts | std::views::filter([] (const auto & item)
-	{
-		return item.mode == Mode::Updated;
-	}))
+	for (auto & script : m_impl->scripts | GetModeFilter<Script>(Mode::Updated))
 	{
 		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NAME), script.name);
 		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NUMBER), script.number);
@@ -246,16 +245,10 @@ void ScriptController::Save()
 		script.mode = Mode::None;
 	}
 
-	for (auto & script : m_impl->scripts | std::views::filter([] (const auto & item)
-	{
-		return item.mode == Mode::Removed;
-	}))
+	for (auto & script : m_impl->scripts | GetModeFilter<Script>(Mode::Removed))
 		m_impl->settings->Remove(QString(SCRIPT_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid));
 
-	for (auto & command : m_impl->commands | std::views::filter([] (const auto & item)
-	{
-		return item.mode == Mode::Updated;
-	}))
+	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Updated))
 	{
 		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(COMMAND), command.command);
 		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(ARGUMENTS), command.args);
@@ -264,10 +257,7 @@ void ScriptController::Save()
 		command.mode = Mode::None;
 	}
 
-	for (auto & command : m_impl->commands | std::views::filter([] (const auto & item)
-	{
-		return item.mode == Mode::Removed;
-	}))
+	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Removed))
 		m_impl->settings->Remove(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid));
 }
 
