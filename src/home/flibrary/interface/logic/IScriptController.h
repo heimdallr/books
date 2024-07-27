@@ -81,6 +81,7 @@ public:
 	{
 		enum class Type
 		{
+			Undefined,
 			ExportToDevice,
 		};
 
