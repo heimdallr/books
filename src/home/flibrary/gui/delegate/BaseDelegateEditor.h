@@ -13,10 +13,12 @@ protected:
 	void SetWidget(QWidget * self) noexcept;
 
 public:
-	virtual QWidget * GetWidget() const noexcept;
+	QWidget * GetWidget() const noexcept;
+	void SetParent(QWidget * parent);
+
+public:
 	virtual QString GetText() const = 0;
 	virtual void SetText(const QString & value) = 0;
-	virtual void SetParent(QWidget * parent);
 	virtual void SetModel(QAbstractItemModel * model, const QModelIndex & index);
 	virtual void OnSetModelData(const QString & value);
 

@@ -61,11 +61,6 @@ void StorableComboboxDelegateEditor::SetText(const QString & value)
 	m_impl->setEditText(value);
 }
 
-void StorableComboboxDelegateEditor::SetParent(QWidget * parent)
-{
-	m_impl->setParent(parent);
-}
-
 void StorableComboboxDelegateEditor::OnSetModelData(const QString & value)
 {
 	if (std::ranges::any_of(m_impl->values | std::views::values, [&](const auto & item){ return !item.compare(value, Qt::CaseInsensitive); }))
