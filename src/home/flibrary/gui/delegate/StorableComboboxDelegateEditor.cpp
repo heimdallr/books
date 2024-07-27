@@ -29,9 +29,10 @@ struct StorableComboboxDelegateEditor::Impl : QComboBox
 StorableComboboxDelegateEditor::StorableComboboxDelegateEditor(std::shared_ptr<ISettings> settings
 	, QWidget * parent
 )
-	: BaseDelegateEditor(this, parent)
+	: BaseDelegateEditor(parent)
 	, m_impl(std::make_unique<Impl>(std::move(settings)))
 {
+	SetWidget(m_impl.get());
 }
 
 StorableComboboxDelegateEditor::~StorableComboboxDelegateEditor() = default;
@@ -50,11 +51,6 @@ void StorableComboboxDelegateEditor::SetSettingsKey(QString key)
 		m_impl->addItem(value);
 }
 
-QWidget * StorableComboboxDelegateEditor::GetWidget() const noexcept
-{
-	return m_impl.get();
-}
-
 QString StorableComboboxDelegateEditor::GetText() const
 {
 	return m_impl->currentText();
@@ -63,11 +59,6 @@ QString StorableComboboxDelegateEditor::GetText() const
 void StorableComboboxDelegateEditor::SetText(const QString & value)
 {
 	m_impl->setEditText(value);
-}
-
-void StorableComboboxDelegateEditor::SetParent(QWidget * parent)
-{
-	m_impl->setParent(parent);
 }
 
 void StorableComboboxDelegateEditor::OnSetModelData(const QString & value)

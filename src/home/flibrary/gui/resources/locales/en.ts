@@ -545,12 +545,12 @@ Restart now?</source>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="13"/>
         <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
         <source>Select Application</source>
         <translation></translation>
     </message>

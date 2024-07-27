@@ -1,4 +1,3 @@
-#include "ui_OpenFileDialogDelegateEditor.h"
 #include "OpenFileDialogDelegateEditor.h"
 
 #include <QAbstractItemModel>
@@ -19,21 +18,19 @@ TR_DEF
 
 }
 
-struct OpenFileDialogDelegateEditor::Impl
+class OpenFileDialogDelegateEditor::Impl : public QLineEdit
 {
-	Ui::OpenFileDialogDelegateEditor ui {};
-
-	Impl(OpenFileDialogDelegateEditor & self, std::shared_ptr<const IUiFactory> uiFactory)
+public:
+	Impl(const OpenFileDialogDelegateEditor& self, std::shared_ptr<const IUiFactory> uiFactory)
 	{
-		ui.setupUi(&self);
-		ui.edit->setFocus(Qt::FocusReason::TabFocusReason);
-		connect(ui.button, &QAbstractButton::clicked, &self, [&, uiFactory = std::move(uiFactory)]
+		const auto* action = addAction(QIcon(":/icons/exe.png"), TrailingPosition);
+		connect(action, &QAction::triggered, this, [&, uiFactory = std::move(uiFactory)]
 		{
 			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)));
 			if (fileName.isEmpty())
 				return;
 
-			ui.edit->setText(fileName);
+			setText(fileName);
 			self.m_model->setData(self.m_model->index(self.m_row, self.m_column), fileName);
 		});
 	}
@@ -42,19 +39,20 @@ struct OpenFileDialogDelegateEditor::Impl
 OpenFileDialogDelegateEditor::OpenFileDialogDelegateEditor(std::shared_ptr<const IUiFactory> uiFactory
 	, QWidget * parent
 )
-	: BaseDelegateEditor(this, parent)
+	: BaseDelegateEditor(parent)
 	, m_impl(*this, std::move(uiFactory))
 {
+	SetWidget(m_impl.get());
 }
 
 OpenFileDialogDelegateEditor::~OpenFileDialogDelegateEditor() = default;
 
 QString OpenFileDialogDelegateEditor::GetText() const
 {
-	return m_impl->ui.edit->text();
+	return m_impl->text();
 }
 
 void OpenFileDialogDelegateEditor::SetText(const QString & value)
 {
-	m_impl->ui.edit->setText(value);
+	m_impl->setText(value);
 }
