@@ -27,7 +27,6 @@ public:
 	void SetSettingsKey(QString key);
 
 private: // BaseDelegateEditor
-	QWidget * GetWidget() const noexcept override;
 	QString GetText() const override;
 	void SetText(const QString & value) override;
 	void SetParent(QWidget * parent) override;

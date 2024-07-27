@@ -4,10 +4,14 @@
 
 using namespace HomeCompa::Flibrary;
 
-BaseDelegateEditor::BaseDelegateEditor(QWidget * self, QWidget * parent)
+BaseDelegateEditor::BaseDelegateEditor(QWidget * parent)
 	: QWidget(parent)
-	, m_self(self)
 {
+}
+
+void BaseDelegateEditor::SetWidget(QWidget * self) noexcept
+{
+	m_self = self;
 }
 
 QWidget * BaseDelegateEditor::GetWidget() const noexcept

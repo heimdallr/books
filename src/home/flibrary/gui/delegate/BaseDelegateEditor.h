@@ -9,7 +9,8 @@ namespace HomeCompa::Flibrary {
 class BaseDelegateEditor : public QWidget
 {
 protected:
-	BaseDelegateEditor(QWidget * self, QWidget * parent);
+	explicit BaseDelegateEditor(QWidget * parent);
+	void SetWidget(QWidget * self) noexcept;
 
 public:
 	virtual QWidget * GetWidget() const noexcept;
@@ -20,7 +21,7 @@ public:
 	virtual void OnSetModelData(const QString & value);
 
 protected:
-	QWidget * m_self;
+	QWidget * m_self { nullptr };
 	QAbstractItemModel * m_model { nullptr };
 	int m_row { -1 };
 	int m_column { -1 };

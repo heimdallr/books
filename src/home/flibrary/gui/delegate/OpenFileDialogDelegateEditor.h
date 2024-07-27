@@ -23,7 +23,7 @@ private: // BaseDelegateEditor
 	void SetText(const QString & value) override;
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
