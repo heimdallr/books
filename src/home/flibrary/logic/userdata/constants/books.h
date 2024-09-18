@@ -6,5 +6,6 @@ constexpr auto RootNode  = "Books";
 constexpr auto Folder    = "Folder";
 constexpr auto FileName  = "FileName";
 constexpr auto IsDeleted = "IsDeleted";
+constexpr auto UserRate  = "UserRate";
 
 }
