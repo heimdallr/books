@@ -50,11 +50,16 @@
     </message>
     <message>
         <location filename="../../constants/Localization.h" line="43"/>
+        <source>UserRate</source>
+        <translation>Мой рейтинг</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="44"/>
         <source>UpdateDate</source>
         <translation>Обновлено</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="44"/>
+        <location filename="../../constants/Localization.h" line="45"/>
         <source>Lang</source>
         <translation>Язык</translation>
     </message>
