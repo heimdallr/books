@@ -40,6 +40,7 @@ QT_TRANSLATE_NOOP("Book", "Genre")
 QT_TRANSLATE_NOOP("Book", "Folder")
 QT_TRANSLATE_NOOP("Book", "FileName")
 QT_TRANSLATE_NOOP("Book", "LibRate")
+QT_TRANSLATE_NOOP("Book", "UserRate")
 QT_TRANSLATE_NOOP("Book", "UpdateDate")
 QT_TRANSLATE_NOOP("Book", "Lang")
 
