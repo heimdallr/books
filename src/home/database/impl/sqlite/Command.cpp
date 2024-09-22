@@ -15,7 +15,7 @@ class Command
 	: virtual public DB::ICommand
 {
 public:
-	Command(sqlite3pp::database & db, std::string_view command)
+	Command(sqlite3pp::database & db, const std::string_view command)
 		: m_command(db, command.data())
 	{
 	}
@@ -27,42 +27,42 @@ private: // DB::Command
 		m_command.reset();
 	}
 
-	int BindInt(size_t index, int value) override
+	int BindInt(const size_t index, const int value) override
 	{
 		return m_command.bind(Index(index) + 1, value);
 	}
 
-	int BindLong(size_t index, long long int value) override
+	int BindLong(const size_t index, const long long int value) override
 	{
 		return m_command.bind(Index(index) + 1, value);
 	}
 
-	int BindDouble(size_t index, double value) override
+	int BindDouble(const size_t index, const double value) override
 	{
 		return m_command.bind(Index(index) + 1, value);
 	}
 
-	int BindString(size_t index, const std::string & value) override
+	int BindString(const size_t index, const std::string & value) override
 	{
 		return m_command.bind(Index(index) + 1, value, sqlite3pp::copy);
 	}
 
-	int BindInt(std::string_view name, int value) override
+	int BindInt(const std::string_view name, const int value) override
 	{
 		return m_command.bind(name.data(), value);
 	}
 
-	int BindLong(std::string_view name, long long int value) override
+	int BindLong(const std::string_view name, const long long int value) override
 	{
 		return m_command.bind(name.data(), value);
 	}
 
-	int BindDouble(std::string_view name, double value) override
+	int BindDouble(const std::string_view name, const double value) override
 	{
 		return m_command.bind(name.data(), value);
 	}
 
-	int BindString(std::string_view name, const std::string & value) override
+	int BindString(const std::string_view name, const std::string & value) override
 	{
 		return m_command.bind(name.data(), value, sqlite3pp::copy);
 	}
