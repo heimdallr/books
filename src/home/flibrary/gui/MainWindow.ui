@@ -316,10 +316,10 @@
      </widget>
      <addaction name="actionShowRemoved"/>
      <addaction name="actionHideRemoved"/>
-     <addaction name="menuAnnotation"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionHideStatusBar"/>
+     <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
     </widget>
