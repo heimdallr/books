@@ -77,6 +77,11 @@ private: // Query
 		return Get<const char *>(index);
 	}
 
+	int Bind(const size_t index) override
+	{
+		return m_query.bind(Index(index) + 1);
+	}
+
 	int BindInt(const size_t index, const int value) override
 	{
 		return m_query.bind(Index(index) + 1, value);
@@ -95,6 +100,11 @@ private: // Query
 	int BindString(const size_t index, const std::string & value) override
 	{
 		return m_query.bind(Index(index) + 1, value, sqlite3pp::copy);
+	}
+
+	int Bind(const std::string_view name) override
+	{
+		return m_query.bind(name.data());
 	}
 
 	int BindInt(const std::string_view name, const int value) override

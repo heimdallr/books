@@ -16,6 +16,7 @@ public:
 public:
 	virtual void Execute() = 0;
 
+	virtual int Bind(size_t index) = 0;
 	virtual int BindInt(size_t index, int value) = 0;
 	virtual int BindLong(size_t index, long long int value) = 0;
 	virtual int BindDouble(size_t index, double value) = 0;
@@ -27,6 +28,7 @@ public:
 		return BindImpl<T>(*this, index, value);
 	}
 
+	virtual int Bind(std::string_view name) = 0;
 	virtual int BindInt(std::string_view name, int value) = 0;
 	virtual int BindLong(std::string_view name, long long int value) = 0;
 	virtual int BindDouble(std::string_view name, double value) = 0;
