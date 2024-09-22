@@ -24,13 +24,8 @@ enum class Check
 	VersionNodeFound = 1 << 1,
 	VersionAttributeFound = 1 << 2,
 	VersionAttributeMustBeInteger = 1 << 3,
-	UserDataNodeFound = 1 << 4,
-	All = None
-	| RootNodeFound
-	| VersionNodeFound
-	| VersionAttributeFound
-	| VersionAttributeMustBeInteger
-	| UserDataNodeFound
+	VersionNumberMustBeActual = 1 << 4,
+	UserDataNodeFound = 1 << 5,
 };
 
 }
@@ -39,8 +34,9 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 
 #define RESTORE_ITEMS_X_MACRO     \
 		RESTORE_ITEM(Books, 1)    \
+		RESTORE_ITEM(Books, 2)    \
 		RESTORE_ITEM(Groups, 1)   \
-		RESTORE_ITEM(Searches, 1) \
+		RESTORE_ITEM(Searches, 1)
 
 namespace HomeCompa::Flibrary::UserData {
 
@@ -53,15 +49,6 @@ namespace {
 constexpr auto CONTEXT = "UserData";
 constexpr auto CANNOT_READ_FROM = QT_TRANSLATE_NOOP("UserData", "Cannot read from %1");
 
-constexpr std::pair<const char *, const char *> CHECK_ERRORS[]
-{
-	{ QT_TRANSLATE_NOOP("UserData", "Invalid root node name, must be %1"), Constant::FlibraryBackup },
-	{ QT_TRANSLATE_NOOP("UserData", "Cannot find version node, must be %1"), Constant::FlibraryBackupVersion },
-	{ QT_TRANSLATE_NOOP("UserData", "Cannot find version attribute, must be %1"), Constant::VALUE },
-	{ QT_TRANSLATE_NOOP("UserData", "%1: must be integer"), Constant::VALUE },
-	{ QT_TRANSLATE_NOOP("UserData", "Cannot find user data node, must be %1"), Constant::FlibraryUserData },
-};
-
 TR_DEF
 
 constexpr auto FLIBRARY_BACKUP = "FlibraryBackup";
@@ -70,20 +57,6 @@ constexpr auto FLIBRARY_BACKUP_USER_DATA = "FlibraryBackup/FlibraryUserData";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS = "FlibraryBackup/FlibraryUserData/Books";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS = "FlibraryBackup/FlibraryUserData/Groups";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES = "FlibraryBackup/FlibraryUserData/Searches";
-
-class RestorerStub final
-	: virtual public IRestorer
-{
-public:
-	static std::unique_ptr<IRestorer> Create()
-	{
-		return std::make_unique<RestorerStub>();
-	}
-
-private: // IRestorer
-	void AddElement(const QString &, const Util::XmlAttributes &) override {}
-	void Restore(DB::IDatabase &) const override {}
-};
 
 class XmlParser final
 	: public Util::SaxParser
@@ -94,8 +67,16 @@ public:
 	explicit XmlParser(QIODevice & stream, DB::IDatabase & db)
 		: SaxParser(stream)
 	{
-		m_restorers.push_back(RestorerStub::Create());
+		constexpr std::tuple<const char *, int, RestorerCreator> creators[] {
+#define RESTORE_ITEM(NAME, VERSION) { #NAME, VERSION, &Create##NAME##Restorer##VERSION },
+		RESTORE_ITEMS_X_MACRO
+#undef	RESTORE_ITEM
+		};
+		for (const auto & [name, version, creator] : creators)
+			m_restorerCreators[name].emplace(version, creator);
+
 		Parse();
+		Validate();
 		if (!m_error.isEmpty())
 			return;
 
@@ -171,13 +152,19 @@ private:
 		m_check |= Check::VersionNodeFound;
 
 		const auto versionValue = attributes.GetAttribute(Constant::VALUE);
-		if (!versionValue.isEmpty())
-			m_check |= Check::VersionAttributeFound;
+		if (versionValue.isEmpty())
+			return false;
+		m_check |= Check::VersionAttributeFound;
 
 		bool ok = false;
 		m_version = versionValue.toInt(&ok);
-		if (ok)
-			m_check |= Check::VersionAttributeMustBeInteger;
+		if (!ok)
+			return false;
+		m_check |= Check::VersionAttributeMustBeInteger;
+
+		if (m_version < 1 || m_version > Constant::FlibraryBackupVersionNumber)
+			return false;
+		m_check |= Check::VersionNumberMustBeActual;
 
 		return true;
 	}
@@ -185,23 +172,18 @@ private:
 	bool OnStartElementFlibraryBackupUserData(const QString &, const Util::XmlAttributes &)
 	{
 		m_check |= Check::UserDataNodeFound;
-		return true;
+		Validate();
+		return m_error.isEmpty();
 	}
 
 	bool OnStartElementFlibraryBackupUserDataItem(const QString & name, const Util::XmlAttributes &)
 	{
-		using RestorerCreator = std::unique_ptr<IRestorer>(*)();
-		constexpr std::pair<const char *, RestorerCreator> CREATORS[] {
-#define RESTORE_ITEM(NAME, VERSION) { #NAME, &Create##NAME##Restorer##VERSION },
-		RESTORE_ITEMS_X_MACRO
-#undef	RESTORE_ITEM
-		};
+		const auto it = m_restorerCreators.find(name);
+		assert(it != m_restorerCreators.end());
 
-		Validate();
-		if (!m_error.isEmpty())
-			return false;
-
-		m_restorers.push_back(FindSecond(CREATORS, name.toStdString().data(), PszComparer{})());
+		const auto itParser = it->second.upper_bound(m_version);
+		assert(itParser != it->second.begin());
+		m_restorers.push_back(std::prev(itParser)->second());
 
 		return true;
 	}
@@ -209,12 +191,22 @@ private:
 private:
 	void Validate()
 	{
-		for (int i = 0, sz = static_cast<int>(std::size(CHECK_ERRORS)); i < sz; ++i)
+		using ErrorGetter = std::function<QString()>;
+		const ErrorGetter check_errors[]
+		{
+			[]{return Tr(QT_TRANSLATE_NOOP("UserData", "Invalid root node name, must be %1")).arg(Constant::FlibraryBackup);},
+			[]{return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version node, must be %1")).arg(Constant::FlibraryBackupVersion);},
+			[]{return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version attribute, must be %1")).arg(Constant::VALUE);},
+			[]{return Tr(QT_TRANSLATE_NOOP("UserData", "%1: must be integer")).arg(Constant::VALUE);},
+			[this]{return Tr(QT_TRANSLATE_NOOP("UserData", "Version %1 must be greater than 0 and less than %2")).arg(m_version).arg(Constant::FlibraryBackupVersionNumber + 1); },
+			[]{return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find user data node, must be %1")).arg(Constant::FlibraryUserData);},
+		};
+
+		for (int i = 0, sz = static_cast<int>(std::size(check_errors)); i < sz; ++i)
 		{
 			if (!(m_check & static_cast<Check>(1 << i)))
 			{
-				m_error = Tr(CHECK_ERRORS[i].first).arg(CHECK_ERRORS[i].second);
-				m_restorers.push_back(RestorerStub::Create());
+				m_error = check_errors[i]();
 				return;
 			}
 		}
@@ -223,6 +215,9 @@ private:
 private:
 	std::vector<std::unique_ptr<IRestorer>> m_restorers;
 	Check m_check { Check::None };
+	using RestorerCreator = std::unique_ptr<IRestorer>(*)();
+	std::unordered_map<QString, std::map<int, RestorerCreator>> m_restorerCreators;
+
 	int m_version { -1 };
 	QString m_error;
 };
