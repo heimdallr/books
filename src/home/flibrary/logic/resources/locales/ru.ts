@@ -68,61 +68,71 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <source>&amp;My rate</source>
+        <translation>&amp;Мой рейтинг</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <source>&amp;Remove my rate</source>
+        <translation>&amp;Удалить мою оценку</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>&amp;Check</source>
         <translation>От&amp;метка</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
         <source>&amp;Check all</source>
         <translation>Отметить &amp;все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
         <source>&amp;Uncheck all</source>
         <translation>Сн&amp;ять отметки</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
         <source>&amp;Invert</source>
         <translation>&amp;Инвертировать отметку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
         <source>&amp;Tree</source>
         <translation>&amp;Дерево</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>C&amp;ollapse</source>
         <translation>С&amp;вернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
         <source>E&amp;xpand</source>
         <translation>Ра&amp;звернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
         <source>&amp;Collapse all</source>
         <translation>&amp;Свернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>&amp;Expand all</source>
         <translation>&amp;Развернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
         <source>&amp;Undo deletion</source>
         <translation>Отменить &amp;удаление</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
