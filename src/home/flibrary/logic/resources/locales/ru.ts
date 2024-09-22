@@ -2122,32 +2122,37 @@ Try again?</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="54"/>
+        <location filename="../../userdata/restore.cpp" line="50"/>
         <source>Cannot read from %1</source>
         <translation>Jib,rf xntybz bp %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="58"/>
+        <location filename="../../userdata/restore.cpp" line="197"/>
         <source>Invalid root node name, must be %1</source>
         <translation>Неправильное имя корневого узла, должно быть %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="59"/>
+        <location filename="../../userdata/restore.cpp" line="198"/>
         <source>Cannot find version node, must be %1</source>
         <translation>Не найден узел версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="60"/>
+        <location filename="../../userdata/restore.cpp" line="199"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation>Не найден атрибут узла версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="61"/>
+        <location filename="../../userdata/restore.cpp" line="200"/>
         <source>%1: must be integer</source>
         <translation>Номер версии %1 должен быть целым значением</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="62"/>
+        <location filename="../../userdata/restore.cpp" line="201"/>
+        <source>Version %1 must be greater than 0 and less than %2</source>
+        <translation>Версия файла %1 должна быть больше 0 и меньше %2</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="202"/>
         <source>Cannot find user data node, must be %1</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>
