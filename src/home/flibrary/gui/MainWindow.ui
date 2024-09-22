@@ -252,42 +252,6 @@
     <addaction name="menu_User_data"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
-    <widget class="QMenu" name="menuLog">
-     <property name="title">
-      <string>&amp;Log</string>
-     </property>
-     <widget class="QMenu" name="menuLogVerbosityLevel">
-      <property name="title">
-       <string>Log &amp;verbosity level</string>
-      </property>
-     </widget>
-     <addaction name="actionShowLog"/>
-     <addaction name="actionClearLog"/>
-     <addaction name="actionShowCollectionStatistics"/>
-     <addaction name="menuLogVerbosityLevel"/>
-    </widget>
-    <widget class="QMenu" name="menuAnnotation">
-     <property name="title">
-      <string>&amp;Annotation</string>
-     </property>
-     <addaction name="actionHideAnnotation"/>
-     <addaction name="actionShowAnnotationCover"/>
-     <addaction name="actionHideAnnotationCover"/>
-     <addaction name="actionShowAnnotationContent"/>
-     <addaction name="actionHideAnnotationContent"/>
-    </widget>
-    <addaction name="actionShowRemoved"/>
-    <addaction name="actionHideRemoved"/>
-    <addaction name="menuAnnotation"/>
-    <addaction name="actionShowAnnotation"/>
-    <addaction name="actionShowStatusBar"/>
-    <addaction name="actionHideStatusBar"/>
-    <addaction name="menuLog"/>
-   </widget>
    <widget class="QMenu" name="menuCollection">
     <property name="title">
      <string>&amp;Collection</string>
@@ -314,16 +278,53 @@
       <string>&amp;Language</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuFont">
+    <widget class="QMenu" name="menuView">
      <property name="title">
-      <string>&amp;Font</string>
+      <string>&amp;View</string>
      </property>
-     <addaction name="actionFontSettings"/>
-     <addaction name="actionFontSizeUp"/>
-     <addaction name="actionFontSizeDown"/>
+     <widget class="QMenu" name="menuAnnotation">
+      <property name="title">
+       <string>&amp;Annotation</string>
+      </property>
+      <addaction name="actionHideAnnotation"/>
+      <addaction name="actionShowAnnotationCover"/>
+      <addaction name="actionHideAnnotationCover"/>
+      <addaction name="actionShowAnnotationContent"/>
+      <addaction name="actionHideAnnotationContent"/>
+     </widget>
+     <widget class="QMenu" name="menuLog">
+      <property name="title">
+       <string>&amp;Log</string>
+      </property>
+      <widget class="QMenu" name="menuLogVerbosityLevel">
+       <property name="title">
+        <string>Log &amp;verbosity level</string>
+       </property>
+      </widget>
+      <addaction name="actionShowLog"/>
+      <addaction name="actionClearLog"/>
+      <addaction name="actionShowCollectionStatistics"/>
+      <addaction name="menuLogVerbosityLevel"/>
+     </widget>
+     <widget class="QMenu" name="menuFont">
+      <property name="title">
+       <string>&amp;Font</string>
+      </property>
+      <addaction name="actionFontSettings"/>
+      <addaction name="actionFontSizeUp"/>
+      <addaction name="actionFontSizeDown"/>
+     </widget>
+     <addaction name="actionShowRemoved"/>
+     <addaction name="actionHideRemoved"/>
+     <addaction name="actionShowAnnotation"/>
+     <addaction name="actionShowStatusBar"/>
+     <addaction name="actionHideStatusBar"/>
+     <addaction name="menuAnnotation"/>
+     <addaction name="menuFont"/>
+     <addaction name="menuLog"/>
     </widget>
     <addaction name="menuLanguage"/>
-    <addaction name="menuFont"/>
+    <addaction name="menuView"/>
     <addaction name="actionScripts"/>
     <addaction name="actionExportTempate"/>
     <addaction name="actionPermanentLanguageFilter"/>
@@ -343,7 +344,6 @@
     </property>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuView"/>
    <addaction name="menuCollection"/>
    <addaction name="menuBook"/>
    <addaction name="menuSettings"/>
