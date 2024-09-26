@@ -39,7 +39,7 @@ public:
 public:
 	QPixmap GetStars(const int rate)
 	{
-		if (rate < 0 || rate > static_cast<int>(std::size(m_cache)))
+		if (rate < 1 || rate > static_cast<int>(std::size(m_cache)))
 			return {};
 
 		ReadContent();

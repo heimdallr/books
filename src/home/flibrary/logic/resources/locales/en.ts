@@ -68,61 +68,71 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
-        <source>&amp;Check</source>
+        <source>&amp;My rate</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
-        <source>&amp;Check all</source>
+        <source>&amp;Remove my rate</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
-        <source>&amp;Uncheck all</source>
+        <source>&amp;Check</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
-        <source>&amp;Invert</source>
+        <source>&amp;Check all</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
-        <source>&amp;Tree</source>
+        <source>&amp;Uncheck all</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
-        <source>C&amp;ollapse</source>
+        <source>&amp;Invert</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
-        <source>E&amp;xpand</source>
+        <source>&amp;Tree</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
-        <source>&amp;Collapse all</source>
+        <source>C&amp;ollapse</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
-        <source>&amp;Expand all</source>
+        <source>E&amp;xpand</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
-        <source>R&amp;emove</source>
+        <source>&amp;Collapse all</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
-        <source>&amp;Undo deletion</source>
+        <source>&amp;Expand all</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <source>R&amp;emove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
+        <source>&amp;Undo deletion</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
@@ -2116,32 +2126,37 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="54"/>
+        <location filename="../../userdata/restore.cpp" line="50"/>
         <source>Cannot read from %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="58"/>
+        <location filename="../../userdata/restore.cpp" line="197"/>
         <source>Invalid root node name, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="59"/>
+        <location filename="../../userdata/restore.cpp" line="198"/>
         <source>Cannot find version node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="60"/>
+        <location filename="../../userdata/restore.cpp" line="199"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="61"/>
+        <location filename="../../userdata/restore.cpp" line="200"/>
         <source>%1: must be integer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="62"/>
+        <location filename="../../userdata/restore.cpp" line="201"/>
+        <source>Version %1 must be greater than 0 and less than %2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="202"/>
         <source>Cannot find user data node, must be %1</source>
         <translation></translation>
     </message>

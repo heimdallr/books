@@ -46,6 +46,7 @@ constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
+constexpr auto USER_RATE = QT_TRANSLATE_NOOP("Annotation", "My rate:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
@@ -432,20 +433,29 @@ private: // IAnnotationController::IObserver
 		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
 
 		{
+			const auto addRate = [&] (Table & info, const char * name, const int column)
+			{
+				const auto rate = dataProvider.GetBook().GetRawData(column).toInt();
+				if (rate <= 0 || rate > 5)
+					return;
+
+				const auto byteArray = [this, rate]{
+					const auto stars = m_rateStarsProvider->GetStars(rate);
+					QByteArray bytes;
+					QBuffer buffer(&bytes);
+					stars.save(&buffer, "PNG");
+					return bytes;
+				}();
+
+				info.Add(name, QString(R"(<img src="data:image/png;base64,%1"/>)").arg(byteArray.toBase64()));
+			};
+
 			auto info = Table()
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
 				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
-			if (const auto rate = dataProvider.GetBook().GetRawData(BookItem::Column::LibRate).toInt(); rate > 0 && rate <= 5)
-			{
-				const auto stars = m_rateStarsProvider->GetStars(rate);
-				QByteArray byteArray;
-				{
-					QBuffer buffer(&byteArray);
-					stars.save(&buffer, "PNG");
-				}
-				info.Add(RATE, QString(R"(<img src="data:image/png;base64,%1"/>)").arg(byteArray.toBase64()));
-			}
+			addRate(info, RATE, BookItem::Column::LibRate);
+			addRate(info, USER_RATE, BookItem::Column::UserRate);
 			if (!m_covers.empty())
 			{
 				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)

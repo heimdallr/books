@@ -1,6 +1,8 @@
 #include "DatabaseController.h"
 
 #include <mutex>
+#include <ranges>
+#include <set>
 
 #include <plog/Log.h>
 
@@ -18,6 +20,27 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
+void AddUserTables(DB::ITransaction & transaction)
+{
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+}
+
+void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition)
+{
+	std::set<std::string> booksUserFields;
+	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
+	auto range = std::views::iota(0, static_cast<int>(booksUserFieldsQuery->ColumnCount()));
+	const auto it = std::ranges::find(range, "name", [&] (const int n) { return booksUserFieldsQuery->ColumnName(n); });
+	assert(it != std::end(range));
+	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
+		booksUserFields.insert(booksUserFieldsQuery->GetString(*it));
+	if (!booksUserFields.contains(column.toStdString()))
+		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
+}
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName)
 {
@@ -38,10 +61,9 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 	try
 	{
 		const auto transaction = db->CreateTransaction();
-		transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
-		transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
-		transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
-		transaction->CreateCommand("CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+		AddUserTables(*transaction);
+		AddUserTableField(*transaction, "Books_User", "UserRate", "INTEGER");
+
 		transaction->Commit();
 	}
 	catch(...)

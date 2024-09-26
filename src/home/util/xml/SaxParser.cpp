@@ -187,6 +187,9 @@ public:
 private: // xercesc::DocumentHandler
 	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
 	{
+		if (m_inputSource.IsStopped())
+			return;
+
 		if (m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
 			m_inputSource.SetStopped(true);
 	}
@@ -194,6 +197,8 @@ private: // xercesc::DocumentHandler
 	void startElement(const XMLCh * const name, xercesc::AttributeList & args) override
 	{
 		ProcessCharacters();
+		if (m_inputSource.IsStopped())
+			return;
 
 		m_stack.Push(name);
 		const auto & key = m_stack.ToString();
@@ -204,6 +209,9 @@ private: // xercesc::DocumentHandler
 
 	void endElement(const XMLCh * const name) override
 	{
+		if (m_inputSource.IsStopped())
+			return;
+
 		ProcessCharacters();
 
 		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
@@ -214,6 +222,9 @@ private: // xercesc::DocumentHandler
 
 	void characters(const XMLCh * const chars, const XMLSize_t length) override
 	{
+		if (m_inputSource.IsStopped())
+			return;
+
 		if (length != 0)
 			m_characters.append(QString::fromStdU16String(chars));
 	}
@@ -249,6 +260,9 @@ private: // xercesc::ErrorHandler
 private:
 	void ProcessCharacters()
 	{
+		if (m_inputSource.IsStopped())
+			return;
+
 		ScopedCall clearGuard([&] { m_characters.clear(); });
 
 		if (m_characters.simplified().isEmpty())

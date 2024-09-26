@@ -68,61 +68,71 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <source>&amp;My rate</source>
+        <translation>&amp;Мой рейтинг</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <source>&amp;Remove my rate</source>
+        <translation>&amp;Удалить мою оценку</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>&amp;Check</source>
         <translation>От&amp;метка</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
         <source>&amp;Check all</source>
         <translation>Отметить &amp;все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
         <source>&amp;Uncheck all</source>
         <translation>Сн&amp;ять отметки</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
         <source>&amp;Invert</source>
         <translation>&amp;Инвертировать отметку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
         <source>&amp;Tree</source>
         <translation>&amp;Дерево</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>C&amp;ollapse</source>
         <translation>С&amp;вернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
         <source>E&amp;xpand</source>
         <translation>Ра&amp;звернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
         <source>&amp;Collapse all</source>
         <translation>&amp;Свернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>&amp;Expand all</source>
         <translation>&amp;Развернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
         <source>&amp;Undo deletion</source>
         <translation>Отменить &amp;удаление</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
@@ -2122,32 +2132,37 @@ Try again?</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="54"/>
+        <location filename="../../userdata/restore.cpp" line="50"/>
         <source>Cannot read from %1</source>
         <translation>Jib,rf xntybz bp %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="58"/>
+        <location filename="../../userdata/restore.cpp" line="197"/>
         <source>Invalid root node name, must be %1</source>
         <translation>Неправильное имя корневого узла, должно быть %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="59"/>
+        <location filename="../../userdata/restore.cpp" line="198"/>
         <source>Cannot find version node, must be %1</source>
         <translation>Не найден узел версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="60"/>
+        <location filename="../../userdata/restore.cpp" line="199"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation>Не найден атрибут узла версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="61"/>
+        <location filename="../../userdata/restore.cpp" line="200"/>
         <source>%1: must be integer</source>
         <translation>Номер версии %1 должен быть целым значением</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="62"/>
+        <location filename="../../userdata/restore.cpp" line="201"/>
+        <source>Version %1 must be greater than 0 and less than %2</source>
+        <translation>Версия файла %1 должна быть больше 0 и меньше %2</translation>
+    </message>
+    <message>
+        <location filename="../../userdata/restore.cpp" line="202"/>
         <source>Cannot find user data node, must be %1</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>

@@ -86,7 +86,12 @@ private: // QStyledItemDelegate
 private:
 	void RenderLibRate(QPainter * painter, const QStyleOptionViewItem & o, const QModelIndex & index) const
 	{
-		const auto rate = index.data(Role::LibRate).toInt();
+		static constexpr std::pair<int, int> columnToRole[]
+		{
+			{BookItem::Column::LibRate, Role::LibRate},
+			{BookItem::Column::UserRate, Role::UserRate},
+		};
+		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
 		if (rate < 1 || rate > 5)
 			return;
 
@@ -103,14 +108,16 @@ private:
 		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::SeqNumber))
 			o.displayAlignment = Qt::AlignRight;
 
-		if (column == BookItem::Column::LibRate)
+		const auto isRate = IsOneOf(column, BookItem::Column::LibRate, BookItem::Column::UserRate);
+
+		if (isRate)
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::transparent);
 		else if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		QStyledItemDelegate::paint(painter, o, index);
-		if (column == BookItem::Column::LibRate)
+		if (isRate)
 			RenderLibRate(painter, o, index);
 	}
 

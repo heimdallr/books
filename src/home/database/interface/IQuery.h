@@ -24,33 +24,33 @@ public:
 	virtual const char * GetRawString(size_t index) const = 0;
 
 	template<typename T>
-	T Get(size_t index) const
+	T Get(const size_t index) const
 	{
 		return GetImpl<T>(*this, index);
 	}
 };
 
-template<> inline int GetImpl(const IQuery & query, size_t index)
+template<> inline int GetImpl(const IQuery & query, const size_t index)
 {
 	return query.GetInt(index);
 }
 
-template<> inline long long int GetImpl(const IQuery & query, size_t index)
+template<> inline long long int GetImpl(const IQuery & query, const size_t index)
 {
 	return query.GetLong(index);
 }
 
-template<> inline double GetImpl(const IQuery & query, size_t index)
+template<> inline double GetImpl(const IQuery & query, const size_t index)
 {
 	return query.GetDouble(index);
 }
 
-template<> inline std::string GetImpl(const IQuery & query, size_t index)
+template<> inline std::string GetImpl(const IQuery & query, const size_t index)
 {
 	return query.GetString(index);
 }
 
-template<> inline const char * GetImpl(const IQuery & query, size_t index)
+template<> inline const char * GetImpl(const IQuery & query, const size_t index)
 {
 	return query.GetRawString(index);
 }

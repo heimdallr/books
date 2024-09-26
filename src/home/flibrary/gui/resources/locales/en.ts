@@ -154,51 +154,56 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>Translators:</source>
+        <source>My rate:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="50"/>
-        <source>Select image file name</source>
+        <source>Translators:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="51"/>
-        <source>Select images folder</source>
+        <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="52"/>
-        <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
+        <source>Select images folder</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="53"/>
-        <source>Save &amp;all images (%1)...</source>
+        <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="54"/>
-        <source>All %1 images were successfully saved</source>
+        <source>Save &amp;all images (%1)...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="55"/>
-        <source>%1 out of %2 images were saved</source>
+        <source>All %1 images were successfully saved</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="56"/>
-        <source>%1 images out of %2 could not be saved</source>
+        <source>%1 out of %2 images were saved</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="57"/>
-        <source>Cannot save image to %1</source>
+        <source>%1 images out of %2 could not be saved</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="58"/>
+        <source>Cannot save image to %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="59"/>
         <source>Cannot open %1</source>
         <translation></translation>
     </message>

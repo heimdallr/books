@@ -41,6 +41,8 @@ constexpr auto     GROUPS_ADD_TO              = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto         GROUPS_ADD_TO_NEW      = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
 constexpr auto     GROUPS_REMOVE_FROM         = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
 constexpr auto         GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
+constexpr auto MY_RATE                        = QT_TRANSLATE_NOOP("BookContextMenu", "&My rate");
+constexpr auto     REMOVE_MY_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove my rate");
 constexpr auto CHECK                          = QT_TRANSLATE_NOOP("BookContextMenu", "&Check");
 constexpr auto     CHECK_ALL                  = QT_TRANSLATE_NOOP("BookContextMenu", "&Check all");
 constexpr auto     UNCHECK_ALL                = QT_TRANSLATE_NOOP("BookContextMenu", "&Uncheck all");
@@ -56,6 +58,7 @@ constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMe
 TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
+constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, 0) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
 constexpr auto DIALOG_KEY = "Export";
 
 using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
@@ -123,6 +126,20 @@ void CreateGroupMenu(const IDataItem::Ptr & root, const QString & id, DB::IDatab
 
 	Add(add, Tr(GROUPS_ADD_TO_NEW), BooksMenuAction::AddToNewGroup)
 		->SetData(QString::number(-1), MenuItem::Column::Parameter);
+}
+
+void CreateMyRateMenu(const IDataItem::Ptr & root, const QString & id, DB::IDatabase & db)
+{
+	const auto parent = Add(root, Tr(MY_RATE));
+	for (int rate = 1; rate <= 5; ++rate)
+		Add(parent, QString().assign(rate, QChar(9733)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+
+	const auto query = db.CreateQuery(USER_RATE_QUERY);
+	query->Bind(0, id.toInt());
+	query->Execute();
+	assert(!query->Eof());
+	if (const auto currentUserRate = query->Get<int>(0); currentUserRate != 0)
+		Add(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
 }
 
 void CreateSendMenu(const IDataItem::Ptr & root, const IScriptController::Scripts & scripts)
@@ -200,7 +217,10 @@ public:
 			CreateSendMenu(result, scripts);
 
 			if (type == ItemType::Books)
+			{
 				CreateGroupMenu(result, id, *db);
+				CreateMyRateMenu(result, id, *db);
+			}
 
 			CreateCheckMenu(result);
 			CreateTreeMenu(result, options);
@@ -230,6 +250,11 @@ private: // IContextMenuHandler
 	void RemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), true);
+	}
+
+	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), false);
 	}
 
 	void CheckAll(QAbstractItemModel * model, const QModelIndex &, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -270,11 +295,6 @@ private: // IContextMenuHandler
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] { callback(item); });
 	}
 
-	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
-	{
-		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), false);
-	}
-
 	void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
@@ -293,6 +313,41 @@ private: // IContextMenuHandler
 	void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+	}
+
+	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		m_databaseUser->Execute({ "Set my rate", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)] () mutable
+		{
+			const auto db = m_databaseUser->Database();
+			const auto transaction = db->CreateTransaction();
+			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate) values(:id, :user_rate)");
+			const auto rate = [&]
+			{
+				const auto str = item->GetData(MenuItem::Column::Parameter);
+				assert(!str.isEmpty());
+				bool ok = false;
+				const auto value = str.toInt(&ok);
+				return ok ? value : 0;
+			}();
+
+			for (const auto & id : ids)
+			{
+				command->Bind(":id", id);
+				if (rate)
+					command->Bind(":user_rate", rate);
+				else
+					command->Bind(":user_rate");
+				command->Execute();
+			}
+			transaction->Commit();
+
+			return [this, item = std::move(item), callback = std::move(callback)] (size_t)
+			{
+				callback(item);
+				m_dataProvider->RequestBooks(true);
+			};
+		} });
 	}
 
 	void SendAsArchive(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override

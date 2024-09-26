@@ -83,7 +83,7 @@ private:
 void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, u.IsDeleted "
+		"select b.Folder, b.FileName, u.IsDeleted, u.UserRate "
 		"from Books_User u "
 		"join Books b on b.BookID = u.BookID"
 		;
@@ -93,6 +93,7 @@ void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 		Constant::UserData::Books::Folder,
 		Constant::UserData::Books::FileName,
 		Constant::UserData::Books::IsDeleted,
+		Constant::UserData::Books::UserRate,
 	};
 
 	const auto query = db.CreateQuery(text);

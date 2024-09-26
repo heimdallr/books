@@ -38,6 +38,7 @@ enum class ItemType
 		BOOKS_MENU_ACTION_ITEM(AddToGroup)          \
 		BOOKS_MENU_ACTION_ITEM(RemoveFromGroup)     \
 		BOOKS_MENU_ACTION_ITEM(RemoveFromAllGroups) \
+		BOOKS_MENU_ACTION_ITEM(SetUserRate)         \
 		BOOKS_MENU_ACTION_ITEM(CheckAll)            \
 		BOOKS_MENU_ACTION_ITEM(UncheckAll)          \
 		BOOKS_MENU_ACTION_ITEM(InvertCheck)         \

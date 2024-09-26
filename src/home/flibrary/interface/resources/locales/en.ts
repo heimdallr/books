@@ -41,20 +41,25 @@
     <message>
         <location filename="../../constants/Localization.h" line="41"/>
         <source>FileName</source>
-        <translation></translation>
+        <translation>File</translation>
     </message>
     <message>
         <location filename="../../constants/Localization.h" line="42"/>
         <source>LibRate</source>
-        <translation></translation>
+        <translation>Lib rate</translation>
     </message>
     <message>
         <location filename="../../constants/Localization.h" line="43"/>
-        <source>UpdateDate</source>
-        <translation></translation>
+        <source>UserRate</source>
+        <translation>My rate</translation>
     </message>
     <message>
         <location filename="../../constants/Localization.h" line="44"/>
+        <source>UpdateDate</source>
+        <translation>Updated</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="45"/>
         <source>Lang</source>
         <translation>Language</translation>
     </message>

@@ -18,7 +18,7 @@ class Query
 	: virtual public DB::IQuery
 {
 public:
-	Query(std::mutex & mutex, sqlite3pp::database & db, std::string_view query)
+	Query(std::mutex & mutex, sqlite3pp::database & db, const std::string_view query)
 		: m_lock(mutex)
 		, m_query(db, query.data())
 	{
@@ -47,7 +47,7 @@ private: // Query
 		return static_cast<size_t>(m_query.column_count());
 	}
 
-	std::string ColumnName(size_t index) const override
+	std::string ColumnName(const size_t index) const override
 	{
 		return m_query.column_name(Index(index));
 	}
@@ -77,42 +77,52 @@ private: // Query
 		return Get<const char *>(index);
 	}
 
-	int BindInt(size_t index, int value) override
+	int Bind(const size_t index) override
+	{
+		return m_query.bind(Index(index) + 1);
+	}
+
+	int BindInt(const size_t index, const int value) override
 	{
 		return m_query.bind(Index(index) + 1, value);
 	}
 
-	int BindLong(size_t index, long long int value) override
+	int BindLong(const size_t index, const long long int value) override
 	{
 		return m_query.bind(Index(index) + 1, value);
 	}
 
-	int BindDouble(size_t index, double value) override
+	int BindDouble(const size_t index, const double value) override
 	{
 		return m_query.bind(Index(index) + 1, value);
 	}
 
-	int BindString(size_t index, const std::string & value) override
+	int BindString(const size_t index, const std::string & value) override
 	{
 		return m_query.bind(Index(index) + 1, value, sqlite3pp::copy);
 	}
 
-	int BindInt(std::string_view name, int value) override
+	int Bind(const std::string_view name) override
+	{
+		return m_query.bind(name.data());
+	}
+
+	int BindInt(const std::string_view name, const int value) override
 	{
 		return m_query.bind(name.data(), value);
 	}
 
-	int BindLong(std::string_view name, long long int value) override
+	int BindLong(const std::string_view name, const long long int value) override
 	{
 		return m_query.bind(name.data(), value);
 	}
 
-	int BindDouble(std::string_view name, double value) override
+	int BindDouble(const std::string_view name, const double value) override
 	{
 		return m_query.bind(name.data(), value);
 	}
 
-	int BindString(std::string_view name, const std::string & value) override
+	int BindString(const std::string_view name, const std::string & value) override
 	{
 		return m_query.bind(name.data(), value, sqlite3pp::copy);
 	}
