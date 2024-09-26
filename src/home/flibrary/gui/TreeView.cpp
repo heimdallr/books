@@ -63,52 +63,6 @@ constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
 	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
 };
 
-void GenerateMenu(QMenu & menu, const IDataItem & item, ITreeViewController & controller, const QAbstractItemView & view)
-{
-	const auto font = menu.font();
-	std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
-	while (!stack.empty())
-	{
-		auto [parent, subMenu] = stack.top();
-		stack.pop();
-
-		for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
-		{
-			auto child = parent->GetChild(i);
-			const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
-			const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
-			const auto title = child->GetData().toStdString();
-
-			if (child->GetChildCount() != 0)
-			{
-				auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(Loc::Tr(controller.TrContext(), title.data()))).second;
-				subSubMenu->setFont(font);
-				subSubMenu->setEnabled(enabled);
-				continue;
-			}
-
-			if (const auto childId = child->GetData(MenuItem::Column::Id).toInt(); childId < 0)
-			{
-				subMenu->addSeparator();
-				continue;
-			}
-
-			auto * action = subMenu->addAction(Loc::Tr(controller.TrContext(), title.data()), [&, child = std::move(child)] () mutable
-			{
-				auto selected = view.selectionModel()->selectedIndexes();
-				const auto [begin, end] = std::ranges::remove_if(selected, [] (const auto & index)
-				{
-					return index.column() != 0;
-				});
-				selected.erase(begin, end);
-				controller.OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
-			});
-
-			action->setEnabled(enabled);
-		}
-	}
-}
-
 class HeaderView final
 	: public QHeaderView
 {
@@ -246,7 +200,7 @@ public:
 		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&] (const QString & id, const IDataItem::Ptr & item)
 		{
 			if (m_ui.treeView->currentIndex().data(Role::Id).toString() == id)
-				GenerateMenu(menu, *item, *m_controller, *m_ui.treeView);
+				GenerateMenu(menu, *item);
 		});
 	}
 
@@ -418,8 +372,57 @@ private:
 
 		QMenu menu;
 		menu.setFont(m_self.font());
-		GenerateMenu(menu, *item, *m_controller, *m_ui.treeView);
+		GenerateMenu(menu, *item);
 		menu.exec(QCursor::pos());
+	}
+
+	void GenerateMenu(QMenu & menu, const IDataItem & item)
+	{
+		const auto font = menu.font();
+		std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
+		while (!stack.empty())
+		{
+			auto [parent, subMenu] = stack.top();
+			stack.pop();
+
+			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
+			{
+				auto child = parent->GetChild(i);
+				const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
+				const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
+				const auto title = child->GetData().toStdString();
+
+				if (child->GetChildCount() != 0)
+				{
+					auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(Loc::Tr(m_controller->TrContext(), title.data()))).second;
+					subSubMenu->setFont(font);
+					subSubMenu->setEnabled(enabled);
+					continue;
+				}
+
+				if (const auto childId = child->GetData(MenuItem::Column::Id).toInt(); childId < 0)
+				{
+					subMenu->addSeparator();
+					continue;
+				}
+
+				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)] () mutable
+				{
+					const auto & view = *m_ui.treeView;
+					m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
+
+					auto selected = view.selectionModel()->selectedIndexes();
+					const auto [begin, end] = std::ranges::remove_if(selected, [] (const auto & index)
+					{
+						return index.column() != 0;
+					});
+					selected.erase(begin, end);
+					m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
+				});
+
+				action->setEnabled(enabled);
+			}
+		}
 	}
 
 	void Setup()

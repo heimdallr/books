@@ -138,8 +138,11 @@ void CreateMyRateMenu(const IDataItem::Ptr & root, const QString & id, DB::IData
 	query->Bind(0, id.toInt());
 	query->Execute();
 	assert(!query->Eof());
-	if (const auto currentUserRate = query->Get<int>(0); currentUserRate != 0)
-		Add(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+	if (const auto currentUserRate = query->Get<int>(0); currentUserRate == 0)
+		return;
+
+	Add(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	Add(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
 }
 
 void CreateSendMenu(const IDataItem::Ptr & root, const IScriptController::Scripts & scripts)
