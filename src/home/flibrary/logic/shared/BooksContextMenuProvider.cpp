@@ -132,7 +132,7 @@ void CreateMyRateMenu(const IDataItem::Ptr & root, const QString & id, DB::IData
 {
 	const auto parent = Add(root, Tr(MY_RATE));
 	for (int rate = 1; rate <= 5; ++rate)
-		Add(parent, QString("&%1").arg(rate), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+		Add(parent, QString().assign(rate, QChar(9733)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
