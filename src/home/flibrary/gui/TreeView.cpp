@@ -629,6 +629,8 @@ private:
 				for (auto i = 0, sz = header->count(); i < sz; ++i)
 					header->showSection(i);
 
+			OnHeaderSectionsVisibleChanged();
+
 			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
 			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(sortIndex, sortOrder)), Role::SortOrder);
@@ -663,6 +665,16 @@ private:
 		header->setSortIndicator(sortIndex, sortOrder);
 	}
 
+	void OnHeaderSectionsVisibleChanged() const
+	{
+		QVector<int> visibleSections;
+		const auto * header = m_ui.treeView->header();
+		for (int i = 0, sz = header->count(); i < sz; ++i)
+			if (!header->isSectionHidden(i))
+				visibleSections << header->logicalIndex(i);
+		m_ui.treeView->model()->setData({}, QVariant::fromValue(visibleSections), Role::VisibleColumns);
+	}
+
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
@@ -677,7 +689,7 @@ private:
 		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [=, this_ = this] (const bool checked)
+			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index] (const bool checked)
 			{
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
@@ -686,6 +698,7 @@ private:
 					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 
 				this_->SaveHeaderLayout();
+				this_->OnHeaderSectionsVisibleChanged();
 			});
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));

@@ -28,6 +28,7 @@ struct Role
 		TextFilter,
 		LanguageFilter,
 		ShowRemovedFilter,
+		VisibleColumns,
 		Selected,
 		SortOrder,
 		CheckAll,
