@@ -70,11 +70,8 @@ public:
 	explicit HeaderView(QWidget * parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
 	{
-	}
-
-	void setModel(QAbstractItemModel * model) override
-	{
-		QHeaderView::setModel(model);
+		setFirstSectionMovable(false);
+		setSectionsMovable(true);
 	}
 
 private: // QHeaderView
