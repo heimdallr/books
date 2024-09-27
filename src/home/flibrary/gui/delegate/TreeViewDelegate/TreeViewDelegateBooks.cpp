@@ -1,6 +1,7 @@
 #include "TreeViewDelegateBooks.h"
 
 #include <QAbstractScrollArea>
+#include <QApplication>
 #include <QPainter>
 #include <QStyledItemDelegate>
 
