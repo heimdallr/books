@@ -35,8 +35,11 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 #define RESTORE_ITEMS_X_MACRO     \
 		RESTORE_ITEM(Books, 1)    \
 		RESTORE_ITEM(Books, 2)    \
+		RESTORE_ITEM(Books, 3)    \
 		RESTORE_ITEM(Groups, 1)   \
-		RESTORE_ITEM(Searches, 1)
+		RESTORE_ITEM(Groups, 3)   \
+		RESTORE_ITEM(Searches, 1) \
+		RESTORE_ITEM(Searches, 3)
 
 namespace HomeCompa::Flibrary::UserData {
 
