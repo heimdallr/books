@@ -20,7 +20,6 @@ struct Book
 		, const std::wstring_view format_
 		, const size_t size_
 		, const bool isDeleted_
-		, const std::wstring_view keywords_ = {}
 	)
 		: id(id_)
 		, libId(libId_)
@@ -36,7 +35,6 @@ struct Book
 		, format(InsertDot(format_))
 		, size(size_)
 		, isDeleted(isDeleted_)
-		, keywords(keywords_)
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -120,9 +118,9 @@ using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &,
 struct Data
 {
 	Books books;
-	Dictionary authors, series;
+	Dictionary authors, series, keywords;
 	Genres genres;
-	Links booksAuthors, booksGenres;
+	Links booksAuthors, booksGenres, booksKeywords;
 	SettingsTableData settings;
 	Folders folders;
 };

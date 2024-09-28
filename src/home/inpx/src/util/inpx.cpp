@@ -1,9 +1,11 @@
 #pragma warning(push, 0)
 
+#include <cwctype>
 #include <filesystem>
 #include <fstream>
 #include <future>
 #include <queue>
+#include <ranges>
 #include <set>
 
 #include <QDir>
@@ -217,13 +219,13 @@ T Add(std::wstring_view value, Dictionary & container, const GetIdFunctor & getI
 	return static_cast<T>(it->second);
 }
 
-std::set<size_t> ParseItem(const std::wstring_view data, Dictionary & container, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+std::set<size_t> ParseItem(const std::wstring_view data, Dictionary & container, const wchar_t separator, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
 {
 	std::set<size_t> result;
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
 	{
-		const auto value = Next(it, std::cend(data), LIST_SEPARATOR);
+		const auto value = Next(it, std::cend(data), separator);
 		result.emplace(Add<size_t>(value, container, getId, find));
 	}
 	return result;
@@ -301,13 +303,13 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 	idGenres.emplace(itIndexDate->second);
 }
 
-BookBuf ParseBook(const std::wstring & line)
+BookBuf ParseBook(std::wstring & line)
 {
-	auto it = std::cbegin(line);
-	const auto end = std::cend(line);
+	auto it = std::begin(line);
+	const auto end = std::end(line);
 
 	//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-	return BookBuf
+	BookBuf buf
 	{
 		.authors = Next(it, end, FIELDS_SEPARATOR),
 		.genres = Next(it, end, FIELDS_SEPARATOR),
@@ -321,9 +323,11 @@ BookBuf ParseBook(const std::wstring & line)
 		.ext = Next(it, end, FIELDS_SEPARATOR),
 		.date = Next(it, end, FIELDS_SEPARATOR),
 		.lang = Next(it, end, FIELDS_SEPARATOR),
-		.rate = Next(it, end, FIELDS_SEPARATOR)
-//		.keywords = Next(it, end, FIELDS_SEPARATOR)
+		.rate = Next(it, end, FIELDS_SEPARATOR),
 	};
+	std::transform(it, end, it, std::towlower);
+	buf.keywords = Next(it, end, FIELDS_SEPARATOR);
+	return buf;
 }
 
 QString ToString(const Fb2Parser::Data::Authors & authors)
@@ -469,10 +473,10 @@ void ExecuteScript(const std::wstring & action, const Path & dbFileName, const P
 	}
 }
 
-template<typename It, typename Functor>
-size_t StoreRange(const Path & dbFileName, std::string_view process, const std::string_view query, It beg, It end, Functor && f)
+template<typename Container, typename Functor>
+size_t StoreRange(const Path & dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor && f)
 {
-	const auto rowsTotal = static_cast<size_t>(std::distance(beg, end));
+	const auto rowsTotal = std::size(container);
 	if (rowsTotal == 0)
 		return rowsTotal;
 
@@ -488,7 +492,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 		PLOGI << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
-	const auto result = std::accumulate(beg, end, size_t { 0 }, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const typename It::value_type & value)
+	const auto result = std::accumulate(std::cbegin(container), std::cend(container), size_t {0}, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const auto & init, const auto & value)
 	{
 		f(cmd, value);
 		const auto localResult = 0
@@ -523,7 +527,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 size_t Store(const Path & dbFileName, const Data & data)
 {
 	size_t result = 0;
-	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", std::cbegin(data.authors), std::cend(data.authors), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", data.authors, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
@@ -533,7 +537,12 @@ size_t Store(const Path & dbFileName, const Data & data)
 		cmd.binder() << id << ToMultiByte(last) << ToMultiByte(first) << ToMultiByte(middle);
 	});
 
-	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", std::cbegin(data.series), std::cend(data.series), [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	{
+		cmd.binder() << item.second << ToMultiByte(item.first);
+	});
+
+	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle) VALUES (?, ?)", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		cmd.binder() << item.second << ToMultiByte(item.first);
 	});
@@ -542,7 +551,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 	for (size_t i = 0, sz = std::size(data.genres); i < sz; ++i)
 		if (data.genres[i].newGenre)
 			newGenresIndex.push_back(i);
-	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", std::next(std::cbegin(newGenresIndex)), std::cend(newGenresIndex), [&genres = data.genres](sqlite3pp::command & cmd, const size_t n)
+	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", newGenresIndex | std::views::drop(1), [&genres = data.genres](sqlite3pp::command & cmd, const size_t n)
 	{
 		cmd.binder() << ToMultiByte(genres[n].dbCode) << ToMultiByte(genres[genres[n].parentId].dbCode) << ToMultiByte(genres[n].code) << ToMultiByte(genres[n].name);
 	});
@@ -553,7 +562,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 		"Folder   , FileName  , InsideNo , Ext     , "
 		"BookSize , IsLocal   , IsDeleted, KeyWords"
 		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	result += StoreRange(dbFileName, "Books", queryText, std::cbegin(data.books), std::cend(data.books), [] (sqlite3pp::command & cmd, const Book & book)
+	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
 																		   cmd.bind( 1, book.id);
 																		   cmd.bind( 2, ToMultiByte(book.libId), sqlite3pp::copy);
@@ -573,18 +582,23 @@ size_t Store(const Path & dbFileName, const Data & data)
 			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, ToMultiByte(book.keywords), sqlite3pp::copy);
 	});
 
-	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", std::cbegin(data.booksAuthors), std::cend(data.booksAuthors), [] (sqlite3pp::command & cmd, const Links::value_type & item)
+	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", data.booksAuthors, [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
 	});
 
-	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", std::cbegin(data.booksGenres), std::cend(data.booksGenres), [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
+	result += StoreRange(dbFileName, "Keyword_List", "INSERT INTO Keyword_List (KeywordID, BookID) VALUES(?, ?)", data.booksKeywords, [] (sqlite3pp::command & cmd, const Links::value_type & item)
+	{
+		cmd.binder() << item.second << item.first;
+	});
+
+	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", data.booksGenres, [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
 	});
 
-	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", std::cbegin(data.settings), std::cend(data.settings), [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
+	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", data.settings, [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
 	{
 		cmd.binder() << static_cast<size_t>(item.first) << item.second;
 	});
@@ -744,10 +758,13 @@ std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, const Path & 
 void SetNextId(sqlite3pp::database & db)
 {
 	sqlite3pp::query query(db,
-		"select coalesce(max(m), 0) from "
-		"(select max(BookID) m from Books "
-		"union select max(AuthorID) m from Authors "
-		"union select max(SeriesID) m from Series)");
+		"select coalesce(max(m), 0) from ("
+		      "select max(BookID)    m from Books "
+		"union select max(AuthorID)  m from Authors "
+		"union select max(SeriesID)  m from Series "
+		"union select max(KeywordID) m from Keywords "
+		")"
+	);
 	g_id = (*query.begin()).get<long long>(0);
 	PLOGI << "Next Id: " << g_id;
 }
@@ -760,6 +777,7 @@ std::pair<Data, Dictionary> ReadData(const Path & dbFileName, const Path & genre
 	SetNextId(db);
 	data.authors = ReadDictionary("authors", db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors");
 	data.series = ReadDictionary("series", db, "select SeriesID, SeriesTitle from Series");
+	data.keywords = ReadDictionary("keywords", db, "select KeywordID, KeywordTitle from Keywords");
 	auto [genres, genresIndex] = ReadGenres(db, genresFileName);
 	data.genres = std::move(genres);
 
@@ -925,15 +943,12 @@ private:
 
 		const auto filter = [] (Dictionary & dst, const Dictionary & src)
 		{
-			for (auto it = dst.begin(); it != dst.end(); )
-				if (src.contains(it->first))
-					it = dst.erase(it);
-				else
-					++it;
+			erase_if(dst, [&] (const auto & item){ return src.contains(item.first); });
 		};
 
 		filter(m_data.authors, oldData.authors);
 		filter(m_data.series, oldData.series);
+		filter(m_data.keywords, oldData.keywords);
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
@@ -990,6 +1005,8 @@ private:
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
+		[[maybe_unused]] const auto * r = std::setlocale(LC_ALL, "en_US.utf8");
+
 		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
 		{
@@ -1001,6 +1018,15 @@ private:
 
 			PLOGI << m_n << " rows parsed";
 		}
+
+		Dictionary keywords;
+		std::ranges::transform(m_data.keywords, std::inserter(keywords, keywords.end()), [] (const auto& item)
+		{
+			std::wstring value = item.first;
+			std::ranges::transform(value | std::views::take(1), std::begin(value), std::towupper);
+			return std::make_pair(value, item.second);
+		});
+		m_data.keywords = std::move(keywords);
 
 		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 		{
@@ -1071,7 +1097,7 @@ private:
 			if (byteArray.isEmpty())
 				break;
 
-			const auto line = ToWide(byteArray.constData());
+			auto line = ToWide(byteArray.constData());
 			const auto buf = ParseBook(line);
 			AddBook(files, buf, folder);
 		}
@@ -1128,7 +1154,7 @@ private:
 			<< "0"
 			;
 
-		const auto line = values.join(FIELDS_SEPARATOR).toStdWString();
+		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(line);
 
 		std::lock_guard lock(m_dataGuard);
@@ -1141,10 +1167,9 @@ private:
 		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
 		files.emplace(ToLower(file));
 
-		for (const auto idAuthor : ParseItem(buf.authors, m_data.authors))
-			m_data.booksAuthors.emplace_back(id, idAuthor);
+		std::ranges::transform(ParseItem(buf.authors, m_data.authors, LIST_SEPARATOR), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
-		auto idGenres = ParseItem(buf.genres, m_genresIndex,
+		auto idGenres = ParseItem(buf.genres, m_genresIndex, LIST_SEPARATOR,
 			[&, &data = m_data.genres] (std::wstring_view newItemTitle)
 			{
 				const auto result = std::size(data);
@@ -1171,7 +1196,15 @@ private:
 			return std::make_pair(id, idGenre);
 		});
 
-		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false)/*, keywords*/);
+		if (!buf.keywords.empty())
+		{
+			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, L','), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
+			{
+				return std::make_pair(id, idKeyword);
+			});
+		}
+
+		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false));
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
