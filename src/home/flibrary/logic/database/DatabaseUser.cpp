@@ -80,6 +80,11 @@ std::shared_ptr<DB::IDatabase> DatabaseUser::Database() const
 	return m_impl->databaseController->GetDatabase();
 }
 
+std::shared_ptr<DB::IDatabase> DatabaseUser::CheckDatabase() const
+{
+	return m_impl->databaseController->CheckDatabase();
+}
+
 std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 {
 	return m_impl->executor;

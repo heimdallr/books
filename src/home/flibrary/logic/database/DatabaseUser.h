@@ -31,6 +31,7 @@ public:
 public:
 	size_t Execute(Util::IExecutor::Task && task, int priority = 0) const;
 	std::shared_ptr<DB::IDatabase> Database() const;
+	std::shared_ptr<DB::IDatabase> CheckDatabase() const;
 	std::shared_ptr<Util::IExecutor> Executor() const;
 
 public:
