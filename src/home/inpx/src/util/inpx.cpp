@@ -79,6 +79,11 @@ size_t GetIdDefault(std::wstring_view)
 	return GetId();
 }
 
+bool ParseCheckerDefault(std::wstring_view)
+{
+	return true;
+}
+
 Dictionary::const_iterator FindDefault(const Dictionary & container, const std::wstring_view value)
 {
 	return container.find(value);
@@ -219,13 +224,19 @@ T Add(std::wstring_view value, Dictionary & container, const GetIdFunctor & getI
 	return static_cast<T>(it->second);
 }
 
-std::set<size_t> ParseItem(const std::wstring_view data, Dictionary & container, const wchar_t separator, const GetIdFunctor & getId = &GetIdDefault, const FindFunctor & find = &FindDefault)
+std::set<size_t> ParseItem(const std::wstring_view data
+	, Dictionary & container
+	, const wchar_t separator = LIST_SEPARATOR
+	, const ParseChecker & parseChecker = &ParseCheckerDefault
+	, const GetIdFunctor & getId = &GetIdDefault
+	, const FindFunctor & find = &FindDefault
+)
 {
 	std::set<size_t> result;
 	auto it = std::cbegin(data);
 	while (it != std::cend(data))
 	{
-		const auto value = Next(it, std::cend(data), separator);
+		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
 		result.emplace(Add<size_t>(value, container, getId, find));
 	}
 	return result;
@@ -1167,9 +1178,9 @@ private:
 		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
 		files.emplace(ToLower(file));
 
-		std::ranges::transform(ParseItem(buf.authors, m_data.authors, LIST_SEPARATOR), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
+		std::ranges::transform(ParseItem(buf.authors, m_data.authors), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
-		auto idGenres = ParseItem(buf.genres, m_genresIndex, LIST_SEPARATOR,
+		auto idGenres = ParseItem(buf.genres, m_genresIndex, LIST_SEPARATOR, &ParseCheckerDefault,
 			[&, &data = m_data.genres] (std::wstring_view newItemTitle)
 			{
 				const auto result = std::size(data);
@@ -1198,10 +1209,10 @@ private:
 
 		if (!buf.keywords.empty())
 		{
-			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, L','), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
+			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, L',', [] (const std::wstring_view item)
 			{
-				return std::make_pair(id, idKeyword);
-			});
+				return !item.starts_with(L"docid:");
+			}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword) { return std::make_pair(id, idKeyword); });
 		}
 
 		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false));

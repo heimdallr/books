@@ -114,6 +114,7 @@ using Folders = std::unordered_set<std::wstring, WStringHash, std::equal_to<>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
+using ParseChecker = std::function<bool(std::wstring_view)>;
 
 struct Data
 {
