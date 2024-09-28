@@ -31,7 +31,7 @@ constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.Folder  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
-constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and b.SearchTitle like '%'||MHL_UPPER(su.Title)||'%'";
+constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and MHL_UPPER(b.Title) like '%'||MHL_UPPER(su.Title)||'%'";
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 
