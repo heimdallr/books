@@ -415,7 +415,10 @@ private: // IAnnotationController::IObserver
 		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetAnnotation());
-		Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
+
+		auto& keywords = dataProvider.GetKeywords();
+		if (keywords.GetChildCount() == 0)
+			Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
 		Add(annotation, Table()
 			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
@@ -423,7 +426,7 @@ private: // IAnnotationController::IObserver
 			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
 			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
 			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
-			.Add(KEYWORDS, Urls(KEYWORDS, dataProvider.GetKeywords()))
+			.Add(KEYWORDS, Urls(KEYWORDS, keywords))
 			.ToString());
 
 		if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
