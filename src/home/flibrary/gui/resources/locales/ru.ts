@@ -129,81 +129,86 @@
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="44"/>
+        <source>Keywords:</source>
+        <translation>Ключевые слова:</translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>File:</source>
         <translation>Файл:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>Size:</source>
         <translation>Размер:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Images:</source>
         <translation>Картинки:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Updated:</source>
         <translation>Обновлён:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="48"/>
+        <location filename="../../AnnotationWidget.cpp" line="49"/>
         <source>Rate:</source>
         <translation>Рейтинг:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="49"/>
+        <location filename="../../AnnotationWidget.cpp" line="50"/>
         <source>My rate:</source>
         <translation>Мой рейтинг:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="50"/>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
         <source>Translators:</source>
         <translation>Перевод:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="51"/>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="52"/>
+        <location filename="../../AnnotationWidget.cpp" line="53"/>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="53"/>
+        <location filename="../../AnnotationWidget.cpp" line="54"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="54"/>
+        <location filename="../../AnnotationWidget.cpp" line="55"/>
         <source>Save &amp;all images (%1)...</source>
         <translation>Сохранить &amp;все изображения (%1)...</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="55"/>
+        <location filename="../../AnnotationWidget.cpp" line="56"/>
         <source>All %1 images were successfully saved</source>
         <translation>Все %1 изображения успешно сохранены</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="56"/>
+        <location filename="../../AnnotationWidget.cpp" line="57"/>
         <source>%1 out of %2 images were saved</source>
         <translation>Были сохранены %1 изображения из %2</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="57"/>
+        <location filename="../../AnnotationWidget.cpp" line="58"/>
         <source>%1 images out of %2 could not be saved</source>
         <translation>%1 изображений из %2 сохранить не удалось</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="58"/>
+        <location filename="../../AnnotationWidget.cpp" line="59"/>
         <source>Cannot save image to %1</source>
         <translation>Не удалось сохранить изображение в %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="59"/>
+        <location filename="../../AnnotationWidget.cpp" line="60"/>
         <source>Cannot open %1</source>
         <translation>Не удалось открыть %1</translation>
     </message>

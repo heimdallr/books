@@ -157,3 +157,15 @@ CREATE TABLE Searches_User (
     CreatedAt DATETIME
 );
 --@@
+
+CREATE TABLE Keywords (
+  KeywordID     INTEGER       NOT NULL,
+  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE
+);
+--@@
+
+CREATE TABLE Keyword_List (
+  KeywordID INTEGER NOT NULL,
+  BookID    INTEGER NOT NULL
+);
+--@@

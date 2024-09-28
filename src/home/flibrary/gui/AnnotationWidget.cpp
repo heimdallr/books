@@ -35,12 +35,13 @@ using namespace HomeCompa::Flibrary;
 namespace {
 
 constexpr auto CONTEXT = "Annotation";
-constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
+constexpr auto KEYWORDS_FB2 = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
 constexpr auto AUTHORS = QT_TRANSLATE_NOOP("Annotation", "Authors:");
 constexpr auto SERIES = QT_TRANSLATE_NOOP("Annotation", "Series:");
 constexpr auto GENRES = QT_TRANSLATE_NOOP("Annotation", "Genres:");
 constexpr auto ARCHIVE = QT_TRANSLATE_NOOP("Annotation", "Archives:");
 constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
+constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords:");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
@@ -70,9 +71,12 @@ constexpr const char * CUSTOM_URL_SCHEMA[]
 	AUTHORS,
 	SERIES,
 	GENRES,
+	KEYWORDS,
 	ARCHIVE,
 	GROUPS,
+	nullptr
 };
+static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
 
 TR_DEF
 
@@ -411,7 +415,10 @@ private: // IAnnotationController::IObserver
 		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetAnnotation());
-		Add(annotation, Join(dataProvider.GetKeywords()), KEYWORDS);
+
+		auto& keywords = dataProvider.GetKeywords();
+		if (keywords.GetChildCount() == 0)
+			Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
 		Add(annotation, Table()
 			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
@@ -419,6 +426,7 @@ private: // IAnnotationController::IObserver
 			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
 			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
 			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
+			.Add(KEYWORDS, Urls(KEYWORDS, keywords))
 			.ToString());
 
 		if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)

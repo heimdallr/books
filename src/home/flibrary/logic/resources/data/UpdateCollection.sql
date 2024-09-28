@@ -31,10 +31,13 @@ CREATE UNIQUE INDEX UIX_Author_List_PrimaryKey ON Author_List (BookID, AuthorID)
 CREATE INDEX IX_AuthorList_AuthorID_BookID ON Author_List (AuthorID, BookID);
 --@@
 
-CREATE UNIQUE INDEX UIX_Groups_User_PrimaryKey ON Groups_User (GroupID);
+CREATE UNIQUE INDEX UIX_Groups_List_User_PrimaryKey ON Groups_List_User (GroupID, BookID);
 --@@
 
-CREATE UNIQUE INDEX UIX_Groups_List_User_PrimaryKey ON Groups_List_User (GroupID, BookID);
+CREATE UNIQUE INDEX UIX_Keywords_PrimaryKey ON Keywords (KeywordID);
+--@@
+
+CREATE UNIQUE INDEX UIX_Keyword_List_PrimaryKey ON Keyword_List (KeywordID, BookID);
 --@@
 
 ANALYZE;

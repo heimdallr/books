@@ -182,22 +182,27 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="80"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="81"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="82"/>
+        <location filename="../../log/LogController.cpp" line="83"/>
+        <source>Keywords:</source>
+        <translation>Ключевые слова:</translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="84"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="83"/>
+        <location filename="../../log/LogController.cpp" line="85"/>
         <source>Deleted books:</source>
         <translation>Удалено книг:</translation>
     </message>
@@ -1959,16 +1964,21 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
+        <source>Keywords</source>
+        <translation>Ключевые слова</translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="153"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>

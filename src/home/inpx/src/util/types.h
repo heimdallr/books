@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "util/StrUtil.h"
 
 struct Book
@@ -18,7 +20,6 @@ struct Book
 		, const std::wstring_view format_
 		, const size_t size_
 		, const bool isDeleted_
-		, const std::wstring_view keywords_ = {}
 	)
 		: id(id_)
 		, libId(libId_)
@@ -34,7 +35,6 @@ struct Book
 		, format(InsertDot(format_))
 		, size(size_)
 		, isDeleted(isDeleted_)
-		, keywords(keywords_)
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -88,22 +88,40 @@ struct Genre
 	}
 };
 
+struct WStringHash
+{
+	using is_transparent = void;
+	[[nodiscard]] size_t operator()(const wchar_t * txt) const
+	{
+		return std::hash<std::wstring_view>{}(txt);
+	}
+	[[nodiscard]] size_t operator()(const std::wstring_view txt) const
+	{
+		return std::hash<std::wstring_view>{}(txt);
+	}
+	[[nodiscard]] size_t operator()(const std::wstring & txt) const
+	{
+		return std::hash<std::wstring>{}(txt);
+	}
+};
+
 using Books = std::vector<Book>;
-using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
+using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::map<uint32_t, std::string>;
-using Folders = std::set<std::wstring>;
+using SettingsTableData = std::unordered_map<uint32_t, std::string>;
+using Folders = std::unordered_set<std::wstring, WStringHash, std::equal_to<>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
+using ParseChecker = std::function<bool(std::wstring_view)>;
 
 struct Data
 {
 	Books books;
-	Dictionary authors, series;
+	Dictionary authors, series, keywords;
 	Genres genres;
-	Links booksAuthors, booksGenres;
+	Links booksAuthors, booksGenres, booksKeywords;
 	SettingsTableData settings;
 	Folders folders;
 };
