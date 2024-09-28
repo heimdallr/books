@@ -63,6 +63,10 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		const auto transaction = db->CreateTransaction();
 		AddUserTables(*transaction);
 		AddUserTableField(*transaction, "Books_User", "UserRate", "INTEGER");
+		AddUserTableField(*transaction, "Books_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Groups_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Groups_List_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Searches_User", "CreatedAt", "DATETIME");
 
 		transaction->Commit();
 	}
