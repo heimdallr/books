@@ -100,9 +100,13 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase() const
+	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create) const
 	{
 		std::lock_guard lock(m_dbGuard);
+
+		if (!create)
+			return m_db;
+
 		if (m_db)
 			return m_db;
 
@@ -156,7 +160,12 @@ DatabaseController::~DatabaseController()
 
 std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
 {
-	return m_impl->GetDatabase();
+	return m_impl->GetDatabase(true);
+}
+
+std::shared_ptr<DB::IDatabase> DatabaseController::CheckDatabase() const
+{
+	return m_impl->GetDatabase(false);
 }
 
 void DatabaseController::RegisterObserver(IObserver * observer)

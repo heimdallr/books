@@ -246,7 +246,7 @@ struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 
 	~Impl() override
 	{
-		if (const auto db = this->databaseUser->Database())
+		if (const auto db = this->databaseUser->CheckDatabase())
 			db->UnregisterObserver(this);
 	}
 
