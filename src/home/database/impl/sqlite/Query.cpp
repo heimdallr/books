@@ -3,6 +3,7 @@
 
 #include "sqlite3ppext.h"
 
+#include "Database.h"
 #include "IQuery.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
@@ -20,7 +21,7 @@ class Query
 public:
 	Query(std::mutex & mutex, sqlite3pp::database & db, const std::string_view query)
 		: m_lock(mutex)
-		, m_query(db, query.data())
+		, m_query(db, LogStatement(query).data())
 	{
 	}
 

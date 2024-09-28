@@ -5,4 +5,5 @@ AddTarget(DatabaseFactory	shared_lib
 	LINK_TARGETS
 		DatabaseInt
 		DatabaseSqlite
+		logging
 )

@@ -1,5 +1,6 @@
 #include "sqlite3ppext.h"
 
+#include "Database.h"
 #include "ICommand.h"
 
 namespace HomeCompa::DB::Impl::Sqlite {
@@ -16,7 +17,7 @@ class Command
 {
 public:
 	Command(sqlite3pp::database & db, const std::string_view command)
-		: m_command(db, command.data())
+		: m_command(db, LogStatement(command).data())
 	{
 	}
 
