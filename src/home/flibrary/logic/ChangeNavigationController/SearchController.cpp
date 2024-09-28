@@ -12,7 +12,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "database/DatabaseUser.h"
-#include "userdata/constants/searches.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa;
@@ -30,6 +29,7 @@ constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Se
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query %1 already exists.\nTry again?");
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
+constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
@@ -38,7 +38,7 @@ using Names = std::unordered_set<QString>;
 long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & name)
 {
 	assert(!name.isEmpty());
-	const auto command = transaction.CreateCommand(Constant::UserData::Searches::CreateNewSearchCommandText);
+	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
 	command->Bind(0, name.toStdString());
 	command->Execute();
 
