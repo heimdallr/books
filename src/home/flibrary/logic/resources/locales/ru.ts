@@ -2025,41 +2025,41 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
         <source>Input new search string</source>
         <translation>Введите подстроку для поиска</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation>Уверены, что хотите удалить поисковые запросы (%1)?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Cannot create search query (%1)</source>
         <translation>Не удалось создать поисковый запрос %1</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query too long.
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation>Поисковый запрос %1 уже есть.
@@ -2132,37 +2132,37 @@ Try again?</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="50"/>
+        <location filename="../../userdata/restore.cpp" line="53"/>
         <source>Cannot read from %1</source>
         <translation>Jib,rf xntybz bp %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="197"/>
+        <location filename="../../userdata/restore.cpp" line="200"/>
         <source>Invalid root node name, must be %1</source>
         <translation>Неправильное имя корневого узла, должно быть %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="198"/>
+        <location filename="../../userdata/restore.cpp" line="201"/>
         <source>Cannot find version node, must be %1</source>
         <translation>Не найден узел версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="199"/>
+        <location filename="../../userdata/restore.cpp" line="202"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation>Не найден атрибут узла версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="200"/>
+        <location filename="../../userdata/restore.cpp" line="203"/>
         <source>%1: must be integer</source>
         <translation>Номер версии %1 должен быть целым значением</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="201"/>
+        <location filename="../../userdata/restore.cpp" line="204"/>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation>Версия файла %1 должна быть больше 0 и меньше %2</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="202"/>
+        <location filename="../../userdata/restore.cpp" line="205"/>
         <source>Cannot find user data node, must be %1</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>
