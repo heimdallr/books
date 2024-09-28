@@ -24,9 +24,9 @@ constexpr auto REMOVE_GROUP_CONFIRM = QT_TRANSLATE_NOOP("GroupController", "Are 
 constexpr auto GROUP_NAME_TOO_LONG = QT_TRANSLATE_NOOP("GroupController", "Group name too long.\nTry again?");
 constexpr auto GROUP_ALREADY_EXISTS = QT_TRANSLATE_NOOP("GroupController", "Group %1 already exists.\nTry again?");
 
-constexpr auto CREATE_NEW_GROUP_QUERY = "insert into Groups_User(Title) values(?)";
+constexpr auto CREATE_NEW_GROUP_QUERY = "insert into Groups_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
-constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, BookId) values(?, ?)";
+constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, BookId, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where BookID = ?";
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX = " and GroupID = ?";
 

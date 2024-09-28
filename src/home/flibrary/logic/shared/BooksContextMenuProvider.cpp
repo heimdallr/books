@@ -324,7 +324,7 @@ private: // IContextMenuHandler
 		{
 			const auto db = m_databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
-			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate) values(:id, :user_rate)");
+			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate, CreatedAt) values(:id, :user_rate, datetime(CURRENT_TIMESTAMP, 'localtime'))");
 			const auto rate = [&]
 			{
 				const auto str = item->GetData(MenuItem::Column::Parameter);
@@ -456,7 +456,7 @@ private:
 		{
 			const auto db = m_databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
-			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted) values(:id, :is_deleted)");
+			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) values(:id, :is_deleted, datetime(CURRENT_TIMESTAMP, 'localtime'))");
 			for (const auto & id : ids)
 			{
 				command->Bind(":id", id);
