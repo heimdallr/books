@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "util/StrUtil.h"
 
 struct Book
@@ -88,12 +90,29 @@ struct Genre
 	}
 };
 
+struct WStringHash
+{
+	using is_transparent = void;
+	[[nodiscard]] size_t operator()(const wchar_t * txt) const
+	{
+		return std::hash<std::wstring_view>{}(txt);
+	}
+	[[nodiscard]] size_t operator()(const std::wstring_view txt) const
+	{
+		return std::hash<std::wstring_view>{}(txt);
+	}
+	[[nodiscard]] size_t operator()(const std::wstring & txt) const
+	{
+		return std::hash<std::wstring>{}(txt);
+	}
+};
+
 using Books = std::vector<Book>;
-using Dictionary = std::map<std::wstring, size_t, StringLess<>>;
+using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::map<uint32_t, std::string>;
-using Folders = std::set<std::wstring>;
+using SettingsTableData = std::unordered_map<uint32_t, std::string>;
+using Folders = std::unordered_set<std::wstring, WStringHash, std::equal_to<>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
