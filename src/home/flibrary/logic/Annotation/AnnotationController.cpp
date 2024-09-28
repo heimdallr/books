@@ -27,6 +27,7 @@ constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s jo
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
+constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by k.KeywordTitle";
 
 enum class Ready
 {
@@ -91,6 +92,11 @@ private: // IDataProvider
 		return *m_groups;
 	}
 
+	[[nodiscard]] const IDataItem & GetKeywords() const noexcept override
+	{
+		return *m_keywords;
+	}
+
 	[[nodiscard]] const QString & GetError() const noexcept override
 	{
 		return m_archiveData.error;
@@ -111,7 +117,7 @@ private: // IDataProvider
 		return m_archiveData.epigraphAuthor;
 	}
 
-	[[nodiscard]] const std::vector<QString> & GetKeywords() const noexcept override
+	[[nodiscard]] const std::vector<QString> & GetFb2Keywords() const noexcept override
 	{
 		return m_archiveData.keywords;
 	}
@@ -231,7 +237,8 @@ private:
 			auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUser::CreateFullAuthorItem);
 			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			return [this, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups)] (size_t) mutable
+			auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
+			return [this, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups), keywords = std::move(keywords)] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
 					return;
@@ -241,6 +248,7 @@ private:
 				m_authors = std::move(authors);
 				m_genres = std::move(genres);
 				m_groups = std::move(groups);
+				m_keywords = std::move(keywords);
 				m_ready |= Ready::Database;
 
 				if (m_ready == Ready::All)
@@ -298,6 +306,7 @@ private:
 	IDataItem::Ptr m_authors;
 	IDataItem::Ptr m_genres;
 	IDataItem::Ptr m_groups;
+	IDataItem::Ptr m_keywords;
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory

@@ -30,12 +30,13 @@ public:
 		[[nodiscard]] virtual const IDataItem & GetAuthors() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem & GetGenres() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem & GetGroups() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem & GetKeywords() const noexcept = 0;
 
 		[[nodiscard]] virtual const QString & GetError() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetAnnotation() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetEpigraph() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetEpigraphAuthor() const noexcept = 0;
-		[[nodiscard]] virtual const std::vector<QString> & GetKeywords() const noexcept = 0;
+		[[nodiscard]] virtual const std::vector<QString> & GetFb2Keywords() const noexcept = 0;
 		[[nodiscard]] virtual const Covers & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
