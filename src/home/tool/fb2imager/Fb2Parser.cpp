@@ -1,5 +1,6 @@
 #include "Fb2Parser.h"
 
+#include <QTextStream>
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
@@ -25,9 +26,10 @@ class Fb2Parser::Impl final
 	: public Util::SaxParser
 {
 public:
-	explicit Impl(QIODevice & stream, QString fileName, OnBinaryFound binaryCallback)
-		: SaxParser(stream, 512)
+	explicit Impl(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
+		: SaxParser(input, 512)
 		, m_fileName(std::move(fileName))
+		, m_stream(&output)
 		, m_binaryCallback(std::move(binaryCallback))
 	{
 	}
@@ -42,7 +44,7 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString & /*name*/, const QString & path, const Util::XmlAttributes & attributes) override
+	bool OnStartElement(const QString & name, const QString & path, const Util::XmlAttributes & attributes) override
 	{
 		using ParseElementFunction = bool(Impl::*)(const Util::XmlAttributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
@@ -51,11 +53,20 @@ private: // Util::SaxParser
 			{ BINARY, &Impl::OnStartElementBinary },
 		};
 
+		m_stream << "<" << name;
+
+		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			m_stream << " " << attributes.GetName(i) << "=\"" << attributes.GetValue(i) << "\"";
+
+		m_stream << ">";
+
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & /*name*/, const QString & /*path*/) override
+	bool OnEndElement(const QString & name, const QString & /*path*/) override
 	{
+		m_stream << "</" << name << ">\n";
+
 		return true;
 	}
 
@@ -70,6 +81,9 @@ private: // Util::SaxParser
 			{ LANG              , &Impl::ParseLang },
 			{ BINARY            , &Impl::ParseBinary },
 		};
+
+		if (path.compare(BINARY, Qt::CaseInsensitive))
+			m_stream << value;
 
 		return Parse(*this, PARSERS, path, value);
 	}
@@ -124,13 +138,14 @@ private:
 
 private:
 	const QString m_fileName;
+	QTextStream m_stream;
 	const OnBinaryFound m_binaryCallback;
 	QString m_binaryId;
 	Data m_data {};
 };
 
-Fb2Parser::Fb2Parser(QIODevice & stream, QString fileName, OnBinaryFound binaryCallback)
-	: m_impl(stream, std::move(fileName), std::move(binaryCallback))
+Fb2Parser::Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
+	: m_impl(std::move(fileName), input, output, std::move(binaryCallback))
 {
 }
 

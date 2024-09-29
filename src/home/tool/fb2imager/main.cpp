@@ -3,8 +3,11 @@
 #include <QCommandLineParser>
 #include <QDir>
 #include <QFileInfo>
+#include <QImageReader>
+#include <QPixmap>
 #include <QStandardPaths>
 #include <QTranslator>
+#include <QBuffer>
 
 #include <plog/Log.h>
 #include <plog/Formatters/TxtFormatter.h>
@@ -25,6 +28,8 @@ using namespace fb2imager;
 namespace {
 
 constexpr auto APP_ID = "fb2imager";
+constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
+constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
 
 constexpr auto CONTEXT = APP_ID;
 constexpr auto APP_DESCRIPTION = QT_TRANSLATE_NOOP("fb2imager", "fb2imager extracts images from *.fb2");
@@ -39,41 +44,82 @@ constexpr auto FILE_PROCESSING_FAILED = QT_TRANSLATE_NOOP("fb2imager", "%1 proce
 constexpr auto FILE_PROCESSING_FAILED_WITH_ERRORS = QT_TRANSLATE_NOOP("fb2imager", "%1 processing failed: %2");
 constexpr auto CANNOT_OPEN_FILE = QT_TRANSLATE_NOOP("fb2imager", "Cannot open file");
 constexpr auto CANNOT_CREATE_FOLDER = QT_TRANSLATE_NOOP("fb2imager", "Cannot create folder %1");
+constexpr auto BAD_IMAGE = QT_TRANSLATE_NOOP("fb2imager", "Incorrect image %1: %2");
 constexpr auto CANNOT_WRITE_FILE = QT_TRANSLATE_NOOP("fb2imager", "Cannot write to %1");
+constexpr auto MAX_WIDTH = QT_TRANSLATE_NOOP("fb2imager", "Maximum image width");
+constexpr auto MAX_HEIGHT = QT_TRANSLATE_NOOP("fb2imager", "Maximum image height");
+constexpr auto WIDTH = QT_TRANSLATE_NOOP("fb2imager", "width");
+constexpr auto HEIGHT = QT_TRANSLATE_NOOP("fb2imager", "height");
+constexpr auto DESTINATION_FOLDER = QT_TRANSLATE_NOOP("fb2imager", "Destination folder");
+constexpr auto FOLDER = QT_TRANSLATE_NOOP("fb2imager", "folder");
+constexpr auto NEED_DESTINATION_FOLDER = QT_TRANSLATE_NOOP("fb2imager", "Destination folder required");
 
 TR_DEF
 
-void ProcessFile(const QString & file)
+bool ProcessFile(const QString & inputFilePath, const QDir & dstDir, const int maxWidth, const int maxHeight)
 {
-	QFile stream(file);
-	if (!stream.open(QIODevice::ReadOnly))
+	QFile input(inputFilePath);
+	if (!input.open(QIODevice::ReadOnly))
 		throw std::ios_base::failure(Tr(CANNOT_OPEN_FILE).toStdString());
 
-	const QFileInfo fileInfo(file);
-	const QDir dir(fileInfo.dir().filePath(fileInfo.completeBaseName()));
+	const QFileInfo fileInfo(inputFilePath);
+
+	const auto outputFilePath = dstDir.filePath(fileInfo.fileName());
+	QFile output(outputFilePath);
+	if (!output.open(QIODevice::WriteOnly))
+		throw std::ios_base::failure(Tr(CANNOT_WRITE_FILE).arg(outputFilePath).toStdString());
+
+	const QDir dir(dstDir.filePath(fileInfo.completeBaseName()));
 	if (!dir.exists() && !dir.mkpath("."))
 		throw std::ios_base::failure(Tr(CANNOT_CREATE_FOLDER).arg(dir.dirName()).toStdString());
 
-	auto binaryCallback = [&] (const QString& name, const QByteArray& body)
-	{
-	QFile image(dir.filePath(name));
-		if (!image.open(QIODevice::WriteOnly))
-			throw std::ios_base::failure(Tr(CANNOT_WRITE_FILE).arg(image.fileName()).toStdString());
 
-		image.write(body);
-	return true;
+	bool hasError = false;
+	auto binaryCallback = [&] (const QString & name, QByteArray body)
+	{
+		QBuffer buffer(&body);
+		buffer.open(QBuffer::ReadOnly);
+
+		QImageReader imageReader(&buffer);
+		auto image = imageReader.read();
+		if (image.isNull())
+		{
+			PLOGW << Tr(BAD_IMAGE).arg(name).arg(imageReader.errorString());
+			hasError = true;
+			return true;
+		}
+		image = image.scaled(maxWidth, maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+		if (!image.save(dir.filePath(name)))
+		{
+			PLOGW << Tr(CANNOT_WRITE_FILE).arg(name).arg(imageReader.errorString());
+			hasError = true;
+		}
+
+		return true;
 	};
 
-	Fb2Parser(stream, file, std::move(binaryCallback)).Parse();
+	Fb2Parser(inputFilePath, input, output, std::move(binaryCallback)).Parse();
+
+	return hasError;
+
 }
 
-void ProcessFile(const QString & file, std::atomic_bool & hasErrors)
+void ProcessFile(const QString & file, const QDir & dstDir, const int maxWidth, const int maxHeight, std::atomic_bool & hasErrors)
 {
 	try
 	{
 		PLOGI << Tr(FILE_PROCESSING).arg(file);
-		ProcessFile(file);
-		PLOGI << Tr(FILE_DONE).arg(file);
+		if (ProcessFile(file, dstDir, maxWidth, maxHeight))
+		{
+			PLOGE << Tr(FILE_PROCESSING_FAILED).arg(file);
+		}
+		else
+		{
+			PLOGI << Tr(FILE_DONE).arg(file);
+			return;
+		}
+		return;
 	}
 	catch (const std::exception & ex)
 	{
@@ -87,13 +133,13 @@ void ProcessFile(const QString & file, std::atomic_bool & hasErrors)
 	hasErrors = true;
 }
 
-bool ProcessFiles(QStringList files)
+bool ProcessFiles(QStringList files, const QDir& dstDir, const int maxWidth, const int maxHeight)
 {
 	std::atomic_bool hasErrors = false;
 
 	std::deque queue(std::make_move_iterator(files.begin()), std::make_move_iterator(files.end()));
 	for (const auto & file : queue)
-		ProcessFile(file, hasErrors);
+		ProcessFile(file, dstDir, maxWidth, maxHeight, hasErrors);
 
 	return hasErrors;
 }
@@ -102,7 +148,11 @@ QStringList ProcessWildCard(const QString & wildCard)
 {
 	const QFileInfo fileInfo(wildCard);
 	const QDir dir(fileInfo.dir());
-	return dir.entryList(QStringList() << fileInfo.fileName(), QDir::Files);
+	const auto files = dir.entryList(QStringList() << fileInfo.fileName(), QDir::Files);
+	QStringList result;
+	result.reserve(files.size());
+	std::ranges::transform(files, std::back_inserter(result), [&] (const auto & file) { return dir.filePath(file); });
+	return result;
 }
 
 bool run(int argc, char * argv[])
@@ -118,13 +168,38 @@ bool run(int argc, char * argv[])
 	parser.setApplicationDescription(Tr(APP_DESCRIPTION));
 	parser.addHelpOption();
 	parser.addVersionOption();
+	parser.addOptions({
+		{ MAX_WIDTH_OPTION_NAME, Tr(MAX_WIDTH)         , Tr(WIDTH)  },
+		{ MAX_HEIGHT_OPTION_NAME, Tr(MAX_HEIGHT)        , Tr(HEIGHT) },
+		{ { QString(FOLDER[0]), FOLDER                 }, Tr(DESTINATION_FOLDER), Tr(FOLDER) },
+		});
 	parser.process(app);
+
+	const auto getMaxSizeOption = [&] (const char * name)
+	{
+		bool ok = false;
+		const auto value = parser.value(name).toInt(&ok);
+		return ok ? value : std::numeric_limits<int>::max();
+	};
+
+	const auto maxWidth = getMaxSizeOption(MAX_WIDTH_OPTION_NAME);
+	const auto maxHeight = getMaxSizeOption(MAX_HEIGHT_OPTION_NAME);
+	const auto destinationFolder = parser.value(FOLDER);
+	if (destinationFolder.isEmpty())
+	{
+		PLOGE << Tr(NEED_DESTINATION_FOLDER).toStdString();
+		parser.showHelp(1);
+	}
+
+	const QDir dstDir(destinationFolder);
+	if (!dstDir.exists() && !dstDir.mkpath("."))
+		throw std::ios_base::failure(Tr(CANNOT_CREATE_FOLDER).arg(destinationFolder).toStdString());
 
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
 		files << ProcessWildCard(wildCard);
 
-	return ProcessFiles(std::move(files));
+	return ProcessFiles(std::move(files), dstDir, maxWidth, maxHeight);
 }
 
 }
