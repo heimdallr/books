@@ -30,7 +30,8 @@
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 

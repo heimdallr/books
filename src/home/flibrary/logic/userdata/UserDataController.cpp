@@ -10,7 +10,8 @@
 #include "backup.h"
 #include "restore.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 

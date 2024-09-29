@@ -5,20 +5,11 @@
 #include <QRegularExpression>
 #include <QUuid>
 
-#include "constants/Localization.h"
 #include "constants/ModelRole.h"
 
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
-
-namespace HomeCompa::Flibrary::Loc {
-
-QString Tr(const char * context, const char * str)
-{
-	return QCoreApplication::translate(context, str);
-}
-
-}
+#include "util/localization.h"
 
 namespace HomeCompa::Flibrary {
 

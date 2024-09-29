@@ -17,7 +17,8 @@
 
 #include "config/version.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 

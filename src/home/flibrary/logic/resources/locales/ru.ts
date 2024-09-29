@@ -210,12 +210,12 @@
 <context>
     <name>CommandLine</name>
     <message>
-        <location filename="../../shared/CommandLine.cpp" line="13"/>
+        <location filename="../../shared/CommandLine.cpp" line="14"/>
         <source>Input file</source>
         <translation>Входной файл</translation>
     </message>
     <message>
-        <location filename="../../shared/CommandLine.cpp" line="14"/>
+        <location filename="../../shared/CommandLine.cpp" line="15"/>
         <source>%1: e-book cataloger</source>
         <translation>%1: каталогизатор электронных книг</translation>
     </message>
@@ -2079,57 +2079,57 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
         <source>Download</source>
         <translation>Скачать</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>Visit download page</source>
         <translation>Перейти на страницу новой версии</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>Skip this version</source>
         <translation>Пропустить это обновление</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
         <source>%1 released!</source>
         <translation>Новая версия: %1!</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
         <source>Select folder for app installer</source>
         <translation>Укажите папку для скачивания инсталлятора</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
         <source>Run the installer?</source>
         <translation>Запустить инсталлятор?</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
         <source>Update check failed</source>
         <translation>Ошибка проверки обновлений</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
         <source>Current version %1 is actual</source>
         <translation>Текущая версия %1 актуальна</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
         <translation>Последняя версия %1, ваша версия %2. Случилось чудо?</translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
         <translation>Новая версия успешно скачана. Открыть папку с архивом?</translation>
     </message>
@@ -2177,27 +2177,27 @@ Try again?</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="18"/>
+        <location filename="../../userdata/UserDataController.cpp" line="19"/>
         <source>Specify a file to export user data</source>
         <translation>Укажите файл экспорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="19"/>
+        <location filename="../../userdata/UserDataController.cpp" line="20"/>
         <source>Select a file to import user data</source>
         <translation>Выберите файл импорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="20"/>
+        <location filename="../../userdata/UserDataController.cpp" line="21"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation>Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="21"/>
+        <location filename="../../userdata/UserDataController.cpp" line="22"/>
         <source>User data successfully recovered</source>
         <translation>Пользовательские данные восстановлены</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="22"/>
+        <location filename="../../userdata/UserDataController.cpp" line="23"/>
         <source>User data successfully saved</source>
         <translation>Пользовательские данные сохранены</translation>
     </message>
