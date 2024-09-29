@@ -1,0 +1,7 @@
+file(GLOB sources_list LIST_DIRECTORIES true "${CMAKE_CURRENT_LIST_DIR}/*")
+foreach(dir ${sources_list})
+	if(IS_DIRECTORY ${dir})
+		get_filename_component(module ${dir} NAME)
+		include("${dir}/${module}.cmake")
+	endif()
+endforeach()
