@@ -7,7 +7,7 @@
 
 class QIODevice;
 
-namespace HomeCompa::fb2imager {
+namespace HomeCompa::fb2cut {
 
 class Fb2Parser
 {
@@ -23,7 +23,7 @@ public:
 		QString error;
 	};
 
-	using OnBinaryFound = std::function<bool(const QString&, QByteArray)>;
+	using OnBinaryFound = std::function<bool(const QString& name, bool isCover, QByteArray data)>;
 
 public:
 	Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback);

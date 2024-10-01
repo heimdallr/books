@@ -1,4 +1,4 @@
-AddTarget(fb2imager	app_console
+AddTarget(fb2cut	app_console
 	PROJECT_GROUP tool
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -8,4 +8,5 @@ AddTarget(fb2imager	app_console
 	LINK_TARGETS
 		logging
 		Util
+		zip
 )

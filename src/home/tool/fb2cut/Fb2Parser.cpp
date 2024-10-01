@@ -1,24 +1,36 @@
 #include "Fb2Parser.h"
 
 #include <QTextStream>
+#include <QString>
+#include <QHash>
+
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
 using namespace HomeCompa;
-using namespace fb2imager;
+using namespace fb2cut;
 
 namespace {
 
 constexpr auto ID = "id";
+constexpr auto L_HREF = "l:href";
+constexpr auto IMAGE = "image";
+
 constexpr auto GENRE = "FictionBook/description/title-info/genre";
 constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto BINARY = "FictionBook/binary";
+constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
 
+struct hash
+{
+	std::size_t operator()(const QString & s) const noexcept { return qHash(s); }
+};
 
 }
 
@@ -51,20 +63,37 @@ private: // Util::SaxParser
 		static constexpr ParseElementItem PARSERS[]
 		{
 			{ BINARY, &Impl::OnStartElementBinary },
+			{ COVERPAGE_IMAGE, &Impl::OnStartElementCoverpageImage },
 		};
 
-		m_stream << "<" << name;
+		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
+			return Parse(*this, PARSERS, path, attributes);
 
-		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			m_stream << " " << attributes.GetName(i) << "=\"" << attributes.GetValue(i) << "\"";
+		const ScopedCall tagGuard([&] { m_stream << "<" << name; }, [&]{ m_stream << ">"; });
 
-		m_stream << ">";
+		if (name.compare(IMAGE, Qt::CaseInsensitive) == 0)
+		{
+			auto image = attributes.GetAttribute(L_HREF);
+			while (!image.isEmpty() && image.front() == '#')
+				image.removeFirst();
+
+			const auto imageName = m_imageNames.emplace(std::move(image), m_imageNames.size()).first->second;
+			m_stream << " " << L_HREF << "=\"" << imageName << "\"";
+		}
+		else
+		{
+			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+				m_stream << " " << attributes.GetName(i) << "=\"" << attributes.GetValue(i) << "\"";
+		}
 
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & name, const QString & /*path*/) override
+	bool OnEndElement(const QString & name, const QString & path) override
 	{
+		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
+			return true;
+
 		m_stream << "</" << name << ">\n";
 
 		return true;
@@ -82,8 +111,11 @@ private: // Util::SaxParser
 			{ BINARY            , &Impl::ParseBinary },
 		};
 
+		auto copy = value;
+		copy.replace("&", "&amp;").replace("'", "&apos;").replace(">", "&gt;").replace("<", "&lt;").replace("\"", "&quot;");
+
 		if (path.compare(BINARY, Qt::CaseInsensitive))
-			m_stream << value;
+			m_stream << copy;
 
 		return Parse(*this, PARSERS, path, value);
 	}
@@ -107,6 +139,15 @@ private: // Util::SaxParser
 	}
 
 private:
+	bool OnStartElementCoverpageImage(const Util::XmlAttributes & attributes)
+	{
+		m_coverpage = attributes.GetAttribute(L_HREF);
+		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
+			m_coverpage.removeFirst();
+
+		return true;
+	}
+
 	bool OnStartElementBinary(const Util::XmlAttributes & attributes)
 	{
 		m_binaryId = attributes.GetAttribute(ID);
@@ -133,7 +174,8 @@ private:
 
 	bool ParseBinary(const QString & value)
 	{
-		return m_binaryCallback(m_binaryId, QByteArray::fromBase64(value.toUtf8()));
+		const auto it = m_imageNames.find(m_binaryId);
+		return it == m_imageNames.end() || m_binaryCallback(QString::number(it->second), m_binaryId.compare(m_coverpage, Qt::CaseInsensitive) == 0, QByteArray::fromBase64(value.toUtf8()));
 	}
 
 private:
@@ -141,7 +183,9 @@ private:
 	QTextStream m_stream;
 	const OnBinaryFound m_binaryCallback;
 	QString m_binaryId;
+	QString m_coverpage;
 	Data m_data {};
+	std::unordered_map<QString, size_t, hash, std::equal_to<>> m_imageNames;
 };
 
 Fb2Parser::Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
