@@ -213,7 +213,7 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <location filename="../../AnnotationWidget.cpp" line="62"/>
         <source>Unsupported image format</source>
         <translation></translation>
     </message>
