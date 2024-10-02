@@ -671,7 +671,7 @@ private:
 		const auto * header = m_ui.treeView->header();
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (!header->isSectionHidden(i))
-				visibleSections << header->logicalIndex(i);
+				visibleSections << i;
 		m_ui.treeView->model()->setData({}, QVariant::fromValue(visibleSections), Role::VisibleColumns);
 	}
 
