@@ -175,7 +175,10 @@ private:
 	bool ParseBinary(const QString & value)
 	{
 		const auto it = m_imageNames.find(m_binaryId);
-		return it == m_imageNames.end() || m_binaryCallback(QString::number(it->second), m_binaryId.compare(m_coverpage, Qt::CaseInsensitive) == 0, QByteArray::fromBase64(value.toUtf8()));
+		if (it != m_imageNames.end())
+			m_binaryCallback(QString::number(it->second), m_binaryId.compare(m_coverpage, Qt::CaseInsensitive) == 0, QByteArray::fromBase64(value.toUtf8()));
+
+		return true;
 	}
 
 private:

@@ -23,7 +23,7 @@ public:
 		QString error;
 	};
 
-	using OnBinaryFound = std::function<bool(const QString& name, bool isCover, QByteArray data)>;
+	using OnBinaryFound = std::function<void(const QString& name, bool isCover, QByteArray data)>;
 
 public:
 	Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback);
