@@ -171,15 +171,11 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex & index) const
 	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
 		return index.data().toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 
-	QStringList list;
-	list.reserve(m_impl->m_visibleColumns.size());
-	std::ranges::transform(m_impl->m_visibleColumns, std::back_inserter(list), [&] (const auto n)
+	return std::ranges::any_of(m_impl->m_visibleColumns, [&] (const auto n)
 	{
-		auto value = index.data(Role::Author + n).toString();
-		return value;
+		auto value = index.data(Role::Author + BookItem::Remap(n)).toString();
+		return value.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 	});
-	const auto text = list.join("|");
-	return text.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 }
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex & index) const
