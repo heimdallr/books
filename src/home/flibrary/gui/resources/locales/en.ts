@@ -212,6 +212,11 @@
         <source>Cannot open %1</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <source>Unsupported image format</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
