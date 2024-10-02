@@ -58,6 +58,7 @@ constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 i
 constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
+constexpr auto UNSUPPORTED_IMAGE_FORMAT = QT_TRANSLATE_NOOP("Annotation", "Unsupported image format");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -373,15 +374,22 @@ public:
 		auto imgWidth = m_ui.mainWidget->width() / 3;
 
 		QPixmap pixmap;
-		[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes);
-		assert(ok);
-
-		if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
-			imgHeight = pixmap.height() * imgWidth / pixmap.width();
+		if (!pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes))
+		{
+			m_ui.cover->setText(Tr(UNSUPPORTED_IMAGE_FORMAT));
+			m_ui.cover->setMinimumHeight(imgHeight);
+			m_ui.cover->setMaximumHeight(imgHeight);
+		}
 		else
-			imgWidth = pixmap.width() * imgHeight / pixmap.height();
+		{
+			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
+				imgHeight = pixmap.height() * imgWidth / pixmap.width();
+			else
+				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
-		m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		}
+
 		m_ui.coverArea->setMinimumWidth(imgWidth);
 		m_ui.coverArea->setMaximumWidth(imgWidth);
 	}

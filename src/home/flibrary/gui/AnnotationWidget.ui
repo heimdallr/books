@@ -164,6 +164,12 @@
                 <property name="text">
                  <string notr="true"/>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
                 <property name="textInteractionFlags">
                  <set>Qt::NoTextInteraction</set>
                 </property>
