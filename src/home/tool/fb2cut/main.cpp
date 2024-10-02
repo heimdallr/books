@@ -30,24 +30,32 @@ namespace {
 constexpr auto APP_ID = "fb2cut";
 constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
 constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
+constexpr auto QUALITY_OPTION_NAME = "quality";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
+constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100]";
+constexpr auto DESTINATION_FOLDER = "Destination folder";
+
 constexpr auto WIDTH = "width";
 constexpr auto HEIGHT = "height";
-constexpr auto DESTINATION_FOLDER = "Destination folder";
+constexpr auto QUALITY = "quality [-1]";
 constexpr auto FOLDER = "folder";
 
-constexpr auto COVER = "cover";
+struct Settings
+{
+	int maxWidth { std::numeric_limits<int>::max() };
+	int maxHeight{ std::numeric_limits<int>::max() };
+	int quality { -1 };
+	QDir dstDir;
+};
 
 class FileProcessor
 {
 public:
-	FileProcessor(const QDir & dstDir, const int totalFiles, const int maxWidth, const int maxHeight, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
-		: m_dstDir(dstDir)
+	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
+		: m_settings(settings)
 		, m_totalFiles(totalFiles)
-		, m_maxWidth { maxWidth }
-		, m_maxHeight { maxHeight }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 	{
@@ -125,13 +133,13 @@ private:
 	}
 	bool ProcessFile(const QString & inputFilePath, QByteArray& inputFileBody)
 	{
-		PLOGV << QString("%1 of %2, parsing %3").arg(++m_filesCount).arg(m_totalFiles).arg(inputFilePath);
+		PLOGV << QString("%1(%2), parsing %3").arg(++m_filesCount).arg(m_totalFiles).arg(inputFilePath);
 
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
 
 		const QFileInfo fileInfo(inputFilePath);
-		const auto outputFilePath = m_dstDir.filePath(fileInfo.fileName());
+		const auto outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
 		const auto bodyOutput = ParseFile(inputFilePath, input);
 		if (bodyOutput.isEmpty())
@@ -173,13 +181,14 @@ private:
 			if (image.isNull())
 				return AddError(imageFile, std::move(body), QString("Incorrect image %1.%2: %3").arg(name).arg(imageFile).arg(imageReader.errorString()));
 
-			image = image.scaled(m_maxWidth, m_maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			if (image.width() > m_settings.maxWidth || image.height() > m_settings.maxHeight)
+				image = image.scaled(m_settings.maxWidth, m_settings.maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
 
-				if (!image.save(&imageOutput, "jpeg", 20))
+				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
 					return AddError(imageFile, std::move(body), QString("Cannot compress image %1.%2").arg(name).arg(imageFile));
 			}
 
@@ -201,8 +210,8 @@ private:
 	}
 
 private:
-	const QDir & m_dstDir;
-	const int m_totalFiles, m_maxWidth, m_maxHeight;
+	const Settings & m_settings;
+	const int m_totalFiles;
 	std::condition_variable & m_queueCondition;
 	std::mutex & m_queueGuard;
 	std::atomic_bool m_hasError { false };
@@ -248,13 +257,13 @@ void WriteErrors(const QDir & dir, const std::vector<std::pair<QString, QByteArr
 	}
 }
 
-bool ProcessArchiveImpl(const QString & file, const QDir & dstDir, const int maxWidth, const int maxHeight)
+bool ProcessArchiveImpl(const QString & file, Settings settings)
 {
 	const QFileInfo fileInfo(file);
-	const QDir archiveDir(dstDir.filePath(fileInfo.completeBaseName()));
-	if (!archiveDir.exists() && !archiveDir.mkpath("."))
+	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
+	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 	{
-		PLOGE << QString("Cannot create folder %1").arg(archiveDir.path());
+		PLOGE << QString("Cannot create folder %1").arg(settings.dstDir.path());
 		return true;
 	}
 
@@ -266,7 +275,7 @@ bool ProcessArchiveImpl(const QString & file, const QDir & dstDir, const int max
 
 	std::condition_variable queueCondition;
 	std::mutex queueGuard;
-	FileProcessor fileProcessor(archiveDir, static_cast<int>(fileList.size()), maxWidth, maxHeight, queueCondition, queueGuard, maxThreadCount);
+	FileProcessor fileProcessor(settings, static_cast<int>(fileList.size()), queueCondition, queueGuard, maxThreadCount);
 
 	while (!fileList.isEmpty())
 	{
@@ -292,20 +301,20 @@ bool ProcessArchiveImpl(const QString & file, const QDir & dstDir, const int max
 	fileProcessor.Wait();
 	bool hasErrors = fileProcessor.HasError();
 
-	WriteErrors(archiveDir, fileProcessor.GetErrors());
+	WriteErrors(settings.dstDir, fileProcessor.GetErrors());
 
-	hasErrors = WriteImages(QString("%1_covers.zip").arg(archiveDir.path()), fileProcessor.GetCovers()) || hasErrors;
-	hasErrors = WriteImages(QString("%1_img.zip").arg(archiveDir.path()), fileProcessor.GetImages()) || hasErrors;
+	hasErrors = WriteImages(QString("%1_covers.zip").arg(settings.dstDir.path()), fileProcessor.GetCovers()) || hasErrors;
+	hasErrors = WriteImages(QString("%1_img.zip").arg(settings.dstDir.path()), fileProcessor.GetImages()) || hasErrors;
 
 	return hasErrors;
 }
 
-bool ProcessArchive(const QString & file, const QDir & dstDir, const int maxWidth, const int maxHeight)
+bool ProcessArchive(const QString & file, const Settings & settings)
 {
 	try
 	{
 		PLOGI << QString("%1 processing").arg(file);
-		if (ProcessArchiveImpl(file, dstDir, maxWidth, maxHeight))
+		if (ProcessArchiveImpl(file, settings))
 		{
 			PLOGE << QString("%1 processing failed").arg(file);
 		}
@@ -327,11 +336,11 @@ bool ProcessArchive(const QString & file, const QDir & dstDir, const int maxWidt
 	return true;
 }
 
-QStringList ProcessArchives(QStringList files, const QDir & dstDir, const int maxWidth, const int maxHeight)
+QStringList ProcessArchives(QStringList files, const Settings& settings)
 {
 	QStringList failed;
 	for (auto && file : files)
-		if (ProcessArchive(file, dstDir, maxWidth, maxHeight))
+		if (ProcessArchive(file, settings))
 			failed << std::move(file);
 
 	return failed;
@@ -362,21 +371,25 @@ bool run(int argc, char * argv[])
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ MAX_WIDTH_OPTION_NAME         , MAX_WIDTH         , WIDTH },
-		{ MAX_HEIGHT_OPTION_NAME        , MAX_HEIGHT        , HEIGHT },
-		{ { QString(FOLDER[0]), FOLDER }, DESTINATION_FOLDER, FOLDER },
+		{ MAX_WIDTH_OPTION_NAME           , MAX_WIDTH         , WIDTH },
+		{ MAX_HEIGHT_OPTION_NAME          , MAX_HEIGHT        , HEIGHT },
+		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }, COMPRESSION_QUALITY           , QUALITY },
+		{ { QString(FOLDER[0]) , FOLDER  }, DESTINATION_FOLDER, FOLDER },
 		});
 	parser.process(app);
 
-	const auto getMaxSizeOption = [&] (const char * name)
+	const auto setIntegerValue = [&] (const char * name, int& value)
 	{
 		bool ok = false;
-		const auto value = parser.value(name).toInt(&ok);
-		return ok ? value : std::numeric_limits<int>::max();
+		if (const auto parsed = parser.value(name).toInt(&ok); ok)
+			value = parsed;
 	};
 
-	const auto maxWidth = getMaxSizeOption(MAX_WIDTH_OPTION_NAME);
-	const auto maxHeight = getMaxSizeOption(MAX_HEIGHT_OPTION_NAME);
+	Settings settings{};
+	setIntegerValue(MAX_WIDTH_OPTION_NAME, settings.maxWidth);
+	setIntegerValue(MAX_HEIGHT_OPTION_NAME, settings.maxHeight);
+	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
+
 	const auto destinationFolder = parser.value(FOLDER);
 	if (destinationFolder.isEmpty())
 	{
@@ -384,15 +397,15 @@ bool run(int argc, char * argv[])
 		parser.showHelp(1);
 	}
 
-	const QDir dstDir(destinationFolder);
-	if (!dstDir.exists() && !dstDir.mkpath("."))
+	settings.dstDir = QDir(destinationFolder);
+	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
 
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
 		files << ProcessWildCard(wildCard);
 
-	const auto failedArchives = ProcessArchives(std::move(files), dstDir, maxWidth, maxHeight);
+	const auto failedArchives = ProcessArchives(std::move(files), settings);
 	if (failedArchives.isEmpty())
 		return false;
 
