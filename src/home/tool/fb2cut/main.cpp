@@ -34,12 +34,16 @@ constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
 constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
 constexpr auto QUALITY_OPTION_NAME = "quality";
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
+constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
+constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
 constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100] or -1 for default compression quality";
 constexpr auto DESTINATION_FOLDER = "Destination folder";
 constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
+constexpr auto NO_IMAGES = "Don't save image";
+constexpr auto COVERS_ONLY = "Save covers only";
 
 constexpr auto WIDTH = "width [%1]";
 constexpr auto HEIGHT = "height [%1]";
@@ -53,16 +57,16 @@ using DataItems = std::queue<DataItem>;
 struct Settings
 {
 	int maxWidth { std::numeric_limits<int>::max() };
-	int maxHeight{ std::numeric_limits<int>::max() };
+	int maxHeight { std::numeric_limits<int>::max() };
 	int quality { -1 };
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
+	bool covers { true };
+	bool images { true };
 	QDir dstDir;
 };
 
-bool WriteImages(Zip & zip, std::mutex & guard, const std::vector<DataItem> & images)
+bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
 {
-	std::scoped_lock lock(guard);
-
 	return !std::ranges::all_of(images, [&] (const auto & item)
 	{
 		return zip.Write(item.first).write(item.second) == item.second.size();
@@ -108,8 +112,8 @@ public:
 		, std::atomic_int & filesCount
 		, std::mutex & zipCoversGuard
 		, std::mutex & zipImagesGuard
-		, Zip & zipCovers
-		, Zip & zipImages
+		, std::unique_ptr<Zip> & zipCovers
+		, std::unique_ptr<Zip> & zipImages
 
 	)
 		: m_settings { settings }
@@ -164,10 +168,7 @@ private:
 		}
 
 		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, m_covers) || m_hasError;
-		m_covers.clear();
-
 		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, m_images) || m_hasError;
-		m_images.clear();
 	}
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
@@ -208,6 +209,9 @@ private:
 
 		auto binaryCallback = [&] (const QString & name, const bool isCover, QByteArray body)
 		{
+			if ((isCover && !m_settings.covers) || (!isCover && !m_settings.images))
+				return;
+
 			QBuffer buffer(&body);
 			buffer.open(QBuffer::ReadOnly);
 
@@ -246,6 +250,20 @@ private:
 		m_hasError = true;
 	}
 
+	static bool WriteImages(std::unique_ptr<Zip> & zip, std::mutex & guard, std::vector<DataItem> & images)
+	{
+		if (images.empty())
+			return false;
+
+		assert(zip);
+
+		std::scoped_lock lock(guard);
+		const auto result = WriteImagesImpl(*zip, images);
+		images.clear();
+
+		return result;
+	}
+
 private:
 	const Settings & m_settings;
 	const int m_totalFiles;
@@ -261,8 +279,8 @@ private:
 	std::mutex & m_zipCoversGuard;
 	std::mutex & m_zipImagesGuard;
 
-	Zip & m_zipCovers;
-	Zip & m_zipImages;
+	std::unique_ptr<Zip> & m_zipCovers;
+	std::unique_ptr<Zip> & m_zipImages;
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
@@ -276,13 +294,13 @@ public:
 	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { QString("%1_covers.zip").arg(settings.dstDir.path()), Zip::Format::Zip }
-		, m_zipImages { QString("%1_img.zip").arg(settings.dstDir.path()), Zip::Format::Zip }
+		, m_zipCovers { settings.covers ? std::make_unique<Zip>(QString("%1_covers.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipImages { settings.images ? std::make_unique<Zip>(QString("%1_img.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
 				(
-					  settings
+					settings
 					, totalFiles
 					, m_queueCondition
 					, m_queueGuard
@@ -334,8 +352,8 @@ private:
 	std::mutex m_zipCoversGuard;
 	std::mutex m_zipImagesGuard;
 
-	Zip m_zipCovers;
-	Zip m_zipImages;
+	std::unique_ptr<Zip> m_zipCovers;
+	std::unique_ptr<Zip> m_zipImages;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -411,7 +429,7 @@ bool ProcessArchive(const QString & file, const Settings & settings)
 	return true;
 }
 
-QStringList ProcessArchives(QStringList files, const Settings& settings)
+QStringList ProcessArchives(QStringList files, const Settings & settings)
 {
 	QStringList failed;
 	for (auto && file : files)
@@ -448,15 +466,17 @@ bool run(int argc, char * argv[])
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
+		{ { QString(FOLDER[0]) , FOLDER  }                     , DESTINATION_FOLDER , FOLDER },
+		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }         , COMPRESSION_QUALITY, QUALITY },
+		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }, MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount) },
 		{ MAX_WIDTH_OPTION_NAME                                , MAX_WIDTH          , QString(WIDTH).arg(settings.maxWidth) },
 		{ MAX_HEIGHT_OPTION_NAME                               , MAX_HEIGHT         , QString(HEIGHT).arg(settings.maxHeight) },
-		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }         , COMPRESSION_QUALITY, QUALITY },
-		{ { QString(FOLDER[0]) , FOLDER  }                     , DESTINATION_FOLDER , FOLDER },
-		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }, MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount)},
+		{ NO_IMAGES_OPTION_NAME                                , NO_IMAGES },
+		{ COVERS_ONLY_OPTION_NAME                              , COVERS_ONLY },
 		});
 	parser.process(app);
 
-	const auto setIntegerValue = [&] (const char * name, int& value)
+	const auto setIntegerValue = [&] (const char * name, int & value)
 	{
 		bool ok = false;
 		if (const auto parsed = parser.value(name).toInt(&ok); ok)
@@ -467,6 +487,11 @@ bool run(int argc, char * argv[])
 	setIntegerValue(MAX_HEIGHT_OPTION_NAME, settings.maxHeight);
 	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
 	setIntegerValue(MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
+
+	if (parser.isSet(NO_IMAGES_OPTION_NAME))
+		settings.covers = settings.images = false;
+	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
+		settings.images = false;
 
 	const auto destinationFolder = parser.value(FOLDER);
 	if (destinationFolder.isEmpty())
