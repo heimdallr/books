@@ -33,15 +33,18 @@ constexpr auto APP_ID = "fb2cut";
 constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
 constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
 constexpr auto QUALITY_OPTION_NAME = "quality";
+constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
-constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100]";
+constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100] or -1 for default compression quality";
 constexpr auto DESTINATION_FOLDER = "Destination folder";
+constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
 
-constexpr auto WIDTH = "width";
-constexpr auto HEIGHT = "height";
+constexpr auto WIDTH = "width [%1]";
+constexpr auto HEIGHT = "height [%1]";
 constexpr auto QUALITY = "quality [-1]";
+constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 
 using DataItem = std::pair<QString, QByteArray>;
@@ -52,6 +55,7 @@ struct Settings
 	int maxWidth { std::numeric_limits<int>::max() };
 	int maxHeight{ std::numeric_limits<int>::max() };
 	int quality { -1 };
+	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
 	QDir dstDir;
 };
 
@@ -349,8 +353,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 	const Zip zip(file);
 	auto fileList = zip.GetFileNameList();
 
-	const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-	const auto maxThreadCount = std::min(std::max(cpuCount - 2, 1), static_cast<int>(fileList.size()));
+	const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileList.size()));
 
 	std::condition_variable queueCondition;
 	std::mutex queueGuard;
@@ -438,15 +441,18 @@ bool run(int argc, char * argv[])
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 
+	Settings settings {};
+
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ MAX_WIDTH_OPTION_NAME           , MAX_WIDTH         , WIDTH },
-		{ MAX_HEIGHT_OPTION_NAME          , MAX_HEIGHT        , HEIGHT },
-		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }, COMPRESSION_QUALITY           , QUALITY },
-		{ { QString(FOLDER[0]) , FOLDER  }, DESTINATION_FOLDER, FOLDER },
+		{ MAX_WIDTH_OPTION_NAME                                , MAX_WIDTH          , QString(WIDTH).arg(settings.maxWidth) },
+		{ MAX_HEIGHT_OPTION_NAME                               , MAX_HEIGHT         , QString(HEIGHT).arg(settings.maxHeight) },
+		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }         , COMPRESSION_QUALITY, QUALITY },
+		{ { QString(FOLDER[0]) , FOLDER  }                     , DESTINATION_FOLDER , FOLDER },
+		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }, MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount)},
 		});
 	parser.process(app);
 
@@ -457,10 +463,10 @@ bool run(int argc, char * argv[])
 			value = parsed;
 	};
 
-	Settings settings{};
 	setIntegerValue(MAX_WIDTH_OPTION_NAME, settings.maxWidth);
 	setIntegerValue(MAX_HEIGHT_OPTION_NAME, settings.maxHeight);
 	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
+	setIntegerValue(MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 
 	const auto destinationFolder = parser.value(FOLDER);
 	if (destinationFolder.isEmpty())
