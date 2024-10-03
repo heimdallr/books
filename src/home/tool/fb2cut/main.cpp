@@ -13,6 +13,8 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Appenders/ConsoleAppender.h>
 
+#include "fnd/NonCopyMovable.h"
+
 #include "logging/init.h"
 #include "logging/LogAppender.h"
 
@@ -42,6 +44,9 @@ constexpr auto HEIGHT = "height";
 constexpr auto QUALITY = "quality [-1]";
 constexpr auto FOLDER = "folder";
 
+using DataItem = std::pair<QString, QByteArray>;
+using DataItems = std::queue<DataItem>;
+
 struct Settings
 {
 	int maxWidth { std::numeric_limits<int>::max() };
@@ -50,57 +55,80 @@ struct Settings
 	QDir dstDir;
 };
 
-class FileProcessor
+bool WriteImages(Zip & zip, std::mutex & guard, const std::vector<DataItem> & images)
 {
+	std::scoped_lock lock(guard);
+
+	return !std::ranges::all_of(images, [&] (const auto & item)
+	{
+		return zip.Write(item.first).write(item.second) == item.second.size();
+	});
+}
+
+void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QByteArray & body)
+{
+	std::scoped_lock lock(guard);
+
+	const auto filePath = dir.filePath(QString("error/%1.bad").arg(name));
+	const QDir imgDir = QFileInfo(filePath).dir();
+	if (!imgDir.exists() && !imgDir.mkpath("."))
+	{
+		PLOGE << QString("Cannot create folder %1").arg(imgDir.path());
+		return;
+	}
+
+	QFile file(filePath);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		PLOGE << QString("Cannot write to %1").arg(filePath);
+		return;
+	}
+
+	if (file.write(body) != body.size())
+		PLOGE << QString("%1 written with errors").arg(filePath);
+}
+
+class Worker
+{
+	NON_COPY_MOVABLE(Worker)
+
 public:
-	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
-		: m_settings(settings)
-		, m_totalFiles(totalFiles)
+	Worker(const Settings & settings
+		, const int totalFiles
+		, std::condition_variable & queueCondition
+		, std::mutex & queueGuard
+		, DataItems & queue
+		, std::mutex & fileSystemGuard
+		, std::atomic_bool & hasError
+		, std::atomic_int & queueSize
+		, std::atomic_int & filesCount
+		, std::mutex & zipCoversGuard
+		, std::mutex & zipImagesGuard
+		, Zip & zipCovers
+		, Zip & zipImages
+
+	)
+		: m_settings { settings }
+		, m_totalFiles { totalFiles }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
+		, m_queue { queue }
+		, m_fileSystemGuard { fileSystemGuard }
+		, m_hasError { hasError }
+		, m_queueSize { queueSize }
+		, m_filesCount { filesCount }
+		, m_zipCoversGuard { zipCoversGuard }
+		, m_zipImagesGuard { zipImagesGuard }
+		, m_zipCovers { zipCovers }
+		, m_zipImages { zipImages }
+		, m_thread { &Worker::Process, this }
 	{
-		for (int i = 0; i < poolSize; ++i)
-			m_threads.push_back(std::make_unique<std::thread>(&FileProcessor::Process, this));
 	}
 
-public:
-	int GetQueueSize() const
+	~Worker()
 	{
-		return m_queueSize;
-	}
-
-	void Enqueue(QString file, QByteArray data)
-	{
-		std::unique_lock lock(m_queueGuard);
-		m_queue.emplace(std::move(file), std::move(data));
-		++m_queueSize;
-		m_queueCondition.notify_all();
-	}
-
-	bool HasError() const
-	{
-		return m_hasError;
-	}
-
-	void Wait() const
-	{
-		for (auto & thread : m_threads)
-			thread->join();
-	}
-
-	const std::vector<std::pair<QString, QByteArray>>& GetCovers() const noexcept
-	{
-		return m_covers;
-	}
-
-	const std::vector<std::pair<QString, QByteArray>> & GetImages() const noexcept
-	{
-		return m_images;
-	}
-
-	const std::vector<std::pair<QString, QByteArray>> & GetErrors() const noexcept
-	{
-		return m_errors;
+		if (m_thread.joinable())
+			m_thread.join();
 	}
 
 private:
@@ -130,8 +158,15 @@ private:
 
 			m_hasError = ProcessFile(name, body) || m_hasError;
 		}
+
+		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, m_covers) || m_hasError;
+		m_covers.clear();
+
+		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, m_images) || m_hasError;
+		m_images.clear();
 	}
-	bool ProcessFile(const QString & inputFilePath, QByteArray& inputFileBody)
+
+	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
 	{
 		PLOGV << QString("%1(%2), parsing %3").arg(++m_filesCount).arg(m_totalFiles).arg(inputFilePath);
 
@@ -179,7 +214,7 @@ private:
 			QImageReader imageReader(&buffer);
 			auto image = imageReader.read();
 			if (image.isNull())
-				return AddError(imageFile, std::move(body), QString("Incorrect image %1.%2: %3").arg(name).arg(imageFile).arg(imageReader.errorString()));
+				return AddError(imageFile, body, QString("Incorrect image %1.%2: %3").arg(name).arg(imageFile).arg(imageReader.errorString()));
 
 			if (image.width() > m_settings.maxWidth || image.height() > m_settings.maxHeight)
 				image = image.scaled(m_settings.maxWidth, m_settings.maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -189,11 +224,10 @@ private:
 				QBuffer imageOutput(&imageBody);
 
 				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
-					return AddError(imageFile, std::move(body), QString("Cannot compress image %1.%2").arg(name).arg(imageFile));
+					return AddError(imageFile, body, QString("Cannot compress image %1.%2").arg(name).arg(imageFile));
 			}
-
-			std::scoped_lock resultLock(isCover ? m_coversGuard : m_imagesGuard);
-			(isCover ? m_covers : m_images).emplace_back(std::move(imageFile), std::move(imageBody));
+			auto & storage = isCover ? m_covers : m_images;
+			storage.emplace_back(std::move(imageFile), std::move(imageBody));
 		};
 
 		Fb2Parser(inputFilePath, input, output, std::move(binaryCallback)).Parse();
@@ -201,61 +235,106 @@ private:
 		return bodyOutput;
 	}
 
-	void AddError(QString file, QByteArray body, const QString & errorText)
+	void AddError(const QString & file, const QByteArray & body, const QString & errorText) const
 	{
 		PLOGW << errorText;
-		std::scoped_lock resultLock(m_errorsGuard);
-		m_errors.emplace_back(std::move(file), std::move(body));
+		WriteError(m_settings.dstDir, m_fileSystemGuard, file, body);
 		m_hasError = true;
 	}
 
 private:
 	const Settings & m_settings;
 	const int m_totalFiles;
+
+	std::condition_variable & m_queueCondition;
+	std::mutex & m_queueGuard;
+	DataItems & m_queue;
+	std::mutex & m_fileSystemGuard;
+
+	std::atomic_bool & m_hasError;
+	std::atomic_int & m_queueSize, & m_filesCount;
+
+	std::mutex & m_zipCoversGuard;
+	std::mutex & m_zipImagesGuard;
+
+	Zip & m_zipCovers;
+	Zip & m_zipImages;
+
+	std::vector<DataItem> m_covers;
+	std::vector<DataItem> m_images;
+
+	std::thread m_thread;
+};
+
+class FileProcessor
+{
+public:
+	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
+		: m_queueCondition { queueCondition }
+		, m_queueGuard { queueGuard }
+		, m_zipCovers { QString("%1_covers.zip").arg(settings.dstDir.path()), Zip::Format::Zip }
+		, m_zipImages { QString("%1_img.zip").arg(settings.dstDir.path()), Zip::Format::Zip }
+	{
+		for (int i = 0; i < poolSize; ++i)
+			m_workers.push_back(std::make_unique<Worker>
+				(
+					  settings
+					, totalFiles
+					, m_queueCondition
+					, m_queueGuard
+					, m_queue
+					, m_fileSystemGuard
+					, m_hasError
+					, m_queueSize
+					, m_filesCount
+					, m_zipCoversGuard
+					, m_zipImagesGuard
+					, m_zipCovers
+					, m_zipImages
+				)
+			);
+	}
+
+public:
+	int GetQueueSize() const
+	{
+		return m_queueSize;
+	}
+
+	void Enqueue(QString file, QByteArray data)
+	{
+		std::unique_lock lock(m_queueGuard);
+		m_queue.emplace(std::move(file), std::move(data));
+		++m_queueSize;
+		m_queueCondition.notify_all();
+	}
+
+	bool HasError() const
+	{
+		return m_hasError;
+	}
+
+	void Wait()
+	{
+		m_workers.clear();
+	}
+
+private:
 	std::condition_variable & m_queueCondition;
 	std::mutex & m_queueGuard;
 	std::atomic_bool m_hasError { false };
 	std::queue<std::pair<QString, QByteArray>> m_queue;
-	std::vector<std::pair<QString, QByteArray>> m_covers;
-	std::vector<std::pair<QString, QByteArray>> m_images;
-	std::vector<std::pair<QString, QByteArray>> m_errors;
 	std::atomic_int m_queueSize { 0 }, m_filesCount { 0 };
-	std::vector<std::unique_ptr<std::thread>> m_threads;
-	std::mutex m_fileSystemGuard, m_coversGuard, m_imagesGuard, m_errorsGuard;
+	std::mutex m_fileSystemGuard;
+
+	std::mutex m_zipCoversGuard;
+	std::mutex m_zipImagesGuard;
+
+	Zip m_zipCovers;
+	Zip m_zipImages;
+
+	std::vector<std::unique_ptr<Worker>> m_workers;
 };
-
-bool WriteImages(const QString & file, const std::vector<std::pair<QString, QByteArray>> &images)
-{
-	Zip zip(file, Zip::Format::Zip);
-	return !std::ranges::all_of(images, [&] (const auto & item)
-	{
-		return zip.Write(item.first).write(item.second) == item.second.size();
-	});
-}
-
-void WriteErrors(const QDir & dir, const std::vector<std::pair<QString, QByteArray>> & images)
-{
-	for (const auto& [name, body] : images)
-	{
-		const auto filePath = dir.filePath(QString("error/%1.bad").arg(name));
-		const QDir imgDir = QFileInfo(filePath).dir();
-		if (!imgDir.exists() && !imgDir.mkpath("."))
-		{
-			PLOGE << QString("Cannot create folder %1").arg(imgDir.path());
-			continue;
-		}
-
-		QFile file(filePath);
-		if (!file.open(QIODevice::WriteOnly))
-		{
-			PLOGE << QString("Cannot write to %1").arg(filePath);
-			continue;
-		}
-
-		if (file.write(body) != body.size())
-			PLOGE << QString("%1 written with errors").arg(filePath);
-	}
-}
 
 bool ProcessArchiveImpl(const QString & file, Settings settings)
 {
@@ -299,14 +378,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 		fileProcessor.Enqueue({}, {});
 
 	fileProcessor.Wait();
-	bool hasErrors = fileProcessor.HasError();
-
-	WriteErrors(settings.dstDir, fileProcessor.GetErrors());
-
-	hasErrors = WriteImages(QString("%1_covers.zip").arg(settings.dstDir.path()), fileProcessor.GetCovers()) || hasErrors;
-	hasErrors = WriteImages(QString("%1_img.zip").arg(settings.dstDir.path()), fileProcessor.GetImages()) || hasErrors;
-
-	return hasErrors;
+	return fileProcessor.HasError();
 }
 
 bool ProcessArchive(const QString & file, const Settings & settings)
