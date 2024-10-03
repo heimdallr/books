@@ -1,6 +1,7 @@
 #include "ImageRestore.h"
 
 #include <QBuffer>
+#include <QDir>
 #include <QFileInfo>
 
 #include <plog/Log.h>
@@ -111,33 +112,6 @@ private:
 	bool m_hasError { false };
 };
 
-QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const QString & fileName)
-{
-	const auto zip = CreateImageArchive(folder);
-	if (!zip)
-		return stream.readAll();
-
-	QByteArray byteArray;
-	QBuffer buffer(&byteArray);
-	buffer.open(QIODevice::WriteOnly);
-	const SaxPrinter saxPrinter(stream, buffer, *zip, fileName);
-	buffer.close();
-	if (!saxPrinter.HasError())
-		return byteArray;
-
-	stream.seek(0);
-	return stream.readAll();
-}
-
-}
-
-namespace HomeCompa::Flibrary {
-
-QByteArray RestoreImages(QIODevice & input, const QString & folder, const QString & fileName)
-{
-	return RestoreImagesImpl(input, folder, fileName);
-}
-
 std::unique_ptr<Zip> CreateImageArchive(const QString & folder)
 {
 	const QFileInfo info(folder);
@@ -158,6 +132,86 @@ std::unique_ptr<Zip> CreateImageArchive(const QString & folder)
 		}
 	}
 	return {};
+}
+
+QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const QString & fileName)
+{
+	const auto zip = CreateImageArchive(folder);
+	if (!zip)
+		return stream.readAll();
+
+	QByteArray byteArray;
+	QBuffer buffer(&byteArray);
+	buffer.open(QIODevice::WriteOnly);
+	const SaxPrinter saxPrinter(stream, buffer, *zip, fileName);
+	buffer.close();
+	if (!saxPrinter.HasError())
+		return byteArray;
+
+	stream.seek(0);
+	return stream.readAll();
+}
+
+bool ParseCovers(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback, bool & stop)
+{
+	if (!QFile::exists(folder))
+		return false;
+
+	const Zip zip(folder);
+	const auto fileList = zip.GetFileNameList();
+	const auto file = QFileInfo(fileName).completeBaseName();
+	if (!fileList.contains(file))
+		return false;
+
+	auto & stream = zip.Read(file);
+	stop = callback("cover", stream.readAll());
+	return true;
+}
+
+void ParseImages(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback)
+{
+	if (!QFile::exists(folder))
+		return;
+
+	const Zip zip(folder);
+	auto fileList = zip.GetFileNameList();
+	const auto filePrefix = QFileInfo(fileName).completeBaseName();
+	if (const auto [begin, end] = std::ranges::remove_if(fileList, [&] (const auto & item)
+	{
+		return !item.startsWith(filePrefix);
+	}); begin != end)
+		fileList.erase(begin, end);
+
+	for (const auto & file : fileList)
+		if (callback(file.split('/').back(), zip.Read(file).readAll()))
+			return;
+}
+
+}
+
+namespace HomeCompa::Flibrary {
+
+QByteArray RestoreImages(QIODevice & input, const QString & folder, const QString & fileName)
+{
+	return RestoreImagesImpl(input, folder, fileName);
+}
+
+bool ExtractBookImages(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback)
+{
+	static constexpr const char * EXTENSIONS[] { "zip", "7z" };
+
+	const QFileInfo fileInfo(folder);
+
+	bool stop = false;
+	const auto result = std::accumulate(std::cbegin(EXTENSIONS), std::cend(EXTENSIONS), false, [&] (const bool init, const char * ext)
+	{
+		return ParseCovers(QString("%1/%2_covers.%3").arg(fileInfo.dir().path(), fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+	});
+
+	for (const auto * ext : EXTENSIONS)
+		ParseImages(QString("%1/%2_images.%3").arg(fileInfo.dir().path(), fileInfo.completeBaseName(), ext), fileName, callback);
+
+	return result;
 }
 
 }
