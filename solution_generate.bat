@@ -14,7 +14,7 @@ set originalDir=%CD%
 
 if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
 
-set BUILD_DIR=build
+set BUILD_DIR=build\%BUILD_TYPE%
 mkdir %~dp0%BUILD_DIR%
 cd %~dp0%BUILD_DIR%
 del *.sln

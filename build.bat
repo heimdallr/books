@@ -18,7 +18,7 @@ echo installer creating
 ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\installer\flibrary.iss
 
 echo portable creating
-7z a %~dp0build\bin\installer\flibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\bin\%BUILD_TYPE%\*
+7z a %~dp0build\installer\flibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\bin\*
 
 goto End
 

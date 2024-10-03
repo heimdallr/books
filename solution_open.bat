@@ -5,7 +5,7 @@ set SOLUTION_PATH=%~dp0%1
 goto find
 
 :read
-set SOLUTION_PATH=%~dp0build
+set SOLUTION_PATH=%~dp0build\Debug
 
 :find
 FOR %%F IN (%SOLUTION_PATH%\*.sln) DO (
