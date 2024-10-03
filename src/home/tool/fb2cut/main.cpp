@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QStandardPaths>
 #include <QBuffer>
+#include <QProcess>
 
 #include <plog/Log.h>
 #include <plog/Formatters/TxtFormatter.h>
@@ -36,20 +37,23 @@ constexpr auto QUALITY_OPTION_NAME = "quality";
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
+constexpr auto SEVEN_ZIP_OPTION_NAME = "7z";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
 constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100] or -1 for default compression quality";
-constexpr auto DESTINATION_FOLDER = "Destination folder";
+constexpr auto DESTINATION_FOLDER = "Destination folder (required)";
 constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
 constexpr auto NO_IMAGES = "Don't save image";
 constexpr auto COVERS_ONLY = "Save covers only";
+constexpr auto SEVEN_ZIP = "Path to 7z executable";
 
 constexpr auto WIDTH = "width [%1]";
 constexpr auto HEIGHT = "height [%1]";
 constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
+constexpr auto PATH = "path";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
@@ -63,6 +67,7 @@ struct Settings
 	bool covers { true };
 	bool images { true };
 	QDir dstDir;
+	QString sevenZipPath;
 };
 
 bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
@@ -71,6 +76,22 @@ bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
 	{
 		return zip.Write(item.first).write(item.second) == item.second.size();
 	});
+}
+
+bool WriteImages(const std::unique_ptr<Zip> & zip, std::mutex & guard, const QString & name, std::vector<DataItem> & images)
+{
+	if (images.empty())
+		return false;
+
+	assert(zip);
+
+	PLOGI << QString("zipping %1: %2").arg(name).arg(images.size());
+
+	std::scoped_lock lock(guard);
+	const auto result = WriteImagesImpl(*zip, images);
+	images.clear();
+
+	return result;
 }
 
 void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QByteArray & body)
@@ -112,8 +133,8 @@ public:
 		, std::atomic_int & filesCount
 		, std::mutex & zipCoversGuard
 		, std::mutex & zipImagesGuard
-		, std::unique_ptr<Zip> & zipCovers
-		, std::unique_ptr<Zip> & zipImages
+		, const std::unique_ptr<Zip> & zipCovers
+		, const std::unique_ptr<Zip> & zipImages
 
 	)
 		: m_settings { settings }
@@ -167,8 +188,8 @@ private:
 			m_hasError = ProcessFile(name, body) || m_hasError;
 		}
 
-		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, m_covers) || m_hasError;
-		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, m_images) || m_hasError;
+		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, "covers", m_covers) || m_hasError;
+		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, "images", m_images) || m_hasError;
 	}
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
@@ -250,20 +271,6 @@ private:
 		m_hasError = true;
 	}
 
-	static bool WriteImages(std::unique_ptr<Zip> & zip, std::mutex & guard, std::vector<DataItem> & images)
-	{
-		if (images.empty())
-			return false;
-
-		assert(zip);
-
-		std::scoped_lock lock(guard);
-		const auto result = WriteImagesImpl(*zip, images);
-		images.clear();
-
-		return result;
-	}
-
 private:
 	const Settings & m_settings;
 	const int m_totalFiles;
@@ -279,8 +286,8 @@ private:
 	std::mutex & m_zipCoversGuard;
 	std::mutex & m_zipImagesGuard;
 
-	std::unique_ptr<Zip> & m_zipCovers;
-	std::unique_ptr<Zip> & m_zipImages;
+	const std::unique_ptr<Zip> & m_zipCovers;
+	const std::unique_ptr<Zip> & m_zipImages;
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
@@ -295,12 +302,12 @@ public:
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_zipCovers { settings.covers ? std::make_unique<Zip>(QString("%1_covers.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.images ? std::make_unique<Zip>(QString("%1_img.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipImages { settings.images ? std::make_unique<Zip>(QString("%1_images.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
 				(
-					settings
+					  settings
 					, totalFiles
 					, m_queueCondition
 					, m_queueGuard
@@ -352,11 +359,58 @@ private:
 	std::mutex m_zipCoversGuard;
 	std::mutex m_zipImagesGuard;
 
-	std::unique_ptr<Zip> m_zipCovers;
-	std::unique_ptr<Zip> m_zipImages;
+	const std::unique_ptr<Zip> m_zipCovers;
+	const std::unique_ptr<Zip> m_zipImages;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
+
+bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadCount)
+{
+	if (exe.isEmpty())
+		return false;
+
+	QProcess process;
+	QEventLoop eventLoop;
+	QStringList args = QStringList {}
+		<< "a"
+		<< "-mx9"
+		<< "-sdel"
+		<< "-m0=ppmd"
+		<< "-ms=off"
+		<< "-bt"
+		<< QString("-mmt%1").arg(maxTreadCount)
+		<< QString("%1.7z").arg(folder)
+		<< QString("%1/*.fb2").arg(folder)
+		;
+		
+	QObject::connect(&process, &QProcess::started, [&]
+	{
+		PLOGI << "\n" << QFileInfo(exe).fileName() << " " << args.join(" ");
+	});
+	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+	{
+		if (code == 0)
+			PLOGI << QFileInfo(exe).fileName() << " finished successfully";
+		else
+			PLOGW << QFileInfo(exe).fileName() << " finished with " << code;
+		eventLoop.exit(code);
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+	{
+		PLOGI << process.readAllStandardError();
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+	{
+		PLOGW << process.readAllStandardOutput();
+	});
+
+	process.start(exe, args, QIODevice::ReadOnly);
+	if (eventLoop.exec() == 0)
+		QDir().rmdir(folder);
+
+	return false;
+}
 
 bool ProcessArchiveImpl(const QString & file, Settings settings)
 {
@@ -399,7 +453,12 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 		fileProcessor.Enqueue({}, {});
 
 	fileProcessor.Wait();
-	return fileProcessor.HasError();
+
+	bool hasError = false;
+	hasError = fileProcessor.HasError() || hasError;
+	hasError = SevenZipIt(settings.sevenZipPath, settings.dstDir.path(), settings.maxThreadCount) || hasError;
+
+	return hasError;
 }
 
 bool ProcessArchive(const QString & file, const Settings & settings)
@@ -466,15 +525,28 @@ bool run(int argc, char * argv[])
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { QString(FOLDER[0]) , FOLDER  }                     , DESTINATION_FOLDER , FOLDER },
-		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }         , COMPRESSION_QUALITY, QUALITY },
-		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }, MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount) },
-		{ MAX_WIDTH_OPTION_NAME                                , MAX_WIDTH          , QString(WIDTH).arg(settings.maxWidth) },
-		{ MAX_HEIGHT_OPTION_NAME                               , MAX_HEIGHT         , QString(HEIGHT).arg(settings.maxHeight) },
-		{ NO_IMAGES_OPTION_NAME                                , NO_IMAGES },
-		{ COVERS_ONLY_OPTION_NAME                              , COVERS_ONLY },
+		{ { QString(FOLDER[0]) , FOLDER  }                          , DESTINATION_FOLDER , FOLDER },
+		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }              , COMPRESSION_QUALITY, QUALITY },
+		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }     , MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount) },
+		{ {QString(SEVEN_ZIP_OPTION_NAME[0]), SEVEN_ZIP_OPTION_NAME}, SEVEN_ZIP          , PATH},
+		{ MAX_WIDTH_OPTION_NAME                                     , MAX_WIDTH          , QString(WIDTH).arg(settings.maxWidth) },
+		{ MAX_HEIGHT_OPTION_NAME                                    , MAX_HEIGHT         , QString(HEIGHT).arg(settings.maxHeight) },
+		{ NO_IMAGES_OPTION_NAME                                     , NO_IMAGES },
+		{ COVERS_ONLY_OPTION_NAME                                   , COVERS_ONLY },
 		});
 	parser.process(app);
+
+	const auto destinationFolder = parser.value(FOLDER);
+	if (destinationFolder.isEmpty())
+	{
+		PLOGE << "Destination folder required";
+		parser.showHelp(1);
+	}
+	settings.dstDir = QDir(destinationFolder);
+	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
+		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
+
+	settings.sevenZipPath = parser.value(SEVEN_ZIP_OPTION_NAME);
 
 	const auto setIntegerValue = [&] (const char * name, int & value)
 	{
@@ -492,17 +564,6 @@ bool run(int argc, char * argv[])
 		settings.covers = settings.images = false;
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
 		settings.images = false;
-
-	const auto destinationFolder = parser.value(FOLDER);
-	if (destinationFolder.isEmpty())
-	{
-		PLOGE << "Destination folder required";
-		parser.showHelp(1);
-	}
-
-	settings.dstDir = QDir(destinationFolder);
-	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
-		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
 
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
