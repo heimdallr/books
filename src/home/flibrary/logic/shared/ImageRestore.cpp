@@ -191,16 +191,19 @@ void ParseImages(const QString & folder, const QString & fileName, const Extract
 
 	const Zip zip(folder);
 	auto fileList = zip.GetFileNameList();
-	const auto filePrefix = QFileInfo(fileName).completeBaseName();
+	const auto filePrefix = QString("%1/").arg(QFileInfo(fileName).completeBaseName());
 	if (const auto [begin, end] = std::ranges::remove_if(fileList, [&] (const auto & item)
 	{
-		return !item.startsWith(filePrefix);
+		return !item.startsWith(filePrefix) /*|| item == filePrefix*/;
 	}); begin != end)
 		fileList.erase(begin, end);
 
 	for (const auto & file : fileList)
-		if (callback(file.split('/').back(), zip.Read(file).readAll()))
+	{
+		auto body = zip.Read(file).readAll();
+		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
 			return;
+	}
 }
 
 }
@@ -221,11 +224,11 @@ bool ExtractBookImages(const QString & folder, const QString & fileName, const E
 	bool stop = false;
 	const auto result = std::accumulate(std::cbegin(EXTENSIONS), std::cend(EXTENSIONS), false, [&] (const bool init, const char * ext)
 	{
-		return ParseCovers(QString("%1/%2_%3.%4").arg(fileInfo.dir().path(), fileInfo.completeBaseName(), Global::COVERS, ext), fileName, callback, stop) || init;
+		return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
 	});
 
 	for (const auto * ext : EXTENSIONS)
-		ParseImages(QString("%1/%2_%3.%4").arg(fileInfo.dir().path(), fileInfo.completeBaseName(), Global::IMAGES, ext), fileName, callback);
+		ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
 
 	return result;
 }

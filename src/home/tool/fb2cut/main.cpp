@@ -297,14 +297,20 @@ private:
 	std::thread m_thread;
 };
 
+QString GetImagesFolder(const QDir & dir, const QString & type)
+{
+	const QFileInfo fileInfo(dir.path());
+	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
+}
+
 class FileProcessor
 {
 public:
 	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { settings.covers ? std::make_unique<Zip>(QString("%1_covers.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.images ? std::make_unique<Zip>(QString("%1_images.zip").arg(settings.dstDir.path()), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipCovers { settings.covers ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipImages { settings.images ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -418,6 +424,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 {
 	const QFileInfo fileInfo(file);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
+	[[maybe_unused]] const auto t = settings.dstDir.path();
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 	{
 		PLOGE << QString("Cannot create folder %1").arg(settings.dstDir.path());
@@ -566,6 +573,13 @@ bool run(int argc, char * argv[])
 		settings.covers = settings.images = false;
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
 		settings.images = false;
+
+	if (settings.covers)
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+	if (settings.images)
+	if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
+		throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
