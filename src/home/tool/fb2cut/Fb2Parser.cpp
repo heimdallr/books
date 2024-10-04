@@ -7,10 +7,12 @@
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
-#include "fnd/ScopedCall.h"
+
+#include "common/Constant.h"
 
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
+#include "util/xml/XmlWriter.h"
 
 using namespace HomeCompa;
 using namespace fb2cut;
@@ -41,8 +43,8 @@ public:
 	explicit Impl(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
 		: SaxParser(input, 512)
 		, m_fileName(std::move(fileName))
-		, m_stream(&output)
 		, m_binaryCallback(std::move(binaryCallback))
+		, m_writer(output)
 	{
 	}
 
@@ -69,8 +71,6 @@ private: // Util::SaxParser
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return Parse(*this, PARSERS, path, attributes);
 
-		const ScopedCall tagGuard([&] { m_stream << "<" << name; }, [&]{ m_stream << ">"; });
-
 		if (name.compare(IMAGE, Qt::CaseInsensitive) == 0)
 		{
 			auto image = attributes.GetAttribute(L_HREF);
@@ -78,12 +78,11 @@ private: // Util::SaxParser
 				image.removeFirst();
 
 			const auto imageName = m_imageNames.emplace(std::move(image), m_imageNames.size()).first->second;
-			m_stream << " " << L_HREF << "=\"" << imageName << "\"";
+			m_writer.WriteStartElement(name).WriteAttribute(L_HREF, path.compare(COVERPAGE_IMAGE, Qt::CaseInsensitive) ? QString("#%1").arg(imageName) : QString("#%1").arg(Global::COVER));
 		}
 		else
 		{
-			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-				m_stream << " " << attributes.GetName(i) << "=\"" << attributes.GetValue(i) << "\"";
+			m_writer.WriteStartElement(name, attributes);
 		}
 
 		return Parse(*this, PARSERS, path, attributes);
@@ -94,7 +93,7 @@ private: // Util::SaxParser
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return true;
 
-		m_stream << "</" << name << ">\n";
+		m_writer.WriteEndElement(name);
 
 		return true;
 	}
@@ -111,11 +110,8 @@ private: // Util::SaxParser
 			{ BINARY            , &Impl::ParseBinary },
 		};
 
-		auto copy = value;
-		copy.replace("&", "&amp;").replace("'", "&apos;").replace(">", "&gt;").replace("<", "&lt;").replace("\"", "&quot;");
-
 		if (path.compare(BINARY, Qt::CaseInsensitive))
-			m_stream << copy;
+			m_writer.WriteCharacters(value);
 
 		return Parse(*this, PARSERS, path, value);
 	}
@@ -183,8 +179,8 @@ private:
 
 private:
 	const QString m_fileName;
-	QTextStream m_stream;
 	const OnBinaryFound m_binaryCallback;
+	Util::XmlWriter m_writer;
 	QString m_binaryId;
 	QString m_coverpage;
 	Data m_data {};
