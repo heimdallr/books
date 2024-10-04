@@ -20,10 +20,12 @@ public:
 	explicit XmlWriter(QIODevice & stream);
 	~XmlWriter();
 
-	void WriteProcessingInstruction(const QString & target, const QString & data);
-	void WriteStartElement(const QString & name, const XmlAttributes & attributes);
-	void WriteEndElement(const QString & name);
-	void WriteCharacters(const QString & data);
+	XmlWriter & WriteProcessingInstruction(const QString & target, const QString & data);
+	XmlWriter & WriteStartElement(const QString & name);
+	XmlWriter & WriteStartElement(const QString & name, const XmlAttributes & attributes);
+	XmlWriter & WriteEndElement(const QString & name);
+	XmlWriter & WriteAttribute(const QString & name, const QString & value);
+	XmlWriter & WriteCharacters(const QString & data);
 
 private:
 	class Impl;
