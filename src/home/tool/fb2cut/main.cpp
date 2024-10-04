@@ -14,6 +14,8 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Appenders/ConsoleAppender.h>
 
+#include <common/Constant.h>
+
 #include "fnd/NonCopyMovable.h"
 
 #include "logging/init.h"
@@ -188,8 +190,8 @@ private:
 			m_hasError = ProcessFile(name, body) || m_hasError;
 		}
 
-		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, "covers", m_covers) || m_hasError;
-		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, "images", m_images) || m_hasError;
+		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, Global::COVERS, m_covers) || m_hasError;
+		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, Global::IMAGES, m_images) || m_hasError;
 	}
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
