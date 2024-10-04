@@ -14,7 +14,7 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Appenders/ConsoleAppender.h>
 
-#include <common/Constant.h>
+#include "common/Constant.h"
 
 #include "fnd/NonCopyMovable.h"
 

@@ -180,7 +180,7 @@ bool ParseCovers(const QString & folder, const QString & fileName, const Extract
 		return false;
 
 	auto & stream = zip.Read(file);
-	stop = callback("cover", stream.readAll());
+	stop = callback(Global::COVER, stream.readAll());
 	return true;
 }
 
