@@ -41,7 +41,8 @@ constexpr auto QUALITY_OPTION_NAME = "quality";
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
-constexpr auto SEVEN_ZIP_OPTION_NAME = "7z";
+constexpr auto ARCHIVER_OPTION_NAME = "archiver";
+constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
@@ -50,7 +51,8 @@ constexpr auto DESTINATION_FOLDER = "Destination folder (required)";
 constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
 constexpr auto NO_IMAGES = "Don't save image";
 constexpr auto COVERS_ONLY = "Save covers only";
-constexpr auto SEVEN_ZIP = "Path to 7z executable";
+constexpr auto ARCHIVER = "Path to external archiver executable";
+constexpr auto ARCHIVER_COMMANDLINE = "External archiver command line options";
 
 constexpr auto WIDTH = "width [%1]";
 constexpr auto HEIGHT = "height [%1]";
@@ -58,6 +60,7 @@ constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 constexpr auto PATH = "path";
+constexpr auto COMMANDLINE = "list of options [%1]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
@@ -71,7 +74,16 @@ struct Settings
 	bool covers { true };
 	bool images { true };
 	QDir dstDir;
-	QString sevenZipPath;
+	QString archiver;
+	QStringList archiverOptions { QStringList {}
+		<< "a"
+		<< "-mx9"
+		<< "-sdel"
+		<< "-m0=ppmd"
+		<< "-ms=off"
+		<< "-bt"
+	};
+	bool defaultArchiverOptions { true };
 };
 
 bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
@@ -430,37 +442,35 @@ private:
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
 
-bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadCount)
+bool SevenZipIt(const Settings & settings)
 {
-	if (exe.isEmpty())
+	if (settings.archiver.isEmpty())
 		return false;
 
 	PLOGI << "launching an external archiver";
 
 	QProcess process;
 	QEventLoop eventLoop;
-	QStringList args = QStringList {}
-		<< "a"
-		<< "-mx9"
-		<< "-sdel"
-		<< "-m0=ppmd"
-		<< "-ms=off"
-		<< "-bt"
-		<< QString("-mmt%1").arg(maxTreadCount)
-		<< QString("%1.7z").arg(folder)
-		<< QString("%1/*.fb2").arg(folder)
+	auto args = settings.archiverOptions;
+
+	if (settings.defaultArchiverOptions)
+		args << QString("-mmt%1").arg(settings.maxThreadCount);
+
+	args
+		<< QString("%1.7z").arg(settings.dstDir.path())
+		<< QString("%1/*.fb2").arg(settings.dstDir.path())
 		;
 
 	QObject::connect(&process, &QProcess::started, [&]
 	{
-		PLOGI << "external archiver launched\n" << QFileInfo(exe).fileName() << " " << args.join(" ");
+		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(" ");
 	});
 	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
 	{
 		if (code == 0)
-			PLOGI << QFileInfo(exe).fileName() << " finished successfully";
+			PLOGI << QFileInfo(settings.archiver).fileName() << " finished successfully";
 		else
-			PLOGW << QFileInfo(exe).fileName() << " finished with " << code;
+			PLOGW << QFileInfo(settings.archiver).fileName() << " finished with " << code;
 		eventLoop.exit(code);
 	});
 	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
@@ -472,9 +482,8 @@ bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadC
 		PLOGW << process.readAllStandardOutput();
 	});
 
-	process.start(exe, args, QIODevice::ReadOnly);
-	if (eventLoop.exec() == 0)
-		QDir().rmdir(folder);
+	process.start(settings.archiver, args, QIODevice::ReadOnly);
+	eventLoop.exec();
 
 	return false;
 }
@@ -524,7 +533,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 
 	bool hasError = false;
 	hasError = fileProcessor.HasError() || hasError;
-	hasError = SevenZipIt(settings.sevenZipPath, settings.dstDir.path(), settings.maxThreadCount) || hasError;
+	hasError = SevenZipIt(settings) || hasError;
 
 	return hasError;
 }
@@ -588,19 +597,28 @@ bool run(int argc, char * argv[])
 
 	Settings settings {};
 
+	const auto get_archiver_default_options = [&]
+	{
+		return QStringList()
+			<< settings.archiverOptions
+			<< QString("-mmt%1").arg(settings.maxThreadCount)
+			;
+	};
+
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { QString(FOLDER[0]) , FOLDER  }                          , DESTINATION_FOLDER , FOLDER },
-		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }              , COMPRESSION_QUALITY, QUALITY },
-		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }     , MAX_THREAD_COUNT   , QString(THREADS).arg(settings.maxThreadCount) },
-		{ {QString(SEVEN_ZIP_OPTION_NAME[0]), SEVEN_ZIP_OPTION_NAME}, SEVEN_ZIP          , PATH},
-		{ MAX_WIDTH_OPTION_NAME                                     , MAX_WIDTH          , QString(WIDTH).arg(settings.maxWidth) },
-		{ MAX_HEIGHT_OPTION_NAME                                    , MAX_HEIGHT         , QString(HEIGHT).arg(settings.maxHeight) },
-		{ NO_IMAGES_OPTION_NAME                                     , NO_IMAGES },
-		{ COVERS_ONLY_OPTION_NAME                                   , COVERS_ONLY },
+		{ { QString(FOLDER[0])              , FOLDER                           } , DESTINATION_FOLDER  , FOLDER },
+		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , COMPRESSION_QUALITY , QUALITY },
+		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , MAX_THREAD_COUNT    , QString(THREADS).arg(settings.maxThreadCount) },
+		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , ARCHIVER            , PATH},
+		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' ')))},
+		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
+		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
+		{ NO_IMAGES_OPTION_NAME                                                  , NO_IMAGES },
+		{ COVERS_ONLY_OPTION_NAME                                                , COVERS_ONLY },
 		});
 	parser.process(app);
 
@@ -614,7 +632,13 @@ bool run(int argc, char * argv[])
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
 
-	settings.sevenZipPath = parser.value(SEVEN_ZIP_OPTION_NAME);
+	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
+
+	if (const auto archiverCommandline = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME); !archiverCommandline.isEmpty())
+	{
+		settings.archiverOptions = archiverCommandline.split('_', Qt::SkipEmptyParts);
+		settings.defaultArchiverOptions = false;
+	}
 
 	const auto setIntegerValue = [&] (const char * name, int & value)
 	{
