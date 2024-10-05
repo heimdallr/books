@@ -10,9 +10,11 @@
 #include <QBuffer>
 #include <QProcess>
 
-#include <plog/Log.h>
-#include <plog/Formatters/TxtFormatter.h>
 #include <plog/Appenders/ConsoleAppender.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Log.h>
+#include <plog/Record.h>
+#include <plog/Util.h>
 
 #include "common/Constant.h"
 
@@ -196,7 +198,7 @@ private:
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
 	{
-		PLOGV << QString("%1(%2), parsing %3").arg(++m_filesCount).arg(m_totalFiles).arg(inputFilePath);
+		PLOGV << QString("parsing %1, %2(%3)").arg(inputFilePath).arg(++m_filesCount).arg(m_totalFiles);
 
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
@@ -245,7 +247,7 @@ private:
 			QImageReader imageReader(&buffer);
 			auto image = imageReader.read();
 			if (image.isNull())
-				return AddError(imageFile, body, QString("Incorrect image %1.%2: %3").arg(name).arg(imageFile).arg(imageReader.errorString()));
+				return AddError(imageFile, body, QString("Incorrect %1 %2: %3").arg(isCover ? Global::COVER : Global::IMAGE).arg(imageFile).arg(imageReader.errorString()));
 
 			if (image.width() > m_settings.maxWidth || image.height() > m_settings.maxHeight)
 				image = image.scaled(m_settings.maxWidth, m_settings.maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -255,7 +257,7 @@ private:
 				QBuffer imageOutput(&imageBody);
 
 				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
-					return AddError(imageFile, body, QString("Cannot compress image %1.%2").arg(name).arg(imageFile));
+					return AddError(imageFile, body, QString("Cannot compress %1 %2").arg(isCover ? Global::COVER : Global::IMAGE).arg(imageFile));
 			}
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -378,6 +380,8 @@ bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadC
 	if (exe.isEmpty())
 		return false;
 
+	PLOGI << "launching an external archiver";
+
 	QProcess process;
 	QEventLoop eventLoop;
 	QStringList args = QStringList {}
@@ -394,7 +398,7 @@ bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadC
 		
 	QObject::connect(&process, &QProcess::started, [&]
 	{
-		PLOGI << "\n" << QFileInfo(exe).fileName() << " " << args.join(" ");
+		PLOGI << "external archiver launched\n" << QFileInfo(exe).fileName() << " " << args.join(" ");
 	});
 	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
 	{
@@ -593,11 +597,29 @@ bool run(int argc, char * argv[])
 	return true;
 }
 
+class LogConsoleFormatter
+{
+public:
+	static plog::util::nstring format(const plog::Record & record)
+	{
+		tm t;
+		plog::util::localtime_s(&t, &record.getTime().time);
+
+		plog::util::nostringstream ss;
+		ss << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_hour << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_min << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_sec << PLOG_NSTR(".") << std::setfill(PLOG_NSTR('0')) << std::setw(3) << static_cast<int> (record.getTime().millitm) << PLOG_NSTR(" ");
+		ss << std::setfill(PLOG_NSTR(' ')) << std::setw(5) << std::left << severityToString(record.getSeverity()) << PLOG_NSTR(" ");
+		ss << PLOG_NSTR("[") << std::hex << std::setw(4) << std::setfill('0') << std::right << (record.getTid() & 0xFFFF) << PLOG_NSTR("] ");
+		ss << record.getMessage() << PLOG_NSTR("\n");
+
+		return ss.str();
+	}
+};
+
 }
 
 int main(const int argc, char * argv[])
 {
-	plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+	plog::ConsoleAppender<LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	PLOGI << QString("%1 started").arg(APP_ID);
