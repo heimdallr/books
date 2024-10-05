@@ -49,10 +49,10 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"; LicenseFile: {#
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#RootDir}build\Release\bin\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\*.lst"          ; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\*.dll"          ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}build\Release\bin\*.qm"           ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
