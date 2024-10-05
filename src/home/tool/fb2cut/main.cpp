@@ -210,7 +210,7 @@ private:
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
 	{
-		PLOGV << QString("parsing %1, %2(%3)").arg(inputFilePath).arg(++m_filesCount).arg(m_totalFiles);
+		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(++m_filesCount).arg(m_totalFiles).arg(m_filesCount * 100 / m_totalFiles);
 
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
