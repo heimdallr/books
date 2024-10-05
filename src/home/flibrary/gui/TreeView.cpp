@@ -586,6 +586,8 @@ private:
 
 	void RestoreHeaderLayout()
 	{
+		const ScopedCall setVisibleSectionsGuard([this] { OnHeaderSectionsVisibleChanged(); });
+
 		if (m_recentMode.isEmpty())
 			return;
 
@@ -628,8 +630,6 @@ private:
 			if (columns.isEmpty())
 				for (auto i = 0, sz = header->count(); i < sz; ++i)
 					header->showSection(i);
-
-			OnHeaderSectionsVisibleChanged();
 
 			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
