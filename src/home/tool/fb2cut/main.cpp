@@ -98,11 +98,11 @@ bool WriteImages(const std::unique_ptr<Zip> & zip, std::mutex & guard, const QSt
 	return result;
 }
 
-void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QByteArray & body)
+void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QString & ext, const QByteArray & body)
 {
 	std::scoped_lock lock(guard);
 
-	const auto filePath = dir.filePath(QString("error/%1.bad").arg(name));
+	const auto filePath = dir.filePath(QString("error/%1.%2").arg(name, !ext.isEmpty() ? ext : "bad"));
 	const QDir imgDir = QFileInfo(filePath).dir();
 	if (!imgDir.exists() && !imgDir.mkpath("."))
 	{
@@ -237,17 +237,14 @@ private:
 			if ((isCover && !m_settings.covers) || (!isCover && !m_settings.images))
 				return;
 
-			QBuffer buffer(&body);
-			buffer.open(QBuffer::ReadOnly);
-
+			const auto imageType = isCover ? Global::COVER : Global::IMAGE;
 			auto imageFile = isCover
 				? QString("%1").arg(fileInfo.completeBaseName())
 				: QString("%1/%2").arg(fileInfo.completeBaseName()).arg(name);
 
-			QImageReader imageReader(&buffer);
-			auto image = imageReader.read();
+			auto image = ReadImage(body, imageType, imageFile);
 			if (image.isNull())
-				return AddError(imageFile, body, QString("Incorrect %1 %2: %3").arg(isCover ? Global::COVER : Global::IMAGE).arg(imageFile).arg(imageReader.errorString()));
+				return;
 
 			if (image.width() > m_settings.maxWidth || image.height() > m_settings.maxHeight)
 				image = image.scaled(m_settings.maxWidth, m_settings.maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -257,7 +254,7 @@ private:
 				QBuffer imageOutput(&imageBody);
 
 				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
-					return AddError(imageFile, body, QString("Cannot compress %1 %2").arg(isCover ? Global::COVER : Global::IMAGE).arg(imageFile));
+					return AddError(imageFile, body, QString("Cannot compress %1 %2").arg(imageType).arg(imageFile));
 			}
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -268,10 +265,68 @@ private:
 		return bodyOutput;
 	}
 
-	void AddError(const QString & file, const QByteArray & body, const QString & errorText) const
+	QImage ReadImage(QByteArray & body, const char * imageType, const QString & imageFile) const
+	{
+		struct Signature
+		{
+			const char * extension;
+			const char * signature;
+		};
+		static constexpr Signature signatures[]
+		{
+			{ "jpg", "\xFF\xD8\xFF\xE0" },
+			{ "png", "\x89\x50\x4E\x47" },
+		};
+		static constexpr Signature unsupportedSignatures[]
+		{
+			{"riff", R"(RIFF)" },
+		};
+
+		QBuffer buffer(&body);
+		buffer.open(QBuffer::ReadOnly);
+		QImageReader imageReader(&buffer);
+		auto image = imageReader.read();
+		if (!image.isNull())
+			return image;
+
+		if (body.size() < 1000)
+		{
+			PLOGW << QString("%1 %2 too small file size: %3").arg(imageType).arg(imageFile).arg(body.size());
+			return {};
+		}
+
+		if (const auto it = std::ranges::find_if(signatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
+		{
+			AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(imageReader.errorString()), it->extension);
+			return {};
+		}
+
+		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
+		{
+			AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
+			return {};
+		}
+
+		if (body.startsWith("<html"))
+		{
+			PLOGW << QString("%1 %2 is html").arg(imageType).arg(imageFile);
+			return {};
+		}
+
+		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
+		{
+			AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html");
+			return {};
+		}
+
+		AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(imageReader.errorString()));
+		return {};
+	}
+
+	void AddError(const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}) const
 	{
 		PLOGW << errorText;
-		WriteError(m_settings.dstDir, m_fileSystemGuard, file, body);
+		WriteError(m_settings.dstDir, m_fileSystemGuard, file, ext, body);
 		m_hasError = true;
 	}
 
@@ -317,7 +372,7 @@ public:
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
 				(
-					  settings
+					settings
 					, totalFiles
 					, m_queueCondition
 					, m_queueGuard
@@ -395,7 +450,7 @@ bool SevenZipIt(const QString & exe, const QString & folder, const int maxTreadC
 		<< QString("%1.7z").arg(folder)
 		<< QString("%1/*.fb2").arg(folder)
 		;
-		
+
 	QObject::connect(&process, &QProcess::started, [&]
 	{
 		PLOGI << "external archiver launched\n" << QFileInfo(exe).fileName() << " " << args.join(" ");
@@ -582,8 +637,8 @@ bool run(int argc, char * argv[])
 		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 	if (settings.images)
-	if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
-		throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
