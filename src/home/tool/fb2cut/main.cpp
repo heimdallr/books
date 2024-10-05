@@ -483,7 +483,9 @@ bool SevenZipIt(const Settings & settings)
 	});
 
 	process.start(settings.archiver, args, QIODevice::ReadOnly);
-	eventLoop.exec();
+
+	if (eventLoop.exec() == 0)
+		QDir().rmdir(settings.dstDir.path());
 
 	return false;
 }
