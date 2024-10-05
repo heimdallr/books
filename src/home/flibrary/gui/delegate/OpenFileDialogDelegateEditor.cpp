@@ -5,7 +5,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/ui/IUiFactory.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 

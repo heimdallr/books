@@ -23,8 +23,9 @@
 
 #include "config/version.h"
 
-using namespace HomeCompa::Flibrary;
-using namespace HomeCompa::RestAPI;
+using namespace HomeCompa;
+using namespace Flibrary;
+using namespace RestAPI;
 using namespace Github;
 
 namespace {

@@ -38,7 +38,8 @@
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 

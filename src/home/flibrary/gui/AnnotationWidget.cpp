@@ -30,7 +30,8 @@
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -151,8 +152,11 @@ struct Table
 	QStringList data;
 };
 
-bool SaveImage(const QString & fileName, const QByteArray & bytes)
+bool SaveImage(QString fileName, const QByteArray & bytes)
 {
+	if (const QFileInfo fileInfo(fileName); fileInfo.suffix().isEmpty())
+		fileName += ".jpg";
+
 	if (QFile::exists(fileName))
 		PLOGW << fileName << " already exists and will be overwritten";
 
@@ -276,7 +280,10 @@ public:
 		{
 			assert(!m_covers.empty());
 			const auto & [name, bytes] = m_covers[m_currentCoverIndex];
-			const auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
+			auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
+			if (const QFileInfo fileInfo(path); fileInfo.suffix().isEmpty())
+				path += ".jpg";
+
 			if (!SaveImage(path, bytes))
 				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
 			if (!QDesktopServices::openUrl(path))

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <functional>
 
 class QIODevice;
 class QByteArray;
@@ -13,6 +13,8 @@ class Zip;
 namespace HomeCompa::Flibrary {
 
 QByteArray RestoreImages(QIODevice & input, const QString & folder, const QString & fileName);
-std::unique_ptr<Zip> CreateImageArchive(const QString & folder);
+
+using ExtractBookImagesCallback = std::function<bool(QString, QByteArray)>;
+bool ExtractBookImages(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback);
 
 }
