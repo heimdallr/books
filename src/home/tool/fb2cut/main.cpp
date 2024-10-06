@@ -322,6 +322,7 @@ private:
 		{
 			{ "html", R"(<html)" },
 			{ "xml", R"(<?xml)" },
+			{ "svg", R"(<svg)" },
 		};
 
 		auto [image, errorString] = ToImage(body);
