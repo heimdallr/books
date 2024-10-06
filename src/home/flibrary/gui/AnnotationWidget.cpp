@@ -7,6 +7,8 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QPainter>
+#include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -59,7 +61,6 @@ constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 i
 constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
-constexpr auto UNSUPPORTED_IMAGE_FORMAT = QT_TRANSLATE_NOOP("Annotation", "Unsupported image format");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -366,7 +367,7 @@ public:
 		OnResize();
 	}
 
-	void OnResize() const
+	void OnResize()
 	{
 		m_ui.coverArea->setVisible(m_showCover);
 
@@ -383,9 +384,15 @@ public:
 		QPixmap pixmap;
 		if (!pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes))
 		{
-			m_ui.cover->setText(Tr(UNSUPPORTED_IMAGE_FORMAT));
-			m_ui.cover->setMinimumHeight(imgHeight);
-			m_ui.cover->setMaximumHeight(imgHeight);
+			const auto defaultSize = m_svgRenderer.defaultSize();
+			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
+			pixmap = QPixmap(imgWidth, imgHeight);
+
+			pixmap.fill(Qt::transparent);
+			QPainter p(&pixmap);
+			m_svgRenderer.render(&p, QRect(QPoint {}, pixmap.size()));
+
+			m_ui.cover->setPixmap(pixmap);
 		}
 		else
 		{
@@ -565,6 +572,7 @@ private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
 	IAnnotationController::IDataProvider::Covers m_covers;
+	QSvgRenderer m_svgRenderer { QString(":/icons/unsupported_image.svg") };
 	const QString m_currentCollectionId;
 	int m_coverIndex { -1 };
 	int m_currentCoverIndex { -1 };

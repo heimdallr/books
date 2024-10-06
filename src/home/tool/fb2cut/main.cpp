@@ -317,7 +317,6 @@ private:
 		{
 			{ "riff", R"(RIFF)" },
 		};
-
 		static constexpr Signature knownSignatures[]
 		{
 			{ "html", R"(<html)" },
