@@ -552,6 +552,38 @@ bool SevenZipIt(const Settings & settings)
 	return false;
 }
 
+bool ZipIt(const Settings & settings)
+{
+	bool result = false;
+	Zip zip(QString("%1.7z").arg(settings.dstDir.path()), Zip::Format::Zip);
+	for (const auto & file : settings.dstDir.entryList({ "*.fb2" }))
+	{
+		QFile input(settings.dstDir.filePath(file));
+		if (!input.open(QIODevice::ReadOnly))
+		{
+			result = true;
+			continue;
+		}
+
+		const auto body = input.readAll();
+		input.close();
+		if (zip.Write(file).write(body) != body.size())
+			result = true;
+		else
+			input.remove();
+	}
+
+	return result;
+}
+
+bool ArchiveFb2(const Settings & settings)
+{
+	if (!settings.saveFb2)
+		return false;
+
+	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
+}
+
 bool ProcessArchiveImpl(const QString & file, Settings settings, std::atomic_int & fileCount)
 {
 	const QFileInfo fileInfo(file);
@@ -597,7 +629,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings, std::atomic_int
 
 	bool hasError = false;
 	hasError = fileProcessor.HasError() || hasError;
-	hasError = SevenZipIt(settings) || hasError;
+	hasError = ArchiveFb2(settings) || hasError;
 
 	QDir().rmdir(settings.dstDir.path());
 
@@ -676,8 +708,8 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 		{ { QString(FOLDER[0])              , FOLDER                           } , DESTINATION_FOLDER  , FOLDER },
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , COMPRESSION_QUALITY , QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , MAX_THREAD_COUNT    , QString(THREADS).arg(settings.maxThreadCount) },
-		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , ARCHIVER            , PATH},
-		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' ')))},
+		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , ARCHIVER            , QString("%1 [embedded zip archiver]").arg(PATH) },
+		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
 		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
 		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
 		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , MIN_IMAGE_FILE_SIZE , QString(SIZE).arg(settings.minImageFileSize) },
