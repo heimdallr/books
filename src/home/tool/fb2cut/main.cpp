@@ -45,6 +45,7 @@ constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 constexpr auto ARCHIVER_OPTION_NAME = "archiver";
 constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
+constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
@@ -57,6 +58,7 @@ constexpr auto COVERS_ONLY = "Save covers only";
 constexpr auto ARCHIVER = "Path to external archiver executable";
 constexpr auto ARCHIVER_COMMANDLINE = "External archiver command line options";
 constexpr auto FFMPEG = "Path to ffmpeg executable";
+constexpr auto MIN_IMAGE_FILE_SIZE = "Minimum image file size threshold for writing to error folder";
 
 constexpr auto WIDTH = "width [%1]";
 constexpr auto HEIGHT = "height [%1]";
@@ -65,6 +67,7 @@ constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 constexpr auto PATH = "path";
 constexpr auto COMMANDLINE = "list of options [%1]";
+constexpr auto SIZE = "size [%1]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
@@ -75,6 +78,7 @@ struct Settings
 	int maxHeight { std::numeric_limits<int>::max() };
 	int quality { -1 };
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
+	int minImageFileSize { 1024 };
 	bool saveFb2 { true };
 	bool saveCovers { true };
 	bool saveImages { true };
@@ -312,20 +316,20 @@ private:
 		};
 		static constexpr Signature unsupportedSignatures[]
 		{
-			{"riff", R"(RIFF)" },
+			{ "riff", R"(RIFF)" },
 		};
 
 		static constexpr Signature knownSignatures[]
 		{
-			{"html", R"(<html)" },
-			{"xml", R"(<?xml)" },
+			{ "html", R"(<html)" },
+			{ "xml", R"(<?xml)" },
 		};
 
 		auto [image, errorString] = ToImage(body);
 		if (!image.isNull())
 			return image;
 
-		if (body.size() < 1000)
+		if (body.size() < m_settings.minImageFileSize)
 		{
 			PLOGW << QString("%1 %2 too small file size: %3").arg(imageType).arg(imageFile).arg(body.size());
 			return {};
@@ -654,12 +658,8 @@ QStringList ProcessWildCard(const QString & wildCard)
 	return result;
 }
 
-bool run(int argc, char * argv[])
+std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app)
 {
-	const QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationName(APP_ID);
-	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
-
 	Settings settings {};
 
 	const auto get_archiver_default_options = [&]
@@ -682,6 +682,7 @@ bool run(int argc, char * argv[])
 		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' ')))},
 		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
 		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
+		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , MIN_IMAGE_FILE_SIZE , QString(SIZE).arg(settings.minImageFileSize) },
 		{ FFMPEG_OPTION_NAME                                                     , FFMPEG              , PATH },
 		{ NO_FB2_OPTION_NAME                                                     , NO_FB2 },
 		{ NO_IMAGES_OPTION_NAME                                                  , NO_IMAGES },
@@ -719,6 +720,7 @@ bool run(int argc, char * argv[])
 	setIntegerValue(MAX_HEIGHT_OPTION_NAME, settings.maxHeight);
 	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
 	setIntegerValue(MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
+	setIntegerValue(MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
 	if (parser.isSet(NO_FB2_OPTION_NAME))
 		settings.saveFb2 = false;
@@ -737,6 +739,17 @@ bool run(int argc, char * argv[])
 	QStringList files;
 	for (const auto & wildCard : parser.positionalArguments())
 		files << ProcessWildCard(wildCard);
+
+	return std::make_pair(std::move(files), std::move(settings));
+}
+
+bool run(int argc, char * argv[])
+{
+	const QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationName(APP_ID);
+	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+
+	auto [files, settings] = ProcessCommandLine(app);
 
 	const auto failedArchives = ProcessArchives(std::move(files), settings);
 	if (failedArchives.isEmpty())
