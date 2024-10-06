@@ -34,10 +34,18 @@ using namespace fb2cut;
 
 namespace {
 
+constexpr auto MAX_SIZE = std::numeric_limits<int>::max();
+
+
 constexpr auto APP_ID = "fb2cut";
-constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
-constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
+constexpr auto MAX_SIZE_OPTION_NAME = "max-size";
+constexpr auto MAX_COVER_SIZE_OPTION_NAME = "max-cover-size";
+constexpr auto MAX_IMAGE_SIZE_OPTION_NAME = "max-image-size";
+
 constexpr auto QUALITY_OPTION_NAME = "quality";
+constexpr auto COVER_QUALITY_OPTION_NAME = "cover-quality";
+constexpr auto IMAGE_QUALITY_OPTION_NAME = "image-quality";
+
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
@@ -47,36 +55,22 @@ constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 
-constexpr auto MAX_WIDTH = "Maximum image width";
-constexpr auto MAX_HEIGHT = "Maximum image height";
-constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100] or -1 for default compression quality";
-constexpr auto DESTINATION_FOLDER = "Destination folder (required)";
-constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
-constexpr auto NO_FB2 = "Don't save fb2";
-constexpr auto NO_IMAGES = "Don't save image";
-constexpr auto COVERS_ONLY = "Save covers only";
-constexpr auto ARCHIVER = "Path to external archiver executable";
-constexpr auto ARCHIVER_COMMANDLINE = "External archiver command line options";
-constexpr auto FFMPEG = "Path to ffmpeg executable";
-constexpr auto MIN_IMAGE_FILE_SIZE = "Minimum image file size threshold for writing to error folder";
-
-constexpr auto WIDTH = "width [%1]";
-constexpr auto HEIGHT = "height [%1]";
 constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 constexpr auto PATH = "path";
 constexpr auto COMMANDLINE = "list of options [%1]";
-constexpr auto SIZE = "size [%1]";
+constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
 
 struct Settings
 {
-	int maxWidth { std::numeric_limits<int>::max() };
-	int maxHeight { std::numeric_limits<int>::max() };
-	int quality { -1 };
+	QSize maxCoverSize { MAX_SIZE, MAX_SIZE };
+	QSize maxImageSize { MAX_SIZE, MAX_SIZE };
+	int coverQuality { -1 };
+	int imageQuality { -1 };
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
 	int minImageFileSize { 1024 };
 	bool saveFb2 { true };
@@ -278,18 +272,21 @@ private:
 				? QString("%1").arg(fileInfo.completeBaseName())
 				: QString("%1/%2").arg(fileInfo.completeBaseName()).arg(name);
 
+			const auto & maxImageSize = isCover ? m_settings.maxCoverSize : m_settings.maxImageSize;
+
 			auto image = ReadImage(body, imageType, imageFile);
 			if (image.isNull())
 				return;
 
-			if (image.width() > m_settings.maxWidth || image.height() > m_settings.maxHeight)
-				image = image.scaled(m_settings.maxWidth, m_settings.maxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			if (image.width() > maxImageSize.width() || image.height() > maxImageSize.height())
+				image = image.scaled(maxImageSize.width(), maxImageSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
 
-				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
+				const auto quality = isCover ? m_settings.coverQuality : m_settings.imageQuality;
+				if (!image.save(&imageOutput, "jpeg", quality))
 					return (void)AddError(imageFile, body, QString("Cannot compress %1 %2").arg(imageType).arg(imageFile), {}, false);
 			}
 			auto & storage = isCover ? m_covers : m_images;
@@ -688,6 +685,56 @@ QStringList ProcessWildCard(const QString & wildCard)
 	return result;
 }
 
+template <typename T>
+bool SetValue(const QCommandLineParser & parser, const char * key, T & value) = delete;
+
+template <>
+bool SetValue<int>(const QCommandLineParser & parser, const char * key, int & value)
+{
+	bool ok = false;
+	if (const auto parsed = parser.value(key).toInt(&ok); ok)
+		value = parsed;
+
+	return ok;
+}
+
+template <>
+bool SetValue<QSize>(const QCommandLineParser & parser, const char * key, QSize & value)
+{
+	const auto parsed = parser.value(key).split(',', Qt::SkipEmptyParts);
+	if (parsed.isEmpty())
+		return false;
+
+	if (parsed.size() < 2)
+	{
+		bool ok = false;
+
+		if (const auto v = parsed.front().toInt(&ok); !ok)
+		{
+			return false;
+		}
+		else
+		{
+			value.setWidth(v);
+			value.setHeight(v);
+		}
+
+		return true;
+	}
+
+	QSize v;
+	bool ok = false;
+
+	if (v.setWidth(parsed.front().toInt(&ok)); !ok)
+		return false;
+
+	if (v.setHeight(parsed.back().toInt(&ok)); !ok)
+		return false;
+
+	value = v;
+	return true;
+}
+
 std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app)
 {
 	Settings settings {};
@@ -700,24 +747,31 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 			;
 	};
 
+
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { QString(FOLDER[0])              , FOLDER                           } , DESTINATION_FOLDER  , FOLDER },
-		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , COMPRESSION_QUALITY , QUALITY },
-		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , MAX_THREAD_COUNT    , QString(THREADS).arg(settings.maxThreadCount) },
-		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , ARCHIVER            , QString("%1 [embedded zip archiver]").arg(PATH) },
-		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
-		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
-		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
-		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , MIN_IMAGE_FILE_SIZE , QString(SIZE).arg(settings.minImageFileSize) },
-		{ FFMPEG_OPTION_NAME                                                     , FFMPEG              , PATH },
-		{ NO_FB2_OPTION_NAME                                                     , NO_FB2 },
-		{ NO_IMAGES_OPTION_NAME                                                  , NO_IMAGES },
-		{ COVERS_ONLY_OPTION_NAME                                                , COVERS_ONLY },
-		});
+		{ { QString(FOLDER[0])              , FOLDER                           } , "Destination folder (required)"                                     , FOLDER },
+		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
+		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
+		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
+
+		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
+		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
+		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
+		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
+		{ MAX_COVER_SIZE_OPTION_NAME                                             , "Maximum cover size"                    , SIZE },
+		{ MAX_IMAGE_SIZE_OPTION_NAME                                             , "Maximum image size"                    , SIZE },
+
+		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
+		{ FFMPEG_OPTION_NAME                                                     , "Path to ffmpeg executable"                                    , PATH },
+
+		{ NO_FB2_OPTION_NAME                                                     , "Don't save fb2" },
+		{ NO_IMAGES_OPTION_NAME                                                  , "Don't save image" },
+		{ COVERS_ONLY_OPTION_NAME                                                , "Save covers only" },
+	});
 	parser.process(app);
 
 	const auto destinationFolder = parser.value(FOLDER);
@@ -739,18 +793,21 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 		settings.defaultArchiverOptions = false;
 	}
 
-	const auto setIntegerValue = [&] (const char * name, int & value)
-	{
-		bool ok = false;
-		if (const auto parsed = parser.value(name).toInt(&ok); ok)
-			value = parsed;
-	};
+	QSize size;
+	if (SetValue(parser, MAX_SIZE_OPTION_NAME, size))
+		settings.maxCoverSize = settings.maxImageSize = size;
+	SetValue(parser, MAX_COVER_SIZE_OPTION_NAME, settings.maxCoverSize);
+	SetValue(parser, MAX_IMAGE_SIZE_OPTION_NAME, settings.maxImageSize);
 
-	setIntegerValue(MAX_WIDTH_OPTION_NAME, settings.maxWidth);
-	setIntegerValue(MAX_HEIGHT_OPTION_NAME, settings.maxHeight);
-	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
-	setIntegerValue(MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
-	setIntegerValue(MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
+	int quality = -1;
+	if (SetValue(parser, QUALITY_OPTION_NAME, quality))
+		settings.coverQuality = settings.imageQuality = quality;
+
+	SetValue(parser, COVER_QUALITY_OPTION_NAME, settings.coverQuality);
+	SetValue(parser, IMAGE_QUALITY_OPTION_NAME, settings.imageQuality);
+
+	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
+	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
 	if (parser.isSet(NO_FB2_OPTION_NAME))
 		settings.saveFb2 = false;
