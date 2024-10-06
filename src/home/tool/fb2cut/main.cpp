@@ -94,6 +94,7 @@ struct Settings
 		<< "-bt"
 	};
 	bool defaultArchiverOptions { true };
+	int totalFileCount { 0 };
 };
 
 bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
@@ -161,14 +162,13 @@ class Worker
 
 public:
 	Worker(const Settings & settings
-		, const int totalFiles
 		, std::condition_variable & queueCondition
 		, std::mutex & queueGuard
 		, DataItems & queue
 		, std::mutex & fileSystemGuard
 		, std::atomic_bool & hasError
 		, std::atomic_int & queueSize
-		, std::atomic_int & filesCount
+		, std::atomic_int & fileCount
 		, std::mutex & zipCoversGuard
 		, std::mutex & zipImagesGuard
 		, const std::unique_ptr<Zip> & zipCovers
@@ -176,14 +176,13 @@ public:
 
 	)
 		: m_settings { settings }
-		, m_totalFiles { totalFiles }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_queue { queue }
 		, m_fileSystemGuard { fileSystemGuard }
 		, m_hasError { hasError }
 		, m_queueSize { queueSize }
-		, m_filesCount { filesCount }
+		, m_fileCount { fileCount }
 		, m_zipCoversGuard { zipCoversGuard }
 		, m_zipImagesGuard { zipImagesGuard }
 		, m_zipCovers { zipCovers }
@@ -232,7 +231,7 @@ private:
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
 	{
-		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(++m_filesCount).arg(m_totalFiles).arg(m_filesCount * 100 / m_totalFiles);
+		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(++m_fileCount).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
 
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
@@ -411,7 +410,6 @@ private:
 
 private:
 	const Settings & m_settings;
-	const int m_totalFiles;
 
 	std::condition_variable & m_queueCondition;
 	std::mutex & m_queueGuard;
@@ -419,7 +417,7 @@ private:
 	std::mutex & m_fileSystemGuard;
 
 	std::atomic_bool & m_hasError;
-	std::atomic_int & m_queueSize, & m_filesCount;
+	std::atomic_int & m_queueSize, & m_fileCount;
 
 	std::mutex & m_zipCoversGuard;
 	std::mutex & m_zipImagesGuard;
@@ -442,7 +440,7 @@ QString GetImagesFolder(const QDir & dir, const QString & type)
 class FileProcessor
 {
 public:
-	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
+	FileProcessor(const Settings & settings, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize, std::atomic_int & fileCount)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_zipCovers { settings.saveCovers ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
@@ -452,14 +450,13 @@ public:
 			m_workers.push_back(std::make_unique<Worker>
 				(
 					  settings
-					, totalFiles
 					, m_queueCondition
 					, m_queueGuard
 					, m_queue
 					, m_fileSystemGuard
 					, m_hasError
 					, m_queueSize
-					, m_filesCount
+					, fileCount
 					, m_zipCoversGuard
 					, m_zipImagesGuard
 					, m_zipCovers
@@ -497,7 +494,7 @@ private:
 	std::mutex & m_queueGuard;
 	std::atomic_bool m_hasError { false };
 	std::queue<std::pair<QString, QByteArray>> m_queue;
-	std::atomic_int m_queueSize { 0 }, m_filesCount { 0 };
+	std::atomic_int m_queueSize { 0 };
 	std::mutex m_fileSystemGuard;
 
 	std::mutex m_zipCoversGuard;
@@ -555,7 +552,7 @@ bool SevenZipIt(const Settings & settings)
 	return false;
 }
 
-bool ProcessArchiveImpl(const QString & file, Settings settings)
+bool ProcessArchiveImpl(const QString & file, Settings settings, std::atomic_int & fileCount)
 {
 	const QFileInfo fileInfo(file);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
@@ -573,7 +570,7 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 
 	std::condition_variable queueCondition;
 	std::mutex queueGuard;
-	FileProcessor fileProcessor(settings, static_cast<int>(fileList.size()), queueCondition, queueGuard, maxThreadCount);
+	FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
 
 	while (!fileList.isEmpty())
 	{
@@ -607,14 +604,14 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 	return hasError;
 }
 
-bool ProcessArchive(const QString & file, const Settings & settings)
+bool ProcessArchive(const QString & file, const Settings & settings, std::atomic_int & fileCount)
 {
 	try
 	{
 		PLOGI << QString("%1 processing").arg(file);
-		if (ProcessArchiveImpl(file, settings))
+		if (ProcessArchiveImpl(file, settings, fileCount))
 		{
-			PLOGE << QString("%1 processing failed").arg(file);
+			PLOGE << QString("%1 processed with errors").arg(file);
 		}
 		else
 		{
@@ -636,9 +633,10 @@ bool ProcessArchive(const QString & file, const Settings & settings)
 
 QStringList ProcessArchives(QStringList files, const Settings & settings)
 {
+	std::atomic_int fileCount;
 	QStringList failed;
 	for (auto && file : files)
-		if (ProcessArchive(file, settings))
+		if (ProcessArchive(file, settings, fileCount))
 			failed << std::move(file);
 
 	return failed;
@@ -740,6 +738,14 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 	for (const auto & wildCard : parser.positionalArguments())
 		files << ProcessWildCard(wildCard);
 
+	PLOGD << "Total file count calculation";
+	settings.totalFileCount = std::accumulate(files.cbegin(), files.cend(), settings.totalFileCount, [] (const auto init, const QString & file)
+	{
+		const Zip zip(file);
+		return init + zip.GetFileNameList().size();
+	});
+	PLOGI << "Total file count: " << settings.totalFileCount;
+
 	return std::make_pair(std::move(files), std::move(settings));
 }
 
@@ -755,7 +761,7 @@ bool run(int argc, char * argv[])
 	if (failedArchives.isEmpty())
 		return false;
 
-	PLOGE << "Failed:\n" << failedArchives.join("\n");
+	PLOGE << "Processed with errors:\n" << failedArchives.join("\n");
 	return true;
 }
 
