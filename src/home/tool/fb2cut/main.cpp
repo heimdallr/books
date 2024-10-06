@@ -44,6 +44,7 @@ constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 constexpr auto ARCHIVER_OPTION_NAME = "archiver";
 constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
+constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 
 constexpr auto MAX_WIDTH = "Maximum image width";
 constexpr auto MAX_HEIGHT = "Maximum image height";
@@ -55,6 +56,7 @@ constexpr auto NO_IMAGES = "Don't save image";
 constexpr auto COVERS_ONLY = "Save covers only";
 constexpr auto ARCHIVER = "Path to external archiver executable";
 constexpr auto ARCHIVER_COMMANDLINE = "External archiver command line options";
+constexpr auto FFMPEG = "Path to ffmpeg executable";
 
 constexpr auto WIDTH = "width [%1]";
 constexpr auto HEIGHT = "height [%1]";
@@ -77,6 +79,7 @@ struct Settings
 	bool saveCovers { true };
 	bool saveImages { true };
 	QDir dstDir;
+	QString ffmpeg;
 	QString archiver;
 	QStringList archiverOptions { QStringList {}
 		<< "a"
@@ -390,7 +393,7 @@ public:
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
 				(
-					settings
+					  settings
 					, totalFiles
 					, m_queueCondition
 					, m_queueGuard
@@ -625,10 +628,11 @@ bool run(int argc, char * argv[])
 		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' ')))},
 		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
 		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
+		{ FFMPEG_OPTION_NAME                                                     , FFMPEG              , PATH },
 		{ NO_FB2_OPTION_NAME                                                     , NO_FB2 },
 		{ NO_IMAGES_OPTION_NAME                                                  , NO_IMAGES },
 		{ COVERS_ONLY_OPTION_NAME                                                , COVERS_ONLY },
-	});
+		});
 	parser.process(app);
 
 	const auto destinationFolder = parser.value(FOLDER);
@@ -641,6 +645,7 @@ bool run(int argc, char * argv[])
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
 
+	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
 	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
 
 	if (const auto archiverCommandline = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME); !archiverCommandline.isEmpty())
@@ -717,7 +722,7 @@ int main(const int argc, char * argv[])
 	try
 	{
 		if (run(argc, argv))
-			PLOGI << QString("%1 failed").arg(APP_ID);
+			PLOGI << QString("%1 finished with errors").arg(APP_ID);
 		else
 			PLOGW << QString("%1 successfully finished").arg(APP_ID);
 		return 0;
