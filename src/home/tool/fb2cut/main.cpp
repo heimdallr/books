@@ -39,6 +39,7 @@ constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
 constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
 constexpr auto QUALITY_OPTION_NAME = "quality";
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
+constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 constexpr auto ARCHIVER_OPTION_NAME = "archiver";
@@ -49,6 +50,7 @@ constexpr auto MAX_HEIGHT = "Maximum image height";
 constexpr auto COMPRESSION_QUALITY = "Compression quality [0, 100] or -1 for default compression quality";
 constexpr auto DESTINATION_FOLDER = "Destination folder (required)";
 constexpr auto MAX_THREAD_COUNT = "Maximum number of CPU threads";
+constexpr auto NO_FB2 = "Don't save fb2";
 constexpr auto NO_IMAGES = "Don't save image";
 constexpr auto COVERS_ONLY = "Save covers only";
 constexpr auto ARCHIVER = "Path to external archiver executable";
@@ -71,8 +73,9 @@ struct Settings
 	int maxHeight { std::numeric_limits<int>::max() };
 	int quality { -1 };
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
-	bool covers { true };
-	bool images { true };
+	bool saveFb2 { true };
+	bool saveCovers { true };
+	bool saveImages { true };
 	QDir dstDir;
 	QString archiver;
 	QStringList archiverOptions { QStringList {}
@@ -225,6 +228,9 @@ private:
 			return true;
 		}
 
+		if (!m_settings.saveFb2)
+			return false;
+
 		std::scoped_lock fileSystemLock(m_fileSystemGuard);
 		QFile bodyFle(outputFilePath);
 		if (!bodyFle.open(QIODevice::WriteOnly))
@@ -246,7 +252,7 @@ private:
 
 		auto binaryCallback = [&] (const QString & name, const bool isCover, QByteArray body)
 		{
-			if ((isCover && !m_settings.covers) || (!isCover && !m_settings.images))
+			if ((isCover && !m_settings.saveCovers) || (!isCover && !m_settings.saveImages))
 				return;
 
 			const auto imageType = isCover ? Global::COVER : Global::IMAGE;
@@ -378,8 +384,8 @@ public:
 	FileProcessor(const Settings & settings, const int totalFiles, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { settings.covers ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.images ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipCovers { settings.saveCovers ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipImages { settings.saveImages ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -444,7 +450,7 @@ private:
 
 bool SevenZipIt(const Settings & settings)
 {
-	if (settings.archiver.isEmpty())
+	if (!settings.saveFb2 || settings.archiver.isEmpty())
 		return false;
 
 	PLOGI << "launching an external archiver";
@@ -484,9 +490,7 @@ bool SevenZipIt(const Settings & settings)
 
 	process.start(settings.archiver, args, QIODevice::ReadOnly);
 
-	if (eventLoop.exec() == 0)
-		QDir().rmdir(settings.dstDir.path());
-
+	eventLoop.exec();
 	return false;
 }
 
@@ -536,6 +540,8 @@ bool ProcessArchiveImpl(const QString & file, Settings settings)
 	bool hasError = false;
 	hasError = fileProcessor.HasError() || hasError;
 	hasError = SevenZipIt(settings) || hasError;
+
+	QDir().rmdir(settings.dstDir.path());
 
 	return hasError;
 }
@@ -619,9 +625,10 @@ bool run(int argc, char * argv[])
 		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , ARCHIVER_COMMANDLINE, QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' ')))},
 		{ MAX_WIDTH_OPTION_NAME                                                  , MAX_WIDTH           , QString(WIDTH).arg(settings.maxWidth) },
 		{ MAX_HEIGHT_OPTION_NAME                                                 , MAX_HEIGHT          , QString(HEIGHT).arg(settings.maxHeight) },
+		{ NO_FB2_OPTION_NAME                                                     , NO_FB2 },
 		{ NO_IMAGES_OPTION_NAME                                                  , NO_IMAGES },
 		{ COVERS_ONLY_OPTION_NAME                                                , COVERS_ONLY },
-		});
+	});
 	parser.process(app);
 
 	const auto destinationFolder = parser.value(FOLDER);
@@ -654,15 +661,17 @@ bool run(int argc, char * argv[])
 	setIntegerValue(QUALITY_OPTION_NAME, settings.quality);
 	setIntegerValue(MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 
+	if (parser.isSet(NO_FB2_OPTION_NAME))
+		settings.saveFb2 = false;
 	if (parser.isSet(NO_IMAGES_OPTION_NAME))
-		settings.covers = settings.images = false;
+		settings.saveCovers = settings.saveImages = false;
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
-		settings.images = false;
+		settings.saveImages = false;
 
-	if (settings.covers)
+	if (settings.saveCovers)
 		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
-	if (settings.images)
+	if (settings.saveImages)
 		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 
