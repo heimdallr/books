@@ -139,6 +139,18 @@ void WriteError(const QDir & dir, std::mutex & guard, const QString & name, cons
 		PLOGE << QString("%1 written with errors").arg(filePath);
 }
 
+std::pair<QImage, QString> ToImage(QByteArray & body)
+{
+	QBuffer buffer(&body);
+	buffer.open(QBuffer::ReadOnly);
+	QImageReader imageReader(&buffer);
+	std::pair<QImage, QString> result{ imageReader.read(), {} };
+	if (result.first.isNull())
+		result.second = imageReader.errorString();
+
+	return result;
+}
+
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -275,7 +287,7 @@ private:
 				QBuffer imageOutput(&imageBody);
 
 				if (!image.save(&imageOutput, "jpeg", m_settings.quality))
-					return AddError(imageFile, body, QString("Cannot compress %1 %2").arg(imageType).arg(imageFile));
+					return (void)AddError(imageFile, body, QString("Cannot compress %1 %2").arg(imageType).arg(imageFile), {}, false);
 			}
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -303,10 +315,13 @@ private:
 			{"riff", R"(RIFF)" },
 		};
 
-		QBuffer buffer(&body);
-		buffer.open(QBuffer::ReadOnly);
-		QImageReader imageReader(&buffer);
-		auto image = imageReader.read();
+		static constexpr Signature knownSignatures[]
+		{
+			{"html", R"(<html)" },
+			{"xml", R"(<?xml)" },
+		};
+
+		auto [image, errorString] = ToImage(body);
 		if (!image.isNull())
 			return image;
 
@@ -317,38 +332,77 @@ private:
 		}
 
 		if (const auto it = std::ranges::find_if(signatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
-		{
-			AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(imageReader.errorString()), it->extension);
-			return {};
-		}
+			return AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
 
 		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
-		{
-			AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
-			return {};
-		}
+			return AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
 
-		if (body.startsWith("<html"))
-		{
-			PLOGW << QString("%1 %2 is html").arg(imageType).arg(imageFile);
-			return {};
-		}
+		if (const auto it = std::ranges::find_if(knownSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
+			return AddError(imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-		{
-			AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html");
-			return {};
-		}
+			return AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
 
-		AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(imageReader.errorString()));
-		return {};
+		return AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
 	}
 
-	void AddError(const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}) const
+	QImage AddError(const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}, const bool tryToFix = true) const
 	{
+		if (tryToFix)
+			if (auto fixed = TryToFix(body); !fixed.isNull())
+				return fixed;
+
 		PLOGW << errorText;
 		WriteError(m_settings.dstDir, m_fileSystemGuard, file, ext, body);
 		m_hasError = true;
+		return {};
+	}
+
+	QImage TryToFix(const QByteArray & body) const
+	{
+		if (m_settings.ffmpeg.isEmpty())
+			return {};
+
+		QProcess process;
+		QEventLoop eventLoop;
+		const auto args = QStringList() << "-i" << "pipe:0" << "-f" << "mjpeg" << "pipe:1";
+
+		QByteArray fixed;
+		QObject::connect(&process, &QProcess::started, [&]
+		{
+			PLOGI << "ffmpeg launched\n" << QFileInfo(m_settings.ffmpeg).fileName() << " " << args.join(" ");
+		});
+		QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+		{
+			if (code == 0)
+				PLOGI << QFileInfo(m_settings.ffmpeg).fileName() << " finished successfully";
+			else
+				PLOGW << QFileInfo(m_settings.ffmpeg).fileName() << " finished with " << code;
+			eventLoop.exit(code);
+		});
+		QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+		{
+			PLOGW << "\n" << process.readAllStandardError();
+		});
+		QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+		{
+			fixed.append(process.readAllStandardOutput());
+		});
+
+		process.start(m_settings.ffmpeg, args, QIODevice::ReadWrite);
+		process.write(body);
+		process.closeWriteChannel();
+
+		eventLoop.exec();
+
+		if (fixed.isEmpty())
+			return {};
+
+		auto [image, errorString] = ToImage(fixed);
+		if (!errorString.isEmpty())
+			PLOGW << errorString;
+
+		return image;
 	}
 
 private:
