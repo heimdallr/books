@@ -604,14 +604,14 @@ bool ArchiveFb2(const Settings & settings)
 	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
 }
 
-void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
+bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 	{
 		PLOGE << QString("Cannot create folder %1").arg(settings.dstDir.path());
-		return;
+		return true;
 	}
 
 	const Zip zip(archive);
@@ -672,14 +672,15 @@ void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 		PLOGW << resultReport;
 	else
 		PLOGI << resultReport;
+
+	return hasError;
 }
 
 bool ProcessArchive(const QString & file, const Settings & settings, std::atomic_int & fileCount)
 {
 	try
 	{
-		ProcessArchiveImpl(file, settings, fileCount);
-		return false;
+		return ProcessArchiveImpl(file, settings, fileCount);
 	}
 	catch (const std::exception & ex)
 	{
