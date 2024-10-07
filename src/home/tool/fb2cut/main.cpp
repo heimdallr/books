@@ -65,17 +65,32 @@ constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
 
+using ImageNameGetter = QString(*)(const QString & file, const QString & image);
+QString GetCoverFileName(const QString & file, const QString & /*image*/)
+{
+	return file;
+}
+QString GetImageFileName(const QString & file, const QString & image)
+{
+	return QString("%1/%2").arg(file, image);
+}
+
+struct ImageSettings
+{
+	const char * type { nullptr };
+	ImageNameGetter fileNameGetter { nullptr };
+
+	QSize maxSize { MAX_SIZE, MAX_SIZE };
+	int quality { -1 };
+	bool save { true };
+};
+
 struct Settings
 {
-	QSize maxCoverSize { MAX_SIZE, MAX_SIZE };
-	QSize maxImageSize { MAX_SIZE, MAX_SIZE };
-	int coverQuality { -1 };
-	int imageQuality { -1 };
+	ImageSettings cover { Global::COVER, &GetCoverFileName }, image { Global::IMAGE, &GetImageFileName };
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
 	int minImageFileSize { 1024 };
 	bool saveFb2 { true };
-	bool saveCovers { true };
-	bool saveImages { true };
 	QDir dstDir;
 	QString ffmpeg;
 	QString archiver;
@@ -257,6 +272,7 @@ private:
 	QByteArray ParseFile(const QString & inputFilePath, QIODevice & input)
 	{
 		const QFileInfo fileInfo(inputFilePath);
+		const auto completeFileName = fileInfo.completeBaseName();
 
 		QByteArray bodyOutput;
 		QBuffer output(&bodyOutput);
@@ -264,30 +280,25 @@ private:
 
 		auto binaryCallback = [&] (const QString & name, const bool isCover, QByteArray body)
 		{
-			if ((isCover && !m_settings.saveCovers) || (!isCover && !m_settings.saveImages))
+			const auto & settings = isCover ? m_settings.cover : m_settings.image;
+			if (!settings.save)
 				return;
 
-			const auto imageType = isCover ? Global::COVER : Global::IMAGE;
-			auto imageFile = isCover
-				? QString("%1").arg(fileInfo.completeBaseName())
-				: QString("%1/%2").arg(fileInfo.completeBaseName()).arg(name);
+			auto imageFile = settings.fileNameGetter(completeFileName, name);
 
-			const auto & maxImageSize = isCover ? m_settings.maxCoverSize : m_settings.maxImageSize;
-
-			auto image = ReadImage(body, imageType, imageFile);
+			auto image = ReadImage(body, settings.type, imageFile);
 			if (image.isNull())
 				return;
 
-			if (image.width() > maxImageSize.width() || image.height() > maxImageSize.height())
-				image = image.scaled(maxImageSize.width(), maxImageSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
+				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
 
-				const auto quality = isCover ? m_settings.coverQuality : m_settings.imageQuality;
-				if (!image.save(&imageOutput, "jpeg", quality))
-					return (void)AddError(imageFile, body, QString("Cannot compress %1 %2").arg(imageType).arg(imageFile), {}, false);
+				if (!image.save(&imageOutput, "jpeg", settings.quality))
+					return (void)AddError(imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -440,8 +451,8 @@ public:
 	FileProcessor(const Settings & settings, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize, std::atomic_int & fileCount)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { settings.saveCovers ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.saveImages ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipCovers { settings.cover.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_zipImages { settings.image.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -795,16 +806,15 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 
 	QSize size;
 	if (SetValue(parser, MAX_SIZE_OPTION_NAME, size))
-		settings.maxCoverSize = settings.maxImageSize = size;
-	SetValue(parser, MAX_COVER_SIZE_OPTION_NAME, settings.maxCoverSize);
-	SetValue(parser, MAX_IMAGE_SIZE_OPTION_NAME, settings.maxImageSize);
+		settings.cover.maxSize = settings.image.maxSize = size;
+	SetValue(parser, MAX_COVER_SIZE_OPTION_NAME, settings.cover.maxSize);
+	SetValue(parser, MAX_IMAGE_SIZE_OPTION_NAME, settings.image.maxSize);
 
 	int quality = -1;
 	if (SetValue(parser, QUALITY_OPTION_NAME, quality))
-		settings.coverQuality = settings.imageQuality = quality;
-
-	SetValue(parser, COVER_QUALITY_OPTION_NAME, settings.coverQuality);
-	SetValue(parser, IMAGE_QUALITY_OPTION_NAME, settings.imageQuality);
+		settings.cover.quality = settings.image.quality = quality;
+	SetValue(parser, COVER_QUALITY_OPTION_NAME, settings.cover.quality);
+	SetValue(parser, IMAGE_QUALITY_OPTION_NAME, settings.image.quality);
 
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
@@ -812,14 +822,14 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 	if (parser.isSet(NO_FB2_OPTION_NAME))
 		settings.saveFb2 = false;
 	if (parser.isSet(NO_IMAGES_OPTION_NAME))
-		settings.saveCovers = settings.saveImages = false;
+		settings.cover.save = settings.image.save = false;
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
-		settings.saveImages = false;
+		settings.image.save = false;
 
-	if (settings.saveCovers)
+	if (settings.cover.save)
 		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
-	if (settings.saveImages)
+	if (settings.image.save)
 		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 
@@ -859,7 +869,7 @@ class LogConsoleFormatter
 public:
 	static plog::util::nstring format(const plog::Record & record)
 	{
-		tm t;
+		tm t{};
 		plog::util::localtime_s(&t, &record.getTime().time);
 
 		plog::util::nostringstream ss;
