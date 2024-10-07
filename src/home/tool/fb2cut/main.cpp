@@ -309,7 +309,7 @@ private:
 				QBuffer imageOutput(&imageBody);
 
 				if (!image.save(&imageOutput, "jpeg", settings.quality))
-					return (void)AddError(imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
+					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -354,24 +354,24 @@ private:
 		}
 
 		if (const auto it = std::ranges::find_if(signatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
-			return AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
+			return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
 
 		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
-			return AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
+			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
 
 		if (const auto it = std::ranges::find_if(knownSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
-			return AddError(imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
+			return AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return AddError(imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
+			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
 
-		return AddError(imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
+		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
 	}
 
-	QImage AddError(const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}, const bool tryToFix = true) const
+	QImage AddError(const char * imageType, const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}, const bool tryToFix = true) const
 	{
 		if (tryToFix)
-			if (auto fixed = TryToFix(body); !fixed.isNull())
+			if (auto fixed = TryToFix(imageType, file, body); !fixed.isNull())
 				return fixed;
 
 		PLOGW << errorText;
@@ -380,7 +380,7 @@ private:
 		return {};
 	}
 
-	QImage TryToFix(const QByteArray & body) const
+	QImage TryToFix(const char * imageType, const QString & imageFile, const QByteArray & body) const
 	{
 		if (m_settings.ffmpeg.isEmpty())
 			return {};
@@ -388,18 +388,19 @@ private:
 		QProcess process;
 		QEventLoop eventLoop;
 		const auto args = QStringList() << "-i" << "pipe:0" << "-f" << "mjpeg" << "pipe:1";
+		const auto ffmpegFileName = QFileInfo(m_settings.ffmpeg).fileName();
 
 		QByteArray fixed;
 		QObject::connect(&process, &QProcess::started, [&]
 		{
-			PLOGI << "ffmpeg launched\n" << QFileInfo(m_settings.ffmpeg).fileName() << " " << args.join(" ");
+			PLOGI << QString("ffmpeg launched for %1 %2\n%3 %4").arg(imageType, imageFile, ffmpegFileName, args.join(" "));
 		});
 		QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
 		{
 			if (code == 0)
-				PLOGI << QFileInfo(m_settings.ffmpeg).fileName() << " finished successfully";
+				PLOGI << QString("%1 %2 is probably fixed").arg(imageType, imageFile);
 			else
-				PLOGW << QFileInfo(m_settings.ffmpeg).fileName() << " finished with " << code;
+				PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
 			eventLoop.exit(code);
 		});
 		QObject::connect(&process, &QProcess::readyReadStandardError, [&]
