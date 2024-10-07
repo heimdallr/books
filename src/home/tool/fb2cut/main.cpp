@@ -46,6 +46,10 @@ constexpr auto QUALITY_OPTION_NAME = "quality";
 constexpr auto COVER_QUALITY_OPTION_NAME = "cover-quality";
 constexpr auto IMAGE_QUALITY_OPTION_NAME = "image-quality";
 
+constexpr auto GRAYSCALE_OPTION_NAME = "grayscale";
+constexpr auto COVER_GRAYSCALE_OPTION_NAME = "cover-grayscale";
+constexpr auto IMAGE_GRAYSCALE_OPTION_NAME = "image-grayscale";
+
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
@@ -83,6 +87,7 @@ struct ImageSettings
 	QSize maxSize { MAX_SIZE, MAX_SIZE };
 	int quality { -1 };
 	bool save { true };
+	bool grayscale { false };
 };
 
 struct Settings
@@ -292,6 +297,9 @@ private:
 
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
 				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+			if (settings.grayscale)
+				image.convertTo(QImage::Format::Format_Grayscale8);
 
 			QByteArray imageBody;
 			{
@@ -779,6 +787,10 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
 		{ FFMPEG_OPTION_NAME                                                     , "Path to ffmpeg executable"                                    , PATH },
 
+		{ {QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME            } , "Convert all images to grayscale"},
+		{ COVER_GRAYSCALE_OPTION_NAME                                            , "Convert covers to grayscale" },
+		{ IMAGE_GRAYSCALE_OPTION_NAME                                            , "Convert images to grayscale" },
+
 		{ NO_FB2_OPTION_NAME                                                     , "Don't save fb2" },
 		{ NO_IMAGES_OPTION_NAME                                                  , "Don't save image" },
 		{ COVERS_ONLY_OPTION_NAME                                                , "Save covers only" },
@@ -818,6 +830,13 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
+
+	if (parser.isSet(GRAYSCALE_OPTION_NAME))
+		settings.cover.grayscale = settings.image.grayscale = true;
+	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
+		settings.cover.grayscale = true;
+	if (parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME))
+		settings.image.grayscale = true;
 
 	if (parser.isSet(NO_FB2_OPTION_NAME))
 		settings.saveFb2 = false;
