@@ -605,7 +605,6 @@ void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
-	[[maybe_unused]] const auto t = settings.dstDir.path();
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 	{
 		PLOGE << QString("Cannot create folder %1").arg(settings.dstDir.path());
@@ -614,7 +613,7 @@ void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 
 	const Zip zip(archive);
 	auto fileList = zip.GetFileNameList();
-	const auto fileListCount = fileList.size();
+	auto fileListCount = fileList.size();
 	const int currentFileCount = fileCount;
 	PLOGI << QString("%1 processing, total files: %2").arg(fileInfo.fileName()).arg(fileListCount);
 
@@ -629,7 +628,16 @@ void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 		if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
 		{
 			auto & input = zip.Read(fileList.front());
-			fileProcessor.Enqueue(std::move(fileList.front()), input.readAll());
+			auto body = input.readAll();
+			if (!body.isEmpty())
+			{
+				fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
+			}
+			else
+			{
+				PLOGW << fileList.front() << " is empty";
+				++fileCount;
+			}
 			fileList.pop_front();
 		}
 		else
@@ -668,6 +676,7 @@ bool ProcessArchive(const QString & file, const Settings & settings, std::atomic
 	try
 	{
 		ProcessArchiveImpl(file, settings, fileCount);
+		return false;
 	}
 	catch (const std::exception & ex)
 	{
