@@ -51,6 +51,7 @@ constexpr auto COVER_GRAYSCALE_OPTION_NAME = "cover-grayscale";
 constexpr auto IMAGE_GRAYSCALE_OPTION_NAME = "image-grayscale";
 
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
+constexpr auto NO_ARCHIVE_FB2_OPTION_NAME = "no-archive-fb2";
 constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
@@ -96,6 +97,7 @@ struct Settings
 	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
 	int minImageFileSize { 1024 };
 	bool saveFb2 { true };
+	bool archiveFb2 { true };
 	QDir dstDir;
 	QString ffmpeg;
 	QString archiver;
@@ -595,7 +597,7 @@ bool ZipIt(const Settings & settings)
 
 bool ArchiveFb2(const Settings & settings)
 {
-	if (!settings.saveFb2)
+	if (!settings.archiveFb2)
 		return false;
 
 	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
@@ -802,6 +804,7 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 		{ COVER_GRAYSCALE_OPTION_NAME                                            , "Convert covers to grayscale" },
 		{ IMAGE_GRAYSCALE_OPTION_NAME                                            , "Convert images to grayscale" },
 
+		{ NO_ARCHIVE_FB2_OPTION_NAME                                             , "Don't archive fb2" },
 		{ NO_FB2_OPTION_NAME                                                     , "Don't save fb2" },
 		{ NO_IMAGES_OPTION_NAME                                                  , "Don't save image" },
 		{ COVERS_ONLY_OPTION_NAME                                                , "Save covers only" },
@@ -849,8 +852,10 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 	if (parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME))
 		settings.image.grayscale = true;
 
+	if (parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME))
+		settings.archiveFb2 = false;
 	if (parser.isSet(NO_FB2_OPTION_NAME))
-		settings.saveFb2 = false;
+		settings.archiveFb2 = settings.saveFb2 = false;
 	if (parser.isSet(NO_IMAGES_OPTION_NAME))
 		settings.cover.save = settings.image.save = false;
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
