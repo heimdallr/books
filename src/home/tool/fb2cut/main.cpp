@@ -245,7 +245,8 @@ private:
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
 	{
-		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(++m_fileCount).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
+		++m_fileCount;
+		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(m_fileCount).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
 
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
@@ -600,19 +601,22 @@ bool ArchiveFb2(const Settings & settings)
 	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
 }
 
-bool ProcessArchiveImpl(const QString & file, Settings settings, std::atomic_int & fileCount)
+void ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
 {
-	const QFileInfo fileInfo(file);
+	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
 	[[maybe_unused]] const auto t = settings.dstDir.path();
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 	{
 		PLOGE << QString("Cannot create folder %1").arg(settings.dstDir.path());
-		return true;
+		return;
 	}
 
-	const Zip zip(file);
+	const Zip zip(archive);
 	auto fileList = zip.GetFileNameList();
+	const auto fileListCount = fileList.size();
+	const int currentFileCount = fileCount;
+	PLOGI << QString("%1 processing, total files: %2").arg(fileInfo.fileName()).arg(fileListCount);
 
 	const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileList.size()));
 
@@ -649,23 +653,21 @@ bool ProcessArchiveImpl(const QString & file, Settings settings, std::atomic_int
 
 	QDir().rmdir(settings.dstDir.path());
 
-	return hasError;
+	if (fileCount - currentFileCount != fileListCount)
+		PLOGE << QString("something strange: %1 files in archive %2 but processed %3").arg(fileListCount).arg(fileInfo.fileName()).arg(fileCount - currentFileCount);
+
+	const auto resultReport = QString("%1 (%2 of %3 files) processed %4").arg(fileInfo.fileName()).arg(fileCount - currentFileCount).arg(fileListCount).arg(hasError ? "with errors" : "successfully");
+	if (hasError)
+		PLOGW << resultReport;
+	else
+		PLOGI << resultReport;
 }
 
 bool ProcessArchive(const QString & file, const Settings & settings, std::atomic_int & fileCount)
 {
 	try
 	{
-		PLOGI << QString("%1 processing").arg(file);
-		if (ProcessArchiveImpl(file, settings, fileCount))
-		{
-			PLOGE << QString("%1 processed with errors").arg(file);
-		}
-		else
-		{
-			PLOGI << QString("%1 done").arg(file);
-			return false;
-		}
+		ProcessArchiveImpl(file, settings, fileCount);
 	}
 	catch (const std::exception & ex)
 	{
