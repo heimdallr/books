@@ -15,7 +15,15 @@ rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
 echo installer creating
+cd %~dp0%BUILD_DIR%
+cpack -G WIX -C Release
+if %errorlevel% NEQ 0 goto Error
+cd %originalDir%
+mkdir %~dp0build\installer
+move  %~dp0build\%BUILD_TYPE%\*.msi %~dp0build\installer\
+
 ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\installer\flibrary.iss
+if %errorlevel% NEQ 0 goto Error
 
 echo portable creating
 7z a %~dp0build\installer\flibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\bin\*

@@ -17,6 +17,7 @@ add_compile_options(
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -48,3 +49,25 @@ include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
 
 include("src/home/home.cmake")
+        
+set(CPACK_GENERATOR WIX)
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR "Heimdallr HomeCompa")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}: another e-book cataloger")
+set(CPACK_PACKAGE_VERSION "${PRODUCT_VERSION}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_LIST_DIR}/LICENSE_en.txt")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/heimdallr/books")
+set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/app/resources/icons/main.ico")
+set(CPACK_MONOLITHIC_INSTALL TRUE)
+set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary_msi")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_setup_${CPACK_PACKAGE_VERSION}")
+
+set(CPACK_WIX_PRODUCT_GUID "60ec502f-fdff-45c2-93f6-9ee8fb7be86e") 
+set(CPACK_WIX_UPGRADE_GUID "c39e21ad-9c07-4af6-a36a-bc65ae265075")
+set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/app/resources/icons/main.ico")
+set(CPACK_WIX_CULTURES "en-US,ru-RU")
+set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/heimdallr/books")
+set(CPACK_WIX_UI_REF WixUI_FeatureTree)
+
+INCLUDE(CPack)
