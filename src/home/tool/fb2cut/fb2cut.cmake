@@ -5,6 +5,7 @@ AddTarget(fb2cut	app_console
 	LINK_LIBRARIES
 		Qt6::Core
 		Qt6::Gui
+		Qt6::Widgets
 	LINK_TARGETS
 		logging
 		Util
