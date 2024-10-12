@@ -2133,6 +2133,11 @@ Try again?</source>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
         <translation>Новая версия успешно скачана. Открыть папку с архивом?</translation>
     </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
+        <source>Something strange, the installer file is missing. Visit download page?</source>
+        <translation>Что-то странное, инсталлятора не найден. Перейти на страницу новой версии?</translation>
+    </message>
 </context>
 <context>
     <name>UserData</name>

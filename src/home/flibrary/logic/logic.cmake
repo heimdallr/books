@@ -20,3 +20,4 @@ AddTarget(logic	shared_lib
 )
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION ${CMAKE_BINARY_DIR}/bin)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION .)

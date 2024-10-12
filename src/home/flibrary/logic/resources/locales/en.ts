@@ -2127,6 +2127,11 @@ Try again?</source>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
+        <source>Something strange, the installer file is missing. Visit download page?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>UserData</name>
