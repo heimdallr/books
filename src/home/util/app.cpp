@@ -1,10 +1,10 @@
-#include "util.h"
+#include "app.h"
 
 #include <QCoreApplication>
 #include <QFile>
 #include <QString>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Util {
 
 constexpr InstallerDescription MODES[]
 {

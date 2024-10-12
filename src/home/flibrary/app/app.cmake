@@ -23,10 +23,11 @@ AddTarget(${PROJECT_NAME}	app
 		Qt6::Widgets
 		Hypodermic
 	LINK_TARGETS
+		gui
+		GuiUtil
 		logging
 		logic
-		gui
-		ver
 		rest
 		Util
+		ver
 )

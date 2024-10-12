@@ -11,11 +11,12 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
 
+#include "GuiUtil/interface/IParentWidgetProvider.h"
+
 #include "ComboBoxDelegate.h"
 #include "CommandArgDelegate.h"
 #include "CommandDelegate.h"
 #include "GeometryRestorable.h"
-#include "ParentWidgetProvider.h"
 #include "ScriptNameDelegate.h"
 
 using namespace HomeCompa;
@@ -216,7 +217,7 @@ private:
 	Ui::ScriptDialog m_ui{};
 };
 
-ScriptDialog::ScriptDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
+ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
 	, const std::shared_ptr<const IModelProvider> & modelProvider
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate

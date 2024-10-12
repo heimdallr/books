@@ -1,8 +1,8 @@
 #pragma once
 
-#include "export/flint.h"
+#include "export/util.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Util {
 
 #define INSTALLER_MODE_ITEMS_X_MACRO       \
 		INSTALLER_MODE_ITEM(exe, "exe")    \
@@ -23,6 +23,6 @@ struct InstallerDescription
 	const char * ext;
 };
 
-FLINT_EXPORT InstallerDescription GetInstallerDescription();
+UTIL_EXPORT InstallerDescription GetInstallerDescription();
 
 }

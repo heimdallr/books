@@ -8,6 +8,7 @@
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 namespace HomeCompa {
+class IParentWidgetProvider;
 class ISettings;
 }
 
@@ -20,7 +21,7 @@ class AddCollectionDialog final
 	NON_COPY_MOVABLE(AddCollectionDialog)
 
 public:
-    AddCollectionDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
+    AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ICollectionController> collectionController
 		, std::shared_ptr<class IUiFactory> uiFactory

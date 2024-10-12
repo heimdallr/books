@@ -10,7 +10,6 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/ui/IUiFactory.h"
-#include "interface/util/util.h"
 
 #include "network/network/downloader.h"
 
@@ -18,6 +17,7 @@
 #include "network/rest/api/github/Requester.h"
 #include "network/rest/connection/ConnectionFactory.h"
 
+#include "util/app.h"
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
 
@@ -222,7 +222,7 @@ private:
 
 	void Download()
 	{
-		const auto installer = GetInstallerDescription();
+		const auto installer = Util::GetInstallerDescription();
 		const auto it = std::ranges::find_if(m_release.assets, [=] (const Asset & asset)
 		{
 			const auto ext = QFileInfo(asset.name).suffix();
@@ -260,8 +260,8 @@ private:
 							(void)m_uiFactory->ShowWarning(error);
 					}
 
-					const auto startInstaller = installer.type != InstallerType::portable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
-					const auto startUnPacker = installer.type == InstallerType::portable && code == 0;
+					const auto startInstaller = installer.type != Util::InstallerType::portable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
+					const auto startUnPacker = installer.type == Util::InstallerType::portable && code == 0;
 
 					QTimer::singleShot(0, [uiFactory = m_uiFactory
 						, downloadFolder = std::move(downloadFolder)
@@ -277,8 +277,8 @@ private:
 						callback();
 						if (startInstaller)
 						{
-							installer.type == InstallerType::exe ? QProcess::startDetached(downloadFileName) :
-							installer.type == InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)) :
+							installer.type == Util::InstallerType::exe ? QProcess::startDetached(downloadFileName) :
+							installer.type == Util::InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)) :
 							(assert(false), false);
 							QCoreApplication::exit();
 						} else if (startUnPacker)

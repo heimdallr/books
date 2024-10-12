@@ -10,6 +10,7 @@ set(MODULES
 	zip
 	network
 	tool
+	GuiUtil
 )
 foreach(module ${MODULES})
 	include("${CMAKE_CURRENT_LIST_DIR}/${module}/${module}.cmake")

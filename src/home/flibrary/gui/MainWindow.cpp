@@ -30,10 +30,10 @@
 #include "LocaleController.h"
 #include "logging/LogAppender.h"
 #include "LogItemDelegate.h"
-#include "ParentWidgetProvider.h"
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "interface/logic/IDatabaseChecker.h"
+#include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/serializer/Font.h"
@@ -75,7 +75,7 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker
-		, std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+		, std::shared_ptr<IParentWidgetProvider> parentWidgetProvider
 		, std::shared_ptr<AnnotationWidget> annotationWidget
 		, std::shared_ptr<LocaleController> localeController
 		, std::shared_ptr<ILogController> logController
@@ -453,7 +453,7 @@ private:
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-	PropagateConstPtr<ParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
+	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
 	PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
 	PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
@@ -474,7 +474,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker
-	, std::shared_ptr<ParentWidgetProvider> parentWidgetProvider
+	, std::shared_ptr<IParentWidgetProvider> parentWidgetProvider
 	, std::shared_ptr<AnnotationWidget> annotationWidget
 	, std::shared_ptr<LocaleController> localeController
 	, std::shared_ptr<ILogController> logController

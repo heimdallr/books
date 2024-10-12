@@ -9,6 +9,7 @@
 
 namespace HomeCompa {
 class ISettings;
+class IParentWidgetProvider;
 }
 
 namespace HomeCompa::Flibrary {
@@ -25,7 +26,7 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ICollectionController> collectionController
 		, std::shared_ptr<class ICollectionUpdateChecker> collectionUpdateChecker
-		, std::shared_ptr<class ParentWidgetProvider> parentWidgetProvider
+		, std::shared_ptr<IParentWidgetProvider> parentWidgetProvider
 		, std::shared_ptr<class AnnotationWidget> annotationWidget
 		, std::shared_ptr<class LocaleController> localeController
 		, std::shared_ptr<class ILogController> logController
