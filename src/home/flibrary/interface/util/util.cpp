@@ -2,13 +2,32 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QString>
 
 namespace HomeCompa::Flibrary {
 
-bool IsPortable()
+constexpr InstallerDescription MODES[]
 {
-	const auto fileNamePortable = QString("%1/portable").arg(QCoreApplication::applicationDirPath());
-	return QFile::exists(fileNamePortable);
+#define INSTALLER_MODE_ITEM(NAME, EXT) { InstallerType::NAME, #NAME, EXT },
+		INSTALLER_MODE_ITEMS_X_MACRO
+#undef	INSTALLER_MODE_ITEM
+
+};
+
+InstallerDescription GetInstallerDescription()
+{
+	const auto fileNamePortable = QString("%1/installer_mode").arg(QCoreApplication::applicationDirPath());
+	QFile file(QString("%1/installer_mode").arg(QCoreApplication::applicationDirPath()));
+	if (!file.open(QIODevice::ReadOnly))
+		return MODES[0];
+
+	const auto bytes = file.readAll();
+	const auto it = std::ranges::find_if(MODES, [&] (const auto & item)
+	{
+		const auto result = bytes.startsWith(item.name);
+		return result;
+	});
+	return it != std::end(MODES) ? *it : MODES[0];
 }
 
 }
