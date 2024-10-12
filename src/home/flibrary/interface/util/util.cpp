@@ -22,11 +22,7 @@ InstallerDescription GetInstallerDescription()
 		return MODES[0];
 
 	const auto bytes = file.readAll();
-	const auto it = std::ranges::find_if(MODES, [&] (const auto & item)
-	{
-		const auto result = bytes.startsWith(item.name);
-		return result;
-	});
+	const auto it = std::ranges::find_if(MODES, [&] (const auto & item) { return bytes.startsWith(item.name); });
 	return it != std::end(MODES) ? *it : MODES[0];
 }
 
