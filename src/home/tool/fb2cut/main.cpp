@@ -1,14 +1,17 @@
 #include <queue>
 #include <ranges>
 
+#include <QApplication>
+#include <QBuffer>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QFileInfo>
 #include <QImageReader>
-#include <QPixmap>
-#include <QStandardPaths>
-#include <QBuffer>
 #include <QProcess>
+#include <QStandardPaths>
+#include <QTranslator>
+
+#include <Hypodermic/Hypodermic.h>
 
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
@@ -16,16 +19,23 @@
 #include <plog/Record.h>
 #include <plog/Util.h>
 
-#include "common/Constant.h"
-
 #include "fnd/NonCopyMovable.h"
 
 #include "logging/init.h"
 #include "logging/LogAppender.h"
 
+#include "GuiUtil/interface/IUiFactory.h"
+#include "util/files.h"
+#include "util/ISettings.h"
+#include "util/localization.h"
+
 #include "zip.h"
 
+#include "di_app.h"
 #include "Fb2Parser.h"
+#include "ImageSettingsWidget.h"
+#include "MainWindow.h"
+#include "settings.h"
 
 #include "config/version.h"
 
@@ -33,9 +43,6 @@ using namespace HomeCompa;
 using namespace fb2cut;
 
 namespace {
-
-constexpr auto MAX_SIZE = std::numeric_limits<int>::max();
-
 
 constexpr auto APP_ID = "fb2cut";
 constexpr auto MAX_SIZE_OPTION_NAME = "max-size";
@@ -60,6 +67,8 @@ constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 
+constexpr auto GUI_MODE_OPTION_NAME = "gui";
+
 constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
@@ -69,49 +78,6 @@ constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
-
-using ImageNameGetter = QString(*)(const QString & file, const QString & image);
-QString GetCoverFileName(const QString & file, const QString & /*image*/)
-{
-	return file;
-}
-QString GetImageFileName(const QString & file, const QString & image)
-{
-	return QString("%1/%2").arg(file, image);
-}
-
-struct ImageSettings
-{
-	const char * type { nullptr };
-	ImageNameGetter fileNameGetter { nullptr };
-
-	QSize maxSize { MAX_SIZE, MAX_SIZE };
-	int quality { -1 };
-	bool save { true };
-	bool grayscale { false };
-};
-
-struct Settings
-{
-	ImageSettings cover { Global::COVER, &GetCoverFileName }, image { Global::IMAGE, &GetImageFileName };
-	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
-	int minImageFileSize { 1024 };
-	bool saveFb2 { true };
-	bool archiveFb2 { true };
-	QDir dstDir;
-	QString ffmpeg;
-	QString archiver;
-	QStringList archiverOptions { QStringList {}
-		<< "a"
-		<< "-mx9"
-		<< "-sdel"
-		<< "-m0=ppmd"
-		<< "-ms=off"
-		<< "-bt"
-	};
-	bool defaultArchiverOptions { true };
-	int totalFileCount { 0 };
-};
 
 bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
 {
@@ -694,8 +660,29 @@ bool ProcessArchive(const QString & file, const Settings & settings, std::atomic
 	return true;
 }
 
-QStringList ProcessArchives(QStringList files, const Settings & settings)
+QStringList ProcessArchives(Settings & settings)
 {
+	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
+		throw std::ios_base::failure(QString("Cannot create folder %1").arg(settings.dstDir.path()).toStdString());
+	if (settings.cover.save)
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+	if (settings.image.save)
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+
+	QStringList files;
+	for (const auto & wildCard : settings.inputWildcards)
+		files << Util::ResolveWildcard(wildCard);
+
+	PLOGD << "Total file count calculation";
+	settings.totalFileCount = std::accumulate(files.cbegin(), files.cend(), settings.totalFileCount, [] (const auto init, const QString & file)
+	{
+		const Zip zip(file);
+		return init + zip.GetFileNameList().size();
+	});
+	PLOGI << "Total file count: " << settings.totalFileCount;
+
 	std::atomic_int fileCount;
 	QStringList failed;
 	for (auto && file : files)
@@ -703,20 +690,6 @@ QStringList ProcessArchives(QStringList files, const Settings & settings)
 			failed << std::move(file);
 
 	return failed;
-}
-
-QStringList ProcessWildCard(const QString & wildCard)
-{
-	const QFileInfo fileInfo(wildCard);
-	const QDir dir(fileInfo.dir());
-	const auto files = dir.entryList(QStringList() << fileInfo.fileName(), QDir::Files);
-	QStringList result;
-	result.reserve(files.size());
-	std::ranges::transform(files, std::back_inserter(result), [&] (const auto & file)
-	{
-		return dir.filePath(file);
-	});
-	return result;
 }
 
 template <typename T>
@@ -769,7 +742,13 @@ bool SetValue<QSize>(const QCommandLineParser & parser, const char * key, QSize 
 	return true;
 }
 
-std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app)
+struct CommandLineSettings
+{
+	Settings settings;
+	bool gui { true };
+};
+
+CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 {
 	Settings settings {};
 
@@ -781,18 +760,17 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 			;
 	};
 
-
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { QString(FOLDER[0])              , FOLDER                           } , "Destination folder (required)"                                     , FOLDER },
+		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
 		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
 
-		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
+		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
 		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
 		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
 		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
@@ -810,18 +788,11 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 		{ NO_FB2_OPTION_NAME                                                     , "Don't save fb2" },
 		{ NO_IMAGES_OPTION_NAME                                                  , "Don't save image" },
 		{ COVERS_ONLY_OPTION_NAME                                                , "Save covers only" },
+		{ GUI_MODE_OPTION_NAME                                                   , "GUI mode" },
 	});
 	parser.process(app);
 
-	const auto destinationFolder = parser.value(FOLDER);
-	if (destinationFolder.isEmpty())
-	{
-		PLOGE << "Destination folder required";
-		parser.showHelp(1);
-	}
-	settings.dstDir = QDir(destinationFolder);
-	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
-		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
+	settings.dstDir = parser.value(FOLDER);
 
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
 	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
@@ -863,42 +834,9 @@ std::pair<QStringList, Settings> ProcessCommandLine(const QCoreApplication & app
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
 		settings.image.save = false;
 
-	if (settings.cover.save)
-		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
-			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
-	if (settings.image.save)
-		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
-			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [] (const auto & fileName) { return QDir::fromNativeSeparators(fileName); });
 
-	QStringList files;
-	for (const auto & wildCard : parser.positionalArguments())
-		files << ProcessWildCard(wildCard);
-
-	PLOGD << "Total file count calculation";
-	settings.totalFileCount = std::accumulate(files.cbegin(), files.cend(), settings.totalFileCount, [] (const auto init, const QString & file)
-	{
-		const Zip zip(file);
-		return init + zip.GetFileNameList().size();
-	});
-	PLOGI << "Total file count: " << settings.totalFileCount;
-
-	return std::make_pair(std::move(files), std::move(settings));
-}
-
-bool run(int argc, char * argv[])
-{
-	const QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationName(APP_ID);
-	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
-
-	auto [files, settings] = ProcessCommandLine(app);
-
-	const auto failedArchives = ProcessArchives(std::move(files), settings);
-	if (failedArchives.isEmpty())
-		return false;
-
-	PLOGE << "Processed with errors:\n" << failedArchives.join("\n");
-	return true;
+	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
 }
 
 class LogConsoleFormatter
@@ -906,7 +844,7 @@ class LogConsoleFormatter
 public:
 	static plog::util::nstring format(const plog::Record & record)
 	{
-		tm t{};
+		tm t {};
 		plog::util::localtime_s(&t, &record.getTime().time);
 
 		plog::util::nostringstream ss;
@@ -919,13 +857,52 @@ public:
 	}
 };
 
+bool run(int argc, char * argv[])
+{
+	const QApplication app(argc, argv);
+	QCoreApplication::setApplicationName(APP_ID);
+	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+
+	CommandLineSettings settings;
+
+	if (argc > 1)
+		settings = ProcessCommandLine(app);
+
+	if (settings.gui)
+	{
+		PLOGI << "GUI mode activated";
+
+		std::shared_ptr<Hypodermic::Container> container;
+		{
+			Hypodermic::ContainerBuilder builder;
+			DiInit(builder, container);
+		}
+
+		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>());
+		const auto mainWindow = container->resolve<MainWindow>();
+		mainWindow->SetSettings(&settings.settings);
+		mainWindow->show();
+		if (!QApplication::exec())
+			return false;
+	}
+
+	PLOGI << "Process started with " << settings.settings;
+
+	const auto failedArchives = ProcessArchives(settings.settings);
+	if (failedArchives.isEmpty())
+		return false;
+
+	PLOGE << "Processed with errors:\n" << failedArchives.join("\n");
+	return true;
+}
+
 }
 
 int main(const int argc, char * argv[])
 {
+	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try

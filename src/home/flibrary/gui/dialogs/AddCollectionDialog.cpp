@@ -6,12 +6,13 @@
 
 #include <plog/Log.h>
 
-#include "GeometryRestorable.h"
-#include "ParentWidgetProvider.h"
+#include "GuiUtil/GeometryRestorable.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
+
+#include "GuiUtil/interface/IParentWidgetProvider.h"
 
 #include "zip.h"
 
@@ -74,8 +75,8 @@ QString GetFolder(const IUiFactory & uiController, const QString & dir)
 }
 
 class AddCollectionDialog::Impl final
-	: GeometryRestorable
-	, GeometryRestorableObserver
+	: Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -306,7 +307,7 @@ private:
 	Ui::AddCollectionDialog m_ui {};
 };
 
-AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
+AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<IUiFactory> uiFactory

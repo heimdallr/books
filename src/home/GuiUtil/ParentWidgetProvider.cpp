@@ -1,6 +1,6 @@
 #include "ParentWidgetProvider.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa::Util;
 
 void ParentWidgetProvider::SetWidget(QPointer<QWidget> widget)
 {

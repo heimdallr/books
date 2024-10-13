@@ -8,6 +8,7 @@
 #include "interface/ui/dialogs/IScriptDialog.h"
 
 namespace HomeCompa {
+class IParentWidgetProvider;
 class ISettings;
 }
 
@@ -20,7 +21,7 @@ class ScriptDialog final
 	NON_COPY_MOVABLE(ScriptDialog)
 
 public:
-	ScriptDialog(const std::shared_ptr<class ParentWidgetProvider> & parentWidgetProvider
+	ScriptDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
 		, const std::shared_ptr<const class IModelProvider> & modelProvider
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ScriptComboBoxDelegate> scriptTypeDelegate
