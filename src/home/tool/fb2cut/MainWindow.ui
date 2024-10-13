@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>431</width>
-    <height>356</height>
+    <width>369</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,10 +17,10 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string notr="true">fb2cut</string>
+   <string>fb2cut - fb2 libraries zip archive repacker</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_4">
+   <layout class="QVBoxLayout" name="verticalLayout_5">
     <item>
      <layout class="QVBoxLayout" name="_2">
       <property name="spacing">
@@ -98,11 +98,7 @@
       <item>
        <layout class="QHBoxLayout" name="_4">
         <item>
-         <widget class="QLineEdit" name="editDstFolder">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
+         <widget class="QLineEdit" name="editDstFolder"/>
         </item>
         <item>
          <widget class="QToolButton" name="btnDstFolder">
@@ -174,11 +170,7 @@
       <item>
        <layout class="QHBoxLayout" name="_11">
         <item>
-         <widget class="QLineEdit" name="editExternalArchiver">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
+         <widget class="QLineEdit" name="editExternalArchiver"/>
         </item>
         <item>
          <widget class="QToolButton" name="btnExternalArchiver">
@@ -197,14 +189,41 @@
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Custom archiver command line (*experts only)</string>
+       <widget class="QFrame" name="archiveOptionsFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Custom archiver command line (*experts only)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="editArchiverCommandLine"/>
+         </item>
+        </layout>
        </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="editArchiverCommandLine"/>
       </item>
      </layout>
     </item>
@@ -251,11 +270,7 @@
       <item>
        <layout class="QHBoxLayout" name="_13">
         <item>
-         <widget class="QLineEdit" name="editFfmpeg">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
+         <widget class="QLineEdit" name="editFfmpeg"/>
         </item>
         <item>
          <widget class="QToolButton" name="btnFfmpeg">
@@ -297,7 +312,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Max thread count</string>
+         <string>Max CPU thread count</string>
         </property>
        </widget>
       </item>
@@ -374,7 +389,7 @@
      <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
    </property>
    <property name="text">
-    <string>InputFiles</string>
+    <string notr="true">Input Files</string>
    </property>
    <property name="toolTip">
     <string>No input archives found</string>
@@ -386,7 +401,7 @@
      <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
    </property>
    <property name="text">
-    <string>DstFolder</string>
+    <string notr="true">Destination Folder</string>
    </property>
    <property name="toolTip">
     <string>Destination folder not exists</string>
@@ -398,7 +413,7 @@
      <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
    </property>
    <property name="text">
-    <string>External Archiver Not Founs</string>
+    <string notr="true">External Archiver Not Found</string>
    </property>
    <property name="toolTip">
     <string>External archiver executable not found</string>
@@ -410,7 +425,7 @@
      <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
    </property>
    <property name="text">
-    <string>FFmpeg Not Founs</string>
+    <string notr="true">FFmpeg Not Found</string>
    </property>
    <property name="toolTip">
     <string>FFmpeg executable not found</string>

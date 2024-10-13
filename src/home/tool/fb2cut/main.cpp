@@ -2,13 +2,14 @@
 #include <ranges>
 
 #include <QApplication>
+#include <QBuffer>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QFileInfo>
 #include <QImageReader>
-#include <QStandardPaths>
-#include <QBuffer>
 #include <QProcess>
+#include <QStandardPaths>
+#include <QTranslator>
 
 #include <Hypodermic/Hypodermic.h>
 
@@ -26,6 +27,7 @@
 #include "GuiUtil/interface/IUiFactory.h"
 #include "util/files.h"
 #include "util/ISettings.h"
+#include "util/localization.h"
 
 #include "zip.h"
 
@@ -869,12 +871,14 @@ bool run(int argc, char * argv[])
 	if (settings.gui)
 	{
 		PLOGI << "GUI mode activated";
+
 		std::shared_ptr<Hypodermic::Container> container;
 		{
 			Hypodermic::ContainerBuilder builder;
 			DiInit(builder, container);
 		}
 
+		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>());
 		const auto mainWindow = container->resolve<MainWindow>();
 		mainWindow->SetSettings(&settings.settings);
 		mainWindow->show();

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="title">
-   <string>Common</string>
+   <string notr="true">Common</string>
   </property>
   <property name="checkable">
    <bool>true</bool>
@@ -25,7 +25,7 @@
      <item>
       <widget class="QLabel" name="labelQuality">
        <property name="text">
-        <string>Quality</string>
+        <string>Compression quality</string>
        </property>
       </widget>
      </item>
