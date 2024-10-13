@@ -292,6 +292,11 @@
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="50"/>
+        <source>Cannot create database folder %1</source>
+        <translation>Не удалось создать папку %1</translation>
+    </message>
+    <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>

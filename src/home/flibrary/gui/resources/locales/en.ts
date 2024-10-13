@@ -296,6 +296,11 @@
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="50"/>
+        <source>Cannot create database folder %1</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>LocaleController</name>
