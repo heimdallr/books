@@ -6,6 +6,8 @@
 
 #include "export/GuiUtil.h"
 
+class QSplitter;
+
 namespace HomeCompa::Util {
 
 class GUIUTIL_EXPORT GeometryRestorable
@@ -45,5 +47,7 @@ protected: // GeometryRestorable::IObserver
 private:
 	QWidget & m_widget;
 };
+
+GUIUTIL_EXPORT void InitSplitter(QSplitter * splitter);
 
 }

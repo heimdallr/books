@@ -14,6 +14,7 @@
 
 #include <plog/Log.h>
 
+#include "GuiUtil/GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
@@ -238,6 +239,8 @@ public:
 
 		if (const auto value = m_settings->Get(SPLITTER_KEY); value.isValid())
 			m_ui.splitter->restoreState(value.toByteArray());
+		else
+			Util::InitSplitter(m_ui.splitter);
 
 		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
 

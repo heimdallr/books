@@ -98,117 +98,117 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="41"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>Keywords: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="42"/>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>Genres:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>Archives:</source>
         <translation>Archive:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Groups:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Keywords:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="48"/>
+        <location filename="../../AnnotationWidget.cpp" line="49"/>
         <source>File:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="49"/>
+        <location filename="../../AnnotationWidget.cpp" line="50"/>
         <source>Size:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="50"/>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
         <source>Images:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="51"/>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
         <source>Updated:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="52"/>
+        <location filename="../../AnnotationWidget.cpp" line="53"/>
         <source>Rate:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="53"/>
+        <location filename="../../AnnotationWidget.cpp" line="54"/>
         <source>My rate:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="54"/>
+        <location filename="../../AnnotationWidget.cpp" line="55"/>
         <source>Translators:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="55"/>
+        <location filename="../../AnnotationWidget.cpp" line="56"/>
         <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="56"/>
+        <location filename="../../AnnotationWidget.cpp" line="57"/>
         <source>Select images folder</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="57"/>
+        <location filename="../../AnnotationWidget.cpp" line="58"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="58"/>
+        <location filename="../../AnnotationWidget.cpp" line="59"/>
         <source>Save &amp;all images (%1)...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="59"/>
+        <location filename="../../AnnotationWidget.cpp" line="60"/>
         <source>All %1 images were successfully saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="60"/>
+        <location filename="../../AnnotationWidget.cpp" line="61"/>
         <source>%1 out of %2 images were saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <location filename="../../AnnotationWidget.cpp" line="62"/>
         <source>%1 images out of %2 could not be saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="62"/>
+        <location filename="../../AnnotationWidget.cpp" line="63"/>
         <source>Cannot save image to %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="63"/>
+        <location filename="../../AnnotationWidget.cpp" line="64"/>
         <source>Cannot open %1</source>
         <translation></translation>
     </message>

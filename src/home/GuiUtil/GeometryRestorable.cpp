@@ -16,6 +16,7 @@ namespace {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
 constexpr auto FONT_KEY = "ui/Font";
+
 }
 
 class GeometryRestorable::Impl final
@@ -48,9 +49,11 @@ public:
 	void Init()
 	{
 		m_observer.GetWidget().installEventFilter(this);
-		for (auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
+		for (auto * splitter : m_observer.GetWidget().findChildren<QSplitter *>())
 			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName())); value.isValid())
 				splitter->restoreState(value.toByteArray());
+			else
+				InitSplitter(splitter);
 	}
 
 	void OnShow()
@@ -128,4 +131,36 @@ GeometryRestorableObserver::GeometryRestorableObserver(QWidget & widget)
 QWidget & GeometryRestorableObserver::GetWidget() noexcept
 {
 	return m_widget;
+}
+
+namespace HomeCompa::Util {
+
+void InitSplitter(QSplitter * splitter)
+{
+	QTimer::singleShot(0, [=]
+	{
+		QList<int> sizes = splitter->sizes();
+		const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
+
+		QList<int> stretch;
+		if (splitter->orientation() == Qt::Horizontal)
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
+		else
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().verticalStretch();
+
+		const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
+		if (weightSum == 0)
+			return;
+
+		std::ranges::transform(stretch, sizes.begin(), [=] (const auto weight)
+		{
+			return width * weight / weightSum;
+		});
+
+		splitter->setSizes(sizes);
+	});
+}
+
 }
