@@ -21,6 +21,7 @@ namespace {
 
 constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
+constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select distinct Folder from Books";
@@ -31,7 +32,8 @@ constexpr auto WHERE_SERIES = "where b.SeriesID = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.Folder  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
-constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and b.SearchTitle like '%'||MHL_UPPER(su.Title)||'%'";
+constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and MHL_UPPER(b.Title) like '%'||MHL_UPPER(su.Title)||'%'";
+constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 
@@ -213,6 +215,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 	{ NavigationMode::Authors , { &RequestNavigationSimpleList, { AUTHORS_QUERY , QUERY_INFO_AUTHOR          , WHERE_AUTHOR , nullptr      , &BindInt   , &IBooksTreeCreator::CreateAuthorsTree, BookItem::Mapping(MAPPING_AUTHORS), BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Series  , { &RequestNavigationSimpleList, { SERIES_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES , nullptr      , &BindInt   , &IBooksTreeCreator::CreateSeriesTree , BookItem::Mapping(MAPPING_SERIES) , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Genres  , { &RequestNavigationGenres    , { GENRES_QUERY  , QUERY_INFO_GENRE_ITEM      , WHERE_GENRE  , nullptr      , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES) , BookItem::Mapping(MAPPING_TREE_GENRES)}}},
+	{ NavigationMode::Keywords, { &RequestNavigationSimpleList, { KEYWORDS_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_KEYWORDS, &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Groups  , { &RequestNavigationSimpleList, { GROUPS_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_GROUPS  , &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Archives, { &RequestNavigationSimpleList, { ARCHIVES_QUERY, QUERY_INFO_ID_ONLY_ITEM    , WHERE_ARCHIVE, nullptr      , &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
 	{ NavigationMode::Search  , { &RequestNavigationSimpleList, { SEARCH_QUERY  , QUERY_INFO_SIMPLE_LIST_ITEM, nullptr      , JOIN_SEARCHES, &BindInt   , &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL)   , BookItem::Mapping(MAPPING_TREE_COMMON)}}},
@@ -222,13 +225,15 @@ static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(QUERIES));
 
 constexpr std::pair<const char *, NavigationMode> TABLES[]
 {
-	{ "Authors", NavigationMode::Authors },
-	{ "Series", NavigationMode::Series },
-	{ "Genres", NavigationMode::Genres },
-	{ "Groups_User", NavigationMode::Groups },
-	{ "Books", NavigationMode::Archives },
+	{ "Authors"      , NavigationMode::Authors },
+	{ "Series"       , NavigationMode::Series },
+	{ "Genres"       , NavigationMode::Genres },
+	{ "Keywords"     , NavigationMode::Keywords },
+	{ "Groups_User"  , NavigationMode::Groups },
+	{ "Books"        , NavigationMode::Archives },
 	{ "Searches_User", NavigationMode::Search },
 };
+static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(TABLES));
 
 }
 
@@ -246,7 +251,7 @@ struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 
 	~Impl() override
 	{
-		if (const auto db = this->databaseUser->Database())
+		if (const auto db = this->databaseUser->CheckDatabase())
 			db->UnregisterObserver(this);
 	}
 

@@ -27,6 +27,8 @@ void AddUserTables(DB::ITransaction & transaction)
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)")->Execute();
 }
 
 void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition)
@@ -63,6 +65,10 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		const auto transaction = db->CreateTransaction();
 		AddUserTables(*transaction);
 		AddUserTableField(*transaction, "Books_User", "UserRate", "INTEGER");
+		AddUserTableField(*transaction, "Books_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Groups_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Groups_List_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Searches_User", "CreatedAt", "DATETIME");
 
 		transaction->Commit();
 	}
@@ -96,9 +102,13 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase() const
+	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create) const
 	{
 		std::lock_guard lock(m_dbGuard);
+
+		if (!create)
+			return m_db;
+
 		if (m_db)
 			return m_db;
 
@@ -152,7 +162,12 @@ DatabaseController::~DatabaseController()
 
 std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
 {
-	return m_impl->GetDatabase();
+	return m_impl->GetDatabase(true);
+}
+
+std::shared_ptr<DB::IDatabase> DatabaseController::CheckDatabase() const
+{
+	return m_impl->GetDatabase(false);
 }
 
 void DatabaseController::RegisterObserver(IObserver * observer)

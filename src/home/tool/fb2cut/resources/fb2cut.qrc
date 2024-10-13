@@ -1,0 +1,9 @@
+<RCC>
+	<qresource prefix="icons">
+		<file alias="exclamation.png">icons/exclamation.png</file>
+		<file alias="add_file.png">icons/add_file.png</file>
+		<file alias="add_folder.png">icons/add_folder.png</file>
+		<file alias="exe.png">icons/exe.png</file>
+		<file alias="lock.png">icons/lock.png</file>
+	</qresource>
+</RCC>

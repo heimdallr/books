@@ -32,6 +32,7 @@ struct SortFilterProxyModel::Impl final
 	QString m_languageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
+	QVector<int> m_visibleColumns;
 
 	explicit Impl(const std::shared_ptr<IModelProvider> & modelProvider
 	)
@@ -100,13 +101,28 @@ bool SortFilterProxyModel::setData(const QModelIndex & index, const QVariant & v
 		switch (role)
 		{
 			case Role::TextFilter:
-				return Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+				return Set(m_impl->m_filter, value.toString().simplified(), [&]
+				{
+					invalidateFilter();
+				});
+
+			case Role::VisibleColumns:
+				return Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&]
+				{
+					invalidateFilter();
+				});
 
 			case Role::ShowRemovedFilter:
-				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
+				return Set(m_impl->m_showRemoved, value.toBool(), [&]
+				{
+					invalidateFilter();
+				});
 
 			case Role::LanguageFilter:
-				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
+				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&]
+				{
+					invalidateFilter();
+				}))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;
@@ -152,8 +168,14 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex & index) const
 	if (m_impl->m_filter.isEmpty())
 		return true;
 
-	const auto text = index.data(Role::Type).value<ItemType>() == ItemType::Navigation ? index.data() : index.data(Role::Title);
-	return text.toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
+		return index.data().toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+
+	return std::ranges::any_of(m_impl->m_visibleColumns, [&] (const auto n)
+	{
+		auto value = index.data(Role::Author + BookItem::Remap(n)).toString();
+		return value.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+	});
 }
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex & index) const

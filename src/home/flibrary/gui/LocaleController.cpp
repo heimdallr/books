@@ -30,23 +30,14 @@ public:
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
+		, m_translators(Loc::LoadLocales(*m_settings))
 	{
 		m_actionGroup.setExclusive(true);
-		const QDir dir = QCoreApplication::applicationDirPath() + "/locales";
-		for (const auto & file : dir.entryList(QStringList() << QString("*_%1.qm").arg(GetLocale()), QDir::Files))
-		{
-			const auto fileName = dir.absoluteFilePath(file);
-			auto & translator = m_translators.emplace_back();
-			if (translator->load(fileName))
-				QCoreApplication::installTranslator(translator.get());
-			else
-				PLOGE << "Cannot load " << fileName;
-		}
 	}
 
 	void Setup(QMenu & menu)
 	{
-		const auto currentLocale = GetLocale();
+		const auto currentLocale = Loc::GetLocale(*m_settings);
 		SetKeyboardLayout(currentLocale.toStdString());
 		for (const auto * locale : Loc::LOCALES)
 		{
@@ -61,21 +52,6 @@ public:
 	}
 
 private:
-	QString GetLocale() const
-	{
-		if (auto locale = m_settings->Get(LOCALE).toString(); !locale.isEmpty())
-			return locale;
-
-		if (const auto it = std::ranges::find_if(Loc::LOCALES, [sysLocale = QLocale::system().name()] (const char * item)
-		{
-			return sysLocale.startsWith(item);
-		}); it != std::cend(Loc::LOCALES))
-			return *it;
-
-		assert(!std::empty(Loc::LOCALES));
-		return Loc::LOCALES[0];
-	}
-
 	void SetLocale(const QString & locale)
 	{
 		m_settings->Set(LOCALE, locale);

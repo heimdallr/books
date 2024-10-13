@@ -24,13 +24,13 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../dialogs/AddCollectionDialog.ui"/>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -55,17 +55,17 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="32"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="33"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
         <source>Select archives folder</source>
         <translation></translation>
     </message>
@@ -98,112 +98,117 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="38"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>Keywords: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="40"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="39"/>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="41"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>Genres:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="42"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>Archives:</source>
         <translation>Archive:</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Groups:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
-        <source>File:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
-        <source>Size:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
-        <source>Images:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
-        <source>Updated:</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../../AnnotationWidget.cpp" line="48"/>
-        <source>Rate:</source>
+        <source>Keywords:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>My rate:</source>
+        <source>File:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="50"/>
-        <source>Translators:</source>
+        <source>Size:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="51"/>
-        <source>Select image file name</source>
+        <source>Images:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="52"/>
-        <source>Select images folder</source>
+        <source>Updated:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="53"/>
-        <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
+        <source>Rate:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="54"/>
-        <source>Save &amp;all images (%1)...</source>
+        <source>My rate:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="55"/>
-        <source>All %1 images were successfully saved</source>
+        <source>Translators:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="56"/>
-        <source>%1 out of %2 images were saved</source>
+        <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="57"/>
-        <source>%1 images out of %2 could not be saved</source>
+        <source>Select images folder</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="58"/>
-        <source>Cannot save image to %1</source>
+        <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../AnnotationWidget.cpp" line="59"/>
+        <source>Save &amp;all images (%1)...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="60"/>
+        <source>All %1 images were successfully saved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <source>%1 out of %2 images were saved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="62"/>
+        <source>%1 images out of %2 could not be saved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="63"/>
+        <source>Cannot save image to %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="64"/>
         <source>Cannot open %1</source>
         <translation></translation>
     </message>
@@ -229,12 +234,12 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../dialogs/Dialog.cpp" line="17"/>
+        <location filename="../../UiFactory.cpp" line="34"/>
         <source>About FLibrary</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/Dialog.cpp" line="18"/>
+        <location filename="../../UiFactory.cpp" line="35"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation></translation>
     </message>
@@ -242,53 +247,58 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="40"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="39"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
         <source>Same named collection has already been added</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="40"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="45"/>
         <source>Bad database file extension (.inpx)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="46"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="45"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="47"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="46"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="48"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="47"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="49"/>
         <source>Index file (*.inpx) not found</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="50"/>
+        <source>Cannot create database folder %1</source>
         <translation></translation>
     </message>
 </context>
@@ -404,17 +414,17 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="47"/>
+        <location filename="../../MainWindow.cpp" line="48"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="49"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="49"/>
+        <location filename="../../MainWindow.cpp" line="50"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation></translation>
     </message>
@@ -550,12 +560,12 @@ Restart now?</source>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="13"/>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
         <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="14"/>
+        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp" line="15"/>
         <source>Select Application</source>
         <translation></translation>
     </message>

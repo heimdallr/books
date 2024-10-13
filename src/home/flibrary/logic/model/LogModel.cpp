@@ -250,7 +250,7 @@ private: // QSortFilterProxyModel
 
 private:
 	Model m_model;
-	int m_logLevel { plog::Severity::warning };
+	int m_logLevel { plog::Severity::info };
 };
 
 }

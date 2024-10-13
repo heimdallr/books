@@ -28,6 +28,7 @@ public:
 
 public:
 	std::shared_ptr<DB::IDatabase> GetDatabase() const;
+	std::shared_ptr<DB::IDatabase> CheckDatabase() const;
 
 	void RegisterObserver(IObserver * observer);
 	void UnregisterObserver(IObserver * observer);

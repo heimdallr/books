@@ -3,7 +3,7 @@
 #include <QLineEdit>
 #include <QtWidgets/QMessageBox>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Util {
 
 class IDialog  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,7 +15,6 @@ public:
 };
 
 #define STANDARD_DIALOG_ITEMS_X_MACRO \
-STANDARD_DIALOG_ITEM(About)           \
 STANDARD_DIALOG_ITEM(Error)           \
 STANDARD_DIALOG_ITEM(Info)            \
 STANDARD_DIALOG_ITEM(InputText)       \

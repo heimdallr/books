@@ -10,7 +10,6 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/ui/IUiFactory.h"
-#include "interface/util/util.h"
 
 #include "network/network/downloader.h"
 
@@ -18,13 +17,15 @@
 #include "network/rest/api/github/Requester.h"
 #include "network/rest/connection/ConnectionFactory.h"
 
+#include "util/app.h"
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
 
 #include "config/version.h"
 
-using namespace HomeCompa::Flibrary;
-using namespace HomeCompa::RestAPI;
+using namespace HomeCompa;
+using namespace Flibrary;
+using namespace RestAPI;
 using namespace Github;
 
 namespace {
@@ -32,18 +33,20 @@ constexpr auto DISCARDED_UPDATE_KEY = "ui/Update/SkippedVersion";
 constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
 constexpr auto DIALOG_KEY = "Installer";
 
-constexpr auto CONTEXT           =                   "UpdateChecker";
-constexpr auto DOWNLOAD          = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
-constexpr auto VISIT_HOME        = QT_TRANSLATE_NOOP("UpdateChecker", "Visit download page");
-constexpr auto SKIP              = QT_TRANSLATE_NOOP("UpdateChecker", "Skip this version");
-constexpr auto CANCEL            = QT_TRANSLATE_NOOP("UpdateChecker", "Cancel");
-constexpr auto RELEASED          = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!");
-constexpr auto INSTALLER_FOLDER  = QT_TRANSLATE_NOOP("UpdateChecker", "Select folder for app installer");
-constexpr auto START_INSTALLER   = QT_TRANSLATE_NOOP("UpdateChecker", "Run the installer?");
-constexpr auto CHECK_FAILED      = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
-constexpr auto VERSION_ACTUAL    = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
-constexpr auto VERSION_MIRACLE   = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
-constexpr auto ARCHIVE_READY     = QT_TRANSLATE_NOOP("UpdateChecker", "Latest version package downloaded succesfully. Open the folder with the archive?");
+constexpr auto CONTEXT             =                   "UpdateChecker";
+constexpr auto DOWNLOAD            = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
+constexpr auto VISIT_HOME          = QT_TRANSLATE_NOOP("UpdateChecker", "Visit download page");
+constexpr auto SKIP                = QT_TRANSLATE_NOOP("UpdateChecker", "Skip this version");
+constexpr auto CANCEL              = QT_TRANSLATE_NOOP("UpdateChecker", "Cancel");
+constexpr auto RELEASED            = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!");
+constexpr auto INSTALLER_FOLDER    = QT_TRANSLATE_NOOP("UpdateChecker", "Select folder for app installer");
+constexpr auto START_INSTALLER     = QT_TRANSLATE_NOOP("UpdateChecker", "Run the installer?");
+constexpr auto CHECK_FAILED        = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
+constexpr auto VERSION_ACTUAL      = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
+constexpr auto VERSION_MIRACLE     = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
+constexpr auto ARCHIVE_READY       = QT_TRANSLATE_NOOP("UpdateChecker", "Latest version package downloaded succesfully. Open the folder with the archive?");
+constexpr auto INSTALLER_NOT_FOUND = QT_TRANSLATE_NOOP("UpdateChecker", "Something strange, the installer file is missing. Visit download page?");
+
 TR_DEF
 
 enum class CheckResult
@@ -219,26 +222,30 @@ private:
 
 	void Download()
 	{
+		const auto installer = Util::GetInstallerDescription();
+		const auto it = std::ranges::find_if(m_release.assets, [=] (const Asset & asset)
+		{
+			const auto ext = QFileInfo(asset.name).suffix();
+			return ext == installer.ext;
+		});
+		if (it == m_release.assets.end())
+		{
+			if (m_uiFactory->ShowWarning(Tr(INSTALLER_NOT_FOUND), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+				QDesktopServices::openUrl(m_release.html_url);
+			return m_callback();
+		}
+
 		auto downloader = std::make_shared<Network::Downloader>();
 		auto downloadFolder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
 		if (downloadFolder.isEmpty())
 			return m_callback();
-
-		const auto isPortable = IsPortable();
-		const auto it = std::ranges::find_if(m_release.assets, [=] (const Asset & asset)
-		{
-			const auto ext = QFileInfo(asset.name).suffix();
-			return isPortable && ext == "7z" || !isPortable && ext == "exe";
-		});
-		if (it == m_release.assets.end())
-			return assert(false), m_callback();
 
 		auto downloadFileName = QString("%1/%2").arg(downloadFolder, it->name);
 		auto file = std::make_shared<QFile>(downloadFileName);
 		file->open(QIODevice::WriteOnly);
 		downloader->Download(it->browser_download_url, *file, [this
 			, downloader
-			, isPortable
+			, installer
 			, file
 			, downloadFolder = std::move(downloadFolder)
 			, downloadFileName = std::move(downloadFileName)
@@ -253,14 +260,15 @@ private:
 							(void)m_uiFactory->ShowWarning(error);
 					}
 
-					const auto startInstaller = !isPortable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
-					const auto startUnPacker = isPortable && code == 0;
+					const auto startInstaller = installer.type != Util::InstallerType::portable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
+					const auto startUnPacker = installer.type == Util::InstallerType::portable && code == 0;
 
 					QTimer::singleShot(0, [uiFactory = m_uiFactory
 						, downloadFolder = std::move(downloadFolder)
 						, downloadFileName = std::move(downloadFileName)
 						, downloader = std::move(downloader)
 						, callback = std::move(m_callback)
+						, installer
 						, startInstaller
 						, startUnPacker
 					] () mutable
@@ -269,7 +277,9 @@ private:
 						callback();
 						if (startInstaller)
 						{
-							QProcess::startDetached(downloadFileName);
+							installer.type == Util::InstallerType::exe ? QProcess::startDetached(downloadFileName) :
+							installer.type == Util::InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)) :
+							(assert(false), false);
 							QCoreApplication::exit();
 						} else if (startUnPacker)
 						{

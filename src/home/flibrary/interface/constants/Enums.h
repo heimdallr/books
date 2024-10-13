@@ -8,6 +8,7 @@ enum class NavigationMode
 	Authors,
 	Series,
 	Genres,
+	Keywords,
 	Archives,
 	Groups,
 	Search,

@@ -181,22 +181,27 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="80"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="81"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="82"/>
+        <location filename="../../log/LogController.cpp" line="83"/>
+        <source>Keywords:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../log/LogController.cpp" line="84"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="83"/>
+        <location filename="../../log/LogController.cpp" line="85"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -204,12 +209,12 @@
 <context>
     <name>CommandLine</name>
     <message>
-        <location filename="../../shared/CommandLine.cpp" line="13"/>
+        <location filename="../../shared/CommandLine.cpp" line="14"/>
         <source>Input file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/CommandLine.cpp" line="14"/>
+        <location filename="../../shared/CommandLine.cpp" line="15"/>
         <source>%1: e-book cataloger</source>
         <translation></translation>
     </message>
@@ -1956,16 +1961,21 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
-        <source>Archives</source>
+        <source>Keywords</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
-        <source>Groups</source>
+        <source>Archives</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
+        <source>Groups</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="153"/>
         <source>Search</source>
         <translation></translation>
     </message>
@@ -2022,39 +2032,39 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
         <source>Input new search string</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
         <source>Search</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Cannot create search query (%1)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation></translation>
@@ -2063,58 +2073,63 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="36"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
         <source>Download</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>Visit download page</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>Skip this version</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
         <source>%1 released!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
         <source>Select folder for app installer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
         <source>Run the installer?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
         <source>Update check failed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
         <source>Current version %1 is actual</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
+        <source>Something strange, the installer file is missing. Visit download page?</source>
         <translation></translation>
     </message>
 </context>
@@ -2126,62 +2141,62 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="50"/>
+        <location filename="../../userdata/restore.cpp" line="53"/>
         <source>Cannot read from %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="197"/>
+        <location filename="../../userdata/restore.cpp" line="200"/>
         <source>Invalid root node name, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="198"/>
+        <location filename="../../userdata/restore.cpp" line="201"/>
         <source>Cannot find version node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="199"/>
+        <location filename="../../userdata/restore.cpp" line="202"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="200"/>
+        <location filename="../../userdata/restore.cpp" line="203"/>
         <source>%1: must be integer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="201"/>
+        <location filename="../../userdata/restore.cpp" line="204"/>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="202"/>
+        <location filename="../../userdata/restore.cpp" line="205"/>
         <source>Cannot find user data node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="18"/>
+        <location filename="../../userdata/UserDataController.cpp" line="19"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="19"/>
+        <location filename="../../userdata/UserDataController.cpp" line="20"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="20"/>
+        <location filename="../../userdata/UserDataController.cpp" line="21"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="21"/>
+        <location filename="../../userdata/UserDataController.cpp" line="22"/>
         <source>User data successfully recovered</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="22"/>
+        <location filename="../../userdata/UserDataController.cpp" line="23"/>
         <source>User data successfully saved</source>
         <translation></translation>
     </message>

@@ -78,7 +78,16 @@ public:
 
 		SaxParser::Parse();
 
-		update_covers(rootFolder, book);
+		const auto coverIndex = static_cast<int>(m_data.covers.size());
+
+		if (ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName)
+			, [&covers = m_data.covers] (QString name, QByteArray data)
+				{
+					covers.emplace_back(std::move(name), std::move(data));
+					return false;
+				})
+			)
+			m_data.coverIndex = coverIndex;
 
 		for (auto&& [name, bytes] : m_covers)
 		{
@@ -87,7 +96,7 @@ public:
 
 			if (name == m_coverpage)
 				m_data.coverIndex = static_cast<int>(m_data.covers.size());
-			m_data.covers.push_back(IAnnotationController::IDataProvider::Cover { std::move(name), std::move(bytes) });
+			m_data.covers.emplace_back(std::move(name), std::move(bytes));
 		}
 
 		return m_data;
@@ -325,36 +334,6 @@ private:
 		return true;
 	}
 
-	void update_covers(const QString & rootFolder, const IDataItem & book)
-	{
-		if (std::ranges::none_of(m_covers, [] (const auto & item)
-		{
-			return item.second.isNull();
-		}))
-			return;
-
-		const auto zip = CreateImageArchive(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)));
-		if (!zip)
-			return;
-
-		const auto read = [&](const QString &id)
-		{
-			try
-			{
-				return zip->Read(QString("%1/%2").arg(book.GetRawData(BookItem::Column::FileName), id)).readAll();
-			}
-			catch(const std::exception & ex)
-			{
-				PLOGE << ex.what();
-			}
-			return QByteArray {};
-		};
-
-		for (auto & [id, bytes] : m_covers)
-			if (bytes.isNull())
-				bytes = read(id);
-	}
-
 private:
 	QIODevice & m_ioDevice;
 	int64_t m_total;
@@ -402,27 +381,14 @@ public:
 
 	[[nodiscard]] Data Parse(const IDataItem & book) const
 	{
-		const auto collection = m_collectionController->GetActiveCollection();
-		assert(collection);
-		const auto folder = QString("%1/%2").arg(collection->folder, book.GetRawData(BookItem::Column::Folder));
-		if (!QFile::exists(folder))
-		{
-			PLOGW << folder << " not found";
-			return {};
-		}
-
 		try
 		{
-			m_extractArchivePercents = 0;
-			m_extractArchiveProgressItem = m_progressController->Add(100);
-			auto parseProgressItem = m_progressController->Add(100);
+			const auto collection = m_collectionController->GetActiveCollection();
+			assert(collection);
 
-			const Zip zip(folder, m_zipProgressCallback);
-			auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
-			m_extractArchiveProgressItem.reset();
+			auto data = ParseFb2(book);
 
-			XmlParser parser(stream);
-			return parser.Parse(collection->folder, book, std::move(parseProgressItem));
+			return data;
 		}
 		catch (const std::exception & ex)
 		{
@@ -455,6 +421,30 @@ private: // IProgressController::IObserver
 	void OnStop() override
 	{
 		m_zipProgressCallback->Stop();
+	}
+
+private:
+	Data ParseFb2(const IDataItem & book) const
+	{
+		const auto collection = m_collectionController->GetActiveCollection();
+		assert(collection);
+		const auto folder = QString("%1/%2").arg(collection->folder, book.GetRawData(BookItem::Column::Folder));
+		if (!QFile::exists(folder))
+		{
+			PLOGW << folder << " not found";
+			return {};
+		}
+
+		m_extractArchivePercents = 0;
+		m_extractArchiveProgressItem = m_progressController->Add(100);
+		auto parseProgressItem = m_progressController->Add(100);
+
+		const Zip zip(folder, m_zipProgressCallback);
+		auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
+		m_extractArchiveProgressItem.reset();
+
+		XmlParser parser(stream);
+		return parser.Parse(collection->folder, book, std::move(parseProgressItem));
 	}
 
 private:

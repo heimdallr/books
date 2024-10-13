@@ -6,18 +6,20 @@
 
 #include <plog/Log.h>
 
-#include "GeometryRestorable.h"
-#include "ParentWidgetProvider.h"
+#include "GuiUtil/GeometryRestorable.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "GuiUtil/interface/IParentWidgetProvider.h"
+
 #include "zip.h"
 
 #include "config/version.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -45,6 +47,7 @@ constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
 constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
+constexpr auto CANNOT_CREATE_FOLDER               = QT_TRANSLATE_NOOP("Error", "Cannot create database folder %1");
 
 constexpr auto DIALOG_KEY_DB = "Database";
 constexpr auto DIALOG_KEY_ARCH = "Database";
@@ -73,8 +76,8 @@ QString GetFolder(const IUiFactory & uiController, const QString & dir)
 }
 
 class AddCollectionDialog::Impl final
-	: GeometryRestorable
-	, GeometryRestorableObserver
+	: Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -230,6 +233,10 @@ private:
 		if (m_createMode && QFileInfo(db).suffix().toLower() == "inpx")
 			return SetErrorText(m_ui.editDatabase, Error(BAD_DATABASE_EXT));
 
+		const auto dir = QFileInfo(db).dir();
+		if (!dir.exists() && !dir.mkpath("."))
+			return SetErrorText(m_ui.editDatabase, Error(CANNOT_CREATE_FOLDER).arg(dir.path()));
+
 		return true;
 	}
 
@@ -305,7 +312,7 @@ private:
 	Ui::AddCollectionDialog m_ui {};
 };
 
-AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<ParentWidgetProvider> & parentWidgetProvider
+AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
 	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<IUiFactory> uiFactory

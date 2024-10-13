@@ -147,6 +147,7 @@ constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{ QT_TRANSLATE_NOOP("Navigation", "Keywords"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
 	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },

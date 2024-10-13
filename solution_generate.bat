@@ -1,7 +1,7 @@
 rem @echo off
 
 set start_time=%DATE% %TIME%
-set PRODUCT_VERSION=1.4.0
+set PRODUCT_VERSION=1.5.0
 
 call src\ext\scripts\batch\check_executable.bat cmake
 if NOT [%ERRORLEVEL%]==[0] goto end
@@ -14,7 +14,7 @@ set originalDir=%CD%
 
 if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
 
-set BUILD_DIR=build
+set BUILD_DIR=build\%BUILD_TYPE%
 mkdir %~dp0%BUILD_DIR%
 cd %~dp0%BUILD_DIR%
 del *.sln

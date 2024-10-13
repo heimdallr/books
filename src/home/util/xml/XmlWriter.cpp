@@ -54,6 +54,17 @@ public:
 		m_formatter << XMLFormatter::NoEscapes << gEndPI;
 	}
 
+	void WriteStartElement(const QString & name)
+	{
+		CloseTag();
+		BreakLine(name);
+		++m_level;
+
+		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
+
+		m_tagOpened = true;
+	}
+
 	void WriteStartElement(const QString & name, const XmlAttributes & attributes)
 	{
 		CloseTag();
@@ -90,6 +101,19 @@ public:
 				BreakLine(name);
 			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
 		}
+	}
+
+	void WriteAttribute(const QString & name, const QString & value)
+	{
+		m_formatter
+			<< XMLFormatter::NoEscapes
+			<< chSpace << name.toStdU16String().data()
+			<< chEqual << chDoubleQuote
+			<< XMLFormatter::AttrEscapes
+			<< value.toStdU16String().data()
+			<< XMLFormatter::NoEscapes
+			<< chDoubleQuote
+			;
 	}
 
 	void WriteCharacters(const QString & data)
@@ -145,22 +169,38 @@ XmlWriter::XmlWriter(QIODevice & stream)
 
 XmlWriter::~XmlWriter() = default;
 
-void XmlWriter::WriteProcessingInstruction(const QString & target, const QString & data)
+XmlWriter & XmlWriter::WriteProcessingInstruction(const QString & target, const QString & data)
 {
 	m_impl->WriteProcessingInstruction(target, data);
+	return *this;
 }
 
-void XmlWriter::WriteStartElement(const QString & name, const XmlAttributes & attributes)
+XmlWriter & XmlWriter::WriteStartElement(const QString & name)
+{
+	m_impl->WriteStartElement(name);
+	return *this;
+}
+
+XmlWriter & XmlWriter::WriteStartElement(const QString & name, const XmlAttributes & attributes)
 {
 	m_impl->WriteStartElement(name, attributes);
+	return *this;
 }
 
-void XmlWriter::WriteEndElement(const QString & name)
+XmlWriter & XmlWriter::WriteEndElement(const QString & name)
 {
 	m_impl->WriteEndElement(name);
+	return *this;
 }
 
-void XmlWriter::WriteCharacters(const QString & data)
+XmlWriter & XmlWriter::WriteAttribute(const QString & name, const QString & value)
+{
+	m_impl->WriteAttribute(name, value);
+	return *this;
+}
+
+XmlWriter & XmlWriter::WriteCharacters(const QString & data)
 {
 	m_impl->WriteCharacters(data);
+	return *this;
 }

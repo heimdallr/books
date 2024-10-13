@@ -42,25 +42,8 @@ CREATE TABLE Settings (
 
 CREATE TABLE Series (
   SeriesID          INTEGER     NOT NULL,
-  SeriesTitle       VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
-  SearchSeriesTitle VARCHAR(80)          COLLATE NOCASE
+  SeriesTitle       VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE
 );
---@@
-
-CREATE TRIGGER TRSeries_AI AFTER INSERT ON Series WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Series
-    SET SearchSeriesTitle = MHL_UPPER(NEW.SeriesTitle)
-    WHERE rowid = NEW.rowid;
-  END;
---@@
-
-CREATE TRIGGER TRSeries_AU AFTER UPDATE ON Series WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Series
-    SET SearchSeriesTitle = MHL_UPPER(NEW.SeriesTitle)
-    WHERE rowid = NEW.rowid;
-  END;
 --@@
 
 CREATE TABLE Genres (
@@ -75,25 +58,8 @@ CREATE TABLE Authors (
   AuthorID   INTEGER      NOT NULL,
   LastName   VARCHAR(128) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   FirstName  VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
-  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
-  SearchName VARCHAR(512)          COLLATE NOCASE
+  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE
 );
---@@
-
-CREATE TRIGGER TRAuthors_AI AFTER INSERT ON Authors WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Authors
-    SET SearchName = MHL_FULLNAME(NEW.LastName, NEW.FirstName, NEW.MiddleName, 1)
-    WHERE rowid = NEW.rowid;
-  END;
---@@
-
-CREATE TRIGGER TRAuthors_AU AFTER UPDATE ON Authors WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Authors
-    SET SearchName = MHL_FULLNAME(NEW.LastName, NEW.FirstName, NEW.MiddleName, 1)
-    WHERE rowid = NEW.rowid;
-  END;
 --@@
 
 CREATE TABLE Books (
@@ -116,47 +82,8 @@ CREATE TABLE Books (
   Rate             INTEGER       NOT NULL                           DEFAULT 0,
   Progress         INTEGER       NOT NULL                           DEFAULT 0,
   Annotation       VARCHAR(4096)         COLLATE MHL_SYSTEM_NOCASE,
-  Review           BLOB,
-  SearchTitle      VARCHAR(150)          COLLATE NOCASE,
-  SearchLang       VARCHAR(2)            COLLATE NOCASE,
-  SearchFolder     VARCHAR(200)          COLLATE NOCASE,
-  SearchFileName   VARCHAR(170)          COLLATE NOCASE,
-  SearchExt        VARCHAR(10)           COLLATE NOCASE,
-  SearchKeyWords   VARCHAR(255)          COLLATE NOCASE,
-  SearchAnnotation VARCHAR(4096)         COLLATE NOCASE
+  Review           BLOB
 );
---@@
-
-CREATE TRIGGER TRBooks_AI AFTER INSERT ON Books WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Books
-    SET
-      SearchTitle      = MHL_UPPER(NEW.Title),
-      SearchLang       = MHL_UPPER(NEW.Lang),
-      SearchFolder     = MHL_UPPER(NEW.Folder),
-      SearchFileName   = MHL_UPPER(NEW.FileName),
-      SearchExt        = MHL_UPPER(NEW.Ext),
-      SearchKeyWords   = MHL_UPPER(NEW.KeyWords),
-      SearchAnnotation = MHL_UPPER(NEW.Annotation)
-    WHERE
-      rowid = NEW.rowid;
-  END;
---@@
-
-CREATE TRIGGER TRBooks_AU AFTER UPDATE OF Title, Lang, Folder, FileName, Ext, KeyWords, Annotation ON Books WHEN MHL_TRIGGERS_ON()
-  BEGIN
-    UPDATE Books
-    SET
-      SearchTitle      = MHL_UPPER(NEW.Title),
-      SearchLang       = MHL_UPPER(NEW.Lang),
-      SearchFolder     = MHL_UPPER(NEW.Folder),
-      SearchFileName   = MHL_UPPER(NEW.FileName),
-      SearchExt        = MHL_UPPER(NEW.Ext),
-      SearchKeyWords   = MHL_UPPER(NEW.KeyWords),
-      SearchAnnotation = MHL_UPPER(NEW.Annotation)
-    WHERE
-      rowid = NEW.rowid;
-  END;
 --@@
 
 CREATE TRIGGER TRBooks_BD BEFORE DELETE ON Books
@@ -176,5 +103,69 @@ CREATE TABLE Genre_List (
 CREATE TABLE Author_List (
   AuthorID INTEGER NOT NULL,
   BookID   INTEGER NOT NULL
+);
+--@@
+
+CREATE TABLE Books_User (
+    BookID    INTEGER  NOT NULL
+                       PRIMARY KEY,
+    IsDeleted INTEGER,
+    UserRate  INTEGER,
+    CreatedAt DATETIME,
+    FOREIGN KEY (
+        BookID
+    )
+    REFERENCES Books (BookID)
+);
+--@@
+
+CREATE TABLE Groups_User (
+    GroupID   INTEGER       NOT NULL
+                            PRIMARY KEY AUTOINCREMENT,
+    Title     VARCHAR (150) NOT NULL
+                            UNIQUE
+                            COLLATE MHL_SYSTEM_NOCASE,
+    CreatedAt DATETIME
+);
+--@@
+
+CREATE TABLE Groups_List_User (
+    GroupID   INTEGER  NOT NULL,
+    BookID    INTEGER  NOT NULL,
+    CreatedAt DATETIME,
+    PRIMARY KEY (
+        GroupID,
+        BookID
+    ),
+    FOREIGN KEY (
+        GroupID
+    )
+    REFERENCES Groups_User (GroupID) ON DELETE CASCADE,
+    FOREIGN KEY (
+        BookID
+    )
+    REFERENCES Books (BookID)
+);
+--@@
+
+CREATE TABLE Searches_User (
+    SearchID  INTEGER       NOT NULL
+                            PRIMARY KEY AUTOINCREMENT,
+    Title     VARCHAR (150) NOT NULL
+                            UNIQUE
+                            COLLATE MHL_SYSTEM_NOCASE,
+    CreatedAt DATETIME
+);
+--@@
+
+CREATE TABLE Keywords (
+  KeywordID     INTEGER       NOT NULL,
+  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE
+);
+--@@
+
+CREATE TABLE Keyword_List (
+  KeywordID INTEGER NOT NULL,
+  BookID    INTEGER NOT NULL
 );
 --@@

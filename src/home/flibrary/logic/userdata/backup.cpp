@@ -47,8 +47,8 @@ public:
 
 	XmlAttributes() = default;
 
-	XmlAttributes(QString name, QString value)
-		: m_values({ std::make_pair(std::move(name), std::move(value)) })
+	XmlAttributes(std::vector<std::pair<QString, QString>> values)
+		: m_values(std::move(values))
 	{
 	}
 
@@ -83,7 +83,7 @@ private:
 void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, u.IsDeleted, u.UserRate "
+		"select b.Folder, b.FileName, u.IsDeleted, u.UserRate, u.CreatedAt "
 		"from Books_User u "
 		"join Books b on b.BookID = u.BookID"
 		;
@@ -94,6 +94,7 @@ void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 		Constant::UserData::Books::FileName,
 		Constant::UserData::Books::IsDeleted,
 		Constant::UserData::Books::UserRate,
+		Constant::UserData::Books::CreatedAt,
 	};
 
 	const auto query = db.CreateQuery(text);
@@ -107,7 +108,7 @@ void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, g.Title "
+		"select b.Folder, b.FileName, gl.CreatedAt, g.Title, g.CreatedAt groupCreatedAt "
 		"from Groups_User g "
 		"join Groups_List_User gl on gl.GroupID = g.GroupID "
 		"join Books b on b.BookID = gl.BookID "
@@ -118,6 +119,7 @@ void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 	{
 		Constant::UserData::Books::Folder,
 		Constant::UserData::Books::FileName,
+		Constant::UserData::Books::CreatedAt,
 	};
 
 	std::unique_ptr<ScopedCall> group;
@@ -125,12 +127,22 @@ void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		QString title = query->Get<const char *>(2);
+		QString title = query->Get<const char *>(3);
+		QString groupCreatedAt = query->Get<const char *>(4);
 		if (currentTitle != title)
 		{
 			currentTitle = std::move(title);
 			group.reset();
-			std::make_unique<ScopedCall>([&] { xmlWriter.WriteStartElement(Constant::UserData::Groups::GroupNode, XmlAttributes(Constant::TITLE, currentTitle)); }, [&] { xmlWriter.WriteEndElement(Constant::UserData::Groups::GroupNode); }).swap(group);
+			std::make_unique<ScopedCall>([&]
+			{
+				xmlWriter.WriteStartElement(Constant::UserData::Groups::GroupNode, XmlAttributes({
+					{ Constant::TITLE, currentTitle },
+					{ Constant::UserData::Books::CreatedAt, groupCreatedAt},
+				}));
+			}, [&]
+			{
+				xmlWriter.WriteEndElement(Constant::UserData::Groups::GroupNode);
+			}).swap(group);
 		}
 
 		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
@@ -140,11 +152,12 @@ void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 
 void BackupUserDataSearches(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
-	static constexpr auto text = "select s.Title from Searches_User s ";
+	static constexpr auto text = "select s.Title, s.CreatedAt from Searches_User s ";
 
 	static constexpr const char * fields[] =
 	{
 		Constant::TITLE,
+		Constant::UserData::Books::CreatedAt,
 	};
 
 	const auto query = db.CreateQuery(text);
@@ -183,7 +196,13 @@ void Backup(const Util::IExecutor & executor, DB::IDatabase & db, QString fileNa
 
 		Util::XmlWriter xmlWriter(out);
 		ScopedCall rootElement([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryBackup); });
-		ScopedCall ([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion, XmlAttributes(Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber)));}, [&] { xmlWriter.WriteEndElement(Constant::FlibraryBackupVersion); });
+		ScopedCall([&]
+		{
+			xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion, XmlAttributes({ { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) }, }));
+		}, [&]
+			{
+				xmlWriter.WriteEndElement(Constant::FlibraryBackupVersion);
+			});
 		ScopedCall userData([&] { xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryUserData); });
 		for (const auto & [name, functor] : BACKUPERS)
 		{

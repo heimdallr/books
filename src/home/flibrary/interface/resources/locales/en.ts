@@ -4,113 +4,77 @@
 <context>
     <name>Book</name>
     <message>
-        <location filename="../../constants/Localization.h" line="34"/>
+        <location filename="../../constants/Localization.h" line="12"/>
         <source>Author</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="35"/>
+        <location filename="../../constants/Localization.h" line="13"/>
         <source>Title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="36"/>
+        <location filename="../../constants/Localization.h" line="14"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="37"/>
+        <location filename="../../constants/Localization.h" line="15"/>
         <source>SeqNumber</source>
         <translation>#</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="38"/>
+        <location filename="../../constants/Localization.h" line="16"/>
         <source>Size</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="39"/>
+        <location filename="../../constants/Localization.h" line="17"/>
         <source>Genre</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="40"/>
+        <location filename="../../constants/Localization.h" line="18"/>
         <source>Folder</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="41"/>
+        <location filename="../../constants/Localization.h" line="19"/>
         <source>FileName</source>
         <translation>File</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="42"/>
+        <location filename="../../constants/Localization.h" line="20"/>
         <source>LibRate</source>
         <translation>Lib rate</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="43"/>
+        <location filename="../../constants/Localization.h" line="21"/>
         <source>UserRate</source>
         <translation>My rate</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="44"/>
+        <location filename="../../constants/Localization.h" line="22"/>
         <source>UpdateDate</source>
         <translation>Updated</translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="45"/>
+        <location filename="../../constants/Localization.h" line="23"/>
         <source>Lang</source>
         <translation>Language</translation>
     </message>
 </context>
 <context>
-    <name>Common</name>
-    <message>
-        <location filename="../../constants/Localization.h" line="18"/>
-        <source>Error!</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../constants/Localization.h" line="19"/>
-        <source>Information</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../constants/Localization.h" line="20"/>
-        <source>Question</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../constants/Localization.h" line="21"/>
-        <source>Warning!</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>Error</name>
     <message>
-        <location filename="../../constants/Localization.h" line="23"/>
+        <location filename="../../constants/Localization.h" line="7"/>
         <source>Author not specified</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../constants/Localization.h" line="24"/>
+        <location filename="../../constants/Localization.h" line="8"/>
         <source>Retrieving books had errors</source>
         <translation></translation>
-    </message>
-</context>
-<context>
-    <name>Language</name>
-    <message>
-        <location filename="../../constants/Localization.h" line="28"/>
-        <source>en</source>
-        <translation>&amp;English</translation>
-    </message>
-    <message>
-        <location filename="../../constants/Localization.h" line="29"/>
-        <source>ru</source>
-        <translation>&amp;Русский</translation>
     </message>
 </context>
 <context>

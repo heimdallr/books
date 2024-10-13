@@ -4,9 +4,13 @@
 #include "fnd/NonCopyMovable.h"
 #include "util/ISettings.h"
 
-namespace HomeCompa::Flibrary {
+#include "export/GuiUtil.h"
 
-class GeometryRestorable
+class QSplitter;
+
+namespace HomeCompa::Util {
+
+class GUIUTIL_EXPORT GeometryRestorable
 {
 	NON_COPY_MOVABLE(GeometryRestorable)
 
@@ -31,7 +35,7 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-class GeometryRestorableObserver
+class GUIUTIL_EXPORT GeometryRestorableObserver
 	: virtual public GeometryRestorable::IObserver
 {
 protected:
@@ -43,5 +47,7 @@ protected: // GeometryRestorable::IObserver
 private:
 	QWidget & m_widget;
 };
+
+GUIUTIL_EXPORT void InitSplitter(QSplitter * splitter);
 
 }

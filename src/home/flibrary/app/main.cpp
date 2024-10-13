@@ -56,6 +56,9 @@ int main(int argc, char * argv[])
 	try
 	{
 		QApplication app(argc, argv);
+		QCoreApplication::setApplicationName(PRODUCT_ID);
+		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+
 		PLOGD << "QApplication created";
 		SetStyle(app);
 

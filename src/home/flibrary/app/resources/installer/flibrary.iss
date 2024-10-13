@@ -26,7 +26,7 @@ ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir={#RootDir}build\bin\installer
+OutputDir={#RootDir}build\installer
 OutputBaseFilename=flibrary_setup_{#MyAppVersion}
 SetupIconFile={#RootDir}src\home\flibrary\app\resources\icons\main.ico
 Compression=lzma
@@ -42,17 +42,17 @@ UsePreviousTasks=no
 UsePreviousUserInfo=no
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"; LicenseFile: {#RootDir}LICENSE.ru
+Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE_en.txt
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"; LicenseFile: {#RootDir}LICENSE_ru.txt
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#RootDir}build\bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\bin\Release\*.lst"          ; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\bin\Release\*.dll"          ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}build\bin\Release\*.qm"           ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

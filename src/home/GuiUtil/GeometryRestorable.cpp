@@ -1,23 +1,22 @@
 #include "GeometryRestorable.h"
 
-#include <QWidget>
 #include <QEvent>
 #include <QSplitter>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/SettingsConstant.h"
-
 #include "util/ISettingsObserver.h"
 #include "util/UiTimer.h"
 #include "util/serializer/Font.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa::Util;
 
 namespace {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
+constexpr auto FONT_KEY = "ui/Font";
+
 }
 
 class GeometryRestorable::Impl final
@@ -50,9 +49,11 @@ public:
 	void Init()
 	{
 		m_observer.GetWidget().installEventFilter(this);
-		for (auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
+		for (auto * splitter : m_observer.GetWidget().findChildren<QSplitter *>())
 			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName())); value.isValid())
 				splitter->restoreState(value.toByteArray());
+			else
+				InitSplitter(splitter);
 	}
 
 	void OnShow()
@@ -76,16 +77,16 @@ private: // QObject
 private: // ISettingsObserver
 	void HandleValueChanged(const QString & key, const QVariant &) override
 	{
-		if (key.startsWith(Constant::Settings::FONT_KEY))
+		if (key.startsWith(FONT_KEY))
 			m_fontTimer->start();
 	}
 
 private:
 	void OnFontChanged()
 	{
-		const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+		const SettingsGroup group(*m_settings, FONT_KEY);
 		auto font = m_observer.GetWidget().font();
-		Util::Deserialize(font, *m_settings);
+		Deserialize(font, *m_settings);
 
 		EnumerateWidgets(m_observer.GetWidget(), [&] (QWidget & widget)
 		{
@@ -107,7 +108,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	const QString m_name;
 	bool m_initialized { false };
-	PropagateConstPtr<QTimer> m_fontTimer { Util::CreateUiTimer([&] { OnFontChanged(); }) };
+	PropagateConstPtr<QTimer> m_fontTimer { CreateUiTimer([&] { OnFontChanged(); }) };
 };
 
 GeometryRestorable::GeometryRestorable(IObserver & observer, std::shared_ptr<ISettings> settings, QString name)
@@ -130,4 +131,36 @@ GeometryRestorableObserver::GeometryRestorableObserver(QWidget & widget)
 QWidget & GeometryRestorableObserver::GetWidget() noexcept
 {
 	return m_widget;
+}
+
+namespace HomeCompa::Util {
+
+void InitSplitter(QSplitter * splitter)
+{
+	QTimer::singleShot(0, [=]
+	{
+		QList<int> sizes = splitter->sizes();
+		const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
+
+		QList<int> stretch;
+		if (splitter->orientation() == Qt::Horizontal)
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
+		else
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().verticalStretch();
+
+		const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
+		if (weightSum == 0)
+			return;
+
+		std::ranges::transform(stretch, sizes.begin(), [=] (const auto weight)
+		{
+			return width * weight / weightSum;
+		});
+
+		splitter->setSizes(sizes);
+	});
+}
+
 }
