@@ -16,7 +16,6 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
-#include "interface/util/util.h"
 
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/Settings.h"
