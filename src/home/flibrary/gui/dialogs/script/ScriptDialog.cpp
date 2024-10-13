@@ -11,12 +11,12 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
 
+#include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 
 #include "ComboBoxDelegate.h"
 #include "CommandArgDelegate.h"
 #include "CommandDelegate.h"
-#include "GeometryRestorable.h"
 #include "ScriptNameDelegate.h"
 
 using namespace HomeCompa;
@@ -68,8 +68,8 @@ void SetupView(const QObject & parent, ISettings & settings, QTableView & view, 
 }
 
 class ScriptDialog::Impl final
-	: GeometryRestorable
-	, GeometryRestorableObserver
+	: Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 

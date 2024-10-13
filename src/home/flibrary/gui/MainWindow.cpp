@@ -9,7 +9,6 @@
 
 #include "AnnotationWidget.h"
 #include "config/version.h"
-#include "GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
@@ -33,6 +32,7 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "interface/logic/IDatabaseChecker.h"
+#include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
@@ -60,8 +60,8 @@ TR_DEF
 }
 
 class MainWindow::Impl final
-	: GeometryRestorable
-	, GeometryRestorableObserver
+	: Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 	, ICollectionController::IObserver
 	, ILineOption::IObserver
 	, virtual plog::IAppender

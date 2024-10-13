@@ -5,6 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "GuiUtil/GeometryRestorable.h"
+
 namespace Ui {
 class MainWindowClass;
 };
@@ -22,7 +24,10 @@ namespace HomeCompa::fb2cut {
 struct Settings;
 class ImageSettingsWidget;
 
-class MainWindow final : public QMainWindow
+class MainWindow final
+	: public QMainWindow
+	, Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MainWindow)

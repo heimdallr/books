@@ -1,23 +1,21 @@
 #include "GeometryRestorable.h"
 
-#include <QWidget>
 #include <QEvent>
 #include <QSplitter>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/SettingsConstant.h"
-
 #include "util/ISettingsObserver.h"
 #include "util/UiTimer.h"
 #include "util/serializer/Font.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa::Util;
 
 namespace {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
+constexpr auto FONT_KEY = "ui/Font";
 }
 
 class GeometryRestorable::Impl final
@@ -76,16 +74,16 @@ private: // QObject
 private: // ISettingsObserver
 	void HandleValueChanged(const QString & key, const QVariant &) override
 	{
-		if (key.startsWith(Constant::Settings::FONT_KEY))
+		if (key.startsWith(FONT_KEY))
 			m_fontTimer->start();
 	}
 
 private:
 	void OnFontChanged()
 	{
-		const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+		const SettingsGroup group(*m_settings, FONT_KEY);
 		auto font = m_observer.GetWidget().font();
-		Util::Deserialize(font, *m_settings);
+		Deserialize(font, *m_settings);
 
 		EnumerateWidgets(m_observer.GetWidget(), [&] (QWidget & widget)
 		{
@@ -107,7 +105,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	const QString m_name;
 	bool m_initialized { false };
-	PropagateConstPtr<QTimer> m_fontTimer { Util::CreateUiTimer([&] { OnFontChanged(); }) };
+	PropagateConstPtr<QTimer> m_fontTimer { CreateUiTimer([&] { OnFontChanged(); }) };
 };
 
 GeometryRestorable::GeometryRestorable(IObserver & observer, std::shared_ptr<ISettings> settings, QString name)

@@ -1,18 +1,17 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
-#include <QDir>
-#include <settings.h>
-
 #include "GuiUtil/interface/IUiFactory.h"
 #include "util/files.h"
 #include "util/ISettings.h"
 
 #include "ImageSettingsWidget.h"
+#include "settings.h"
 
 using namespace HomeCompa::fb2cut;
 
 namespace {
+
 constexpr auto KEY_INPUT_FILES = "ui/fb2cut/inputFiles";
 constexpr auto KEY_DST_FOLDER = "ui/fb2cut/outputFolder";
 constexpr auto KEY_EXT_ARCHIVER = "ui/fb2cut/externalArchiver";
@@ -22,6 +21,7 @@ constexpr auto KEY_SAVE_FB2 = "ui/fb2cut/saveFb2";
 constexpr auto KEY_ARCHIVE_FB2 = "ui/fb2cut/archiveFb2";
 constexpr auto KEY_MIN_IMAGE_FILE_SIZE = "ui/fb2cut/minImageFileSize";
 constexpr auto KEY_MAX_THREAD_COUNT = "ui/fb2cut/maxThreadCount";
+
 }
 
 MainWindow::MainWindow(
@@ -33,13 +33,17 @@ MainWindow::MainWindow(
 	, QWidget *parent
 )
 	: QMainWindow(parent)
-	, m_settingsManager(std::move(settingsManager))
-	, m_uiFactory(std::move(uiFactory))
-	, m_common(std::move(common))
-	, m_covers(std::move(covers))
-	, m_images(std::move(images))
+	, GeometryRestorable(*this, settingsManager, "fb2cutMainWindow")
+	, GeometryRestorableObserver(static_cast<QWidget&>(*this))
+	, m_settingsManager { std::move(settingsManager) }
+	, m_uiFactory { std::move(uiFactory) }
+	, m_common { std::move(common) }
+	, m_covers { std::move(covers) }
+	, m_images { std::move(images) }
 {
 	m_ui->setupUi(this);
+
+	Init();
 
 	m_common->setCheckable(false);
 
@@ -215,6 +219,7 @@ void MainWindow::OnDstFolderChanged()
 void MainWindow::OnExternalArchiverChanged()
 {
 	m_ui->actionExternalArchiverNotFound->setVisible(!(m_ui->editExternalArchiver->text().isEmpty() || QFile(m_ui->editExternalArchiver->text()).exists()));
+	m_ui->archiveOptionsFrame->setVisible(!m_ui->editExternalArchiver->text().isEmpty());
 	CheckEnabled();
 }
 

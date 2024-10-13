@@ -13,6 +13,7 @@ AddTarget(gui	shared_lib
 		logging
 		logic
 		Util
+		GuiUtil
 		ver
 		zip
 )

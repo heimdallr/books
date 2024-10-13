@@ -6,7 +6,7 @@
 
 #include <plog/Log.h>
 
-#include "GeometryRestorable.h"
+#include "GuiUtil/GeometryRestorable.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
@@ -75,8 +75,8 @@ QString GetFolder(const IUiFactory & uiController, const QString & dir)
 }
 
 class AddCollectionDialog::Impl final
-	: GeometryRestorable
-	, GeometryRestorableObserver
+	: Util::GeometryRestorable
+	, Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
