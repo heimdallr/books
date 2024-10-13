@@ -500,7 +500,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 
 	const auto log = [rowsTotal, &rowsInserted]
 	{
-		PLOGI << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
+		PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
 	const auto result = std::accumulate(std::cbegin(container), std::cend(container), size_t {0}, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const auto & init, const auto & value)
@@ -777,7 +777,7 @@ void SetNextId(sqlite3pp::database & db)
 		")"
 	);
 	g_id = (*query.begin()).get<long long>(0);
-	PLOGI << "Next Id: " << g_id;
+	PLOGD << "Next Id: " << g_id;
 }
 
 std::pair<Data, Dictionary> ReadData(const Path & dbFileName, const Path & genresFileName)
