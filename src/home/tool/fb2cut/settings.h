@@ -1,13 +1,10 @@
 #pragma once
 
+#include <QDir>
 #include <QString>
-
-#include "fnd/memory.h"
-#include "fnd/NonCopyMovable.h"
+#include <QSize>
 
 #include "common/Constant.h"
-
-class QIODevice;
 
 namespace HomeCompa::fb2cut {
 
@@ -33,6 +30,16 @@ struct ImageSettings
 	int quality { -1 };
 	bool save { true };
 	bool grayscale { false };
+
+	bool operator==(const ImageSettings& rhs) const noexcept
+	{
+		return true
+			&& maxSize == rhs.maxSize
+			&& quality == rhs.quality
+			&& save == rhs.save
+			&& grayscale == rhs.grayscale
+			;
+	}
 };
 
 struct Settings
@@ -57,5 +64,8 @@ struct Settings
 	bool defaultArchiverOptions { true };
 	int totalFileCount { 0 };
 };
+
+std::ostream & operator<<(std::ostream & stream, const ImageSettings & settings);
+std::ostream & operator<<(std::ostream & stream, const Settings & settings);
 
 }

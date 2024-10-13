@@ -10,6 +10,8 @@
 #include <QBuffer>
 #include <QProcess>
 
+#include <Hypodermic/Hypodermic.h>
+
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Log.h>
@@ -21,11 +23,15 @@
 #include "logging/init.h"
 #include "logging/LogAppender.h"
 
+#include "GuiUtil/interface/IUiFactory.h"
 #include "util/files.h"
+#include "util/ISettings.h"
 
 #include "zip.h"
 
+#include "di_app.h"
 #include "Fb2Parser.h"
+#include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "settings.h"
 
@@ -654,6 +660,15 @@ bool ProcessArchive(const QString & file, const Settings & settings, std::atomic
 
 QStringList ProcessArchives(Settings & settings)
 {
+	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
+		throw std::ios_base::failure(QString("Cannot create folder %1").arg(settings.dstDir.path()).toStdString());
+	if (settings.cover.save)
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+	if (settings.image.save)
+		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
+
 	QStringList files;
 	for (const auto & wildCard : settings.inputWildcards)
 		files << Util::ResolveWildcard(wildCard);
@@ -743,18 +758,17 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 			;
 	};
 
-
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { QString(FOLDER[0])              , FOLDER                           } , "Destination folder (required)"                                     , FOLDER },
+		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
 		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
 
-		{ { "o"                             , ARCHIVER_COMMANDLINE_OPTION_NAME } , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
+		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
 		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
 		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
 		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
@@ -776,15 +790,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	});
 	parser.process(app);
 
-	const auto destinationFolder = parser.value(FOLDER);
-	if (destinationFolder.isEmpty())
-	{
-		PLOGE << "Destination folder required";
-		parser.showHelp(1);
-	}
-	settings.dstDir = QDir(destinationFolder);
-	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
-		throw std::ios_base::failure(QString("Cannot create folder %1").arg(destinationFolder).toStdString());
+	settings.dstDir = parser.value(FOLDER);
 
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
 	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
@@ -826,13 +832,6 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
 		settings.image.save = false;
 
-	if (settings.cover.save)
-		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::COVERS)); !dir.exists() && !dir.mkpath("."))
-			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
-	if (settings.image.save)
-		if (const QDir dir(QString("%1/%2").arg(settings.dstDir.path(), Global::IMAGES)); !dir.exists() && !dir.mkpath("."))
-			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
-
 	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [] (const auto & fileName) { return QDir::fromNativeSeparators(fileName); });
 
 	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
@@ -869,11 +868,21 @@ bool run(int argc, char * argv[])
 
 	if (settings.gui)
 	{
-		MainWindow mainWindow(settings.settings);
-		mainWindow.show();
+		PLOGI << "GUI mode activated";
+		std::shared_ptr<Hypodermic::Container> container;
+		{
+			Hypodermic::ContainerBuilder builder;
+			DiInit(builder, container);
+		}
+
+		const auto mainWindow = container->resolve<MainWindow>();
+		mainWindow->SetSettings(&settings.settings);
+		mainWindow->show();
 		if (!QApplication::exec())
 			return false;
 	}
+
+	PLOGI << "Process started with " << settings.settings;
 
 	const auto failedArchives = ProcessArchives(settings.settings);
 	if (failedArchives.isEmpty())

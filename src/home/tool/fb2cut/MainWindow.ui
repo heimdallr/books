@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>530</width>
-    <height>462</height>
+    <width>431</width>
+    <height>356</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    <string notr="true">fb2cut</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
      <layout class="QVBoxLayout" name="_2">
       <property name="spacing">
@@ -123,6 +123,213 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="_8">
+      <item>
+       <widget class="QCheckBox" name="saveFb2">
+        <property name="text">
+         <string>Save fb2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="archiveFb2">
+        <property name="text">
+         <string>Archive fb2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="_10">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>External archiver (7z.exe) executable path</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="_11">
+        <item>
+         <widget class="QLineEdit" name="editExternalArchiver">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="btnExternalArchiver">
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/fb2cut.qrc">
+            <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+          </property>
+          <property name="autoRaise">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Custom archiver command line (*experts only)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="editArchiverCommandLine"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QWidget" name="common" native="true">
+        <property name="accessibleName">
+         <string>Common</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="covers" native="true">
+        <property name="accessibleName">
+         <string>Covers</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="images" native="true">
+        <property name="accessibleName">
+         <string>Images</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="_12">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>FFmpeg (ffmpeg.exe) executable path</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="_13">
+        <item>
+         <widget class="QLineEdit" name="editFfmpeg">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="btnFfmpeg">
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/fb2cut.qrc">
+            <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+          </property>
+          <property name="autoRaise">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="_9">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Min image file size</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="minImageFileSize">
+        <property name="maximum">
+         <number>1000000000</number>
+        </property>
+        <property name="value">
+         <number>1024</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Max thread count</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="maxThreadCount">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1024</number>
+        </property>
+        <property name="value">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -185,10 +392,51 @@
     <string>Destination folder not exists</string>
    </property>
   </action>
+  <action name="actionExternalArchiverNotFound">
+   <property name="icon">
+    <iconset resource="resources/fb2cut.qrc">
+     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+   </property>
+   <property name="text">
+    <string>External Archiver Not Founs</string>
+   </property>
+   <property name="toolTip">
+    <string>External archiver executable not found</string>
+   </property>
+  </action>
+  <action name="actionFfmpegNotFound">
+   <property name="icon">
+    <iconset resource="resources/fb2cut.qrc">
+     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+   </property>
+   <property name="text">
+    <string>FFmpeg Not Founs</string>
+   </property>
+   <property name="toolTip">
+    <string>FFmpeg executable not found</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="resources/fb2cut.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>saveFb2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>archiveFb2</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>58</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>140</x>
+     <y>164</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

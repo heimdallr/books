@@ -3,6 +3,7 @@ AddTarget(fb2cut	app_console
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
+		Hypodermic
 		Qt6::Core
 		Qt6::Gui
 		Qt6::Widgets
@@ -10,4 +11,5 @@ AddTarget(fb2cut	app_console
 		logging
 		Util
 		zip
+		GuiUtil
 )
