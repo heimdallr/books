@@ -112,6 +112,8 @@ public:
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
 			{
+				if (!m_ui.actionShowLog->isChecked())
+					m_ui.actionShowLog->trigger();
 				m_collectionController->AddCollection(commandLine->GetInpx());
 			}
 			else if (!databaseChecker->IsDatabaseValid())
@@ -192,6 +194,8 @@ private:
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
+		m_ui.verticalSplitter->setSizes({ 100, 500 });
+		m_ui.horizontalSplitter->setSizes({ 200, 100 });
 
 		m_localeController->Setup(*m_ui.menuLanguage);
 
