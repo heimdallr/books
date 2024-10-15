@@ -85,6 +85,19 @@ static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_
 
 TR_DEF
 
+template<typename T>
+T Round(const T value, const int digits)
+{
+	if (value == 0)
+		return 0;
+
+	const double factor = pow(10.0, digits + ceil(log10(value)));
+	if (factor < 10.0)
+		return value;
+
+	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
+}
+
 QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
 {
 	if (strings.empty())
@@ -486,7 +499,7 @@ private: // IAnnotationController::IObserver
 
 			auto info = Table()
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
-				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(dataProvider.GetTextSize() / 2000))
+				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);
