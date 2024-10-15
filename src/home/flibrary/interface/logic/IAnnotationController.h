@@ -39,6 +39,7 @@ public:
 		[[nodiscard]] virtual const std::vector<QString> & GetFb2Keywords() const noexcept = 0;
 		[[nodiscard]] virtual const Covers & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
+		[[nodiscard]] virtual size_t GetTextSize() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;
 

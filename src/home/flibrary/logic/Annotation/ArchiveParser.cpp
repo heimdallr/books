@@ -30,6 +30,8 @@ TR_DEF
 constexpr auto ID = "id";
 constexpr auto L_HREF = "l:href";
 constexpr auto A = "a";
+constexpr auto P = "p";
+constexpr auto EMPHASIS = "emphasis";
 constexpr auto TRANSLATOR = "FictionBook/description/title-info/translator";
 constexpr auto TRANSLATOR_FIRST_NAME = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
@@ -52,6 +54,7 @@ constexpr auto PUBLISH_INFO_PUBLISHER = "FictionBook/description/publish-info/pu
 constexpr auto PUBLISH_INFO_CITY = "FictionBook/description/publish-info/city";
 constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
 constexpr auto PUBLISH_INFO_ISBN = "FictionBook/description/publish-info/isbn";
+constexpr auto BODY = "FictionBook/body/";
 
 class XmlParser final
 	: public Util::SaxParser
@@ -107,6 +110,8 @@ private: // Util::SaxParser
 	{
 		if (name.compare(A, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(L_HREF);
+
+		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive));
 
 		using ParseElementFunction = bool(XmlParser::*)(const Util::XmlAttributes &);
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
@@ -167,6 +172,9 @@ private: // Util::SaxParser
 			{ PUBLISH_INFO_YEAR     , &XmlParser::ParsePublishInfoYear },
 			{ PUBLISH_INFO_ISBN     , &XmlParser::ParsePublishInfoIsbn },
 		};
+
+		if (m_textMode)
+			m_data.textSize += value.length();
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
@@ -345,6 +353,7 @@ private:
 	IDataItem * m_currentContentItem { m_data.content.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
 	int64_t m_percents { 0 };
+	bool m_textMode { false };
 };
 
 }
