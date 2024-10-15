@@ -62,6 +62,7 @@ constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 i
 constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -83,6 +84,19 @@ constexpr const char * CUSTOM_URL_SCHEMA[]
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
 
 TR_DEF
+
+template<typename T>
+T Round(const T value, const int digits)
+{
+	if (value == 0)
+		return 0;
+
+	const double factor = pow(10.0, digits + ceil(log10(value)));
+	if (factor < 10.0)
+		return value;
+
+	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
+}
 
 QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
 {
@@ -485,7 +499,7 @@ private: // IAnnotationController::IObserver
 
 			auto info = Table()
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
-				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
+				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);

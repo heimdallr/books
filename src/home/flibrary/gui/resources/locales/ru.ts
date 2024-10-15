@@ -212,6 +212,11 @@
         <source>Cannot open %1</source>
         <translation>Не удалось открыть %1</translation>
     </message>
+    <message>
+        <location filename="../../AnnotationWidget.cpp" line="65"/>
+        <source>%L1 (%2%3 pages)</source>
+        <translation>%L1 (%2%3 страниц)</translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>

@@ -132,6 +132,11 @@ private: // IDataProvider
 		return m_archiveData.coverIndex;
 	}
 
+	[[nodiscard]] size_t GetTextSize() const noexcept override
+	{
+		return m_archiveData.textSize;
+	}
+
 	[[nodiscard]] IDataItem::Ptr GetContent() const noexcept override
 	{
 		return m_archiveData.content;
