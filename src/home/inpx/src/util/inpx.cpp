@@ -571,8 +571,8 @@ size_t Store(const Path & dbFileName, const Data & data)
 		"BookID   , LibID     , Title    , SeriesID, "
 		"SeqNumber, UpdateDate, LibRate  , Lang    , "
 		"Folder   , FileName  , InsideNo , Ext     , "
-		"BookSize , IsLocal   , IsDeleted, KeyWords"
-		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		"BookSize , IsDeleted"
+		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
 																		   cmd.bind( 1, book.id);
@@ -588,9 +588,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 																		   cmd.bind(11, book.insideNo);
 																		   cmd.bind(12, ToMultiByte(book.format), sqlite3pp::copy);
 																		   cmd.bind(13, book.size);
-																		   cmd.bind(14, 1);
-																		   cmd.bind(15, book.isDeleted ? 1 : 0);
-			book.keywords.empty() ? cmd.bind(16, sqlite3pp::null_type()) : cmd.bind(16, ToMultiByte(book.keywords), sqlite3pp::copy);
+																		   cmd.bind(14, book.isDeleted ? 1 : 0);
 	});
 
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", data.booksAuthors, [] (sqlite3pp::command & cmd, const Links::value_type & item)
