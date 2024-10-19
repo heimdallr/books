@@ -20,7 +20,6 @@ using namespace fb2cut;
 namespace {
 
 constexpr auto ID = "id";
-constexpr auto L_HREF = "l:href";
 constexpr auto IMAGE = "image";
 
 constexpr auto GENRE = "FictionBook/description/title-info/genre";
@@ -65,7 +64,6 @@ private: // Util::SaxParser
 		static constexpr ParseElementItem PARSERS[]
 		{
 			{ BINARY, &Impl::OnStartElementBinary },
-			{ COVERPAGE_IMAGE, &Impl::OnStartElementCoverpageImage },
 		};
 
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
@@ -73,12 +71,27 @@ private: // Util::SaxParser
 
 		if (name.compare(IMAGE, Qt::CaseInsensitive) == 0)
 		{
-			auto image = attributes.GetAttribute(L_HREF);
-			while (!image.isEmpty() && image.front() == '#')
-				image.removeFirst();
+			m_writer.WriteStartElement(name);
+			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			{
+				const auto keyName = attributes.GetName(i);
+				auto image = attributes.GetValue(i);
+				if (!keyName.endsWith(":href"))
+				{
+					m_writer.WriteAttribute(keyName, image);
+					continue;
+				}
 
-			const auto imageName = m_imageNames.emplace(std::move(image), m_imageNames.size()).first->second;
-			m_writer.WriteStartElement(name).WriteAttribute(L_HREF, path.compare(COVERPAGE_IMAGE, Qt::CaseInsensitive) ? QString("#%1").arg(imageName) : QString("#%1").arg(Global::COVER));
+				while (!image.isEmpty() && image.front() == '#')
+					image.removeFirst();
+
+				const auto isCover = path.compare(COVERPAGE_IMAGE, Qt::CaseInsensitive) == 0;
+				if (isCover)
+					m_coverpage = image;
+
+				const auto imageName = m_imageNames.emplace(std::move(image), m_imageNames.size()).first->second;
+				m_writer.WriteAttribute(keyName, isCover ? QString("#%1").arg(Global::COVER) : QString("#%1").arg(imageName));
+			}
 		}
 		else
 		{
@@ -135,15 +148,6 @@ private: // Util::SaxParser
 	}
 
 private:
-	bool OnStartElementCoverpageImage(const Util::XmlAttributes & attributes)
-	{
-		m_coverpage = attributes.GetAttribute(L_HREF);
-		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
-			m_coverpage.removeFirst();
-
-		return true;
-	}
-
 	bool OnStartElementBinary(const Util::XmlAttributes & attributes)
 	{
 		m_binaryId = attributes.GetAttribute(ID);
