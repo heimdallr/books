@@ -25,4 +25,12 @@ constexpr const char * NAMES[]
 #undef	EXPORT_STAT_TYPE_ITEM
 };
 
+constexpr auto UNKNOWN_TYPE = "Unknown type";
+
+inline const char * GetName(const Type type)
+{
+	const auto index = static_cast<size_t>(type);
+	return index < std::size(NAMES) ? NAMES[index] : UNKNOWN_TYPE;
+}
+
 }

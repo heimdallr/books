@@ -1,5 +1,7 @@
 #include "AnnotationController.h"
 
+#include <QDateTime>
+
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
@@ -167,6 +169,11 @@ private: // IDataProvider
 		return m_archiveData.publishInfo.isbn;
 	}
 
+	[[nodiscard]] const ExportStatistics & GetExportStatistics() const override
+	{
+		return m_exportStatistics;
+	}
+
 private: // IProgressController::IObserver
 	void OnStartedChanged() override
 	{
@@ -243,7 +250,24 @@ private:
 			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
 			auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			return [this, book = std::move(book), series = std::move(series), authors = std::move(authors), genres = std::move(genres), groups = std::move(groups), keywords = std::move(keywords)] (size_t) mutable
+
+			std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
+			const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List where BookID = ?");
+			for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
+				exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].push_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+
+			ExportStatistics exportStatistics;
+			std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
+
+			return [this
+				, book = std::move(book)
+				, series = std::move(series)
+				, authors = std::move(authors)
+				, genres = std::move(genres)
+				, groups = std::move(groups)
+				, keywords = std::move(keywords)
+				, exportStatistics = std::move(exportStatistics)
+			] (size_t) mutable
 			{
 				if (book->GetId() != m_currentBookId)
 					return;
@@ -254,6 +278,7 @@ private:
 				m_genres = std::move(genres);
 				m_groups = std::move(groups);
 				m_keywords = std::move(keywords);
+				m_exportStatistics = std::move(exportStatistics);
 				m_ready |= Ready::Database;
 
 				if (m_ready == Ready::All)
@@ -312,6 +337,8 @@ private:
 	IDataItem::Ptr m_genres;
 	IDataItem::Ptr m_groups;
 	IDataItem::Ptr m_keywords;
+
+	ExportStatistics m_exportStatistics;
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory
