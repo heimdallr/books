@@ -2,7 +2,7 @@
 
 namespace HomeCompa::Flibrary::ExportStat {
 
-constexpr auto INSERT_QUERY = "insert into Export_List(BookID, ExportType, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
+constexpr auto INSERT_QUERY = "insert into Export_List_User(BookID, ExportType, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
 #define EXPORT_STAT_TYPE_ITEMS_X_MACRO \
 		EXPORT_STAT_TYPE_ITEM(Read)    \

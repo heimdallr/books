@@ -173,7 +173,7 @@ CREATE TABLE Keyword_List (
 );
 --@@
 
-CREATE TABLE Export_List (
+CREATE TABLE Export_List_User (
     BookID     INTEGER  NOT NULL,
     ExportType INTEGER  NOT NULL,
     CreatedAt  DATETIME NOT NULL

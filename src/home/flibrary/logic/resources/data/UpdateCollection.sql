@@ -40,7 +40,7 @@ CREATE UNIQUE INDEX UIX_Keywords_PrimaryKey ON Keywords (KeywordID);
 CREATE UNIQUE INDEX UIX_Keyword_List_PrimaryKey ON Keyword_List (KeywordID, BookID);
 --@@
 
-CREATE INDEX IX_ExportList_BookID ON Export_List (BookID);
+CREATE INDEX IX_ExportListUser_BookID ON Export_List_User (BookID);
 --@@
 
 ANALYZE;
