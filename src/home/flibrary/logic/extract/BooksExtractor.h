@@ -23,6 +23,7 @@ public:
 		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const class IScriptController> scriptController
+		, std::shared_ptr<class DatabaseUser> databaseUser
 	);
 	~BooksExtractor();
 
