@@ -140,12 +140,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="35"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="37"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="36"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="38"/>
         <source>Tree</source>
         <translation></translation>
     </message>
