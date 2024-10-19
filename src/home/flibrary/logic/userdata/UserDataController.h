@@ -37,8 +37,8 @@ private:
 	void Do(Callback callback, QString fileName, const char * successMessage, DoFunction f) const;
 
 private:
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
 };
 
 }

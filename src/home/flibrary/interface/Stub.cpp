@@ -139,12 +139,12 @@ ILogicFactory::ExtractedBooks ILogicFactory::GetExtractedBooks(QAbstractItemMode
 {
 	ExtractedBooks books;
 
-	const std::vector<int> roles { Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
+	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
 	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
 	std::ranges::transform(selected, std::back_inserter(books), [&] (auto && book)
 	{
 		assert(book.size() == roles.size());
-		return ExtractedBook { std::move(book[0]), std::move(book[1]), book[2].toLongLong(), std::move(book[3]), std::move(book[4]), book[5].toInt(), std::move(book[6]) };
+		return ExtractedBook { book[0].toInt(), std::move(book[1]), std::move(book[2]), book[3].toLongLong(), std::move(book[4]), std::move(book[5]), book[6].toInt(), std::move(book[7]) };
 	});
 
 	return books;

@@ -180,7 +180,7 @@ class BooksContextMenuProvider::Impl final
 {
 public:
 	explicit Impl(std::shared_ptr<const ISettings> settings
-		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<const DatabaseUser> databaseUser
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
@@ -475,7 +475,7 @@ private:
 
 private:
 	std::shared_ptr<const ISettings> m_settings;
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;

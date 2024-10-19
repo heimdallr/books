@@ -33,6 +33,7 @@ class ILogicFactory : public Lockable<ILogicFactory>  // NOLINT(cppcoreguideline
 public:
 	struct ExtractedBook
 	{
+		int id;
 		QString folder;
 		QString file;
 		int64_t size;
