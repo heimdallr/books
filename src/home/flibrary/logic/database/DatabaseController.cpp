@@ -29,6 +29,7 @@ void AddUserTables(DB::ITransaction & transaction)
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)")->Execute();
+	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Export_List(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)")->Execute();
 }
 
 void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition)

@@ -172,3 +172,10 @@ CREATE TABLE Keyword_List (
   BookID    INTEGER NOT NULL
 );
 --@@
+
+CREATE TABLE Export_List (
+    BookID     INTEGER  NOT NULL,
+    ExportType INTEGER  NOT NULL,
+    CreatedAt  DATETIME NOT NULL
+);
+--@@
