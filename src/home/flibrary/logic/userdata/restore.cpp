@@ -32,14 +32,15 @@ enum class Check
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 
-#define RESTORE_ITEMS_X_MACRO     \
-		RESTORE_ITEM(Books, 1)    \
-		RESTORE_ITEM(Books, 2)    \
-		RESTORE_ITEM(Books, 3)    \
-		RESTORE_ITEM(Groups, 1)   \
-		RESTORE_ITEM(Groups, 3)   \
-		RESTORE_ITEM(Searches, 1) \
-		RESTORE_ITEM(Searches, 3)
+#define RESTORE_ITEMS_X_MACRO        \
+		RESTORE_ITEM(Books, 1)       \
+		RESTORE_ITEM(Books, 2)       \
+		RESTORE_ITEM(Books, 3)       \
+		RESTORE_ITEM(Groups, 1)      \
+		RESTORE_ITEM(Groups, 3)      \
+		RESTORE_ITEM(Searches, 1)    \
+		RESTORE_ITEM(Searches, 3)    \
+		RESTORE_ITEM(ExportStat, 4)
 
 namespace HomeCompa::Flibrary::UserData {
 
@@ -60,6 +61,7 @@ constexpr auto FLIBRARY_BACKUP_USER_DATA = "FlibraryBackup/FlibraryUserData";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS = "FlibraryBackup/FlibraryUserData/Books";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS = "FlibraryBackup/FlibraryUserData/Groups";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES = "FlibraryBackup/FlibraryUserData/Searches";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = "FlibraryBackup/FlibraryUserData/ExportStat";
 
 class XmlParser final
 	: public Util::SaxParser
@@ -101,12 +103,13 @@ private: // Util::SaxParser
 		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[]
 		{
-			{ FLIBRARY_BACKUP                   , &XmlParser::OnStartElementFlibraryBackup },
-			{ FLIBRARY_BACKUP_VERSION           , &XmlParser::OnStartElementFlibraryBackupVersion },
-			{ FLIBRARY_BACKUP_USER_DATA         , &XmlParser::OnStartElementFlibraryBackupUserData },
-			{ FLIBRARY_BACKUP_USER_DATA_BOOKS   , &XmlParser::OnStartElementFlibraryBackupUserDataItem },
-			{ FLIBRARY_BACKUP_USER_DATA_GROUPS  , &XmlParser::OnStartElementFlibraryBackupUserDataItem },
-			{ FLIBRARY_BACKUP_USER_DATA_SEARCHES, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{ FLIBRARY_BACKUP                      , &XmlParser::OnStartElementFlibraryBackup },
+			{ FLIBRARY_BACKUP_VERSION              , &XmlParser::OnStartElementFlibraryBackupVersion },
+			{ FLIBRARY_BACKUP_USER_DATA            , &XmlParser::OnStartElementFlibraryBackupUserData },
+			{ FLIBRARY_BACKUP_USER_DATA_BOOKS      , &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{ FLIBRARY_BACKUP_USER_DATA_GROUPS     , &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{ FLIBRARY_BACKUP_USER_DATA_SEARCHES   , &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{ FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 		};
 
 		const auto result = Parse(*this, PARSERS, path, name, attributes);
