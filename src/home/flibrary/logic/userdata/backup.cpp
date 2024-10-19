@@ -17,6 +17,7 @@
 #include "interface/constants/ProductConstant.h"
 
 #include "constants/books.h"
+#include "constants/ExportStat.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
 
@@ -168,12 +169,37 @@ void BackupUserDataSearches(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 	}
 }
 
+void BackupUserDataExportStat(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
+{
+	static constexpr auto text =
+		"select b.Folder, b.FileName, u.ExportType, u.CreatedAt "
+		"from Export_List_User u "
+		"join Books b on b.BookID = u.BookID"
+		;
+
+	static constexpr const char * fields[] =
+	{
+		Constant::UserData::Books::Folder,
+		Constant::UserData::Books::FileName,
+		Constant::UserData::ExportStat::ExportType,
+		Constant::UserData::Books::CreatedAt,
+	};
+
+	const auto query = db.CreateQuery(text);
+	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
+	{
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
+		xmlWriter.WriteEndElement(Constant::ITEM);
+	}
+}
+
 constexpr std::pair<const char *, BackupFunction> BACKUPERS[]
 {
 #define ITEM(NAME) { Constant::UserData::NAME::RootNode, &BackupUserData##NAME }
 		ITEM(Books),
 		ITEM(Groups),
 		ITEM(Searches),
+		ITEM(ExportStat),
 #undef	ITEM
 };
 
