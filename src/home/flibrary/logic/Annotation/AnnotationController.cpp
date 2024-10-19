@@ -50,7 +50,7 @@ class AnnotationController::Impl final
 {
 public:
 	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
-		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<const DatabaseUser> databaseUser
 	)
 		: m_logicFactory(logicFactory)
 		, m_databaseUser(std::move(databaseUser))
@@ -295,7 +295,7 @@ private:
 
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 

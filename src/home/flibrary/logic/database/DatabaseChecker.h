@@ -17,7 +17,7 @@ private: // IDatabaseChecker
 	bool IsDatabaseValid() const override;
 
 private:
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
 };
 
 }
