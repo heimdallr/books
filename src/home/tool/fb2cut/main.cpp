@@ -28,6 +28,7 @@
 #include "util/files.h"
 #include "util/ISettings.h"
 #include "util/localization.h"
+#include "util/xml/Initializer.h"
 
 #include "zip.h"
 
@@ -862,6 +863,7 @@ bool run(int argc, char * argv[])
 	const QApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 	CommandLineSettings settings;
 
