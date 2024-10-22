@@ -29,6 +29,7 @@
 #include "util/ISettings.h"
 #include "util/localization.h"
 #include "util/xml/Initializer.h"
+#include "util/xml/Validator.h"
 
 #include "zip.h"
 
@@ -139,6 +140,13 @@ std::pair<QImage, QString> ToImage(QByteArray & body)
 	return result;
 }
 
+QString Validate(const Util::XmlValidator & validator, QByteArray & body)
+{
+	QBuffer buffer(&body);
+	buffer.open(QIODevice::ReadOnly);
+	return validator.Validate(buffer);
+}
+
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -223,12 +231,12 @@ private:
 		const QFileInfo fileInfo(inputFilePath);
 		const auto outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
-		const auto bodyOutput = ParseFile(inputFilePath, input);
+		auto bodyOutput = ParseFile(inputFilePath, input);
 		if (bodyOutput.isEmpty())
-		{
-			PLOGW << QString("Cannot parse %1").arg(outputFilePath);
-			return true;
-		}
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
+
+		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, errorText, "fb2", false), true;
 
 		if (!m_settings.saveFb2)
 			return false;
@@ -415,6 +423,8 @@ private:
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
+	const Util::XmlValidator m_validator;
+
 	std::thread m_thread;
 };
 
@@ -542,9 +552,12 @@ bool SevenZipIt(const Settings & settings)
 bool ZipIt(const Settings & settings)
 {
 	bool result = false;
-	Zip zip(QString("%1.7z").arg(settings.dstDir.path()), Zip::Format::Zip);
-	for (const auto & file : settings.dstDir.entryList({ "*.fb2" }))
+	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), Zip::Format::Zip);
+	const auto files = settings.dstDir.entryList({ "*.fb2" });
+	for (int i = 0; const auto & file : files)
 	{
+		++i;
+		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(i).arg(files.size()).arg(i * 100 / files.size());
 		QFile input(settings.dstDir.filePath(file));
 		if (!input.open(QIODevice::ReadOnly))
 		{
@@ -819,21 +832,15 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
-	if (parser.isSet(GRAYSCALE_OPTION_NAME))
-		settings.cover.grayscale = settings.image.grayscale = true;
-	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
-		settings.cover.grayscale = true;
-	if (parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME))
-		settings.image.grayscale = true;
+	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
+	settings.cover.grayscale = parser.isSet(COVER_GRAYSCALE_OPTION_NAME);
+	settings.image.grayscale = parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME);
 
-	if (parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME))
-		settings.archiveFb2 = false;
-	if (parser.isSet(NO_FB2_OPTION_NAME))
-		settings.archiveFb2 = settings.saveFb2 = false;
-	if (parser.isSet(NO_IMAGES_OPTION_NAME))
-		settings.cover.save = settings.image.save = false;
-	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
-		settings.image.save = false;
+	settings.saveFb2 = !parser.isSet(NO_FB2_OPTION_NAME);
+	settings.archiveFb2 = settings.saveFb2 && !parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME);
+
+	settings.cover.save = settings.image.save = !parser.isSet(NO_IMAGES_OPTION_NAME);
+	settings.image.save = settings.image.save && !parser.isSet(COVERS_ONLY_OPTION_NAME);
 
 	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [] (const auto & fileName) { return QDir::fromNativeSeparators(fileName); });
 
