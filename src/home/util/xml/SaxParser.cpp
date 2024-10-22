@@ -172,7 +172,7 @@ private: // xercesc::DocumentHandler
 		if (m_inputSource.IsStopped())
 			return;
 
-		if (m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
+		if (!m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
 			m_inputSource.SetStopped(true);
 	}
 
