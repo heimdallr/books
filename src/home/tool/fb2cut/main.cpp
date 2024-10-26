@@ -484,6 +484,14 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
+		ResetZip(m_zipCovers, m_zipCoversGuard);
+		ResetZip(m_zipImages, m_zipImagesGuard);
+	}
+
+	static void ResetZip(std::unique_ptr<Zip> & zip, std::mutex & zipGuard)
+	{
+		std::scoped_lock lock(zipGuard);
+		zip.reset();
 	}
 
 private:
@@ -497,8 +505,8 @@ private:
 	std::mutex m_zipCoversGuard;
 	std::mutex m_zipImagesGuard;
 
-	const std::unique_ptr<Zip> m_zipCovers;
-	const std::unique_ptr<Zip> m_zipImages;
+	std::unique_ptr<Zip> m_zipCovers;
+	std::unique_ptr<Zip> m_zipImages;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -596,50 +604,52 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 
 	const Zip zip(archive);
 	auto fileList = zip.GetFileNameList();
-	auto fileListCount = fileList.size();
+	const auto fileListCount = fileList.size();
 	const int currentFileCount = fileCount;
 	PLOGI << QString("%1 processing, total files: %2").arg(fileInfo.fileName()).arg(fileListCount);
 
-	const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileList.size()));
-
-	std::condition_variable queueCondition;
-	std::mutex queueGuard;
-	FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
-
-	while (!fileList.isEmpty())
+	auto hasError = [&]
 	{
-		if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
+		const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileListCount));
+
+		std::condition_variable queueCondition;
+		std::mutex queueGuard;
+		FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
+
+		while (!fileList.isEmpty())
 		{
-			auto & input = zip.Read(fileList.front());
-			auto body = input.readAll();
-			if (!body.isEmpty())
+			if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
 			{
-				fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
+				auto & input = zip.Read(fileList.front());
+				auto body = input.readAll();
+				if (!body.isEmpty())
+				{
+					fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
+				}
+				else
+				{
+					PLOGW << fileList.front() << " is empty";
+					++fileCount;
+				}
+				fileList.pop_front();
 			}
 			else
 			{
-				PLOGW << fileList.front() << " is empty";
-				++fileCount;
+				std::unique_lock lockStart(queueGuard);
+				queueCondition.wait(lockStart, [&] ()
+				{
+					return fileProcessor.GetQueueSize() < maxThreadCount * 2;
+				});
 			}
-			fileList.pop_front();
 		}
-		else
-		{
-			std::unique_lock lockStart(queueGuard);
-			queueCondition.wait(lockStart, [&] ()
-			{
-				return fileProcessor.GetQueueSize() < maxThreadCount * 2;
-			});
-		}
-	}
 
-	for (int i = 0; i < maxThreadCount; ++i)
-		fileProcessor.Enqueue({}, {});
+		for (int i = 0; i < maxThreadCount; ++i)
+			fileProcessor.Enqueue({}, {});
 
-	fileProcessor.Wait();
+		fileProcessor.Wait();
+		return fileProcessor.HasError();
+	}();
 
-	bool hasError = false;
-	hasError = fileProcessor.HasError() || hasError;
 	hasError = ArchiveFb2(settings) || hasError;
 
 	QDir().rmdir(settings.dstDir.path());
