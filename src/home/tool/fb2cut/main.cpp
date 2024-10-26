@@ -1,11 +1,8 @@
 #include <queue>
 #include <ranges>
 
-#include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
-#include <QDir>
-#include <QFileInfo>
 #include <QImageReader>
 #include <QProcess>
 #include <QStandardPaths>
@@ -35,7 +32,8 @@
 
 #include "di_app.h"
 #include "Fb2Parser.h"
-#include "ImageSettingsWidget.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "ImageSettingsWidget.h" // for creating MainWindow via Hypodermic
 #include "MainWindow.h"
 #include "settings.h"
 
@@ -562,7 +560,7 @@ bool ZipIt(const Settings & settings)
 	bool result = false;
 	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), Zip::Format::Zip);
 	const auto files = settings.dstDir.entryList({ "*.fb2" });
-	for (int i = 0; const auto & file : files)
+	for (qsizetype i = 0; const auto & file : files)
 	{
 		++i;
 		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(i).arg(files.size()).arg(i * 100 / files.size());
@@ -862,7 +860,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 class LogConsoleFormatter
 {
 public:
-	static plog::util::nstring format(const plog::Record & record)
+	[[maybe_unused]] static plog::util::nstring format(const plog::Record & record)
 	{
 		tm t {};
 		plog::util::localtime_s(&t, &record.getTime().time);
