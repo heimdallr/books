@@ -169,6 +169,7 @@ public:
 private: // xercesc::DocumentHandler
 	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
 	{
+		ProcessCharacters();
 		if (m_inputSource.IsStopped())
 			return;
 
