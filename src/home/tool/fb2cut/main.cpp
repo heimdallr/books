@@ -843,8 +843,10 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
 	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
-	settings.cover.grayscale = parser.isSet(COVER_GRAYSCALE_OPTION_NAME);
-	settings.image.grayscale = parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME);
+	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
+		settings.cover.grayscale = true;
+	if (parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME))
+		settings.image.grayscale = true;
 
 	settings.saveFb2 = !parser.isSet(NO_FB2_OPTION_NAME);
 	settings.archiveFb2 = settings.saveFb2 && !parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME);
