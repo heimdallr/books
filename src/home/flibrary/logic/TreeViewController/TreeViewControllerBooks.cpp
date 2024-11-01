@@ -8,7 +8,9 @@
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUser.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/ExportStat.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -52,12 +54,15 @@ struct TreeViewControllerBooks::Impl final
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel>() };
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
+	std::shared_ptr<const DatabaseUser> databaseUser;
 
 	explicit Impl(std::weak_ptr<const ILogicFactory> logicFactory
 		, std::shared_ptr<IAnnotationController> annotationController
+		, std::shared_ptr<const DatabaseUser> databaseUser
 	)
 		: logicFactory(std::move(logicFactory))
 		, annotationController(std::move(annotationController))
+		, databaseUser(std::move(databaseUser))
 	{
 	}
 };
@@ -67,13 +72,17 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IAnnotationController> annotationController
+	, std::shared_ptr<DatabaseUser> databaseUser
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)
 		, std::move(dataProvider)
 		, modelProvider
 	)
-	, m_impl(logicFactory, std::move(annotationController))
+	, m_impl(logicFactory
+		, std::move(annotationController)
+		, std::move(databaseUser)
+	)
 {
 	Setup();
 
@@ -152,8 +161,12 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
 		return;
 
 	auto readerController = ILogicFactory::Lock(m_impl->logicFactory)->CreateReaderController();
-	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController]() mutable
+	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [this, readerController, id = index.data(Role::Id).toInt()]() mutable
 	{
 		readerController.reset();
+		const auto query = m_impl->databaseUser->Database()->CreateQuery(ExportStat::INSERT_QUERY);
+		query->Bind(0, id);
+		query->Bind(1, static_cast<int>(ExportStat::Type::Read));
+		query->Execute();
 	});
 }

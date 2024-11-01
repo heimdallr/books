@@ -16,6 +16,7 @@
 
 #include "GuiUtil/GeometryRestorable.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
@@ -62,6 +63,16 @@ constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 i
 constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
+constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
+
+#if(false)
+QT_TRANSLATE_NOOP("Annotation", "Read")
+QT_TRANSLATE_NOOP("Annotation", "AsIs")
+QT_TRANSLATE_NOOP("Annotation", "Archive")
+QT_TRANSLATE_NOOP("Annotation", "Script")
+QT_TRANSLATE_NOOP("Annotation", "Inpx")
+#endif
 
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
@@ -83,6 +94,19 @@ constexpr const char * CUSTOM_URL_SCHEMA[]
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
 
 TR_DEF
+
+template<typename T>
+T Round(const T value, const int digits)
+{
+	if (value == 0)
+		return 0;
+
+	const double factor = pow(10.0, digits + ceil(log10(value)));
+	if (factor < 10.0)
+		return value;
+
+	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
+}
 
 QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
 {
@@ -485,7 +509,7 @@ private: // IAnnotationController::IObserver
 
 			auto info = Table()
 				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
-				.Add(SIZE, QString("%L1").arg(dataProvider.GetBook().GetRawData(BookItem::Column::Size).toLongLong()))
+				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
 				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);
@@ -504,6 +528,24 @@ private: // IAnnotationController::IObserver
 		Add(annotation, GetPublishInfo(dataProvider));
 
 		Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
+
+		if (!dataProvider.GetExportStatistics().empty())
+		{
+			const auto toDateList = [] (const std::vector<QDateTime>& dates)
+			{
+				QStringList result;
+				result.reserve(static_cast<int>(dates.size()));
+				std::ranges::transform(dates, std::back_inserter(result), [] (const QDateTime & date)
+				{
+					return date.toString("yy.MM.dd hh:mm");
+				});
+				return result.join(", ");
+			};
+			auto exportStatistics = Table().Add(EXPORT_STATISTICS, " ");
+			for (const auto & [type, dates] : dataProvider.GetExportStatistics())
+				exportStatistics.Add(GetName(type), toDateList(dates));
+			Add(annotation, exportStatistics.ToString());
+		}
 
 		m_ui.info->setText(annotation);
 

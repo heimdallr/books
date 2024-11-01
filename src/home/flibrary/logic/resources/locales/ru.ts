@@ -140,12 +140,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="35"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="37"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="36"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="38"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
@@ -2142,42 +2142,42 @@ Try again?</source>
 <context>
     <name>UserData</name>
     <message>
-        <location filename="../../userdata/backup.cpp" line="30"/>
+        <location filename="../../userdata/backup.cpp" line="31"/>
         <source>Cannot write to &apos;%1&apos;</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="53"/>
+        <location filename="../../userdata/restore.cpp" line="54"/>
         <source>Cannot read from %1</source>
         <translation>Jib,rf xntybz bp %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="200"/>
+        <location filename="../../userdata/restore.cpp" line="203"/>
         <source>Invalid root node name, must be %1</source>
         <translation>Неправильное имя корневого узла, должно быть %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="201"/>
+        <location filename="../../userdata/restore.cpp" line="204"/>
         <source>Cannot find version node, must be %1</source>
         <translation>Не найден узел версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="202"/>
+        <location filename="../../userdata/restore.cpp" line="205"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation>Не найден атрибут узла версии %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="203"/>
+        <location filename="../../userdata/restore.cpp" line="206"/>
         <source>%1: must be integer</source>
         <translation>Номер версии %1 должен быть целым значением</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="204"/>
+        <location filename="../../userdata/restore.cpp" line="207"/>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation>Версия файла %1 должна быть больше 0 и меньше %2</translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="205"/>
+        <location filename="../../userdata/restore.cpp" line="208"/>
         <source>Cannot find user data node, must be %1</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>

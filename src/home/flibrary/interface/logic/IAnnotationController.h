@@ -6,6 +6,12 @@
 
 #include "interface/logic/IDataItem.h"
 
+class QDateTime;
+
+namespace HomeCompa::Flibrary::ExportStat {
+enum class Type;
+}
+
 namespace HomeCompa::Flibrary {
 
 class IAnnotationController  // NOLINT(cppcoreguidelines-special-member-functions)
@@ -20,6 +26,7 @@ public:
 			QByteArray bytes;
 		};
 		using Covers = std::vector<Cover>;
+		using ExportStatistics = std::vector<std::pair<ExportStat::Type, std::vector<QDateTime>>>;
 
 	public:
 		virtual ~IDataProvider() = default;
@@ -39,6 +46,7 @@ public:
 		[[nodiscard]] virtual const std::vector<QString> & GetFb2Keywords() const noexcept = 0;
 		[[nodiscard]] virtual const Covers & GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual int GetCoverIndex() const noexcept = 0;
+		[[nodiscard]] virtual size_t GetTextSize() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;
 
@@ -46,6 +54,7 @@ public:
 		[[nodiscard]] virtual const QString & GetPublishCity() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetPublishYear() const noexcept = 0;
 		[[nodiscard]] virtual const QString & GetPublishIsbn() const noexcept = 0;
+		[[nodiscard]] virtual const ExportStatistics & GetExportStatistics() const = 0;
 	};
 
 	class IObserver : public Observer

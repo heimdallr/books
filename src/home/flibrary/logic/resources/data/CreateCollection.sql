@@ -13,6 +13,15 @@ DROP TABLE IF EXISTS Groups_List_User;
 DROP TABLE IF EXISTS Groups_User;
 --@@
 
+DROP TABLE IF EXISTS Searches_User;
+--@@
+
+DROP TABLE IF EXISTS Keyword_List;
+--@@
+
+DROP TABLE IF EXISTS Keywords;
+--@@
+
 DROP TABLE IF EXISTS Settings;
 --@@
 
@@ -64,7 +73,7 @@ CREATE TABLE Authors (
 
 CREATE TABLE Books (
   BookID           INTEGER       NOT NULL,
-  LibID            VARCHAR(2048) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  LibID            VARCHAR(200)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   Title            VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   SeriesID         INTEGER,
   SeqNumber        INTEGER,
@@ -76,13 +85,7 @@ CREATE TABLE Books (
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
-  IsLocal          INTEGER       NOT NULL                           DEFAULT 0,
-  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
-  KeyWords         VARCHAR(255)          COLLATE MHL_SYSTEM_NOCASE,
-  Rate             INTEGER       NOT NULL                           DEFAULT 0,
-  Progress         INTEGER       NOT NULL                           DEFAULT 0,
-  Annotation       VARCHAR(4096)         COLLATE MHL_SYSTEM_NOCASE,
-  Review           BLOB
+  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0
 );
 --@@
 
@@ -167,5 +170,12 @@ CREATE TABLE Keywords (
 CREATE TABLE Keyword_List (
   KeywordID INTEGER NOT NULL,
   BookID    INTEGER NOT NULL
+);
+--@@
+
+CREATE TABLE Export_List_User (
+    BookID     INTEGER  NOT NULL,
+    ExportType INTEGER  NOT NULL,
+    CreatedAt  DATETIME NOT NULL
 );
 --@@

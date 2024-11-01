@@ -239,10 +239,10 @@ static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(TABLES));
 
 struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 {
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	std::shared_ptr<const DatabaseUser> databaseUser;
 	mutable Cache cache;
 
-	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+	explicit Impl(std::shared_ptr<const DatabaseUser> databaseUser)
 		: databaseUser(std::move(databaseUser))
 	{
 		if (const auto db = this->databaseUser->Database())

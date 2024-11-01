@@ -43,7 +43,7 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
 class DataProvider::Impl
 {
 public:
-	Impl(std::shared_ptr<DatabaseUser> databaseUser
+	Impl(std::shared_ptr<const DatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	)
 		: m_databaseUser(std::move(databaseUser))
@@ -179,7 +179,7 @@ private:
 	Callback m_booksRequestCallback;
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> m_databaseUser;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
 	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };

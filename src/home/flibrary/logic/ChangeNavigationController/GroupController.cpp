@@ -50,13 +50,13 @@ TR_DEF
 
 struct GroupController::Impl
 {
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	std::shared_ptr<const DatabaseUser> databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	std::shared_ptr<const IUiFactory> uiFactory;
 
-	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser
+	explicit Impl(std::shared_ptr<const DatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
-		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<const IUiFactory> uiFactory
 	)
 		: databaseUser(std::move(databaseUser))
 		, navigationQueryExecutor(std::move(navigationQueryExecutor))

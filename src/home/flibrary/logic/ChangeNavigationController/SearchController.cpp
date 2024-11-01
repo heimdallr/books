@@ -54,15 +54,15 @@ TR_DEF
 struct SearchController::Impl
 {
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
+	std::shared_ptr<const DatabaseUser> databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	std::shared_ptr<const IUiFactory> uiFactory;
 	const QString currentCollectionId;
 
 	explicit Impl(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<const DatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
-		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<const IUiFactory> uiFactory
 		, const std::shared_ptr<ICollectionController> & collectionController
 	)
 		: settings(std::move(settings))

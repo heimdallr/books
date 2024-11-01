@@ -7,13 +7,17 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/ITransaction.h"
+
 #include "Util/IExecutor.h"
 
+#include "interface/constants/ExportStat.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
 
+#include "database/DatabaseUser.h"
 #include "shared/ImageRestore.h"
 
 #include "zip.h"
@@ -156,11 +160,13 @@ public:
 		, std::shared_ptr<IProgressController> progressController
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IScriptController> scriptController
+		, std::shared_ptr<const DatabaseUser> databaseUser
 	)
 		: m_collectionController(std::move(collectionController))
 		, m_progressController(std::move(progressController))
 		, m_logicFactory(logicFactory)
 		, m_scriptController(std::move(scriptController))
+		, m_databaseUser(std::move(databaseUser))
 	{
 		m_progressController->RegisterObserver(this);
 	}
@@ -170,7 +176,7 @@ public:
 		m_progressController->UnregisterObserver(this);
 	}
 
-	void Extract(QString dstFolder, ILogicFactory::ExtractedBooks && books, Callback callback, ProcessFunctor processFunctor)
+	void Extract(QString dstFolder, ILogicFactory::ExtractedBooks && books, Callback callback, const ExportStat::Type exportStatType, ProcessFunctor processFunctor)
 	{
 		assert(!m_callback);
 		m_hasError = false;
@@ -181,10 +187,19 @@ public:
 		m_dstFolder = std::move(dstFolder);
 		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
 
+		const auto transaction = m_databaseUser->Database()->CreateTransaction();
+		const auto command = transaction->CreateCommand(ExportStat::INSERT_QUERY);
+
 		std::for_each(std::make_move_iterator(std::begin(books)), std::make_move_iterator(std::end(books)), [&] (ILogicFactory::ExtractedBook && book)
 		{
+			command->Bind(0, book.id);
+			command->Bind(1, static_cast<int>(exportStatType));
+			command->Execute();
+
 			(*m_executor)(CreateTask(std::move(book)));
 		});
+
+		transaction->Commit();
 	}
 
 	std::shared_ptr<const IScriptController> GetScriptController() const
@@ -265,6 +280,7 @@ private:
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IScriptController> m_scriptController;
+	std::shared_ptr<const DatabaseUser> m_databaseUser;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
 	bool m_hasError { false };
@@ -280,11 +296,13 @@ BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collection
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<const IScriptController> scriptController
+	, std::shared_ptr<DatabaseUser> databaseUser
 )
 	: m_impl(std::move(collectionController)
 		, std::move(progressController)
 		, logicFactory
 		, std::move(scriptController)
+		, std::move(databaseUser)
 	)
 {
 	PLOGD << "BooksExtractor created";
@@ -297,7 +315,7 @@ BooksExtractor::~BooksExtractor()
 
 void BooksExtractor::ExtractAsArchives(QString folder, const QString &/*parameter*/, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)
 {
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	m_impl->Extract(std::move(folder), std::move(books), std::move(callback), ExportStat::Type::Archive
 		, [outputFileNameTemplate = std::move(outputFileNameTemplate)] (const std::filesystem::path & archiveFolder
 			, const QString & dstFolder
 			, const ILogicFactory::ExtractedBook & book
@@ -311,7 +329,7 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString &/*paramete
 
 void BooksExtractor::ExtractAsIs(QString folder, const QString &/*parameter*/, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)
 {
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	m_impl->Extract(std::move(folder), std::move(books), std::move(callback), ExportStat::Type::AsIs
 		, [outputFileNameTemplate = std::move(outputFileNameTemplate)] (const std::filesystem::path & archiveFolder
 			, const QString & dstFolder
 			, const ILogicFactory::ExtractedBook & book
@@ -327,7 +345,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString &parameter, I
 {
 	auto scriptController = m_impl->GetScriptController();
 	auto commands = scriptController->GetCommands(parameter);
-	m_impl->Extract(std::move(folder), std::move(books), std::move(callback)
+	m_impl->Extract(std::move(folder), std::move(books), std::move(callback), ExportStat::Type::Script
 		, [scriptController = std::move(scriptController)
 			, commands = std::move(commands)
 			, tempDir = std::make_shared<QTemporaryDir>()

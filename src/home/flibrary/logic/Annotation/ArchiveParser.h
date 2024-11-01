@@ -35,6 +35,7 @@ public:
 		IDataItem::Ptr translators { NavigationItem::Create() };
 		PublishInfo publishInfo;
 		QString error;
+		size_t textSize { 0 };
 	};
 
 public:

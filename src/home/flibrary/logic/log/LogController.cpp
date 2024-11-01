@@ -17,8 +17,8 @@ using namespace HomeCompa::Flibrary;
 struct LogController::Impl
 {
 	std::unique_ptr<QAbstractItemModel> model { CreateLogModel() };
-	PropagateConstPtr<DatabaseUser, std::shared_ptr> databaseUser;
-	explicit Impl(std::shared_ptr<DatabaseUser> databaseUser)
+	std::shared_ptr<const DatabaseUser> databaseUser;
+	explicit Impl(std::shared_ptr<const DatabaseUser> databaseUser)
 		: databaseUser(std::move(databaseUser))
 	{
 	}
