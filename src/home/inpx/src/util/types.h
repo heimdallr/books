@@ -110,7 +110,7 @@ using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::eq
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
 using SettingsTableData = std::unordered_map<uint32_t, std::string>;
-using Folders = std::unordered_set<std::wstring, WStringHash, std::equal_to<>>;
+using Folders = std::set<std::wstring>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
