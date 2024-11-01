@@ -17,6 +17,7 @@
 #include "di_app.h"
 
 #include "util/ISettings.h"
+#include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
 #include "config/git_hash.h"
@@ -58,6 +59,7 @@ int main(int argc, char * argv[])
 		QApplication app(argc, argv);
 		QCoreApplication::setApplicationName(PRODUCT_ID);
 		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+		Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 		PLOGD << "QApplication created";
 		SetStyle(app);

@@ -57,6 +57,12 @@ public:
 	}
 
 private: // Util::SaxParser
+	bool OnProcessingInstruction(const QString & target, const QString & data) override
+	{
+		m_writer.WriteProcessingInstruction(target, data);
+		return true;
+	}
+
 	bool OnStartElement(const QString & name, const QString & path, const Util::XmlAttributes & attributes) override
 	{
 		using ParseElementFunction = bool(Impl::*)(const Util::XmlAttributes &);

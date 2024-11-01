@@ -47,7 +47,7 @@ public:
 
 	void WriteProcessingInstruction(const QString & target, const QString & data)
 	{
-		m_formatter << XMLFormatter::NoEscapes << gStartPI << target.toStdU16String().data();
+		m_formatter << chLF << XMLFormatter::NoEscapes << gStartPI << target.toStdU16String().data();
 		if (!data.isEmpty())
 			m_formatter << chSpace << data.toStdU16String().data();
 

@@ -2146,32 +2146,32 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="201"/>
+        <location filename="../../userdata/restore.cpp" line="203"/>
         <source>Invalid root node name, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="202"/>
+        <location filename="../../userdata/restore.cpp" line="204"/>
         <source>Cannot find version node, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="203"/>
+        <location filename="../../userdata/restore.cpp" line="205"/>
         <source>Cannot find version attribute, must be %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="204"/>
+        <location filename="../../userdata/restore.cpp" line="206"/>
         <source>%1: must be integer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="205"/>
+        <location filename="../../userdata/restore.cpp" line="207"/>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/restore.cpp" line="206"/>
+        <location filename="../../userdata/restore.cpp" line="208"/>
         <source>Cannot find user data node, must be %1</source>
         <translation></translation>
     </message>

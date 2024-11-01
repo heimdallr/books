@@ -1,11 +1,8 @@
 #include <queue>
 #include <ranges>
 
-#include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
-#include <QDir>
-#include <QFileInfo>
 #include <QImageReader>
 #include <QProcess>
 #include <QStandardPaths>
@@ -28,12 +25,16 @@
 #include "util/files.h"
 #include "util/ISettings.h"
 #include "util/localization.h"
+#include "util/LogConsoleFormatter.h"
+#include "util/xml/Initializer.h"
+#include "util/xml/Validator.h"
 
 #include "zip.h"
 
 #include "di_app.h"
 #include "Fb2Parser.h"
-#include "ImageSettingsWidget.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "ImageSettingsWidget.h" // for creating MainWindow via Hypodermic
 #include "MainWindow.h"
 #include "settings.h"
 
@@ -138,6 +139,13 @@ std::pair<QImage, QString> ToImage(QByteArray & body)
 	return result;
 }
 
+QString Validate(const Util::XmlValidator & validator, QByteArray & body)
+{
+	QBuffer buffer(&body);
+	buffer.open(QIODevice::ReadOnly);
+	return validator.Validate(buffer);
+}
+
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -222,12 +230,12 @@ private:
 		const QFileInfo fileInfo(inputFilePath);
 		const auto outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
-		const auto bodyOutput = ParseFile(inputFilePath, input);
+		auto bodyOutput = ParseFile(inputFilePath, input);
 		if (bodyOutput.isEmpty())
-		{
-			PLOGW << QString("Cannot parse %1").arg(outputFilePath);
-			return true;
-		}
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
+
+		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, errorText, "fb2", false), true;
 
 		if (!m_settings.saveFb2)
 			return false;
@@ -414,6 +422,8 @@ private:
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
+	const Util::XmlValidator m_validator;
+
 	std::thread m_thread;
 };
 
@@ -473,6 +483,14 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
+		ResetZip(m_zipCovers, m_zipCoversGuard);
+		ResetZip(m_zipImages, m_zipImagesGuard);
+	}
+
+	static void ResetZip(std::unique_ptr<Zip> & zip, std::mutex & zipGuard)
+	{
+		std::scoped_lock lock(zipGuard);
+		zip.reset();
 	}
 
 private:
@@ -486,8 +504,8 @@ private:
 	std::mutex m_zipCoversGuard;
 	std::mutex m_zipImagesGuard;
 
-	const std::unique_ptr<Zip> m_zipCovers;
-	const std::unique_ptr<Zip> m_zipImages;
+	std::unique_ptr<Zip> m_zipCovers;
+	std::unique_ptr<Zip> m_zipImages;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -541,9 +559,12 @@ bool SevenZipIt(const Settings & settings)
 bool ZipIt(const Settings & settings)
 {
 	bool result = false;
-	Zip zip(QString("%1.7z").arg(settings.dstDir.path()), Zip::Format::Zip);
-	for (const auto & file : settings.dstDir.entryList({ "*.fb2" }))
+	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), Zip::Format::Zip);
+	const auto files = settings.dstDir.entryList({ "*.fb2" });
+	for (qsizetype i = 0; const auto & file : files)
 	{
+		++i;
+		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(i).arg(files.size()).arg(i * 100 / files.size());
 		QFile input(settings.dstDir.filePath(file));
 		if (!input.open(QIODevice::ReadOnly))
 		{
@@ -582,50 +603,52 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 
 	const Zip zip(archive);
 	auto fileList = zip.GetFileNameList();
-	auto fileListCount = fileList.size();
+	const auto fileListCount = fileList.size();
 	const int currentFileCount = fileCount;
 	PLOGI << QString("%1 processing, total files: %2").arg(fileInfo.fileName()).arg(fileListCount);
 
-	const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileList.size()));
-
-	std::condition_variable queueCondition;
-	std::mutex queueGuard;
-	FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
-
-	while (!fileList.isEmpty())
+	auto hasError = [&]
 	{
-		if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
+		const auto maxThreadCount = std::min(std::max(settings.maxThreadCount, 1), static_cast<int>(fileListCount));
+
+		std::condition_variable queueCondition;
+		std::mutex queueGuard;
+		FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
+
+		while (!fileList.isEmpty())
 		{
-			auto & input = zip.Read(fileList.front());
-			auto body = input.readAll();
-			if (!body.isEmpty())
+			if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
 			{
-				fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
+				auto & input = zip.Read(fileList.front());
+				auto body = input.readAll();
+				if (!body.isEmpty())
+				{
+					fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
+				}
+				else
+				{
+					PLOGW << fileList.front() << " is empty";
+					++fileCount;
+				}
+				fileList.pop_front();
 			}
 			else
 			{
-				PLOGW << fileList.front() << " is empty";
-				++fileCount;
+				std::unique_lock lockStart(queueGuard);
+				queueCondition.wait(lockStart, [&] ()
+				{
+					return fileProcessor.GetQueueSize() < maxThreadCount * 2;
+				});
 			}
-			fileList.pop_front();
 		}
-		else
-		{
-			std::unique_lock lockStart(queueGuard);
-			queueCondition.wait(lockStart, [&] ()
-			{
-				return fileProcessor.GetQueueSize() < maxThreadCount * 2;
-			});
-		}
-	}
 
-	for (int i = 0; i < maxThreadCount; ++i)
-		fileProcessor.Enqueue({}, {});
+		for (int i = 0; i < maxThreadCount; ++i)
+			fileProcessor.Enqueue({}, {});
 
-	fileProcessor.Wait();
+		fileProcessor.Wait();
+		return fileProcessor.HasError();
+	}();
 
-	bool hasError = false;
-	hasError = fileProcessor.HasError() || hasError;
 	hasError = ArchiveFb2(settings) || hasError;
 
 	QDir().rmdir(settings.dstDir.path());
@@ -818,50 +841,29 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
-	if (parser.isSet(GRAYSCALE_OPTION_NAME))
-		settings.cover.grayscale = settings.image.grayscale = true;
+	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
 	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
 		settings.cover.grayscale = true;
 	if (parser.isSet(IMAGE_GRAYSCALE_OPTION_NAME))
 		settings.image.grayscale = true;
 
-	if (parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME))
-		settings.archiveFb2 = false;
-	if (parser.isSet(NO_FB2_OPTION_NAME))
-		settings.archiveFb2 = settings.saveFb2 = false;
-	if (parser.isSet(NO_IMAGES_OPTION_NAME))
-		settings.cover.save = settings.image.save = false;
-	else if (parser.isSet(COVERS_ONLY_OPTION_NAME))
-		settings.image.save = false;
+	settings.saveFb2 = !parser.isSet(NO_FB2_OPTION_NAME);
+	settings.archiveFb2 = settings.saveFb2 && !parser.isSet(NO_ARCHIVE_FB2_OPTION_NAME);
+
+	settings.cover.save = settings.image.save = !parser.isSet(NO_IMAGES_OPTION_NAME);
+	settings.image.save = settings.image.save && !parser.isSet(COVERS_ONLY_OPTION_NAME);
 
 	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [] (const auto & fileName) { return QDir::fromNativeSeparators(fileName); });
 
 	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
 }
 
-class LogConsoleFormatter
-{
-public:
-	static plog::util::nstring format(const plog::Record & record)
-	{
-		tm t {};
-		plog::util::localtime_s(&t, &record.getTime().time);
-
-		plog::util::nostringstream ss;
-		ss << severityToString(record.getSeverity())[0] << PLOG_NSTR(" ");
-		ss << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_hour << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_min << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_sec << PLOG_NSTR(".") << std::setfill(PLOG_NSTR('0')) << std::setw(3) << static_cast<int> (record.getTime().millitm) << PLOG_NSTR(" ");
-		ss << PLOG_NSTR("[") << std::hex << std::setw(4) << std::setfill('0') << std::right << (record.getTid() & 0xFFFF) << PLOG_NSTR("] ");
-		ss << record.getMessage() << PLOG_NSTR("\n");
-
-		return ss.str();
-	}
-};
-
 bool run(int argc, char * argv[])
 {
 	const QApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 	CommandLineSettings settings;
 
@@ -901,16 +903,16 @@ bool run(int argc, char * argv[])
 int main(const int argc, char * argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
-	plog::ConsoleAppender<LogConsoleFormatter> consoleAppender;
+	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try
 	{
 		if (run(argc, argv))
-			PLOGI << QString("%1 finished with errors").arg(APP_ID);
+			PLOGW << QString("%1 finished with errors").arg(APP_ID);
 		else
-			PLOGW << QString("%1 successfully finished").arg(APP_ID);
+			PLOGI << QString("%1 successfully finished").arg(APP_ID);
 		return 0;
 	}
 	catch (const std::exception & ex)

@@ -4,13 +4,13 @@
 #include <xercesc/sax/HandlerBase.hpp>
 #include <xercesc/sax/InputSource.hpp>
 #include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 #include <QIODevice>
 #include <QStringList>
 
 #include "fnd/ScopedCall.h"
 
+#include "Initializer.h"
 #include "XmlAttributes.h"
 
 using namespace HomeCompa;
@@ -18,24 +18,6 @@ using namespace Util;
 namespace xercesc = xercesc_3_2;
 
 namespace {
-
-class XMLPlatformInitializer
-{
-	NON_COPY_MOVABLE(XMLPlatformInitializer)
-
-public:
-	XMLPlatformInitializer()
-	{
-		xercesc::XMLPlatformUtils::Initialize();
-	}
-
-	~XMLPlatformInitializer()
-	{
-		xercesc::XMLPlatformUtils::Terminate();
-	}
-};
-
-[[maybe_unused]] XMLPlatformInitializer INITIALIZER;
 
 class XmlAttributesImpl final : public XmlAttributes
 {
@@ -187,10 +169,11 @@ public:
 private: // xercesc::DocumentHandler
 	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
 	{
+		ProcessCharacters();
 		if (m_inputSource.IsStopped())
 			return;
 
-		if (m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
+		if (!m_parser.OnProcessingInstruction(QString::fromStdU16String(target), QString::fromStdU16String(data)))
 			m_inputSource.SetStopped(true);
 	}
 
@@ -307,8 +290,9 @@ public:
 	}
 
 private:
-	SaxParser & m_self;
+	XMLPlatformInitializer m_initializer;
 	xercesc::SAXParser m_saxParser;
+	SaxParser & m_self;
 	InputSource m_inputSource;
 };
 
