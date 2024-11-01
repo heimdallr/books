@@ -25,6 +25,7 @@
 #include "util/files.h"
 #include "util/ISettings.h"
 #include "util/localization.h"
+#include "util/LogConsoleFormatter.h"
 #include "util/xml/Initializer.h"
 #include "util/xml/Validator.h"
 
@@ -857,24 +858,6 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
 }
 
-class LogConsoleFormatter
-{
-public:
-	[[maybe_unused]] static plog::util::nstring format(const plog::Record & record)
-	{
-		tm t {};
-		plog::util::localtime_s(&t, &record.getTime().time);
-
-		plog::util::nostringstream ss;
-		ss << severityToString(record.getSeverity())[0] << PLOG_NSTR(" ");
-		ss << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_hour << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_min << PLOG_NSTR(":") << std::setfill(PLOG_NSTR('0')) << std::setw(2) << t.tm_sec << PLOG_NSTR(".") << std::setfill(PLOG_NSTR('0')) << std::setw(3) << static_cast<int> (record.getTime().millitm) << PLOG_NSTR(" ");
-		ss << PLOG_NSTR("[") << std::hex << std::setw(4) << std::setfill('0') << std::right << (record.getTid() & 0xFFFF) << PLOG_NSTR("] ");
-		ss << record.getMessage() << PLOG_NSTR("\n");
-
-		return ss.str();
-	}
-};
-
 bool run(int argc, char * argv[])
 {
 	const QApplication app(argc, argv);
@@ -920,16 +903,16 @@ bool run(int argc, char * argv[])
 int main(const int argc, char * argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
-	plog::ConsoleAppender<LogConsoleFormatter> consoleAppender;
+	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try
 	{
 		if (run(argc, argv))
-			PLOGI << QString("%1 finished with errors").arg(APP_ID);
+			PLOGW << QString("%1 finished with errors").arg(APP_ID);
 		else
-			PLOGW << QString("%1 successfully finished").arg(APP_ID);
+			PLOGI << QString("%1 successfully finished").arg(APP_ID);
 		return 0;
 	}
 	catch (const std::exception & ex)
