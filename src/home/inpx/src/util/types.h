@@ -74,6 +74,7 @@ struct Genre
 
 	size_t childrenCount{ 0 };
 	bool newGenre { true };
+	bool dateGenre { false };
 
 	explicit Genre(const std::wstring_view dbCode_)
 		: dbCode(dbCode_)

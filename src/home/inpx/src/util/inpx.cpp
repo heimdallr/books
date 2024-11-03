@@ -283,6 +283,7 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 		auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
 		auto & parentGenre = genres[parentIt->second];
 		genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
+		genre.dateGenre = true;
 		return itGenre;
 	};
 
@@ -841,9 +842,10 @@ public:
 		(*m_executor)({ "Create collection", [&]
 		{
 			ProcessImpl();
-			return [&] (size_t)
+			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+			return [this, genres] (size_t)
 			{
-				m_callback(true);
+				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
 			};
 		} });
 	}
@@ -852,10 +854,11 @@ public:
 	{
 		(*m_executor)({ "Update collection", [&]
 		{
-			const auto updatesFound = UpdateDatabaseImpl();
-			return [this, updatesFound] (size_t)
+			const auto foldersCount = UpdateDatabaseImpl();
+			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+			return [this, foldersCount, genres] (size_t)
 			{
-				m_callback(updatesFound);
+				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
 			};
 		} });
 	}
@@ -937,7 +940,7 @@ private:
 		m_unknownGenreId = it->second;
 	}
 
-	bool UpdateDatabaseImpl()
+	size_t UpdateDatabaseImpl()
 	{
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
@@ -963,7 +966,7 @@ private:
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		return !newInpxFolders.empty();
+		return newInpxFolders.size();
 	}
 
 	void Parse(SettingsTableData && settingsTableData)
