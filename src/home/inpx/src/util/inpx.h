@@ -19,12 +19,22 @@ enum class CreateCollectionMode
 	ScanUnIndexedFolders = 1 << 1,
 };
 
+struct UpdateResult
+{
+	size_t folders;
+	size_t authors;
+	size_t series;
+	size_t books;
+	size_t keywords;
+	size_t genres;
+};
+
 class INPXLIB_EXPORT Parser
 {
 	NON_COPY_MOVABLE(Parser)
 
 public:
-	using Callback = std::function<void(bool)>;
+	using Callback = std::function<void(const UpdateResult &)>;
 	using IniMap = std::map<std::wstring, std::filesystem::path>;
 
 public:

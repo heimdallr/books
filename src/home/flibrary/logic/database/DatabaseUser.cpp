@@ -30,8 +30,27 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[]
 	{ BookQueryFields::Lang, BookItem::Column::Lang },
 };
 
-}
+class ApplicationCursorWrapper
+{
+public:
+	void Set(const bool value)
+	{
+		if (!m_counter)
+			QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
+		m_counter += value ? 1 : -1;
+
+		if (!m_counter)
+			QGuiApplication::restoreOverrideCursor();
+	}
+
+private:
+	int m_counter { 0 };
+};
+
+ApplicationCursorWrapper APPLICATION_CURSOR_WRAPPER;
+
+}
 
 struct DatabaseUser::Impl
 {
@@ -50,8 +69,8 @@ struct DatabaseUser::Impl
 	{
 		return logicFactory.GetExecutor({1
 			, [] { }
-			, [] { QGuiApplication::setOverrideCursor(Qt::BusyCursor); }
-			, [] { QGuiApplication::restoreOverrideCursor(); }
+			, [] { APPLICATION_CURSOR_WRAPPER.Set(true); }
+			, [] { APPLICATION_CURSOR_WRAPPER.Set(false); }
 			, [] { }
 		});
 	}

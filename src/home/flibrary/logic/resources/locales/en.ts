@@ -153,29 +153,65 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="30"/>
+        <location filename="../../Collection/CollectionController.cpp" line="32"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="31"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="34"/>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <location filename="../../Collection/CollectionController.cpp" line="35"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="34"/>
+        <location filename="../../Collection/CollectionController.cpp" line="36"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="37"/>
+        <source>created</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="38"/>
+        <source>updated</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="39"/>
+        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp" line="40"/>
+        <source>&quot;%1&quot; collection %2. Added:
+&lt;table&gt;
+&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Authors: &lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Series:  &lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Books:   &lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+%8
+&lt;/table&gt;</source>
+        <translation>&quot;%1&quot; collection %2. Added:
+&lt;table&gt;
+&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Authors:&lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Series:&lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Books:&lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+%8
+&lt;/table&gt;</translation>
     </message>
 </context>
 <context>
