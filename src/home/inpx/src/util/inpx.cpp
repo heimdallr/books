@@ -485,6 +485,14 @@ void ExecuteScript(const std::wstring & action, const Path & dbFileName, const P
 	}
 }
 
+void Analyze(const Path & dbFileName)
+{
+	DatabaseWrapper db(dbFileName);
+	PLOGI << "ANALYZE";
+	[[maybe_unused]] const auto rc = sqlite3pp::command(db, "ANALYZE").execute();
+	assert(rc == 0);
+}
+
 template<typename Container, typename Functor>
 size_t StoreRange(const Path & dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor && f)
 {
@@ -965,6 +973,8 @@ private:
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
+
+		Analyze(dbFileName);
 
 		return newInpxFolders.size();
 	}
