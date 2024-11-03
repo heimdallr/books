@@ -120,7 +120,7 @@ public:
 			if (!databaseChecker->IsDatabaseValid())
 			{
 				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection()->database));
-				return QCoreApplication::exit(1);
+				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
 
 			auto & collectionUpdateCheckerRef = *collectionUpdateChecker;
