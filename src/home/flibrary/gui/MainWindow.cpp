@@ -108,26 +108,23 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
-		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]
+		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
 			{
 				if (!m_ui.actionShowLog->isChecked())
 					m_ui.actionShowLog->trigger();
-				m_collectionController->AddCollection(commandLine->GetInpx());
+				return m_collectionController->AddCollection(commandLine->GetInpx());
 			}
-			else if (!databaseChecker->IsDatabaseValid())
+
+			if (!databaseChecker->IsDatabaseValid())
 			{
 				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection()->database));
-				return QCoreApplication::exit(1);
+				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
-			else
-			{
-				collectionUpdateChecker->CheckForUpdate([=] (bool) mutable
-				{
-					collectionUpdateChecker.reset();
-				});
-			}
+
+			auto & collectionUpdateCheckerRef = *collectionUpdateChecker;
+			collectionUpdateCheckerRef.CheckForUpdate([collectionUpdateChecker = std::move(collectionUpdateChecker)] (bool) mutable { collectionUpdateChecker.reset(); });
 		});
 
 		CheckForUpdates(false);

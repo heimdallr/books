@@ -8,6 +8,7 @@
 #include "fnd/observable.h"
 
 #include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
@@ -243,10 +244,13 @@ private:
 		assert(collection);
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto [tmpDir, ini] = GetIniMap(collection->database, collection->folder, true);
-		auto callback = [&, parser, tmpDir = std::move(tmpDir)] (bool) mutable
+		auto callback = [&, parser, tmpDir = std::move(tmpDir)] (const bool updated) mutable
 		{
 			Perform(&IObserver::OnNewCollectionCreating, false);
 			parser.reset();
+
+			if (updated)
+				QCoreApplication::exit(Constant::RESTART_APP);
 		};
 		Perform(&IObserver::OnNewCollectionCreating, true);
 		parser->UpdateCollection(GetIniMap(collection->database, collection->folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
