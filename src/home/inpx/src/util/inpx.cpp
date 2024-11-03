@@ -852,10 +852,10 @@ public:
 	{
 		(*m_executor)({ "Update collection", [&]
 		{
-			UpdateDatabaseImpl();
-			return [&] (size_t)
+			const auto updatesFound = UpdateDatabaseImpl();
+			return [this, updatesFound] (size_t)
 			{
-				m_callback(true);
+				m_callback(updatesFound);
 			};
 		} });
 	}
@@ -937,7 +937,7 @@ private:
 		m_unknownGenreId = it->second;
 	}
 
-	void UpdateDatabaseImpl()
+	bool UpdateDatabaseImpl()
 	{
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
@@ -948,7 +948,8 @@ private:
 
 		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const Zip zip(QString::fromStdWString(inpxFileName));
-		ParseInpxFiles(inpxFileName, &zip, GetNewInpxFolders(m_ini, m_data));
+		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
+		ParseInpxFiles(inpxFileName, &zip, newInpxFolders);
 
 		const auto filter = [] (Dictionary & dst, const Dictionary & src)
 		{
@@ -961,6 +962,8 @@ private:
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
+
+		return !newInpxFolders.empty();
 	}
 
 	void Parse(SettingsTableData && settingsTableData)
