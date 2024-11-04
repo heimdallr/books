@@ -204,7 +204,7 @@
 &lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
 &lt;/table&gt;</source>
-        <translation type="unfinished">Коллекция &quot;%1&quot; %2. Добавлено:
+        <translation>Коллекция &quot;%1&quot; %2. Добавлено:
 &lt;table&gt;
 &lt;tr&gt;&lt;td&gt;Архивы:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;Авторы:&lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
