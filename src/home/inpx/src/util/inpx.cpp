@@ -10,6 +10,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QRegularExpression>
 
 #include <plog/Log.h>
 
@@ -22,6 +23,7 @@
 
 #include "inpx.h"
 
+#include "fnd/IsOneOf.h"
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
 
@@ -237,8 +239,23 @@ std::set<size_t> ParseItem(const std::wstring_view data
 	while (it != std::cend(data))
 	{
 		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
-		result.emplace(Add<size_t>(value, container, getId, find));
+			result.emplace(Add<size_t>(value, container, getId, find));
 	}
+	return result;
+}
+
+std::set<size_t> ParseItem(const std::wstring_view data
+	, Dictionary & container
+	, const Splitter & splitter
+	, const GetIdFunctor & getId = &GetIdDefault
+	, const FindFunctor & find = &FindDefault
+)
+{
+	std::set<size_t> result;
+	std::ranges::transform(splitter(data), std::inserter(result, result.end()), [&] (const auto & value)
+	{
+		return Add<size_t>(value, container, getId, find);
+	});
 	return result;
 }
 
@@ -337,7 +354,6 @@ BookBuf ParseBook(std::wstring & line)
 		.lang = Next(it, end, FIELDS_SEPARATOR),
 		.rate = Next(it, end, FIELDS_SEPARATOR),
 	};
-	std::transform(it, end, it, std::towlower);
 	buf.keywords = Next(it, end, FIELDS_SEPARATOR);
 	return buf;
 }
@@ -1044,15 +1060,6 @@ private:
 			PLOGI << m_n << " rows parsed";
 		}
 
-		Dictionary keywords;
-		std::ranges::transform(m_data.keywords, std::inserter(keywords, keywords.end()), [] (const auto& item)
-		{
-			std::wstring value = item.first;
-			std::ranges::transform(value | std::views::take(1), std::begin(value), std::towupper);
-			return std::make_pair(value, item.second);
-		});
-		m_data.keywords = std::move(keywords);
-
 		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 		{
 			for (auto const & entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
@@ -1223,9 +1230,61 @@ private:
 
 		if (!buf.keywords.empty())
 		{
-			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, L',', [] (const std::wstring_view item)
+			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, [] (const std::wstring_view item)
 			{
-				return !item.starts_with(L"docid:");
+				QStringList keywordsList;
+				QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size())).replace("--", ",").replace(" - ", ",").replace(" & ", " and ").replace("_", " ").toLower();
+				const auto remover = QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]");
+				keywordsStr.remove(QRegularExpression(remover));
+				auto list = keywordsStr.split(QRegularExpression(R"([,;#/\(\)\[\]])"), Qt::SkipEmptyParts);
+
+				for (auto & keyword : list)
+				{
+					keyword = keyword.simplified();
+					if (!keyword.isEmpty())
+						keyword[0] = keyword[0].toUpper();
+				}
+
+				if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.startsWith("Docid:") || str.length() < 3; }); begin != end)
+					list.erase(begin, end);
+
+				for (auto& keyword : list)
+				{
+					if (keyword.length() > 6 && keyword[1] == '.' && keyword[2] == ' ' && keyword[4] == '.' && keyword[5] == ' ')
+					{
+						keyword[1] = keyword[4] = '#';
+						keyword[3] = keyword[3].toUpper();
+						keyword[6] = keyword[6].toUpper();
+					}
+					else if (keyword.length() > 5 && keyword[1] == '.' && keyword[3] == '.' && keyword[4] == ' ')
+					{
+						keyword[1] = keyword[3] = '#';
+						keyword[2] = keyword[2].toUpper();
+						keyword[5] = keyword[5].toUpper();
+					}
+					keywordsList << keyword.split(QRegularExpression(R"([:\.])"), Qt::SkipEmptyParts);
+				}
+				for (auto & keyword : keywordsList)
+				{
+					if (keyword.length() > 6 && keyword[1] == '#' && keyword[2] == ' ' && keyword[4] == '#' && keyword[5] == ' ')
+						keyword[1] = keyword[4] = '.';
+					else if (keyword.length() > 5 && keyword[1] == '#' && keyword[3] == '#' && keyword[4] == ' ')
+						keyword[1] = keyword[3] = '.';
+					if (const auto it = std::ranges::find_if(keyword, [] (const QChar & c) { return c.isLetterOrNumber() || IsOneOf(c, '+'); }); it != keyword.begin())
+						keyword = keyword.last(std::distance(it, keyword.end()));
+					keyword = keyword.simplified();
+					if (!keyword.isEmpty())
+						keyword[0] = keyword[0].toUpper();
+				}
+				if (const auto [begin, end] = std::ranges::remove_if(keywordsList, [] (const auto & str) { return str.length() < 3; }); begin != end)
+					keywordsList.erase(begin, end);
+
+				std::vector<std::wstring> result;
+				std::ranges::transform(keywordsList, std::back_inserter(result), [] (const QString & str)
+				{
+					return str.toStdWString();
+				});
+				return result;
 			}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword) { return std::make_pair(id, idKeyword); });
 		}
 
