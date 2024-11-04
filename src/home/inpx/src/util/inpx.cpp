@@ -1,6 +1,5 @@
 #pragma warning(push, 0)
 
-#include <cwctype>
 #include <filesystem>
 #include <fstream>
 #include <future>
@@ -969,6 +968,8 @@ private:
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
 
+		std::ranges::transform(oldData.keywords, std::inserter(m_uniqueKeywords, m_uniqueKeywords.end()), [] (const auto & item) { return std::pair(QString::fromStdWString(item.first).toLower(), item.first); });
+
 		m_data = oldData;
 		m_genresIndex = oldGenresIndex;
 		SetUnknownGenreId();
@@ -1046,7 +1047,7 @@ private:
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
-		[[maybe_unused]] const auto * r = std::setlocale(LC_ALL, "en_US.utf8");
+		[[maybe_unused]] const auto * r = std::setlocale(LC_ALL, "en_US.utf8");  // NOLINT(concurrency-mt-unsafe)
 
 		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
@@ -1230,62 +1231,53 @@ private:
 
 		if (!buf.keywords.empty())
 		{
-			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, [] (const std::wstring_view item)
-			{
-				QStringList keywordsList;
-				QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size())).replace("--", ",").replace(" - ", ",").replace(" & ", " and ").replace("_", " ").toLower();
-				const auto remover = QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]");
-				keywordsStr.remove(QRegularExpression(remover));
-				auto list = keywordsStr.split(QRegularExpression(R"([,;#/\(\)\[\]])"), Qt::SkipEmptyParts);
-
-				for (auto & keyword : list)
+			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords
+				, [this] (const std::wstring_view item)
 				{
-					keyword = keyword.simplified();
-					if (!keyword.isEmpty())
-						keyword[0] = keyword[0].toUpper();
-				}
-
-				if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.startsWith("Docid:") || str.length() < 3; }); begin != end)
-					list.erase(begin, end);
-
-				for (auto& keyword : list)
-				{
-					if (keyword.length() > 6 && keyword[1] == '.' && keyword[2] == ' ' && keyword[4] == '.' && keyword[5] == ' ')
+					QStringList keywordsList;
+					QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size())).replace("--", ",").replace(" - ", ",").replace(" & ", " and ").replace("_", " ");
+					const auto remover = QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]");
+					keywordsStr.remove(QRegularExpression(remover));
+					auto list = keywordsStr.split(QRegularExpression(R"([,;#/\\\.\(\)\[\]])"), Qt::SkipEmptyParts);
+	
+					std::ranges::transform(list, list.begin(), [] (const auto & str) { return str.simplified(); });
+	
+					if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.length() < 3 || str.startsWith("DocId:"); }); begin != end)
+						list.erase(begin, end);
+	
+					for (auto& keyword : list)
+						keywordsList << keyword.split('.', Qt::SkipEmptyParts);
+	
+					for (auto & keyword : keywordsList)
 					{
-						keyword[1] = keyword[4] = '#';
-						keyword[3] = keyword[3].toUpper();
-						keyword[6] = keyword[6].toUpper();
+						if (const auto it = std::ranges::find_if(keyword, [] (const QChar & c) { return c.isLetterOrNumber() || IsOneOf(c, '+'); }); it != keyword.begin())
+							keyword = keyword.last(std::distance(it, keyword.end()));
+						keyword = keyword.simplified();
+						if (!keyword.isEmpty())
+							keyword[0] = keyword[0].toUpper();
 					}
-					else if (keyword.length() > 5 && keyword[1] == '.' && keyword[3] == '.' && keyword[4] == ' ')
-					{
-						keyword[1] = keyword[3] = '#';
-						keyword[2] = keyword[2].toUpper();
-						keyword[5] = keyword[5].toUpper();
-					}
-					keywordsList << keyword.split(QRegularExpression(R"([:\.])"), Qt::SkipEmptyParts);
+					if (const auto [begin, end] = std::ranges::remove_if(keywordsList, [this] (const auto & str) { return str.length() < 3; }); begin != end)
+						keywordsList.erase(begin, end);
+	
+					std::vector<std::wstring> result;
+					result.reserve(keywordsList.size());
+					std::ranges::transform(keywordsList, std::back_inserter(result), [](const auto & str){ return str.toStdWString(); });
+					return result;
 				}
-				for (auto & keyword : keywordsList)
+				, &GetIdDefault
+				, [this](const Dictionary & container, const std::wstring_view value)
 				{
-					if (keyword.length() > 6 && keyword[1] == '#' && keyword[2] == ' ' && keyword[4] == '#' && keyword[5] == ' ')
-						keyword[1] = keyword[4] = '.';
-					else if (keyword.length() > 5 && keyword[1] == '#' && keyword[3] == '#' && keyword[4] == ' ')
-						keyword[1] = keyword[3] = '.';
-					if (const auto it = std::ranges::find_if(keyword, [] (const QChar & c) { return c.isLetterOrNumber() || IsOneOf(c, '+'); }); it != keyword.begin())
-						keyword = keyword.last(std::distance(it, keyword.end()));
-					keyword = keyword.simplified();
-					if (!keyword.isEmpty())
-						keyword[0] = keyword[0].toUpper();
-				}
-				if (const auto [begin, end] = std::ranges::remove_if(keywordsList, [] (const auto & str) { return str.length() < 3; }); begin != end)
-					keywordsList.erase(begin, end);
+					auto key = QString::fromWCharArray(value.data(), static_cast<int>(value.size())).toLower();
+					if (const auto it = m_uniqueKeywords.find(key); it != m_uniqueKeywords.end())
+						return container.find(it->second);
 
-				std::vector<std::wstring> result;
-				std::ranges::transform(keywordsList, std::back_inserter(result), [] (const QString & str)
+					m_uniqueKeywords.emplace(std::move(key), value);
+					return container.end();
+				}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
 				{
-					return str.toStdWString();
-				});
-				return result;
-			}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword) { return std::make_pair(id, idKeyword); });
+					return std::make_pair(id, idKeyword);
+				}
+			);
 		}
 
 		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false));
@@ -1323,6 +1315,7 @@ private:
 	std::atomic_uint64_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
+	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 
 	std::vector<QString> m_errors;
 
