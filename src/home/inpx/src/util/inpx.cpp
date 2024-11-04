@@ -1235,7 +1235,14 @@ private:
 				, [this] (const std::wstring_view item)
 				{
 					QStringList keywordsList;
-					QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size())).replace("--", ",").replace(" - ", ",").replace(" & ", " and ").replace("_", " ");
+					QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size()))
+						.replace("--", ",")
+						.replace(" - ", ",")
+						.replace(" & ", " and ")
+						.replace(QChar(L'\x0401'), QChar(L'\x0415'))
+						.replace(QChar(L'\x0451'), QChar(L'\x0435'))
+						.replace("_", " ")
+					;
 					keywordsStr.remove(QRegularExpression(QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]")));
 					auto list = keywordsStr.split(QRegularExpression(R"([,;#/\\\.\(\)\[\]])"), Qt::SkipEmptyParts);
 					std::ranges::transform(list, list.begin(), [] (const auto & str) { return str.simplified(); });
