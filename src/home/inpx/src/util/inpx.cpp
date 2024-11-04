@@ -1236,17 +1236,16 @@ private:
 				{
 					QStringList keywordsList;
 					QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size())).replace("--", ",").replace(" - ", ",").replace(" & ", " and ").replace("_", " ");
-					const auto remover = QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]");
-					keywordsStr.remove(QRegularExpression(remover));
+					keywordsStr.remove(QRegularExpression(QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]")));
 					auto list = keywordsStr.split(QRegularExpression(R"([,;#/\\\.\(\)\[\]])"), Qt::SkipEmptyParts);
-	
 					std::ranges::transform(list, list.begin(), [] (const auto & str) { return str.simplified(); });
-	
-					if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.length() < 3 || str.startsWith("DocId:"); }); begin != end)
+
+					if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.length() < 3 || str.startsWith("DocId:", Qt::CaseInsensitive); }); begin != end)
 						list.erase(begin, end);
-	
+					assert(std::ranges::none_of(list, [] (const auto & str) { return str.startsWith("DocId:", Qt::CaseInsensitive); }));
+
 					for (auto& keyword : list)
-						keywordsList << keyword.split('.', Qt::SkipEmptyParts);
+						keywordsList << keyword.split(':', Qt::SkipEmptyParts);
 	
 					for (auto & keyword : keywordsList)
 					{
