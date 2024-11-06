@@ -90,6 +90,9 @@ const char * IScriptController::GetMacro(const Macro macro)
 
 void IScriptController::SetMacroActions(QLineEdit * lineEdit)
 {
+	if (!lineEdit->actions().isEmpty())
+		return;
+
 	for (const auto & item : s_commandMacros | std::views::values)
 	{
 		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
