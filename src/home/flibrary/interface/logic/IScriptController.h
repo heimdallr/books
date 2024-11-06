@@ -52,11 +52,12 @@ public:
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)             \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)              \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)         \
-		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)                  \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)               \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)               \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)            \
-		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)             \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                   \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)                  
 
 	enum class Macro
 	{
@@ -139,14 +140,16 @@ public:
 		{ Macro::FileName, QT_TRANSLATE_NOOP("ScriptController", "%file_name%") },
 		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
 		{ Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
-		{ Macro::Uid, QT_TRANSLATE_NOOP("ScriptController", "%uid%") },
 		{ Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
 		{ Macro::Series, QT_TRANSLATE_NOOP("ScriptController", "%series%") },
 		{ Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController", "%seq_number%") },
 		{ Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController", "%file_size%") },
+		{ Macro::Id, QT_TRANSLATE_NOOP("ScriptController", "%db_id%") },
+		{ Macro::Uid, QT_TRANSLATE_NOOP("ScriptController", "%uid%") },
 	};
+
 public:
-	FLINT_EXPORT static bool HasMacro(const QString& str, Macro macro);
+	FLINT_EXPORT static bool HasMacro(const QString & str, Macro macro);
 	FLINT_EXPORT static QString & SetMacro(QString & str, Macro macro, const QString & value);
 	FLINT_EXPORT static const char * GetMacro(Macro macro);
 	FLINT_EXPORT static void SetMacroActions(QLineEdit * widget);

@@ -90,6 +90,9 @@ const char * IScriptController::GetMacro(const Macro macro)
 
 void IScriptController::SetMacroActions(QLineEdit * lineEdit)
 {
+	if (!lineEdit->actions().isEmpty())
+		return;
+
 	for (const auto & item : s_commandMacros | std::views::values)
 	{
 		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
@@ -158,6 +161,7 @@ void ILogicFactory::FillScriptTemplate(QString & scriptTemplate, const Extracted
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileName, RemoveIllegalCharacters(fileInfo.fileName()));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::BaseFileName, RemoveIllegalCharacters(fileInfo.completeBaseName()));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Uid, QUuid::createUuid().toString(QUuid::WithoutBraces));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Id, QString::number(book.id));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Author, RemoveIllegalCharacters(book.author));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, RemoveIllegalCharacters(book.series));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {});
