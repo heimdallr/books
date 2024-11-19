@@ -278,6 +278,11 @@
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../UiFactory.cpp" line="38"/>
+        <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Error</name>
