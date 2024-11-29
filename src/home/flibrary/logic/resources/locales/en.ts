@@ -153,47 +153,47 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <location filename="../../Collection/CollectionController.cpp" line="34"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="34"/>
+        <location filename="../../Collection/CollectionController.cpp" line="35"/>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="35"/>
+        <location filename="../../Collection/CollectionController.cpp" line="36"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="36"/>
+        <location filename="../../Collection/CollectionController.cpp" line="37"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="37"/>
+        <location filename="../../Collection/CollectionController.cpp" line="38"/>
         <source>created</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="38"/>
+        <location filename="../../Collection/CollectionController.cpp" line="39"/>
         <source>updated</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="39"/>
+        <location filename="../../Collection/CollectionController.cpp" line="40"/>
         <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="40"/>
+        <location filename="../../Collection/CollectionController.cpp" line="41"/>
         <source>&quot;%1&quot; collection %2. Added:
 &lt;table&gt;
 &lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
@@ -2109,62 +2109,62 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>Download</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>Visit download page</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Skip this version</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
         <source>%1 released!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
         <source>Select folder for app installer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
         <source>Run the installer?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
         <source>Update check failed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
         <source>Current version %1 is actual</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="49"/>
         <source>Something strange, the installer file is missing. Visit download page?</source>
         <translation></translation>
     </message>
