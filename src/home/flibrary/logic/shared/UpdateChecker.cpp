@@ -1,5 +1,6 @@
 #include "UpdateChecker.h"
 
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QProcess>
 #include <QTimer>

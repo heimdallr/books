@@ -1,6 +1,7 @@
 #include <queue>
 #include <ranges>
 
+#include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
 #include <QImageReader>
