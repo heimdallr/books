@@ -1,6 +1,5 @@
 #pragma warning(push, 0)
 
-#include <cwctype>
 #include <filesystem>
 #include <fstream>
 #include <future>
@@ -10,6 +9,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QRegularExpression>
 
 #include <plog/Log.h>
 
@@ -22,6 +22,7 @@
 
 #include "inpx.h"
 
+#include "fnd/IsOneOf.h"
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
 
@@ -237,8 +238,23 @@ std::set<size_t> ParseItem(const std::wstring_view data
 	while (it != std::cend(data))
 	{
 		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
-		result.emplace(Add<size_t>(value, container, getId, find));
+			result.emplace(Add<size_t>(value, container, getId, find));
 	}
+	return result;
+}
+
+std::set<size_t> ParseItem(const std::wstring_view data
+	, Dictionary & container
+	, const Splitter & splitter
+	, const GetIdFunctor & getId = &GetIdDefault
+	, const FindFunctor & find = &FindDefault
+)
+{
+	std::set<size_t> result;
+	std::ranges::transform(splitter(data), std::inserter(result, result.end()), [&] (const auto & value)
+	{
+		return Add<size_t>(value, container, getId, find);
+	});
 	return result;
 }
 
@@ -283,6 +299,7 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 		auto & genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
 		auto & parentGenre = genres[parentIt->second];
 		genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
+		genre.dateGenre = true;
 		return itGenre;
 	};
 
@@ -336,7 +353,6 @@ BookBuf ParseBook(std::wstring & line)
 		.lang = Next(it, end, FIELDS_SEPARATOR),
 		.rate = Next(it, end, FIELDS_SEPARATOR),
 	};
-	std::transform(it, end, it, std::towlower);
 	buf.keywords = Next(it, end, FIELDS_SEPARATOR);
 	return buf;
 }
@@ -482,6 +498,14 @@ void ExecuteScript(const std::wstring & action, const Path & dbFileName, const P
 			assert(rc == 0);
 		}
 	}
+}
+
+void Analyze(const Path & dbFileName)
+{
+	DatabaseWrapper db(dbFileName);
+	PLOGI << "ANALYZE";
+	[[maybe_unused]] const auto rc = sqlite3pp::command(db, "ANALYZE").execute();
+	assert(rc == 0);
 }
 
 template<typename Container, typename Functor>
@@ -841,9 +865,10 @@ public:
 		(*m_executor)({ "Create collection", [&]
 		{
 			ProcessImpl();
-			return [&] (size_t)
+			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+			return [this, genres] (size_t)
 			{
-				m_callback(true);
+				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
 			};
 		} });
 	}
@@ -852,10 +877,11 @@ public:
 	{
 		(*m_executor)({ "Update collection", [&]
 		{
-			UpdateDatabaseImpl();
-			return [&] (size_t)
+			const auto foldersCount = UpdateDatabaseImpl();
+			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+			return [this, foldersCount, genres] (size_t)
 			{
-				m_callback(true);
+				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
 			};
 		} });
 	}
@@ -937,10 +963,12 @@ private:
 		m_unknownGenreId = it->second;
 	}
 
-	void UpdateDatabaseImpl()
+	size_t UpdateDatabaseImpl()
 	{
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
+
+		std::ranges::transform(oldData.keywords, std::inserter(m_uniqueKeywords, m_uniqueKeywords.end()), [] (const auto & item) { return std::pair(QString::fromStdWString(item.first).toLower(), item.first); });
 
 		m_data = oldData;
 		m_genresIndex = oldGenresIndex;
@@ -948,7 +976,8 @@ private:
 
 		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
 		const Zip zip(QString::fromStdWString(inpxFileName));
-		ParseInpxFiles(inpxFileName, &zip, GetNewInpxFolders(m_ini, m_data));
+		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
+		ParseInpxFiles(inpxFileName, &zip, newInpxFolders);
 
 		const auto filter = [] (Dictionary & dst, const Dictionary & src)
 		{
@@ -961,6 +990,10 @@ private:
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
+
+		Analyze(dbFileName);
+
+		return newInpxFolders.size();
 	}
 
 	void Parse(SettingsTableData && settingsTableData)
@@ -1014,7 +1047,7 @@ private:
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
 	{
-		[[maybe_unused]] const auto * r = std::setlocale(LC_ALL, "en_US.utf8");
+		[[maybe_unused]] const auto * r = std::setlocale(LC_ALL, "en_US.utf8");  // NOLINT(concurrency-mt-unsafe)
 
 		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
@@ -1027,15 +1060,6 @@ private:
 
 			PLOGI << m_n << " rows parsed";
 		}
-
-		Dictionary keywords;
-		std::ranges::transform(m_data.keywords, std::inserter(keywords, keywords.end()), [] (const auto& item)
-		{
-			std::wstring value = item.first;
-			std::ranges::transform(value | std::views::take(1), std::begin(value), std::towupper);
-			return std::make_pair(value, item.second);
-		});
-		m_data.keywords = std::move(keywords);
 
 		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 		{
@@ -1207,10 +1231,59 @@ private:
 
 		if (!buf.keywords.empty())
 		{
-			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords, L',', [] (const std::wstring_view item)
-			{
-				return !item.starts_with(L"docid:");
-			}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword) { return std::make_pair(id, idKeyword); });
+			std::ranges::transform(ParseItem(buf.keywords, m_data.keywords
+				, [this] (const std::wstring_view item)
+				{
+					QStringList keywordsList;
+					QString keywordsStr = QString::fromWCharArray(item.data(), static_cast<int>(item.size()))
+						.replace("--", ",")
+						.replace(" - ", ",")
+						.replace(" & ", " and ")
+						.replace(QChar(L'\x0401'), QChar(L'\x0415'))
+						.replace(QChar(L'\x0451'), QChar(L'\x0435'))
+						.replace("_", " ")
+					;
+					keywordsStr.remove(QRegularExpression(QString::fromStdWString(L"[@!\\?\"\x00ab\x00bb]")));
+					auto list = keywordsStr.split(QRegularExpression(R"([,;#/\\\.\(\)\[\]])"), Qt::SkipEmptyParts);
+					std::ranges::transform(list, list.begin(), [] (const auto & str) { return str.simplified(); });
+
+					if (const auto [begin, end] = std::ranges::remove_if(list, [] (const auto & str) { return str.length() < 3 || str.startsWith("DocId:", Qt::CaseInsensitive); }); begin != end)
+						list.erase(begin, end);
+					assert(std::ranges::none_of(list, [] (const auto & str) { return str.startsWith("DocId:", Qt::CaseInsensitive); }));
+
+					for (auto& keyword : list)
+						keywordsList << keyword.split(':', Qt::SkipEmptyParts);
+	
+					for (auto & keyword : keywordsList)
+					{
+						if (const auto it = std::ranges::find_if(keyword, [] (const QChar & c) { return c.isLetterOrNumber() || IsOneOf(c, '+'); }); it != keyword.begin())
+							keyword = keyword.last(std::distance(it, keyword.end()));
+						keyword = keyword.simplified();
+						if (!keyword.isEmpty())
+							keyword[0] = keyword[0].toUpper();
+					}
+					if (const auto [begin, end] = std::ranges::remove_if(keywordsList, [this] (const auto & str) { return str.length() < 3; }); begin != end)
+						keywordsList.erase(begin, end);
+	
+					std::vector<std::wstring> result;
+					result.reserve(keywordsList.size());
+					std::ranges::transform(keywordsList, std::back_inserter(result), [](const auto & str){ return str.toStdWString(); });
+					return result;
+				}
+				, &GetIdDefault
+				, [this](const Dictionary & container, const std::wstring_view value)
+				{
+					auto key = QString::fromWCharArray(value.data(), static_cast<int>(value.size())).toLower();
+					if (const auto it = m_uniqueKeywords.find(key); it != m_uniqueKeywords.end())
+						return container.find(it->second);
+
+					m_uniqueKeywords.emplace(std::move(key), value);
+					return container.end();
+				}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
+				{
+					return std::make_pair(id, idKeyword);
+				}
+			);
 		}
 
 		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, folder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false));
@@ -1248,6 +1321,7 @@ private:
 	std::atomic_uint64_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
+	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 
 	std::vector<QString> m_errors;
 

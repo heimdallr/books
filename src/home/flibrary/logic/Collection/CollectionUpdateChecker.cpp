@@ -127,10 +127,11 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 				, callback = std::move(callback)
 			] (size_t) mutable
 			{
-				if (!addedFolders.isEmpty())
-					collectionController->OnInpxUpdateFound(updatedCollection);
+				if (addedFolders.isEmpty())
+					return callback(false);
 
-				callback(!addedFolders.isEmpty());
+				collectionController->OnInpxUpdateFound(updatedCollection);
+				callback(true);
 			};
 		};
 

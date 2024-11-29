@@ -6,8 +6,10 @@
 #include <plog/Log.h>
 
 #include "fnd/observable.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 #include "interface/ui/IUiFactory.h"
@@ -32,6 +34,19 @@ constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionControll
 constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
+constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
+constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
+constexpr auto COLLECTION_UPDATE_RESULT_GENRES = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td>%1</td></tr>");
+constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController"
+	, R"("%1" collection %2. Added:
+<table>
+<tr><td>Archives:</td><td>%3</td></tr>
+<tr><td>Authors: </td><td>%4</td></tr>
+<tr><td>Series:  </td><td>%5</td></tr>
+<tr><td>Books:   </td><td>%6</td></tr>
+<tr><td>Keywords:</td><td>%7</td></tr>
+%8
+</table>)");
 
 TR_DEF
 
@@ -217,15 +232,17 @@ private:
 		}
 
 		auto parser = std::make_shared<Inpx::Parser>();
+		auto & parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(db, folder, true);
-		auto callback = [&, parser, name, db, folder, mode, tmpDir = std::move(tmpDir)] (bool) mutable
+		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)] (const Inpx::UpdateResult & updateResult) mutable
 		{
+			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
 			Perform(&IObserver::OnNewCollectionCreating, false);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			Add(std::move(name), std::move(db), std::move(folder), mode);
-			parser.reset();
 		};
 		Perform(&IObserver::OnNewCollectionCreating, true);
-		parser->CreateNewCollection(std::move(ini), mode, std::move(callback));
+		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
 	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
@@ -242,14 +259,34 @@ private:
 		const auto collection = GetActiveCollection();
 		assert(collection);
 		auto parser = std::make_shared<Inpx::Parser>();
+		auto & parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(collection->database, collection->folder, true);
-		auto callback = [&, parser, tmpDir = std::move(tmpDir)] (bool) mutable
+		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection->name] (const Inpx::UpdateResult & updateResult) mutable
 		{
+			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
 			Perform(&IObserver::OnNewCollectionCreating, false);
-			parser.reset();
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&IObserver::OnNewCollectionCreating, true);
-		parser->UpdateCollection(GetIniMap(collection->database, collection->folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+		parserRef.UpdateCollection(GetIniMap(collection->database, collection->folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+	}
+
+	void ShowUpdateResult(const Inpx::UpdateResult & updateResult, const QString & name, const char * action)
+	{
+		if (updateResult.folders == 0)
+			return;
+
+		m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
+			.arg(name)
+			.arg(Tr(action))
+			.arg(updateResult.folders)
+			.arg(updateResult.authors)
+			.arg(updateResult.series)
+			.arg(updateResult.books)
+			.arg(updateResult.keywords)
+			.arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
+		);
+		QCoreApplication::exit(Constant::RESTART_APP);
 	}
 
 private:

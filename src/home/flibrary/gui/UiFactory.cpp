@@ -33,6 +33,23 @@ namespace {
 constexpr auto CONTEXT = "Dialog";
 constexpr auto ABOUT_TITLE = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
 constexpr auto ABOUT_TEXT = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger<p>Version: %1<p><a href='%2'>%2</a>");
+constexpr const char * COMPONENTS[] = {
+	"<hr><table style='font-size:50%'>",
+	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
+	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
+	"<tr><td><a href='https://github.com/SergiusTheBest/plog'>plog</a> &copy; 2022 Sergey Podobry <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
+	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
+	"<tr><td><a href='https://github.com/stachenov/quazip'>QuaZip</a> &copy; 2005-2020 Sergey A. Tachenov and contributors <a href='https://github.com/stachenov/quazip?tab=License-1-ov-file#License-1-ov-file'>GNU LGPL v2.1</a></td></tr>",
+	"<tr><td><a href='https://xerces.apache.org/xerces-c/'>Xerces-C++ XML Parser</a> &copy; 2024 The Apache Xerces&trade; Project <a href='https://www.apache.org/licenses/LICENSE-2.0.html'>Apache License v2</a></td></tr>",
+	"<tr><td><a href='https://www.boost.org/'>boost</a> &copy; boost C++ libraries <a href='https://www.boost.org/LICENSE_1_0.txt'>Boost Software License v1.0</a></td></tr>",
+	"<tr><td><a href='https://www.7-zip.org/'>7za.dll</a> &copy; 1999-2023 Igor Pavlov <a href='https://www.7-zip.org/license.txt'>GNU LGPL</a></td></tr>",
+	"<tr><td><a href='https://www.sqlite.org/'>SQLite</a> <a href='https://www.sqlite.org/copyright.html'>Public Domain</a></td></tr>",
+	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 Wongoo Lee <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
+	"<tr><td><a href='https://github.com/heimdallr/MyHomeLib/tree/master/Utils/MHLSQLiteExt'>MyHomeLib SQLite extension library</a> &copy; 2010 Nick Rymanov <a href='https://www.gnu.org/licenses/gpl-3.0.html#license-text'>GNU GPL</a></td></tr>",
+	"<tr><td><a href='https://icons8.ru/'>icons8</a> &copy; 2024 Icons8 <a href='https://icons8.ru/license'>License</a></td></tr>",
+	"</table>"
+};
+
 }
 
 struct UiFactory::Impl
@@ -105,6 +122,9 @@ void UiFactory::ShowAbout() const
 	msgBox.setTextFormat(Qt::RichText);
 	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), "https://github.com/heimdallr/books"));
 	msgBox.setStandardButtons(QMessageBox::Ok);
+	QStringList text;
+	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str){ return Loc::Tr(CONTEXT, str); });
+	msgBox.setInformativeText(text.join(""));
 	msgBox.exec();
 }
 
