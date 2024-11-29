@@ -3,6 +3,8 @@
 
 #include <Hypodermic/Hypodermic.h>
 
+#include <QCoreApplication>
+
 #include "Dialog.h"
 #include "UiFactory.h"
 #include "ParentWidgetProvider.h"

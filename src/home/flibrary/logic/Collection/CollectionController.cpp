@@ -1,5 +1,6 @@
 #include "CollectionController.h"
 
+#include <QCoreApplication>
 #include <QTemporaryDir>
 #include <QTimer>
 
