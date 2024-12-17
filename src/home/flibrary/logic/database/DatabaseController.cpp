@@ -40,7 +40,7 @@ void AddUserTableField(DB::ITransaction & transaction, const QString & table, co
 	const auto it = std::ranges::find(range, "name", [&] (const int n) { return booksUserFieldsQuery->ColumnName(n); });
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
-		booksUserFields.insert(booksUserFieldsQuery->GetString(*it));
+		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
 	if (!booksUserFields.contains(column.toStdString()))
 		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
 }

@@ -133,7 +133,7 @@ constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 };
 
 struct ModeDescriptor
-{
+{ //-V802
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };

@@ -619,8 +619,8 @@ private:
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
 				{
-					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
-					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
+					widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
+					indices.try_emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
 					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false)
 						? header->hideSection(logicalIndex)
 						: header->showSection(logicalIndex);

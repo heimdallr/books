@@ -154,7 +154,7 @@ QString Urls(const char * type, const IDataItem & parent, const TitleGetter tile
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
 		const auto item = parent.GetChild(i);
-		urls.push_back(Url(type, item->GetId(), tileGetter(*item)));
+		urls.emplace_back(Url(type, item->GetId(), tileGetter(*item)));
 	}
 
 	return Join(urls);
@@ -459,8 +459,9 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider & dataProvider) override
 	{
+		const auto & book = dataProvider.GetBook();
 		QString annotation;
-		Add(annotation, dataProvider.GetBook().GetRawData(BookItem::Column::Title), TITLE_PATTERN);
+		Add(annotation, book.GetRawData(BookItem::Column::Title), TITLE_PATTERN);
 		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetAnnotation());
@@ -469,11 +470,13 @@ private: // IAnnotationController::IObserver
 		if (keywords.GetChildCount() == 0)
 			Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
+		const auto & folder = book.GetRawData(BookItem::Column::Folder);
+
 		Add(annotation, Table()
 			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 			.Add(SERIES, Url(SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
 			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
-			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
+			.Add(ARCHIVE, Url(ARCHIVE, folder, folder))
 			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
 			.Add(KEYWORDS, Urls(KEYWORDS, keywords))
 			.ToString());
@@ -492,7 +495,7 @@ private: // IAnnotationController::IObserver
 		{
 			const auto addRate = [&] (Table & info, const char * name, const int column)
 			{
-				const auto rate = dataProvider.GetBook().GetRawData(column).toInt();
+				const auto rate = book.GetRawData(column).toInt();
 				if (rate <= 0 || rate > 5)
 					return;
 
@@ -508,9 +511,9 @@ private: // IAnnotationController::IObserver
 			};
 
 			auto info = Table()
-				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
+				.Add(FILENAME, book.GetRawData(BookItem::Column::FileName))
 				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
-				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
+				.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);
 			if (!m_covers.empty())

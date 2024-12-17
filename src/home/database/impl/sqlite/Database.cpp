@@ -26,9 +26,9 @@ namespace {
 constexpr auto PATH = "path";
 constexpr auto EXTENSION = "extension";
 
-using ConnectionParameters = std::multimap<std::string, std::string>;
+using ConnectionParameters = std::multimap<std::string, std::string, std::less<>>;
 
-using ObserverMethod = void(IDatabaseObserver::*)(std::string_view dbName, std::string_view tableName, int64_t rowId);
+using ObserverMethod = void(IDatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
 constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
 {
@@ -123,7 +123,7 @@ public:
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)
 			m_db.load_extension(begin->second.data());
 
-		m_db.set_update_handler([&](const int opCode, char const * dbName, char const * tableName, const int64_t rowId)
+		m_db.set_update_handler([&] (const int opCode, char const * dbName, char const * tableName, const int64_t rowId)
 		{
 			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
 		});
@@ -147,9 +147,9 @@ private: // Database
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
 
-	void CreateFunction(std::string_view name, DatabaseFunction function) override
+	void CreateFunction(const std::string_view name, DatabaseFunction function) override
 	{
-		m_functions.emplace(name, std::make_unique<sqlite3pp::ext::function>(m_db)).first->second
+		m_functions.try_emplace(std::string(name), std::make_unique<sqlite3pp::ext::function>(m_db)).first->second
 			->create(name.data(), [function = std::move(function)] (sqlite3pp::ext::context & ctx)
 		{
 			DatabaseFunctionContext context(ctx);
@@ -172,7 +172,7 @@ private:
 	std::mutex m_guard;
 	sqlite3pp::database m_db;
 	ObserverImpl m_observer;
-	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>> m_functions;
+	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>, std::less<>> m_functions;
 };
 
 }

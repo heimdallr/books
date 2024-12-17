@@ -211,7 +211,7 @@ private: // IPathChecker
 	void Check(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
-		if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
+		if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
 			return;
 
 		const auto folder = path.parent_path();
@@ -221,7 +221,7 @@ private: // IPathChecker
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
 			path.make_preferred();
-			if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
+			if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
 				return;
 		}
 	}

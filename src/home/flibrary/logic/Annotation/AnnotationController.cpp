@@ -254,7 +254,7 @@ private:
 			std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 			const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
 			for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
-				exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].push_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+				exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
 
 			ExportStatistics exportStatistics;
 			std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));

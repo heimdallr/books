@@ -136,7 +136,7 @@ public:
 
 		std::vector<BookInfoList> bookLists(m_taskCount);
 		for (size_t i = 0; auto && book : books)
-			bookLists[i++ % m_taskCount].push_back(std::move(book));
+			bookLists[i++ % m_taskCount].emplace_back(std::move(book));
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command = transaction->CreateCommand(ExportStat::INSERT_QUERY);
@@ -190,7 +190,7 @@ private:
 			{
 				hash.addData(QString::number(i).toUtf8());
 				auto result = hash.result().toHex().left(8);
-				if (m_paths.emplace(result, QByteArray {}).second)
+				if (m_paths.try_emplace(result, QByteArray {}).second)
 					return result;
 			}
 		}();

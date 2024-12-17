@@ -289,7 +289,7 @@ private:
 						}
 					});
 				}
-			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable
+			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable //-V788
 				{
 					if (!progressItem)
 						progressItem = m_progressController->Add(bytesTotal);

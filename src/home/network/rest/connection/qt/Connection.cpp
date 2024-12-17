@@ -66,7 +66,7 @@ IConnection::Headers Connection::GetPage(const std::string & page)
 			OnDataReceived(doc);
 
 		for (const auto & [name, value] : reply->rawHeaderPairs())
-			headers.emplace(QString::fromUtf8(name).toLower().simplified().toStdString(), QString::fromUtf8(value).simplified().toStdString());
+			headers.try_emplace(QString::fromUtf8(name).toLower().simplified().toStdString(), QString::fromUtf8(value).simplified().toStdString());
 
 		reply->deleteLater();
 

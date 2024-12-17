@@ -25,7 +25,7 @@ void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & in
 		const auto parent = queue.front();
 		queue.pop();
 		const auto rowCount = model.rowCount(parent);
-		if (parent.isValid() && rowCount == 0 && processed.insert(parent.data(Role::Id).toString()).second)
+		if (parent.isValid() && rowCount == 0 && processed.emplace(parent.data(Role::Id).toString()).second)
 			f(parent);
 
 		for (int i = 0; i < rowCount; ++i)
@@ -159,7 +159,7 @@ QStringList FilteredProxyModel::CollectLanguages() const
 	EnumerateLeafs(*this, {QModelIndex{}}, [&] (const QModelIndex & child)
 	{
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-			languages.insert(child.data(Role::Lang).toString().toLower());
+			languages.emplace(child.data(Role::Lang).toString().toLower());
 	});
 	languages.erase(QString());
 

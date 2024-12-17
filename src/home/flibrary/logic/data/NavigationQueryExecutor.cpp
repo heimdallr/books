@@ -88,7 +88,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
-			index.emplace(item->GetId(), item);
+			index.try_emplace(item->GetId(), item);
 		}
 
 		IDataItem::Items items;
@@ -128,13 +128,13 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 		auto root = NavigationItem::Create();
 		std::unordered_multimap<QString, IDataItem::Ptr> items;
-		index.emplace("0", root);
+		index.try_emplace("0", root);
 
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = items.emplace(query->Get<const char *>(3), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
-			index.emplace(item->GetId(), std::move(item));
+			index.try_emplace(item->GetId(), std::move(item));
 		}
 
 		{

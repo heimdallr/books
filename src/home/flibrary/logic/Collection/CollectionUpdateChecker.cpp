@@ -23,7 +23,7 @@ QString GetFileHash(const QString & fileName)
 		return {};
 
 	constexpr auto size = 1024ll * 32;
-	const std::unique_ptr<char[]> buf(new char[size]);
+	const auto buf = std::make_unique<char[]>(size);
 
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 

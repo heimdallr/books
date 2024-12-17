@@ -122,7 +122,7 @@ public:
 			auto it = std::cbegin(line);
 			const auto key = Next(it, std::cend(line), INI_SEPARATOR);
 			const auto value = Next(it, std::cend(line), INI_SEPARATOR);
-			_data.emplace(key, value);
+			_data.try_emplace(std::wstring(key), value);
 		}
 	}
 
@@ -388,11 +388,11 @@ InpxContent ExtractInpxFileNames(const Path & inpxFileName)
 		auto folder = ToWide(fileName.toStdString());
 
 		if (folder == COLLECTION_INFO)
-			inpxContent.collectionInfo.push_back(std::move(folder));
+			inpxContent.collectionInfo.emplace_back(std::move(folder));
 		else if (folder == VERSION_INFO)
-			inpxContent.versionInfo.push_back(std::move(folder));
+			inpxContent.versionInfo.emplace_back(std::move(folder));
 		else if (folder.ends_with(INP_EXT))
-			inpxContent.inpx.push_back(std::move(folder));
+			inpxContent.inpx.emplace_back(std::move(folder));
 		else
 			PLOGI << folder << L" skipped";
 	}
@@ -446,7 +446,7 @@ SettingsTableData ReadSettings(const Path & dbFileName)
 
 	data[PROP_SCHEMA_VERSION] = SCHEMA_VERSION_VALUE;
 
-	auto & strDate = data.emplace(PROP_CREATIONDATE, std::string()).first->second;
+	auto & strDate = data.try_emplace(PROP_CREATIONDATE, std::string()).first->second;
 	strDate.resize(30);
 	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	tm buf{};
@@ -664,7 +664,7 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 		{
 			auto folder = ToWide(row.template get<std::string>(0));
 			auto ext = RemoveExt(ToLower(folder));
-			dbExt.emplace(folder, std::move(ext));
+			dbExt.try_emplace(folder, std::move(ext));
 			return folder;
 		});
 	}
@@ -674,7 +674,7 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&inpxExt] (std::wstring item)
 	{
 		auto ext = RemoveExt(ToLower(item));
-		inpxExt.emplace(item, std::move(ext));
+		inpxExt.try_emplace(item, std::move(ext));
 		return item;
 	});
 
@@ -1278,7 +1278,7 @@ private:
 					if (const auto it = m_uniqueKeywords.find(key); it != m_uniqueKeywords.end())
 						return container.find(it->second);
 
-					m_uniqueKeywords.emplace(std::move(key), value);
+					m_uniqueKeywords.try_emplace(std::move(key), value);
 					return container.end();
 				}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
 				{

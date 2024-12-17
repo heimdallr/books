@@ -17,8 +17,8 @@ namespace {
 
 constexpr auto SCRIPTS = "Scripts";
 constexpr auto SCRIPT_KEY_TEMPLATE = "%1/%2";
-constexpr auto SCRIPT_VALUE_KEY_TEMPLATE = "%1/%2/%3";
-constexpr auto COMMAND_VALUE_KEY_TEMPLATE = "%1/%2/%3/%4";
+constexpr auto SCRIPT_VALUE_KEY_TEMPLATE = "Scripts/%1/%2";
+constexpr auto COMMAND_VALUE_KEY_TEMPLATE = "Scripts/%1/%2/%3";
 constexpr auto NAME = "Name";
 constexpr auto NUMBER = "Number";
 constexpr auto TYPE = "Type";
@@ -68,31 +68,7 @@ struct ScriptController::Impl
 		: settings(std::move(settings))
 		, commandExecutor(commandExecutor)
 	{
-		const SettingsGroup scriptsGuard(*this->settings, SCRIPTS);
-		std::ranges::transform(this->settings->GetGroups(), std::back_inserter(scripts), [&] (const QString & uid)
-		{
-			const SettingsGroup scriptGuard(*this->settings, uid);
-			Script script { {uid, this->settings->Get(NUMBER).toInt() }
-				, this->settings->Get(NAME).toString()
-				, FindFirst(s_scriptTypes, this->settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer{})
-			};
-			for (const auto & commandUid : this->settings->GetGroups())
-			{
-				const SettingsGroup commandGuard(*this->settings, commandUid);
-				commands.push_back(Command { {commandUid, this->settings->Get(NUMBER).toInt() }
-					, uid, this->settings->Get(COMMAND).toString()
-					, this->settings->Get(ARGUMENTS).toString()
-					, FindFirst(s_commandTypes, CommandDescription{this->settings->Get(TYPE).toString().toStdString().data()}, CommandDescriptionComparer{})
-					});
-			}
-			return script;
-		});
-
-		const auto undefined = [] (const Script & item) { return item.type == Script::Type::Undefined; };
-		for (const auto & script : scripts | std::views::filter(undefined))
-			this->settings->Remove(script.uid);
-		if (const auto [begin, end] = std::ranges::remove_if(scripts, undefined); begin != end)
-			scripts.erase(begin, end);
+		Init();
 	}
 
 	Script & GetScript(const int n)
@@ -105,6 +81,36 @@ struct ScriptController::Impl
 	{
 		assert(n >= 0 && n < static_cast<int>(commands.size()));
 		return commands[n];
+	}
+
+private:
+	void Init()
+	{
+		const SettingsGroup scriptsGuard(*settings, SCRIPTS);
+		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&] (const QString & uid)
+		{
+			const SettingsGroup scriptGuard(*settings, uid);
+			Script script { {uid, settings->Get(NUMBER).toInt() }
+				, settings->Get(NAME).toString()
+				, FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer{})
+			};
+			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid] (const QString & commandUid)
+			{
+				const SettingsGroup commandGuard(*settings, commandUid);
+				return Command { {commandUid, settings->Get(NUMBER).toInt() }
+					, uid, settings->Get(COMMAND).toString()
+					, settings->Get(ARGUMENTS).toString()
+					, FindFirst(s_commandTypes, CommandDescription{settings->Get(TYPE).toString().toStdString().data()}, CommandDescriptionComparer{})
+				};
+			});
+			return script;
+		});
+
+		const auto undefined = [] (const Script & item) { return item.type == Script::Type::Undefined; };
+		for (const auto & script : scripts | std::views::filter(undefined))
+			settings->Remove(script.uid);
+		if (const auto [begin, end] = std::ranges::remove_if(scripts, undefined); begin != end)
+			scripts.erase(begin, end);
 	}
 };
 
@@ -237,11 +243,13 @@ bool ScriptController::Execute(const Command & command) const
 
 void ScriptController::Save()
 {
+	auto & settings = *m_impl->settings;
 	for (auto & script : m_impl->scripts | GetModeFilter<Script>(Mode::Updated))
 	{
-		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NAME), script.name);
-		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(NUMBER), script.number);
-		m_impl->settings->Set(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid).arg(TYPE), FindSecond(s_scriptTypes, script.type));
+		const auto scriptValueKeyTemplate = QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(script.uid).arg("%1");
+		settings.Set(scriptValueKeyTemplate.arg(NAME), script.name);
+		settings.Set(scriptValueKeyTemplate.arg(NUMBER), script.number);
+		settings.Set(scriptValueKeyTemplate.arg(TYPE), FindSecond(s_scriptTypes, script.type));
 		script.mode = Mode::None;
 	}
 
@@ -250,15 +258,16 @@ void ScriptController::Save()
 
 	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Updated))
 	{
-		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(COMMAND), command.command);
-		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(ARGUMENTS), command.args);
-		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(NUMBER), command.number);
-		m_impl->settings->Set(QString(COMMAND_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid).arg(TYPE), FindSecond(s_commandTypes, command.type).type);
+		const auto commandValueKeyTemplate = QString(COMMAND_VALUE_KEY_TEMPLATE).arg(command.scriptUid).arg(command.uid).arg("%1");
+		settings.Set(commandValueKeyTemplate.arg(COMMAND), command.command);
+		settings.Set(commandValueKeyTemplate.arg(ARGUMENTS), command.args);
+		settings.Set(commandValueKeyTemplate.arg(NUMBER), command.number);
+		settings.Set(commandValueKeyTemplate.arg(TYPE), FindSecond(s_commandTypes, command.type).type);
 		command.mode = Mode::None;
 	}
 
 	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Removed))
-		m_impl->settings->Remove(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(SCRIPTS).arg(command.scriptUid).arg(command.uid));
+		settings.Remove(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(command.scriptUid).arg(command.uid));
 }
 
 ScriptControllerProvider::ScriptControllerProvider(Hypodermic::Container & container)

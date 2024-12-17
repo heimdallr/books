@@ -881,7 +881,7 @@ bool run(int argc, char * argv[])
 			DiInit(builder, container);
 		}
 
-		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>());
+		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
 		const auto mainWindow = container->resolve<MainWindow>();
 		mainWindow->SetSettings(&settings.settings);
 		mainWindow->show();
