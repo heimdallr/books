@@ -81,17 +81,18 @@ bool ItemViewToolTipper::eventFilter(QObject * obj, QEvent * event)
 	if (!index.isValid())
 		return false;
 
-	const auto itemTooltip = view->model()->data(index, Qt::ToolTipRole).toString();
+	const auto & model = *view->model();
+	const auto itemTooltip = model.data(index, Qt::ToolTipRole).toString();
 	if (itemTooltip.isEmpty())
 		return false;
 
-	const auto itemText = view->model()->data(index).toString();
+	const auto itemText = model.data(index).toString();
 	const int itemTextWidth = QFontMetrics(view->font()).horizontalAdvance(itemText);
 
 	const auto rect = view->visualRect(index);
 	auto rectWidth = rect.width();
 
-	if (view->model()->flags(index) & Qt::ItemIsUserCheckable)
+	if (model.flags(index) & Qt::ItemIsUserCheckable)
 		rectWidth -= rect.height();
 
 	static constexpr auto richTextTemplate = R"(<p style=" font-family:%1; font-size:%2pt; ">%3</p>)";

@@ -202,8 +202,10 @@ private:
 	{
 		const auto selection = m_ui.viewCommand->selectionModel()->selection().indexes();
 		m_ui.btnRemoveCommand->setEnabled(!selection.isEmpty());
-		m_ui.btnCommandUp->setEnabled(selection.count() == 1 && m_ui.viewCommand->currentIndex().row() > 0);
-		m_ui.btnCommandDown->setEnabled(selection.count() == 1 && m_ui.viewCommand->currentIndex().isValid() && m_ui.viewCommand->currentIndex().row() < m_ui.viewCommand->model()->rowCount() - 1);
+
+		const auto currentIndex = m_ui.viewCommand->currentIndex();
+		m_ui.btnCommandUp->setEnabled(selection.count() == 1 && currentIndex.row() > 0);
+		m_ui.btnCommandDown->setEnabled(selection.count() == 1 && currentIndex.isValid() && currentIndex.row() < m_ui.viewCommand->model()->rowCount() - 1);
 	}
 
 private:

@@ -94,11 +94,8 @@ IDataItem::Ptr CreateBooksRoot()
 template<typename KeyType, typename BindType = KeyType>
 std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, IDataItem::Ptr> & dictionary
 	, const DB::IQuery & query
-	, const QueryInfo & queryInfo
-	, const std::function<bool(const IDataItem &)> & filter = [] (const IDataItem &)
-{
-	return true;
-}
+	, const QueryInfo queryInfo
+	, const std::function<bool(const IDataItem &)> & filter = [] (const IDataItem &) { return true; }
 )
 {
 	auto key = query.Get<BindType>(queryInfo.index[0]);

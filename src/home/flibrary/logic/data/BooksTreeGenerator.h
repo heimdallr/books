@@ -74,7 +74,7 @@ struct QStringWrapper
 	}
 
 private:
-	[[nodiscard]] int Category(const QChar & c) const noexcept
+	[[nodiscard]] int Category(const QChar c) const noexcept
 	{
 		assert(c.category() < static_cast<int>(std::size(m_categories)));
 		if (const auto result = m_categories[c.category()]; result != 0)

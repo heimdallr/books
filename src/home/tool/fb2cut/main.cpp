@@ -861,7 +861,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 
 bool run(int argc, char * argv[])
 {
-	const QApplication app(argc, argv);
+	const QApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;

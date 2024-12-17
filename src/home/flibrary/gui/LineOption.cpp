@@ -36,13 +36,13 @@ void LineOption::SetLineEdit(QLineEdit * lineEdit) noexcept
 {
 	assert(lineEdit);
 	m_impl->lineEdit = lineEdit;
-	m_impl->connections.push_back(QObject::connect(m_impl->lineEdit, &QLineEdit::editingFinished, m_impl->lineEdit, [&]
+	m_impl->connections.push_back(QObject::connect(lineEdit, &QLineEdit::editingFinished, lineEdit, [this, lineEdit]
 	{
-		m_impl->lineEdit->setVisible(false);
+		lineEdit->setVisible(false);
 		m_impl->settings->Set(m_impl->key, m_impl->lineEdit->text());
 		m_impl->Perform(&IObserver::OnOptionEditingFinished, m_impl->lineEdit->text());
 	}));
-	m_impl->connections.push_back(QObject::connect(m_impl->lineEdit, &QLineEdit::textChanged, m_impl->lineEdit, [&](const QString & text)
+	m_impl->connections.push_back(QObject::connect(lineEdit, &QLineEdit::textChanged, lineEdit, [&](const QString & text)
 	{
 		m_impl->Perform(&IObserver::OnOptionEditing, text);
 	}));

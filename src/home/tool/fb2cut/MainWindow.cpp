@@ -218,8 +218,9 @@ void MainWindow::OnDstFolderChanged()
 
 void MainWindow::OnExternalArchiverChanged()
 {
-	m_ui->actionExternalArchiverNotFound->setVisible(!(m_ui->editExternalArchiver->text().isEmpty() || QFile(m_ui->editExternalArchiver->text()).exists()));
-	m_ui->archiveOptionsFrame->setVisible(!m_ui->editExternalArchiver->text().isEmpty());
+	const auto text = m_ui->editExternalArchiver->text();
+	m_ui->actionExternalArchiverNotFound->setVisible(!(text.isEmpty() || QFile(text).exists()));
+	m_ui->archiveOptionsFrame->setVisible(!text.isEmpty());
 	CheckEnabled();
 }
 

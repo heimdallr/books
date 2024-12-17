@@ -1,6 +1,6 @@
 #include "PropVariant.h"
-#include <7z/CPP/Common/Defs.h>
 
+#include <7z/CPP/Common/Defs.h>
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
@@ -64,7 +64,7 @@ CPropVariant::CPropVariant(UInt64 value)
 	uhVal.QuadPart = value;
 }
 
-CPropVariant::CPropVariant(const FILETIME & value)
+CPropVariant::CPropVariant(FILETIME value)
 	: PROPVARIANT()
 {
 	vt = VT_FILETIME;
@@ -161,15 +161,15 @@ CPropVariant & CPropVariant::operator=(const bool bSrc)
 
 #define SET_PROP_FUNC(type, id, dest) \
 CPropVariant& CPropVariant::operator=(type value) \
-	{ if (vt != id) { InternalClear(); vt = id; } \
-		dest = value; return *this; }
+	{ if (vt != (id)) { InternalClear(); vt = id; } \
+		(dest) = value; return *this; }
 
 SET_PROP_FUNC(Byte, VT_UI1, bVal)
 SET_PROP_FUNC(Int16, VT_I2, iVal)
 SET_PROP_FUNC(Int32, VT_I4, lVal)
 SET_PROP_FUNC(UInt32, VT_UI4, ulVal)
 SET_PROP_FUNC(UInt64, VT_UI8, uhVal.QuadPart)
-SET_PROP_FUNC(const FILETIME &, VT_FILETIME, filetime)
+SET_PROP_FUNC(FILETIME, VT_FILETIME, filetime)
 
 static HRESULT MyPropVariantClear(PROPVARIANT * prop)
 {

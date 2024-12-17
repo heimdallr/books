@@ -67,10 +67,11 @@ private: // xercesc::DOMErrorHandler
             : domError.getSeverity() == xercesc::DOMError::DOM_SEVERITY_ERROR ? "Error "
             : "Fatal Error ";
 
+        const auto& location = *domError.getLocation();
         error.append(QString("%1, line %2, char %3: %4")
-            .arg(StrX(domError.getLocation()->getURI()).ToString())
-            .arg(domError.getLocation()->getLineNumber())
-            .arg(domError.getLocation()->getColumnNumber())
+            .arg(StrX(location.getURI()).ToString())
+            .arg(location.getLineNumber())
+            .arg(location.getColumnNumber())
             .arg(StrX(domError.getMessage()).ToString())
         );
 

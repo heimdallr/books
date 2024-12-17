@@ -189,15 +189,17 @@ private:
 
 	void ShowUpdateMessage()
 	{
-		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons
-		{
-			{ QMessageBox::AcceptRole, Tr(DOWNLOAD) },
-			{ QMessageBox::DestructiveRole, Tr(VISIT_HOME) },
-			{ QMessageBox::ActionRole, Tr(SKIP) },
-			{ QMessageBox::RejectRole, Tr(CANCEL) },
+		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
+		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
+			buttons.emplace_back(QMessageBox::AcceptRole, Tr(DOWNLOAD));
+
+		static constexpr std::pair<QMessageBox::ButtonRole, const char*> buttonSettings[] {
+			{ QMessageBox::DestructiveRole, VISIT_HOME },
+			{ QMessageBox::ActionRole, SKIP },
+			{ QMessageBox::RejectRole, CANCEL },
 		};
-		if (m_release.assets.empty() || m_release.assets.front().browser_download_url.isEmpty())
-			buttons.erase(buttons.begin());
+		buttons.reserve(buttons.size() + std::size(buttonSettings));
+		std::ranges::transform(buttonSettings, std::back_inserter(buttons), [] (auto item) { return std::make_pair(item.first, Tr(item.second)); });
 
 		const auto defaultRole = buttons.front().first;
 
