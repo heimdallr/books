@@ -300,7 +300,7 @@ private: // IContextMenuHandler
 
 	void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+		AddToGroup(model, index, indexList, std::move(item), std::move(callback));
 	}
 
 	void AddToGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -315,7 +315,7 @@ private: // IContextMenuHandler
 
 	void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+		RemoveFromGroup(model, index, indexList, std::move(item), std::move(callback));
 	}
 
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override

@@ -282,8 +282,6 @@ int CPropVariant::Compare(const CPropVariant & a) const
 		return MyCompare(vt, a.vt);
 	switch (vt)
 	{
-		case VT_EMPTY: return 0;
-			// case VT_I1: return MyCompare(cVal, a.cVal);
 		case VT_UI1: return MyCompare(bVal, a.bVal);
 		case VT_I2: return MyCompare(iVal, a.iVal);
 		case VT_UI2: return MyCompare(uiVal, a.uiVal);
@@ -294,8 +292,9 @@ int CPropVariant::Compare(const CPropVariant & a) const
 		case VT_UI8: return MyCompare(uhVal.QuadPart, a.uhVal.QuadPart);
 		case VT_BOOL: return -MyCompare(boolVal, a.boolVal);
 		case VT_FILETIME: return ::CompareFileTime(&filetime, &a.filetime);
-		case VT_BSTR:
-			return 0; // Not implemented
+		case VT_EMPTY:
+			// case VT_I1: return MyCompare(cVal, a.cVal);
+		case VT_BSTR: // Not implemented
 			// return MyCompare(aPropVarint.cVal);
 		default: return 0;
 	}

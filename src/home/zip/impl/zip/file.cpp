@@ -38,7 +38,7 @@ private: // IFile
 
 	QIODevice & Write() override
 	{
-		return m_zipFile;
+		return Read();
 	}
 
 private:

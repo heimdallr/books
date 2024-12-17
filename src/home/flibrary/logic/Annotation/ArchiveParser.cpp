@@ -392,8 +392,7 @@ public:
 	{
 		try
 		{
-			const auto collection = m_collectionController->GetActiveCollection();
-			assert(collection);
+			assert(m_collectionController->ActiveCollectionExists());
 
 			auto data = ParseFb2(book);
 
@@ -435,9 +434,8 @@ private: // IProgressController::IObserver
 private:
 	Data ParseFb2(const IDataItem & book) const
 	{
-		const auto collection = m_collectionController->GetActiveCollection();
-		assert(collection);
-		const auto folder = QString("%1/%2").arg(collection->folder, book.GetRawData(BookItem::Column::Folder));
+		const auto& collection = m_collectionController->GetActiveCollection();
+		const auto folder = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
 		if (!QFile::exists(folder))
 		{
 			PLOGW << folder << " not found";
@@ -453,7 +451,7 @@ private:
 		m_extractArchiveProgressItem.reset();
 
 		XmlParser parser(stream);
-		return parser.Parse(collection->folder, book, std::move(parseProgressItem));
+		return parser.Parse(collection.folder, book, std::move(parseProgressItem));
 	}
 
 private:

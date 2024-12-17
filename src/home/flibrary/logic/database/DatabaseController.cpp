@@ -131,7 +131,7 @@ private: // ICollectionController::IObserver
 	void OnActiveCollectionChanged() override
 	{
 		const auto collection = m_collectionController->GetActiveCollection();
-		m_databaseFileName = collection ? collection->database : QString{};
+		m_databaseFileName = m_collectionController->ActiveCollectionExists() ? m_collectionController->GetActiveCollection().database : QString {};
 		if (m_db)
 			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);

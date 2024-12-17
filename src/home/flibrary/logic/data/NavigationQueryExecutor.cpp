@@ -261,9 +261,9 @@ private: // DB::IDatabaseObserver
 		OnTableUpdate(tableName);
 	}
 	void OnUpdate(std::string_view, std::string_view, int64_t) override{}
-	void OnDelete(std::string_view, const std::string_view tableName, int64_t) override
+	void OnDelete(const std::string_view dbName, const std::string_view tableName, int64_t id) override
 	{
-		OnTableUpdate(tableName);
+		OnInsert(dbName, tableName, id);
 	}
 
 private:

@@ -141,7 +141,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	if (reader.isEmpty())
 		return;
 
-	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection()->folder, folderName);
+	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().folder, folderName);
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 	(*executor)({ "Extract book", [this
 		, executor

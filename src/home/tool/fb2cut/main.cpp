@@ -236,7 +236,7 @@ private:
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
 
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
-			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, errorText, "fb2", false), true;
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), "fb2", false), true;
 
 		if (!m_settings.saveFb2)
 			return false;
