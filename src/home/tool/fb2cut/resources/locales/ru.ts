@@ -24,7 +24,7 @@
         <translation>Укажите ffmpeg</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="234"/>
+        <location filename="../../MainWindow.cpp" line="235"/>
         <source>Executables (*.exe);;All files (*.*)</source>
         <translation>Исполняемые файлы (*.exe);;Все файлы (*.*)</translation>
     </message>

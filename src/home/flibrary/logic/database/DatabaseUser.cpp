@@ -109,7 +109,7 @@ std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 	return m_impl->executor;
 }
 
-IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const size_t * index)
 {
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
@@ -119,7 +119,7 @@ IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, cons
 	return item;
 }
 
-IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const size_t * index)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
 
@@ -134,7 +134,7 @@ IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const int
 	return item;
 }
 
-IDataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const size_t * index)
 {
 	auto item = AuthorItem::Create();
 

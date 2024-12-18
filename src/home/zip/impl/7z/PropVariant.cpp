@@ -137,12 +137,12 @@ CPropVariant & CPropVariant::operator=(const char * s)
 	InternalClear();
 	vt = VT_BSTR;
 	wReserved1 = 0;
-	const UINT len = static_cast<UINT>(strlen(s));
-	bstrVal = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len) * sizeof(OLECHAR));
+	const auto len = strlen(s);
+	bstrVal = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len * sizeof(OLECHAR)));
 	if (!bstrVal)
 		throw kMemException;
 
-	for (UINT i = 0; i <= len; i++)
+	for (size_t i = 0; i <= len; i++)
 		bstrVal[i] = s[i];
 
 	return *this;

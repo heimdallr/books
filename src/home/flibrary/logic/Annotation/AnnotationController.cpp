@@ -21,8 +21,8 @@ using namespace Flibrary;
 
 namespace {
 
-using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
-constexpr int QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
+constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
 constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Books b on b.SeriesID = s.seriesID and b.BookID = :id";
@@ -129,7 +129,7 @@ private: // IDataProvider
 		return m_archiveData.covers;
 	}
 
-	[[nodiscard]] int GetCoverIndex() const noexcept override
+	[[nodiscard]] std::optional<size_t> GetCoverIndex() const noexcept override
 	{
 		return m_archiveData.coverIndex;
 	}

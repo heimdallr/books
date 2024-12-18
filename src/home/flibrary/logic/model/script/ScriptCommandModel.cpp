@@ -63,7 +63,7 @@ private: // QAbstractItemModel
 			return role == Role::Uid ? m_uid : (assert(false && "unexpected role"), QVariant {});
 
 		assert(index.row() >= 0 && index.row() < rowCount());
-		const auto & item = m_scriptController->GetCommands()[index.row()];
+		const auto & item = m_scriptController->GetCommands()[static_cast<size_t>(index.row())];
 
 		switch (role)
 		{

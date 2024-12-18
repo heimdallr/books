@@ -54,7 +54,7 @@ QVariant ScriptModel::headerData(const int section, const Qt::Orientation orient
 QVariant ScriptModel::data(const QModelIndex & index, const int role) const
 {
 	assert(index.isValid() && index.row() >= 0 && index.row() < rowCount());
-	const auto & item = m_scriptController->GetScripts()[index.row()];
+	const auto & item = m_scriptController->GetScripts()[static_cast<size_t>(index.row())];
 
 	switch (role)
 	{

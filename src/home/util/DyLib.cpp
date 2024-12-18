@@ -23,9 +23,9 @@ bool InnerClose(void * handle)
 	return (0 != ::FreeLibrary(reinterpret_cast<HMODULE>(handle)));
 }
 
-void * InnerGetProc(void * handle, const std::string & procName)
+auto InnerGetProc(void * handle, const std::string & procName)
 {
-	return reinterpret_cast<void *>(::GetProcAddress(reinterpret_cast<HMODULE>(handle), procName.data()));
+	return ::GetProcAddress(reinterpret_cast<HMODULE>(handle), procName.data());
 }
 
 std::string InnerGetErrorDescription()
@@ -37,7 +37,7 @@ std::string InnerGetErrorDescription()
 
 	LPWSTR lpMsg = nullptr;
 	LPVOID lpBuf = &lpMsg;
-	DWORD literalCount = ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)lpBuf, 0, NULL);
+	size_t literalCount = ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)lpBuf, 0, NULL);
 	assert(literalCount > 0);
 
 	while (literalCount > 1 && std::iswspace(lpMsg[literalCount - 1]))
@@ -121,8 +121,7 @@ void * DyLib::GetProc(const std::string & procName)
 		return nullptr;
 	}
 
-	void * const result = InnerGetProc(m_handle, procName);
-	if (result)
+	if (const auto result = InnerGetProc(m_handle, procName))
 	{
 		m_errorDescription.clear();
 		return result;
@@ -132,7 +131,7 @@ void * DyLib::GetProc(const std::string & procName)
 	std::ostringstream stream;
 	stream << "Cannot find entry point '" << procName << "' in '" << m_moduleName.generic_string() << "', additional info: " << InnerGetErrorDescription();
 	m_errorDescription = stream.str();
-	return result;
+	return nullptr;
 }
 
 }

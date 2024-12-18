@@ -35,12 +35,12 @@ public:
 	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
-using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
+using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
 
 struct QueryInfo
 {
 	QueryDataExtractor extractor;
-	const int * index;
+	const size_t * index;
 };
 
 struct QueryDescription

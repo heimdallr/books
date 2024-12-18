@@ -74,13 +74,13 @@ struct ScriptController::Impl
 	Script & GetScript(const int n)
 	{
 		assert(n >= 0 && n < static_cast<int>(scripts.size()));
-		return scripts[n];
+		return scripts[static_cast<size_t>(n)];
 	}
 
 	Command & GetCommand(const int n)
 	{
 		assert(n >= 0 && n < static_cast<int>(commands.size()));
-		return commands[n];
+		return commands[static_cast<size_t>(n)];
 	}
 
 private:
@@ -139,7 +139,7 @@ bool ScriptController::InsertScripts(const int row, const int count)
 	const auto it = std::ranges::max_element(m_impl->scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 
 	Scripts scripts;
-	scripts.reserve(count);
+	scripts.reserve(static_cast<size_t>(count));
 	std::generate_n(std::back_inserter(scripts), count, [n = it == m_impl->scripts.end() ? 0 : it->number] () mutable
 	{
 		return Script { { QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated }, {}, Script::Type::ExportToDevice };
@@ -151,8 +151,8 @@ bool ScriptController::InsertScripts(const int row, const int count)
 bool ScriptController::RemoveScripts(const int row, const int count)
 {
 	bool result = false;
-	for (int i = 0; i < count; ++i)
-		result = Util::Set(m_impl->scripts[row + i].mode, Mode::Removed, *this) || result;
+	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
+		result = Util::Set(m_impl->scripts[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
 
 	return result;
 }
@@ -192,7 +192,7 @@ bool ScriptController::InsertCommand(const QString & uid, const int row, const i
 	auto filtered = m_impl->commands | GetScriptUidFilter(uid);
 	const auto it = std::ranges::max_element(filtered, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
 	Commands commands;
-	commands.reserve(count);
+	commands.reserve(static_cast<size_t>(count));
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number] () mutable
 	{
 		return Command { { QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated }, uid, {}, {}, Command::Type::LaunchApp };
@@ -204,8 +204,8 @@ bool ScriptController::InsertCommand(const QString & uid, const int row, const i
 bool ScriptController::RemoveCommand(const int row, const int count)
 {
 	bool result = false;
-	for (int i = 0; i < count; ++i)
-		result = Util::Set(m_impl->commands[row + i].mode, Mode::Removed, *this) || result;
+	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
+		result = Util::Set(m_impl->commands[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
 
 	return result;
 }

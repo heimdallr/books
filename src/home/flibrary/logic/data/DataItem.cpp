@@ -90,7 +90,7 @@ const QString & DataItem::GetData(const int column) const noexcept
 
 const QString & DataItem::GetRawData(const int column) const noexcept
 {
-	return column >= 0 && column < static_cast<int>(std::size(m_data)) ? m_data[column] : EMPTY_STRING;
+	return column >= 0 && column < static_cast<int>(std::size(m_data)) ? m_data[static_cast<size_t>(column)] : EMPTY_STRING;
 }
 
 const QString & DataItem::GetId() const noexcept
@@ -107,7 +107,7 @@ IDataItem & DataItem::SetId(QString id) noexcept
 IDataItem & DataItem::SetData(QString value, const int column) noexcept
 {
 	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));
-	m_data[column] = std::move(value);
+	m_data[static_cast<size_t>(column)] = std::move(value);
 	return *this;
 }
 
@@ -268,7 +268,7 @@ std::shared_ptr<IDataItem> BookItem::Create(IDataItem * parent)
 
 int BookItem::Remap(const int column) noexcept
 {
-	return mapping->columns[column];
+	return mapping->columns[static_cast<size_t>(column)];
 }
 
 bool BookItem::IsRemoved() const noexcept

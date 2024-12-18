@@ -1969,52 +1969,52 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="30"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="103"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="101"/>
         <source>Create new group...</source>
         <translation>Создать новую группу...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="111"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="109"/>
         <source>Create new search...</source>
         <translation>Новый поиск...</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="147"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="146"/>
         <source>Authors</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="148"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="147"/>
         <source>Series</source>
         <translation>Серии</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="149"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="148"/>
         <source>Genres</source>
         <translation>Жанры</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="149"/>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
         <source>Archives</source>
         <translation>Архивы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
         <source>Groups</source>
         <translation>Группы</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="153"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>

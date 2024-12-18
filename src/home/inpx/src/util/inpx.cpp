@@ -527,7 +527,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 		PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
-	const auto result = std::accumulate(std::cbegin(container), std::cend(container), size_t {0}, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const auto & init, const auto & value)
+	const auto result = std::accumulate(std::cbegin(container), std::cend(container), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const size_t init, const auto & value)
 	{
 		f(cmd, value);
 		const auto localResult = 0
@@ -545,7 +545,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 			PLOGE << db->error_code() << ": " << db->error_msg() << std::endl << value;
 		}
 
-		return init + localResult;
+		return init + static_cast<size_t>(localResult);
 	});
 
 	log();
