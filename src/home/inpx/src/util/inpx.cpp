@@ -566,11 +566,6 @@ size_t Store(const Path & dbFileName, const Data & data)
 		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
 	});
 
-	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", data.settings, [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
-	{
-		cmd.binder() << static_cast<size_t>(item.first) << item.second;
-	});
-
 	return result;
 }
 
