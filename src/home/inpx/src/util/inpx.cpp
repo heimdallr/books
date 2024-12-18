@@ -258,38 +258,6 @@ std::set<size_t> ParseItem(const std::wstring_view data
 	return result;
 }
 
-std::string & TrimRight(std::string & line)
-{
-	while (line.ends_with('\r'))
-		line.pop_back();
-
-	return line;
-}
-
-void ProcessCollectionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
-{
-	for (size_t i = 0, sz = std::size(g_collectionInfoSettings); i < sz; ++i)
-	{
-		if (g_collectionInfoSettings[i] != 0)
-		{
-			if (const auto bytes = stream.readLine(); !bytes.isEmpty())
-			{
-				auto line = bytes.toStdString();
-				settingsTableData[g_collectionInfoSettings[i]] = TrimRight(line);
-			}
-		}
-	}
-}
-
-void ProcessVersionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
-{
-	if (const auto bytes = stream.readLine(); !bytes.isEmpty())
-	{
-		auto line = bytes.toStdString();
-		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
-	}
-}
-
 void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::set<size_t> & idGenres)
 {
 	const auto addGenre = [&index = genresIndex, &genres = data.genres] (std::wstring_view code, std::wstring_view name, const auto parentIt)
@@ -421,39 +389,6 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 {
 	sqlite3pp::query query(db, std::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
 	return std::begin(query) != std::end(query);
-}
-
-SettingsTableData ReadSettings(const Path & dbFileName)
-{
-	SettingsTableData data;
-
-	if (!exists(dbFileName))
-		return data;
-
-	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
-	if (!TableExists(db, "Settings"))
-		return data;
-
-	sqlite3pp::query query(db, "select SettingID, SettingValue from Settings");
-
-	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [] (const auto & row)
-	{
-		int64_t id;
-		const char * value;
-		std::tie(id, value) = row.template get_columns<int64_t, char const *>(0, 1);
-		return std::make_pair(static_cast<uint32_t>(id), std::string(value));
-	});
-
-	data[PROP_SCHEMA_VERSION] = SCHEMA_VERSION_VALUE;
-
-	auto & strDate = data.try_emplace(PROP_CREATIONDATE, std::string()).first->second;
-	strDate.resize(30);
-	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	tm buf{};
-	(void)localtime_s(&buf, &now);
-	(void)std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", &buf);
-
-	return data;
 }
 
 void ExecuteScript(const std::wstring & action, const Path & dbFileName, const Path & scriptFileName)
@@ -946,10 +881,9 @@ private:
 
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 
-		auto settingsTableData = ReadSettings(dbFileName);
 		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 
-		Parse(std::move(settingsTableData));
+		Parse();
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
@@ -997,11 +931,9 @@ private:
 		return newInpxFolders.size();
 	}
 
-	void Parse(SettingsTableData && settingsTableData)
+	void Parse()
 	{
 		Timer t(L"parsing archives");
-
-		m_data.settings = std::move(settingsTableData);
 
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres = std::move(genresData);
@@ -1030,18 +962,6 @@ private:
 			}
 			return std::unique_ptr<Zip>{};
 		}();
-
-		for (const auto & fileName : inpxContent.collectionInfo)
-			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessCollectionInfo(zipDecodedStream, m_data.settings);
-		});
-
-		for (const auto & fileName : inpxContent.versionInfo)
-			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessVersionInfo(zipDecodedStream, m_data.settings);
-		});
 
 		ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 	}

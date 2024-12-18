@@ -22,9 +22,6 @@ DROP TABLE IF EXISTS Keyword_List;
 DROP TABLE IF EXISTS Keywords;
 --@@
 
-DROP TABLE IF EXISTS Settings;
---@@
-
 DROP TABLE IF EXISTS Series;
 --@@
 
@@ -41,12 +38,6 @@ DROP TABLE IF EXISTS Genre_List;
 --@@
 
 DROP TABLE IF EXISTS Author_List;
---@@
-
-CREATE TABLE Settings (
-  SettingID    INTEGER NOT NULL,
-  SettingValue BLOB
-);
 --@@
 
 CREATE TABLE Series (
