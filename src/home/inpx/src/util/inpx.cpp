@@ -464,11 +464,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 
 	const auto result = std::accumulate(std::cbegin(container), std::cend(container), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const size_t init, const auto & value)
 	{
-		f(cmd, value);
-		const auto localResult = 0
-			+ cmd.execute()
-			+ cmd.reset()
-			;
+		const auto localResult = f(cmd, value) + cmd.reset();
 
 		if (localResult == 0)
 		{
@@ -501,20 +497,32 @@ size_t Store(const Path & dbFileName, const Data & data)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
-		const auto last   = Next(it, std::cend(author), NAMES_SEPARATOR);
-		const auto first  = Next(it, std::cend(author), NAMES_SEPARATOR);
-		const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
-		cmd.binder() << id << ToMultiByte(last) << ToMultiByte(first) << ToMultiByte(middle);
+		const auto last   = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+		const auto first  = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+		const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+
+		cmd.bind(1, id);
+		cmd.bind(2, last, sqlite3pp::nocopy);
+		cmd.bind(3, first, sqlite3pp::nocopy);
+		cmd.bind(4, middle, sqlite3pp::nocopy);
+
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		cmd.binder() << item.second << ToMultiByte(item.first);
+		const auto title = ToMultiByte(item.first);
+		cmd.bind(1, item.second);
+		cmd.bind(2, title, sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle) VALUES (?, ?)", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		cmd.binder() << item.second << ToMultiByte(item.first);
+		const auto title = ToMultiByte(item.first);
+		cmd.bind(1, item.second);
+		cmd.bind(2, title, sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	std::vector<size_t> newGenresIndex;
@@ -524,6 +532,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", newGenresIndex | std::views::drop(1), [&genres = data.genres](sqlite3pp::command & cmd, const size_t n)
 	{
 		cmd.binder() << ToMultiByte(genres[n].dbCode) << ToMultiByte(genres[genres[n].parentId].dbCode) << ToMultiByte(genres[n].code) << ToMultiByte(genres[n].name);
+		return cmd.execute();
 	});
 
 	const char * queryText = "INSERT INTO Books ("
@@ -534,36 +543,50 @@ size_t Store(const Path & dbFileName, const Data & data)
 		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
+		const auto libId = ToMultiByte(book.libId);
+		const auto title = ToMultiByte(book.title);
+		const auto date = ToMultiByte(book.date);
+		const auto language = ToMultiByte(book.language);
+		const auto folder = ToMultiByte(book.folder);
+		const auto fileName = ToMultiByte(book.fileName);
+		const auto format = ToMultiByte(book.format);
 																		   cmd.bind( 1, book.id);
-																		   cmd.bind( 2, ToMultiByte(book.libId), sqlite3pp::copy);
-																		   cmd.bind( 3, ToMultiByte(book.title), sqlite3pp::copy);
+																		   cmd.bind( 2, libId, sqlite3pp::nocopy);
+																		   cmd.bind( 3, title, sqlite3pp::nocopy);
 			book.seriesId  == -1  ? cmd.bind( 4, sqlite3pp::null_type()) : cmd.bind( 4, book.seriesId);
 			book.seriesNum == -1  ? cmd.bind( 5, sqlite3pp::null_type()) : cmd.bind( 5, book.seriesNum);
-																		   cmd.bind( 6, ToMultiByte(book.date), sqlite3pp::copy);
+																		   cmd.bind( 6, date, sqlite3pp::nocopy);
 																		   cmd.bind( 7, book.rate);
-																		   cmd.bind( 8, ToMultiByte(book.language), sqlite3pp::copy);
-																		   cmd.bind( 9, ToMultiByte(book.folder), sqlite3pp::copy);
-																		   cmd.bind(10, ToMultiByte(book.fileName), sqlite3pp::copy);
+																		   cmd.bind( 8, language, sqlite3pp::nocopy);
+																		   cmd.bind( 9, folder, sqlite3pp::nocopy);
+																		   cmd.bind(10, fileName, sqlite3pp::nocopy);
 																		   cmd.bind(11, book.insideNo);
-																		   cmd.bind(12, ToMultiByte(book.format), sqlite3pp::copy);
+																		   cmd.bind(12, format, sqlite3pp::nocopy);
 																		   cmd.bind(13, book.size);
 																		   cmd.bind(14, book.isDeleted ? 1 : 0);
+																		   return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", data.booksAuthors, [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Keyword_List", "INSERT INTO Keyword_List (KeywordID, BookID) VALUES(?, ?)", data.booksKeywords, [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
+		return cmd.execute();
 	});
-
-	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", data.booksGenres, [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
+	std::vector<std::string> genres;
+	genres.reserve(std::size(genres));
+	std::ranges::transform(data.genres, std::back_inserter(genres), [] (const auto & item) { return ToMultiByte(item.dbCode); });
+	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", data.booksGenres, [genres = std::move(genres)] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
-		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
+		cmd.bind(1, item.first);
+		cmd.bind(2, genres[item.second], sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	return result;
