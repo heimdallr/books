@@ -21,8 +21,8 @@ using namespace Flibrary;
 
 namespace {
 
-using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
-constexpr int QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
+constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
 constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Books b on b.SeriesID = s.seriesID and b.BookID = :id";
@@ -129,7 +129,7 @@ private: // IDataProvider
 		return m_archiveData.covers;
 	}
 
-	[[nodiscard]] int GetCoverIndex() const noexcept override
+	[[nodiscard]] std::optional<size_t> GetCoverIndex() const noexcept override
 	{
 		return m_archiveData.coverIndex;
 	}
@@ -254,7 +254,7 @@ private:
 			std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 			const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
 			for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
-				exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].push_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+				exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
 
 			ExportStatistics exportStatistics;
 			std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));

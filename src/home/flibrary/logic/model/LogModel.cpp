@@ -144,7 +144,7 @@ private: // QAbstractListModel
 	QVariant data(const QModelIndex & index, const int role) const override
 	{
 		assert(index.isValid());
-		const auto & item = (*s_items)[index.row()];
+		const auto & item = (*s_items)[static_cast<size_t>(index.row())];
 		switch (role)
 		{
 			case Qt::DisplayRole:
@@ -240,7 +240,7 @@ private: // QSortFilterProxyModel
 	bool filterAcceptsRow(const int row, const QModelIndex & /*parent*/) const override
 	{
 		assert(row < static_cast<const QAbstractItemModel &>(m_model).rowCount());
-		return static_cast<int>((*s_items)[row].severity) <= m_logLevel;
+		return static_cast<int>((*s_items)[static_cast<size_t>(row)].severity) <= m_logLevel;
 	}
 
 	bool lessThan(const QModelIndex& lhs, const QModelIndex& rhs) const override

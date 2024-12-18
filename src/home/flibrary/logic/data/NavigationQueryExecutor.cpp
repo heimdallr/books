@@ -37,7 +37,7 @@ constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 
-QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
+QString CreateAuthorTitle(const DB::IQuery & query, const size_t * index)
 {
 	QString title = query.Get<const char *>(index[2]);
 	AppendTitle(title, query.Get<const char *>(index[1]));
@@ -49,7 +49,7 @@ QString CreateAuthorTitle(const DB::IQuery & query, const int * index)
 	return title;
 }
 
-IDataItem::Ptr CreateAuthorItem(const DB::IQuery & query, const int * index)
+IDataItem::Ptr CreateAuthorItem(const DB::IQuery & query, const size_t * index)
 {
 	auto item = NavigationItem::Create();
 
@@ -88,7 +88,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
-			index.emplace(item->GetId(), item);
+			index.try_emplace(item->GetId(), item);
 		}
 
 		IDataItem::Items items;
@@ -128,13 +128,13 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 		auto root = NavigationItem::Create();
 		std::unordered_multimap<QString, IDataItem::Ptr> items;
-		index.emplace("0", root);
+		index.try_emplace("0", root);
 
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto item = items.emplace(query->Get<const char *>(3), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
-			index.emplace(item->GetId(), std::move(item));
+			index.try_emplace(item->GetId(), std::move(item));
 		}
 
 		{
@@ -192,10 +192,10 @@ using NavigationRequest = void (*)(NavigationMode navigationMode
 	);
 
 
-constexpr int NAVIGATION_QUERY_INDEX_AUTHOR[] { 0, 1, 2, 3 };
-constexpr int NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
-constexpr int NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
-constexpr int NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM[] { 0, 0 };
+constexpr size_t NAVIGATION_QUERY_INDEX_AUTHOR[] { 0, 1, 2, 3 };
+constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
+constexpr size_t NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
+constexpr size_t NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM[] { 0, 0 };
 
 constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
 constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
@@ -261,9 +261,9 @@ private: // DB::IDatabaseObserver
 		OnTableUpdate(tableName);
 	}
 	void OnUpdate(std::string_view, std::string_view, int64_t) override{}
-	void OnDelete(std::string_view, const std::string_view tableName, int64_t) override
+	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t id) override
 	{
-		OnTableUpdate(tableName);
+		OnInsert(dbName, tableName, id);
 	}
 
 private:

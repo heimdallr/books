@@ -1,6 +1,6 @@
 #include "PropVariant.h"
-#include <7z/CPP/Common/Defs.h>
 
+#include <7z/CPP/Common/Defs.h>
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
@@ -64,7 +64,7 @@ CPropVariant::CPropVariant(UInt64 value)
 	uhVal.QuadPart = value;
 }
 
-CPropVariant::CPropVariant(const FILETIME & value)
+CPropVariant::CPropVariant(FILETIME value)
 	: PROPVARIANT()
 {
 	vt = VT_FILETIME;
@@ -137,12 +137,12 @@ CPropVariant & CPropVariant::operator=(const char * s)
 	InternalClear();
 	vt = VT_BSTR;
 	wReserved1 = 0;
-	const UINT len = static_cast<UINT>(strlen(s));
-	bstrVal = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len) * sizeof(OLECHAR));
+	const auto len = strlen(s);
+	bstrVal = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len * sizeof(OLECHAR)));
 	if (!bstrVal)
 		throw kMemException;
 
-	for (UINT i = 0; i <= len; i++)
+	for (size_t i = 0; i <= len; i++)
 		bstrVal[i] = s[i];
 
 	return *this;
@@ -161,15 +161,15 @@ CPropVariant & CPropVariant::operator=(const bool bSrc)
 
 #define SET_PROP_FUNC(type, id, dest) \
 CPropVariant& CPropVariant::operator=(type value) \
-	{ if (vt != id) { InternalClear(); vt = id; } \
-		dest = value; return *this; }
+	{ if (vt != (id)) { InternalClear(); vt = id; } \
+		(dest) = value; return *this; }
 
 SET_PROP_FUNC(Byte, VT_UI1, bVal)
 SET_PROP_FUNC(Int16, VT_I2, iVal)
 SET_PROP_FUNC(Int32, VT_I4, lVal)
 SET_PROP_FUNC(UInt32, VT_UI4, ulVal)
 SET_PROP_FUNC(UInt64, VT_UI8, uhVal.QuadPart)
-SET_PROP_FUNC(const FILETIME &, VT_FILETIME, filetime)
+SET_PROP_FUNC(FILETIME, VT_FILETIME, filetime)
 
 static HRESULT MyPropVariantClear(PROPVARIANT * prop)
 {
@@ -282,8 +282,6 @@ int CPropVariant::Compare(const CPropVariant & a) const
 		return MyCompare(vt, a.vt);
 	switch (vt)
 	{
-		case VT_EMPTY: return 0;
-			// case VT_I1: return MyCompare(cVal, a.cVal);
 		case VT_UI1: return MyCompare(bVal, a.bVal);
 		case VT_I2: return MyCompare(iVal, a.iVal);
 		case VT_UI2: return MyCompare(uiVal, a.uiVal);
@@ -294,8 +292,9 @@ int CPropVariant::Compare(const CPropVariant & a) const
 		case VT_UI8: return MyCompare(uhVal.QuadPart, a.uhVal.QuadPart);
 		case VT_BOOL: return -MyCompare(boolVal, a.boolVal);
 		case VT_FILETIME: return ::CompareFileTime(&filetime, &a.filetime);
-		case VT_BSTR:
-			return 0; // Not implemented
+		case VT_EMPTY:
+			// case VT_I1: return MyCompare(cVal, a.cVal);
+		case VT_BSTR: // Not implemented
 			// return MyCompare(aPropVarint.cVal);
 		default: return 0;
 	}

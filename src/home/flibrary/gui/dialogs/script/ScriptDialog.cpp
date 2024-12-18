@@ -190,9 +190,11 @@ private:
 		const auto selection = m_ui.viewScript->selectionModel()->selection().indexes();
 		m_ui.btnRemoveScript->setEnabled(!selection.isEmpty());
 		m_ui.btnAddCommand->setEnabled(selection.count() == 1);
-		m_ui.btnScriptUp->setEnabled(selection.count() == 1 && m_ui.viewScript->currentIndex().row() > 0);
-		m_ui.btnScriptDown->setEnabled(selection.count() == 1 && m_ui.viewScript->currentIndex().isValid() && m_ui.viewScript->currentIndex().row() < m_ui.viewScript->model()->rowCount() - 1);
-		m_commandModel->setData({}, m_ui.viewScript->currentIndex().isValid() ? m_ui.viewScript->currentIndex().data(Role::Uid) : QVariant {}, Role::Uid);
+
+		const auto currentIndex = m_ui.viewScript->currentIndex();
+		m_ui.btnScriptUp->setEnabled(selection.count() == 1 && currentIndex.row() > 0);
+		m_ui.btnScriptDown->setEnabled(selection.count() == 1 && currentIndex.isValid() && currentIndex.row() < m_ui.viewScript->model()->rowCount() - 1);
+		m_commandModel->setData({}, currentIndex.isValid() ? currentIndex.data(Role::Uid) : QVariant {}, Role::Uid);
 		m_ui.viewCommand->setCurrentIndex(m_commandModel->index(0, 1));
 	}
 
@@ -200,8 +202,10 @@ private:
 	{
 		const auto selection = m_ui.viewCommand->selectionModel()->selection().indexes();
 		m_ui.btnRemoveCommand->setEnabled(!selection.isEmpty());
-		m_ui.btnCommandUp->setEnabled(selection.count() == 1 && m_ui.viewCommand->currentIndex().row() > 0);
-		m_ui.btnCommandDown->setEnabled(selection.count() == 1 && m_ui.viewCommand->currentIndex().isValid() && m_ui.viewCommand->currentIndex().row() < m_ui.viewCommand->model()->rowCount() - 1);
+
+		const auto currentIndex = m_ui.viewCommand->currentIndex();
+		m_ui.btnCommandUp->setEnabled(selection.count() == 1 && currentIndex.row() > 0);
+		m_ui.btnCommandDown->setEnabled(selection.count() == 1 && currentIndex.isValid() && currentIndex.row() < m_ui.viewCommand->model()->rowCount() - 1);
 	}
 
 private:

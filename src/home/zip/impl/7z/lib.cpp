@@ -60,7 +60,7 @@ Lib::Lib() = default;
 
 Lib::~Lib() = default;
 
-bool Lib::CreateObject(const GUID& clsID, const GUID& interfaceID, void** outObject ) const
+bool Lib::CreateObject(const GUID& clsID, const GUID& interfaceID, void** outObject ) const //-V835
 {
 	assert(m_impl->func.handle);
 	return SUCCEEDED(m_impl->func.handle(&clsID, &interfaceID, outObject));

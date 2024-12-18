@@ -133,12 +133,12 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton);
 }
 
-QMessageBox::StandardButton UiFactory::ShowQuestion(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowQuestion(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(text, buttons, defaultButton);
 }
 
-QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowWarning(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(text, buttons, defaultButton);
 }
@@ -158,22 +158,22 @@ QString UiFactory::GetText(const QString & title, const QString & label, const Q
 	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, mode);
 }
 
-std::optional<QFont> UiFactory::GetFont(const QString & title, const QFont & font, const QFontDialog::FontDialogOptions options) const
+std::optional<QFont> UiFactory::GetFont(const QString & title, const QFont & font, const QFontDialog::FontDialogOptions & options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }
 
-QString UiFactory::GetOpenFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetOpenFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options & options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileName(key, title, filter, dir, options);
 }
 
-QString UiFactory::GetSaveFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetSaveFileName(const QString & key, const QString & title, const QString & filter, const QString & dir, const QFileDialog::Options & options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetSaveFileName(key, title, filter, dir, options);
 }
 
-QString UiFactory::GetExistingDirectory(const QString & key, const QString & title, const QString & dir, const QFileDialog::Options options) const
+QString UiFactory::GetExistingDirectory(const QString & key, const QString & title, const QString & dir, const QFileDialog::Options & options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetExistingDirectory(key, title, dir, options);
 }

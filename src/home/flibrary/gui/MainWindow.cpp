@@ -44,7 +44,7 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto MAIN_WINDOW = "MainWindow";
-constexpr auto CONTEXT = "MainWindow";
+constexpr auto CONTEXT = MAIN_WINDOW;
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
@@ -119,7 +119,7 @@ public:
 
 			if (!databaseChecker->IsDatabaseValid())
 			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection()->database));
+				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().database));
 				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
 
@@ -212,8 +212,8 @@ private:
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
 			m_logController->SetSeverity(severity.toInt());
 
-		if (const auto activeCollection = m_collectionController->GetActiveCollection())
-			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(activeCollection->name));
+		if (m_collectionController->ActiveCollectionExists())
+			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
 	}
 
 	void ConnectActions()
@@ -378,13 +378,14 @@ private:
 
 		m_ui.menuSelectCollection->clear();
 
-		const auto activeCollection = m_collectionController->GetActiveCollection();
-		if (!activeCollection)
+		if (!m_collectionController->ActiveCollectionExists())
 			return;
+
+		const auto& activeCollection = m_collectionController->GetActiveCollection();
 
 		for (const auto & collection : m_collectionController->GetCollections())
 		{
-			const auto active = collection->id == activeCollection->id;
+			const auto active = collection->id == activeCollection.id;
 			auto * action = m_ui.menuSelectCollection->addAction(collection->name);
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id]
 			{

@@ -33,7 +33,7 @@ private:
 	STDMETHOD(Write)(const void * data, UInt32 size, UInt32 * processedSize) override;
 
 private:
-	long m_refCount { 0 };
+	LONG m_refCount { 0 };
 	QByteArray & m_buffer;
 	std::shared_ptr<ProgressCallback> m_progress;
 };

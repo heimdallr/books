@@ -17,7 +17,7 @@ public:
 
 		const QNetworkRequest request(url);
 		auto * reply = m_manager.get(request);
-		m_replies.emplace(reply, std::make_pair(QNetworkReply::NetworkError::NoError, QString {}));
+		m_replies.try_emplace(reply, std::make_pair(QNetworkReply::NetworkError::NoError, QString {}));
 
 		QObject::connect(reply, &QObject::destroyed, &m_manager, [&, callback = std::move(callback)] (const QObject * obj)
 		{

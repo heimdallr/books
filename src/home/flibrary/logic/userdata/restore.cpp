@@ -78,7 +78,7 @@ public:
 #undef	RESTORE_ITEM
 		};
 		for (const auto & [name, version, creator] : creators)
-			m_restorerCreators[name].emplace(version, creator);
+			m_restorerCreators[name].try_emplace(version, creator);
 
 		Parse();
 		Validate();

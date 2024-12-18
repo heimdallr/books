@@ -56,7 +56,7 @@ private:
 	QString m_password;
 
 	CComPtr<ISequentialOutStream> m_outMemStream;
-	long m_refCount { 0 };
+	LONG m_refCount { 0 };
 	bool m_isDir { false };
 	QString m_filePath;
 };

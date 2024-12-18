@@ -59,13 +59,13 @@ private:
 class XmlStack
 {
 public:
-	void Push(const QStringView tag)
+	void Push(const QStringView tag) //-V801
 	{
 		m_data.push_back(tag.toString());
 		m_key.reset();
 	}
 
-	void Pop(const QStringView tag)
+	void Pop(const QStringView tag) //-V801
 	{
 		assert(!m_data.isEmpty());
 		if (tag != m_data.back())

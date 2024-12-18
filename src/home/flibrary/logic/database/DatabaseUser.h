@@ -35,9 +35,9 @@ public:
 	std::shared_ptr<Util::IExecutor> Executor() const;
 
 public:
-	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const int * index);
-	static IDataItem::Ptr CreateGenreItem(const DB::IQuery & query, const int * index);
-	static IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const int * index);
+	static IDataItem::Ptr CreateSimpleListItem(const DB::IQuery & query, const size_t * index);
+	static IDataItem::Ptr CreateGenreItem(const DB::IQuery & query, const size_t * index);
+	static IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery & query, const size_t * index);
 	static IDataItem::Ptr CreateBookItem(const DB::IQuery & query);
 
 private:

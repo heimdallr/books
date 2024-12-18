@@ -32,7 +32,7 @@ private:
 	STDMETHOD(CryptoGetTextPassword)(BSTR * password) override;
 
 private:
-	long m_refCount { 0 };
+	LONG m_refCount { 0 };
 	QString m_password;
 };
 

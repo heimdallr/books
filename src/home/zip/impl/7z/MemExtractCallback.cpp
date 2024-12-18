@@ -25,7 +25,7 @@ MemExtractCallback::MemExtractCallback(CComPtr<IInArchive> archiveHandler, QByte
 {
 }
 
-STDMETHODIMP MemExtractCallback::QueryInterface(REFIID iid, void ** ppvObject)
+STDMETHODIMP MemExtractCallback::QueryInterface(REFIID iid, void ** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
 	{

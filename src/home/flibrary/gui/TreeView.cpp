@@ -323,7 +323,9 @@ private:
 	{
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
 
-		ITreeViewController::RequestContextMenuOptions options = m_ui.treeView->model()->data({}, Role::IsTree).toBool()
+		const auto & model = *m_ui.treeView->model();
+
+		ITreeViewController::RequestContextMenuOptions options = model.data({}, Role::IsTree).toBool()
 			? ITreeViewController::RequestContextMenuOptions::IsTree
 			: ITreeViewController::RequestContextMenuOptions::None;
 
@@ -332,7 +334,7 @@ private:
 			const auto checkIndex = [&] (const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions onExpanded, const ITreeViewController::RequestContextMenuOptions onCollapsed)
 			{
 				assert(index.isValid());
-				const auto result = m_ui.treeView->model()->rowCount(index) > 0;
+				const auto result = model.rowCount(index) > 0;
 				if (result)
 					options |= m_ui.treeView->isExpanded(index) ? onExpanded : onCollapsed;
 				return result;
@@ -350,9 +352,9 @@ private:
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
 					break;
 
-				for (int i = 0, sz = m_ui.treeView->model()->rowCount(parent); i < sz; ++i)
+				for (int i = 0, sz = model.rowCount(parent); i < sz; ++i)
 				{
-					const auto index = m_ui.treeView->model()->index(i, 0, parent);
+					const auto index = model.index(i, 0, parent);
 					if (checkIndex(index, ITreeViewController::RequestContextMenuOptions::HasExpanded, ITreeViewController::RequestContextMenuOptions::HasCollapsed))
 						stack.push(index);
 				}
@@ -370,7 +372,8 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 		GenerateMenu(menu, *item);
-		menu.exec(QCursor::pos());
+		if (!menu.isEmpty())
+			menu.exec(QCursor::pos());
 	}
 
 	void GenerateMenu(QMenu & menu, const IDataItem & item)
@@ -429,29 +432,29 @@ private:
 		if (m_controller->GetItemType() == ItemType::Books)
 			m_ui.treeView->setHeader(new HeaderView(&m_self));
 
+		auto & treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
-		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
+		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 
 		SetupNewItemButton();
 
-		if (m_controller->GetItemType() == ItemType::Books)
+		if (m_controller->GetItemType() == ItemType::Navigation)
 		{
-			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView));
-			m_ui.treeView->header()->setSectionsClickable(true);
-			m_ui.treeView->header()->setStretchLastSection(false);
-
-			auto * widget = m_ui.treeView->header();
-			widget->setStretchLastSection(false);
-			widget->setContextMenuPolicy(Qt::CustomContextMenu);
-			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
-			{
-				CreateHeaderContextMenu(pos);
-			});
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
 		}
 		else
 		{
-			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView));
+			treeViewHeader.setSectionsClickable(true);
+			treeViewHeader.setStretchLastSection(false);
+
+			treeViewHeader.setStretchLastSection(false);
+			treeViewHeader.setContextMenuPolicy(Qt::CustomContextMenu);
+			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
+			{
+				CreateHeaderContextMenu(pos);
+			});
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
@@ -534,12 +537,13 @@ private:
 		});
 		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
 		{
-			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::TextFilter);
+			auto & model = *m_ui.treeView->model();
+			model.setData({}, m_ui.value->text(), Role::TextFilter);
 			OnCountChanged();
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
-			if (m_ui.treeView->model()->rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
-				m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+			if (model.rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
+				m_ui.treeView->setCurrentIndex(model.index(0, 0));
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
@@ -619,8 +623,8 @@ private:
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
 				{
-					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
-					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
+					widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
+					indices.try_emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
 					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false)
 						? header->hideSection(logicalIndex)
 						: header->showSection(logicalIndex);
@@ -755,10 +759,11 @@ private:
 
 	void Find(const QVariant & value, const int role) const
 	{
-		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+		const auto & model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
-			m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+			m_ui.treeView->setCurrentIndex(model.index(0, 0));
 
 		if (const auto index = m_ui.treeView->currentIndex(); index.isValid())
 			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);

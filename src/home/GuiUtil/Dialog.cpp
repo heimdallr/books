@@ -22,7 +22,7 @@ Dialog::~Dialog()
 	PLOGD << "Dialog destroyed";
 }
 
-QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QString & title, const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QString & title, const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	auto * parent = m_parentProvider->GetWidget();
 	QMessageBox msgBox(parent);
@@ -50,26 +50,26 @@ STANDARD_DIALOG_ITEMS_X_MACRO
 		NO_GET_TEXT(Warning)
 #undef	NO_GET_TEXT
 
-#define NO_SHOW(NAME) QMessageBox::StandardButton NAME##Dialog::Show(const QString & /*text*/ = {}, QMessageBox::StandardButtons /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const { throw std::runtime_error("not implemented"); }
+#define NO_SHOW(NAME) QMessageBox::StandardButton NAME##Dialog::Show(const QString & /*text*/ = {}, const QMessageBox::StandardButtons & /*buttons*/ = QMessageBox::Ok, QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const { throw std::runtime_error("not implemented"); }
 		NO_SHOW(InputText)
 #undef	NO_SHOW
 
-QMessageBox::StandardButton QuestionDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton QuestionDialog::Show(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return Dialog::Show(QMessageBox::Question, Loc::Question(), text, buttons, defaultButton);
 }
 
-QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton WarningDialog::Show(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return Dialog::Show(QMessageBox::Warning, Loc::Warning(), text, buttons, defaultButton);
 }
 
-QMessageBox::StandardButton InfoDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton InfoDialog::Show(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return Dialog::Show(QMessageBox::Information, Loc::Information(), text, buttons, defaultButton);
 }
 
-QMessageBox::StandardButton ErrorDialog::Show(const QString & text, const QMessageBox::StandardButtons buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton ErrorDialog::Show(const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const
 {
 	return Dialog::Show(QMessageBox::Critical, Loc::Error(), text, buttons, defaultButton);
 }

@@ -190,7 +190,7 @@ private:
 
 			archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
-				m_files.emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
+				m_files.try_emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
 		}
 	}
 

@@ -300,7 +300,7 @@ private: // IContextMenuHandler
 
 	void AddToNewGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
+		AddToGroup(model, index, indexList, std::move(item), std::move(callback));
 	}
 
 	void AddToGroup(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -315,7 +315,7 @@ private: // IContextMenuHandler
 
 	void RemoveFromAllGroups(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
+		RemoveFromGroup(model, index, indexList, std::move(item), std::move(callback));
 	}
 
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -431,7 +431,7 @@ private:
 		});
 	}
 
-	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction & f) const
+	void GroupAction(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
 		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)]
@@ -489,10 +489,10 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 		Add(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		Add(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto node = Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
-		node->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto node = Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed))
-		node->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
+		Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll)->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed))
+		Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll)->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings

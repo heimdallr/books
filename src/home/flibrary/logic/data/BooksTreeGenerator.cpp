@@ -62,14 +62,14 @@ struct UnorderedSetHash
 {
 	size_t operator()(const std::unordered_set<T> & key) const
 	{
-		return std::accumulate(std::cbegin(key), std::cend(key), size_t { 0 }, [] (const size_t init, const T & item)
+		return std::accumulate(std::cbegin(key), std::cend(key), static_cast<size_t>(0), [] (const size_t init, const T & item)
 		{
 			return std::rotr(init, 1) ^ std::hash<T>()(item);
 		});
 	}
 };
 
-constexpr int BOOK_QUERY_TO_AUTHOR[]
+constexpr size_t BOOK_QUERY_TO_AUTHOR[]
 {
 	BookQueryFields::AuthorId,
 	BookQueryFields::AuthorLastName,
@@ -78,8 +78,8 @@ constexpr int BOOK_QUERY_TO_AUTHOR[]
 	BookQueryFields::AuthorMiddleName,
 };
 
-constexpr int BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
-constexpr int BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle, BookQueryFields::GenreFB2Code };
+constexpr size_t BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
+constexpr size_t BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle, BookQueryFields::GenreFB2Code };
 
 IDataItem::Ptr CreateBooksRoot()
 {
@@ -94,11 +94,8 @@ IDataItem::Ptr CreateBooksRoot()
 template<typename KeyType, typename BindType = KeyType>
 std::optional<KeyType> UpdateDictionary(std::unordered_map<KeyType, IDataItem::Ptr> & dictionary
 	, const DB::IQuery & query
-	, const QueryInfo & queryInfo
-	, const std::function<bool(const IDataItem &)> & filter = [] (const IDataItem &)
-{
-	return true;
-}
+	, const QueryInfo queryInfo
+	, const std::function<bool(const IDataItem &)> & filter = [] (const IDataItem &) { return true; }
 )
 {
 	auto key = query.Get<BindType>(queryInfo.index[0]);

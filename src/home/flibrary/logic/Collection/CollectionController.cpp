@@ -142,10 +142,9 @@ public:
 		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Cancel)
 			return;
 
-		const auto collection = GetActiveCollection();
-		assert(collection);
-		const auto id = collection->id;
-		auto db = collection->database;
+		const auto& collection = GetActiveCollection();
+		const auto id = collection.id;
+		auto db = collection.database;
 		if (const auto [begin, end] = std::ranges::remove_if(m_collections, [&] (const auto & item)
 		{
 			return item->id == id;
@@ -198,19 +197,32 @@ public:
 		}
 	}
 
-	std::optional<const Collection> GetActiveCollection() const noexcept
+	const Collection& GetActiveCollection() const noexcept
 	{
-		return FindCollectionById(CollectionImpl::GetActive(*m_settings));
+		const auto collection = FindCollectionById(GetActiveCollectionId());
+		assert(collection);
+		return *collection;
 	}
 
-	std::optional<const Collection> FindCollectionById(const QString & id) const noexcept
+	bool ActiveCollectionExists() const noexcept
 	{
-		const auto it = std::ranges::find_if(m_collections, [&] (const auto & item)
-		{
-			return item->id == id;
-		});
+		const auto collection = FindCollectionById(GetActiveCollectionId());
+		return !!collection;
+	}
 
-		return it != std::cend(m_collections) ? **it : std::optional<const Collection>{};
+	const Collection* FindCollectionById(const QString & id) const noexcept
+	{
+		const auto it = std::ranges::find(m_collections, id, [&] (const auto & item) { return item->id; });
+		if (it == std::cend(m_collections))
+			return nullptr;
+
+		const auto & collection = **it;
+		return &collection;
+	}
+
+	QString GetActiveCollectionId() const noexcept
+	{
+		return CollectionImpl::GetActive(*m_settings);
 	}
 
 private:
@@ -257,19 +269,18 @@ private:
 
 	void UpdateCollection(const Collection & updatedCollection)
 	{
-		const auto collection = GetActiveCollection();
-		assert(collection);
+		const auto& collection = GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto & parserRef = *parser;
-		auto [tmpDir, ini] = GetIniMap(collection->database, collection->folder, true);
-		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection->name] (const Inpx::UpdateResult & updateResult) mutable
+		auto [tmpDir, ini] = GetIniMap(collection.database, collection.folder, true);
+		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name] (const Inpx::UpdateResult & updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
 			Perform(&IObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&IObserver::OnNewCollectionCreating, true);
-		parserRef.UpdateCollection(GetIniMap(collection->database, collection->folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+		parserRef.UpdateCollection(GetIniMap(collection.database, collection.folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
 	}
 
 	void ShowUpdateResult(const Inpx::UpdateResult & updateResult, const QString & name, const char * action)
@@ -359,15 +370,19 @@ const Collections & CollectionController::GetCollections() const noexcept
 	return m_impl->GetCollections();
 }
 
-std::optional<const Collection> CollectionController::GetActiveCollection() const noexcept
+const Collection& CollectionController::GetActiveCollection() const noexcept
 {
 	return m_impl->GetActiveCollection();
 }
 
-QString CollectionController::GetActiveCollectionId() const
+bool CollectionController::ActiveCollectionExists() const noexcept
 {
-	const auto activeCollection = GetActiveCollection();
-	return activeCollection ? activeCollection->id : QString {};
+	return m_impl->ActiveCollectionExists();
+}
+
+QString CollectionController::GetActiveCollectionId() const noexcept
+{
+	return m_impl->GetActiveCollectionId();
 }
 
 void CollectionController::SetActiveCollection(const QString & id)

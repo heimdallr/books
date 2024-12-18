@@ -23,7 +23,7 @@ QString GetFileHash(const QString & fileName)
 		return {};
 
 	constexpr auto size = 1024ll * 32;
-	const std::unique_ptr<char[]> buf(new char[size]);
+	const auto buf = std::make_unique<char[]>(size);
 
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 
@@ -52,16 +52,17 @@ QStringList GetDbFolders(DB::IDatabase & db)
 
 QStringList GetInpxFolders(const ICollectionController & collectionController, Collection & updatedCollection)
 {
-	const auto collection = collectionController.GetActiveCollection();
-	if (!collection)
+	if (!collectionController.ActiveCollectionExists())
 		return {};
 
-	updatedCollection = *collection;
-	const auto inpxFileName = collectionController.GetInpx(collection->folder);
+	const auto& collection = collectionController.GetActiveCollection();
+
+	updatedCollection = collection;
+	const auto inpxFileName = collectionController.GetInpx(collection.folder);
 	if (inpxFileName.isEmpty())
 		return {};
 
-	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileName); updatedCollection.discardedUpdate == collection->discardedUpdate)
+	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileName); updatedCollection.discardedUpdate == collection.discardedUpdate)
 		return {};
 
 	QStringList folders;
@@ -116,7 +117,6 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute({ "Check for collection index updated", [&, db = std::move(db), callback = std::move(callback)] () mutable
 	{
-		const auto collection = m_impl->collectionController->GetActiveCollection();
 		Collection updatedCollection;
 		QStringList addedFolders;
 		auto getResult = [&]()
@@ -135,7 +135,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			};
 		};
 
-		if (!collection)
+		if (!m_impl->collectionController->ActiveCollectionExists())
 			return getResult();
 
 		const auto inpxFolders = GetInpxFolders(*m_impl->collectionController, updatedCollection);

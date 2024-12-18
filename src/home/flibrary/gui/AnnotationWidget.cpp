@@ -154,7 +154,7 @@ QString Urls(const char * type, const IDataItem & parent, const TitleGetter tile
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
 		const auto item = parent.GetChild(i);
-		urls.push_back(Url(type, item->GetId(), tileGetter(*item)));
+		urls.emplace_back(Url(type, item->GetId(), tileGetter(*item)));
 	}
 
 	return Join(urls);
@@ -279,8 +279,10 @@ public:
 			switch (3 * pos.x() / m_ui.cover->width())
 			{
 				case 0:
-					if (--m_currentCoverIndex < 0)
-						m_currentCoverIndex = static_cast<int>(m_covers.size()) - 1;
+					if (*m_currentCoverIndex == 0)
+						m_currentCoverIndex = m_covers.size() - 1;
+					else
+						--*m_currentCoverIndex;
 					break;
 
 				case 1:
@@ -288,7 +290,7 @@ public:
 					break;
 
 				case 2:
-					if (++m_currentCoverIndex >= static_cast<int>(m_covers.size()))
+					if (++*m_currentCoverIndex >= m_covers.size())
 						m_currentCoverIndex = 0;
 					break;
 
@@ -307,7 +309,7 @@ public:
 		const auto openImage = [this]
 		{
 			assert(!m_covers.empty());
-			const auto & [name, bytes] = m_covers[m_currentCoverIndex];
+			const auto & [name, bytes] = m_covers[*m_currentCoverIndex];
 			auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
 			if (const QFileInfo fileInfo(path); fileInfo.suffix().isEmpty())
 				path += ".jpg";
@@ -327,7 +329,7 @@ public:
 			assert(!m_covers.empty());
 
 			QPixmap pixmap;
-			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes);
+			[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes);
 			QGuiApplication::clipboard()->setImage(pixmap.toImage());
 		});
 
@@ -335,7 +337,7 @@ public:
 		{
 			assert(!m_covers.empty());
 			if (const auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
-				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
+				SaveImage(fileName, m_covers[*m_currentCoverIndex].bytes);
 		});
 
 		connect(m_ui.actionSaveAllImages, &QAction::triggered, &m_self, [this]
@@ -409,7 +411,7 @@ public:
 		auto imgWidth = m_ui.mainWidget->width() / 3;
 
 		QPixmap pixmap;
-		if (!pixmap.loadFromData(m_covers[m_currentCoverIndex].bytes))
+		if (!pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
 		{
 			const auto defaultSize = m_svgRenderer.defaultSize();
 			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
@@ -454,13 +456,15 @@ private: // IAnnotationController::IObserver
 		m_ui.cover->setCursor(Qt::ArrowCursor);
 		m_ui.info->setText({});
 		m_covers.clear();
-		m_currentCoverIndex = m_coverIndex = -1;
+		m_currentCoverIndex.reset();
+		m_coverIndex.reset();
 	}
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider & dataProvider) override
 	{
+		const auto & book = dataProvider.GetBook();
 		QString annotation;
-		Add(annotation, dataProvider.GetBook().GetRawData(BookItem::Column::Title), TITLE_PATTERN);
+		Add(annotation, book.GetRawData(BookItem::Column::Title), TITLE_PATTERN);
 		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 		Add(annotation, dataProvider.GetAnnotation());
@@ -469,11 +473,13 @@ private: // IAnnotationController::IObserver
 		if (keywords.GetChildCount() == 0)
 			Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
+		const auto & folder = book.GetRawData(BookItem::Column::Folder);
+
 		Add(annotation, Table()
 			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 			.Add(SERIES, Url(SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
 			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
-			.Add(ARCHIVE, Url(ARCHIVE, dataProvider.GetBook().GetRawData(BookItem::Column::Folder), dataProvider.GetBook().GetRawData(BookItem::Column::Folder)))
+			.Add(ARCHIVE, Url(ARCHIVE, folder, folder))
 			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
 			.Add(KEYWORDS, Urls(KEYWORDS, keywords))
 			.ToString());
@@ -492,7 +498,7 @@ private: // IAnnotationController::IObserver
 		{
 			const auto addRate = [&] (Table & info, const char * name, const int column)
 			{
-				const auto rate = dataProvider.GetBook().GetRawData(column).toInt();
+				const auto rate = book.GetRawData(column).toInt();
 				if (rate <= 0 || rate > 5)
 					return;
 
@@ -508,9 +514,9 @@ private: // IAnnotationController::IObserver
 			};
 
 			auto info = Table()
-				.Add(FILENAME, dataProvider.GetBook().GetRawData(BookItem::Column::FileName))
+				.Add(FILENAME, book.GetRawData(BookItem::Column::FileName))
 				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
-				.Add(UPDATED, dataProvider.GetBook().GetRawData(BookItem::Column::UpdateDate));
+				.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);
 			if (!m_covers.empty())
@@ -552,7 +558,7 @@ private: // IAnnotationController::IObserver
 		if (m_covers.empty())
 			return;
 
-		if (m_coverIndex = dataProvider.GetCoverIndex(); m_coverIndex < 0)
+		if (m_coverIndex = dataProvider.GetCoverIndex(); !m_coverIndex)
 			m_coverIndex = 0;
 		m_currentCoverIndex = m_coverIndex;
 
@@ -619,8 +625,8 @@ private:
 	IAnnotationController::IDataProvider::Covers m_covers;
 	QSvgRenderer m_svgRenderer { QString(":/icons/unsupported_image.svg") };
 	const QString m_currentCollectionId;
-	int m_coverIndex { -1 };
-	int m_currentCoverIndex { -1 };
+	std::optional<size_t> m_coverIndex;
+	std::optional<size_t> m_currentCoverIndex;
 	bool m_showContent { true };
 	bool m_showCover { true };
 	Util::FunctorExecutionForwarder m_forwarder;

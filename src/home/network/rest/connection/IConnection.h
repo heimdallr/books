@@ -12,7 +12,7 @@ namespace HomeCompa::RestAPI {
 struct IConnection  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Headers = std::map<std::string, std::string>;
+	using Headers = std::map<std::string, std::string, std::less<>>;
 
 public:
 	class IObserver : public Observer

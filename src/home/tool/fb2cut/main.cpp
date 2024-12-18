@@ -236,7 +236,7 @@ private:
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
 
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
-			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, errorText, "fb2", false), true;
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), "fb2", false), true;
 
 		if (!m_settings.saveFb2)
 			return false;
@@ -861,7 +861,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 
 bool run(int argc, char * argv[])
 {
-	const QApplication app(argc, argv);
+	const QApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
@@ -881,7 +881,7 @@ bool run(int argc, char * argv[])
 			DiInit(builder, container);
 		}
 
-		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>());
+		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
 		const auto mainWindow = container->resolve<MainWindow>();
 		mainWindow->SetSettings(&settings.settings);
 		mainWindow->show();

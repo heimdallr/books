@@ -65,7 +65,7 @@ void BaseConnection::Get(const std::string & request)
 
 const std::string & BaseConnection::Url() const noexcept
 {
-	return m_impl->address;
+	return GetAddress();
 }
 
 const IConnection::Headers & BaseConnection::GetHeaders() const noexcept

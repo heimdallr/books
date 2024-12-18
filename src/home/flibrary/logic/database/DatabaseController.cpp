@@ -36,11 +36,11 @@ void AddUserTableField(DB::ITransaction & transaction, const QString & table, co
 {
 	std::set<std::string> booksUserFields;
 	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
-	auto range = std::views::iota(0, static_cast<int>(booksUserFieldsQuery->ColumnCount()));
-	const auto it = std::ranges::find(range, "name", [&] (const int n) { return booksUserFieldsQuery->ColumnName(n); });
+	auto range = std::views::iota(std::size_t { 0 }, booksUserFieldsQuery->ColumnCount());
+	const auto it = std::ranges::find(range, "name", [&] (const size_t n) { return booksUserFieldsQuery->ColumnName(n); });
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
-		booksUserFields.insert(booksUserFieldsQuery->GetString(*it));
+		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
 	if (!booksUserFields.contains(column.toStdString()))
 		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
 }
@@ -131,7 +131,7 @@ private: // ICollectionController::IObserver
 	void OnActiveCollectionChanged() override
 	{
 		const auto collection = m_collectionController->GetActiveCollection();
-		m_databaseFileName = collection ? collection->database : QString{};
+		m_databaseFileName = m_collectionController->ActiveCollectionExists() ? m_collectionController->GetActiveCollection().database : QString {};
 		if (m_db)
 			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);

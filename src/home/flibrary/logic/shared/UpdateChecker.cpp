@@ -109,7 +109,7 @@ private:
 	{
 		const auto currentDateTime = QDateTime::currentDateTime();
 		if (const auto lastCheckVar = m_settings->Get(LAST_UPDATE_CHECK_KEY); lastCheckVar.isValid())
-			if (const auto lastCheckDateTime = QDateTime::fromString(lastCheckVar.toString(), Qt::ISODate); lastCheckDateTime.isValid() && lastCheckDateTime.addDays(1) > currentDateTime)
+			if (const auto lastCheckDateTime = QDateTime::fromString(lastCheckVar.toString(), Qt::ISODate); lastCheckDateTime.isValid() && lastCheckDateTime > currentDateTime.addDays(-1))
 				return false;
 
 		m_settings->Set(LAST_UPDATE_CHECK_KEY, currentDateTime.toString(Qt::ISODate));
@@ -189,15 +189,17 @@ private:
 
 	void ShowUpdateMessage()
 	{
-		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons
-		{
-			{ QMessageBox::AcceptRole, Tr(DOWNLOAD) },
-			{ QMessageBox::DestructiveRole, Tr(VISIT_HOME) },
-			{ QMessageBox::ActionRole, Tr(SKIP) },
-			{ QMessageBox::RejectRole, Tr(CANCEL) },
+		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
+		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
+			buttons.emplace_back(QMessageBox::AcceptRole, Tr(DOWNLOAD));
+
+		static constexpr std::pair<QMessageBox::ButtonRole, const char*> buttonSettings[] {
+			{ QMessageBox::DestructiveRole, VISIT_HOME },
+			{ QMessageBox::ActionRole, SKIP },
+			{ QMessageBox::RejectRole, CANCEL },
 		};
-		if (m_release.assets.empty() || m_release.assets.front().browser_download_url.isEmpty())
-			buttons.erase(buttons.begin());
+		buttons.reserve(buttons.size() + std::size(buttonSettings));
+		std::ranges::transform(buttonSettings, std::back_inserter(buttons), [] (auto item) { return std::make_pair(item.first, Tr(item.second)); });
 
 		const auto defaultRole = buttons.front().first;
 
@@ -289,7 +291,7 @@ private:
 						}
 					});
 				}
-			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable
+			, [this, progressItem = std::shared_ptr<IProgressController::IProgressItem>{}, bytesReceivedLast = int64_t{0}] (const int64_t bytesReceived, const int64_t bytesTotal, bool & stopped) mutable //-V788
 				{
 					if (!progressItem)
 						progressItem = m_progressController->Add(bytesTotal);

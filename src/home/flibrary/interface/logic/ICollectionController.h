@@ -47,8 +47,9 @@ public:
 	[[nodiscard]] virtual bool IsCollectionFolderHasInpx(const QString & archiveFolder) const = 0;
 
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
-	[[nodiscard]] virtual std::optional<const Collection> GetActiveCollection() const noexcept = 0;
-	[[nodiscard]] virtual QString GetActiveCollectionId() const = 0;
+	[[nodiscard]] virtual const Collection& GetActiveCollection() const noexcept = 0;
+	[[nodiscard]] virtual bool ActiveCollectionExists() const noexcept = 0;
+	[[nodiscard]] virtual QString GetActiveCollectionId() const noexcept = 0;
 	virtual void SetActiveCollection(const QString & id) = 0;
 	virtual void OnInpxUpdateFound(const Collection & updatedCollection) = 0;
 

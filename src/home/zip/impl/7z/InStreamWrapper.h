@@ -30,7 +30,7 @@ private:
 	STDMETHOD(GetSize)(UInt64 * size) override;
 
 private:
-	long m_refCount { 0 };
+	LONG m_refCount { 0 };
 	CComPtr<IStream> m_baseStream;
 };
 
