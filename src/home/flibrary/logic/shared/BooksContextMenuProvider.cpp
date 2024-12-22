@@ -56,6 +56,7 @@ constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 
+constexpr auto CANNOT_SET_USER_RATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_REMOVE_BOOK             = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
 constexpr auto REMOVE                         = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
 constexpr auto RESTORE                        = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
@@ -339,21 +340,25 @@ private: // IContextMenuHandler
 				return ok ? value : 0;
 			}();
 
-			for (const auto & id : ids)
+			auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&] (const bool init, const auto id)
 			{
 				command->Bind(":id", id);
 				if (rate)
 					command->Bind(":user_rate", rate);
 				else
 					command->Bind(":user_rate");
-				command->Execute();
-			}
-			transaction->Commit();
+				return command->Execute() && init;
+			});
+			ok = transaction->Commit() && ok;
 
-			return [this, item = std::move(item), callback = std::move(callback)] (size_t)
+			return [this, item = std::move(item), callback = std::move(callback), ok] (size_t)
 			{
+				if (!ok)
+					m_uiFactory->ShowError(Tr(CANNOT_SET_USER_RATE));
+
 				callback(item);
-				m_dataProvider->RequestBooks(true);
+				if (ok)
+					m_dataProvider->RequestBooks(true);
 			};
 		} });
 	}
