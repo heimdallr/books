@@ -26,9 +26,10 @@ public:
 	}
 
 private: // Query
-	void Execute() override
+	bool Execute() override
 	{
 		m_it = m_query.begin();
+		return true;
 	}
 
 	bool Eof() override
