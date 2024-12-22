@@ -72,13 +72,17 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		AddUserTableField(*transaction, "Searches_User", "CreatedAt", "DATETIME");
 
 		transaction->Commit();
+		return db;
+	}
+	catch(const std::exception & ex)
+	{
+		PLOGE << ex.what();
 	}
 	catch(...)
 	{
-		return {};
+		PLOGE << "Unknown error";
 	}
-
-	return db;
+	return {};
 }
 
 }

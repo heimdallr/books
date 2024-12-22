@@ -163,10 +163,22 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
 	auto readerController = ILogicFactory::Lock(m_impl->logicFactory)->CreateReaderController();
 	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [this, readerController, id = index.data(Role::Id).toInt()]() mutable
 	{
+		try
+		{
+			const auto query = m_impl->databaseUser->Database()->CreateQuery(ExportStat::INSERT_QUERY);
+			query->Bind(0, id);
+			query->Bind(1, static_cast<int>(ExportStat::Type::Read));
+			query->Execute();
+		}
+		catch(const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch(...)
+		{
+			PLOGE << "Unknown error";
+		}
+
 		readerController.reset();
-		const auto query = m_impl->databaseUser->Database()->CreateQuery(ExportStat::INSERT_QUERY);
-		query->Bind(0, id);
-		query->Bind(1, static_cast<int>(ExportStat::Type::Read));
-		query->Execute();
 	});
 }
