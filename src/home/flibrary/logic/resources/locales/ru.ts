@@ -136,6 +136,26 @@
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
+        <source>Cannot set rate</source>
+        <translation>Не удалось поставить оценку</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="60"/>
+        <source>Books %1 failed</source>
+        <translation>Не удалось %1 книгу</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
+        <source>removing</source>
+        <translation>удалить</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
+        <source>restoring</source>
+        <translation>восстановить</translation>
+    </message>
 </context>
 <context>
     <name>Books</name>
@@ -1965,6 +1985,26 @@ Try again?</source>
         <translation>Группа %1 уже есть.
 Попробуете ещё раз?</translation>
     </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
+        <source>Cannot create group</source>
+        <translation>Не удалось создать группу</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
+        <source>Cannot remove groups</source>
+        <translation>Не удалось удалить группу</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
+        <source>Cannot add book to group</source>
+        <translation>Не удалось добавить книгу в группу</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
+        <source>Cannot remove books from group</source>
+        <translation>Не удалось удалить книгу из группы</translation>
+    </message>
 </context>
 <context>
     <name>Navigation</name>
@@ -2092,20 +2132,25 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <source>Cannot remove search query</source>
+        <translation>Не удалось удалить поисковый запрос</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query too long.
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation>Поисковый запрос %1 уже есть.
