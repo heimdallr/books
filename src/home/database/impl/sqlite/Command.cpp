@@ -22,10 +22,11 @@ public:
 	}
 
 private: // DB::Command
-	void Execute() override
+	bool Execute() override
 	{
-		m_command.execute();
+		const auto ok = m_command.execute() == 0;
 		m_command.reset();
+		return ok;
 	}
 
 	int Bind(const size_t index) override

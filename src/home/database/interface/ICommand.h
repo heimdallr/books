@@ -16,7 +16,7 @@ public:
 	virtual ~ICommand() = default;
 
 public:
-	virtual void Execute() = 0;
+	virtual bool Execute() = 0;
 
 	virtual int Bind(size_t index) = 0;
 	virtual int BindInt(size_t index, int value) = 0;

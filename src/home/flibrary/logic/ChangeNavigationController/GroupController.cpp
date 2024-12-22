@@ -23,6 +23,10 @@ constexpr auto NEW_GROUP_NAME = QT_TRANSLATE_NOOP("GroupController", "New group"
 constexpr auto REMOVE_GROUP_CONFIRM = QT_TRANSLATE_NOOP("GroupController", "Are you sure you want to delete the groups (%1)?");
 constexpr auto GROUP_NAME_TOO_LONG = QT_TRANSLATE_NOOP("GroupController", "Group name too long.\nTry again?");
 constexpr auto GROUP_ALREADY_EXISTS = QT_TRANSLATE_NOOP("GroupController", "Group %1 already exists.\nTry again?");
+constexpr auto CANNOT_CREATE_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot create group");
+constexpr auto CANNOT_REMOVE_GROUPS = QT_TRANSLATE_NOOP("GroupController", "Cannot remove groups");
+constexpr auto CANNOT_ADD_BOOK_TO_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot add book to group");
+constexpr auto CANNOT_REMOVE_BOOKS_FROM_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot remove books from group");
 
 constexpr auto CREATE_NEW_GROUP_QUERY = "insert into Groups_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
@@ -37,10 +41,10 @@ long long CreateNewGroupImpl(DB::ITransaction & transaction, const QString & nam
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(CREATE_NEW_GROUP_QUERY);
 	command->Bind(0, name.toStdString());
-	command->Execute();
+	if (!command->Execute())
+		return 0;
 
 	const auto query = transaction.CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
-	query->Execute();
 	return query->Get<long long>(0);
 }
 
@@ -85,11 +89,14 @@ struct GroupController::Impl
 		{
 			const auto db = databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
-			CreateNewGroupImpl(*transaction, name);
-			transaction->Commit();
+			auto ok = CreateNewGroupImpl(*transaction, name) > 0;
+			ok = transaction->Commit() && ok;
 
-			return [callback = std::move(callback)] (size_t)
+			return [this, callback = std::move(callback), ok] (size_t)
 			{
+				if (!ok)
+					uiFactory->ShowError(Tr(CANNOT_CREATE_GROUP));
+
 				callback();
 			};
 		} });
@@ -101,22 +108,40 @@ struct GroupController::Impl
 		{
 			const auto db = databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
+
+			auto errorMessage = std::make_shared<QString>();
+			std::function result = [this, callback = std::move(callback), errorMessage] (size_t)
+			{
+				if (!errorMessage->isEmpty())
+					uiFactory->ShowError(*errorMessage);
+
+				callback();
+			};
+
+
 			if (id < 0)
 				id = CreateNewGroupImpl(*transaction, name);
 
+			if (id == 0)
+			{
+				*errorMessage = Tr(CANNOT_CREATE_GROUP);
+				return result;
+			}
+
 			const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
+			bool ok = true;
 			std::ranges::for_each(ids, [&] (const Id idBook)
 			{
 				command->Bind(0, id);
 				command->Bind(1, idBook);
-				command->Execute();
+				ok = command->Execute() && ok;
 			});
-			transaction->Commit();
+			ok = transaction->Commit() && ok;
 
-			return [callback = std::move(callback)] (size_t)
-			{
-				callback();
-			};
+			if (!ok)
+				*errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);
+
+			return result;
 		} });
 	}
 
@@ -190,15 +215,18 @@ void GroupController::Remove(Ids ids, Callback callback) const
 		const auto transaction = db->CreateTransaction();
 		const auto command = transaction->CreateCommand(REMOVE_GROUP_QUERY);
 
-		for (const auto & id : ids)
+		auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&] (const bool init, const Id id)
 		{
 			command->Bind(0, id);
-			command->Execute();
-		}
-		transaction->Commit();
+			return command->Execute() && init;
+		});
+		ok = transaction->Commit() && ok;
 
-		return [callback = std::move(callback)] (size_t)
+		return [this, callback = std::move(callback), ok] (size_t)
 		{
+			if (!ok)
+				m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_GROUPS));
+
 			callback();
 		};
 	} });
@@ -230,17 +258,22 @@ void GroupController::RemoveFromGroup(Id id, Ids ids, Callback callback) const
 		const auto db = m_impl->databaseUser->Database();
 		const auto transaction = db->CreateTransaction();
 		const auto command = transaction->CreateCommand(queryText);
-		std::ranges::for_each(ids, [&] (const Id idBook)
+		auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&] (const bool init, const Id idBook)
 		{
 			command->Bind(0, idBook);
 			if (id >= 0)
 				command->Bind(1, id);
 
-			command->Execute();
+			return command->Execute() && init;
 		});
+		ok = transaction->Commit() && ok;
 
-		transaction->Commit();
+		return [this, callback = std::move(callback), ok] (size_t)
+		{
+			if (!ok)
+				m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
 
-		return [](size_t) { };
+			callback();
+		};
 	} });
 }

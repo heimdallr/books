@@ -55,6 +55,12 @@ constexpr auto     TREE_EXPAND_ALL            = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+
+constexpr auto CANNOT_SET_USER_RATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
+constexpr auto CANNOT_REMOVE_BOOK             = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
+constexpr auto REMOVE                         = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
+constexpr auto RESTORE                        = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
+
 TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
@@ -198,7 +204,7 @@ public:
 	}
 
 public:
-	void Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
+	void Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback) const
 	{
 		auto scripts = m_scriptController->GetScripts();
 		std::ranges::sort(scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
@@ -334,21 +340,25 @@ private: // IContextMenuHandler
 				return ok ? value : 0;
 			}();
 
-			for (const auto & id : ids)
+			auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&] (const bool init, const auto id)
 			{
 				command->Bind(":id", id);
 				if (rate)
 					command->Bind(":user_rate", rate);
 				else
 					command->Bind(":user_rate");
-				command->Execute();
-			}
-			transaction->Commit();
+				return command->Execute() && init;
+			});
+			ok = transaction->Commit() && ok;
 
-			return [this, item = std::move(item), callback = std::move(callback)] (size_t)
+			return [this, item = std::move(item), callback = std::move(callback), ok] (size_t)
 			{
+				if (!ok)
+					m_uiFactory->ShowError(Tr(CANNOT_SET_USER_RATE));
+
 				callback(item);
-				m_dataProvider->RequestBooks(true);
+				if (ok)
+					m_dataProvider->RequestBooks(true);
 			};
 		} });
 	}
@@ -454,6 +464,7 @@ private:
 	{
 		m_databaseUser->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove] () mutable
 		{
+			bool ok = true;
 			const auto db = m_databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
 			const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) values(:id, :is_deleted, datetime(CURRENT_TIMESTAMP, 'localtime'))");
@@ -461,14 +472,18 @@ private:
 			{
 				command->Bind(":id", id);
 				command->Bind(":is_deleted", remove ? 1 : 0);
-				command->Execute();
+				ok = command->Execute() && ok;
 			}
-			transaction->Commit();
+			ok = transaction->Commit() && ok;
 
-			return [this, item = std::move(item), callback = std::move(callback)] (size_t)
+			return [this, item = std::move(item), callback = std::move(callback), remove, ok] (size_t)
 			{
+				if (!ok)
+					m_uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOK).arg(Tr(remove ? REMOVE : RESTORE)));
+
 				callback(item);
-				m_dataProvider->RequestBooks(true);
+				if (ok)
+					m_dataProvider->RequestBooks(true);
 			};
 		} });
 	}

@@ -136,6 +136,26 @@
         <source>Select destination folder</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
+        <source>Cannot set rate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="60"/>
+        <source>Books %1 failed</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
+        <source>removing</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
+        <source>restoring</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Books</name>
@@ -1962,6 +1982,26 @@ Try again?</source>
 Try again?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
+        <source>Cannot create group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
+        <source>Cannot remove groups</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
+        <source>Cannot add book to group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
+        <source>Cannot remove books from group</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Navigation</name>
@@ -2089,18 +2129,23 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <source>Cannot remove search query</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation></translation>
