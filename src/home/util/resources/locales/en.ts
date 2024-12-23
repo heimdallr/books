@@ -23,6 +23,12 @@
         <source>Warning!</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../localization.h" line="38"/>
+        <source>You must restart the application to apply the changes.
+Restart now?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Language</name>

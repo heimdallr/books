@@ -1,11 +1,16 @@
 #include <QApplication>
 #include <QFile>
 #include <QStandardPaths>
+#include <QStyleHints>
 
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
+#include "fnd/FindPair.h"
+
+#include "interface/constants/Enums.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
@@ -43,6 +48,27 @@ void SetStyle(QApplication & app)
 	app.setStyleSheet(ts.readAll());
 }
 
+void SetTheme(const ISettings & settings, const Qt::ColorScheme defaultColorScheme)
+{
+	static constexpr std::pair<const char *, Qt::ColorScheme> defaultTheme = { "windowsvista", Qt::ColorScheme::Unknown };
+	static constexpr std::pair<const char *, std::pair<const char *, Qt::ColorScheme>> themes[]
+	{
+		{ AppTheme::WindowsVista  , { "windowsvista", Qt::ColorScheme::Light } },
+		{ AppTheme::WindowsClassic, { "windows"     , Qt::ColorScheme::Light } },
+		{ AppTheme::FusionSystem  , { "fusion"      , Qt::ColorScheme::Unknown } },
+		{ AppTheme::FusionLight   , { "fusion"      , Qt::ColorScheme::Light } },
+		{ AppTheme::FusionDark    , { "fusion"      , Qt::ColorScheme::Dark } },
+	};
+
+	const auto theme = settings.Get(Constant::Settings::THEME_KEY, AppTheme::WindowsVista);
+	auto [style, scheme] = FindSecond(themes, theme.toStdString().data(), defaultTheme, PszComparer {});
+	if (scheme == Qt::ColorScheme::Unknown)
+		scheme = defaultColorScheme;
+
+	QApplication::setStyle(style);
+	QGuiApplication::styleHints()->setColorScheme(scheme);
+}
+
 }
 
 int main(int argc, char * argv[])
@@ -66,6 +92,8 @@ int main(int argc, char * argv[])
 
 		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
+		const auto defaultColorScheme = QGuiApplication::styleHints()->colorScheme();
+
 		while (true)
 		{
 			std::shared_ptr<Hypodermic::Container> container;
@@ -75,6 +103,7 @@ int main(int argc, char * argv[])
 			}
 			PLOGD << "DI-container created";
 
+			SetTheme(*container->resolve<ISettings>(), defaultColorScheme);
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			mainWindow->Show();

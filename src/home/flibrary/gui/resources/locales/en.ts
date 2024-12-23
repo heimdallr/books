@@ -343,15 +343,6 @@
     </message>
 </context>
 <context>
-    <name>LocaleController</name>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -454,17 +445,17 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="50"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="49"/>
+        <location filename="../../MainWindow.cpp" line="51"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="50"/>
+        <location filename="../../MainWindow.cpp" line="52"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation></translation>
     </message>
@@ -571,6 +562,36 @@ Restart now?</source>
     <message>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Permanent language filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Theme</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Windows &amp;Vista</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Windows &amp;Classic</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;System</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;Light</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;Dark</source>
         <translation></translation>
     </message>
 </context>
