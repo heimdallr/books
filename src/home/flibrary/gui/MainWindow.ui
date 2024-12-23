@@ -353,6 +353,17 @@
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
     </widget>
+    <widget class="QMenu" name="menuTheme">
+     <property name="title">
+      <string>&amp;Theme</string>
+     </property>
+     <addaction name="actionThemeWindowsVista"/>
+     <addaction name="actionThemeWindowsClassic"/>
+     <addaction name="actionThemeFusionSystem"/>
+     <addaction name="actionThemeFusionLight"/>
+     <addaction name="actionThemeFusionDark"/>
+    </widget>
+    <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
@@ -674,6 +685,46 @@
    </property>
    <property name="text">
     <string>&amp;Permanent language filter</string>
+   </property>
+  </action>
+  <action name="actionThemeWindowsVista">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Windows &amp;Vista</string>
+   </property>
+  </action>
+  <action name="actionThemeWindowsClassic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Windows &amp;Classic</string>
+   </property>
+  </action>
+  <action name="actionThemeFusionSystem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fusion &amp;System</string>
+   </property>
+  </action>
+  <action name="actionThemeFusionLight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fusion &amp;Light</string>
+   </property>
+  </action>
+  <action name="actionThemeFusionDark">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fusion &amp;Dark</string>
    </property>
   </action>
  </widget>

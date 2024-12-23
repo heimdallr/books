@@ -61,4 +61,18 @@ enum class BooksMenuAction
 		Last
 };
 
+#define APP_THEME_ITEMS_X_MACRO        \
+		APP_THEME_ITEM(WindowsVista)   \
+		APP_THEME_ITEM(WindowsClassic) \
+		APP_THEME_ITEM(FusionSystem)   \
+		APP_THEME_ITEM(FusionLight)    \
+		APP_THEME_ITEM(FusionDark)
+
+namespace AppTheme
+{
+#define APP_THEME_ITEM(NAME) constexpr auto NAME = #NAME;
+		APP_THEME_ITEMS_X_MACRO
+#undef	APP_THEME_ITEM
+};
+
 }

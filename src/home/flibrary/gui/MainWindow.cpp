@@ -2,7 +2,9 @@
 #include "MainWindow.h"
 
 #include <QActionGroup>
+#include <QGuiApplication>
 #include <QPainter>
+#include <QStyleHints>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -101,7 +103,6 @@ public:
 		, m_lineOption(std::move(lineOption))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
-		, m_themeActionGroup(new QActionGroup(&m_self))
 	{
 		Setup();
 		ConnectActions();
@@ -199,8 +200,6 @@ private:
 
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
-
-		m_themeActionGroup->setExclusive(true);
 
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
@@ -349,6 +348,45 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
+
+		{
+			auto * group = new QActionGroup(&m_self);
+			group->setExclusive(true);
+
+			auto setTheme = [this]
+			{
+				const auto setAction = [] (QAction * action, const bool checked)
+				{
+					action->setChecked(checked);
+					action->setEnabled(!checked);
+				};
+				setAction(m_ui.actionThemeWindowsVista, true);
+
+				const auto currentTheme = m_settings->Get(Constant::Settings::THEME_KEY, AppTheme::WindowsVista);
+
+#define			APP_THEME_ITEM(NAME) setAction(m_ui.actionTheme##NAME, currentTheme == AppTheme::NAME);
+				APP_THEME_ITEMS_X_MACRO
+#undef			APP_THEME_ITEM
+
+			};
+			setTheme();
+
+			const auto changeTheme = [this, setTheme = std::move(setTheme)] (const QString & theme)
+			{
+				m_settings->Set(Constant::Settings::THEME_KEY, theme);
+				setTheme();
+				if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+					Reboot();
+			};
+
+
+#define		APP_THEME_ITEM(NAME) connect(m_ui.actionTheme##NAME, &QAction::triggered, &m_self, [=]{ changeTheme(#NAME); });
+			APP_THEME_ITEMS_X_MACRO
+#undef		APP_THEME_ITEM
+#define		APP_THEME_ITEM(NAME) group->addAction(m_ui.actionTheme##NAME);
+			APP_THEME_ITEMS_X_MACRO
+#undef		APP_THEME_ITEM
+		}
 	}
 
 	void CreateLogMenu()
@@ -464,7 +502,6 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
-	QActionGroup * m_themeActionGroup;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
 };
