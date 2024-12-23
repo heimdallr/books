@@ -136,6 +136,13 @@ private:
 	mutable QSvgRenderer m_svgRenderer;
 };
 
+void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, const std::function<void(const QModelIndex &)> & f)
+{
+	f(index);
+	for (int row = 0, sz = model.rowCount(index); row < sz; ++row)
+		TreeOperation(model, model.index(row, 0, index), f);
+}
+
 }
 
 class TreeView::Impl final
@@ -237,9 +244,13 @@ private: // ITreeViewController::IObserver
 		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case BooksMenuAction::Collapse:
-				return m_ui.treeView->collapse(m_ui.treeView->currentIndex());
+				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->collapse(index); });
+				return;
 			case BooksMenuAction::Expand:
-				return m_ui.treeView->expand(m_ui.treeView->currentIndex());
+				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->expand(index); });
+				return;
 			case BooksMenuAction::CollapseAll:
 				return m_ui.treeView->collapseAll();
 			case BooksMenuAction::ExpandAll:
