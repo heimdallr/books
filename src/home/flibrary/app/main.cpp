@@ -48,9 +48,9 @@ void SetStyle(QApplication & app)
 	app.setStyleSheet(ts.readAll());
 }
 
-void SetTheme(const ISettings & settings, const Qt::ColorScheme defaultColorScheme)
+void SetTheme(const ISettings & settings)
 {
-	static constexpr std::pair<const char *, Qt::ColorScheme> defaultTheme = { "windowsvista", Qt::ColorScheme::Unknown };
+	static constexpr std::pair<const char *, Qt::ColorScheme> defaultTheme = { "windowsvista", Qt::ColorScheme::Light };
 	static constexpr std::pair<const char *, std::pair<const char *, Qt::ColorScheme>> themes[]
 	{
 		{ AppTheme::WindowsVista  , { "windowsvista", Qt::ColorScheme::Light } },
@@ -61,10 +61,7 @@ void SetTheme(const ISettings & settings, const Qt::ColorScheme defaultColorSche
 	};
 
 	const auto theme = settings.Get(Constant::Settings::THEME_KEY, AppTheme::WindowsVista);
-	auto [style, scheme] = FindSecond(themes, theme.toStdString().data(), defaultTheme, PszComparer {});
-	if (scheme == Qt::ColorScheme::Unknown)
-		scheme = defaultColorScheme;
-
+	const auto& [style, scheme] = FindSecond(themes, theme.toStdString().data(), defaultTheme, PszComparer {});
 	QApplication::setStyle(style);
 	QGuiApplication::styleHints()->setColorScheme(scheme);
 }
@@ -92,8 +89,6 @@ int main(int argc, char * argv[])
 
 		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
-		const auto defaultColorScheme = QGuiApplication::styleHints()->colorScheme();
-
 		while (true)
 		{
 			std::shared_ptr<Hypodermic::Container> container;
@@ -103,7 +98,7 @@ int main(int argc, char * argv[])
 			}
 			PLOGD << "DI-container created";
 
-			SetTheme(*container->resolve<ISettings>(), defaultColorScheme);
+			SetTheme(*container->resolve<ISettings>());
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			mainWindow->Show();
