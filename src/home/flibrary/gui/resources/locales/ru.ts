@@ -343,16 +343,6 @@
     </message>
 </context>
 <context>
-    <name>LocaleController</name>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation>Для применения изменений необходимо перезапустить приложение.
-Перезапустить сейчас?</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -455,17 +445,17 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="50"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="49"/>
+        <location filename="../../MainWindow.cpp" line="51"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="50"/>
+        <location filename="../../MainWindow.cpp" line="52"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
@@ -573,6 +563,36 @@ Restart now?</source>
         <location filename="../../MainWindow.ui"/>
         <source>&amp;Permanent language filter</source>
         <translation>&amp;Постоянный языковой фильтр</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Theme</source>
+        <translation>&amp;Тема</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Windows &amp;Vista</source>
+        <translation>Windows &amp;Vista</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Windows &amp;Classic</source>
+        <translation>Windows &amp;Classic</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;System</source>
+        <translation>Fusion С&amp;истемная</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;Light</source>
+        <translation>Fusion &amp;Светлая</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Fusion &amp;Dark</source>
+        <translation>Fusion &amp;Тёмная</translation>
     </message>
 </context>
 <context>
