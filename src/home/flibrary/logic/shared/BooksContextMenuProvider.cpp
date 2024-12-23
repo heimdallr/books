@@ -504,10 +504,10 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 		Add(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		Add(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
-		Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll)->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed))
-		Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll)->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	if (const auto item = Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
+		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	if (const auto item = Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
+		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
