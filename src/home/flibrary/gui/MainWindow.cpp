@@ -4,6 +4,7 @@
 #include <QActionGroup>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QStyleFactory>
 #include <QStyleHints>
 #include <QTimer>
 
@@ -57,6 +58,7 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto ACTION_PROPERTY_NAME = "value";
 TR_DEF
 
 }
@@ -349,44 +351,62 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 
+		const auto addActionGroup = [this] (const std::vector<QAction *> & actions, const QString & key, const QString & defaultValue)
 		{
 			auto * group = new QActionGroup(&m_self);
 			group->setExclusive(true);
 
-			auto setTheme = [this]
+			auto set = [this, actions, key, defaultValue]
 			{
 				const auto setAction = [] (QAction * action, const bool checked)
 				{
 					action->setChecked(checked);
 					action->setEnabled(!checked);
 				};
-				setAction(m_ui.actionThemeWindowsVista, true);
+				if (const auto it = std::ranges::find_if(actions, [defaultValue] (const QAction * action)
+				{
+					return action->property(ACTION_PROPERTY_NAME).toString().compare(defaultValue, Qt::CaseInsensitive) == 0;
+				}); it != actions.end())
+					setAction(*it, true);
 
-				const auto currentTheme = m_settings->Get(Constant::Settings::THEME_KEY, AppTheme::WindowsVista);
-
-#define			APP_THEME_ITEM(NAME) setAction(m_ui.actionTheme##NAME, currentTheme == AppTheme::NAME);
-				APP_THEME_ITEMS_X_MACRO
-#undef			APP_THEME_ITEM
-
+				const auto currentTheme = m_settings->Get(key, defaultValue);
+				for (auto * action : actions)
+					setAction(action, currentTheme.compare(action->property(ACTION_PROPERTY_NAME).toString(), Qt::CaseInsensitive) == 0);
 			};
-			setTheme();
 
-			const auto changeTheme = [this, setTheme = std::move(setTheme)] (const QString & theme)
+			const auto change = [this, set, key] (const QString & theme)
 			{
-				m_settings->Set(Constant::Settings::THEME_KEY, theme);
-				setTheme();
+				m_settings->Set(key, theme);
+				set();
 				if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 					Reboot();
 			};
 
+			for (auto * action : actions)
+			{
+				connect(action, &QAction::triggered, &m_self, [=]
+				{
+					change(action->property(ACTION_PROPERTY_NAME).toString());
+				});
+				group->addAction(action);
+			}
 
-#define		APP_THEME_ITEM(NAME) connect(m_ui.actionTheme##NAME, &QAction::triggered, &m_self, [=]{ changeTheme(#NAME); });
-			APP_THEME_ITEMS_X_MACRO
-#undef		APP_THEME_ITEM
-#define		APP_THEME_ITEM(NAME) group->addAction(m_ui.actionTheme##NAME);
-			APP_THEME_ITEMS_X_MACRO
-#undef		APP_THEME_ITEM
+			set();
+		};
+
+		std::vector<QAction *> styles;
+		for (const auto & key : QStyleFactory::keys())
+		{
+			const auto * style = QStyleFactory::create(key);
+			if (!style)
+				continue;
+
+			auto * action = styles.emplace_back(m_ui.menuTheme->addAction(style->name()));
+			action->setProperty(ACTION_PROPERTY_NAME, key);
+			action->setCheckable(true);
 		}
+		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
 	}
 
 	void CreateLogMenu()

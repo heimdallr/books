@@ -357,11 +357,16 @@
      <property name="title">
       <string>&amp;Theme</string>
      </property>
-     <addaction name="actionThemeWindowsVista"/>
-     <addaction name="actionThemeWindowsClassic"/>
-     <addaction name="actionThemeFusionSystem"/>
-     <addaction name="actionThemeFusionLight"/>
-     <addaction name="actionThemeFusionDark"/>
+     <widget class="QMenu" name="menuColorScheme">
+      <property name="title">
+       <string>&amp;Color scheme</string>
+      </property>
+      <addaction name="actionColorSchemeSystem"/>
+      <addaction name="actionColorSchemeLight"/>
+      <addaction name="actionColorSchemeDark"/>
+     </widget>
+     <addaction name="menuColorScheme"/>
+     <addaction name="separator"/>
     </widget>
     <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
@@ -687,44 +692,37 @@
     <string>&amp;Permanent language filter</string>
    </property>
   </action>
-  <action name="actionThemeWindowsVista">
+  <action name="actionColorSchemeSystem">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Windows &amp;Vista</string>
+    <string>&amp;System</string>
+   </property>
+   <property name="value" stdset="0">
+    <string notr="true">System</string>
    </property>
   </action>
-  <action name="actionThemeWindowsClassic">
+  <action name="actionColorSchemeLight">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Windows &amp;Classic</string>
+    <string>&amp;Light</string>
+   </property>
+   <property name="value" stdset="0">
+    <string notr="true">Light</string>
    </property>
   </action>
-  <action name="actionThemeFusionSystem">
+  <action name="actionColorSchemeDark">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Fusion &amp;System</string>
+    <string>&amp;Dark</string>
    </property>
-  </action>
-  <action name="actionThemeFusionLight">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Fusion &amp;Light</string>
-   </property>
-  </action>
-  <action name="actionThemeFusionDark">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Fusion &amp;Dark</string>
+   <property name="value" stdset="0">
+    <string notr="true">Dark</string>
    </property>
   </action>
  </widget>
