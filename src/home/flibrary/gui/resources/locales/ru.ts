@@ -680,12 +680,12 @@
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="61"/>
+        <location filename="../../ModeComboBox.h" line="26"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="62"/>
+        <location filename="../../ModeComboBox.h" line="27"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>
