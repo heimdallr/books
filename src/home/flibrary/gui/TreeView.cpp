@@ -113,8 +113,16 @@ private:
 		if (!icon.isValid())
 			return false;
 
-		if (!(m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString())))
-			return false;
+		if (!m_svgRenderer.isValid())
+		{
+			QFile file(icon.toString());
+			if (!file.open(QIODevice::ReadOnly))
+				return false;
+
+			const auto content = QString::fromUtf8(file.readAll()).arg(Util::ToString(palette(), QPalette::Text));
+			if (!m_svgRenderer.load(content.toUtf8()))
+				return false;
+		}
 
 		auto iconSize = m_svgRenderer.defaultSize();
 		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
