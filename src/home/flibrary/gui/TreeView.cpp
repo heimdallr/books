@@ -31,37 +31,20 @@
 #include "util/ISettings.h"
 
 #include "ItemViewToolTipper.h"
+#include "ModeComboBox.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
 
-constexpr auto VALUE_MODE_ICON_TEMPLATE = ":/icons/%1.png";
 constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
-constexpr auto VALUE_MODE_STYLE_SHEET = "QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
-
-class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~IValueApplier() = default;
-	virtual void Find() = 0;
-	virtual void Filter() = 0;
-};
-
-using ApplyValue = void(IValueApplier::*)();
-
-constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
-{
-	{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
-	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
-};
 
 class HeaderView final
 	: public QHeaderView
@@ -156,7 +139,7 @@ void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, 
 class TreeView::Impl final
 	: ITreeViewController::IObserver
 	, ITreeViewDelegate::IObserver
-	, IValueApplier
+	, ModeComboBox::IValueApplier
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -221,6 +204,8 @@ public:
 		auto size = m_ui.cbMode->height();
 		m_ui.btnNew->setMinimumSize(size, size);
 		m_ui.btnNew->setMaximumSize(size, size);
+		m_ui.cbValueMode->setMinimumSize(size, size);
+		m_ui.cbValueMode->setMaximumSize(size, size);
 		size /= 10;
 		m_ui.btnNew->layout()->setContentsMargins(size, size, size, size);
 
@@ -281,7 +266,7 @@ private: // ITreeViewDelegate::IObserver
 		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
 	}
 
-private: //	IValueApplier
+private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{
 		if (!m_ui.value->text().isEmpty())
@@ -517,19 +502,15 @@ private:
 
 	void FillComboBoxes()
 	{
-		m_ui.cbValueMode->setStyleSheet(VALUE_MODE_STYLE_SHEET);
-		for (const auto * name : VALUE_MODES | std::views::keys)
-			m_ui.cbValueMode->addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), "", QString(name));
-
 		for (const auto * name : m_controller->GetModeNames())
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
 
-		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
+		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
 		{
 			return mode == item.first;
 		});
-		if (it != std::cend(VALUE_MODES))
-			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(VALUE_MODES), it)));
+		if (it != std::cend(ModeComboBox::VALUE_MODES))
+			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
@@ -773,7 +754,7 @@ private:
 
 	void OnValueChanged()
 	{
-		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
+		((*this).*ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
 
 	void Find(const QVariant & value, const int role) const
