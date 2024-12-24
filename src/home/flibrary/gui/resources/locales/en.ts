@@ -445,17 +445,17 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="50"/>
+        <location filename="../../MainWindow.cpp" line="51"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="51"/>
+        <location filename="../../MainWindow.cpp" line="52"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="52"/>
+        <location filename="../../MainWindow.cpp" line="53"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation></translation>
     </message>
@@ -571,27 +571,22 @@
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Windows &amp;Vista</source>
+        <source>&amp;System</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Windows &amp;Classic</source>
+        <source>&amp;Light</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Fusion &amp;System</source>
+        <source>&amp;Dark</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>Fusion &amp;Light</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
-        <source>Fusion &amp;Dark</source>
+        <source>&amp;Color scheme</source>
         <translation></translation>
     </message>
 </context>
@@ -685,12 +680,12 @@
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="62"/>
+        <location filename="../../TreeView.cpp" line="61"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="63"/>
+        <location filename="../../TreeView.cpp" line="62"/>
         <source>Filter</source>
         <translation></translation>
     </message>
