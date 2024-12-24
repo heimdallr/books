@@ -85,7 +85,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="cbValueMode">
+      <widget class="HomeCompa::Flibrary::ModeComboBox" name="cbValueMode">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -139,6 +139,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>HomeCompa::Flibrary::ModeComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ModeComboBox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources/gui.qrc"/>
  </resources>

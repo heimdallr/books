@@ -16,4 +16,7 @@ AddTarget(gui	shared_lib
 		GuiUtil
 		ver
 		zip
+	DEPENDENCIES
+		ThemeDark
+		ThemeLight
 )

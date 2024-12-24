@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QFile>
+#include <QPalette>
 #include <QStandardPaths>
+#include <QStyleFactory>
 #include <QStyleHints>
 
 #include <Hypodermic/Hypodermic.h>
@@ -8,7 +10,6 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/Enums.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
@@ -21,6 +22,7 @@
 
 #include "di_app.h"
 
+#include "util/DyLib.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
@@ -48,27 +50,36 @@ void SetStyle(QApplication & app)
 	app.setStyleSheet(ts.readAll());
 }
 
-void SetTheme(const ISettings & settings)
+std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
 {
-	static constexpr std::pair<const char *, Qt::ColorScheme> defaultTheme = { "windowsvista", Qt::ColorScheme::Light };
-	static constexpr std::pair<const char *, std::pair<const char *, Qt::ColorScheme>> themes[]
 	{
-		{ AppTheme::WindowsVista  , { "windowsvista", Qt::ColorScheme::Light } },
-		{ AppTheme::WindowsClassic, { "windows"     , Qt::ColorScheme::Light } },
-		{ AppTheme::FusionSystem  , { "fusion"      , Qt::ColorScheme::Unknown } },
-		{ AppTheme::FusionLight   , { "fusion"      , Qt::ColorScheme::Light } },
-		{ AppTheme::FusionDark    , { "fusion"      , Qt::ColorScheme::Dark } },
-	};
+		auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+		if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
+			style = Constant::Settings::APP_STYLE_DEFAULT;
 
-	const auto theme = settings.Get(Constant::Settings::THEME_KEY, AppTheme::WindowsVista);
-	const auto& [style, scheme] = FindSecond(themes, theme.toStdString().data(), defaultTheme, PszComparer {});
-	QApplication::setStyle(style);
-	QGuiApplication::styleHints()->setColorScheme(scheme);
+		QApplication::setStyle(style);
+	}
 
-	if (scheme == Qt::ColorScheme::Unknown)
-		QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
-	else
-		QGuiApplication::styleHints()->disconnect();
+	{
+		constexpr std::pair<const char *, Qt::ColorScheme> schemes[]
+		{
+			{ "System", Qt::ColorScheme::Unknown },
+			{ "Light" , Qt::ColorScheme::Light },
+			{ "Dark"  , Qt::ColorScheme::Dark },
+		};
+
+		const auto colorSchemeName = settings.Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+		const auto scheme = FindSecond(schemes, colorSchemeName.toStdString().data(), Qt::ColorScheme::Unknown, PszComparer {});
+		QGuiApplication::styleHints()->setColorScheme(scheme);
+
+		if (scheme == Qt::ColorScheme::Unknown)
+			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+		else
+			QGuiApplication::styleHints()->disconnect();
+	}
+
+	const auto palette = QGuiApplication::palette();
+	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "ThemeDark" : "ThemeLight");
 }
 
 }
@@ -103,7 +114,7 @@ int main(int argc, char * argv[])
 			}
 			PLOGD << "DI-container created";
 
-			SetTheme(*container->resolve<ISettings>());
+			const auto themeLib = SetTheme(*container->resolve<ISettings>());
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			mainWindow->Show();
