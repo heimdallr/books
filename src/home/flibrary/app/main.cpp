@@ -64,6 +64,11 @@ void SetTheme(const ISettings & settings)
 	const auto& [style, scheme] = FindSecond(themes, theme.toStdString().data(), defaultTheme, PszComparer {});
 	QApplication::setStyle(style);
 	QGuiApplication::styleHints()->setColorScheme(scheme);
+
+	if (scheme == Qt::ColorScheme::Unknown)
+		QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+	else
+		QGuiApplication::styleHints()->disconnect();
 }
 
 }
