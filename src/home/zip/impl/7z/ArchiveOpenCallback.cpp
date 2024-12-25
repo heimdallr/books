@@ -14,7 +14,7 @@ ArchiveOpenCallback::ArchiveOpenCallback(QString password)
 {
 }
 
-STDMETHODIMP ArchiveOpenCallback::QueryInterface(REFIID iid, void ** ppvObject)
+STDMETHODIMP ArchiveOpenCallback::QueryInterface(REFIID iid, void ** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown))
 	{

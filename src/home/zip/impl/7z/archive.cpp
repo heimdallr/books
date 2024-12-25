@@ -30,7 +30,7 @@ namespace {
 auto CreateStream(const QString & filename)
 {
 	CComPtr<IStream> fileStream;
-	if (FAILED(SHCreateStreamOnFileEx(filename.toStdWString().data(), STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, NULL, &fileStream)))
+	if (FAILED(SHCreateStreamOnFileEx(filename.toStdWString().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, NULL, &fileStream)))
 		Error::CannotOpenFile(filename);
 	return fileStream;
 }
@@ -190,7 +190,7 @@ private:
 
 			archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
-				m_files.emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
+				m_files.try_emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
 		}
 	}
 

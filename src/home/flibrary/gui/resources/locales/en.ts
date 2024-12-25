@@ -343,15 +343,6 @@
     </message>
 </context>
 <context>
-    <name>LocaleController</name>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -454,17 +445,17 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="51"/>
         <source>Select font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="49"/>
+        <location filename="../../MainWindow.cpp" line="52"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="50"/>
+        <location filename="../../MainWindow.cpp" line="53"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation></translation>
     </message>
@@ -573,6 +564,31 @@ Restart now?</source>
         <source>&amp;Permanent language filter</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Theme</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;System</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Light</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Dark</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Color scheme</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -664,12 +680,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="62"/>
+        <location filename="../../ModeComboBox.h" line="26"/>
         <source>Find</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="63"/>
+        <location filename="../../ModeComboBox.h" line="27"/>
         <source>Filter</source>
         <translation></translation>
     </message>

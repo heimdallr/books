@@ -1,16 +1,10 @@
 <RCC>
 	<qresource prefix="icons">
-		<file alias="Filter.png">icons/filter.png</file>
-		<file alias="Find.png">icons/find.png</file>
-		<file alias="add_file.png">icons/add_file.png</file>
-		<file alias="add_folder.png">icons/add_folder.png</file>
-		<file alias="set_default.png">icons/set_default.png</file>
-		<file alias="down.png">icons/down.png</file>
-		<file alias="up.png">icons/up.png</file>
-		<file alias="exe.png">icons/exe.png</file>
 		<file alias="language.svg">icons/language.svg</file>
 		<file alias="stars.svg">icons/stars.svg</file>
 		<file alias="plus.svg">icons/plus.svg</file>
+		<file alias="Find.svg">icons/find.svg</file>
+		<file alias="Filter.svg">icons/filter.svg</file>
 		<file alias="unsupported_image.svg">icons/unsupported_image.svg</file>
 	</qresource>
 </RCC>

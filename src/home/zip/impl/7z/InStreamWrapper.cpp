@@ -14,7 +14,7 @@ InStreamWrapper::InStreamWrapper(CComPtr<IStream> baseStream)
 {
 }
 
-HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** ppvObject)
+HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown))
 	{

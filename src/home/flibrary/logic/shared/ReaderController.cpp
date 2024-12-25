@@ -122,7 +122,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	auto reader = m_impl->settings->Get(key).toString();
 	if (reader.isEmpty())
 	{
-		switch(m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes))
+		switch(m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes))  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case QMessageBox::Yes:
 				reader = DEFAULT;
@@ -134,14 +134,15 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 			default:
 				return;
 		}
-	}
-	if (!reader.isEmpty())
+
+		if (reader.isEmpty())
+			return;
+
 		m_impl->settings->Set(key, reader);
+	}
+	assert(!reader.isEmpty());
 
-	if (reader.isEmpty())
-		return;
-
-	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection()->folder, folderName);
+	auto archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().folder, folderName);
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 	(*executor)({ "Extract book", [this
 		, executor

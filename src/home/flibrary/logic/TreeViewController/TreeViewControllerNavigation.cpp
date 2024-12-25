@@ -1,9 +1,5 @@
 #include "TreeViewControllerNavigation.h"
 
-#include <QString>
-
-#include <plog/Log.h>
-
 #include "database/interface/IDatabase.h"
 
 #include "interface/constants/Enums.h"
@@ -23,6 +19,8 @@
 #include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "util/FunctorExecutionForwarder.h"
+
+#include <plog/Log.h>
 
 using namespace HomeCompa::Flibrary;
 
@@ -123,7 +121,7 @@ public:
 #undef	MENU_ACTION_ITEM
 };
 
-using ContextMenuHandlerFunction = void (IContextMenuHandler:: *)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
+using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
 
 constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 {
@@ -131,9 +129,10 @@ constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 		MENU_ACTION_ITEMS_X_MACRO
 #undef	MENU_ACTION_ITEM
 };
+static_assert(std::size(MENU_HANDLERS) == static_cast<size_t>(MenuAction::Last) - static_cast<size_t>(MenuAction::Unknown) - 1);
 
 struct ModeDescriptor
-{
+{ //-V802
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };
@@ -395,7 +394,7 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index,
 		callback(index.data(Role::Id).toString(), item);
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item)
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item)
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

@@ -22,10 +22,11 @@ public:
 	}
 
 private: // DB::Command
-	void Execute() override
+	bool Execute() override
 	{
-		m_command.execute();
+		const auto ok = m_command.execute() == 0;
 		m_command.reset();
+		return ok;
 	}
 
 	int Bind(const size_t index) override
@@ -48,7 +49,7 @@ private: // DB::Command
 		return m_command.bind(Index(index) + 1, value);
 	}
 
-	int BindString(const size_t index, const std::string & value) override
+	int BindString(const size_t index, const std::string_view value) override
 	{
 		return m_command.bind(Index(index) + 1, value, sqlite3pp::copy);
 	}
@@ -73,7 +74,7 @@ private: // DB::Command
 		return m_command.bind(name.data(), value);
 	}
 
-	int BindString(const std::string_view name, const std::string & value) override
+	int BindString(const std::string_view name, const std::string_view value) override
 	{
 		return m_command.bind(name.data(), value, sqlite3pp::copy);
 	}

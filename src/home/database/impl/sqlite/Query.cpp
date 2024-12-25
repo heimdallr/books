@@ -26,9 +26,10 @@ public:
 	}
 
 private: // Query
-	void Execute() override
+	bool Execute() override
 	{
 		m_it = m_query.begin();
+		return true;
 	}
 
 	bool Eof() override
@@ -98,7 +99,7 @@ private: // Query
 		return m_query.bind(Index(index) + 1, value);
 	}
 
-	int BindString(const size_t index, const std::string & value) override
+	int BindString(const size_t index, const std::string_view value) override
 	{
 		return m_query.bind(Index(index) + 1, value, sqlite3pp::copy);
 	}
@@ -123,7 +124,7 @@ private: // Query
 		return m_query.bind(name.data(), value);
 	}
 
-	int BindString(const std::string_view name, const std::string & value) override
+	int BindString(const std::string_view name, const std::string_view value) override
 	{
 		return m_query.bind(name.data(), value, sqlite3pp::copy);
 	}

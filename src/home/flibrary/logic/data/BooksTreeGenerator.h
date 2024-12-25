@@ -35,12 +35,12 @@ public:
 	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
-using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const int * index);
+using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
 
 struct QueryInfo
 {
 	QueryDataExtractor extractor;
-	const int * index;
+	const size_t * index;
 };
 
 struct QueryDescription
@@ -74,7 +74,7 @@ struct QStringWrapper
 	}
 
 private:
-	[[nodiscard]] int Category(const QChar & c) const noexcept
+	[[nodiscard]] int Category(const QChar c) const noexcept
 	{
 		assert(c.category() < static_cast<int>(std::size(m_categories)));
 		if (const auto result = m_categories[c.category()]; result != 0)

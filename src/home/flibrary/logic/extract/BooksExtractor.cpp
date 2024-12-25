@@ -185,7 +185,7 @@ public:
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
 		m_dstFolder = std::move(dstFolder);
-		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
+		m_archiveFolder = m_collectionController->GetActiveCollection().folder.toStdWString();
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command = transaction->CreateCommand(ExportStat::INSERT_QUERY);
@@ -211,7 +211,7 @@ private: // IPathChecker
 	void Check(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
-		if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
+		if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
 			return;
 
 		const auto folder = path.parent_path();
@@ -221,7 +221,7 @@ private: // IPathChecker
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
 			path.make_preferred();
-			if (m_usedPath.insert(QString::fromStdWString(path).toLower()).second)
+			if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
 				return;
 		}
 	}

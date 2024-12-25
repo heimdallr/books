@@ -10,7 +10,7 @@ class IDialog  // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IDialog() = default;
 
-	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & text = {}, QMessageBox::StandardButtons buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
+	[[nodiscard]] virtual QMessageBox::StandardButton Show(const QString & text = {}, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
 	[[nodiscard]] virtual QString GetText(const QString & title, const QString & label, const QString & text = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
 };
 

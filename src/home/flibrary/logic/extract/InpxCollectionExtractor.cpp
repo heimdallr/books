@@ -130,13 +130,13 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount)}).swap(m_executor);
 		m_dstFolder = std::move(dstFolder);
-		m_archiveFolder = m_collectionController->GetActiveCollection()->folder.toStdWString();
+		m_archiveFolder = m_collectionController->GetActiveCollection().folder.toStdWString();
 
 		CollectExistingFiles();
 
 		std::vector<BookInfoList> bookLists(m_taskCount);
 		for (size_t i = 0; auto && book : books)
-			bookLists[i++ % m_taskCount].push_back(std::move(book));
+			bookLists[i++ % m_taskCount].emplace_back(std::move(book));
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command = transaction->CreateCommand(ExportStat::INSERT_QUERY);
@@ -190,7 +190,7 @@ private:
 			{
 				hash.addData(QString::number(i).toUtf8());
 				auto result = hash.result().toHex().left(8);
-				if (m_paths.emplace(result, QByteArray {}).second)
+				if (m_paths.try_emplace(result, QByteArray {}).second)
 					return result;
 			}
 		}();

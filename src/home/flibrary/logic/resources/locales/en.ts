@@ -136,6 +136,26 @@
         <source>Select destination folder</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
+        <source>Cannot set rate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="60"/>
+        <source>Books %1 failed</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
+        <source>removing</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
+        <source>restoring</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Books</name>
@@ -153,47 +173,47 @@
 <context>
     <name>CollectionController</name>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="32"/>
+        <location filename="../../Collection/CollectionController.cpp" line="33"/>
         <source>The existing database file will be overwritten. Continue?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="33"/>
+        <location filename="../../Collection/CollectionController.cpp" line="34"/>
         <source>Are you sure you want to delete the collection?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="34"/>
+        <location filename="../../Collection/CollectionController.cpp" line="35"/>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="35"/>
+        <location filename="../../Collection/CollectionController.cpp" line="36"/>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="36"/>
+        <location filename="../../Collection/CollectionController.cpp" line="37"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="37"/>
+        <location filename="../../Collection/CollectionController.cpp" line="38"/>
         <source>created</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="38"/>
+        <location filename="../../Collection/CollectionController.cpp" line="39"/>
         <source>updated</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="39"/>
+        <location filename="../../Collection/CollectionController.cpp" line="40"/>
         <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../Collection/CollectionController.cpp" line="40"/>
+        <location filename="../../Collection/CollectionController.cpp" line="41"/>
         <source>&quot;%1&quot; collection %2. Added:
 &lt;table&gt;
 &lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
@@ -1962,56 +1982,76 @@ Try again?</source>
 Try again?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
+        <source>Cannot create group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
+        <source>Cannot remove groups</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
+        <source>Cannot add book to group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
+        <source>Cannot remove books from group</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Navigation</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="32"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="30"/>
         <source>Remove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="103"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="101"/>
         <source>Create new group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="111"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="109"/>
         <source>Create new search...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="147"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="146"/>
         <source>Authors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="148"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="147"/>
         <source>Series</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="149"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="148"/>
         <source>Genres</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="149"/>
         <source>Keywords</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="150"/>
         <source>Archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="151"/>
         <source>Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="153"/>
+        <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp" line="152"/>
         <source>Search</source>
         <translation></translation>
     </message>
@@ -2089,18 +2129,23 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <source>Cannot remove search query</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Search query too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation></translation>
@@ -2109,62 +2154,62 @@ Try again?</source>
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="37"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
         <source>Download</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="38"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
         <source>Visit download page</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="39"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
         <source>Skip this version</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="40"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="41"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
         <source>%1 released!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="42"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
         <source>Select folder for app installer</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="43"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
         <source>Run the installer?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="44"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
         <source>Update check failed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="45"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
         <source>Current version %1 is actual</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="46"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="47"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/UpdateChecker.cpp" line="48"/>
+        <location filename="../../shared/UpdateChecker.cpp" line="49"/>
         <source>Something strange, the installer file is missing. Visit download page?</source>
         <translation></translation>
     </message>

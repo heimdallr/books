@@ -110,7 +110,6 @@ using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using SettingsTableData = std::unordered_map<uint32_t, std::string>;
 using Folders = std::set<std::wstring>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
@@ -124,7 +123,6 @@ struct Data
 	Dictionary authors, series, keywords;
 	Genres genres;
 	Links booksAuthors, booksGenres, booksKeywords;
-	SettingsTableData settings;
 	Folders folders;
 };
 

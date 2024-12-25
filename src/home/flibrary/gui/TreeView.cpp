@@ -31,37 +31,20 @@
 #include "util/ISettings.h"
 
 #include "ItemViewToolTipper.h"
+#include "ModeComboBox.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
 
-constexpr auto VALUE_MODE_ICON_TEMPLATE = ":/icons/%1.png";
 constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
-constexpr auto VALUE_MODE_STYLE_SHEET = "QComboBox::drop-down {border-width: 0px;} QComboBox::down-arrow {image: url(noimg); border-width: 0px;}";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
-
-class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~IValueApplier() = default;
-	virtual void Find() = 0;
-	virtual void Filter() = 0;
-};
-
-using ApplyValue = void(IValueApplier::*)();
-
-constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
-{
-	{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
-	{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
-};
 
 class HeaderView final
 	: public QHeaderView
@@ -113,8 +96,16 @@ private:
 		if (!icon.isValid())
 			return false;
 
-		if (!(m_svgRenderer.isValid() || m_svgRenderer.load(icon.toString())))
-			return false;
+		if (!m_svgRenderer.isValid())
+		{
+			QFile file(icon.toString());
+			if (!file.open(QIODevice::ReadOnly))
+				return false;
+
+			const auto content = QString::fromUtf8(file.readAll()).arg(Util::ToString(palette(), QPalette::Text));
+			if (!m_svgRenderer.load(content.toUtf8()))
+				return false;
+		}
 
 		auto iconSize = m_svgRenderer.defaultSize();
 		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
@@ -136,12 +127,19 @@ private:
 	mutable QSvgRenderer m_svgRenderer;
 };
 
+void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, const std::function<void(const QModelIndex &)> & f)
+{
+	f(index);
+	for (int row = 0, sz = model.rowCount(index); row < sz; ++row)
+		TreeOperation(model, model.index(row, 0, index), f);
+}
+
 }
 
 class TreeView::Impl final
 	: ITreeViewController::IObserver
 	, ITreeViewDelegate::IObserver
-	, IValueApplier
+	, ModeComboBox::IValueApplier
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -206,6 +204,8 @@ public:
 		auto size = m_ui.cbMode->height();
 		m_ui.btnNew->setMinimumSize(size, size);
 		m_ui.btnNew->setMaximumSize(size, size);
+		m_ui.cbValueMode->setMinimumSize(size, size);
+		m_ui.cbValueMode->setMaximumSize(size, size);
 		size /= 10;
 		m_ui.btnNew->layout()->setContentsMargins(size, size, size, size);
 
@@ -237,9 +237,13 @@ private: // ITreeViewController::IObserver
 		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))  // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case BooksMenuAction::Collapse:
-				return m_ui.treeView->collapse(m_ui.treeView->currentIndex());
+				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->collapse(index); });
+				return;
 			case BooksMenuAction::Expand:
-				return m_ui.treeView->expand(m_ui.treeView->currentIndex());
+				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->expand(index); });
+				return;
 			case BooksMenuAction::CollapseAll:
 				return m_ui.treeView->collapseAll();
 			case BooksMenuAction::ExpandAll:
@@ -262,7 +266,7 @@ private: // ITreeViewDelegate::IObserver
 		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
 	}
 
-private: //	IValueApplier
+private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{
 		if (!m_ui.value->text().isEmpty())
@@ -323,7 +327,9 @@ private:
 	{
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
 
-		ITreeViewController::RequestContextMenuOptions options = m_ui.treeView->model()->data({}, Role::IsTree).toBool()
+		const auto & model = *m_ui.treeView->model();
+
+		ITreeViewController::RequestContextMenuOptions options = model.data({}, Role::IsTree).toBool()
 			? ITreeViewController::RequestContextMenuOptions::IsTree
 			: ITreeViewController::RequestContextMenuOptions::None;
 
@@ -332,7 +338,7 @@ private:
 			const auto checkIndex = [&] (const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions onExpanded, const ITreeViewController::RequestContextMenuOptions onCollapsed)
 			{
 				assert(index.isValid());
-				const auto result = m_ui.treeView->model()->rowCount(index) > 0;
+				const auto result = model.rowCount(index) > 0;
 				if (result)
 					options |= m_ui.treeView->isExpanded(index) ? onExpanded : onCollapsed;
 				return result;
@@ -350,9 +356,9 @@ private:
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
 					break;
 
-				for (int i = 0, sz = m_ui.treeView->model()->rowCount(parent); i < sz; ++i)
+				for (int i = 0, sz = model.rowCount(parent); i < sz; ++i)
 				{
-					const auto index = m_ui.treeView->model()->index(i, 0, parent);
+					const auto index = model.index(i, 0, parent);
 					if (checkIndex(index, ITreeViewController::RequestContextMenuOptions::HasExpanded, ITreeViewController::RequestContextMenuOptions::HasCollapsed))
 						stack.push(index);
 				}
@@ -370,7 +376,8 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 		GenerateMenu(menu, *item);
-		menu.exec(QCursor::pos());
+		if (!menu.isEmpty())
+			menu.exec(QCursor::pos());
 	}
 
 	void GenerateMenu(QMenu & menu, const IDataItem & item)
@@ -429,29 +436,29 @@ private:
 		if (m_controller->GetItemType() == ItemType::Books)
 			m_ui.treeView->setHeader(new HeaderView(&m_self));
 
+		auto & treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
-		m_ui.treeView->header()->setDefaultAlignment(Qt::AlignCenter);
+		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 
 		SetupNewItemButton();
 
-		if (m_controller->GetItemType() == ItemType::Books)
+		if (m_controller->GetItemType() == ItemType::Navigation)
 		{
-			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView));
-			m_ui.treeView->header()->setSectionsClickable(true);
-			m_ui.treeView->header()->setStretchLastSection(false);
-
-			auto * widget = m_ui.treeView->header();
-			widget->setStretchLastSection(false);
-			widget->setContextMenuPolicy(Qt::CustomContextMenu);
-			connect(widget, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
-			{
-				CreateHeaderContextMenu(pos);
-			});
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
 		}
 		else
 		{
-			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
+			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateBooks(*m_ui.treeView));
+			treeViewHeader.setSectionsClickable(true);
+			treeViewHeader.setStretchLastSection(false);
+
+			treeViewHeader.setStretchLastSection(false);
+			treeViewHeader.setContextMenuPolicy(Qt::CustomContextMenu);
+			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
+			{
+				CreateHeaderContextMenu(pos);
+			});
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
@@ -495,19 +502,15 @@ private:
 
 	void FillComboBoxes()
 	{
-		m_ui.cbValueMode->setStyleSheet(VALUE_MODE_STYLE_SHEET);
-		for (const auto * name : VALUE_MODES | std::views::keys)
-			m_ui.cbValueMode->addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), "", QString(name));
-
 		for (const auto * name : m_controller->GetModeNames())
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
 
-		const auto it = std::ranges::find_if(VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
+		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
 		{
 			return mode == item.first;
 		});
-		if (it != std::cend(VALUE_MODES))
-			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(VALUE_MODES), it)));
+		if (it != std::cend(ModeComboBox::VALUE_MODES))
+			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
@@ -534,12 +537,13 @@ private:
 		});
 		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
 		{
-			m_ui.treeView->model()->setData({}, m_ui.value->text(), Role::TextFilter);
+			auto & model = *m_ui.treeView->model();
+			model.setData({}, m_ui.value->text(), Role::TextFilter);
 			OnCountChanged();
 			if (!m_currentId.isEmpty())
 				return Find(m_currentId, Role::Id);
-			if (m_ui.treeView->model()->rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
-				m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+			if (model.rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
+				m_ui.treeView->setCurrentIndex(model.index(0, 0));
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
 		{
@@ -619,8 +623,8 @@ private:
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
 				{
-					widths.emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
-					indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
+					widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
+					indices.try_emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
 					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false)
 						? header->hideSection(logicalIndex)
 						: header->showSection(logicalIndex);
@@ -750,15 +754,16 @@ private:
 
 	void OnValueChanged()
 	{
-		((*this).*VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
+		((*this).*ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
 
 	void Find(const QVariant & value, const int role) const
 	{
-		if (const auto matched = m_ui.treeView->model()->match(m_ui.treeView->model()->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+		const auto & model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
-			m_ui.treeView->setCurrentIndex(m_ui.treeView->model()->index(0, 0));
+			m_ui.treeView->setCurrentIndex(model.index(0, 0));
 
 		if (const auto index = m_ui.treeView->currentIndex(); index.isValid())
 			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);

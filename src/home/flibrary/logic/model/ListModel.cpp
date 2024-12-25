@@ -25,7 +25,7 @@ ListModel::~ListModel()
 QModelIndex ListModel::index(const int row, const int column, const QModelIndex & parent) const
 {
 	return hasIndex(row, column, parent)
-		? createIndex(row, column, m_data->GetChild(row).get())
+		? createIndex(row, column, m_data->GetChild(static_cast<size_t>(row)).get())
 		: QModelIndex();
 }
 

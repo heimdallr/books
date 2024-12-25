@@ -19,7 +19,7 @@ OutMemStream::OutMemStream(QByteArray & buffer, std::shared_ptr<ProgressCallback
 {
 }
 
-STDMETHODIMP OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
+STDMETHODIMP OutMemStream::QueryInterface(REFIID iid, void ** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
 	{

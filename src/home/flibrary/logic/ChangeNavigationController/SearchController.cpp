@@ -24,6 +24,7 @@ constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "In
 constexpr auto SEARCH                = QT_TRANSLATE_NOOP("SearchController", "Search");
 constexpr auto REMOVE_SEARCH_CONFIRM = QT_TRANSLATE_NOOP("SearchController", "Are you sure you want to delete the search results (%1)?");
 constexpr auto CANNOT_CREATE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot create search query (%1)");
+constexpr auto CANNOT_REMOVE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot remove search query");
 constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required.\nTry again?");
 constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query %1 already exists.\nTry again?");
@@ -40,7 +41,8 @@ long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & na
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
 	command->Bind(0, name.toStdString());
-	command->Execute();
+	if (!command->Execute())
+		return 0;
 
 	const auto query = transaction.CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
 	query->Execute();
@@ -102,7 +104,7 @@ struct SearchController::Impl
 				if (id)
 					settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(currentCollectionId).arg("Search"), QString::number(id));
 				else
-					(void)uiFactory->ShowWarning(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
+					uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
 				callback();
 			};
 		} });
@@ -188,15 +190,18 @@ void SearchController::Remove(Ids ids, Callback callback) const
 		const auto transaction = db->CreateTransaction();
 		const auto command = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
 
-		for (const auto & id : ids)
+		auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&] (const bool init, const Id id)
 		{
 			command->Bind(0, id);
-			command->Execute();
-		}
-		transaction->Commit();
+			return command->Execute() && init;
+		});
+		ok = transaction->Commit() && ok;
 
-		return [callback = std::move(callback)] (size_t)
+		return [this, callback = std::move(callback), ok] (size_t)
 		{
+			if (!ok)
+				m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
+
 			callback();
 		};
 	} });

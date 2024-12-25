@@ -34,14 +34,15 @@ LineOption::~LineOption()
 
 void LineOption::SetLineEdit(QLineEdit * lineEdit) noexcept
 {
+	assert(lineEdit);
 	m_impl->lineEdit = lineEdit;
-	m_impl->connections.push_back(QObject::connect(m_impl->lineEdit, &QLineEdit::editingFinished, m_impl->lineEdit, [&]
+	m_impl->connections.push_back(QObject::connect(lineEdit, &QLineEdit::editingFinished, lineEdit, [this, lineEdit]
 	{
-		m_impl->lineEdit->setVisible(false);
+		lineEdit->setVisible(false);
 		m_impl->settings->Set(m_impl->key, m_impl->lineEdit->text());
 		m_impl->Perform(&IObserver::OnOptionEditingFinished, m_impl->lineEdit->text());
 	}));
-	m_impl->connections.push_back(QObject::connect(m_impl->lineEdit, &QLineEdit::textChanged, m_impl->lineEdit, [&](const QString & text)
+	m_impl->connections.push_back(QObject::connect(lineEdit, &QLineEdit::textChanged, lineEdit, [&](const QString & text)
 	{
 		m_impl->Perform(&IObserver::OnOptionEditing, text);
 	}));
@@ -55,10 +56,11 @@ void LineOption::SetSettingsKey(QString key, const QString & defaultValue) noexc
 		auto result = m_impl->settings->Get(m_impl->key, defaultValue);
 		return result.isEmpty() ? defaultValue : result;
 	}();
-	const bool needPerform = value == m_impl->lineEdit->text();
-	m_impl->lineEdit->setText(value);
-	m_impl->lineEdit->setVisible(true);
-	m_impl->lineEdit->setFocus();
+	auto & lineEdit = *m_impl->lineEdit;
+	const bool needPerform = value == lineEdit.text();
+	lineEdit.setText(value);
+	lineEdit.setVisible(true);
+	lineEdit.setFocus();
 	if (needPerform)
 		m_impl->Perform(&IObserver::OnOptionEditing, value);
 }

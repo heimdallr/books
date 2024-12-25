@@ -90,15 +90,14 @@ Collections CollectionImpl::Deserialize(ISettings & settings)
 		return DeserializeImpl(settings, std::move(groupId));
 	});
 
-	if (auto [begin, end] = std::ranges::remove_if(collections, [&] (const auto & item)
+	std::erase_if(collections, [&] (const auto & item)
 	{
 		if (QFile::exists(item->database))
 			return false;
 
 		settings.Remove(item->id);
 		return true;
-	}); begin != end)
-		collections.erase(begin, end);
+	});
 
 	return collections;
 }

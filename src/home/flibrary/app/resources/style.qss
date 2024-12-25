@@ -16,3 +16,6 @@ QHeaderView::section {
 QSplitter::handle:horizontal { width: 0px; }
 
 QSplitter::handle:vertical { height: 0px; }
+
+QComboBox#cbValueMode::drop-down { border-width: 0px; }
+QComboBox#cbValueMode::down-arrow { image: none; border-width: 0px; }

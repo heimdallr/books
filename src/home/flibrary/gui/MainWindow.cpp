@@ -2,7 +2,10 @@
 #include "MainWindow.h"
 
 #include <QActionGroup>
+#include <QGuiApplication>
 #include <QPainter>
+#include <QStyleFactory>
+#include <QStyleHints>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -44,7 +47,7 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto MAIN_WINDOW = "MainWindow";
-constexpr auto CONTEXT = "MainWindow";
+constexpr auto CONTEXT = MAIN_WINDOW;
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
@@ -55,6 +58,7 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto ACTION_PROPERTY_NAME = "value";
 TR_DEF
 
 }
@@ -101,7 +105,6 @@ public:
 		, m_lineOption(std::move(lineOption))
 		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
 		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
-		, m_themeActionGroup(new QActionGroup(&m_self))
 	{
 		Setup();
 		ConnectActions();
@@ -119,7 +122,7 @@ public:
 
 			if (!databaseChecker->IsDatabaseValid())
 			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection()->database));
+				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().database));
 				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
 
@@ -200,8 +203,6 @@ private:
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
 
-		m_themeActionGroup->setExclusive(true);
-
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, m_settings->Get(SHOW_ANNOTATION_CONTENT_KEY, true));
@@ -212,8 +213,8 @@ private:
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
 			m_logController->SetSeverity(severity.toInt());
 
-		if (const auto activeCollection = m_collectionController->GetActiveCollection())
-			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(activeCollection->name));
+		if (m_collectionController->ActiveCollectionExists())
+			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
 	}
 
 	void ConnectActions()
@@ -349,6 +350,63 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
+
+		const auto addActionGroup = [this] (const std::vector<QAction *> & actions, const QString & key, const QString & defaultValue)
+		{
+			auto * group = new QActionGroup(&m_self);
+			group->setExclusive(true);
+
+			auto set = [this, actions, key, defaultValue]
+			{
+				const auto setAction = [] (QAction * action, const bool checked)
+				{
+					action->setChecked(checked);
+					action->setEnabled(!checked);
+				};
+				if (const auto it = std::ranges::find_if(actions, [defaultValue] (const QAction * action)
+				{
+					return action->property(ACTION_PROPERTY_NAME).toString().compare(defaultValue, Qt::CaseInsensitive) == 0;
+				}); it != actions.end())
+					setAction(*it, true);
+
+				const auto currentTheme = m_settings->Get(key, defaultValue);
+				for (auto * action : actions)
+					setAction(action, currentTheme.compare(action->property(ACTION_PROPERTY_NAME).toString(), Qt::CaseInsensitive) == 0);
+			};
+
+			const auto change = [this, set, key] (const QString & theme)
+			{
+				m_settings->Set(key, theme);
+				set();
+				if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+					Reboot();
+			};
+
+			for (auto * action : actions)
+			{
+				connect(action, &QAction::triggered, &m_self, [=]
+				{
+					change(action->property(ACTION_PROPERTY_NAME).toString());
+				});
+				group->addAction(action);
+			}
+
+			set();
+		};
+
+		std::vector<QAction *> styles;
+		for (const auto & key : QStyleFactory::keys())
+		{
+			const auto * style = QStyleFactory::create(key);
+			if (!style)
+				continue;
+
+			auto * action = styles.emplace_back(m_ui.menuTheme->addAction(style->name()));
+			action->setProperty(ACTION_PROPERTY_NAME, key);
+			action->setCheckable(true);
+		}
+		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
 	}
 
 	void CreateLogMenu()
@@ -378,21 +436,23 @@ private:
 
 		m_ui.menuSelectCollection->clear();
 
-		const auto activeCollection = m_collectionController->GetActiveCollection();
-		if (!activeCollection)
+		if (!m_collectionController->ActiveCollectionExists())
 			return;
+
+		const auto& activeCollection = m_collectionController->GetActiveCollection();
+
+		auto * group = new QActionGroup(&m_self);
+		group->setExclusive(true);
 
 		for (const auto & collection : m_collectionController->GetCollections())
 		{
-			const auto active = collection->id == activeCollection->id;
+			const auto active = collection->id == activeCollection.id;
 			auto * action = m_ui.menuSelectCollection->addAction(collection->name);
-			connect(action, &QAction::triggered, &m_self, [&, id = collection->id]
-			{
-				m_collectionController->SetActiveCollection(id);
-			});
+			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] { m_collectionController->SetActiveCollection(id); });
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
+			group->addAction(action);
 		}
 
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
@@ -463,7 +523,6 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
-	QActionGroup * m_themeActionGroup;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
 };

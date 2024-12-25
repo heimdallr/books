@@ -22,7 +22,7 @@ public:
 	CPropVariant(Int32 value);
 	CPropVariant(UInt32 value);
 	CPropVariant(UInt64 value);
-	CPropVariant(const FILETIME & value);
+	CPropVariant(FILETIME value);
 
 	CPropVariant & operator=(const CPropVariant & varSrc);
 	CPropVariant & operator=(const PROPVARIANT & varSrc);
@@ -36,7 +36,7 @@ public:
 	CPropVariant & operator=(UInt32 value);
 	CPropVariant & operator=(Int64 value);
 	CPropVariant & operator=(UInt64 value);
-	CPropVariant & operator=(const FILETIME & value);
+	CPropVariant & operator=(FILETIME value);
 
 	HRESULT Clear();
 	HRESULT Copy(const PROPVARIANT * pSrc);

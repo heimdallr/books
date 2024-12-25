@@ -353,6 +353,22 @@
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
     </widget>
+    <widget class="QMenu" name="menuTheme">
+     <property name="title">
+      <string>&amp;Theme</string>
+     </property>
+     <widget class="QMenu" name="menuColorScheme">
+      <property name="title">
+       <string>&amp;Color scheme</string>
+      </property>
+      <addaction name="actionColorSchemeSystem"/>
+      <addaction name="actionColorSchemeLight"/>
+      <addaction name="actionColorSchemeDark"/>
+     </widget>
+     <addaction name="menuColorScheme"/>
+     <addaction name="separator"/>
+    </widget>
+    <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
@@ -674,6 +690,39 @@
    </property>
    <property name="text">
     <string>&amp;Permanent language filter</string>
+   </property>
+  </action>
+  <action name="actionColorSchemeSystem">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;System</string>
+   </property>
+   <property name="value" stdset="0">
+    <string notr="true">System</string>
+   </property>
+  </action>
+  <action name="actionColorSchemeLight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Light</string>
+   </property>
+   <property name="value" stdset="0">
+    <string notr="true">Light</string>
+   </property>
+  </action>
+  <action name="actionColorSchemeDark">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Dark</string>
+   </property>
+   <property name="value" stdset="0">
+    <string notr="true">Dark</string>
    </property>
   </action>
  </widget>

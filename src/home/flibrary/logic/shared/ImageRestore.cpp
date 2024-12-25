@@ -155,7 +155,7 @@ QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const Q
 	Covers covers;
 	ExtractBookImages(folder, fileName, [&covers] (auto name, auto body)
 	{
-		covers.emplace(std::move(name), std::move(body));
+		covers.try_emplace(std::move(name), std::move(body));
 		return false;
 	});
 	if (covers.empty())

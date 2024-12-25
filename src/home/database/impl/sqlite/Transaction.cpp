@@ -31,16 +31,16 @@ public:
 	}
 
 private: // Transaction
-	void Commit() override
+	bool Commit() override
 	{
 		m_active = false;
-		m_transaction.commit();
+		return m_transaction.commit() == 0;
 	}
 
-	void Rollback() override
+	bool Rollback() override
 	{
 		m_active = false;
-		m_transaction.rollback();
+		return m_transaction.rollback() == 0;
 	}
 
 	std::unique_ptr<ICommand> CreateCommand(std::string_view command) override

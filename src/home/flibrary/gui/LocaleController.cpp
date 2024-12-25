@@ -17,7 +17,6 @@ namespace HomeCompa::Flibrary {
 namespace {
 constexpr auto LOCALE = "ui/locale";
 constexpr auto CONTEXT = "LocaleController";
-constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("LocaleController", "You must restart the application to apply the changes.\nRestart now?");
 }
 
 class LocaleController::Impl
@@ -56,7 +55,7 @@ private:
 	{
 		m_settings->Set(LOCALE, locale);
 
-		if (m_uiFactory->ShowQuestion(Loc::Tr(CONTEXT, CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 			emit m_self.LocaleChanged();
 	}
 

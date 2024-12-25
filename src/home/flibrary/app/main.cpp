@@ -1,11 +1,17 @@
 #include <QApplication>
 #include <QFile>
+#include <QPalette>
 #include <QStandardPaths>
+#include <QStyleFactory>
+#include <QStyleHints>
 
 #include <Hypodermic/Hypodermic.h>
 #include <plog/Log.h>
 
+#include "fnd/FindPair.h"
+
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
@@ -16,6 +22,7 @@
 
 #include "di_app.h"
 
+#include "util/DyLib.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
@@ -41,6 +48,38 @@ void SetStyle(QApplication & app)
 
 	QTextStream ts(&file);
 	app.setStyleSheet(ts.readAll());
+}
+
+std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
+{
+	{
+		auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+		if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
+			style = Constant::Settings::APP_STYLE_DEFAULT;
+
+		QApplication::setStyle(style);
+	}
+
+	{
+		constexpr std::pair<const char *, Qt::ColorScheme> schemes[]
+		{
+			{ "System", Qt::ColorScheme::Unknown },
+			{ "Light" , Qt::ColorScheme::Light },
+			{ "Dark"  , Qt::ColorScheme::Dark },
+		};
+
+		const auto colorSchemeName = settings.Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+		const auto scheme = FindSecond(schemes, colorSchemeName.toStdString().data(), Qt::ColorScheme::Unknown, PszComparer {});
+		QGuiApplication::styleHints()->setColorScheme(scheme);
+
+		if (scheme == Qt::ColorScheme::Unknown)
+			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+		else
+			QGuiApplication::styleHints()->disconnect();
+	}
+
+	const auto palette = QGuiApplication::palette();
+	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "ThemeDark" : "ThemeLight");
 }
 
 }
@@ -75,6 +114,7 @@ int main(int argc, char * argv[])
 			}
 			PLOGD << "DI-container created";
 
+			const auto themeLib = SetTheme(*container->resolve<ISettings>());
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			mainWindow->Show();

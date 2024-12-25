@@ -122,7 +122,7 @@ public:
 			auto it = std::cbegin(line);
 			const auto key = Next(it, std::cend(line), INI_SEPARATOR);
 			const auto value = Next(it, std::cend(line), INI_SEPARATOR);
-			_data.emplace(key, value);
+			_data.try_emplace(std::wstring(key), value);
 		}
 	}
 
@@ -258,38 +258,6 @@ std::set<size_t> ParseItem(const std::wstring_view data
 	return result;
 }
 
-std::string & TrimRight(std::string & line)
-{
-	while (line.ends_with('\r'))
-		line.pop_back();
-
-	return line;
-}
-
-void ProcessCollectionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
-{
-	for (size_t i = 0, sz = std::size(g_collectionInfoSettings); i < sz; ++i)
-	{
-		if (g_collectionInfoSettings[i] != 0)
-		{
-			if (const auto bytes = stream.readLine(); !bytes.isEmpty())
-			{
-				auto line = bytes.toStdString();
-				settingsTableData[g_collectionInfoSettings[i]] = TrimRight(line);
-			}
-		}
-	}
-}
-
-void ProcessVersionInfo(QIODevice & stream, SettingsTableData & settingsTableData)
-{
-	if (const auto bytes = stream.readLine(); !bytes.isEmpty())
-	{
-		auto line = bytes.toStdString();
-		settingsTableData[PROP_DATAVERSION] = TrimRight(line);
-	}
-}
-
 void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::set<size_t> & idGenres)
 {
 	const auto addGenre = [&index = genresIndex, &genres = data.genres] (std::wstring_view code, std::wstring_view name, const auto parentIt)
@@ -388,11 +356,11 @@ InpxContent ExtractInpxFileNames(const Path & inpxFileName)
 		auto folder = ToWide(fileName.toStdString());
 
 		if (folder == COLLECTION_INFO)
-			inpxContent.collectionInfo.push_back(std::move(folder));
+			inpxContent.collectionInfo.emplace_back(std::move(folder));
 		else if (folder == VERSION_INFO)
-			inpxContent.versionInfo.push_back(std::move(folder));
+			inpxContent.versionInfo.emplace_back(std::move(folder));
 		else if (folder.ends_with(INP_EXT))
-			inpxContent.inpx.push_back(std::move(folder));
+			inpxContent.inpx.emplace_back(std::move(folder));
 		else
 			PLOGI << folder << L" skipped";
 	}
@@ -421,39 +389,6 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 {
 	sqlite3pp::query query(db, std::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
 	return std::begin(query) != std::end(query);
-}
-
-SettingsTableData ReadSettings(const Path & dbFileName)
-{
-	SettingsTableData data;
-
-	if (!exists(dbFileName))
-		return data;
-
-	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
-	if (!TableExists(db, "Settings"))
-		return data;
-
-	sqlite3pp::query query(db, "select SettingID, SettingValue from Settings");
-
-	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [] (const auto & row)
-	{
-		int64_t id;
-		const char * value;
-		std::tie(id, value) = row.template get_columns<int64_t, char const *>(0, 1);
-		return std::make_pair(static_cast<uint32_t>(id), std::string(value));
-	});
-
-	data[PROP_SCHEMA_VERSION] = SCHEMA_VERSION_VALUE;
-
-	auto & strDate = data.emplace(PROP_CREATIONDATE, std::string()).first->second;
-	strDate.resize(30);
-	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	tm buf{};
-	(void)localtime_s(&buf, &now);
-	(void)std::strftime(strDate.data(), strDate.size(), "%Y-%m-%d %H:%M:%S", &buf);
-
-	return data;
 }
 
 void ExecuteScript(const std::wstring & action, const Path & dbFileName, const Path & scriptFileName)
@@ -527,13 +462,9 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 		PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 	};
 
-	const auto result = std::accumulate(std::cbegin(container), std::cend(container), size_t {0}, [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const auto & init, const auto & value)
+	const auto result = std::accumulate(std::cbegin(container), std::cend(container), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log] (const size_t init, const auto & value)
 	{
-		f(cmd, value);
-		const auto localResult = 0
-			+ cmd.execute()
-			+ cmd.reset()
-			;
+		const auto localResult = f(cmd, value) + cmd.reset();
 
 		if (localResult == 0)
 		{
@@ -545,7 +476,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 			PLOGE << db->error_code() << ": " << db->error_msg() << std::endl << value;
 		}
 
-		return init + localResult;
+		return init + static_cast<size_t>(localResult);
 	});
 
 	log();
@@ -566,20 +497,32 @@ size_t Store(const Path & dbFileName, const Data & data)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
-		const auto last   = Next(it, std::cend(author), NAMES_SEPARATOR);
-		const auto first  = Next(it, std::cend(author), NAMES_SEPARATOR);
-		const auto middle = Next(it, std::cend(author), NAMES_SEPARATOR);
-		cmd.binder() << id << ToMultiByte(last) << ToMultiByte(first) << ToMultiByte(middle);
+		const auto last   = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+		const auto first  = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+		const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+
+		cmd.bind(1, id);
+		cmd.bind(2, last, sqlite3pp::nocopy);
+		cmd.bind(3, first, sqlite3pp::nocopy);
+		cmd.bind(4, middle, sqlite3pp::nocopy);
+
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		cmd.binder() << item.second << ToMultiByte(item.first);
+		const auto title = ToMultiByte(item.first);
+		cmd.bind(1, item.second);
+		cmd.bind(2, title, sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle) VALUES (?, ?)", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
-		cmd.binder() << item.second << ToMultiByte(item.first);
+		const auto title = ToMultiByte(item.first);
+		cmd.bind(1, item.second);
+		cmd.bind(2, title, sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	std::vector<size_t> newGenresIndex;
@@ -589,6 +532,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 	result += StoreRange(dbFileName, "Genres", "INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)", newGenresIndex | std::views::drop(1), [&genres = data.genres](sqlite3pp::command & cmd, const size_t n)
 	{
 		cmd.binder() << ToMultiByte(genres[n].dbCode) << ToMultiByte(genres[genres[n].parentId].dbCode) << ToMultiByte(genres[n].code) << ToMultiByte(genres[n].name);
+		return cmd.execute();
 	});
 
 	const char * queryText = "INSERT INTO Books ("
@@ -599,41 +543,50 @@ size_t Store(const Path & dbFileName, const Data & data)
 		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
+		const auto libId = ToMultiByte(book.libId);
+		const auto title = ToMultiByte(book.title);
+		const auto date = ToMultiByte(book.date);
+		const auto language = ToMultiByte(book.language);
+		const auto folder = ToMultiByte(book.folder);
+		const auto fileName = ToMultiByte(book.fileName);
+		const auto format = ToMultiByte(book.format);
 																		   cmd.bind( 1, book.id);
-																		   cmd.bind( 2, ToMultiByte(book.libId), sqlite3pp::copy);
-																		   cmd.bind( 3, ToMultiByte(book.title), sqlite3pp::copy);
+																		   cmd.bind( 2, libId, sqlite3pp::nocopy);
+																		   cmd.bind( 3, title, sqlite3pp::nocopy);
 			book.seriesId  == -1  ? cmd.bind( 4, sqlite3pp::null_type()) : cmd.bind( 4, book.seriesId);
 			book.seriesNum == -1  ? cmd.bind( 5, sqlite3pp::null_type()) : cmd.bind( 5, book.seriesNum);
-																		   cmd.bind( 6, ToMultiByte(book.date), sqlite3pp::copy);
+																		   cmd.bind( 6, date, sqlite3pp::nocopy);
 																		   cmd.bind( 7, book.rate);
-																		   cmd.bind( 8, ToMultiByte(book.language), sqlite3pp::copy);
-																		   cmd.bind( 9, ToMultiByte(book.folder), sqlite3pp::copy);
-																		   cmd.bind(10, ToMultiByte(book.fileName), sqlite3pp::copy);
+																		   cmd.bind( 8, language, sqlite3pp::nocopy);
+																		   cmd.bind( 9, folder, sqlite3pp::nocopy);
+																		   cmd.bind(10, fileName, sqlite3pp::nocopy);
 																		   cmd.bind(11, book.insideNo);
-																		   cmd.bind(12, ToMultiByte(book.format), sqlite3pp::copy);
+																		   cmd.bind(12, format, sqlite3pp::nocopy);
 																		   cmd.bind(13, book.size);
 																		   cmd.bind(14, book.isDeleted ? 1 : 0);
+																		   return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Author_List", "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)", data.booksAuthors, [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
+		return cmd.execute();
 	});
 
 	result += StoreRange(dbFileName, "Keyword_List", "INSERT INTO Keyword_List (KeywordID, BookID) VALUES(?, ?)", data.booksKeywords, [] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		cmd.binder() << item.second << item.first;
+		return cmd.execute();
 	});
-
-	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", data.booksGenres, [&genres = data.genres](sqlite3pp::command & cmd, const Links::value_type & item)
+	std::vector<std::string> genres;
+	genres.reserve(std::size(genres));
+	std::ranges::transform(data.genres, std::back_inserter(genres), [] (const auto & item) { return ToMultiByte(item.dbCode); });
+	result += StoreRange(dbFileName, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)", data.booksGenres, [genres = std::move(genres)] (sqlite3pp::command & cmd, const Links::value_type & item)
 	{
 		assert(item.second < std::size(genres));
-		cmd.binder() << item.first << ToMultiByte(genres[item.second].dbCode);
-	});
-
-	result += StoreRange(dbFileName, "Settings", "INSERT INTO Settings (SettingID, SettingValue) VALUES (?, ?)", data.settings, [] (sqlite3pp::command & cmd, const SettingsTableData::value_type & item)
-	{
-		cmd.binder() << static_cast<size_t>(item.first) << item.second;
+		cmd.bind(1, item.first);
+		cmd.bind(2, genres[item.second], sqlite3pp::nocopy);
+		return cmd.execute();
 	});
 
 	return result;
@@ -664,7 +617,7 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 		{
 			auto folder = ToWide(row.template get<std::string>(0));
 			auto ext = RemoveExt(ToLower(folder));
-			dbExt.emplace(folder, std::move(ext));
+			dbExt.try_emplace(folder, std::move(ext));
 			return folder;
 		});
 	}
@@ -674,7 +627,7 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&inpxExt] (std::wstring item)
 	{
 		auto ext = RemoveExt(ToLower(item));
-		inpxExt.emplace(item, std::move(ext));
+		inpxExt.try_emplace(item, std::move(ext));
 		return item;
 	});
 
@@ -946,10 +899,9 @@ private:
 
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 
-		auto settingsTableData = ReadSettings(dbFileName);
 		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 
-		Parse(std::move(settingsTableData));
+		Parse();
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
@@ -958,6 +910,7 @@ private:
 
 	void SetUnknownGenreId()
 	{
+		static constexpr auto UNKNOWN = L"unknown_root";
 		const auto it = m_genresIndex.find(UNKNOWN);
 		assert(it != m_genresIndex.end());
 		m_unknownGenreId = it->second;
@@ -996,11 +949,9 @@ private:
 		return newInpxFolders.size();
 	}
 
-	void Parse(SettingsTableData && settingsTableData)
+	void Parse()
 	{
 		Timer t(L"parsing archives");
-
-		m_data.settings = std::move(settingsTableData);
 
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres = std::move(genresData);
@@ -1029,18 +980,6 @@ private:
 			}
 			return std::unique_ptr<Zip>{};
 		}();
-
-		for (const auto & fileName : inpxContent.collectionInfo)
-			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessCollectionInfo(zipDecodedStream, m_data.settings);
-		});
-
-		for (const auto & fileName : inpxContent.versionInfo)
-			GetDecodedStream(*zip, fileName, [&] (QIODevice & zipDecodedStream)
-		{
-			ProcessVersionInfo(zipDecodedStream, m_data.settings);
-		});
 
 		ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 	}
@@ -1277,7 +1216,7 @@ private:
 					if (const auto it = m_uniqueKeywords.find(key); it != m_uniqueKeywords.end())
 						return container.find(it->second);
 
-					m_uniqueKeywords.emplace(std::move(key), value);
+					m_uniqueKeywords.try_emplace(std::move(key), value);
 					return container.end();
 				}), std::back_inserter(m_data.booksKeywords), [=] (size_t idKeyword)
 				{

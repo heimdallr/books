@@ -343,16 +343,6 @@
     </message>
 </context>
 <context>
-    <name>LocaleController</name>
-    <message>
-        <location filename="../../LocaleController.cpp" line="20"/>
-        <source>You must restart the application to apply the changes.
-Restart now?</source>
-        <translation>Для применения изменений необходимо перезапустить приложение.
-Перезапустить сейчас?</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -455,17 +445,17 @@ Restart now?</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="48"/>
+        <location filename="../../MainWindow.cpp" line="51"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="49"/>
+        <location filename="../../MainWindow.cpp" line="52"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="50"/>
+        <location filename="../../MainWindow.cpp" line="53"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
@@ -574,6 +564,31 @@ Restart now?</source>
         <source>&amp;Permanent language filter</source>
         <translation>&amp;Постоянный языковой фильтр</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Theme</source>
+        <translation>&amp;Тема</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;System</source>
+        <translation>Системна&amp;я</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Light</source>
+        <translation>&amp;Светлая</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Dark</source>
+        <translation>&amp;Тёмная</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;Color scheme</source>
+        <translation>&amp;Цветовая схема</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -665,12 +680,12 @@ Restart now?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../TreeView.cpp" line="62"/>
+        <location filename="../../ModeComboBox.h" line="26"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../TreeView.cpp" line="63"/>
+        <location filename="../../ModeComboBox.h" line="27"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

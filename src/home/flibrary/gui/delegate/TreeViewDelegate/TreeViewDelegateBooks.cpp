@@ -10,6 +10,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
+#include "fnd/ScopedCall.h"
 #include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
@@ -44,9 +45,9 @@ QString SizeDelegate(const QVariant & value)
 
 constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[]
 {
-	{BookItem::Column::Size, &SizeDelegate},
-	{BookItem::Column::LibRate, &NumberDelegate},
-	{BookItem::Column::SeqNumber, &NumberDelegate},
+	{ BookItem::Column::Size     , &SizeDelegate },
+	{ BookItem::Column::LibRate  , &NumberDelegate },
+	{ BookItem::Column::SeqNumber, &NumberDelegate },
 };
 
 }
@@ -59,9 +60,9 @@ public:
 	Impl(std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 		, const IUiFactory & uiFactory
 	)
-		: m_view(uiFactory.GetAbstractScrollArea())
-		, m_rateStarsProvider(std::move(rateStarsProvider))
-		, m_textDelegate(&PassThruDelegate)
+		: m_view { uiFactory.GetAbstractScrollArea() }
+		, m_rateStarsProvider { std::move(rateStarsProvider) }
+		, m_textDelegate { &PassThruDelegate }
 	{
 	}
 
@@ -89,18 +90,20 @@ private:
 	{
 		static constexpr std::pair<int, int> columnToRole[]
 		{
-			{BookItem::Column::LibRate, Role::LibRate},
-			{BookItem::Column::UserRate, Role::UserRate},
+			{ BookItem::Column::LibRate , Role::LibRate },
+			{ BookItem::Column::UserRate, Role::UserRate },
 		};
 		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
 		if (rate < 1 || rate > 5)
 			return;
 
-		const auto stars = m_rateStarsProvider->GetStars(rate);
-		const auto margin = o.rect.height() - stars.height();
-		const auto width = o.rect.width() - 2 * margin / 3;
-		const auto pixmap = stars.width() <= width ? stars : stars.copy(0, 0, width, stars.height());
-		painter->drawPixmap(o.rect.topLeft() + QPoint(margin / 2, 2 * margin / 3), pixmap);
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+		const auto size = m_rateStarsProvider->GetSize(rate);
+		const auto margin = o.rect.height() / 10;
+		auto rect = o.rect.adjusted(margin, 2 * margin, 0, -margin);
+		rect.setWidth(size.width() * rect.height() / size.height());
+		painter->setClipRect(o.rect);
+		m_rateStarsProvider->Render(painter, rect, rate);
 	}
 
 	void RenderBooks(QPainter * painter, QStyleOptionViewItem & o, const QModelIndex & index) const
@@ -117,9 +120,12 @@ private:
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		QStyledItemDelegate::paint(painter, o, index);
-		if (isRate)
-			RenderLibRate(painter, o, index);
+		if (!isRate)
+			return QStyledItemDelegate::paint(painter, o, index);
+
+		o.text.clear();
+		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		RenderLibRate(painter, o, index);
 	}
 
 private:
