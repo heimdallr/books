@@ -10,6 +10,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
+#include "fnd/ScopedCall.h"
 #include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
@@ -89,18 +90,20 @@ private:
 	{
 		static constexpr std::pair<int, int> columnToRole[]
 		{
-			{BookItem::Column::LibRate, Role::LibRate},
-			{BookItem::Column::UserRate, Role::UserRate},
+			{ BookItem::Column::LibRate , Role::LibRate },
+			{ BookItem::Column::UserRate, Role::UserRate },
 		};
 		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
 		if (rate < 1 || rate > 5)
 			return;
 
-		const auto stars = m_rateStarsProvider->GetStars(rate);
-		const auto margin = o.rect.height() - stars.height();
-		const auto width = o.rect.width() - 2 * margin / 3;
-		const auto pixmap = stars.width() <= width ? stars : stars.copy(0, 0, width, stars.height());
-		painter->drawPixmap(o.rect.topLeft() + QPoint(margin / 2, 2 * margin / 3), pixmap);
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+		const auto size = m_rateStarsProvider->GetSize(rate);
+		const auto margin = o.rect.height() / 10;
+		auto rect = o.rect.adjusted(margin, 2 * margin, 0, -margin);
+		rect.setWidth(size.width() * rect.height() / size.height());
+		painter->setClipRect(o.rect);
+		m_rateStarsProvider->Render(painter, rect, rate);
 	}
 
 	void RenderBooks(QPainter * painter, QStyleOptionViewItem & o, const QModelIndex & index) const
