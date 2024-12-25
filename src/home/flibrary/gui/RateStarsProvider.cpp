@@ -17,6 +17,14 @@ namespace
 constexpr auto TRANSPARENT = "transparent";
 constexpr auto COLOR = "#CCCC00";
 
+QString ReadContent()
+{
+	QFile file(":/icons/stars.svg");
+	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+	assert(ok);
+	return QString::fromUtf8(file.readAll());
+}
+
 }
 
 class RateStarsProvider::Impl : public ISettingsObserver
@@ -25,7 +33,8 @@ class RateStarsProvider::Impl : public ISettingsObserver
 
 public:
 	explicit Impl(std::shared_ptr<ISettings> settings)
-		: m_settings(std::move(settings))
+		: m_settings { std::move(settings) }
+		, m_starsFileContent { ReadContent() }
 	{
 		m_settings->RegisterObserver(this);
 		ReadFont();
@@ -37,17 +46,37 @@ public:
 	}
 
 public:
-	QPixmap GetStars(const int rate)
+	QPixmap GetStars(const size_t rate)
 	{
-		if (rate < 1 || rate > static_cast<int>(std::size(m_cache)))
+		if (rate >= std::size(m_renderers))
 			return {};
 
-		ReadContent();
+		if (!m_renderers[rate])
+			Init(rate);
 
-		auto & stars = m_cache[rate - 1];
-		Render(stars, rate);
+		return Render(rate);
+	}
 
-		return stars;
+	QSize GetSize(const size_t rate)
+	{
+		if (rate >= std::size(m_renderers))
+			return {};
+
+		if (!m_renderers[rate])
+			Init(rate);
+
+		return m_renderers[rate]->defaultSize();
+	}
+
+	void Render(QPainter * painter, const QRect & rect, const size_t rate)
+	{
+		if (rate >= std::size(m_renderers))
+			return;
+
+		if (!m_renderers[rate])
+			Init(rate);
+
+		m_renderers[rate]->render(painter, rect);
 	}
 
 private: // ISettingsObserver
@@ -58,52 +87,45 @@ private: // ISettingsObserver
 	}
 
 private:
-	void ReadFont()
+	void Init(const size_t rate)
 	{
-		const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
-		Util::Deserialize(m_font, *m_settings);
-	}
-
-	void ReadContent()
-	{
-		if (!m_starsFileContent.isEmpty())
-			return;
-
-		QFile file(":/icons/stars.svg");
-		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-		assert(ok);
-		m_starsFileContent = QString::fromUtf8(file.readAll());
-	}
-
-	void Render(QPixmap & stars, const int rate) const
-	{
-		const QFontMetrics fontMetrics(m_font);
-		const auto height = fontMetrics.ascent();
-		if (!stars.isNull() && stars.height() == height)
-			return;
-
 		const char * colors[5];
-		for (int i = 0; i < rate; ++i)
+		for (size_t i = 0; i <= rate; ++i)
 			colors[i] = COLOR;
-		for (int i = rate; i < 5; ++i)
+		for (size_t i = rate + 1; i < 5; ++i)
 			colors[i] = TRANSPARENT;
 		const auto content = m_starsFileContent.arg(colors[0]).arg(colors[1]).arg(colors[2]).arg(colors[3]).arg(colors[4]);
 
-		QSvgRenderer renderer(content.toUtf8());
-		assert(renderer.isValid());
+		m_renderers[rate] = std::make_unique<QSvgRenderer>(content.toUtf8());
+		assert(m_renderers[rate]->isValid());
+	}
 
-		const auto defaultSize = renderer.defaultSize();
-		stars = QPixmap(height * defaultSize.width() / defaultSize.height(), height);
+	void ReadFont()
+	{
+		const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+		QFont font;
+		Util::Deserialize(font, *m_settings);
+		const QFontMetrics fontMetrics(font);
+		m_height = fontMetrics.ascent();
+	}
+
+	QPixmap Render(const size_t rate) const
+	{
+		const auto defaultSize = m_renderers[rate]->defaultSize();
+		QPixmap stars(m_height * defaultSize.width() / defaultSize.height(), m_height);
 		stars.fill(Qt::transparent);
 		QPainter p(&stars);
-		renderer.render(&p, QRect(QPoint {}, stars.size()));
+		m_renderers[rate]->render(&p, QRect(QPoint {}, stars.size()));
+
+		return stars;
 	}
 
 private:
-	QFont m_font;
+	int m_height;
 	std::shared_ptr<ISettings> m_settings;
-	QPixmap m_cache[5];
 	QString m_starsFileContent;
+
+	std::vector<std::unique_ptr<QSvgRenderer>> m_renderers { 5 };
 };
 
 RateStarsProvider::RateStarsProvider(std::shared_ptr<ISettings> settings)
@@ -115,5 +137,15 @@ RateStarsProvider::~RateStarsProvider() = default;
 
 QPixmap RateStarsProvider::GetStars(const int rate) const
 {
-	return m_impl->GetStars(rate);
+	return m_impl->GetStars(static_cast<size_t>(rate - 1));
+}
+
+QSize RateStarsProvider::GetSize(const int rate) const
+{
+	return m_impl->GetSize(static_cast<size_t>(rate - 1));
+}
+
+void RateStarsProvider::Render(QPainter * painter, const QRect & rect, const int rate) const
+{
+	m_impl->Render(painter, rect, static_cast<size_t>(rate - 1));
 }

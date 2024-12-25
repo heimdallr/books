@@ -23,6 +23,8 @@ public:
 
 private: // IRateStarsProvider
 	QPixmap GetStars(int rate) const override;
+	QSize GetSize(int rate) const override;
+	void Render(QPainter * painter, const QRect & rect, int rate) const override;
 
 private:
 	class Impl;
