@@ -45,9 +45,9 @@ QString SizeDelegate(const QVariant & value)
 
 constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[]
 {
-	{BookItem::Column::Size, &SizeDelegate},
-	{BookItem::Column::LibRate, &NumberDelegate},
-	{BookItem::Column::SeqNumber, &NumberDelegate},
+	{ BookItem::Column::Size     , &SizeDelegate },
+	{ BookItem::Column::LibRate  , &NumberDelegate },
+	{ BookItem::Column::SeqNumber, &NumberDelegate },
 };
 
 }
@@ -60,9 +60,9 @@ public:
 	Impl(std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 		, const IUiFactory & uiFactory
 	)
-		: m_view(uiFactory.GetAbstractScrollArea())
-		, m_rateStarsProvider(std::move(rateStarsProvider))
-		, m_textDelegate(&PassThruDelegate)
+		: m_view { uiFactory.GetAbstractScrollArea() }
+		, m_rateStarsProvider { std::move(rateStarsProvider) }
+		, m_textDelegate { &PassThruDelegate }
 	{
 	}
 
