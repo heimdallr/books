@@ -117,9 +117,12 @@ private:
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		QStyledItemDelegate::paint(painter, o, index);
-		if (isRate)
-			RenderLibRate(painter, o, index);
+		if (!isRate)
+			return QStyledItemDelegate::paint(painter, o, index);
+
+		o.text.clear();
+		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		RenderLibRate(painter, o, index);
 	}
 
 private:
