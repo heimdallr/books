@@ -95,6 +95,8 @@ int main(int argc, char * argv[])
 
 	try
 	{
+		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
 		QApplication app(argc, argv);
 		QCoreApplication::setApplicationName(PRODUCT_ID);
 		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
@@ -102,8 +104,6 @@ int main(int argc, char * argv[])
 
 		PLOGD << "QApplication created";
 		SetStyle(app);
-
-		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
 		while (true)
 		{
