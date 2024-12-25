@@ -513,10 +513,10 @@ private: // IAnnotationController::IObserver
 				info.Add(name, QString(R"(<img src="data:image/png;base64,%1"/>)").arg(byteArray.toBase64()));
 			};
 
-			auto info = Table()
-				.Add(FILENAME, book.GetRawData(BookItem::Column::FileName))
-				.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))))
-				.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
+			auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
+			if (dataProvider.GetTextSize() > 0)
+				info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
+			info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 			addRate(info, RATE, BookItem::Column::LibRate);
 			addRate(info, USER_RATE, BookItem::Column::UserRate);
 			if (!m_covers.empty())
