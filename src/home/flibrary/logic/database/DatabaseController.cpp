@@ -45,12 +45,12 @@ void AddUserTableField(DB::ITransaction & transaction, const QString & table, co
 		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName)
+std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName, const bool readOnly)
 {
 	if (databaseName.empty())
 		return {};
 
-	const std::string connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt";
+	const auto connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt" + (readOnly ? ";flag=READONLY" : "");
 	auto db = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
@@ -60,6 +60,9 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		query->Execute();
 		PLOGI << "sqlite version: " << query->Get<std::string>(0);
 	}
+
+	if (readOnly)
+		return db;
 
 	try
 	{
@@ -107,7 +110,7 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create) const
+	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create, const bool readOnly) const
 	{
 		std::lock_guard lock(m_dbGuard);
 
@@ -117,7 +120,7 @@ public:
 		if (m_db)
 			return m_db;
 
-		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
+		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString(), readOnly);
 		m_db = std::move(db);
 
 		if (m_db)
@@ -164,14 +167,14 @@ DatabaseController::~DatabaseController()
 	PLOGD << "DatabaseController destroyed";
 }
 
-std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
+std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase(const bool readOnly) const
 {
-	return m_impl->GetDatabase(true);
+	return m_impl->GetDatabase(true, readOnly);
 }
 
 std::shared_ptr<DB::IDatabase> DatabaseController::CheckDatabase() const
 {
-	return m_impl->GetDatabase(false);
+	return m_impl->GetDatabase(false, true);
 }
 
 void DatabaseController::RegisterObserver(IObserver * observer)

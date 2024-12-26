@@ -27,7 +27,7 @@ public:
 	~DatabaseController();
 
 public:
-	std::shared_ptr<DB::IDatabase> GetDatabase() const;
+	std::shared_ptr<DB::IDatabase> GetDatabase(bool readOnly = false) const;
 	std::shared_ptr<DB::IDatabase> CheckDatabase() const;
 
 	void RegisterObserver(IObserver * observer);
