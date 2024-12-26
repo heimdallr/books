@@ -3,14 +3,9 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-#include <QCoreApplication>
-
 #include "Dialog.h"
 #include "UiFactory.h"
 #include "ParentWidgetProvider.h"
-#include "util/app.h"
-#include "util/Settings.h"
-#include "config/version.h"
 
 // ReSharper restore CppUnusedIncludeDirective
 
@@ -30,13 +25,6 @@ void DiGuiUtil(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hyp
 	{
 		return std::make_shared<UiFactory>(*container);
 	}).as<IUiFactory>().singleInstance();
-
-	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
-	{
-		return GetInstallerDescription().type == InstallerType::portable
-			? std::make_shared<Settings>(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
-			: std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
-	}).as<ISettings>().singleInstance();
 }
 
 }
