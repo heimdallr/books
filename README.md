@@ -1,5 +1,11 @@
 # FLibrary
 
+<details>
+<summary>Скриншоты</summary>
+<img width="1706" alt="image" src="https://github.com/user-attachments/assets/b5b82b42-782b-406c-b96a-2c5c5a3e8035" />
+<img width="1706" alt="image" src="https://github.com/user-attachments/assets/dd61bcfd-5ef6-4c04-9b38-d0923d24b8e1" />
+</details>
+
 Замена для [MyHomeLib](https://github.com/OleksiyPenkov/MyHomeLib)
 
 #### Преимущества FLibrary перед MyHomeLib
