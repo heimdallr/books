@@ -7,6 +7,7 @@
 // ReSharper disable CppUnusedIncludeDirective
 #include "Annotation/AnnotationController.h"
 #include "Collection/CollectionController.h"
+#include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -43,6 +44,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 {
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
+	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();

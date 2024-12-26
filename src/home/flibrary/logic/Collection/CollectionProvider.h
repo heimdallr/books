@@ -3,7 +3,9 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
+
+#include "export/logic.h"
 
 namespace HomeCompa {
 	class ISettings;
@@ -11,22 +13,18 @@ namespace HomeCompa {
 
 namespace HomeCompa::Flibrary {
 
-class CollectionController final
-	: public ICollectionController
+struct CollectionImpl;
+
+class LOGIC_EXPORT CollectionProvider final
+	: virtual public ICollectionProvider
 {
-	NON_COPY_MOVABLE(CollectionController)
+	NON_COPY_MOVABLE(CollectionProvider)
 
 public:
-	CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class IUiFactory> uiFactory
-		, const std::shared_ptr<class ITaskQueue>& taskQueue
-	);
-	~CollectionController() override;
+	explicit CollectionProvider(std::shared_ptr<ISettings> settings);
+	~CollectionProvider() override;
 
-public: // ICollectionController
-	void AddCollection(const std::filesystem::path & inpx) override;
-	void RemoveCollection() override;
+private: // ICollectionProvider
 	[[nodiscard]] bool IsEmpty() const noexcept override;
 	[[nodiscard]] bool IsCollectionNameExists(const QString & name) const override;
 	[[nodiscard]] QString GetCollectionDatabaseName(const QString & databaseFileName) const override;
@@ -37,11 +35,11 @@ public: // ICollectionController
 	[[nodiscard]] const Collection& GetActiveCollection() const noexcept override;
 	[[nodiscard]] bool ActiveCollectionExists() const noexcept override;
 	[[nodiscard]] QString GetActiveCollectionId() const noexcept override;
-	void SetActiveCollection(const QString & id) override;
-	void OnInpxUpdateFound(const Collection & updatedCollection) override;
 
 	void RegisterObserver(ICollectionsObserver * observer) override;
 	void UnregisterObserver(ICollectionsObserver * observer) override;
+	void OnActiveCollectionChanged() override;
+	void OnNewCollectionCreating(bool) override;
 
 private:
 	class Impl;

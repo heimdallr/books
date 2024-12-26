@@ -14,7 +14,7 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -91,23 +91,23 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 }
 
 class DatabaseController::Impl final
-	: ICollectionController::IObserver
+	: ICollectionsObserver
 	, public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(std::shared_ptr<ICollectionController> collectionController)
-		: m_collectionController(std::move(collectionController))
+	explicit Impl(std::shared_ptr<ICollectionProvider> collectionProvider)
+		: m_collectionProvider { std::move(collectionProvider) }
 	{
-		m_collectionController->RegisterObserver(this);
+		m_collectionProvider->RegisterObserver(this);
 
 		OnActiveCollectionChanged();
 	}
 
 	~Impl() override
 	{
-		m_collectionController->UnregisterObserver(this);
+		m_collectionProvider->UnregisterObserver(this);
 	}
 
 	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create, const bool readOnly) const
@@ -134,10 +134,10 @@ public:
 		return m_db;
 	}
 
-private: // ICollectionController::IObserver
+private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
-		m_databaseFileName = m_collectionController->ActiveCollectionExists() ? m_collectionController->GetActiveCollection().database : QString {};
+		m_databaseFileName = m_collectionProvider->ActiveCollectionExists() ? m_collectionProvider->GetActiveCollection().database : QString {};
 		if (m_db)
 			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
@@ -152,12 +152,12 @@ private:
 	mutable std::mutex m_dbGuard;
 	mutable std::shared_ptr<DB::IDatabase> m_db;
 	QString m_databaseFileName;
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	Util::FunctorExecutionForwarder m_forwarder;
 };
 
-DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> collectionController)
-	: m_impl(std::move(collectionController))
+DatabaseController::DatabaseController(std::shared_ptr<ICollectionProvider> collectionProvider)
+	: m_impl(std::move(collectionProvider))
 {
 	PLOGD << "DatabaseController created";
 }

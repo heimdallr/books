@@ -23,7 +23,7 @@ public:
 	};
 
 public:
-	explicit DatabaseController(std::shared_ptr<class ICollectionController> collectionController);
+	explicit DatabaseController(std::shared_ptr<class ICollectionProvider> collectionProvider);
 	~DatabaseController();
 
 public:
