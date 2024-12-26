@@ -24,7 +24,7 @@ public:
 
 public:
 	DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
-		, std::shared_ptr<class DatabaseController> databaseController
+		, std::shared_ptr<class IDatabaseController> databaseController
 	);
 	~DatabaseUser();
 

@@ -13,7 +13,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "database/DatabaseController.h"
+#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
@@ -159,7 +159,7 @@ static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode:
 struct TreeViewControllerNavigation::Impl final
 	: IModelObserver
 	, virtual IContextMenuHandler
-	, virtual private DatabaseController::IObserver
+	, virtual private IDatabaseController::IObserver
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
 {
@@ -167,14 +167,14 @@ struct TreeViewControllerNavigation::Impl final
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
-	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
+	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
 	Impl(TreeViewControllerNavigation & self
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<DatabaseController> databaseController
+		, std::shared_ptr<IDatabaseController> databaseController
 	)
 		: self(self)
 		, logicFactory(logicFactory)
@@ -308,7 +308,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<DatabaseController> databaseController
+	, std::shared_ptr<IDatabaseController> databaseController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)

@@ -7,8 +7,8 @@
 
 #include "data/DataItem.h"
 #include "data/GenresLocalization.h"
-#include "database/DatabaseController.h"
 #include "interface/constants/Localization.h"
+#include "interface/logic/IDatabaseController.h"
 #include "util/executor/factory.h"
 
 using namespace HomeCompa;
@@ -54,11 +54,11 @@ ApplicationCursorWrapper APPLICATION_CURSOR_WRAPPER;
 
 struct DatabaseUser::Impl
 {
-	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
+	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	std::shared_ptr<Util::IExecutor> executor;
 
 	Impl(const ILogicFactory & logicFactory
-		, std::shared_ptr<DatabaseController> databaseController
+		, std::shared_ptr<IDatabaseController> databaseController
 	)
 		: databaseController(std::move(databaseController))
 		, executor(CreateExecutor(logicFactory))
@@ -77,7 +77,7 @@ struct DatabaseUser::Impl
 };
 
 DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
-	, std::shared_ptr<DatabaseController> databaseController
+	, std::shared_ptr<IDatabaseController> databaseController
 )
 	: m_impl(*logicFactory, std::move(databaseController))
 {
