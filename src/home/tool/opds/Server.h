@@ -16,11 +16,12 @@ class Server : virtual public IServer
 
 public:
 	Server(const std::shared_ptr<const ISettings> & settings
+		, std::shared_ptr<class IRequester> requester
 	);
 	~Server() override;
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

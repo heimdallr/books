@@ -11,4 +11,5 @@ AddTarget(opds	app
 		Fnd
 		logging
 		logic
+		Util
 )

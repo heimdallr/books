@@ -6,6 +6,7 @@
 
 #include <plog/Log.h>
 
+#include "interface/IRequester.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "util/ISettings.h"
@@ -13,23 +14,29 @@
 using namespace HomeCompa;
 using namespace Opds;
 
-struct Server::Impl
+class Server::Impl
 {
-	QHttpServer server;
+public:
 	Impl(const ISettings & settings
+		, std::shared_ptr<const IRequester> requester
 	)
+		: m_requester { std::move(requester) }
+	{
+		Init(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort());
+	}
 
+private:
+	void Init(const uint16_t port)
 	{
 		auto tcpServer = std::make_unique<QTcpServer>();
-		const auto port = settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort();
-		if (!tcpServer->listen(QHostAddress::Any, port) || !server.bind(tcpServer.get()))
+		if (!tcpServer->listen(QHostAddress::Any, port) || !m_server.bind(tcpServer.get()))
 			throw std::runtime_error(std::format("Cannot listen port {}", port));
 
 		PLOGD << "Listening port " << port;
 
 		(void)tcpServer.release();
 
-		server.addAfterRequestHandler(&server, [] (const QHttpServerRequest & request, QHttpServerResponse & resp)
+		m_server.addAfterRequestHandler(&m_server, [] (const QHttpServerRequest & request, QHttpServerResponse & resp)
 		{
 			PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
 			auto h = resp.headers();
@@ -37,52 +44,27 @@ struct Server::Impl
 			resp.setHeaders(std::move(h));
 		});
 
-		server.route("/opds", [] (const QHttpServerRequest & /*request*/)
+		m_server.route("/opds", [this] (const QHttpServerRequest & /*request*/)
 		{
-			constexpr auto t = R"(<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms/" xmlns:opds="http://opds-spec.org/2010/catalog">
-  <updated>2024-12-26T16:16:33Z</updated>
-  <id>root</id>
-  <title>Flibusta FB2 Local</title>
-  <entry>
-    <updated>2024-12-26T16:16:33Z</updated>
-    <id>author</id>
-    <title>author</title>
-    <link href="/opds/author" rel="subsection" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
-  </entry>
-  <entry>
-    <updated>2024-12-26T16:16:33Z</updated>
-    <id>series</id>
-    <title>series</title>
-    <link href="/opds/series" rel="subsection" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
-  </entry>
-  <entry>
-    <updated>2024-12-26T16:16:33Z</updated>
-    <id>title</id>
-    <title>title</title>
-    <link href="/opds/title" rel="subsection" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
-  </entry>
-  <entry>
-    <updated>2024-12-26T16:16:33Z</updated>
-    <id>genre</id>
-    <title>genre</title>
-    <link href="/opds/genre" rel="subsection" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
-  </entry>
-</feed>
-)";
-
-			return QHttpServerResponse(QByteArray {t});
+			return m_requester->GetRoot();
 		});
-		server.route("/opds/author/<arg>", [] (const QString & request)
+
+		m_server.route("/opds/author/<arg>", [] (const QString & request)
 		{
 			return QHttpServerResponse(request.toUtf8());
 		});
 	}
+
+private:
+	QHttpServer m_server;
+	std::shared_ptr<const IRequester> m_requester;
 };
 
 Server::Server(const std::shared_ptr<const ISettings> & settings
+	, std::shared_ptr<IRequester> requester
 )
 	: m_impl(*settings
+		, std::move(requester)
 		)
 {
 	PLOGD << "Server created";
