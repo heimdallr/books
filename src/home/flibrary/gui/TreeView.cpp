@@ -383,11 +383,14 @@ private:
 	void GenerateMenu(QMenu & menu, const IDataItem & item)
 	{
 		const auto font = menu.font();
+		const QFontMetrics metrics(font);
 		std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
 		while (!stack.empty())
 		{
 			auto [parent, subMenu] = stack.top();
 			stack.pop();
+
+			auto maxWidth = subMenu->minimumWidth();
 
 			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
 			{
@@ -395,12 +398,17 @@ private:
 				const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
 				const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
 				const auto title = child->GetData().toStdString();
+				const auto titleText = Loc::Tr(m_controller->TrContext(), title.data());
+				auto statusTip = titleText;
+				statusTip.replace("&", "");
+				maxWidth = std::max(maxWidth, metrics.boundingRect(statusTip).width() + 3 * (metrics.ascent() + metrics.descent()));
 
 				if (child->GetChildCount() != 0)
 				{
-					auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(Loc::Tr(m_controller->TrContext(), title.data()))).second;
+					auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(titleText)).second;
 					subSubMenu->setFont(font);
 					subSubMenu->setEnabled(enabled);
+					subSubMenu->setStatusTip(statusTip);
 					continue;
 				}
 
@@ -410,7 +418,7 @@ private:
 					continue;
 				}
 
-				auto * action = subMenu->addAction(Loc::Tr(m_controller->TrContext(), title.data()), [&, child = std::move(child)] () mutable
+				auto * action = subMenu->addAction(titleText, [&, child = std::move(child)] () mutable
 				{
 					const auto & view = *m_ui.treeView;
 					m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
@@ -423,9 +431,12 @@ private:
 					selected.erase(begin, end);
 					m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
 				});
+				action->setStatusTip(statusTip);
 
 				action->setEnabled(enabled);
 			}
+
+			subMenu->setMinimumWidth(maxWidth);
 		}
 	}
 
