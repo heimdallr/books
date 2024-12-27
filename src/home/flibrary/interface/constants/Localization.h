@@ -24,4 +24,13 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 
 #endif
 
+constexpr auto NAVIGATION = "Navigation";
+constexpr auto AUTHORS = QT_TRANSLATE_NOOP("Navigation", "Authors");
+constexpr auto SERIES = QT_TRANSLATE_NOOP("Navigation", "Series");
+constexpr auto GENRES = QT_TRANSLATE_NOOP("Navigation", "Genres");
+constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Navigation", "Keywords");
+constexpr auto ARCHIVES = QT_TRANSLATE_NOOP("Navigation", "Archives");
+constexpr auto GROUPS = QT_TRANSLATE_NOOP("Navigation", "Groups");
+constexpr auto SEARCH = QT_TRANSLATE_NOOP("Navigation", "Search");
+
 }

@@ -116,6 +116,44 @@
     </message>
 </context>
 <context>
+    <name>Navigation</name>
+    <message>
+        <location filename="../../constants/Localization.h" line="28"/>
+        <source>Authors</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="29"/>
+        <source>Series</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="30"/>
+        <source>Genres</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="31"/>
+        <source>Keywords</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="32"/>
+        <source>Archives</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="33"/>
+        <source>Groups</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="34"/>
+        <source>Search</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ScriptController</name>
     <message>
         <location filename="../../logic/IScriptController.h" line="113"/>
