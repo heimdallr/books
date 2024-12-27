@@ -49,7 +49,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
 	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
-	builder.registerType<DatabaseUser>().singleInstance();
+	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<ListModel>().as<AbstractListModel>();

@@ -17,142 +17,142 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>&amp;Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>E&amp;xport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>As &amp;zip archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>As &amp;original format</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>As &amp;inpx collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>&amp;Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>&amp;Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
         <source>&amp;New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
         <source>&amp;Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
         <source>&amp;All</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>&amp;My rate</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
         <source>&amp;Remove my rate</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
         <source>&amp;Check</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
         <source>&amp;Check all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
         <source>&amp;Uncheck all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>&amp;Invert</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
         <source>&amp;Tree</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
         <source>C&amp;ollapse</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>E&amp;xpand</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>&amp;Collapse all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
         <source>&amp;Expand all</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
         <source>R&amp;emove</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="58"/>
         <source>&amp;Undo deletion</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
         <source>Cannot set rate</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="60"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
         <source>Books %1 failed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="63"/>
         <source>removing</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="64"/>
         <source>restoring</source>
         <translation></translation>
     </message>
@@ -160,12 +160,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="37"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="39"/>
         <source>List</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="38"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="40"/>
         <source>Tree</source>
         <translation></translation>
     </message>
@@ -237,27 +237,27 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="78"/>
+        <location filename="../../log/LogController.cpp" line="80"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="79"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="80"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Keywords:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="81"/>
+        <location filename="../../log/LogController.cpp" line="83"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="82"/>
+        <location filename="../../log/LogController.cpp" line="84"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
@@ -1951,54 +1951,54 @@
 <context>
     <name>GroupController</name>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="20"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="21"/>
         <source>Input new group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="21"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="22"/>
         <source>Group name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="22"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="23"/>
         <source>New group</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="24"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="25"/>
         <source>Group name too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
         <source>Group %1 already exists.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
         <source>Cannot create group</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
         <source>Cannot remove groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
         <source>Cannot add book to group</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="30"/>
         <source>Cannot remove books from group</source>
         <translation></translation>
     </message>
@@ -2073,44 +2073,44 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Input new search string</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
         <source>Search</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Cannot create search query (%1)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Cannot remove search query</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="31"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="32"/>
         <source>Search query too long.
 Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="33"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation></translation>
@@ -2222,27 +2222,27 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="19"/>
+        <location filename="../../userdata/UserDataController.cpp" line="18"/>
         <source>Specify a file to export user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="20"/>
+        <location filename="../../userdata/UserDataController.cpp" line="19"/>
         <source>Select a file to import user data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="21"/>
+        <location filename="../../userdata/UserDataController.cpp" line="20"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="22"/>
+        <location filename="../../userdata/UserDataController.cpp" line="21"/>
         <source>User data successfully recovered</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="23"/>
+        <location filename="../../userdata/UserDataController.cpp" line="22"/>
         <source>User data successfully saved</source>
         <translation></translation>
     </message>

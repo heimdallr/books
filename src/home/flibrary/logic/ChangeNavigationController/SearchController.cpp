@@ -2,16 +2,19 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
+#include "database/interface/IQuery.h"
 #include "interface/constants/Enums.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "database/DatabaseUser.h"
 #include "util/ISettings.h"
 
 using namespace HomeCompa;
@@ -44,7 +47,7 @@ long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & na
 	if (!command->Execute())
 		return 0;
 
-	const auto query = transaction.CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
+	const auto query = transaction.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
 	query->Execute();
 	return query->Get<long long>(0);
 }
@@ -56,13 +59,13 @@ TR_DEF
 struct SearchController::Impl
 {
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
-	std::shared_ptr<const DatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	std::shared_ptr<const IUiFactory> uiFactory;
 	const QString currentCollectionId;
 
 	explicit Impl(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<const IUiFactory> uiFactory
 		, const std::shared_ptr<ICollectionController> & collectionController
@@ -148,7 +151,7 @@ struct SearchController::Impl
 };
 
 SearchController::SearchController(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 	, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	, std::shared_ptr<IUiFactory> uiFactory
 	, const std::shared_ptr<ICollectionController> & collectionController

@@ -1,15 +1,21 @@
 #include "BooksTreeGenerator.h"
 
+#include <numeric>
 #include <ranges>
 #include <unordered_map>
 #include <unordered_set>
+
+#include <QHash>
 
 #include <plog/Log.h>
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/logic/IDatabaseUser.h"
 
-#include "database/DatabaseUser.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/DatabaseUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -159,25 +165,25 @@ public:
 		if (navigationId.isEmpty())
 			return;
 
-		const auto queryText = QString(BOOKS_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString();
+		const auto queryText = QString(BOOKS_QUERY).arg(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.joinClause, description.whereClause).toStdString();
 		const auto query = db.CreateQuery(queryText);
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			auto & book = m_books[query->Get<long long>(BookQueryFields::BookId)];
-			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUser::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const IDataItem & item)
+			std::get<1>(book) = UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUtil::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [] (const IDataItem & item)
 			{
 				return item.GetId() != "-1";
 			});
-			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUser::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
-			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUser::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE), [] (const IDataItem & item)
+			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUtil::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
+			Add(std::get<3>(book), UpdateDictionary<QString, const char *>(m_genres, *query, QueryInfo(&DatabaseUtil::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE), [] (const IDataItem & item)
 			{
 				return !(item.GetData().isEmpty() || item.GetData()[0].isDigit());
 			}));
 
 			if (!std::get<0>(book))
-				std::get<0>(book) = DatabaseUser::CreateBookItem(*query);
+				std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
 		}
 
 		const auto genresComparator = [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)

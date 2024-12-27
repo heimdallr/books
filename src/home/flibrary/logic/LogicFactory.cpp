@@ -15,6 +15,7 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
@@ -32,8 +33,6 @@
 
 #include "extract/BooksExtractor.h"
 #include "extract/InpxCollectionExtractor.h"
-
-#include "database/DatabaseUser.h"
 
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ReaderController.h"

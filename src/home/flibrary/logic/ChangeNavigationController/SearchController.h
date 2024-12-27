@@ -25,7 +25,7 @@ public:
 
 public:
 	SearchController(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class IDatabaseUser> databaseUser
 		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, const std::shared_ptr<class ICollectionController> & collectionController

@@ -17,142 +17,142 @@
 <context>
     <name>BookContextMenu</name>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="34"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
         <source>&amp;Read</source>
         <translation>&amp;Читать</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="35"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
         <source>E&amp;xport</source>
         <translation>&amp;Экспорт</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="36"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
         <source>As &amp;zip archive</source>
         <translation>В &amp;zip-архиве</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="37"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
         <source>As &amp;original format</source>
         <translation>В исходном &amp;формате</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="38"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
         <source>As &amp;inpx collection</source>
         <translation>В виде &amp;inpx-коллекции</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="39"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
         <source>&amp;Groups</source>
         <translation>&amp;Группы</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="40"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
         <source>&amp;Add to</source>
         <translation>&amp;Добавить в</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="41"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
         <source>&amp;New group...</source>
         <translation>&amp;Новая группа...</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="42"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
         <source>&amp;Remove from</source>
         <translation>&amp;Удалить из</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="43"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
         <source>&amp;All</source>
         <translation>&amp;Все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="44"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
         <source>&amp;My rate</source>
         <translation>&amp;Мой рейтинг</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="45"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
         <source>&amp;Remove my rate</source>
         <translation>&amp;Удалить мою оценку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="46"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
         <source>&amp;Check</source>
         <translation>От&amp;метка</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="47"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
         <source>&amp;Check all</source>
         <translation>Отметить &amp;все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="48"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
         <source>&amp;Uncheck all</source>
         <translation>Сн&amp;ять отметки</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="49"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
         <source>&amp;Invert</source>
         <translation>&amp;Инвертировать отметку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="50"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
         <source>&amp;Tree</source>
         <translation>&amp;Дерево</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="51"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
         <source>C&amp;ollapse</source>
         <translation>С&amp;вернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="52"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
         <source>E&amp;xpand</source>
         <translation>Ра&amp;звернуть</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="53"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
         <source>&amp;Collapse all</source>
         <translation>&amp;Свернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="54"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
         <source>&amp;Expand all</source>
         <translation>&amp;Развернуть все</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="55"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="56"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="58"/>
         <source>&amp;Undo deletion</source>
         <translation>Отменить &amp;удаление</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="57"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="59"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
         <source>Cannot set rate</source>
         <translation>Не удалось поставить оценку</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="60"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
         <source>Books %1 failed</source>
         <translation>Не удалось %1 книгу</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="61"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="63"/>
         <source>removing</source>
         <translation>удалить</translation>
     </message>
     <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp" line="62"/>
+        <location filename="../../shared/BooksContextMenuProvider.cpp" line="64"/>
         <source>restoring</source>
         <translation>восстановить</translation>
     </message>
@@ -160,12 +160,12 @@
 <context>
     <name>Books</name>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="37"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="39"/>
         <source>List</source>
         <translation>Список</translation>
     </message>
     <message>
-        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="38"/>
+        <location filename="../../TreeViewController/TreeViewControllerBooks.cpp" line="40"/>
         <source>Tree</source>
         <translation>Дерево</translation>
     </message>
@@ -238,27 +238,27 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="78"/>
+        <location filename="../../log/LogController.cpp" line="80"/>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="79"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="80"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Keywords:</source>
         <translation>Ключевые слова:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="81"/>
+        <location filename="../../log/LogController.cpp" line="83"/>
         <source>Books:</source>
         <translation>Книги:</translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="82"/>
+        <location filename="../../log/LogController.cpp" line="84"/>
         <source>Deleted books:</source>
         <translation>Удалено книг:</translation>
     </message>
@@ -1952,56 +1952,56 @@
 <context>
     <name>GroupController</name>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="20"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="21"/>
         <source>Input new group name</source>
         <translation>Укажите имя новой группы</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="21"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="22"/>
         <source>Group name</source>
         <translation>Имя группы</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="22"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="23"/>
         <source>New group</source>
         <translation>Новая группа</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="24"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
         <translation>Уверены, что хотите удалить группы (%1)?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="25"/>
         <source>Group name too long.
 Try again?</source>
         <translation>Имя слишком длинное.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
         <source>Group %1 already exists.
 Try again?</source>
         <translation>Группа %1 уже есть.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
         <source>Cannot create group</source>
         <translation>Не удалось создать группу</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
         <source>Cannot remove groups</source>
         <translation>Не удалось удалить группу</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
         <source>Cannot add book to group</source>
         <translation>Не удалось добавить книгу в группу</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/GroupController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/GroupController.cpp" line="30"/>
         <source>Cannot remove books from group</source>
         <translation>Не удалось удалить книгу из группы</translation>
     </message>
@@ -2076,46 +2076,46 @@ Try again?</source>
 <context>
     <name>SearchController</name>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="23"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
         <source>Input new search string</source>
         <translation>Введите подстроку для поиска</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="24"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="25"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
         <translation>Уверены, что хотите удалить поисковые запросы (%1)?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="26"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
         <source>Cannot create search query (%1)</source>
         <translation>Не удалось создать поисковый запрос %1</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="27"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
         <source>Cannot remove search query</source>
         <translation>Не удалось удалить поисковый запрос</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="28"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="31"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
         <translation>Поисковый запрос слишком короткий. Необходимый минимум символов - %1
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="29"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="32"/>
         <source>Search query too long.
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
     </message>
     <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp" line="30"/>
+        <location filename="../../ChangeNavigationController/SearchController.cpp" line="33"/>
         <source>Search query %1 already exists.
 Try again?</source>
         <translation>Поисковый запрос %1 уже есть.
@@ -2228,27 +2228,27 @@ Try again?</source>
         <translation>Не найден узел пользовательских данных %1</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="19"/>
+        <location filename="../../userdata/UserDataController.cpp" line="18"/>
         <source>Specify a file to export user data</source>
         <translation>Укажите файл экспорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="20"/>
+        <location filename="../../userdata/UserDataController.cpp" line="19"/>
         <source>Select a file to import user data</source>
         <translation>Выберите файл импорта пользовательских данных</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="21"/>
+        <location filename="../../userdata/UserDataController.cpp" line="20"/>
         <source>Flibrary export files (*.flibk)</source>
         <translation>Файлы экспорта Flibrary (*.flibk)</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="22"/>
+        <location filename="../../userdata/UserDataController.cpp" line="21"/>
         <source>User data successfully recovered</source>
         <translation>Пользовательские данные восстановлены</translation>
     </message>
     <message>
-        <location filename="../../userdata/UserDataController.cpp" line="23"/>
+        <location filename="../../userdata/UserDataController.cpp" line="22"/>
         <source>User data successfully saved</source>
         <translation>Пользовательские данные сохранены</translation>
     </message>

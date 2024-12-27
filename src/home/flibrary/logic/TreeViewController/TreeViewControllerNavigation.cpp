@@ -144,13 +144,13 @@ struct ModeDescriptor
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 {
-	{ Loc::AUTHORS , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
-	{ Loc::SERIES  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{ Loc::GENRES  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
-	{ Loc::KEYWORDS, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{ Loc::ARCHIVES, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ Loc::GROUPS  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
-	{ Loc::SEARCH  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
+	{ Loc::Authors , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
+	{ Loc::Series  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
+	{ Loc::Genres  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{ Loc::Keywords, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
+	{ Loc::Archives, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ Loc::Groups  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
+	{ Loc::Search  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));

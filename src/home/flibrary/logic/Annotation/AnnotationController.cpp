@@ -1,14 +1,18 @@
 #include "AnnotationController.h"
 
 #include <QDateTime>
+#include <QTimer>
 
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
-#include "database/DatabaseUser.h"
+#include "database/DatabaseUtil.h"
+#include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "util/UiTimer.h"
 
@@ -52,7 +56,7 @@ class AnnotationController::Impl final
 {
 public:
 	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 	)
 		: m_logicFactory(logicFactory)
 		, m_databaseUser(std::move(databaseUser))
@@ -246,10 +250,10 @@ private:
 			const auto db = m_databaseUser->Database();
 			const auto bookId = book->GetId().toLongLong();
 			auto series = CreateSeries(*db, bookId);
-			auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUser::CreateFullAuthorItem);
-			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
-			auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUser::CreateSimpleListItem);
+			auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUtil::CreateFullAuthorItem);
+			auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+			auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+			auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
 			std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 			const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
@@ -289,10 +293,10 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase & db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(DatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
+		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(IDatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
-		return query->Eof() ? NavigationItem::Create() : DatabaseUser::CreateBookItem(*query);
+		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
 	}
 
 	static IDataItem::Ptr CreateSeries(DB::IDatabase & db, const long long id)
@@ -300,7 +304,7 @@ private:
 		const auto query = db.CreateQuery(SERIES_QUERY);
 		query->Bind(":id", id);
 		query->Execute();
-		return query->Eof() ? NavigationItem::Create() : DatabaseUser::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
+		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
 	}
 
 	static IDataItem::Ptr CreateDictionary(DB::IDatabase & db, const char * queryText, const long long id, const Extractor extractor)
@@ -320,7 +324,7 @@ private:
 
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 
@@ -342,7 +346,7 @@ private:
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: m_impl(logicFactory
 		, std::move(databaseUser)

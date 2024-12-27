@@ -2,11 +2,17 @@
 
 #include <ranges>
 #include <stack>
+#include <unordered_map>
+
+#include <QHash>
 
 #include "fnd/FindPair.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
-#include "database/DatabaseUser.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "database/DatabaseUtil.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 #include "BooksTreeGenerator.h"
 #include "inpx/src/util/constant.h"
 
@@ -71,7 +77,7 @@ int BindString(DB::IQuery & query, const QString & id)
 
 void RequestNavigationSimpleList(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
-	, const DatabaseUser& databaseUser
+	, const IDatabaseUser& databaseUser
 	, const QueryDescription & queryDescription
 	, Cache & cache
 )
@@ -113,7 +119,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 
 void RequestNavigationGenres(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
-	, const DatabaseUser & databaseUser
+	, const IDatabaseUser & databaseUser
 	, const QueryDescription & queryDescription
 	, Cache & cache
 )
@@ -186,7 +192,7 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 using NavigationRequest = void (*)(NavigationMode navigationMode
 	, INavigationQueryExecutor::Callback callback
-	, const DatabaseUser & databaseUser
+	, const IDatabaseUser & databaseUser
 	, const QueryDescription & queryDescription
 	, Cache & cache
 	);
@@ -198,9 +204,9 @@ constexpr size_t NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
 constexpr size_t NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM[] { 0, 0 };
 
 constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
-constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
-constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUser::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM };
-constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &DatabaseUser::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
+constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
+constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM };
+constexpr QueryInfo QUERY_INFO_ID_ONLY_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_ID_ONLY_ITEM };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
 constexpr int MAPPING_AUTHORS[] { BookItem::Column::Title, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Size, BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
@@ -239,10 +245,10 @@ static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(TABLES));
 
 struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 {
-	std::shared_ptr<const DatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
 	mutable Cache cache;
 
-	explicit Impl(std::shared_ptr<const DatabaseUser> databaseUser)
+	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser)
 		: databaseUser(std::move(databaseUser))
 	{
 		if (const auto db = this->databaseUser->Database())
@@ -276,7 +282,7 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<DatabaseUser> databaseUser)
+NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl(std::move(databaseUser))
 {
 	PLOGD << "NavigationQueryExecutor created";

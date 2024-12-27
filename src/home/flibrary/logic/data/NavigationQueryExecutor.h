@@ -12,7 +12,7 @@ class NavigationQueryExecutor final : virtual public INavigationQueryExecutor
 	NON_COPY_MOVABLE(NavigationQueryExecutor)
 
 public:
-	explicit NavigationQueryExecutor(std::shared_ptr<class DatabaseUser> databaseUser);
+	explicit NavigationQueryExecutor(std::shared_ptr<class IDatabaseUser> databaseUser);
 	~NavigationQueryExecutor() override;
 
 private: // INavigationQueryExecutor
