@@ -8,8 +8,6 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "interface/IFactory.h"
-
 #include "util/ISettings.h"
 
 using namespace HomeCompa;
@@ -17,11 +15,10 @@ using namespace Opds;
 
 struct Server::Impl
 {
-	std::shared_ptr<const IFactory> factory;
 	QHttpServer server;
+	Impl(const ISettings & settings
+	)
 
-	Impl(std::shared_ptr<const IFactory> factory, const ISettings & settings)
-		: factory { std::move(factory) }
 	{
 		auto tcpServer = std::make_unique<QTcpServer>();
 		const auto port = settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort();
@@ -83,8 +80,10 @@ struct Server::Impl
 	}
 };
 
-Server::Server(std::shared_ptr<const IFactory> factory, const std::shared_ptr<const ISettings> & settings)
-	: m_impl(std::move(factory), *settings)
+Server::Server(const std::shared_ptr<const ISettings> & settings
+)
+	: m_impl(*settings
+		)
 {
 	PLOGD << "Server created";
 }

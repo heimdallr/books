@@ -15,7 +15,8 @@ class Server : virtual public IServer
 	NON_COPY_MOVABLE(Server)
 
 public:
-	Server(std::shared_ptr<const class IFactory> factory, const std::shared_ptr<const ISettings> & settings);
+	Server(const std::shared_ptr<const ISettings> & settings
+	);
 	~Server() override;
 
 private:

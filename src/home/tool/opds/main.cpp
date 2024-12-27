@@ -7,7 +7,6 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Log.h>
 
-#include "interface/IFactory.h"
 #include "interface/IServer.h"
 
 #include "logging/init.h"
@@ -33,8 +32,7 @@ int run(int argc, char * argv[])
 		DiInit(builder, container);
 	}
 
-	const auto factory = container->resolve<IFactory>();
-	const auto server = factory->CreateServer();
+	const auto server = container->resolve<IServer>();
 
 	return QCoreApplication::exec();
 }
