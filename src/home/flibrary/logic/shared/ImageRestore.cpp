@@ -58,12 +58,12 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QString & name, const QString & path) override
+	bool OnEndElement(const QString &, const QString & path) override
 	{
 		if (path == "FictionBook")
 			WriteImages();
 
-		return m_writer.WriteEndElement(name), true;
+		return m_writer.WriteEndElement(), true;
 	}
 
 	bool OnCharacters(const QString & /*path*/, const QString & value) override
@@ -128,7 +128,7 @@ private:
 				.WriteAttribute(ID, name)
 				.WriteAttribute(CONTENT_TYPE, JPEG)
 				.WriteCharacters(QString::fromUtf8(body.toBase64()))
-				.WriteEndElement(BINARY)
+				.WriteEndElement()
 				;
 		}
 

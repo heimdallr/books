@@ -107,12 +107,12 @@ private: // Util::SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & name, const QString & path) override
+	bool OnEndElement(const QString &, const QString & path) override
 	{
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return true;
 
-		m_writer.WriteEndElement(name);
+		m_writer.WriteEndElement();
 
 		return true;
 	}

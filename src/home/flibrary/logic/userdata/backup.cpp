@@ -100,10 +100,7 @@ void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
-	{
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
-		xmlWriter.WriteEndElement(Constant::ITEM);
-	}
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
 }
 
 void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
@@ -142,12 +139,11 @@ void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 				}));
 			}, [&]
 			{
-				xmlWriter.WriteEndElement(Constant::UserData::Groups::GroupNode);
+				xmlWriter.WriteEndElement();
 			}).swap(group);
 		}
 
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
-		xmlWriter.WriteEndElement(Constant::ITEM);
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
 	}
 }
 
@@ -163,10 +159,7 @@ void BackupUserDataSearches(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
-		xmlWriter.WriteEndElement(Constant::ITEM);
-	}
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
 }
 
 void BackupUserDataExportStat(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
@@ -187,10 +180,7 @@ void BackupUserDataExportStat(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
-	{
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query));
-		xmlWriter.WriteEndElement(Constant::ITEM);
-	}
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
 }
 
 constexpr std::pair<const char *, BackupFunction> BACKUPERS[]
@@ -221,18 +211,18 @@ void Backup(const Util::IExecutor & executor, DB::IDatabase & db, QString fileNa
 		}
 
 		Util::XmlWriter xmlWriter(out);
-		ScopedCall rootElement([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryBackup); });
+		ScopedCall rootElement([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(); });
 		ScopedCall([&]
 		{
 			xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion, XmlAttributes({ { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) }, }));
 		}, [&]
 			{
-				xmlWriter.WriteEndElement(Constant::FlibraryBackupVersion);
+				xmlWriter.WriteEndElement();
 			});
-		ScopedCall userData([&] { xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(Constant::FlibraryUserData); });
+		ScopedCall userData([&] { xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(); });
 		for (const auto & [name, functor] : BACKUPERS)
 		{
-			ScopedCall item([&] { xmlWriter.WriteStartElement(name, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(name); });
+			ScopedCall item([&] { xmlWriter.WriteStartElement(name, XmlAttributes{}); }, [&] { xmlWriter.WriteEndElement(); });
 			functor(db, xmlWriter);
 		}
 
