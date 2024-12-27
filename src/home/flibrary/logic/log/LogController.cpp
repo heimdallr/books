@@ -45,10 +45,7 @@ std::vector<const char *> LogController::GetSeverities() const
 {
 	std::vector<const char *> result;
 	result.reserve(std::size(SEVERITIES));
-	std::ranges::transform(SEVERITIES, std::back_inserter(result), [] (const auto & item)
-	{
-		return item.first;
-	});
+	std::ranges::copy(SEVERITIES | std::views::keys, std::back_inserter(result));
 	return result;
 }
 
@@ -100,9 +97,9 @@ void LogController::ShowCollectionStatistics() const
 
 void LogController::TestColors() const
 {
-	std::ranges::for_each(SEVERITIES, [n = 0] (const auto & item) mutable
+	std::ranges::for_each(SEVERITIES | std::views::keys, [n = 0] (const auto & item) mutable
 	{
-		PLOG(static_cast<plog::Severity>(n)) << Loc::Tr(Loc::Ctx::LOGGING, item.first);
+		PLOG(static_cast<plog::Severity>(n)) << Loc::Tr(Loc::Ctx::LOGGING, item);
 		++n;
 	});
 }

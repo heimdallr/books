@@ -45,6 +45,7 @@ long long CreateNewGroupImpl(DB::ITransaction & transaction, const QString & nam
 		return 0;
 
 	const auto query = transaction.CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
+	query->Execute();
 	return query->Get<long long>(0);
 }
 

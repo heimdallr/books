@@ -237,27 +237,27 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
-        <location filename="../../log/LogController.cpp" line="81"/>
+        <location filename="../../log/LogController.cpp" line="78"/>
         <source>Authors:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="82"/>
+        <location filename="../../log/LogController.cpp" line="79"/>
         <source>Series:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="83"/>
+        <location filename="../../log/LogController.cpp" line="80"/>
         <source>Keywords:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="84"/>
+        <location filename="../../log/LogController.cpp" line="81"/>
         <source>Books:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../log/LogController.cpp" line="85"/>
+        <location filename="../../log/LogController.cpp" line="82"/>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
