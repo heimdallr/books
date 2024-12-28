@@ -4,8 +4,11 @@
 #include "fnd/NonCopyMovable.h"
 #include "interface/IRequester.h"
 
+class QIODevice;
+
 namespace HomeCompa::Flibrary {
 class ICollectionProvider;
+class IDatabaseController;
 }
 
 namespace HomeCompa::Opds {
@@ -15,11 +18,25 @@ class Requester : virtual public IRequester
 	NON_COPY_MOVABLE(Requester)
 
 public:
-	Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider);
+	Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider
+		, std::shared_ptr<Flibrary::IDatabaseController> databaseController
+	);
 	~Requester() override;
 
-private:
+private: // IRequester
 	QByteArray GetRoot() const override;
+
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME() const override;
+		OPDS_ROOT_ITEMS_X_MACRO
+#undef  OPDS_ROOT_ITEM
+
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##StartsWith(const QString & value) const override;
+		OPDS_ROOT_ITEMS_X_MACRO
+#undef  OPDS_ROOT_ITEM
+
+private:
+	template<typename NavigationGetter, typename... ARGS>
+	QByteArray GetBaseNavigation(NavigationGetter getter, const ARGS &... args) const;
 
 private:
 	struct Impl;

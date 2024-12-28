@@ -3,6 +3,7 @@
 #include <QTcpServer>
 #include <QHttpServer>
 #include <QTimer>
+#include <QtConcurrent>
 
 #include <plog/Log.h>
 
@@ -40,19 +41,51 @@ private:
 		{
 			PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
 			auto h = resp.headers();
+			h.replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
 			h.append(QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
 			resp.setHeaders(std::move(h));
 		});
 
 		m_server.route("/opds", [this] (const QHttpServerRequest & /*request*/)
 		{
-			return m_requester->GetRoot();
+			return QtConcurrent::run([this] ()
+			{
+				return QHttpServerResponse(m_requester->GetRoot());
+			});
 		});
 
-		m_server.route("/opds/author/<arg>", [] (const QString & request)
+		using BaseNavigationRequester = QByteArray(IRequester::*)() const;
+		using StartsWithNavigationRequester = QByteArray(IRequester::*)(const QString &) const;
+		static constexpr std::pair<const char *, std::tuple<
+			  BaseNavigationRequester
+			, StartsWithNavigationRequester
+		>> requesters[]
 		{
-			return QHttpServerResponse(request.toUtf8());
-		});
+#define		OPDS_ROOT_ITEM(NAME) {#NAME, { &IRequester::Get##NAME, &IRequester::Get##NAME##StartsWith }},
+			OPDS_ROOT_ITEMS_X_MACRO
+#undef		OPDS_ROOT_ITEM
+		};
+
+		for (const auto & [key, invokers] : requesters)
+		{
+			const auto & [baseInvoker, startsWithInvoker] = invokers;
+
+			m_server.route(QString("/opds/%1").arg(key), [this, invoker = baseInvoker]
+			{
+				return QtConcurrent::run([this, invoker] ()
+				{
+					return QHttpServerResponse(std::invoke(invoker, *m_requester));
+				});
+			});
+
+			m_server.route(QString("/opds/%1/starts/<arg>").arg(key), [this, invoker = startsWithInvoker](const QString & value)
+			{
+				return QtConcurrent::run([this, invoker, value] ()
+				{
+					return QHttpServerResponse(std::invoke(invoker, *m_requester, std::cref(value)));
+				});
+			});
+		}
 	}
 
 private:
