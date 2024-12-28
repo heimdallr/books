@@ -12,6 +12,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/SortNavigation.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
