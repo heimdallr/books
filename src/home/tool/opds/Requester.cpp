@@ -1,5 +1,7 @@
 #include "Requester.h"
 
+#include <ranges>
+
 #include <QBuffer>
 #include <QByteArray>
 #include <QDateTime>
@@ -35,16 +37,30 @@ void WriteStandardNode(Util::XmlWriter & writer, const QString & id, const QStri
     writer.WriteStartElement("title").WriteCharacters(title).WriteEndElement();
 }
 
-std::unique_ptr<Util::XmlWriter> WriteHead(QIODevice & output, const QString & id, const QString & title)
+struct Head
+{
+    std::unique_ptr<Util::XmlWriter> writer;
+    std::unique_ptr<ScopedCall> guard;
+};
+
+struct Entry
+{
+    QString id;
+    QString title;
+    int count;
+};
+
+Head WriteHead(QIODevice & output, const QString & id, const QString & title)
 {
     auto writer = std::make_unique<Util::XmlWriter>(output);
-    const ScopedCall feedGuard([&] { writer->WriteStartElement("feed"); }, [&] { writer->WriteEndElement(); });
+    auto guard = std::make_unique<ScopedCall>([w = writer.get()] { w->WriteStartElement("feed"); }, [w = writer.get()] { w->WriteEndElement(); });
+
     writer->
         WriteAttribute("xmlns", "http://www.w3.org/2005/Atom").
         WriteAttribute("xmlns:dc", "http://purl.org/dc/terms/").
         WriteAttribute("xmlns:opds", "http://opds-spec.org/2010/catalog");
     WriteStandardNode(*writer, id, title);
-    return writer;
+    return Head { std::move(writer), std::move(guard) };
 }
 
 void WriteEntry(Util::XmlWriter & writer, const QString & id, const QString & title, const int count)
@@ -75,7 +91,7 @@ struct Requester::Impl
 
     void WriteRoot(QIODevice & output) const
     {
-        const auto writer = WriteHead(output, "root", collectionProvider->GetActiveCollection().name);
+        const auto [writer, _] = WriteHead(output, "root", collectionProvider->GetActiveCollection().name);
 
         const auto dbStatQueryTextItems = QStringList {}
 #define     OPDS_ROOT_ITEM(NAME) << QString("select '%1', count(42) from %1").arg(Loc::NAME)
@@ -100,17 +116,10 @@ struct Requester::Impl
 
     void WriteAuthors(QIODevice & output) const
     {
-        const auto writer = WriteHead(output, Loc::Authors, Loc::Tr(Loc::NAVIGATION, Loc::Authors));
+        const auto [writer, _] = WriteHead(output, Loc::Authors, Loc::Tr(Loc::NAVIGATION, Loc::Authors));
         const auto db = databaseController->GetDatabase(true);
-        const auto query = db->CreateQuery("select MHL_UPPER(substr(a.LastName, 1, 1)), count(42) from Authors a group by MHL_UPPER(substr(a.LastName, 1, 1))");
-
-        std::vector<std::pair<QString, int>> result;
-        for (query->Execute(); !query->Eof(); query->Next())
-            result.emplace_back(query->Get<const char *>(0), query->Get<int>(1));
-
-        std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return QStringWrapper { lhs.first } < QStringWrapper { rhs.first }; });
-        for (const auto & [id, count] : result)
-            WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Authors).arg(id), QString("%1~").arg(id), count);
+        for (const auto & [ch, count] : ReadStartsWith(*db, "select MHL_UPPER(substr(a.LastName, 1, 1)), count(42) from Authors a group by MHL_UPPER(substr(a.LastName, 1, 1))"))
+            WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Authors, ch), QString("%1~").arg(ch), count);
     }
 
     void WriteSeries(QIODevice & /*output*/) const
@@ -131,7 +140,7 @@ struct Requester::Impl
 
     void WriteGroups(QIODevice & output) const
     {
-        const auto writer = WriteHead(output, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups));
+        const auto [writer, _] = WriteHead(output, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups));
         const auto db = databaseController->GetDatabase(true);
         const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID, g.Title");
         for (query->Execute(); !query->Eof(); query->Next())
@@ -141,8 +150,63 @@ struct Requester::Impl
         }
     }
 
-    void WriteAuthorsStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
+    void WriteAuthorsStartsWith(QIODevice & output, const QString & value) const
     {
+        std::vector<Entry> entries;
+        const auto [writer, _] = WriteHead(output, Loc::Authors, Loc::Tr(Loc::NAVIGATION, Loc::Authors));
+        const ScopedCall resultGuard([&]
+        {
+            std::ranges::sort(entries, [] (const auto & lhs, const auto & rhs) { return QStringWrapper(lhs.title) < QStringWrapper(rhs.title); });
+	        for (const auto & [id, title, count] : entries)
+                WriteEntry(*writer, id, title, count);
+        });
+
+        const auto db = databaseController->GetDatabase(true);
+
+        const auto writeAuthorEntries = [&] (const std::string & queryText, const QString & arg)
+        {
+            const auto query = db->CreateQuery(queryText);
+            query->Bind(0, arg.toStdString());
+            for (query->Execute(); !query->Eof(); query->Next())
+            {
+                const auto id = QString("%1/%2").arg(Loc::Authors).arg(query->Get<int>(0));
+                const auto title = QString("%1 %2 %3").arg(query->Get<const char *>(1)).arg(query->Get<const char *>(2)).arg(query->Get<const char *>(3));
+                entries.emplace_back(id, title, query->Get<int>(4));
+            }
+        };
+
+        const auto query = QString("select %1, count(42) from Authors a where MHL_UPPER(a.LastName) != ? and MHL_UPPER(a.LastName) like ? group by %1").arg(QString("MHL_UPPER(substr(a.LastName, %1, 1))").arg("%1"));
+
+        std::vector<std::pair<QString, int>> r { {value, 0} };
+        do
+        {
+            decltype(r) nextR;
+            std::ranges::sort(r, [] (const auto & lhs, const auto & rhs) { return lhs.second > rhs.second; });
+            while (!r.empty() && r.size() + entries.size() + nextR.size() < 20)
+            {
+                auto [ch, count] = std::move(r.back());
+                r.pop_back();
+
+                writeAuthorEntries("select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where MHL_UPPER(a.LastName) = ? group by a.AuthorID", ch);
+                if (ch.isEmpty())
+                    return;
+
+                auto r1 = ReadStartsWith(*db, query.arg(ch.length() + 1), ch);
+                auto tail = std::ranges::partition(r1, [] (const auto & item) { return item.second > 1; });
+                for (const auto & ch1 : tail | std::views::keys)
+                    writeAuthorEntries("select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where MHL_UPPER(a.LastName) like ? group by a.AuthorID", ch1 + "%");
+
+                r1.erase(std::begin(tail), std::end(r1));
+                std::ranges::copy(r1, std::back_inserter(nextR));
+            }
+
+            std::ranges::copy(nextR, std::back_inserter(r));
+            nextR.clear();
+        }
+        while (!r.empty() && r.size() + entries.size() < 20);
+
+        for (const auto & [id, count] : r)
+            entries.emplace_back(QString("%1/starts/%2").arg(Loc::Authors, id), QString("%1~").arg(id), count);
     }
 
     void WriteSeriesStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
@@ -165,6 +229,26 @@ struct Requester::Impl
     void WriteGroupsStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
     {
         assert(false && "unexpected call");
+    }
+
+private:
+    static std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase & db, const QString & queryText, const QString & value = {})
+    {
+        std::vector<std::pair<QString, int>> result;
+        const auto query = db.CreateQuery(queryText.arg(value.length() + 1).toStdString());
+        if (!value.isEmpty())
+        {
+            query->Bind(0, value.toStdString());
+            query->Bind(1, value.toStdString() + "%");
+        }
+
+        for (query->Execute(); !query->Eof(); query->Next())
+            result.emplace_back(query->Get<const char *>(0), query->Get<int>(1));
+
+        std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return QStringWrapper { lhs.first } < QStringWrapper { rhs.first }; });
+        std::ranges::transform(result, result.begin(), [&] (const auto & item) { return std::make_pair(value + item.first, item.second); });
+
+        return result;
     }
 };
 

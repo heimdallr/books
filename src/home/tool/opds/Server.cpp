@@ -78,11 +78,19 @@ private:
 				});
 			});
 
+			m_server.route(QString("/opds/%1/starts/").arg(key), [this, invoker = startsWithInvoker]
+			{
+				return QtConcurrent::run([this, invoker] ()
+				{
+					return QHttpServerResponse(std::invoke(invoker, *m_requester, QString{}));
+				});
+			});
+
 			m_server.route(QString("/opds/%1/starts/<arg>").arg(key), [this, invoker = startsWithInvoker](const QString & value)
 			{
 				return QtConcurrent::run([this, invoker, value] ()
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, std::cref(value)));
+					return QHttpServerResponse(std::invoke(invoker, *m_requester, value.toUpper()));
 				});
 			});
 		}
