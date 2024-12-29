@@ -101,10 +101,7 @@ void WriteNavigationStartsWith(DB::IDatabase & db, QIODevice & output, const QSt
     const auto [writer, _] = WriteHead(output, navigationType, Loc::Tr(Loc::NAVIGATION, navigationType));
     const ScopedCall resultGuard([&]
     {
-        std::ranges::sort(entries, [] (const auto & lhs, const auto & rhs)
-        {
-            return QStringWrapper(lhs.title) < QStringWrapper(rhs.title);
-        });
+        std::ranges::sort(entries, [] (const auto & lhs, const auto & rhs) { return QStringWrapper(lhs.title) < QStringWrapper(rhs.title); });
         for (const auto & [id, title, count] : entries)
             WriteEntry(*writer, id, title, count);
     });
@@ -151,8 +148,15 @@ void WriteNavigationStartsWith(DB::IDatabase & db, QIODevice & output, const QSt
     }
     while (!dictionary.empty() && dictionary.size() + entries.size() < 20);
 
-    for (const auto & [id, count] : dictionary)
-        entries.emplace_back(QString("%1/starts/%2").arg(navigationType, id), QString("%1~").arg(id), count);
+    for (const auto & [ch, count] : dictionary)
+    {
+        auto id = QString("%1/starts/%2").arg(navigationType, ch);
+        id.replace(' ', "%20");
+        auto title = ch;
+        if (title.endsWith(' '))
+            title[title.length() - 1] = QChar(0xB7);
+        entries.emplace_back(id, QString("%1~").arg(title), count);
+    }
 }
 
 }
@@ -230,7 +234,7 @@ struct Requester::Impl
     {
         const auto [writer, _] = WriteHead(output, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups));
         const auto db = databaseController->GetDatabase(true);
-        const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID, g.Title");
+        const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
         for (query->Execute(); !query->Eof(); query->Next())
         {
             const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
