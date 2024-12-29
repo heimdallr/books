@@ -11,6 +11,7 @@
 #include "fnd/ScopedCall.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
@@ -194,7 +195,8 @@ struct Requester::Impl
         for (query->Execute(); !query->Eof(); query->Next())
         {
             const auto * id = query->Get<const char *>(0);
-            WriteEntry(*writer, id, Loc::Tr(Loc::NAVIGATION, id), query->Get<int>(1));
+            if (const auto count = query->Get<int>(1))
+				WriteEntry(*writer, id, Loc::Tr(Loc::NAVIGATION, id), count);
         }
     }
 
@@ -214,8 +216,16 @@ struct Requester::Impl
             WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Series, ch), QString("%1~").arg(ch), count);
     }
 
-    void WriteGenres(QIODevice & /*output*/) const
+    void WriteGenres(QIODevice & output) const
     {
+        const auto [writer, _] = WriteHead(output, Loc::Genres, Loc::Tr(Loc::NAVIGATION, Loc::Genres));
+        const auto db = databaseController->GetDatabase(true);
+        const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, count(42) from Genres g join Genres l on l.ParentCode = g.GenreCode where g.ParentCode = '0' group by g.GenreCode");
+        for (query->Execute(); !query->Eof(); query->Next())
+        {
+            const auto id = QString("%1/%2").arg(Loc::Genres).arg(query->Get<const char *>(0));
+            WriteEntry(*writer, id, Loc::Tr(Flibrary::GENRE, query->Get<const char *>(1)), query->Get<int>(2));
+        }
     }
 
     void WriteKeywords(QIODevice & output) const
