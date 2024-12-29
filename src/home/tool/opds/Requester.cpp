@@ -202,16 +202,24 @@ struct Requester::Impl
 			WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Authors, ch), QString("%1~").arg(ch), count);
     }
 
-    void WriteSeries(QIODevice & /*output*/) const
+    void WriteSeries(QIODevice & output) const
     {
+        const auto [writer, _] = WriteHead(output, Loc::Series, Loc::Tr(Loc::NAVIGATION, Loc::Series));
+        const auto db = databaseController->GetDatabase(true);
+        for (const auto & [ch, count] : ReadStartsWith(*db, "select substr(a.SearchTitle, 1, 1), count(42) from Series a group by substr(a.SearchTitle, 1, 1)"))
+            WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Series, ch), QString("%1~").arg(ch), count);
     }
 
     void WriteGenres(QIODevice & /*output*/) const
     {
     }
 
-    void WriteKeywords(QIODevice & /*output*/) const
+    void WriteKeywords(QIODevice & output) const
     {
+        const auto [writer, _] = WriteHead(output, Loc::Keywords, Loc::Tr(Loc::NAVIGATION, Loc::Keywords));
+        const auto db = databaseController->GetDatabase(true);
+        for (const auto & [ch, count] : ReadStartsWith(*db, "select substr(a.SearchTitle, 1, 1), count(42) from Keywords a group by substr(a.SearchTitle, 1, 1)"))
+            WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Keywords, ch), QString("%1~").arg(ch), count);
     }
 
     void WriteArchives(QIODevice & /*output*/) const
@@ -237,8 +245,11 @@ struct Requester::Impl
         WriteNavigationStartsWith(*databaseController->GetDatabase(true), output, value, Loc::Authors, startsWithQuery, navigationItemQuery);
     }
 
-    void WriteSeriesStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
+    void WriteSeriesStartsWith(QIODevice & output, const QString & value) const
     {
+        const auto startsWithQuery = QString("select %1, count(42) from Series a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
+        const QString navigationItemQuery = "select a.SeriesID, a.SeriesTitle, count(42) from Series a join Books l on l.SeriesID = a.SeriesID where a.SearchTitle %1 ? group by a.SeriesID";
+        WriteNavigationStartsWith(*databaseController->GetDatabase(true), output, value, Loc::Series, startsWithQuery, navigationItemQuery);
     }
 
     void WriteGenresStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
@@ -246,8 +257,11 @@ struct Requester::Impl
         assert(false && "unexpected call");
     }
 
-    void WriteKeywordsStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
+    void WriteKeywordsStartsWith(QIODevice & output, const QString & value) const
     {
+        const auto startsWithQuery = QString("select %1, count(42) from Keywords a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
+        const QString navigationItemQuery = "select a.KeywordID, a.KeywordTitle, count(42) from Keywords a join Keyword_List l on l.KeywordID = a.KeywordID where a.SearchTitle %1 ? group by a.KeywordID";
+        WriteNavigationStartsWith(*databaseController->GetDatabase(true), output, value, Loc::Keywords, startsWithQuery, navigationItemQuery);
     }
 
     void WriteArchivesStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
