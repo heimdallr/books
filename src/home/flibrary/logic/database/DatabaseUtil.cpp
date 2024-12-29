@@ -2,7 +2,7 @@
 
 #include "database/interface/IQuery.h"
 #include "data/DataItem.h"
-#include "data/GenresLocalization.h"
+#include "interface/constants/GenresLocalization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "util/localization.h"
 

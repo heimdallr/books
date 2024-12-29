@@ -8,6 +8,7 @@
 
 #include "fnd/FindPair.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/SortNavigation.h"
@@ -18,8 +19,6 @@
 #include "inpx/src/util/constant.h"
 
 #include <plog/Log.h>
-
-#include "GenresLocalization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
