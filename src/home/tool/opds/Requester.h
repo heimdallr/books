@@ -26,17 +26,17 @@ public:
 private: // IRequester
 	QByteArray GetRoot() const override;
 
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME() const override;
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString & value) const override;
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##StartsWith(const QString & value) const override;
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Books(const QString & navigationId, const QString & value) const override;
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 
 private:
 	template<typename NavigationGetter, typename... ARGS>
-	QByteArray GetBaseNavigation(NavigationGetter getter, const ARGS &... args) const;
+	QByteArray GetImpl(NavigationGetter getter, const ARGS &... args) const;
 
 private:
 	struct Impl;

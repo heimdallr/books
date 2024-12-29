@@ -19,11 +19,11 @@ public:
 
 	virtual QByteArray GetRoot() const = 0;
 
-#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME() const = 0;
+#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Navigation(const QString & value) const = 0;
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 
-#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##StartsWith(const QString & value) const = 0;
+#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Books(const QString & navigationId, const QString & value) const = 0;
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 };
