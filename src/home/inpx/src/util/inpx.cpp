@@ -493,7 +493,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 size_t Store(const Path & dbFileName, const Data & data)
 {
 	size_t result = 0;
-	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", data.authors, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, MHL_UPPER(?))", data.authors, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
@@ -505,23 +505,26 @@ size_t Store(const Path & dbFileName, const Data & data)
 		cmd.bind(2, last, sqlite3pp::nocopy);
 		cmd.bind(3, first, sqlite3pp::nocopy);
 		cmd.bind(4, middle, sqlite3pp::nocopy);
+		cmd.bind(5, last, sqlite3pp::nocopy);
 
 		return cmd.execute();
 	});
 
-	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto title = ToMultiByte(item.first);
 		cmd.bind(1, item.second);
 		cmd.bind(2, title, sqlite3pp::nocopy);
+		cmd.bind(3, title, sqlite3pp::nocopy);
 		return cmd.execute();
 	});
 
-	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle) VALUES (?, ?)", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto title = ToMultiByte(item.first);
 		cmd.bind(1, item.second);
 		cmd.bind(2, title, sqlite3pp::nocopy);
+		cmd.bind(3, title, sqlite3pp::nocopy);
 		return cmd.execute();
 	});
 
@@ -539,8 +542,8 @@ size_t Store(const Path & dbFileName, const Data & data)
 		"BookID   , LibID     , Title    , SeriesID, "
 		"SeqNumber, UpdateDate, LibRate  , Lang    , "
 		"Folder   , FileName  , InsideNo , Ext     , "
-		"BookSize , IsDeleted"
-		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		"BookSize , IsDeleted, SearchTitle"
+		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
 	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
 		const auto libId = ToMultiByte(book.libId);
@@ -564,6 +567,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 																		   cmd.bind(12, format, sqlite3pp::nocopy);
 																		   cmd.bind(13, book.size);
 																		   cmd.bind(14, book.isDeleted ? 1 : 0);
+																		   cmd.bind(15, title, sqlite3pp::nocopy);
 																		   return cmd.execute();
 	});
 

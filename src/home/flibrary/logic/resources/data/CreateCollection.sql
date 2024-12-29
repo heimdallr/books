@@ -41,8 +41,9 @@ DROP TABLE IF EXISTS Author_List;
 --@@
 
 CREATE TABLE Series (
-  SeriesID          INTEGER     NOT NULL,
-  SeriesTitle       VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  SeriesID    INTEGER     NOT NULL,
+  SeriesTitle VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  SearchTitle VARCHAR (80)         COLLATE NOCASE
 );
 --@@
 
@@ -58,7 +59,8 @@ CREATE TABLE Authors (
   AuthorID   INTEGER      NOT NULL,
   LastName   VARCHAR(128) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   FirstName  VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
-  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE
+  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
+  SearchName VARCHAR (128)         COLLATE NOCASE
 );
 --@@
 
@@ -76,7 +78,8 @@ CREATE TABLE Books (
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
-  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0
+  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
+  SearchTitle      VARCHAR (150)         COLLATE NOCASE
 );
 --@@
 
@@ -154,7 +157,8 @@ CREATE TABLE Searches_User (
 
 CREATE TABLE Keywords (
   KeywordID     INTEGER       NOT NULL,
-  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  SearchTitle  VARCHAR (150)           COLLATE NOCASE
 );
 --@@
 

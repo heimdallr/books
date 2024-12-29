@@ -32,7 +32,7 @@ void AddUserTables(DB::ITransaction & transaction)
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)")->Execute();
 }
 
-void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition)
+void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition, const std::vector<std::string_view> & commands = {})
 {
 	std::set<std::string> booksUserFields;
 	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
@@ -41,8 +41,12 @@ void AddUserTableField(DB::ITransaction & transaction, const QString & table, co
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
 		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
-	if (!booksUserFields.contains(column.toStdString()))
-		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
+	if (booksUserFields.contains(column.toStdString()))
+		return;
+
+	transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
+	for (const auto & command : commands)
+		transaction.CreateCommand(command)->Execute();
 }
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName, const bool readOnly)
@@ -73,6 +77,10 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		AddUserTableField(*transaction, "Groups_User", "CreatedAt", "DATETIME");
 		AddUserTableField(*transaction, "Groups_List_User", "CreatedAt", "DATETIME");
 		AddUserTableField(*transaction, "Searches_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Authors", "SearchName", "VARCHAR (128) COLLATE NOCASE", { "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)", "UPDATE Authors SET SearchName = MHL_UPPER(LastName)"});
+		AddUserTableField(*transaction, "Books", "SearchTitle", "VARCHAR (150) COLLATE NOCASE", { "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)", "UPDATE Books SET SearchTitle = MHL_UPPER(Title)" });
+		AddUserTableField(*transaction, "Keywords", "SearchTitle", "VARCHAR (150) COLLATE NOCASE", { "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)", "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)" });
+		AddUserTableField(*transaction, "Series", "SearchTitle", "VARCHAR (80) COLLATE NOCASE", { "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)", "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)" });
 
 		transaction->Commit();
 		return db;
