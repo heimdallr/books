@@ -75,6 +75,86 @@ void WriteEntry(Util::XmlWriter & writer, const QString & id, const QString & ti
     writer.WriteStartElement("content").WriteAttribute("type", "text").WriteCharacters(Tr(COUNT).arg(count)).WriteEndElement();
 }
 
+std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase & db, const QString & queryText, const QString & value = {})
+{
+    std::vector<std::pair<QString, int>> result;
+
+    const auto query = db.CreateQuery(queryText.toStdString());
+    if (!value.isEmpty())
+    {
+        query->Bind(0, value.toStdString());
+        query->Bind(1, value.toStdString() + "%");
+    }
+
+    for (query->Execute(); !query->Eof(); query->Next())
+        result.emplace_back(query->Get<const char *>(0), query->Get<int>(1));
+
+    std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return QStringWrapper { lhs.first } < QStringWrapper { rhs.first }; });
+    std::ranges::transform(result, result.begin(), [&] (const auto & item) { return std::make_pair(value + item.first, item.second); });
+
+    return result;
+}
+
+void WriteNavigationStartsWith(DB::IDatabase & db, QIODevice & output, const QString & value, const char * navigationType, const QString & startsWithQuery, const QString & navigationItemQuery)
+{
+    std::vector<Entry> entries;
+    const auto [writer, _] = WriteHead(output, navigationType, Loc::Tr(Loc::NAVIGATION, navigationType));
+    const ScopedCall resultGuard([&]
+    {
+        std::ranges::sort(entries, [] (const auto & lhs, const auto & rhs)
+        {
+            return QStringWrapper(lhs.title) < QStringWrapper(rhs.title);
+        });
+        for (const auto & [id, title, count] : entries)
+            WriteEntry(*writer, id, title, count);
+    });
+
+    const auto writeNavigationEntry = [&] (const std::string & queryText, const QString & arg)
+    {
+        const auto query = db.CreateQuery(queryText);
+        query->Bind(0, arg.toStdString());
+        for (query->Execute(); !query->Eof(); query->Next())
+        {
+            const auto id = QString("%1/%2").arg(navigationType).arg(query->Get<int>(0));
+            entries.emplace_back(id, query->Get<const char *>(1), query->Get<int>(2));
+        }
+    };
+
+    std::vector<std::pair<QString, int>> dictionary { {value, 0} };
+    do
+    {
+        decltype(dictionary) buffer;
+        std::ranges::sort(dictionary, [] (const auto & lhs, const auto & rhs) { return lhs.second > rhs.second; });
+        while (!dictionary.empty() && dictionary.size() + entries.size() + buffer.size() < 20)
+        {
+            auto [ch, count] = std::move(dictionary.back());
+            dictionary.pop_back();
+
+            writeNavigationEntry(navigationItemQuery.arg("=").toStdString(), ch);
+            if (ch.isEmpty())
+                return;
+
+            auto startsWith = ReadStartsWith(db, startsWithQuery.arg(ch.length() + 1), ch);
+            auto tail = std::ranges::partition(startsWith, [] (const auto & item)
+            {
+                return item.second > 1;
+            });
+            for (const auto & singleCh : tail | std::views::keys)
+                writeNavigationEntry(navigationItemQuery.arg("like").toStdString(), singleCh + "%");
+
+            startsWith.erase(std::begin(tail), std::end(startsWith));
+            std::ranges::copy(startsWith, std::back_inserter(buffer));
+        }
+
+        std::ranges::copy(buffer, std::back_inserter(dictionary));
+        buffer.clear();
+    }
+    while (!dictionary.empty() && dictionary.size() + entries.size() < 20);
+
+    for (const auto & [id, count] : dictionary)
+        entries.emplace_back(QString("%1/starts/%2").arg(navigationType, id), QString("%1~").arg(id), count);
+}
+
 }
 
 struct Requester::Impl
@@ -118,8 +198,8 @@ struct Requester::Impl
     {
         const auto [writer, _] = WriteHead(output, Loc::Authors, Loc::Tr(Loc::NAVIGATION, Loc::Authors));
         const auto db = databaseController->GetDatabase(true);
-        for (const auto & [ch, count] : ReadStartsWith(*db, "select MHL_UPPER(substr(a.LastName, 1, 1)), count(42) from Authors a group by MHL_UPPER(substr(a.LastName, 1, 1))"))
-            WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Authors, ch), QString("%1~").arg(ch), count);
+        for (const auto & [ch, count] : ReadStartsWith(*db, "select substr(a.SearchName, 1, 1), count(42) from Authors a group by substr(a.SearchName, 1, 1)"))
+			WriteEntry(*writer, QString("%1/starts/%2").arg(Loc::Authors, ch), QString("%1~").arg(ch), count);
     }
 
     void WriteSeries(QIODevice & /*output*/) const
@@ -152,61 +232,9 @@ struct Requester::Impl
 
     void WriteAuthorsStartsWith(QIODevice & output, const QString & value) const
     {
-        std::vector<Entry> entries;
-        const auto [writer, _] = WriteHead(output, Loc::Authors, Loc::Tr(Loc::NAVIGATION, Loc::Authors));
-        const ScopedCall resultGuard([&]
-        {
-            std::ranges::sort(entries, [] (const auto & lhs, const auto & rhs) { return QStringWrapper(lhs.title) < QStringWrapper(rhs.title); });
-	        for (const auto & [id, title, count] : entries)
-                WriteEntry(*writer, id, title, count);
-        });
-
-        const auto db = databaseController->GetDatabase(true);
-
-        const auto writeAuthorEntries = [&] (const std::string & queryText, const QString & arg)
-        {
-            const auto query = db->CreateQuery(queryText);
-            query->Bind(0, arg.toStdString());
-            for (query->Execute(); !query->Eof(); query->Next())
-            {
-                const auto id = QString("%1/%2").arg(Loc::Authors).arg(query->Get<int>(0));
-                const auto title = QString("%1 %2 %3").arg(query->Get<const char *>(1)).arg(query->Get<const char *>(2)).arg(query->Get<const char *>(3));
-                entries.emplace_back(id, title, query->Get<int>(4));
-            }
-        };
-
-        const auto query = QString("select %1, count(42) from Authors a where MHL_UPPER(a.LastName) != ? and MHL_UPPER(a.LastName) like ? group by %1").arg(QString("MHL_UPPER(substr(a.LastName, %1, 1))").arg("%1"));
-
-        std::vector<std::pair<QString, int>> r { {value, 0} };
-        do
-        {
-            decltype(r) nextR;
-            std::ranges::sort(r, [] (const auto & lhs, const auto & rhs) { return lhs.second > rhs.second; });
-            while (!r.empty() && r.size() + entries.size() + nextR.size() < 20)
-            {
-                auto [ch, count] = std::move(r.back());
-                r.pop_back();
-
-                writeAuthorEntries("select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where MHL_UPPER(a.LastName) = ? group by a.AuthorID", ch);
-                if (ch.isEmpty())
-                    return;
-
-                auto r1 = ReadStartsWith(*db, query.arg(ch.length() + 1), ch);
-                auto tail = std::ranges::partition(r1, [] (const auto & item) { return item.second > 1; });
-                for (const auto & ch1 : tail | std::views::keys)
-                    writeAuthorEntries("select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where MHL_UPPER(a.LastName) like ? group by a.AuthorID", ch1 + "%");
-
-                r1.erase(std::begin(tail), std::end(r1));
-                std::ranges::copy(r1, std::back_inserter(nextR));
-            }
-
-            std::ranges::copy(nextR, std::back_inserter(r));
-            nextR.clear();
-        }
-        while (!r.empty() && r.size() + entries.size() < 20);
-
-        for (const auto & [id, count] : r)
-            entries.emplace_back(QString("%1/starts/%2").arg(Loc::Authors, id), QString("%1~").arg(id), count);
+        const auto startsWithQuery = QString("select %1, count(42) from Authors a where a.SearchName != ? and a.SearchName like ? group by %1").arg("substr(a.SearchName, %1, 1)");
+        const QString navigationItemQuery = "select a.AuthorID, a.LastName || ' ' || a.FirstName || ' ' || a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where a.SearchName %1 ? group by a.AuthorID";
+        WriteNavigationStartsWith(*databaseController->GetDatabase(true), output, value, Loc::Authors, startsWithQuery, navigationItemQuery);
     }
 
     void WriteSeriesStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
@@ -229,26 +257,6 @@ struct Requester::Impl
     void WriteGroupsStartsWith(QIODevice & /*output*/, const QString & /*value*/) const
     {
         assert(false && "unexpected call");
-    }
-
-private:
-    static std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase & db, const QString & queryText, const QString & value = {})
-    {
-        std::vector<std::pair<QString, int>> result;
-        const auto query = db.CreateQuery(queryText.arg(value.length() + 1).toStdString());
-        if (!value.isEmpty())
-        {
-            query->Bind(0, value.toStdString());
-            query->Bind(1, value.toStdString() + "%");
-        }
-
-        for (query->Execute(); !query->Eof(); query->Next())
-            result.emplace_back(query->Get<const char *>(0), query->Get<int>(1));
-
-        std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return QStringWrapper { lhs.first } < QStringWrapper { rhs.first }; });
-        std::ranges::transform(result, result.begin(), [&] (const auto & item) { return std::make_pair(value + item.first, item.second); });
-
-        return result;
     }
 };
 
