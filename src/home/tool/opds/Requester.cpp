@@ -8,7 +8,6 @@
 
 #include <plog/Log.h>
 
-#include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -20,6 +19,7 @@
 #include "interface/logic/SortNavigation.h"
 #include "Util/xml/XmlWriter.h"
 #include "Util/localization.h"
+#include "Util/timer.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -95,6 +95,7 @@ std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase & db
     std::vector<std::pair<QString, int>> result;
 
     const auto query = db.CreateQuery(queryText.toStdString());
+    Util::Timer t(L"ReadStartsWith: " + value.toStdWString());
     query->Bind(0, value.toStdString());
     query->Bind(1, value.toStdString() + "%");
 
@@ -128,7 +129,8 @@ Head WriteNavigationStartsWith(DB::IDatabase & db
     const auto writeNavigationEntry = [&] (const std::string & queryText, const QString & arg)
     {
         const auto query = db.CreateQuery(queryText);
-        query->Bind(0, arg.toStdString());
+        Util::Timer t(L"writeNavigationEntry: " + arg.toStdWString());
+		query->Bind(0, arg.toStdString());
         for (query->Execute(); !query->Eof(); query->Next())
         {
             const auto id = QString("%1/%2").arg(navigationType).arg(query->Get<int>(0));
@@ -235,7 +237,9 @@ struct Requester::Impl
     {
         const auto db = databaseController->GetDatabase(true);
         const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, (select count(42) from Genres l where l.ParentCode = g.GenreCode) + (select count(42) from Genre_List l where l.GenreCode = g.GenreCode) from Genres g where g.ParentCode = ? group by g.GenreCode");
-        query->Bind(0, value.isEmpty() ? std::string("0") : value.toStdString());
+        const auto arg = value.isEmpty() ? QString("0") : value;
+        Util::Timer t(L"WriteGenresNavigationImpl: " + arg.toStdWString());
+        query->Bind(0, arg.toStdString());
         for (query->Execute(); !query->Eof(); query->Next())
         {
             const auto id = QString("%1/%2").arg(Loc::Genres).arg(query->Get<const char *>(0));
