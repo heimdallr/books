@@ -15,10 +15,32 @@ using namespace Flibrary;
 
 namespace {
 
-class ApplicationCursorWrapper
+class IApplicationCursorController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	void Set(const bool value)
+	virtual ~IApplicationCursorController() = default;
+	virtual void Set(bool value) = 0;
+};
+
+class ApplicationCursorControllerStub : public IApplicationCursorController
+{
+public:
+	static std::unique_ptr<IApplicationCursorController> create()
+	{
+		return std::make_unique<ApplicationCursorControllerStub>();
+	}
+	void Set(bool) override { }
+};
+
+class ApplicationCursorController : public IApplicationCursorController
+{
+public:
+	static std::unique_ptr<IApplicationCursorController> create()
+	{
+		return std::make_unique<ApplicationCursorController>();
+	}
+public:
+	void Set(const bool value) override
 	{
 		if (!m_counter)
 			QGuiApplication::setOverrideCursor(Qt::BusyCursor);
@@ -33,14 +55,13 @@ private:
 	int m_counter { 0 };
 };
 
-ApplicationCursorWrapper APPLICATION_CURSOR_WRAPPER;
-
 }
 
 struct DatabaseUser::Impl
 {
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	std::shared_ptr<Util::IExecutor> executor;
+	std::unique_ptr<IApplicationCursorController> applicationCursorController { ApplicationCursorControllerStub::create() };
 
 	Impl(const ILogicFactory & logicFactory
 		, std::shared_ptr<IDatabaseController> databaseController
@@ -50,12 +71,12 @@ struct DatabaseUser::Impl
 	{
 	}
 
-	static std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory)
+	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory) const
 	{
 		return logicFactory.GetExecutor({1
 			, [] { }
-			, [] { APPLICATION_CURSOR_WRAPPER.Set(true); }
-			, [] { APPLICATION_CURSOR_WRAPPER.Set(false); }
+			, [this] { applicationCursorController->Set(true); }
+			, [this] { applicationCursorController->Set(false); }
 			, [] { }
 		});
 	}
@@ -92,4 +113,9 @@ std::shared_ptr<DB::IDatabase> DatabaseUser::CheckDatabase() const
 std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 {
 	return m_impl->executor;
+}
+
+void DatabaseUser::EnableApplicationCursorChange(const bool value)
+{
+	m_impl->applicationCursorController = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
 }

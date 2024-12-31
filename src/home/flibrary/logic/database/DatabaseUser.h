@@ -25,6 +25,7 @@ public:
 	std::shared_ptr<DB::IDatabase> Database() const override;
 	std::shared_ptr<DB::IDatabase> CheckDatabase() const override;
 	std::shared_ptr<Util::IExecutor> Executor() const override;
+	void EnableApplicationCursorChange(bool value) override;
 
 private:
 	struct Impl;
