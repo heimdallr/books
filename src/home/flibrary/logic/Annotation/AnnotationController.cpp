@@ -65,11 +65,11 @@ public:
 	}
 
 public:
-	void SetCurrentBookId(QString bookId)
+	void SetCurrentBookId(QString bookId, const bool extractNow)
 	{
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
-			m_extractInfoTimer->start();
+			extractNow ? ExtractInfo() : m_extractInfoTimer->start();
 	}
 
 private: // IDataProvider
@@ -359,9 +359,9 @@ AnnotationController::~AnnotationController()
 	PLOGD << "AnnotationController destroyed";
 }
 
-void AnnotationController::SetCurrentBookId(QString bookId)
+void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)
 {
-	m_impl->SetCurrentBookId(std::move(bookId));
+	m_impl->SetCurrentBookId(std::move(bookId), extractNow);
 }
 
 void AnnotationController::RegisterObserver(IObserver * observer)

@@ -18,7 +18,7 @@ public:
 	~AnnotationController() override;
 
 private: // IAnnotationController
-	void SetCurrentBookId(QString bookId) override;
+	void SetCurrentBookId(QString bookId, bool extractNow) override;
 
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;
