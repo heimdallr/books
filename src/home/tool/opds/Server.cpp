@@ -45,11 +45,35 @@ private:
 			resp.setHeaders(std::move(h));
 		});
 
-		m_server.route("/opds", [this] (const QHttpServerRequest & /*request*/)
+		m_server.route("/opds", [this]
 		{
-			return QtConcurrent::run([this] ()
+			return QtConcurrent::run([this]
 			{
 				return QHttpServerResponse(m_requester->GetRoot());
+			});
+		});
+
+		m_server.route("/opds/Book/<arg>", [this] (const QString & value)
+		{
+			return QtConcurrent::run([this, value]
+			{
+				return QHttpServerResponse(m_requester->GetBookInfo(value));
+			});
+		});
+
+		m_server.route("/opds/Book/<arg>", [this] (const QString & value)
+		{
+			return QtConcurrent::run([this, value]
+			{
+				return QHttpServerResponse(m_requester->GetBookInfo(value));
+			});
+		});
+
+		m_server.route("/opds/Book/cover/thumbnail/<arg>", [this] (const QString & value)
+		{
+			return QtConcurrent::run([this, value]
+			{
+				return QHttpServerResponse(m_requester->GetCoverThumbnail(value));
 			});
 		});
 
@@ -71,7 +95,7 @@ private:
 
 			m_server.route(QString("/opds/%1").arg(key), [this, invoker = navigationInvoker]
 			{
-				return QtConcurrent::run([this, invoker] ()
+				return QtConcurrent::run([this, invoker]
 				{
 					return QHttpServerResponse(std::invoke(invoker, *m_requester, QString{}));
 				});
@@ -79,7 +103,7 @@ private:
 
 			m_server.route(QString("/opds/%1/starts/").arg(key), [this, invoker = navigationInvoker]
 			{
-				return QtConcurrent::run([this, invoker] ()
+				return QtConcurrent::run([this, invoker]
 				{
 					return QHttpServerResponse(std::invoke(invoker, *m_requester, QString{}));
 				});
@@ -87,7 +111,7 @@ private:
 
 			m_server.route(QString("/opds/%1/starts/<arg>").arg(key), [this, invoker = navigationInvoker](const QString & value)
 			{
-				return QtConcurrent::run([this, invoker, value] ()
+				return QtConcurrent::run([this, invoker, value]
 				{
 					return QHttpServerResponse(std::invoke(invoker, *m_requester, value.toUpper()));
 				});
@@ -95,7 +119,7 @@ private:
 
 			m_server.route(QString("/opds/%1/<arg>").arg(key), [this, invoker = booksInvoker] (const QString & navigationId)
 			{
-				return QtConcurrent::run([this, invoker, navigationId] ()
+				return QtConcurrent::run([this, invoker, navigationId]
 				{
 					return QHttpServerResponse(std::invoke(invoker, *m_requester, navigationId.toUpper(), QString{}));
 				});
@@ -103,7 +127,7 @@ private:
 
 			m_server.route(QString("/opds/%1/Books/<arg>/starts/<arg>").arg(key), [this, invoker = booksInvoker] (const QString & navigationId, const QString & value)
 			{
-				return QtConcurrent::run([this, invoker, navigationId, value] ()
+				return QtConcurrent::run([this, invoker, navigationId, value]
 				{
 					return QHttpServerResponse(std::invoke(invoker, *m_requester, navigationId.toUpper(), value.toUpper()));
 				});

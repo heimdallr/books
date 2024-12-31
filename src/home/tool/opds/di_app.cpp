@@ -2,6 +2,7 @@
 
 #include <Hypodermic/Hypodermic.h>
 
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 

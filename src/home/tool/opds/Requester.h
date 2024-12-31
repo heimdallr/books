@@ -7,6 +7,7 @@
 class QIODevice;
 
 namespace HomeCompa::Flibrary {
+class IAnnotationController;
 class ICollectionProvider;
 class IDatabaseController;
 }
@@ -20,11 +21,14 @@ class Requester : virtual public IRequester
 public:
 	Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider
 		, std::shared_ptr<Flibrary::IDatabaseController> databaseController
+		, std::shared_ptr<Flibrary::IAnnotationController> annotationController
 	);
 	~Requester() override;
 
 private: // IRequester
 	QByteArray GetRoot() const override;
+	QByteArray GetBookInfo(const QString & bookId) const override;
+	QByteArray GetCoverThumbnail(const QString & bookId) const override;
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString & value) const override;
 		OPDS_ROOT_ITEMS_X_MACRO

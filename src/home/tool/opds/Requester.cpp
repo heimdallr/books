@@ -5,6 +5,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDateTime>
+#include <QEventLoop>
+#include <QFileInfo>
 
 #include <plog/Log.h>
 
@@ -13,10 +15,12 @@
 #include "database/interface/IQuery.h"
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/SortNavigation.h"
+#include "logic/data/DataItem.h"
 #include "Util/xml/XmlWriter.h"
 #include "Util/localization.h"
 #include "Util/timer.h"
@@ -32,6 +36,7 @@ constexpr auto SERIES = "coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
+constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 
 TR_DEF
 
@@ -92,7 +97,7 @@ Node & WriteEntry(Node::Children & children
     entry.title = std::move(title);
     if (isCatalog)
 		entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", std::move(href)}, {"rel", "subsection"}, {"type", "application/atom+xml;profile=opds-catalog;kind=navigation"} });
-    entry.children.emplace_back("content", content.isEmpty() ? Tr(COUNT).arg(count) : std::move(content), Node::Attributes{{"type", "text"}});
+    entry.children.emplace_back("content", content.isEmpty() ? Tr(COUNT).arg(count) : std::move(content), Node::Attributes{{"type", "text/html"}});
     return entry;
 }
 
@@ -220,17 +225,47 @@ Node WriteNavigationStartsWith(DB::IDatabase & db
     return head;
 }
 
+class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
+{
+    using Functor = std::function<void(const Flibrary::IAnnotationController::IDataProvider & dataProvider)>;
+public:
+    explicit AnnotationControllerObserver(Functor f)
+	    : m_f { std::move(f) }
+    {
+    }
+
+private: // IAnnotationController::IObserver
+    void OnAnnotationRequested() override
+    {
+    }
+
+    void OnAnnotationChanged(const Flibrary::IAnnotationController::IDataProvider & dataProvider) override
+    {
+        m_f(dataProvider);
+    }
+
+    void OnArchiveParserProgress(int /*percents*/) override
+    {
+    }
+
+private:
+    const Functor m_f;
+};
+
 }
 
 struct Requester::Impl
 {
     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
     std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
+    std::shared_ptr<Flibrary::IAnnotationController> annotationController;
     Impl(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider
         , std::shared_ptr<const Flibrary::IDatabaseController> databaseController
+        , std::shared_ptr<Flibrary::IAnnotationController> annotationController
     )
         : collectionProvider { std::move(collectionProvider) }
         , databaseController { std::move(databaseController) }
+        , annotationController { std::move(annotationController) }
     {
     }
 
@@ -260,6 +295,64 @@ struct Requester::Impl
         }
 
         return head;
+    }
+
+    Node WriteBook(const QString & bookId) const
+    {
+        auto head = GetHead(BOOK, Tr(BOOK));
+
+        QEventLoop eventLoop;
+
+        AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider & dataProvider)
+        {
+            const auto & book = dataProvider.GetBook();
+            auto & entry = WriteEntry(head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, dataProvider.GetAnnotation(), false);
+            for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
+            {
+                const auto & authorItem = dataProvider.GetAuthors().GetChild(i);
+                auto & author = entry.children.emplace_back("author");
+                author.children.emplace_back("name", QString("%1 %2 %3").arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName), authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName), authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)));
+                author.children.emplace_back("uri", QString("/opds/%1/%2").arg(Loc::Authors, authorItem->GetId()));
+            }
+            for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
+            {
+                const auto & genreItem = dataProvider.GetGenres().GetChild(i);
+                const auto & title = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
+                entry.children.emplace_back("category", QString{}, Node::Attributes{{"term", title}, {"label", title}});
+            }
+            entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
+            entry.children.emplace_back("dc:format", QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix());
+            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/zip/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/acquisition"}, {"type", "application/fb2+zip"} });
+            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image"}, {"type", "image/jpeg"} });
+            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/thumbnail/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image/thumbnail"}, {"type", "image/jpeg"} });
+
+            eventLoop.exit();
+        });
+
+        annotationController->RegisterObserver(&observer);
+        annotationController->SetCurrentBookId(bookId, true);
+        eventLoop.exec();
+        return head;
+    }
+
+    QByteArray GetCoverThumbnail(const QString & bookId) const
+    {
+        QEventLoop eventLoop;
+        QByteArray result;
+
+        AnnotationControllerObserver observer([&] (const Flibrary::IAnnotationController::IDataProvider & dataProvider)
+        {
+            if (const auto & covers = dataProvider.GetCovers(); !covers.empty())
+                result = covers.front().bytes;
+
+            eventLoop.exit();
+        });
+
+        annotationController->RegisterObserver(&observer);
+        annotationController->SetCurrentBookId(bookId, true);
+        eventLoop.exec();
+
+        return result;
     }
 
     Node WriteAuthorsNavigation(const QString & value) const
@@ -407,9 +500,11 @@ struct Requester::Impl
 
 Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider
     , std::shared_ptr<Flibrary::IDatabaseController> databaseController
+    , std::shared_ptr<Flibrary::IAnnotationController> annotationController
 )
 	: m_impl(std::move(collectionProvider)
         , std::move(databaseController)
+        , std::move(annotationController)
     )
 {
 	PLOGD << "Requester created";
@@ -423,6 +518,16 @@ Requester::~Requester()
 QByteArray Requester::GetRoot() const
 {
     return GetImpl(&Impl::WriteRoot);
+}
+
+QByteArray Requester::GetBookInfo(const QString & bookId) const
+{
+    return GetImpl(&Impl::WriteBook, bookId);
+}
+
+QByteArray Requester::GetCoverThumbnail(const QString & bookId) const
+{
+    return m_impl->GetCoverThumbnail(bookId);
 }
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Requester::Get##NAME##Navigation(const QString & value) const { return GetImpl(&Impl::Write##NAME##Navigation, value); }
