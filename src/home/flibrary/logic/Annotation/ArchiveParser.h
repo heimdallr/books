@@ -39,7 +39,7 @@ public:
 	};
 
 public:
-	ArchiveParser(std::shared_ptr<class ICollectionController> collectionController
+	ArchiveParser(std::shared_ptr<class ICollectionProvider> collectionProvider
 		, std::shared_ptr<class IAnnotationProgressController> progressController
 		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 	);

@@ -23,7 +23,7 @@ class UserDataController : virtual public IUserDataController
 	NON_COPY_MOVABLE(UserDataController)
 
 public:
-	UserDataController(std::shared_ptr<class DatabaseUser> databaseUser
+	UserDataController(std::shared_ptr<class IDatabaseUser> databaseUser
 		, std::shared_ptr<class IUiFactory> uiFactory
 	);
 	~UserDataController() override;
@@ -37,7 +37,7 @@ private:
 	void Do(Callback callback, QString fileName, const char * successMessage, DoFunction f) const;
 
 private:
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 };
 

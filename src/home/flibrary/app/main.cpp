@@ -12,6 +12,7 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
@@ -117,6 +118,7 @@ int main(int argc, char * argv[])
 			const auto themeLib = SetTheme(*container->resolve<ISettings>());
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
+			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);
 			mainWindow->Show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)

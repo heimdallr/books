@@ -56,6 +56,12 @@ public:
 	{
 	}
 
+	Impl(QIODevice & stream, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
+		: m_zip(Factory::Create(stream, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format), appendMode))
+		, m_file(std::unique_ptr<IFile>{})
+	{
+	}
+
 	QStringList GetFileNameList() const
 	{
 		return m_zip->GetFileNameList();
@@ -97,6 +103,11 @@ Zip::Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 
 Zip::Zip(const QString & filename, const Format format, bool appendMode, std::shared_ptr<ProgressCallback> progress)
 	: m_impl(std::make_unique<Impl>(filename, format, appendMode, std::move(progress)))
+{
+}
+
+Zip::Zip(QIODevice & stream, Format format, bool appendMode, std::shared_ptr<ProgressCallback> progress)
+	: m_impl(std::make_unique<Impl>(stream, format, appendMode, std::move(progress)))
 {
 }
 

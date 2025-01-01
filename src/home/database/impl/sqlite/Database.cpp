@@ -16,6 +16,8 @@
 
 #include "Database.h"
 
+#include <numeric>
+
 namespace HomeCompa::DB::Impl::Sqlite {
 
 std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex & mutex, sqlite3pp::database & db);
@@ -25,16 +27,43 @@ namespace {
 
 constexpr auto PATH = "path";
 constexpr auto EXTENSION = "extension";
+constexpr auto FLAG = "flag";
 
 using ConnectionParameters = std::multimap<std::string, std::string, std::less<>>;
 
-using ObserverMethod = void(IDatabaseObserver:: *)(std::string_view dbName, std::string_view tableName, int64_t rowId);
+using ObserverMethod = void(IDatabaseObserver::*)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
 constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
 {
 	{ 18, &IDatabaseObserver::OnInsert },
 	{  9, &IDatabaseObserver::OnDelete },
 	{ 23, &IDatabaseObserver::OnUpdate },
+};
+
+constexpr std::pair<const char *, int> g_openFlags[]
+{
+#define ITEM(NAME) { #NAME, SQLITE_OPEN_##NAME }
+		ITEM(READONLY),
+		ITEM(READWRITE),
+		ITEM(CREATE),
+		ITEM(DELETEONCLOSE),
+		ITEM(EXCLUSIVE),
+		ITEM(AUTOPROXY),
+		ITEM(URI),
+		ITEM(MEMORY),
+		ITEM(MAIN_DB),
+		ITEM(TEMP_DB),
+		ITEM(TRANSIENT_DB),
+		ITEM(MAIN_JOURNAL),
+		ITEM(TEMP_JOURNAL),
+		ITEM(SUBJOURNAL),
+		ITEM(MASTER_JOURNAL),
+		ITEM(NOMUTEX),
+		ITEM(FULLMUTEX),
+		ITEM(SHAREDCACHE),
+		ITEM(PRIVATECACHE),
+		ITEM(WAL),
+#undef	ITEM
 };
 
 std::vector<std::string> Split(const std::string & src, const char separator)
@@ -61,6 +90,17 @@ ConnectionParameters ParseConnectionString(const std::string & connection)
 	}
 
 	return result;
+}
+
+int GetOpenFlags(const ConnectionParameters & parameters)
+{
+	auto [begin, end] = parameters.equal_range(FLAG);
+	const auto result = std::accumulate(begin, end, 0, [] (const int init, const auto & item)
+	{
+		return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {});
+	});
+
+	return result ? result : SQLITE_OPEN_READWRITE;
 }
 
 const std::string & GetValue(const ConnectionParameters & parameters, const std::string & key)
@@ -117,7 +157,7 @@ private:
 public:
 	explicit Database(const std::string & connection)
 		: m_connectionParameters(ParseConnectionString(connection))
-		, m_db(GetValue(m_connectionParameters, PATH).data(), SQLITE_OPEN_READWRITE)
+		, m_db(GetValue(m_connectionParameters, PATH).data(), GetOpenFlags(m_connectionParameters))
 		, m_observer(*this)
 	{
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)

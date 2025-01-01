@@ -13,7 +13,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "database/DatabaseController.h"
+#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "model/IModelObserver.h"
@@ -22,7 +22,8 @@
 
 #include <plog/Log.h>
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace {
 
@@ -143,13 +144,13 @@ struct ModeDescriptor
 
 constexpr std::pair<const char *, ModeDescriptor> MODE_DESCRIPTORS[]
 {
-	{ QT_TRANSLATE_NOOP("Navigation", "Authors") , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Series")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Genres")  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Keywords"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Archives"), { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Groups")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
-	{ QT_TRANSLATE_NOOP("Navigation", "Search")  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
+	{ Loc::Authors , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors } },
+	{ Loc::Series  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
+	{ Loc::Genres  , { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{ Loc::Keywords, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
+	{ Loc::Archives, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ Loc::Groups  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
+	{ Loc::Search  , { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -159,7 +160,7 @@ static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode:
 struct TreeViewControllerNavigation::Impl final
 	: IModelObserver
 	, virtual IContextMenuHandler
-	, virtual private DatabaseController::IObserver
+	, virtual private IDatabaseController::IObserver
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
 {
@@ -167,14 +168,14 @@ struct TreeViewControllerNavigation::Impl final
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
-	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
+	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
 	Impl(TreeViewControllerNavigation & self
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<DatabaseController> databaseController
+		, std::shared_ptr<IDatabaseController> databaseController
 	)
 		: self(self)
 		, logicFactory(logicFactory)
@@ -308,7 +309,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<DatabaseController> databaseController
+	, std::shared_ptr<IDatabaseController> databaseController
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)

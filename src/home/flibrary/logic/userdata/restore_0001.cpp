@@ -1,3 +1,5 @@
+#include <QStringList>
+
 #include "fnd/FindPair.h"
 
 #include "database/interface/ICommand.h"
@@ -6,12 +8,12 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseUser.h"
 
 #include "constants/books.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
 
-#include "database/DatabaseUser.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"
@@ -131,7 +133,7 @@ private: // IRestorer
 			createGroupCommand->Bind(0, group.toStdString());
 			createGroupCommand->Execute();
 
-			const auto getLastIdQuery = transaction->CreateQuery(DatabaseUser::SELECT_LAST_ID_QUERY);
+			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			const auto groupId = getLastIdQuery->Get<long long>(0);
 

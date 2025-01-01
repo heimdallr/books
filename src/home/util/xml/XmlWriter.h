@@ -23,7 +23,7 @@ public:
 	XmlWriter & WriteProcessingInstruction(const QString & target, const QString & data);
 	XmlWriter & WriteStartElement(const QString & name);
 	XmlWriter & WriteStartElement(const QString & name, const XmlAttributes & attributes);
-	XmlWriter & WriteEndElement(const QString & name);
+	XmlWriter & WriteEndElement();
 	XmlWriter & WriteAttribute(const QString & name, const QString & value);
 	XmlWriter & WriteCharacters(const QString & data);
 

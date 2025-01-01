@@ -8,11 +8,13 @@
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "database/DatabaseUser.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
@@ -54,11 +56,11 @@ struct TreeViewControllerBooks::Impl final
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel>() };
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
-	std::shared_ptr<const DatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
 
 	explicit Impl(std::weak_ptr<const ILogicFactory> logicFactory
 		, std::shared_ptr<IAnnotationController> annotationController
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 	)
 		: logicFactory(std::move(logicFactory))
 		, annotationController(std::move(annotationController))
@@ -72,7 +74,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IAnnotationController> annotationController
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: AbstractTreeViewController(CONTEXT
 		, std::move(settings)

@@ -1,15 +1,15 @@
+#include <QString>
+
 #include "fnd/FindPair.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
 
 #include "constants/books.h"
 
-#include "database/DatabaseUser.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"

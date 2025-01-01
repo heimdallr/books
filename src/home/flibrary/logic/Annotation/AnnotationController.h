@@ -13,12 +13,12 @@ class AnnotationController final : virtual public IAnnotationController
 
 public:
 	AnnotationController(const std::shared_ptr<const class ILogicFactory>& logicFactory
-		, std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class IDatabaseUser> databaseUser
 	);
 	~AnnotationController() override;
 
 private: // IAnnotationController
-	void SetCurrentBookId(QString bookId) override;
+	void SetCurrentBookId(QString bookId, bool extractNow) override;
 
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;

@@ -3,8 +3,7 @@
 #include <vector>
 #include <QString>
 
-#include "CollectionImpl.h"
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 
 namespace HomeCompa {
 class ISettings;

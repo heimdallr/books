@@ -66,7 +66,7 @@ TR_DEF
 class MainWindow::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
-	, ICollectionController::IObserver
+	, ICollectionsObserver
 	, ILineOption::IObserver
 	, virtual plog::IAppender
 {
@@ -138,7 +138,7 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
-private: // ICollectionController::IObserver
+private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
 		Reboot();

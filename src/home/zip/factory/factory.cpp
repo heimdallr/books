@@ -33,6 +33,13 @@ constexpr std::pair<Factory::Format, WriterCreator> CREATORS_BY_FORMAT[]
 	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
 };
 
+using WriterCreatorStream = std::unique_ptr<IZip>(*)(QIODevice & stream, std::shared_ptr<ProgressCallback> progress, bool appendMode);
+constexpr std::pair<Factory::Format, WriterCreatorStream> CREATORS_BY_FORMAT_STREAM[]
+{
+	{Factory::Format::Zip, &Impl::Zip::Archive::CreateWriterStream},
+	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriterStream},
+};
+
 std::unique_ptr<IZip> CreateBySignature(const QString & filename, std::shared_ptr<ProgressCallback> progress)
 {
 	QFile file(filename);
@@ -56,4 +63,9 @@ std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<
 std::unique_ptr<IZip> Factory::Create(const QString & filename, std::shared_ptr<ProgressCallback> progress, const Format format, const bool appendMode)
 {
 	return FindSecond(CREATORS_BY_FORMAT, format)(filename, std::move(progress), appendMode);
+}
+
+std::unique_ptr<IZip> Factory::Create(QIODevice & stream, std::shared_ptr<ProgressCallback> progress, const Format format, const bool appendMode)
+{
+	return FindSecond(CREATORS_BY_FORMAT_STREAM, format)(stream, std::move(progress), appendMode);
 }

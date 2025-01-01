@@ -14,7 +14,7 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -32,7 +32,7 @@ void AddUserTables(DB::ITransaction & transaction)
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)")->Execute();
 }
 
-void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition)
+void AddUserTableField(DB::ITransaction & transaction, const QString & table, const QString & column, const QString & definition, const std::vector<std::string_view> & commands = {})
 {
 	std::set<std::string> booksUserFields;
 	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
@@ -41,16 +41,20 @@ void AddUserTableField(DB::ITransaction & transaction, const QString & table, co
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
 		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
-	if (!booksUserFields.contains(column.toStdString()))
-		transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
+	if (booksUserFields.contains(column.toStdString()))
+		return;
+
+	transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
+	for (const auto & command : commands)
+		transaction.CreateCommand(command)->Execute();
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName)
+std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseName, const bool readOnly)
 {
 	if (databaseName.empty())
 		return {};
 
-	const std::string connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt";
+	const auto connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt" + (readOnly ? ";flag=READONLY" : "");
 	auto db = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
@@ -61,6 +65,9 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		PLOGI << "sqlite version: " << query->Get<std::string>(0);
 	}
 
+	if (readOnly)
+		return db;
+
 	try
 	{
 		const auto transaction = db->CreateTransaction();
@@ -70,6 +77,10 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		AddUserTableField(*transaction, "Groups_User", "CreatedAt", "DATETIME");
 		AddUserTableField(*transaction, "Groups_List_User", "CreatedAt", "DATETIME");
 		AddUserTableField(*transaction, "Searches_User", "CreatedAt", "DATETIME");
+		AddUserTableField(*transaction, "Authors", "SearchName", "VARCHAR (128) COLLATE NOCASE", { "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)", "UPDATE Authors SET SearchName = MHL_UPPER(LastName)"});
+		AddUserTableField(*transaction, "Books", "SearchTitle", "VARCHAR (150) COLLATE NOCASE", { "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)", "UPDATE Books SET SearchTitle = MHL_UPPER(Title)" });
+		AddUserTableField(*transaction, "Keywords", "SearchTitle", "VARCHAR (150) COLLATE NOCASE", { "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)", "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)" });
+		AddUserTableField(*transaction, "Series", "SearchTitle", "VARCHAR (80) COLLATE NOCASE", { "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)", "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)" });
 
 		transaction->Commit();
 		return db;
@@ -88,26 +99,26 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 }
 
 class DatabaseController::Impl final
-	: ICollectionController::IObserver
+	: ICollectionsObserver
 	, public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(std::shared_ptr<ICollectionController> collectionController)
-		: m_collectionController(std::move(collectionController))
+	explicit Impl(std::shared_ptr<ICollectionProvider> collectionProvider)
+		: m_collectionProvider { std::move(collectionProvider) }
 	{
-		m_collectionController->RegisterObserver(this);
+		m_collectionProvider->RegisterObserver(this);
 
 		OnActiveCollectionChanged();
 	}
 
 	~Impl() override
 	{
-		m_collectionController->UnregisterObserver(this);
+		m_collectionProvider->UnregisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create) const
+	std::shared_ptr<DB::IDatabase> GetDatabase(const bool create, const bool readOnly) const
 	{
 		std::lock_guard lock(m_dbGuard);
 
@@ -117,7 +128,7 @@ public:
 		if (m_db)
 			return m_db;
 
-		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString());
+		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString(), readOnly);
 		m_db = std::move(db);
 
 		if (m_db)
@@ -131,10 +142,10 @@ public:
 		return m_db;
 	}
 
-private: // ICollectionController::IObserver
+private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
-		m_databaseFileName = m_collectionController->ActiveCollectionExists() ? m_collectionController->GetActiveCollection().database : QString {};
+		m_databaseFileName = m_collectionProvider->ActiveCollectionExists() ? m_collectionProvider->GetActiveCollection().database : QString {};
 		if (m_db)
 			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
@@ -149,12 +160,12 @@ private:
 	mutable std::mutex m_dbGuard;
 	mutable std::shared_ptr<DB::IDatabase> m_db;
 	QString m_databaseFileName;
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	Util::FunctorExecutionForwarder m_forwarder;
 };
 
-DatabaseController::DatabaseController(std::shared_ptr<ICollectionController> collectionController)
-	: m_impl(std::move(collectionController))
+DatabaseController::DatabaseController(std::shared_ptr<ICollectionProvider> collectionProvider)
+	: m_impl(std::move(collectionProvider))
 {
 	PLOGD << "DatabaseController created";
 }
@@ -164,14 +175,14 @@ DatabaseController::~DatabaseController()
 	PLOGD << "DatabaseController destroyed";
 }
 
-std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase() const
+std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase(const bool readOnly) const
 {
-	return m_impl->GetDatabase(true);
+	return m_impl->GetDatabase(true, readOnly);
 }
 
 std::shared_ptr<DB::IDatabase> DatabaseController::CheckDatabase() const
 {
-	return m_impl->GetDatabase(false);
+	return m_impl->GetDatabase(false, true);
 }
 
 void DatabaseController::RegisterObserver(IObserver * observer)

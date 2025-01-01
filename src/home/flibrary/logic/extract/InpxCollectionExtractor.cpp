@@ -8,18 +8,20 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 #include "inpx/src/util/constant.h"
 #include "Util/IExecutor.h"
 
 #include "interface/constants/ExportStat.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
-#include "database/DatabaseUser.h"
 #include "shared/ImageRestore.h"
 
 #include "zip.h"
@@ -106,7 +108,7 @@ class InpxCollectionExtractor::Impl final
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
-		, std::shared_ptr<DatabaseUser> databaseUser
+		, std::shared_ptr<IDatabaseUser> databaseUser
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 	)
 		: m_collectionController(std::move(collectionController))
@@ -141,9 +143,9 @@ public:
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command = transaction->CreateCommand(ExportStat::INSERT_QUERY);
 
-		std::for_each(std::make_move_iterator(std::begin(bookLists)), std::make_move_iterator(std::end(bookLists)), [&] (BookInfoList && books)
+		std::for_each(std::make_move_iterator(std::begin(bookLists)), std::make_move_iterator(std::end(bookLists)), [&] (BookInfoList && bookInfoList)
 		{
-			for (const auto & book : books)
+			for (const auto & book : bookInfoList)
 			{
 				command->Bind(0, book.book->GetId().toInt());
 				command->Bind(1, static_cast<int>(ExportStat::Type::Inpx));
@@ -274,7 +276,7 @@ private:
 private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
@@ -288,7 +290,7 @@ private:
 
 InpxCollectionExtractor::InpxCollectionExtractor(std::shared_ptr<ICollectionController> collectionController
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 )
 	: m_impl(std::move(collectionController)

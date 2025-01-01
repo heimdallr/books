@@ -25,6 +25,7 @@
 #include "fnd/IsOneOf.h"
 #include "util/executor/factory.h"
 #include "util/IExecutor.h"
+#include "util/timer.h"
 
 #include "zip.h"
 
@@ -42,31 +43,6 @@ size_t GetId()
 {
 	return ++g_id;
 }
-
-class Timer
-{
-public:
-	explicit Timer(std::wstring process_)
-		: m_t(std::chrono::high_resolution_clock::now())
-		, m_process(std::move(process_))
-	{
-		PLOGI << m_process << " started";
-	}
-	~Timer()
-	{
-		PLOGI << m_process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_t).count() << " ms";
-	}
-
-	// rule 5
-	Timer(const Timer &) = delete;
-	Timer(Timer &&) = delete;
-	Timer & operator=(const Timer &) = delete;
-	Timer & operator=(Timer &&) = delete;
-
-private:
-	const std::chrono::steady_clock::time_point m_t;
-	const std::wstring m_process;
-};
 
 template <typename T>
 T & ToLower(T & str)
@@ -393,7 +369,7 @@ bool TableExists(sqlite3pp::database & db, const std::string & table)
 
 void ExecuteScript(const std::wstring & action, const Path & dbFileName, const Path & scriptFileName)
 {
-	Timer t(action);
+	Util::Timer t(action);
 
 	DatabaseWrapper db(dbFileName);
 
@@ -450,7 +426,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 	if (rowsTotal == 0)
 		return rowsTotal;
 
-	Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
+	Util::Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
 	size_t rowsInserted = 0;
 
 	DatabaseWrapper db(dbFileName);
@@ -483,7 +459,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 	if (rowsTotal != rowsInserted)
 		PLOGE << rowsTotal - rowsInserted << " rows lost";
 	{
-		Timer tc(L"commit");
+		Util::Timer tc(L"commit");
 		tr.commit();
 	}
 
@@ -493,7 +469,7 @@ size_t StoreRange(const Path & dbFileName, std::string_view process, const std::
 size_t Store(const Path & dbFileName, const Data & data)
 {
 	size_t result = 0;
-	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName) VALUES(?, ?, ?, ?)", data.authors, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Authors", "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, MHL_UPPER(?))", data.authors, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto & [author, id] = item;
 		auto it = std::cbegin(author);
@@ -505,23 +481,26 @@ size_t Store(const Path & dbFileName, const Data & data)
 		cmd.bind(2, last, sqlite3pp::nocopy);
 		cmd.bind(3, first, sqlite3pp::nocopy);
 		cmd.bind(4, middle, sqlite3pp::nocopy);
+		cmd.bind(5, last, sqlite3pp::nocopy);
 
 		return cmd.execute();
 	});
 
-	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle) VALUES (?, ?)", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Series", "INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))", data.series, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto title = ToMultiByte(item.first);
 		cmd.bind(1, item.second);
 		cmd.bind(2, title, sqlite3pp::nocopy);
+		cmd.bind(3, title, sqlite3pp::nocopy);
 		return cmd.execute();
 	});
 
-	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle) VALUES (?, ?)", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
+	result += StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))", data.keywords, [] (sqlite3pp::command & cmd, const Dictionary::value_type & item)
 	{
 		const auto title = ToMultiByte(item.first);
 		cmd.bind(1, item.second);
 		cmd.bind(2, title, sqlite3pp::nocopy);
+		cmd.bind(3, title, sqlite3pp::nocopy);
 		return cmd.execute();
 	});
 
@@ -539,8 +518,8 @@ size_t Store(const Path & dbFileName, const Data & data)
 		"BookID   , LibID     , Title    , SeriesID, "
 		"SeqNumber, UpdateDate, LibRate  , Lang    , "
 		"Folder   , FileName  , InsideNo , Ext     , "
-		"BookSize , IsDeleted"
-		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		"BookSize , IsDeleted, SearchTitle"
+		") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
 	result += StoreRange(dbFileName, "Books", queryText, data.books, [] (sqlite3pp::command & cmd, const Book & book)
 	{
 		const auto libId = ToMultiByte(book.libId);
@@ -564,6 +543,7 @@ size_t Store(const Path & dbFileName, const Data & data)
 																		   cmd.bind(12, format, sqlite3pp::nocopy);
 																		   cmd.bind(13, book.size);
 																		   cmd.bind(14, book.isDeleted ? 1 : 0);
+																		   cmd.bind(15, title, sqlite3pp::nocopy);
 																		   return cmd.execute();
 	});
 
@@ -895,7 +875,7 @@ private: // IPool
 private:
 	void ProcessImpl()
 	{
-		Timer t(L"work");
+		Util::Timer t(L"work");
 
 		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
 
@@ -951,7 +931,7 @@ private:
 
 	void Parse()
 	{
-		Timer t(L"parsing archives");
+		Util::Timer t(L"parsing archives");
 
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres = std::move(genresData);

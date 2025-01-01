@@ -1,10 +1,13 @@
 #include "di_logic.h"
 
+#include <QCoreApplication>
+
 #include <Hypodermic/Hypodermic.h>
 
 // ReSharper disable CppUnusedIncludeDirective
 #include "Annotation/AnnotationController.h"
 #include "Collection/CollectionController.h"
+#include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -28,8 +31,12 @@
 #include "shared/UpdateChecker.h"
 #include "shared/ZipProgressCallback.h"
 #include "userdata/UserDataController.h"
+#include "util/app.h"
 #include "util/ISettings.h"
+#include "util/Settings.h"
 // ReSharper restore CppUnusedIncludeDirective
+
+#include "config/version.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -37,11 +44,12 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 {
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
+	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
-	builder.registerType<DatabaseController>().singleInstance();
-	builder.registerType<DatabaseUser>().singleInstance();
+	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
+	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<ListModel>().as<AbstractListModel>();
@@ -80,6 +88,13 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 		static auto taskQueue = std::make_shared<TaskQueue>();
 		return taskQueue;
 	}).as<ITaskQueue>();
+
+	builder.registerInstanceFactory([] (Hypodermic::ComponentContext &)
+	{
+		return Util::GetInstallerDescription().type == Util::InstallerType::portable
+			       ? std::make_shared<Settings>(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
+			       : std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
+	}).as<ISettings>().singleInstance();
 }
 
 }
