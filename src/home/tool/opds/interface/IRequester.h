@@ -20,6 +20,8 @@ public:
 	virtual QByteArray GetRoot() const = 0;
 	virtual QByteArray GetBookInfo(const QString & bookId) const = 0;
 	virtual QByteArray GetCoverThumbnail(const QString & bookId) const = 0;
+	virtual QByteArray GetBook(const QString & bookId) const = 0;
+	virtual QByteArray GetBookZip(const QString & bookId) const = 0;
 
 #define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Navigation(const QString & value) const = 0;
 		OPDS_ROOT_ITEMS_X_MACRO

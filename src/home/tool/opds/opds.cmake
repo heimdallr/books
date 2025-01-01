@@ -13,4 +13,5 @@ AddTarget(opds	app
 		logging
 		logic
 		Util
+		zip
 )

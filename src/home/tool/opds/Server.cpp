@@ -36,20 +36,19 @@ private:
 
 		(void)tcpServer.release();
 
-		m_server.addAfterRequestHandler(&m_server, [] (const QHttpServerRequest & request, QHttpServerResponse & resp)
+		m_server.addAfterRequestHandler(&m_server, [this] (const QHttpServerRequest & request, QHttpServerResponse & resp)
 		{
 			PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
-			auto h = resp.headers();
-			h.replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
-			h.append(QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
-			resp.setHeaders(std::move(h));
+			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
 		});
 
 		m_server.route("/opds", [this]
 		{
 			return QtConcurrent::run([this]
 			{
-				return QHttpServerResponse(m_requester->GetRoot());
+				QHttpServerResponse response(m_requester->GetRoot());
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+				return response;
 			});
 		});
 
@@ -57,15 +56,29 @@ private:
 		{
 			return QtConcurrent::run([this, value]
 			{
-				return QHttpServerResponse(m_requester->GetBookInfo(value));
+				QHttpServerResponse response(m_requester->GetBookInfo(value));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+				return response;
 			});
 		});
 
-		m_server.route("/opds/Book/<arg>", [this] (const QString & value)
+		m_server.route("/opds/Book/data/<arg>", [this] (const QString & value)
 		{
 			return QtConcurrent::run([this, value]
 			{
-				return QHttpServerResponse(m_requester->GetBookInfo(value));
+				QHttpServerResponse response(m_requester->GetBook(value));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
+				return response;
+			});
+		});
+
+		m_server.route("/opds/Book/zip/<arg>", [this] (const QString & value)
+		{
+			return QtConcurrent::run([this, value]
+			{
+				QHttpServerResponse response(m_requester->GetBookZip(value));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
+				return response;
 			});
 		});
 
@@ -73,7 +86,9 @@ private:
 		{
 			return QtConcurrent::run([this, value]
 			{
-				return QHttpServerResponse(m_requester->GetCoverThumbnail(value));
+				QHttpServerResponse response(m_requester->GetCoverThumbnail(value));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
+				return response;
 			});
 		});
 
@@ -97,7 +112,9 @@ private:
 			{
 				return QtConcurrent::run([this, invoker]
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, QString{}));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString {}));
+					ReplaceOrAppendHeader (response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+					return response;
 				});
 			});
 
@@ -105,7 +122,9 @@ private:
 			{
 				return QtConcurrent::run([this, invoker]
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, QString{}));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString {}));
+					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+					return response;
 				});
 			});
 
@@ -113,7 +132,9 @@ private:
 			{
 				return QtConcurrent::run([this, invoker, value]
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, value.toUpper()));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, value.toUpper()));
+					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+					return response;
 				});
 			});
 
@@ -121,7 +142,9 @@ private:
 			{
 				return QtConcurrent::run([this, invoker, navigationId]
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, navigationId.toUpper(), QString{}));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, navigationId.toUpper(), QString {}));
+					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+					return response;
 				});
 			});
 
@@ -129,10 +152,19 @@ private:
 			{
 				return QtConcurrent::run([this, invoker, navigationId, value]
 				{
-					return QHttpServerResponse(std::invoke(invoker, *m_requester, navigationId.toUpper(), value.toUpper()));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, navigationId.toUpper(), value.toUpper()));
+					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
+					return response;
 				});
 			});
 		}
+	}
+
+	static void ReplaceOrAppendHeader(QHttpServerResponse & response, const QHttpHeaders::WellKnownHeader key, const QString & value)
+	{
+		auto h = response.headers();
+		h.replaceOrAppend(key, value);
+		response.setHeaders(std::move(h));
 	}
 
 private:

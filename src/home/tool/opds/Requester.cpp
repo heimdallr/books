@@ -4,12 +4,12 @@
 
 #include <QBuffer>
 #include <QByteArray>
-#include <QDateTime>
 #include <QEventLoop>
 #include <QFileInfo>
 
 #include <plog/Log.h>
 
+#include "zip.h"
 #include "fnd/ScopedCall.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -21,6 +21,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/SortNavigation.h"
 #include "logic/data/DataItem.h"
+#include "logic/shared/ImageRestore.h"
 #include "Util/xml/XmlWriter.h"
 #include "Util/localization.h"
 #include "Util/timer.h"
@@ -32,7 +33,6 @@ namespace {
 
 constexpr auto AUTHOR = "a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')";
 constexpr auto SERIES = "coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '')";
-
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
@@ -225,6 +225,33 @@ Node WriteNavigationStartsWith(DB::IDatabase & db
     return head;
 }
 
+QByteArray Decompress(const QString & path, const QString & archive, const QString & fileName)
+   {
+       QByteArray data;
+       {
+           QBuffer buffer(&data);
+           const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+           const Zip unzip(path + "/" + archive);
+           auto & stream = unzip.Read(fileName);
+           buffer.write(Flibrary::RestoreImages(stream, archive, fileName));
+       }
+       return data;
+   }
+
+   QByteArray Compress(const QByteArray & data, const QString & fileName)
+   {
+       QByteArray zippedData;
+       {
+           QBuffer buffer(&zippedData);
+           const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+           buffer.open(QIODevice::WriteOnly);
+		Zip zip(buffer, Zip::Format::Zip);
+		auto & output = zip.Write(fileName);
+		output.write(data);
+       }
+       return zippedData;
+   }
+
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
 {
     using Functor = std::function<void(const Flibrary::IAnnotationController::IDataProvider & dataProvider)>;
@@ -320,9 +347,11 @@ struct Requester::Impl
                 const auto & title = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
                 entry.children.emplace_back("category", QString{}, Node::Attributes{{"term", title}, {"label", title}});
             }
+            const auto format = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix();
             entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
-            entry.children.emplace_back("dc:format", QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix());
-            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/zip/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/acquisition"}, {"type", "application/fb2+zip"} });
+            entry.children.emplace_back("dc:format", format);
+            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/data/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/acquisition"}, {"type", QString("application/%1").arg(format)} });
+            entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/zip/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/acquisition"}, {"type", QString("application/%1+zip").arg(format)} });
             entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image"}, {"type", "image/jpeg"} });
             entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/thumbnail/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image/thumbnail"}, {"type", "image/jpeg"} });
 
@@ -342,10 +371,9 @@ struct Requester::Impl
 
         AnnotationControllerObserver observer([&] (const Flibrary::IAnnotationController::IDataProvider & dataProvider)
         {
-            if (const auto & covers = dataProvider.GetCovers(); !covers.empty())
+            ScopedCall eventLoopGuard([&]{ eventLoop.exit(); });
+			if (const auto & covers = dataProvider.GetCovers(); !covers.empty())
                 result = covers.front().bytes;
-
-            eventLoop.exit();
         });
 
         annotationController->RegisterObserver(&observer);
@@ -353,6 +381,33 @@ struct Requester::Impl
         eventLoop.exec();
 
         return result;
+    }
+
+    std::pair<QString, QByteArray> GetBookImpl(const QString & bookId) const
+    {
+        const auto db = databaseController->GetDatabase(true);
+        const auto query = db->CreateQuery("select Folder, FileName||Ext from Books where BookID = ?");
+        query->Bind(0, bookId.toLongLong());
+        query->Execute();
+        if (query->Eof())
+            return {};
+
+        const QString archive = query->Get<const char *>(0);
+        QString fileName = query->Get<const char *>(1);
+        auto data = Decompress(collectionProvider->GetActiveCollection().folder, archive, fileName);
+
+        return std::make_pair(std::move(fileName), std::move(data));
+    }
+
+    QByteArray GetBook(const QString & bookId) const
+    {
+        return GetBookImpl(bookId).second;
+    }
+
+    QByteArray GetBookZip(const QString & bookId) const
+    {
+        const auto [fileName, data] = GetBookImpl(bookId);
+        return Compress(data, fileName);
     }
 
     Node WriteAuthorsNavigation(const QString & value) const
@@ -528,6 +583,16 @@ QByteArray Requester::GetBookInfo(const QString & bookId) const
 QByteArray Requester::GetCoverThumbnail(const QString & bookId) const
 {
     return m_impl->GetCoverThumbnail(bookId);
+}
+
+QByteArray Requester::GetBook(const QString & bookId) const
+{
+    return m_impl->GetBook(bookId);
+}
+
+QByteArray Requester::GetBookZip(const QString & bookId) const
+{
+    return m_impl->GetBookZip(bookId);
 }
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Requester::Get##NAME##Navigation(const QString & value) const { return GetImpl(&Impl::Write##NAME##Navigation, value); }

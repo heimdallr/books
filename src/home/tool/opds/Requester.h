@@ -29,6 +29,8 @@ private: // IRequester
 	QByteArray GetRoot() const override;
 	QByteArray GetBookInfo(const QString & bookId) const override;
 	QByteArray GetCoverThumbnail(const QString & bookId) const override;
+	QByteArray GetBook(const QString & bookId) const override;
+	QByteArray GetBookZip(const QString & bookId) const override;
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString & value) const override;
 		OPDS_ROOT_ITEMS_X_MACRO
