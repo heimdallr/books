@@ -55,13 +55,14 @@ private:
 	int m_counter { 0 };
 };
 
+std::unique_ptr<IApplicationCursorController> APPLICATION_CURSOR_CONTROLLER { ApplicationCursorControllerStub::create() };
+
 }
 
 struct DatabaseUser::Impl
 {
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	std::shared_ptr<Util::IExecutor> executor;
-	std::unique_ptr<IApplicationCursorController> applicationCursorController { ApplicationCursorControllerStub::create() };
 
 	Impl(const ILogicFactory & logicFactory
 		, std::shared_ptr<IDatabaseController> databaseController
@@ -75,8 +76,8 @@ struct DatabaseUser::Impl
 	{
 		return logicFactory.GetExecutor({1
 			, [] { }
-			, [this] { applicationCursorController->Set(true); }
-			, [this] { applicationCursorController->Set(false); }
+			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(true); }
+			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(false); }
 			, [] { }
 		});
 	}
@@ -117,5 +118,5 @@ std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 
 void DatabaseUser::EnableApplicationCursorChange(const bool value)
 {
-	m_impl->applicationCursorController = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
+	APPLICATION_CURSOR_CONTROLLER = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
 }
