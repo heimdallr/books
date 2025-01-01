@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QEventLoop>
 #include <QFileInfo>
+#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -22,9 +23,10 @@
 #include "interface/logic/SortNavigation.h"
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
-#include "Util/xml/XmlWriter.h"
+#include "Util/FunctorExecutionForwarder.h"
 #include "Util/localization.h"
 #include "Util/timer.h"
+#include "Util/xml/XmlWriter.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -294,6 +296,13 @@ struct Requester::Impl
         , databaseController { std::move(databaseController) }
         , annotationController { std::move(annotationController) }
     {
+        m_coversTimer.setInterval(std::chrono::minutes(1));
+        m_coversTimer.setSingleShot(true);
+        QObject::connect(&m_coversTimer, &QTimer::timeout, [this]
+        {
+            std::lock_guard lock(m_coversGuard);
+            m_covers.clear();
+        });
     }
 
     Node WriteRoot() const
@@ -332,6 +341,8 @@ struct Requester::Impl
 
         AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider & dataProvider)
         {
+            ScopedCall eventLoopGuard([&]{ eventLoop.exit(); });
+
             const auto & book = dataProvider.GetBook();
             auto & entry = WriteEntry(head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, dataProvider.GetAnnotation(), false);
             for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
@@ -355,17 +366,31 @@ struct Requester::Impl
             entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image"}, {"type", "image/jpeg"} });
             entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", QString("/opds/%1/cover/thumbnail/%2").arg(BOOK, book.GetId())}, {"rel", "http://opds-spec.org/image/thumbnail"}, {"type", "image/jpeg"} });
 
-            eventLoop.exit();
+            m_forwarder.Forward([this] { m_coversTimer.start(); });
+            std::lock_guard lock(m_coversGuard);
+            if (const auto & covers = dataProvider.GetCovers(); !covers.empty())
+                m_covers.try_emplace(bookId, covers.front().bytes);
         });
 
         annotationController->RegisterObserver(&observer);
         annotationController->SetCurrentBookId(bookId, true);
         eventLoop.exec();
+
         return head;
     }
 
     QByteArray GetCoverThumbnail(const QString & bookId) const
     {
+        {
+            std::lock_guard lock(m_coversGuard);
+            if (const auto it = m_covers.find(bookId); it != m_covers.end())
+            {
+                auto result = std::move(it->second);
+                m_covers.erase(it);
+                return result;
+            }
+        }
+
         QEventLoop eventLoop;
         QByteArray result;
 
@@ -551,6 +576,12 @@ struct Requester::Impl
         const auto navigationType = QString("%1/Books/%2").arg(Loc::Groups, navigationId).toStdString();
         return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), startsWithQuery, bookItemQuery, &WriteBookEntries);
     }
+
+private:
+    Util::FunctorExecutionForwarder m_forwarder;
+    mutable QTimer m_coversTimer;
+    mutable std::mutex m_coversGuard;
+    mutable std::unordered_map<QString, QByteArray> m_covers;
 };
 
 Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider
@@ -628,7 +659,9 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const ARGS &... args) con
         return {};
     }
 
-    PLOGD << buffer.buffer();
+#ifndef NDEBUG
+    PLOGV << buffer.buffer();
+#endif
 
     return buffer.buffer();
 }
