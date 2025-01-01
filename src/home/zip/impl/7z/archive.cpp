@@ -216,4 +216,10 @@ std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, std::s
 	return nullptr;
 }
 
+std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & /*stream*/, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
+{
+	assert(false);
+	return nullptr;
+}
+
 }
