@@ -252,6 +252,25 @@ private:
 		return bodyFle.write(bodyOutput) != bodyOutput.size();
 	}
 
+	bool HasAlpha(const QImage & image, const char * data)
+	{
+		if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
+			return false;
+
+		if (!image.hasAlphaChannel())
+			return false;
+
+		const auto argb = image.convertToFormat(QImage::Format_ARGB32);
+		for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
+		{
+			const auto * pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
+			if (std::any_of(pixels, pixels + w, [] (const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
+				return true;
+		}
+
+		return true;
+	}
+
 	QByteArray ParseFile(const QString & inputFilePath, QIODevice & input)
 	{
 		const QFileInfo fileInfo(inputFilePath);
@@ -283,7 +302,7 @@ private:
 			{
 				QBuffer imageOutput(&imageBody);
 
-				if (!image.save(&imageOutput, "jpeg", settings.quality))
+				if (!image.save(&imageOutput, HasAlpha(image, body.constData()) ? "png" : "jpeg", settings.quality))
 					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
 			auto & storage = isCover ? m_covers : m_images;
