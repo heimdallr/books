@@ -18,6 +18,7 @@
 #include <plog/Util.h>
 
 #include "fnd/NonCopyMovable.h"
+#include "fnd/ScopedCall.h"
 
 #include "logging/init.h"
 #include "logging/LogAppender.h"
@@ -147,6 +148,62 @@ QString Validate(const Util::XmlValidator & validator, QByteArray & body)
 	return validator.Validate(buffer);
 }
 
+bool HasAlpha(const QImage & image, const char * data)
+{
+	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
+		return false;
+
+	if (!image.hasAlphaChannel())
+		return false;
+
+	const auto argb = image.convertToFormat(QImage::Format_ARGB32);
+	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
+	{
+		const auto * pixels = reinterpret_cast<const QRgb *>(argb.constScanLine(i));
+		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [] (const QRgb pixel)
+		{
+			return qAlpha(pixel) < UCHAR_MAX;
+		}))
+			return true;
+	}
+
+	return true;
+}
+
+void ReducePng(const char * imageType, const QString & imageFile, QByteArray & body)
+{
+	const QString pngquant = QCoreApplication::applicationDirPath() + "/pngquant.exe";
+	QProcess process;
+	QEventLoop eventLoop;
+	const auto args = QStringList() << "--quality=50-90" << "--strip" << "-";
+	QByteArray reduces;
+
+	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+	{
+		if (code != 0)
+			PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
+		eventLoop.exit(code);
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+	{
+		reduces.append(process.readAllStandardOutput());
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+	{
+		PLOGE << "\n" << process.readAllStandardError();
+	});
+
+	process.start(pngquant, args, QIODevice::ReadWrite);
+	process.write(body);
+	process.closeWriteChannel();
+
+	if (eventLoop.exec())
+		return;
+
+	if (!reduces.isEmpty() && reduces.size() < body.size())
+		body = std::move(reduces);
+}
+
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -252,25 +309,6 @@ private:
 		return bodyFle.write(bodyOutput) != bodyOutput.size();
 	}
 
-	bool HasAlpha(const QImage & image, const char * data)
-	{
-		if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
-			return false;
-
-		if (!image.hasAlphaChannel())
-			return false;
-
-		const auto argb = image.convertToFormat(QImage::Format_ARGB32);
-		for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
-		{
-			const auto * pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
-			if (std::any_of(pixels, pixels + w, [] (const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
-				return true;
-		}
-
-		return true;
-	}
-
 	QByteArray ParseFile(const QString & inputFilePath, QIODevice & input)
 	{
 		const QFileInfo fileInfo(inputFilePath);
@@ -298,13 +336,16 @@ private:
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
+			const auto hasAlpha = HasAlpha(image, body.constData());
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
-
-				if (!image.save(&imageOutput, HasAlpha(image, body.constData()) ? "png" : "jpeg", settings.quality))
+				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
 					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
+			if (hasAlpha)
+				ReducePng(settings.type, imageFile, imageBody);
+
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
 		};

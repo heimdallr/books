@@ -13,3 +13,5 @@ AddTarget(fb2cut	app_console
 		zip
 		GuiUtil
 )
+
+file(COPY ${SDK_PATH}/pngquant/pngquant.exe DESTINATION ${CMAKE_BINARY_DIR}/bin)
