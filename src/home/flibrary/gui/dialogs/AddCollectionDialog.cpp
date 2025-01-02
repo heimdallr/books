@@ -82,7 +82,7 @@ class AddCollectionDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(AddCollectionDialog & self
+	Impl(AddCollectionDialog & self
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IUiFactory> uiFactory
