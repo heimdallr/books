@@ -8,6 +8,7 @@ class QString;
 		OPDS_ROOT_ITEM(Series   ) \
 		OPDS_ROOT_ITEM(Genres   ) \
 		OPDS_ROOT_ITEM(Keywords ) \
+		OPDS_ROOT_ITEM(Archives ) \
 		OPDS_ROOT_ITEM(Groups   )
 
 namespace HomeCompa::Opds {

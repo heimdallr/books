@@ -481,9 +481,19 @@ struct Requester::Impl
         return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Keywords, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
     }
 
-    Node WriteArchivesNavigation(const QString & /*self*/, const QString & /*value*/) const
+    Node WriteArchivesNavigation(const QString & self, const QString & /*value*/) const
     {
-        return {};
+        auto head = GetHead(Loc::Archives, Loc::Tr(Loc::NAVIGATION, Loc::Archives), self);
+
+        const auto db = databaseController->GetDatabase(true);
+        const auto query = db->CreateQuery("select f.FolderID, f.FolderTitle, count(42) from Folders f join Books b on b.FolderID = f.FolderID group by f.FolderID");
+        for (query->Execute(); !query->Eof(); query->Next())
+        {
+            const auto id = QString("%1/%2").arg(Loc::Archives).arg(query->Get<int>(0));
+            WriteEntry(head.children, id, query->Get<const char *>(1), query->Get<int>(2));
+        }
+
+        return head;
     }
 
     Node WriteGroupsNavigation(const QString & self, const QString & /*value*/) const
@@ -559,9 +569,17 @@ struct Requester::Impl
         return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteBookEntries);
     }
 
-    Node WriteArchivesBooks(const QString & /*self*/, const QString & /*navigationId*/, const QString & /*value*/) const
+    Node WriteArchivesBooks(const QString & self, const QString & navigationId, const QString & value) const
     {
-        return {};
+        const auto startsWithQuery = QString("select substr(b.SearchTitle, %2, 1), count(42) from Books b where b.FolderID = %1 and b.SearchTitle != ? and b.SearchTitle like ? group by substr(b.SearchTitle, %2, 1)").arg(navigationId, "%1");
+        const auto bookItemQuery = QString(R"(
+                select b.BookID, b.Title || b.Ext, 0, (select %1 from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) || %2
+                from Books b 
+                left join Series s on s.SeriesID = b.SeriesID
+                where b.FolderID = %3 and b.SearchTitle %4 ?
+            )").arg(AUTHOR, SERIES, navigationId, "%1");
+        const auto navigationType = QString("%1/Books/%2").arg(Loc::Archives, navigationId).toStdString();
+        return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteBookEntries);
     }
 
     Node WriteGroupsBooks(const QString & self, const QString & navigationId, const QString & value) const
