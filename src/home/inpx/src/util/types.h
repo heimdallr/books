@@ -14,7 +14,7 @@ struct Book
 		, const std::wstring_view date_
 		, const int rate_
 		, const std::wstring_view language_
-		, const std::wstring_view folder_
+		, const size_t folder_
 		, const std::wstring_view fileName_
 		, const size_t insideNo_
 		, const std::wstring_view format_
@@ -47,7 +47,7 @@ struct Book
 	std::wstring date;
 	int          rate;
 	std::wstring language;
-	std::wstring folder;
+	size_t       folder;
 	std::wstring fileName;
 	size_t       insideNo;
 	std::wstring format;
@@ -110,7 +110,7 @@ using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using Folders = std::set<std::wstring>;
+using Folders = std::map<std::wstring, size_t, std::less<>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
@@ -128,7 +128,7 @@ struct Data
 
 inline std::ostream & operator<<(std::ostream & stream, const Book & book)
 {
-	return stream << ToMultiByte(book.folder) << ", " << book.insideNo << ", " << ToMultiByte(book.libId) << ": " << book.id << ", " << ToMultiByte(book.title);
+	return stream << book.folder << ", " << book.insideNo << ", " << ToMultiByte(book.libId) << ": " << book.id << ", " << ToMultiByte(book.title);
 }
 
 inline std::ostream & operator<<(std::ostream & stream, const Genre & genre)
