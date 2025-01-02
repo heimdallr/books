@@ -1,3 +1,9 @@
+CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID);
+--@@
+
+CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE);
+--@@
+
 CREATE UNIQUE INDEX UIX_Series_PrimaryKey ON Series (SeriesID);
 --@@
 
@@ -22,7 +28,7 @@ CREATE UNIQUE INDEX UIX_Books_PrimaryKey ON Books (BookID);
 CREATE INDEX IX_Books_SeriesID_SeqNumber ON Books (SeriesID, SeqNumber);
 --@@
 
-CREATE INDEX IX_Books_Folder ON Books (Folder);
+CREATE INDEX IX_Books_FolderID ON Books(FolderID);
 --@@
 
 CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE);

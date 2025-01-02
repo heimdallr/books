@@ -40,6 +40,15 @@ DROP TABLE IF EXISTS Genre_List;
 DROP TABLE IF EXISTS Author_List;
 --@@
 
+DROP TABLE IF EXISTS Folders;
+--@@
+
+CREATE TABLE Folders (
+  FolderID    INTEGER       NOT NULL,
+  FolderTitle VARCHAR (200) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+);
+--@@
+
 CREATE TABLE Series (
   SeriesID    INTEGER     NOT NULL,
   SeriesTitle VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
@@ -73,7 +82,7 @@ CREATE TABLE Books (
   UpdateDate       VARCHAR(23)   NOT NULL,
   LibRate          INTEGER       NOT NULL                           DEFAULT 0,
   Lang             VARCHAR(2)            COLLATE MHL_SYSTEM_NOCASE,
-  Folder           VARCHAR(200)          COLLATE MHL_SYSTEM_NOCASE,
+  FolderID         INTEGER       NOT NULL,
   FileName         VARCHAR(170)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
