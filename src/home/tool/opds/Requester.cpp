@@ -317,7 +317,7 @@ struct Requester::Impl
 
         auto dbStatQueryText = dbStatQueryTextItems.join(" union all ");
         dbStatQueryText
-    		.replace("count(42) from Archives", "count(distinct b.Folder) from Books b")
+    		.replace("count(42) from Archives", "count(42) from Folders")
     		.replace("count(42) from Groups", "count(42) from Groups_User")
     		;
 

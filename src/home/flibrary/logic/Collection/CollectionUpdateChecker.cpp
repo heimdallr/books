@@ -44,7 +44,7 @@ QStringList & PrepareFolders(QStringList & folders)
 QStringList GetDbFolders(DB::IDatabase & db)
 {
 	QStringList folders;
-	const auto query = db.CreateQuery("select distinct Folder from Books");
+	const auto query = db.CreateQuery("select FolderTitle from Folders");
 	for (query->Execute(); !query->Eof(); query->Next())
 		folders << query->Get<const char *>(0);
 

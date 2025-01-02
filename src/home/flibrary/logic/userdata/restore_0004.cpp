@@ -54,7 +54,7 @@ private: // IRestorer
 			"insert into Export_List_User(BookID, ExportType, CreatedAt) "
 			"select BookID, ?, ? "
 			"from Books "
-			"where Folder = ? and FileName = ?"
+			"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?"
 			;
 
 		const auto transaction = db.CreateTransaction();

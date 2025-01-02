@@ -12,7 +12,7 @@ namespace HomeCompa::Flibrary {
 class IDatabaseUser  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	static constexpr auto BOOKS_QUERY_FIELDS = "b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Folder, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), coalesce(bu.IsDeleted, b.IsDeleted, 0)";
+	static constexpr auto BOOKS_QUERY_FIELDS = "b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), coalesce(bu.IsDeleted, b.IsDeleted, 0)";
 	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 
 public:
