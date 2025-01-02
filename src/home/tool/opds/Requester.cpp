@@ -412,7 +412,7 @@ struct Requester::Impl
     std::pair<QString, QByteArray> GetBookImpl(const QString & bookId) const
     {
         const auto db = databaseController->GetDatabase(true);
-        const auto query = db->CreateQuery("select Folder, FileName||Ext from Books where BookID = ?");
+        const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
         query->Bind(0, bookId.toLongLong());
         query->Execute();
         if (query->Eof())
