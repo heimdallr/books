@@ -327,6 +327,11 @@ private:
 			m_uiFactory->CreateScriptDialog()->Exec();
 		});
 
+		connect(m_ui.actionOpds, &QAction::triggered, &m_self, [&]
+		{
+			m_uiFactory->CreateOpdsDialog()->exec();
+		});
+
 		connect(m_ui.actionExportTempate, &QAction::triggered, &m_self, [&]
 		{
 			IScriptController::SetMacroActions(m_ui.settingsLineEdit);

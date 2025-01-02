@@ -10,6 +10,7 @@
 
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 #include "interface/ui/IRateStarsProvider.h"
@@ -17,6 +18,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/OpdsDialog.h"
 
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "GuiUtil/interface/IUiFactory.h"
@@ -110,6 +112,11 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 {
 	m_impl->abstractItemView = &parent;
 	return m_impl->container.resolve<TreeViewDelegateNavigation>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
+{
+	return m_impl->container.resolve<OpdsDialog>();
 }
 
 void UiFactory::ShowAbout() const
