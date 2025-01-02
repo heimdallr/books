@@ -723,14 +723,7 @@ std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database & db, const Path & 
 
 void SetNextId(sqlite3pp::database & db)
 {
-	sqlite3pp::query query(db,
-		"select coalesce(max(m), 0) from ("
-		      "select max(BookID)    m from Books "
-		"union select max(AuthorID)  m from Authors "
-		"union select max(SeriesID)  m from Series "
-		"union select max(KeywordID) m from Keywords "
-		")"
-	);
+	sqlite3pp::query query(db, GET_MAX_ID_QUERY);
 	g_id = (*query.begin()).get<long long>(0);
 	PLOGD << "Next Id: " << g_id;
 }
