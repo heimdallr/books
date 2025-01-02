@@ -38,7 +38,7 @@ int run(int argc, char * argv[])
 		DiInit(builder, container);
 	}
 
-	const auto translators = Loc::LoadLocales(*container->resolve<ISettings>());
+	const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
 	const auto server = container->resolve<IServer>();
 
 	return QCoreApplication::exec();

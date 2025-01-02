@@ -84,9 +84,10 @@ private:
 void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, u.IsDeleted, u.UserRate, u.CreatedAt "
+		"select f.FolderTitle, b.FileName, u.IsDeleted, u.UserRate, u.CreatedAt "
 		"from Books_User u "
-		"join Books b on b.BookID = u.BookID"
+		"join Books b on b.BookID = u.BookID "
+		"join Folders f on f.FolderID = b.FolderID "
 		;
 
 	static constexpr const char * fields[] =
@@ -106,11 +107,12 @@ void BackupUserDataBooks(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 void BackupUserDataGroups(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, gl.CreatedAt, g.Title, g.CreatedAt groupCreatedAt "
+		"select f.FolderTitle, b.FileName, gl.CreatedAt, g.Title, g.CreatedAt groupCreatedAt "
 		"from Groups_User g "
 		"join Groups_List_User gl on gl.GroupID = g.GroupID "
 		"join Books b on b.BookID = gl.BookID "
-		"order by g.GroupID"
+		"join Folders f on f.FolderID = b.FolderID "
+		"order by g.GroupID "
 		;
 
 	static constexpr const char * fields[] =
@@ -165,9 +167,10 @@ void BackupUserDataSearches(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 void BackupUserDataExportStat(DB::IDatabase & db, Util::XmlWriter & xmlWriter)
 {
 	static constexpr auto text =
-		"select b.Folder, b.FileName, u.ExportType, u.CreatedAt "
+		"select f.FolderTitle, b.FileName, u.ExportType, u.CreatedAt "
 		"from Export_List_User u "
-		"join Books b on b.BookID = u.BookID"
+		"join Books b on b.BookID = u.BookID "
+		"join Folders f on f.FolderID = b.FolderID "
 		;
 
 	static constexpr const char * fields[] =

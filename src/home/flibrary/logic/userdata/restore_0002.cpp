@@ -62,7 +62,7 @@ private: // IRestorer
 			"insert into Books_User(BookID, IsDeleted, UserRate) "
 			"select BookID, ?, ? "
 			"from Books "
-			"where Folder = ? and FileName = ?"
+			"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?"
 			;
 
 		const auto transaction = db.CreateTransaction();
