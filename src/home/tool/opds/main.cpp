@@ -16,6 +16,7 @@
 #include "di_app.h"
 
 #include "config/version.h"
+#include "interface/constants/ProductConstant.h"
 #include "util/ISettings.h"
 #include "util/localization.h"
 
@@ -32,16 +33,25 @@ int run(int argc, char * argv[])
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
-	std::shared_ptr<Hypodermic::Container> container;
+	while (true)
 	{
-		Hypodermic::ContainerBuilder builder;
-		DiInit(builder, container);
+		std::shared_ptr<Hypodermic::Container> container;
+		{
+			Hypodermic::ContainerBuilder builder;
+			DiInit(builder, container);
+		}
+
+		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
+		const auto server = container->resolve<IServer>();
+
+		if (const auto code = QCoreApplication::exec(); code != Flibrary::Constant::RESTART_APP)
+		{
+			PLOGI << "App finished with " << code;
+			return code;
+		}
+
+		PLOGI << "App restarted";
 	}
-
-	const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
-	const auto server = container->resolve<IServer>();
-
-	return QCoreApplication::exec();
 }
 
 }

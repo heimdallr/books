@@ -18,4 +18,8 @@ constexpr int APP_FAILED = 1;
 constexpr int RESTART_APP = 1234;
 constexpr size_t MAX_LOG_SIZE = 10000;
 
+constexpr auto OPDS_SERVER_NAME = "02bb69b1-003a-4892-85c7-7bcef3938565";
+constexpr auto OPDS_SERVER_COMMAND_RESTART = "restart";
+constexpr auto OPDS_SERVER_COMMAND_STOP = "stop";
+
 }
