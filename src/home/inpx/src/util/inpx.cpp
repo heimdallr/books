@@ -590,58 +590,35 @@ std::wstring RemoveExt(std::wstring & str)
 
 std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 {
-	std::vector<std::wstring> result;
-
 	std::map<std::wstring, std::wstring> dbExt;
+	std::ranges::transform(data.folders, std::inserter(dbExt, std::end(dbExt)), [] (const auto & item)
 	{
-		const auto dbFileName = ini(DB_PATH, DEFAULT_DB_PATH);
-		DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
-		if (!TableExists(db, "Books"))
-			return result;
-
-		sqlite3pp::query query(db, "select FolderID, FolderTitle from Folders");
-		std::transform(std::begin(query), std::end(query), std::inserter(data.folders, std::end(data.folders)), [&] (const auto & row)
-		{
-			auto folder = ToWide(row.template get<std::string>(1));
-			auto ext = RemoveExt(ToLower(folder));
-			dbExt.try_emplace(folder, std::move(ext));
-			return std::make_pair(folder, row.template get<long long>(0));
-		});
-	}
-
+		auto folder = item.first;
+		auto ext = RemoveExt(ToLower(folder));
+		return std::make_pair(std::move(folder), std::move(ext));
+	});
 	std::map<std::wstring, std::wstring> inpxExt;
-	Folders inpxFolders;
-	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxFolders, std::end(inpxFolders)), [&inpxExt] (std::wstring item)
+	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxExt, std::end(inpxExt)), [&inpxExt] (auto item)
 	{
 		auto ext = RemoveExt(ToLower(item));
-		inpxExt.try_emplace(item, std::move(ext));
-		return std::make_pair(item, 0);
+		return std::make_pair(std::move(item), std::move(ext));
 	});
 
-	std::ranges::set_difference(inpxFolders | std::views::keys, data.folders | std::views::keys, std::back_inserter(result));
-	std::ranges::transform(result, std::begin(result), [&inpxExt] (const std::wstring & item)
-	{
-		const auto it = inpxExt.find(item);
-		assert(it != inpxExt.end());
-		return item + L'.' + it->second;
-	});
+	std::vector<std::pair<std::wstring, std::wstring>> resultExt;
+	std::ranges::set_difference(inpxExt, dbExt, std::back_inserter(resultExt), [] (const auto & lhs, const auto & rhs) { return lhs.first == rhs.second; });
 
-	const auto folders = std::move(data.folders);
-	data.folders = {};
-	std::ranges::transform(folders, std::inserter(data.folders, data.folders.end()), [&dbExt] (const auto & item)
-	{
-		const auto it = dbExt.find(item.first);
-		assert(it != dbExt.end());
-		return std::make_pair(item.first + L'.' + it->second, item.second);
-	});
+	std::vector<std::wstring> result;
+	result.reserve(resultExt.size());
+	std::ranges::transform(resultExt, std::back_inserter(result), [] (const auto & item) { return item.first + L'.' + item.second; });
 
 	return result;
 }
 
-Dictionary ReadDictionary(const std::string_view name, sqlite3pp::database & db, const char * statement)
+template<typename T>
+T ReadDictionary(const std::string_view name, sqlite3pp::database & db, const char * statement)
 {
 	PLOGI << "Read " << name;
-	Dictionary data;
+	T data;
 	sqlite3pp::query query(db, statement);
 	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), [] (const auto & row)
 	{
@@ -741,9 +718,10 @@ std::pair<Data, Dictionary> ReadData(const Path & dbFileName, const Path & genre
 
 	DatabaseWrapper db(dbFileName, SQLITE_OPEN_READONLY);
 	SetNextId(db);
-	data.authors = ReadDictionary("authors", db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors");
-	data.series = ReadDictionary("series", db, "select SeriesID, SeriesTitle from Series");
-	data.keywords = ReadDictionary("keywords", db, "select KeywordID, KeywordTitle from Keywords");
+	data.authors = ReadDictionary<Dictionary>("authors", db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors");
+	data.series = ReadDictionary<Dictionary>("series", db, "select SeriesID, SeriesTitle from Series");
+	data.keywords = ReadDictionary<Dictionary>("keywords", db, "select KeywordID, KeywordTitle from Keywords");
+	data.folders = ReadDictionary<Folders>("folders", db, "select FolderID, FolderTitle from Folders");
 	auto [genres, genresIndex] = ReadGenres(db, genresFileName);
 	data.genres = std::move(genres);
 

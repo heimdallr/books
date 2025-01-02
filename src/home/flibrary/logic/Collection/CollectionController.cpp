@@ -281,7 +281,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto & parserRef = *parser;
-		auto [tmpDir, ini] = GetIniMap(collection.database, collection.folder, true);
+		auto [tmpDir, ini] = GetIniMap(collection.database, GetInpx(collection.folder), true);
 		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name] (const Inpx::UpdateResult & updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
@@ -289,7 +289,7 @@ private:
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
-		parserRef.UpdateCollection(GetIniMap(collection.database, collection.folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+		parserRef.UpdateCollection(GetIniMap(collection.database, GetInpx(collection.folder), true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
 	}
 
 	void ShowUpdateResult(const Inpx::UpdateResult & updateResult, const QString & name, const char * action)
