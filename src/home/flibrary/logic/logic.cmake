@@ -5,8 +5,8 @@ AddTarget(logic	shared_lib
 	LINK_LIBRARIES
 		Hypodermic
 		plog
-		Qt6::Gui
-		Qt6::Network
+		Qt${QT_MAJOR_VERSION}::Gui
+		Qt${QT_MAJOR_VERSION}::Network
 	LINK_TARGETS
 		DatabaseFactory
 		flint

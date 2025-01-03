@@ -20,7 +20,7 @@ AddTarget(${PROJECT_NAME}	app
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
-		Qt6::Widgets
+		Qt${QT_MAJOR_VERSION}::Widgets
 		Hypodermic
 	LINK_TARGETS
 		gui

@@ -4,9 +4,9 @@ AddTarget(fb2cut	app_console
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
 		Hypodermic
-		Qt6::Core
-		Qt6::Gui
-		Qt6::Widgets
+		Qt${QT_MAJOR_VERSION}::Core
+		Qt${QT_MAJOR_VERSION}::Gui
+		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		logging
 		Util

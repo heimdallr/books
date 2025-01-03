@@ -5,7 +5,7 @@ AddTarget(GuiUtil	shared_lib
 	LINK_LIBRARIES
 		Hypodermic
 		plog
-		Qt6::Widgets
+		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		logging
 		Util

@@ -5,7 +5,7 @@ AddTarget(7zWrapper	shared_lib
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/../../../../ext/7z-sdk"
 	LINK_LIBRARIES
-		Qt6::Core
+		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		logging
 		ZipInterface

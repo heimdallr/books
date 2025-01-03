@@ -25,6 +25,8 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif ()
 
+set(QT_MAJOR_VERSION 6)
+
 # Подключаем сборочные скрипты
 set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts)
 set(CMAKE_MODULE_PATH ${BUILDSCRIPTS_ROOT}/cmake/modules)
