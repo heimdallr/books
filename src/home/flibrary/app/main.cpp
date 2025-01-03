@@ -12,8 +12,9 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
 
@@ -126,6 +127,8 @@ int main(int argc, char * argv[])
 				PLOGI << "App finished with " << code;
 				return code;
 			}
+
+			container->resolve<IOpdsController>()->Restart();
 
 			PLOGI << "App restarted";
 		}
