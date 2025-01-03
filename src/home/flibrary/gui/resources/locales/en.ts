@@ -269,17 +269,17 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../UiFactory.cpp" line="36"/>
+        <location filename="../../UiFactory.cpp" line="38"/>
         <source>About FLibrary</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="37"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
+        <location filename="../../UiFactory.cpp" line="39"/>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="40"/>
+        <location filename="../../UiFactory.cpp" line="42"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
