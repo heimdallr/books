@@ -79,12 +79,13 @@ void OpdsController::Stop()
 
 void OpdsController::Restart()
 {
-	if (IsRunning())
+	if (!IsRunning())
 		return;
 
-	m_impl->socket.write(Constant::OPDS_SERVER_COMMAND_RESTART);
-	m_impl->socket.flush();
-	m_impl->socket.waitForBytesWritten();
+	auto & socket = m_impl->socket;
+	socket.write(Constant::OPDS_SERVER_COMMAND_RESTART);
+	socket.flush();
+	socket.waitForBytesWritten();
 	PLOGD << "OPDS " << Constant::OPDS_SERVER_COMMAND_RESTART << " sent";
 }
 
