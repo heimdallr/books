@@ -26,6 +26,7 @@
 #include "script/CommaneExecutor.h"
 #include "script/ScriptController.h"
 #include "shared/CommandLine.h"
+#include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
@@ -55,6 +56,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
+	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
 	builder.registerType<ScriptController>().as<IScriptController>();

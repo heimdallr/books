@@ -15,6 +15,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IScriptDialog> CreateScriptDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class QDialog> CreateOpdsDialog() const = 0;
 
 	virtual void ShowAbout() const = 0;
 

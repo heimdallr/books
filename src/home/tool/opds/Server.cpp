@@ -1,12 +1,15 @@
 #include "Server.h"
 
-#include <QTcpServer>
 #include <QHttpServer>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QtConcurrent>
+#include <QTcpServer>
 
 #include <plog/Log.h>
 
 #include "interface/IRequester.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "util/ISettings.h"
@@ -38,11 +41,32 @@ public:
 	)
 		: m_requester { std::move(requester) }
 	{
-		Init(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort());
+		InitHttp(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort());
+
+		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
+			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
+
+		QObject::connect(&m_localServer, &QLocalServer::newConnection, [this]
+		{
+			auto * socket = m_localServer.nextPendingConnection();
+			QObject::connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
+			QObject::connect(socket, &QIODevice::readyRead, [socket]
+			{
+				const auto data = socket->readAll();
+#ifndef NDEBUG
+				PLOGD << data << " received";
+#endif
+				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_STOP) == 0)
+					return QCoreApplication::exit(0);
+
+				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_RESTART) == 0)
+					return QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+			});
+		});
 	}
 
 private:
-	void Init(const uint16_t port)
+	void InitHttp(const uint16_t port)
 	{
 		auto tcpServer = std::make_unique<QTcpServer>();
 		if (!tcpServer->listen(QHostAddress::Any, port) || !m_server.bind(tcpServer.get()))
@@ -184,6 +208,7 @@ private:
 	}
 
 private:
+	QLocalServer m_localServer;
 	QHttpServer m_server;
 	std::shared_ptr<const IRequester> m_requester;
 };

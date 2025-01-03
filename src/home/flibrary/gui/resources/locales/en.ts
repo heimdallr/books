@@ -269,17 +269,17 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../UiFactory.cpp" line="34"/>
+        <location filename="../../UiFactory.cpp" line="36"/>
         <source>About FLibrary</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="35"/>
+        <location filename="../../UiFactory.cpp" line="37"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="38"/>
+        <location filename="../../UiFactory.cpp" line="40"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
@@ -589,6 +589,16 @@
         <source>&amp;Color scheme</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;OPDS Server...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>OPDS server management</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -610,6 +620,34 @@
     <message>
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>OpdsDialog</name>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>OPDS Server</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Port</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Start</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Stop</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Cancel</source>
         <translation></translation>
     </message>
 </context>

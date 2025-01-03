@@ -372,6 +372,7 @@
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
+    <addaction name="actionOpds"/>
     <addaction name="actionExportTempate"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
@@ -723,6 +724,14 @@
    </property>
    <property name="value" stdset="0">
     <string notr="true">Dark</string>
+   </property>
+  </action>
+  <action name="actionOpds">
+   <property name="text">
+    <string>&amp;OPDS Server...</string>
+   </property>
+   <property name="toolTip">
+    <string>OPDS server management</string>
    </property>
   </action>
  </widget>

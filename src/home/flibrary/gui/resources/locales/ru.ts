@@ -269,17 +269,17 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../UiFactory.cpp" line="34"/>
+        <location filename="../../UiFactory.cpp" line="36"/>
         <source>About FLibrary</source>
         <translation>О FLibrary</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="35"/>
+        <location filename="../../UiFactory.cpp" line="37"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1&lt;p&gt;&lt;a href=&apos;%2&apos;&gt;%2&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="38"/>
+        <location filename="../../UiFactory.cpp" line="40"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненты / Библиотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
@@ -589,6 +589,16 @@
         <source>&amp;Color scheme</source>
         <translation>&amp;Цветовая схема</translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>&amp;OPDS Server...</source>
+        <translation>Сервер &amp;OPDS...</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>OPDS server management</source>
+        <translation>Управление сервером OPDS</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
@@ -611,6 +621,34 @@
         <location filename="../../Measure.cpp" line="15"/>
         <source>%1 b</source>
         <translation>%1 б</translation>
+    </message>
+</context>
+<context>
+    <name>OpdsDialog</name>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>OPDS Server</source>
+        <translation>Сервер OPDS</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Port</source>
+        <translation>Порт</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Start</source>
+        <translation>Пуск</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Stop</source>
+        <translation>Стоп</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
