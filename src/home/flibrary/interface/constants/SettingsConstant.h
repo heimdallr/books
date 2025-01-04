@@ -17,6 +17,6 @@ constexpr auto APP_STYLE_DEFAULT = "windowsvista";
 constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
 
 constexpr auto OPDS_PORT_KEY = "opds/port";
-constexpr auto OPDS_PORT_DEFAULT = "12791";
+constexpr auto OPDS_PORT_DEFAULT = 12791;
 
 }

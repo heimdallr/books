@@ -32,12 +32,19 @@ struct OpdsDialog::Impl final
 		ui.setupUi(&self);
 		this->opdsController->RegisterObserver(this);
 
-		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT).toInt());
+		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
+		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
+
 		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] { this->opdsController->Stop(); });
 		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this]
 		{
 			this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
 			this->opdsController->Start();
+		});
+
+		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this] (const bool checked)
+		{
+			checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
 		});
 
 		OnRunningChanged();
@@ -70,7 +77,8 @@ private: // IOpdsController::IObserver
 		ui.btnStop->setEnabled(isRunning);
 	}
 
-	NON_COPY_MOVABLE(Impl);
+private:
+	NON_COPY_MOVABLE(Impl)
 };
 
 OpdsDialog::OpdsDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
