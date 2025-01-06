@@ -647,8 +647,18 @@
     </message>
     <message>
         <location filename="../../dialogs/OpdsDialog.ui"/>
-        <source>Cancel</source>
-        <translation>Отмена</translation>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Autostart</source>
+        <translation>Автозапуск</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Start automatically</source>
+        <translation>Запускать автоматически</translation>
     </message>
 </context>
 <context>
