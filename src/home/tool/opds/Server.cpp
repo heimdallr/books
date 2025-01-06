@@ -41,7 +41,7 @@ public:
 	)
 		: m_requester { std::move(requester) }
 	{
-		InitHttp(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT).toUShort());
+		InitHttp(static_cast<uint16_t>(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
 
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
