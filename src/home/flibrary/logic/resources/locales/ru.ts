@@ -13,6 +13,46 @@
         <source>File is empty</source>
         <translation>Файл пуст</translation>
     </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="36"/>
+        <source>Keywords: %1</source>
+        <translation>Ключевые слова: %1</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="37"/>
+        <source>File:</source>
+        <translation>Файл:</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="38"/>
+        <source>Size:</source>
+        <translation>Размер:</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="39"/>
+        <source>Images:</source>
+        <translation>Картинки:</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="40"/>
+        <source>Updated:</source>
+        <translation>Обновлён:</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="41"/>
+        <source>Translators:</source>
+        <translation>Перевод:</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="42"/>
+        <source>%L1 (%2%3 pages)</source>
+        <translation>%L1 (%2%3 страниц)</translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="43"/>
+        <source>Export statistics:</source>
+        <translation>Статистика экспорта:</translation>
+    </message>
 </context>
 <context>
     <name>BookContextMenu</name>

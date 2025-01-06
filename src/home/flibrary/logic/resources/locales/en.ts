@@ -13,6 +13,46 @@
         <source>File is empty</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="36"/>
+        <source>Keywords: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="37"/>
+        <source>File:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="38"/>
+        <source>Size:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="39"/>
+        <source>Images:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="40"/>
+        <source>Updated:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="41"/>
+        <source>Translators:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="42"/>
+        <source>%L1 (%2%3 pages)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Annotation/AnnotationController.cpp" line="43"/>
+        <source>Export statistics:</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>BookContextMenu</name>

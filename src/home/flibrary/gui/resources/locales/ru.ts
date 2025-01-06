@@ -98,152 +98,72 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
-        <source>Keywords: %1</source>
-        <translation>Ключевые слова: %1</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
-        <source>Series:</source>
-        <translation>Серия:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
-        <source>Authors:</source>
-        <translation>Авторы:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
-        <source>Genres:</source>
-        <translation>Жанры:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
-        <source>Archives:</source>
-        <translation>Архив:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="48"/>
-        <source>Groups:</source>
-        <translation>Группы:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>Keywords:</source>
-        <translation>Ключевые слова:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="50"/>
-        <source>File:</source>
-        <translation>Файл:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="51"/>
-        <source>Size:</source>
-        <translation>Размер:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="52"/>
-        <source>Images:</source>
-        <translation>Картинки:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="53"/>
-        <source>Updated:</source>
-        <translation>Обновлён:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="54"/>
-        <source>Rate:</source>
-        <translation>Рейтинг:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="55"/>
-        <source>My rate:</source>
-        <translation>Мой рейтинг:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="56"/>
-        <source>Translators:</source>
-        <translation>Перевод:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="57"/>
+        <location filename="../../AnnotationWidget.cpp" line="40"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="58"/>
+        <location filename="../../AnnotationWidget.cpp" line="41"/>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="59"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="60"/>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Save &amp;all images (%1)...</source>
         <translation>Сохранить &amp;все изображения (%1)...</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>All %1 images were successfully saved</source>
         <translation>Все %1 изображения успешно сохранены</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="62"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>%1 out of %2 images were saved</source>
         <translation>Были сохранены %1 изображения из %2</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="63"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>%1 images out of %2 could not be saved</source>
         <translation>%1 изображений из %2 сохранить не удалось</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="64"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Cannot save image to %1</source>
         <translation>Не удалось сохранить изображение в %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="65"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Cannot open %1</source>
         <translation>Не удалось открыть %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="66"/>
-        <source>%L1 (%2%3 pages)</source>
-        <translation>%L1 (%2%3 страниц)</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="67"/>
-        <source>Export statistics:</source>
-        <translation>Статистика экспорта:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="70"/>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
         <source>Read</source>
         <translation>Чтение</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="71"/>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
         <source>AsIs</source>
         <translation>Как есть</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="72"/>
+        <location filename="../../AnnotationWidget.cpp" line="53"/>
         <source>Archive</source>
         <translation>В архиве</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="73"/>
+        <location filename="../../AnnotationWidget.cpp" line="54"/>
         <source>Script</source>
         <translation>Скрипт</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="74"/>
+        <location filename="../../AnnotationWidget.cpp" line="55"/>
         <source>Inpx</source>
         <translation>Inpx</translation>
     </message>
