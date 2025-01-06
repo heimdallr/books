@@ -2,6 +2,49 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>Annotation</name>
+    <message>
+        <location filename="../../constants/Localization.h" line="36"/>
+        <source>Authors:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="37"/>
+        <source>Series:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="38"/>
+        <source>Genres:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="39"/>
+        <source>Archives:</source>
+        <translation>Archive:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="40"/>
+        <source>Groups:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="41"/>
+        <source>Keywords:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="42"/>
+        <source>Rate:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="43"/>
+        <source>My rate:</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Book</name>
     <message>
         <location filename="../../constants/Localization.h" line="12"/>

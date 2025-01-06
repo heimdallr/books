@@ -345,7 +345,17 @@ struct Requester::Impl
             ScopedCall eventLoopGuard([&]{ eventLoop.exit(); });
 
             const auto & book = dataProvider.GetBook();
-            auto & entry = WriteEntry(head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, dataProvider.GetAnnotation(), false);
+            auto annotation = annotationController->CreateAnnotation(dataProvider);
+            const auto addRate = [&] (const char * name, const int column)
+            {
+                const auto rate = book.GetRawData(column).toInt();
+                if (rate > 0 && rate <= 5)
+					annotation.replace(QString("@%1@").arg(name), QString::number(rate));
+            };
+            addRate(Loc::RATE, Flibrary::BookItem::Column::LibRate);
+            addRate(Loc::USER_RATE, Flibrary::BookItem::Column::UserRate);
+
+            auto & entry = WriteEntry(head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, annotation, false);
             for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
             {
                 const auto & authorItem = dataProvider.GetAuthors().GetChild(i);

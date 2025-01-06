@@ -1,8 +1,10 @@
 #include "OpdsController.h"
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QLocalSocket>
 #include <QProcess>
+#include <QSettings>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -12,6 +14,22 @@
 
 using namespace HomeCompa;
 using namespace Flibrary;
+
+namespace {
+
+constexpr auto STARTUP_KEY = "CurrentVersion/Run/FLibrary OPDS server";
+
+QString GetOpdsPath()
+{
+	return QCoreApplication::applicationDirPath() + "/opds.exe";
+}
+
+std::unique_ptr<QSettings> GetStartupSettings()
+{
+	return std::make_unique<QSettings>(QSettings::NativeFormat, QSettings::UserScope, "Microsoft", "Windows");
+}
+
+}
 
 struct OpdsController::Impl : Observable<IObserver>
 {
@@ -66,7 +84,7 @@ void OpdsController::Start()
 {
 	assert(!IsRunning());
 
-	if (QProcess::startDetached(QCoreApplication::applicationDirPath() + "/opds.exe"))
+	if (QProcess::startDetached(GetOpdsPath()))
 		m_impl->timer.start();
 }
 
@@ -97,4 +115,19 @@ void OpdsController::RegisterObserver(IObserver * observer)
 void OpdsController::UnregisterObserver(IObserver * observer)
 {
 	m_impl->Unregister(observer);
+}
+
+bool OpdsController::InStartup() const
+{
+	return GetStartupSettings()->contains(STARTUP_KEY);
+}
+
+void OpdsController::AddToStartup() const
+{
+	GetStartupSettings()->setValue(STARTUP_KEY, QDir::toNativeSeparators(GetOpdsPath()));
+}
+
+void OpdsController::RemoveFromStartup() const
+{
+	GetStartupSettings()->remove(STARTUP_KEY);
 }

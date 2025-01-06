@@ -98,152 +98,72 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="43"/>
-        <source>Keywords: %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="45"/>
-        <source>Series:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="44"/>
-        <source>Authors:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="46"/>
-        <source>Genres:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="47"/>
-        <source>Archives:</source>
-        <translation>Archive:</translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="48"/>
-        <source>Groups:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="49"/>
-        <source>Keywords:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="50"/>
-        <source>File:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="51"/>
-        <source>Size:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="52"/>
-        <source>Images:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="53"/>
-        <source>Updated:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="54"/>
-        <source>Rate:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="55"/>
-        <source>My rate:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="56"/>
-        <source>Translators:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="57"/>
+        <location filename="../../AnnotationWidget.cpp" line="40"/>
         <source>Select image file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="58"/>
+        <location filename="../../AnnotationWidget.cpp" line="41"/>
         <source>Select images folder</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="59"/>
+        <location filename="../../AnnotationWidget.cpp" line="42"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="60"/>
+        <location filename="../../AnnotationWidget.cpp" line="43"/>
         <source>Save &amp;all images (%1)...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="61"/>
+        <location filename="../../AnnotationWidget.cpp" line="44"/>
         <source>All %1 images were successfully saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="62"/>
+        <location filename="../../AnnotationWidget.cpp" line="45"/>
         <source>%1 out of %2 images were saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="63"/>
+        <location filename="../../AnnotationWidget.cpp" line="46"/>
         <source>%1 images out of %2 could not be saved</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="64"/>
+        <location filename="../../AnnotationWidget.cpp" line="47"/>
         <source>Cannot save image to %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="65"/>
+        <location filename="../../AnnotationWidget.cpp" line="48"/>
         <source>Cannot open %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="66"/>
-        <source>%L1 (%2%3 pages)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="67"/>
-        <source>Export statistics:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../AnnotationWidget.cpp" line="70"/>
+        <location filename="../../AnnotationWidget.cpp" line="51"/>
         <source>Read</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="71"/>
+        <location filename="../../AnnotationWidget.cpp" line="52"/>
         <source>AsIs</source>
         <translation>As is</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="72"/>
+        <location filename="../../AnnotationWidget.cpp" line="53"/>
         <source>Archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="73"/>
+        <location filename="../../AnnotationWidget.cpp" line="54"/>
         <source>Script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp" line="74"/>
+        <location filename="../../AnnotationWidget.cpp" line="55"/>
         <source>Inpx</source>
         <translation></translation>
     </message>
@@ -647,7 +567,17 @@
     </message>
     <message>
         <location filename="../../dialogs/OpdsDialog.ui"/>
-        <source>Cancel</source>
+        <source>Close</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Autostart</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Start automatically</source>
         <translation></translation>
     </message>
 </context>

@@ -1,11 +1,17 @@
 #include "AnnotationController.h"
 
+#include <QBuffer>
+#include <QPixmap>
+#include <ranges>
+
 #include <QDateTime>
 #include <QTimer>
 
 #include "fnd/observable.h"
 #include "fnd/EnumBitmask.h"
 
+#include "interface/constants/ExportStat.h"
+#include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
@@ -14,6 +20,7 @@
 #include "database/DatabaseUtil.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "util/localization.h"
 #include "util/UiTimer.h"
 
 #include "ArchiveParser.h"
@@ -25,6 +32,18 @@ using namespace Flibrary;
 
 namespace {
 
+constexpr auto CONTEXT = "Annotation";
+constexpr auto KEYWORDS_FB2 = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
+constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
+constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
+constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
+constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
+constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
+constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
+
+TR_DEF
+
 using Extractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -35,6 +54,10 @@ constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g jo
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by k.KeywordTitle";
 
+constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
+constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
+constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
+
 enum class Ready
 {
 	None     = 0,
@@ -43,6 +66,99 @@ enum class Ready
 	All = None
 		| Database
 		| Archive
+};
+
+template<typename T>
+T Round(const T value, const int digits)
+{
+	if (value == 0)
+		return 0;
+
+	const double factor = pow(10.0, digits + ceil(log10(value)));
+	if (factor < 10.0)
+		return value;
+
+	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
+}
+
+QString Url(const char * type, const QString & id, const QString & str)
+{
+	return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+}
+
+QString GetTitle(const IDataItem & item)
+{
+	return item.GetData(DataItem::Column::Title);
+}
+
+QString GetTitleAuthor(const IDataItem & item)
+{
+	auto result = item.GetData(AuthorItem::Column::LastName);
+	AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
+	AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
+	return result;
+}
+
+void Add(QString & text, const QString & str, const char * pattern = "%1")
+{
+	if (!str.isEmpty())
+		text.append(QString("<p>%1</p>").arg(Tr(pattern).arg(str)));
+}
+
+using TitleGetter = QString(*)(const IDataItem & item);
+
+QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
+{
+	if (strings.empty())
+		return {};
+
+	auto result = strings.front();
+	std::ranges::for_each(strings | std::views::drop(1), [&] (const QString & item)
+	{
+		result.append(delimiter).append(item);
+	});
+
+	return result;
+}
+
+QString Urls(const char * type, const IDataItem & parent, const TitleGetter tileGetter = &GetTitle)
+{
+	std::vector<QString> urls;
+	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+	{
+		const auto item = parent.GetChild(i);
+		urls.emplace_back(Url(type, item->GetId(), tileGetter(*item)));
+	}
+
+	return Join(urls);
+}
+
+QString GetPublishInfo(const IAnnotationController::IDataProvider & dataProvider)
+{
+	QString result = dataProvider.GetPublisher();
+	AppendTitle(result, dataProvider.GetPublishCity(), ", ");
+	AppendTitle(result, dataProvider.GetPublishYear(), ", ");
+	const auto isbn = dataProvider.GetPublishIsbn().isEmpty() ? QString {} : QString("ISBN %1").arg(dataProvider.GetPublishIsbn());
+	AppendTitle(result, isbn, ". ");
+	return result;
+}
+
+struct Table
+{
+	Table & Add(const char * name, const QString & value)
+	{
+		if (!value.isEmpty())
+			data << QString(R"(<tr><td>%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
+
+		return *this;
+	}
+
+	[[nodiscard]] QString ToString() const
+	{
+		return data.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(data.join("\n"));
+	}
+
+	QStringList data;
 };
 
 }
@@ -58,9 +174,9 @@ public:
 	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IDatabaseUser> databaseUser
 	)
-		: m_logicFactory(logicFactory)
-		, m_databaseUser(std::move(databaseUser))
-		, m_executor(logicFactory->GetExecutor())
+		: m_logicFactory { logicFactory }
+		, m_databaseUser { std::move(databaseUser) }
+		, m_executor { logicFactory->GetExecutor() }
 	{
 	}
 
@@ -362,6 +478,90 @@ AnnotationController::~AnnotationController()
 void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)
 {
 	m_impl->SetCurrentBookId(std::move(bookId), extractNow);
+}
+
+QString AnnotationController::CreateAnnotation(const IDataProvider & dataProvider) const
+{
+	const auto & book = dataProvider.GetBook();
+	QString annotation;
+	Add(annotation, book.GetRawData(BookItem::Column::Title), TITLE_PATTERN);
+	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
+	Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
+	Add(annotation, dataProvider.GetAnnotation());
+
+	auto & keywords = dataProvider.GetKeywords();
+	if (keywords.GetChildCount() == 0)
+		Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
+
+	const auto & folder = book.GetRawData(BookItem::Column::Folder);
+
+	Add(annotation, Table()
+		.Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
+		.Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
+		.Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
+		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, folder, folder))
+		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
+		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
+		.ToString());
+
+	if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
+	{
+		Table table;
+		for (size_t i = 0, sz = translators->GetChildCount(); i < sz; ++i)
+			table.Add(i == 0 ? TRANSLATORS : "", GetAuthorFull(*translators->GetChild(i)));
+		Add(annotation, table.ToString());
+	}
+
+	{
+		const auto addRate = [&] (Table & info, const char * name, const int column)
+		{
+			const auto rate = book.GetRawData(column).toInt();
+			if (rate > 0 && rate <= 5)
+				info.Add(name, QString("@%1@").arg(name));
+		};
+
+		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
+		if (dataProvider.GetTextSize() > 0)
+			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
+		info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
+		addRate(info, Loc::RATE, BookItem::Column::LibRate);
+		addRate(info, Loc::USER_RATE, BookItem::Column::UserRate);
+
+		if (const auto & covers = dataProvider.GetCovers(); !covers.empty())
+		{
+			const auto total = std::accumulate(covers.cbegin(), covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
+			{
+				return init + cover.bytes.size();
+			});
+			info.Add(IMAGES, QString("%1 (%L2)").arg(covers.size()).arg(total));
+		}
+
+		Add(annotation, info.ToString());
+	}
+
+	Add(annotation, GetPublishInfo(dataProvider));
+
+	Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
+
+	if (!dataProvider.GetExportStatistics().empty())
+	{
+		const auto toDateList = [] (const std::vector<QDateTime> & dates)
+		{
+			QStringList result;
+			result.reserve(static_cast<int>(dates.size()));
+			std::ranges::transform(dates, std::back_inserter(result), [] (const QDateTime & date)
+			{
+				return date.toString("yy.MM.dd hh:mm");
+			});
+			return result.join(", ");
+		};
+		auto exportStatistics = Table().Add(EXPORT_STATISTICS, " ");
+		for (const auto & [type, dates] : dataProvider.GetExportStatistics())
+			exportStatistics.Add(GetName(type), toDateList(dates));
+		Add(annotation, exportStatistics.ToString());
+	}
+
+	return annotation;
 }
 
 void AnnotationController::RegisterObserver(IObserver * observer)

@@ -2,6 +2,49 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>Annotation</name>
+    <message>
+        <location filename="../../constants/Localization.h" line="37"/>
+        <source>Series:</source>
+        <translation>Серия:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="36"/>
+        <source>Authors:</source>
+        <translation>Авторы:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="38"/>
+        <source>Genres:</source>
+        <translation>Жанры:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="39"/>
+        <source>Archives:</source>
+        <translation>Архив:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="40"/>
+        <source>Groups:</source>
+        <translation>Группы:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="41"/>
+        <source>Keywords:</source>
+        <translation>Ключевые слова:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="42"/>
+        <source>Rate:</source>
+        <translation>Рейтинг:</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h" line="43"/>
+        <source>My rate:</source>
+        <translation>Мой рейтинг:</translation>
+    </message>
+</context>
+<context>
     <name>Book</name>
     <message>
         <location filename="../../constants/Localization.h" line="12"/>

@@ -22,6 +22,10 @@ private: // IOpdsController
 	void Stop() override;
 	void Restart() override;
 
+	bool InStartup() const override;
+	void AddToStartup() const override;
+	void RemoveFromStartup() const override;
+
 	void RegisterObserver(IObserver * observer) override;
 	void UnregisterObserver(IObserver * observer) override;
 
