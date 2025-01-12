@@ -23,7 +23,6 @@ public:
 		, std::shared_ptr<class IUiFactory> uiFactory
 		, std::shared_ptr<class IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<class ICollectionController> & collectionController
-		, std::shared_ptr<const class IRateStarsProvider> rateStarsProvider
 		, QWidget * parent = nullptr
 	);
 	~AnnotationWidget() override;
