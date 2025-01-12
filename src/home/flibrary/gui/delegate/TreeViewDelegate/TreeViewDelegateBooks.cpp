@@ -101,12 +101,7 @@ private:
 			{ BookItem::Column::UserRate, Role::UserRate },
 		};
 		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
-
-		if (rate < 1 || rate > 5)
-			o.text.clear();
-		else
-			o.text.assign(rate, QChar(0x2B50));
-
+		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(0x2B50));
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
 
