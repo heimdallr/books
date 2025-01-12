@@ -13,7 +13,6 @@
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
-#include "interface/ui/IRateStarsProvider.h"
 
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
