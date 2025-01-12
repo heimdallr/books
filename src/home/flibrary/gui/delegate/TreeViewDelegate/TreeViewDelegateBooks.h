@@ -19,9 +19,7 @@ public:
 	using TextDelegate = QString(*)(const QVariant & value);
 
 public:
-	TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory> & uiFactory
-		, std::shared_ptr<const class IRateStarsProvider> rateStarsProvider
-	);
+	explicit TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory> & uiFactory);
 	~TreeViewDelegateBooks() override;
 
 private: // QStyledItemDelegate

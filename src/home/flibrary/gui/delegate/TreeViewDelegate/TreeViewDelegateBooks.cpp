@@ -10,12 +10,10 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
-#include "fnd/ScopedCall.h"
 #include "fnd/ValueGuard.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/ui/IRateStarsProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "Measure.h"
@@ -57,11 +55,8 @@ class TreeViewDelegateBooks::Impl final
 	, public Observable<ITreeViewDelegate::IObserver>
 {
 public:
-	Impl(std::shared_ptr<const IRateStarsProvider> rateStarsProvider
-		, const IUiFactory & uiFactory
-	)
+	explicit Impl(const IUiFactory & uiFactory)
 		: m_view { uiFactory.GetAbstractScrollArea() }
-		, m_rateStarsProvider { std::move(rateStarsProvider) }
 		, m_textDelegate { &PassThruDelegate }
 	{
 	}
@@ -86,59 +81,43 @@ private: // QStyledItemDelegate
 	}
 
 private:
-	void RenderLibRate(QPainter * painter, const QStyleOptionViewItem & o, const QModelIndex & index) const
-	{
-		static constexpr std::pair<int, int> columnToRole[]
-		{
-			{ BookItem::Column::LibRate , Role::LibRate },
-			{ BookItem::Column::UserRate, Role::UserRate },
-		};
-		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
-		if (rate < 1 || rate > 5)
-			return;
-
-		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
-		const auto size = m_rateStarsProvider->GetSize(rate);
-		const auto margin = o.rect.height() / 10;
-		auto rect = o.rect.adjusted(margin, 2 * margin, 0, -margin);
-		rect.setWidth(size.width() * rect.height() / size.height());
-		painter->setClipRect(o.rect);
-		m_rateStarsProvider->Render(painter, rect, rate);
-	}
-
 	void RenderBooks(QPainter * painter, QStyleOptionViewItem & o, const QModelIndex & index) const
 	{
 		const auto column = BookItem::Remap(index.column());
 		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::SeqNumber))
 			o.displayAlignment = Qt::AlignRight;
 
-		const auto isRate = IsOneOf(column, BookItem::Column::LibRate, BookItem::Column::UserRate);
-
-		if (isRate)
-			o.palette.setColor(QPalette::ColorRole::Text, Qt::transparent);
-		else if (index.data(Role::IsRemoved).toBool())
+		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
+		const auto isRate = IsOneOf(column, BookItem::Column::LibRate, BookItem::Column::UserRate);
 		if (!isRate)
 			return QStyledItemDelegate::paint(painter, o, index);
 
-		o.text.clear();
+		static constexpr std::pair<int, int> columnToRole[]
+		{
+			{ BookItem::Column::LibRate , Role::LibRate },
+			{ BookItem::Column::UserRate, Role::UserRate },
+		};
+		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
+
+		if (rate < 1 || rate > 5)
+			o.text.clear();
+		else
+			o.text.assign(rate, QChar(0x2B50));
+
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
-		RenderLibRate(painter, o, index);
 	}
 
 private:
 	QWidget & m_view;
-	std::shared_ptr<const IRateStarsProvider> m_rateStarsProvider;
 	mutable TextDelegate m_textDelegate;
 
 };
 
-TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory
-	, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
-)
-	: m_impl(std::move(rateStarsProvider), *uiFactory)
+TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory)
+	: m_impl(*uiFactory)
 {
 	PLOGD << "TreeViewDelegateBooks created";
 }
