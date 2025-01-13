@@ -78,9 +78,6 @@ constexpr auto JOIN_SERIES = "join Books gl on gl.BookID = b.BookID and gl.Serie
 constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
 constexpr auto WHERE_SERIES = "and b.SeriesID = %1";
 
-constexpr auto AUTHOR = "a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')";
-constexpr auto SERIES = "coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '')";
-
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
@@ -577,28 +574,17 @@ struct Requester::Impl
 
     Node WriteAuthorsBooks(const QString & self, const QString & navigationId, const QString & value) const
     {
-        const auto startsWithQuery = QString("select substr(b.SearchTitle, %2, 1), count(42) from Books b join Author_List al on al.BookID = b.BookID join Authors a on a.AuthorID = al.AuthorID and a.AuthorID = %1 where b.SearchTitle != ? and b.SearchTitle like ? group by substr(b.SearchTitle, %2, 1)").arg(navigationId, "%1");
-        const auto bookItemQuery = QString(R"(
-            select b.BookID, b.Title || b.Ext, 0, %1 || %2
-				from Books b 
-            	join Author_List al on al.BookID = b.BookID
-            	join Authors a on a.AuthorID = al.AuthorID and a.AuthorID = %3
-				left join Series s on s.SeriesID = b.SeriesID
-            	where b.SearchTitle %4 ?
-            )").arg(AUTHOR, SERIES, navigationId, "%1");
-        const auto navigationType = QString("%1/Books/%2").arg(Loc::Authors, navigationId).toStdString();
-        return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteBookEntries);
+        return WriteAuthorsAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteAuthorsAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
-        return WriteAuthorsBooks(self, navigationId, value);
+        return WriteAuthorsAuthorBooks(self, navigationId, {}, value);
     }
 
-    Node WriteAuthorsAuthorBooks(const QString & self, const QString & navigationId, const QString & /*authorId*/, const QString & value) const
+    Node WriteAuthorsAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
-        assert(false);
-        return WriteAuthorsBooks(self, navigationId, value);
+        return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Authors, JOIN_AUTHOR);
     }
 
     Node WriteSeriesBooks(const QString & self, const QString & navigationId, const QString & value) const
