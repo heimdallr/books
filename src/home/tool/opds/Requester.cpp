@@ -70,10 +70,13 @@ const auto SELECT_BOOK_COUNT =
 
 constexpr auto JOIN_ARCHIVE = "join Books gl on gl.BookID = b.BookID and gl.FolderID = %1";
 constexpr auto JOIN_AUTHOR = "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1";
+constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.GenreCode = '%1'";
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
+constexpr auto JOIN_SERIES = "join Books gl on gl.BookID = b.BookID and gl.SeriesID = %1";
 
 constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
+constexpr auto WHERE_SERIES = "and b.SeriesID = %1";
 
 constexpr auto AUTHOR = "a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')";
 constexpr auto SERIES = "coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '')";
@@ -82,6 +85,8 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
+
+constexpr auto ENTRY = "entry";
 
 TR_DEF
 
@@ -138,11 +143,14 @@ Node & WriteEntry(Node::Children & children
 )
 {
     auto href = QString("/opds/%1").arg(id);
-    auto & entry = children.emplace_back("entry", QString{}, Node::Attributes{}, GetStandardNodes(std::move(id), title));
+    auto & entry = children.emplace_back(ENTRY, QString{}, Node::Attributes{}, GetStandardNodes(std::move(id), title));
     entry.title = std::move(title);
     if (isCatalog)
 		entry.children.emplace_back("link", QString {}, Node::Attributes { {"href", std::move(href)}, {"rel", "subsection"}, {"type", "application/atom+xml;profile=opds-catalog;kind=navigation"} });
-    entry.children.emplace_back("content", content.isEmpty() ? Tr(COUNT).arg(count) : std::move(content), Node::Attributes{{"type", "text/html"}});
+    if (content.isEmpty() && count > 0)
+        content = Tr(COUNT).arg(count);
+    if (!content.isEmpty())
+		entry.children.emplace_back("content", std::move(content), Node::Attributes {{"type", "text/html"}});
     return entry;
 }
 
@@ -507,17 +515,20 @@ struct Requester::Impl
     {
         {
             const auto db = databaseController->GetDatabase(true);
-            const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, (select count(42) from Genres l where l.ParentCode = g.GenreCode) + (select count(42) from Genre_List l where l.GenreCode = g.GenreCode) from Genres g where g.ParentCode = ? group by g.GenreCode");
+            const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, -1 from Genres g where g.ParentCode = ? group by g.GenreCode");
             const auto arg = value.isEmpty() ? QString("0") : value;
 
             Util::Timer t(L"WriteGenresNavigationImpl: " + arg.toStdWString());
             query->Bind(0, arg.toStdString());
             for (query->Execute(); !query->Eof(); query->Next())
             {
-                const auto id = QString("%1/%2").arg(Loc::Genres).arg(query->Get<const char *>(0));
+                const auto id = QString("%1/starts/%2").arg(Loc::Genres).arg(query->Get<const char *>(0));
                 WriteEntry(children, id, Loc::Tr(Flibrary::GENRE, query->Get<const char *>(1)), query->Get<int>(2));
             }
         }
+
+        auto node = WriteGenresAuthors(QString(), value, QString {});
+        std::ranges::move(std::move(node.children) | std::views::filter([] (const auto & item) { return item.name == ENTRY; }), std::back_inserter(children));
     }
 
     Node WriteGenresNavigation(const QString & self, const QString & value) const
@@ -592,55 +603,32 @@ struct Requester::Impl
 
     Node WriteSeriesBooks(const QString & self, const QString & navigationId, const QString & value) const
     {
-        const auto startsWithQuery = QString("select substr(b.SearchTitle, %2, 1), count(42) from Books b where b.SeriesID = %1 and b.SearchTitle != ? and b.SearchTitle like ? group by substr(b.SearchTitle, %2, 1)").arg(navigationId, "%1");
-        const auto bookItemQuery = QString(R"(
-                select b.BookID, b.Title || b.Ext, 0, (select %1 from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) || %2
-                from Books b 
-                left join Series s on s.SeriesID = b.SeriesID
-                where b.SeriesID = %3 and b.SearchTitle %4 ?
-            )").arg(AUTHOR, SERIES, navigationId, "%1");
-        const auto navigationType = QString("%1/Books/%2").arg(Loc::Series, navigationId).toStdString();
-        return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteBookEntries);
+        return WriteSeriesAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteSeriesAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
-        assert(false);
-        return WriteSeriesBooks(self, navigationId, value);
+        return WriteAuthorsImpl(self, navigationId, value, Loc::Series, JOIN_SERIES);
     }
 
-    Node WriteSeriesAuthorBooks(const QString & self, const QString & navigationId, const QString & /*authorId*/, const QString & value) const
+    Node WriteSeriesAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
-        assert(false);
-        return WriteAuthorsBooks(self, navigationId, value);
+        return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Series, JOIN_SERIES, WHERE_SERIES);
     }
 
     Node WriteGenresBooks(const QString & self, const QString & navigationId, const QString & value) const
     {
-        const auto startsWithQuery = QString("select substr(b.SearchTitle, %2, 1), count(42) from Books b join Genre_List l on l.BookID = b.BookID and l.GenreCode = '%1' where b.SearchTitle != ? and b.SearchTitle like ? group by substr(b.SearchTitle, %2, 1)").arg(navigationId, "%1");
-        const auto bookItemQuery = QString(R"(
-                select b.BookID, b.Title || b.Ext, 0, (select %1 from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) || %2
-                from Books b 
-                join Genre_List l on l.BookID = b.BookID and l.GenreCode = '%3'
-                left join Series s on s.SeriesID = b.SeriesID
-                where b.SearchTitle %4 ?
-            )").arg(AUTHOR, SERIES, navigationId, "%1");
-        const auto navigationType = QString("%1/Books/%2").arg(Loc::Genres, navigationId).toStdString();
-        auto node = WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteBookEntries);
-        WriteGenresNavigationImpl(node.children, navigationId);
-        return node;
+        return WriteGenresAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteGenresAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
-        assert(false);
-        return WriteGenresBooks(self, navigationId, value);
+        return WriteAuthorsImpl(self, navigationId, value, Loc::Genres, JOIN_GENRE);
     }
 
-    Node WriteGenresAuthorBooks(const QString & self, const QString & navigationId, const QString & /*authorId*/, const QString & value) const
+    Node WriteGenresAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
-        assert(false);
-        return WriteAuthorsBooks(self, navigationId, value);
+        return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Genres, JOIN_GENRE);
     }
 
     Node WriteKeywordsBooks(const QString & self, const QString & navigationId, const QString & value) const
@@ -701,7 +689,8 @@ private:
         {
             const auto query = db->CreateQuery(QString(SELECT_BOOK_COUNT).arg(join).toStdString());
             query->Execute();
-            WriteEntry(node.children, QString("%1/Books/%2").arg(type, navigationId), Tr(BOOKS), query->Get<int>(0));
+            if (const auto count = query->Get<int>(0))
+				WriteEntry(node.children, QString("%1/Books/%2").arg(type, navigationId), Tr(BOOKS), count);
         }
         return node;
     }
