@@ -147,19 +147,16 @@ private:
 		});
 
 		using RequesterNavigation = QByteArray(IRequester::*)(const QString &, const QString &) const;
-		using RequesterBooks = QByteArray(IRequester::*)(const QString &, const QString &, const QString &) const;
 		using RequesterNavigationAuthors = QByteArray(IRequester::*)(const QString &, const QString &, const QString &) const;
 		using RequesterAuthorBooks = QByteArray(IRequester::*)(const QString &, const QString &, const QString &, const QString &) const;
 		static constexpr std::pair<const char *, std::tuple<
 				  RequesterNavigation
-				, RequesterBooks
 				, RequesterNavigationAuthors
 				, RequesterAuthorBooks
 			>> requesters[]
 		{
 #define		OPDS_ROOT_ITEM(NAME) {#NAME, {            \
 				  &IRequester::Get##NAME##Navigation  \
-				, &IRequester::Get##NAME##Books       \
 				, &IRequester::Get##NAME##Authors     \
 				, &IRequester::Get##NAME##AuthorBooks \
 				}},
@@ -169,7 +166,7 @@ private:
 
 		for (const auto & [key, invokers] : requesters)
 		{
-			const auto & [navigationInvoker, booksInvoker, navigationAuthorsInvoker, authorBooksInvoker] = invokers;
+			const auto & [navigationInvoker, navigationAuthorsInvoker, authorBooksInvoker] = invokers;
 
 			m_server.route(QString(NAVIGATION).arg(key), [this, key, invoker = navigationInvoker]
 			{
@@ -201,11 +198,11 @@ private:
 				});
 			});
 
-			m_server.route(QString(BOOK_LIST).arg(key, ARG), [this, key, invoker = booksInvoker] (const QString & navigationId)
+			m_server.route(QString(BOOK_LIST).arg(key, ARG), [this, key, invoker = authorBooksInvoker] (const QString & navigationId)
 			{
 				return QtConcurrent::run([this, key, invoker, navigationId]
 				{
-					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString(AUTHOR_LIST).arg(key, navigationId), navigationId.toUpper(), QString {}));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString(AUTHOR_LIST).arg(key, navigationId), navigationId.toUpper(), QString {}, QString {}));
 					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
 					return response;
 				});
@@ -241,11 +238,11 @@ private:
 				});
 			});
 
-			m_server.route(QString(BOOK_LIST_STARTS).arg(key, ARG, ARG), [this, key, invoker = booksInvoker] (const QString & navigationId, const QString & value)
+			m_server.route(QString(BOOK_LIST_STARTS).arg(key, ARG, ARG), [this, key, invoker = authorBooksInvoker] (const QString & navigationId, const QString & value)
 			{
 				return QtConcurrent::run([this, key, invoker, navigationId, value]
 				{
-					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString(BOOK_LIST_STARTS).arg(key, navigationId, value), navigationId.toUpper(), value.toUpper()));
+					QHttpServerResponse response(std::invoke(invoker, *m_requester, QString(BOOK_LIST_STARTS).arg(key, navigationId, value), navigationId.toUpper(), QString {}, value.toUpper()));
 					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/atom+xml; charset=utf-8");
 					return response;
 				});

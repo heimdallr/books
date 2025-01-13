@@ -572,11 +572,6 @@ struct Requester::Impl
         return head;
     }
 
-    Node WriteAuthorsBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteAuthorsAuthorBooks(self, navigationId, {}, value);
-    }
-
     Node WriteAuthorsAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
         return WriteAuthorsAuthorBooks(self, navigationId, {}, value);
@@ -585,11 +580,6 @@ struct Requester::Impl
     Node WriteAuthorsAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
         return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Authors, JOIN_AUTHOR);
-    }
-
-    Node WriteSeriesBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteSeriesAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteSeriesAuthors(const QString & self, const QString & navigationId, const QString & value) const
@@ -602,11 +592,6 @@ struct Requester::Impl
         return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Series, JOIN_SERIES, WHERE_SERIES);
     }
 
-    Node WriteGenresBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteGenresAuthorBooks(self, navigationId, {}, value);
-    }
-
     Node WriteGenresAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
         return WriteAuthorsImpl(self, navigationId, value, Loc::Genres, JOIN_GENRE);
@@ -615,11 +600,6 @@ struct Requester::Impl
     Node WriteGenresAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
         return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Genres, JOIN_GENRE);
-    }
-
-    Node WriteKeywordsBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteKeywordsAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteKeywordsAuthors(const QString & self, const QString & navigationId, const QString & value) const
@@ -632,11 +612,6 @@ struct Requester::Impl
         return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Keywords, JOIN_KEYWORD);
     }
 
-    Node WriteArchivesBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteArchivesAuthorBooks(self, navigationId, {}, value);
-    }
-
     Node WriteArchivesAuthors(const QString & self, const QString & navigationId, const QString & value) const
     {
         return WriteAuthorsImpl(self, navigationId, value, Loc::Archives, JOIN_ARCHIVE);
@@ -645,11 +620,6 @@ struct Requester::Impl
     Node WriteArchivesAuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const
     {
         return WriteAuthorBooksImpl(self, navigationId, authorId, value, Loc::Archives, JOIN_ARCHIVE, WHERE_ARCHIVE);
-    }
-
-    Node WriteGroupsBooks(const QString & self, const QString & navigationId, const QString & value) const
-    {
-        return WriteGroupsAuthorBooks(self, navigationId, {}, value);
     }
 
     Node WriteGroupsAuthors(const QString & self, const QString & navigationId, const QString & value) const
@@ -753,10 +723,6 @@ QByteArray Requester::GetBookZip(const QString & /*self*/, const QString & bookI
 }
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Requester::Get##NAME##Navigation(const QString & self, const QString & value) const { return GetImpl(&Impl::Write##NAME##Navigation, self, value); }
-		OPDS_ROOT_ITEMS_X_MACRO
-#undef  OPDS_ROOT_ITEM
-
-#define OPDS_ROOT_ITEM(NAME) QByteArray Requester::Get##NAME##Books(const QString & self, const QString & navigationId, const QString & value) const { return GetImpl(&Impl::Write##NAME##Books, self, navigationId, value); }
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 

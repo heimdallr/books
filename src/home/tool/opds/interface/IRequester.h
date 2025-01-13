@@ -29,10 +29,6 @@ public:
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 
-#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Books(const QString & self, const QString & navigationId, const QString & value) const = 0;
-		OPDS_ROOT_ITEMS_X_MACRO
-#undef  OPDS_ROOT_ITEM
-
 #define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Authors(const QString & self, const QString & navigationId, const QString & value) const = 0;
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
