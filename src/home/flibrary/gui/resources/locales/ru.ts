@@ -189,17 +189,17 @@
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="../../UiFactory.cpp" line="38"/>
+        <location filename="../../UiFactory.cpp" line="37"/>
         <source>About FLibrary</source>
         <translation>О FLibrary</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="39"/>
+        <location filename="../../UiFactory.cpp" line="38"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp" line="42"/>
+        <location filename="../../UiFactory.cpp" line="41"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненты / Библиотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
