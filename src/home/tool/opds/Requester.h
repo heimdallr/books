@@ -41,6 +41,14 @@ private: // IRequester
 		OPDS_ROOT_ITEMS_X_MACRO
 #undef  OPDS_ROOT_ITEM
 
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Authors(const QString & self, const QString & navigationId, const QString & value) const override;
+		OPDS_ROOT_ITEMS_X_MACRO
+#undef  OPDS_ROOT_ITEM
+
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString & self, const QString & navigationId, const QString & authorId, const QString & value) const override;
+		OPDS_ROOT_ITEMS_X_MACRO
+#undef  OPDS_ROOT_ITEM
+
 private:
 	template<typename NavigationGetter, typename... ARGS>
 	QByteArray GetImpl(NavigationGetter getter, const QString & self, const ARGS &... args) const;
