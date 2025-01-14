@@ -641,7 +641,7 @@ private:
         const auto bookItemQuery = QString(SELECT_AUTHORS).arg(join, "%1");
         const auto navigationType = QString("%1/%2").arg(type, navigationId).toStdString();
         auto node = WriteNavigationStartsWith(*db, value, navigationType.data(), self, startsWithQuery, bookItemQuery, &WriteNavigationEntries);
-        if (value.isEmpty())
+        if (value.isEmpty() && std::ranges::any_of(node.children, [n = 0](const Node& item) mutable { n += item.name == ENTRY; return n > 1; }))
         {
             const auto query = db->CreateQuery(QString(SELECT_BOOK_COUNT).arg(join).toStdString());
             query->Execute();
