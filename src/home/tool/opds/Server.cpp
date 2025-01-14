@@ -35,6 +35,13 @@ constexpr auto NAVIGATION_AUTHOR_STARTS = "/opds/%1/%2/starts/%3";
 constexpr auto NAVIGATION_AUTHOR = "/opds/%1/%2/%3";
 constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "/opds/%1/Authors/Books/%2/%3/starts/%4";
 
+void ReplaceOrAppendHeader(QHttpServerResponse & response, const QHttpHeaders::WellKnownHeader key, const QString & value)
+{
+	auto h = response.headers();
+	h.replaceOrAppend(key, value);
+	response.setHeaders(std::move(h));
+}
+
 }
 
 class Server::Impl
@@ -247,14 +254,7 @@ private:
 					return response;
 				});
 			});
-		} 
-	}
-
-	static void ReplaceOrAppendHeader(QHttpServerResponse & response, const QHttpHeaders::WellKnownHeader key, const QString & value)
-	{
-		auto h = response.headers();
-		h.replaceOrAppend(key, value);
-		response.setHeaders(std::move(h));
+		}
 	}
 
 private:
