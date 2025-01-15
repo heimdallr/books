@@ -24,13 +24,13 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
         <source>Create new</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../dialogs/AddCollectionDialog.ui"/>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="38"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="39"/>
         <source>Add</source>
         <translation></translation>
     </message>
@@ -55,17 +55,17 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="34"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="35"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
         <source>Select database file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="36"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="37"/>
         <source>Select archives folder</source>
         <translation></translation>
     </message>
@@ -92,6 +92,11 @@
     <message>
         <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Scan unindexed archives</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/AddCollectionDialog.ui"/>
+        <source>Skip books not in archives</source>
         <translation></translation>
     </message>
 </context>
@@ -207,57 +212,57 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="40"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
         <source>Name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="41"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
         <source>Same named collection has already been added</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="42"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
         <source>Database file name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="43"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
         <source>This collection has already been added: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="44"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="45"/>
         <source>Database file not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="45"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="46"/>
         <source>Bad database file extension (.inpx)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="46"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="47"/>
         <source>Archive folder name cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="47"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="48"/>
         <source>Archive folder not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="48"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="49"/>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="49"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="50"/>
         <source>Index file (*.inpx) not found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp" line="50"/>
+        <location filename="../../dialogs/AddCollectionDialog.cpp" line="51"/>
         <source>Cannot create database folder %1</source>
         <translation></translation>
     </message>

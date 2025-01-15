@@ -819,7 +819,7 @@ private: // IPool
 			try
 			{
 				PLOGI << folder;
-				std::set<std::string> files;
+				std::unordered_set<std::string> files;
 				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
 				for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
 				{
@@ -1018,8 +1018,15 @@ private:
 			suitableFiles.erase(begin, end);
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
+		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
+		std::unordered_set<std::wstring> fileList;
+		if (archiveFileInfo.exists() && !!(m_mode & CreateCollectionMode::SkipLostBooks))
+		{
+			Zip archiveFile(archiveFileInfo.filePath());
+			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [] (const auto & item) { return item.toStdWString(); });
+		}
 
-		std::set<std::string> files;
+		std::unordered_set<std::string> files;
 
 		while (true)
 		{
@@ -1029,10 +1036,12 @@ private:
 
 			auto line = ToWide(byteArray.constData());
 			const auto buf = ParseBook(line);
-			AddBook(files, buf, folder);
+			if (!(m_mode & CreateCollectionMode::SkipLostBooks) || fileList.empty() || fileList.contains(std::wstring(buf.fileName).append(L".").append(buf.ext)))
+				AddBook(files, buf, folder);
+			else
+				PLOGW << ToMultiByte(buf.fileName) << "." << ToMultiByte(buf.ext) << " not found. Skipped";
 		}
 
-		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
 		if (!archiveFileInfo.exists())
 		{
 			PLOGW << archiveFileInfo.fileName() << " not found";
@@ -1050,7 +1059,7 @@ private:
 		}
 	}
 
-	void ParseFile(std::set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
+	void ParseFile(std::unordered_set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
 		auto & stream = zip.Read(fileName);
@@ -1091,7 +1100,7 @@ private:
 		AddBook(files, buf, folder);
 	}
 
-	void AddBook(std::set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
+	void AddBook(std::unordered_set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
 	{
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
