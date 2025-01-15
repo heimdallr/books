@@ -124,8 +124,9 @@ public:
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
 		const auto mode = Inpx::CreateCollectionMode::None
-			| (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
+			| (dialog->AddUnIndexedBooks   () ? Inpx::CreateCollectionMode::AddUnIndexedFiles    : Inpx::CreateCollectionMode::None)
 			| (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
+			| (dialog->SkipLostBooks       () ? Inpx::CreateCollectionMode::SkipLostBooks        : Inpx::CreateCollectionMode::None)
 			;
 		switch (action)
 		{
