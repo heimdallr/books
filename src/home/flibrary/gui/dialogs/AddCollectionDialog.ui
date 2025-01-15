@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>182</height>
+    <height>201</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -51,7 +51,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset>
          <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
        </property>
        <property name="autoRaise">
@@ -99,7 +99,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset>
          <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
        </property>
        <property name="autoRaise">
@@ -119,7 +119,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../resources/gui.qrc">
+        <iconset>
          <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
        </property>
        <property name="autoRaise">
@@ -133,6 +133,19 @@
     <widget class="QCheckBox" name="checkBoxAddUnindexedBooks">
      <property name="text">
       <string>Add unindexed books</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxSkipLostBooks">
+     <property name="text">
+      <string>Skip books not in archives</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

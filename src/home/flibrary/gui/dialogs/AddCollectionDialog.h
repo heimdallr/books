@@ -35,6 +35,7 @@ private: // IAddCollectionDialog
 	[[nodiscard]] QString GetArchiveFolder() const override;
 	[[nodiscard]] bool AddUnIndexedBooks() const override;
 	[[nodiscard]] bool ScanUnIndexedFolders() const override;
+	[[nodiscard]] bool SkipLostBooks() const override;
 
 private:
 	class Impl;
