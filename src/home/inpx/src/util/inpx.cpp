@@ -605,7 +605,8 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 	});
 
 	std::vector<std::pair<std::wstring, std::wstring>> resultExt;
-	std::ranges::set_difference(inpxExt, dbExt, std::back_inserter(resultExt), [] (const auto & lhs, const auto & rhs) { return lhs.first == rhs.second; });
+	const auto proj = [] (const auto & item) { return item.first; };
+	std::ranges::set_difference(inpxExt, dbExt, std::back_inserter(resultExt), {}, proj, proj);
 
 	std::vector<std::wstring> result;
 	result.reserve(resultExt.size());
@@ -890,14 +891,15 @@ private:
 		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
 		ParseInpxFiles(inpxFileName, &zip, newInpxFolders);
 
-		const auto filter = [] (Dictionary & dst, const Dictionary & src)
+		const auto filter = [] (auto & dst, const auto & src)
 		{
-			erase_if(dst, [&] (const auto & item){ return src.contains(item.first); });
+			std::erase_if(dst, [&] (const auto & item){ return src.contains(item.first); });
 		};
 
 		filter(m_data.authors, oldData.authors);
 		filter(m_data.series, oldData.series);
 		filter(m_data.keywords, oldData.keywords);
+		filter(m_data.folders, oldData.folders);
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
