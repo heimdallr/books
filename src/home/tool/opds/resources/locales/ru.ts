@@ -4,17 +4,17 @@
 <context>
     <name>Requester</name>
     <message>
-        <location filename="../../Requester.cpp" line="82"/>
+        <location filename="../../Requester.cpp"/>
         <source>Number of: %1</source>
         <translation>Количество: %1</translation>
     </message>
     <message>
-        <location filename="../../Requester.cpp" line="83"/>
+        <location filename="../../Requester.cpp"/>
         <source>Book</source>
         <translation>Книга</translation>
     </message>
     <message>
-        <location filename="../../Requester.cpp" line="84"/>
+        <location filename="../../Requester.cpp"/>
         <source>Books</source>
         <translation>Все книги раздела</translation>
     </message>

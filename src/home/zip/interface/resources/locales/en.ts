@@ -4,47 +4,47 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../error.cpp" line="13"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot open file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="14"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot open archive &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="15"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot find file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="16"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot extract file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="17"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot create file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="18"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot add file &apos;%1&apos; to archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="19"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot load %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="20"/>
+        <location filename="../../error.cpp"/>
         <source>Cannon find entry point &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="21"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot  create object</source>
         <translation></translation>
     </message>
