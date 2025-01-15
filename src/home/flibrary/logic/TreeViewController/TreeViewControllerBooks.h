@@ -18,12 +18,12 @@ class TreeViewControllerBooks final
 	NON_COPY_MOVABLE(TreeViewControllerBooks)
 
 public:
-	explicit TreeViewControllerBooks(std::shared_ptr<ISettings> settings
+	TreeViewControllerBooks(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<DataProvider> dataProvider
 		, const std::shared_ptr<const IModelProvider>& modelProvider
 		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IAnnotationController> annotationController
-		, std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class IDatabaseUser> databaseUser
 	);
 	~TreeViewControllerBooks() override;
 

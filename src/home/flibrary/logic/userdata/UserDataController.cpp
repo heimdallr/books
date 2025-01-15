@@ -3,9 +3,8 @@
 #include <plog/Log.h>
 
 #include "interface/constants/Localization.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/IUiFactory.h"
-
-#include "database/DatabaseUser.h"
 
 #include "backup.h"
 #include "restore.h"
@@ -26,7 +25,7 @@ TR_DEF
 
 }
 
-UserDataController::UserDataController(std::shared_ptr<DatabaseUser> databaseUser
+UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUser
 	, std::shared_ptr<IUiFactory> uiFactory
 )
 	: m_databaseUser(std::move(databaseUser))

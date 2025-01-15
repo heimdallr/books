@@ -35,7 +35,6 @@
 #include "LogItemDelegate.h"
 #include "MainWindow.h"
 #include "ProgressBar.h"
-#include "RateStarsProvider.h"
 #include "UiFactory.h"
 // ReSharper restore CppUnusedIncludeDirective
 
@@ -46,7 +45,6 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
 	builder.registerType<LineOption>().as<ILineOption>();
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
-	builder.registerType<RateStarsProvider>().as<IRateStarsProvider>().singleInstance();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 
 	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)

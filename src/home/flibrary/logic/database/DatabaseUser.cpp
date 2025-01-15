@@ -6,9 +6,8 @@
 #include <plog/Log.h>
 
 #include "data/DataItem.h"
-#include "data/GenresLocalization.h"
-#include "database/DatabaseController.h"
 #include "interface/constants/Localization.h"
+#include "interface/logic/IDatabaseController.h"
 #include "util/executor/factory.h"
 
 using namespace HomeCompa;
@@ -16,24 +15,32 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[]
-{
-	{ BookQueryFields::BookTitle, BookItem::Column::Title },
-	{ BookQueryFields::SeriesTitle, BookItem::Column::Series },
-	{ BookQueryFields::SeqNumber, BookItem::Column::SeqNumber },
-	{ BookQueryFields::Folder, BookItem::Column::Folder },
-	{ BookQueryFields::FileName, BookItem::Column::FileName },
-	{ BookQueryFields::Size, BookItem::Column::Size },
-	{ BookQueryFields::LibRate, BookItem::Column::LibRate },
-	{ BookQueryFields::UserRate, BookItem::Column::UserRate },
-	{ BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
-	{ BookQueryFields::Lang, BookItem::Column::Lang },
-};
-
-class ApplicationCursorWrapper
+class IApplicationCursorController  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	void Set(const bool value)
+	virtual ~IApplicationCursorController() = default;
+	virtual void Set(bool value) = 0;
+};
+
+class ApplicationCursorControllerStub : public IApplicationCursorController
+{
+public:
+	static std::unique_ptr<IApplicationCursorController> create()
+	{
+		return std::make_unique<ApplicationCursorControllerStub>();
+	}
+	void Set(bool) override { }
+};
+
+class ApplicationCursorController : public IApplicationCursorController
+{
+public:
+	static std::unique_ptr<IApplicationCursorController> create()
+	{
+		return std::make_unique<ApplicationCursorController>();
+	}
+public:
+	void Set(const bool value) override
 	{
 		if (!m_counter)
 			QGuiApplication::setOverrideCursor(Qt::BusyCursor);
@@ -48,36 +55,36 @@ private:
 	int m_counter { 0 };
 };
 
-ApplicationCursorWrapper APPLICATION_CURSOR_WRAPPER;
+std::unique_ptr<IApplicationCursorController> APPLICATION_CURSOR_CONTROLLER { ApplicationCursorControllerStub::create() };
 
 }
 
 struct DatabaseUser::Impl
 {
-	PropagateConstPtr<DatabaseController, std::shared_ptr> databaseController;
+	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	std::shared_ptr<Util::IExecutor> executor;
 
 	Impl(const ILogicFactory & logicFactory
-		, std::shared_ptr<DatabaseController> databaseController
+		, std::shared_ptr<IDatabaseController> databaseController
 	)
 		: databaseController(std::move(databaseController))
 		, executor(CreateExecutor(logicFactory))
 	{
 	}
 
-	static std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory)
+	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory) const
 	{
 		return logicFactory.GetExecutor({1
 			, [] { }
-			, [] { APPLICATION_CURSOR_WRAPPER.Set(true); }
-			, [] { APPLICATION_CURSOR_WRAPPER.Set(false); }
+			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(true); }
+			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(false); }
 			, [] { }
 		});
 	}
 };
 
 DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
-	, std::shared_ptr<DatabaseController> databaseController
+	, std::shared_ptr<IDatabaseController> databaseController
 )
 	: m_impl(*logicFactory, std::move(databaseController))
 {
@@ -109,52 +116,7 @@ std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 	return m_impl->executor;
 }
 
-IDataItem::Ptr DatabaseUser::CreateSimpleListItem(const DB::IQuery & query, const size_t * index)
+void DatabaseUser::EnableApplicationCursorChange(const bool value)
 {
-	auto item = IDataItem::Ptr(NavigationItem::Create());
-
-	item->SetId(query.Get<const char *>(index[0]));
-	item->SetData(query.Get<const char *>(index[1]));
-
-	return item;
-}
-
-IDataItem::Ptr DatabaseUser::CreateGenreItem(const DB::IQuery & query, const size_t * index)
-{
-	auto item = IDataItem::Ptr(GenreItem::Create());
-
-	item->SetId(query.Get<const char *>(index[0]));
-
-	const auto * fbCode = query.Get<const char *>(index[2]);
-	const auto translated = Loc::Tr(GENRE, fbCode);
-
-	item->SetData(fbCode, GenreItem::Column::Fb2Code);
-	item->SetData(translated != fbCode ? translated : query.Get<const char *>(index[1]));
-
-	return item;
-}
-
-IDataItem::Ptr DatabaseUser::CreateFullAuthorItem(const DB::IQuery & query, const size_t * index)
-{
-	auto item = AuthorItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(index[0])));
-	for (int i = 0; i < AuthorItem::Column::Last; ++i)
-		item->SetData(query.Get<const char *>(index[i + 1]), i);
-
-	return item;
-}
-
-IDataItem::Ptr DatabaseUser::CreateBookItem(const DB::IQuery & query)
-{
-	auto item = BookItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(BookQueryFields::BookId)));
-	for (const auto & [queryIndex, dataIndex] : BOOK_QUERY_TO_DATA)
-		item->SetData(query.Get<const char *>(queryIndex), dataIndex);
-
-	auto & typed = *item->To<BookItem>();
-	typed.removed = query.Get<int>(BookQueryFields::IsDeleted);
-
-	return item;
+	APPLICATION_CURSOR_CONTROLLER = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
 }

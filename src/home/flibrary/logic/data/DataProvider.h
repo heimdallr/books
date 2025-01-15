@@ -19,7 +19,7 @@ public:
 	using Callback = std::function<void(IDataItem::Ptr)>;
 
 public:
-	DataProvider(std::shared_ptr<class DatabaseUser> databaseUser
+	DataProvider(std::shared_ptr<class IDatabaseUser> databaseUser
 		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
 	);
 	~DataProvider();

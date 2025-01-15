@@ -1,6 +1,7 @@
 #include "XmlWriter.h"
 
 #include <set>
+#include <stack>
 
 #include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/util/XMLUniDefs.hpp>
@@ -58,7 +59,7 @@ public:
 	{
 		CloseTag();
 		BreakLine(name);
-		++m_level;
+		m_elements.emplace(name);
 
 		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
 
@@ -69,7 +70,7 @@ public:
 	{
 		CloseTag();
 		BreakLine(name);
-		++m_level;
+		m_elements.emplace(name);
 
 		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
 
@@ -87,9 +88,11 @@ public:
 		m_tagOpened = true;
 	}
 
-	void WriteEndElement(const QString & name)
+	void WriteEndElement()
 	{
-		--m_level;
+		assert(!m_elements.empty());
+		const auto name = std::move(m_elements.top());
+		m_elements.pop();
 		if (m_tagOpened)
 		{
 			m_formatter << XMLFormatter::NoEscapes << chForwardSlash << chCloseAngle;
@@ -138,7 +141,7 @@ private:
 		m_lastElement = name;
 
 		m_formatter << chLF;
-		for (int i = 0; i < m_level; ++i)
+		for (size_t i = 0, sz = m_elements.size(); i < sz; ++i)
 			m_formatter << chHTab;
 	}
 
@@ -155,7 +158,7 @@ private:
 private:
 	QIODevice & m_stream;
 	XMLFormatter m_formatter;
-	int m_level { 0 };
+	std::stack<QString> m_elements;
 	bool m_tagOpened { false };
 	QString m_lastElement;
 
@@ -187,9 +190,9 @@ XmlWriter & XmlWriter::WriteStartElement(const QString & name, const XmlAttribut
 	return *this;
 }
 
-XmlWriter & XmlWriter::WriteEndElement(const QString & name)
+XmlWriter & XmlWriter::WriteEndElement()
 {
-	m_impl->WriteEndElement(name);
+	m_impl->WriteEndElement();
 	return *this;
 }
 

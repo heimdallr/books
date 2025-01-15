@@ -17,6 +17,7 @@ enum class CreateCollectionMode
 	None                 = 0,
 	AddUnIndexedFiles    = 1 << 0,
 	ScanUnIndexedFolders = 1 << 1,
+	SkipLostBooks        = 1 << 2,
 };
 
 struct UpdateResult

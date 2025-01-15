@@ -44,6 +44,28 @@ public:
 			m_zip->setUtf8Enabled(true);
 	}
 
+	QuaZipImpl(QIODevice & device, const QuaZip::Mode mode)
+		: m_zip(std::make_unique<QuaZip>(&device))
+	{
+		if (!m_zip->open(mode))
+		{
+			switch (mode)  // NOLINT(clang-diagnostic-switch-enum)
+			{
+				case QuaZip::Mode::mdUnzip:
+					Error::CannotOpenFile("memory stream");
+
+				case QuaZip::Mode::mdCreate:
+					Error::CannotCreateArchive("memory stream");
+
+				default:
+					assert(false && "unexpected mode");
+			}
+		}
+
+		if (mode == QuaZip::Mode::mdCreate)
+			m_zip->setUtf8Enabled(true);
+	}
+
 private: // IZip
 	QStringList GetFileNameList() const override
 	{
@@ -110,6 +132,11 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::share
 std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/, const bool appendMode)
 {
 	return std::make_unique<QuaZipImpl>(filename, appendMode ? QuaZip::Mode::mdAdd : QuaZip::Mode::mdCreate);
+}
+
+std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & stream, std::shared_ptr<ProgressCallback> /*progress*/, const bool appendMode)
+{
+	return std::make_unique<QuaZipImpl>(stream, appendMode ? QuaZip::Mode::mdAdd : QuaZip::Mode::mdCreate);
 }
 
 }

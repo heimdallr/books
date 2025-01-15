@@ -1,4 +1,9 @@
 include_directories(${CMAKE_CURRENT_LIST_DIR})
+set(COMPANY_NAME "HomeCompa")
+
+file(READ ${CMAKE_CURRENT_LIST_DIR}/flibrary/version/build.h BUILD_NUMBER)
+string(REGEX MATCH "[0-9]+" BUILD_NUMBER ${BUILD_NUMBER})
+set(PRODUCT_VERSION ${CMAKE_PROJECT_VERSION}.${BUILD_NUMBER})
 
 set(MODULES
 	logging

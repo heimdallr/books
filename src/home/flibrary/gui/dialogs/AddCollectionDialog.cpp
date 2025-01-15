@@ -29,6 +29,7 @@ constexpr auto DATABASE = "DatabaseFileName";
 constexpr auto FOLDER = "ArchiveFolder";
 constexpr auto ADD_UN_INDEXED_BOOKS = "AddUnIndexedBooks";
 constexpr auto SCAN_UN_INDEXED_FOLDERS = "ScanUnIndexedFolders";
+constexpr auto SKIP_NOT_IN_ARCHIVES = "SkipNotInArchives";
 
 constexpr auto CONTEXT                                    = "AddCollectionDialog";
 constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
@@ -82,7 +83,7 @@ class AddCollectionDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(AddCollectionDialog & self
+	Impl(AddCollectionDialog & self
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IUiFactory> uiFactory
@@ -128,8 +129,9 @@ public:
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
-		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), false));
+		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
+		m_ui.checkBoxSkipLostBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 
 		Init();
 	}
@@ -144,6 +146,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), m_ui.checkBoxSkipLostBooks->isChecked());
 	}
 
 	QString GetName() const
@@ -171,6 +174,11 @@ public:
 		return m_ui.checkBoxScanUnindexedArchives->isChecked();
 	}
 
+	bool SkipLostBooks() const
+	{
+		return m_ui.checkBoxSkipLostBooks->isChecked();
+	}
+
 private: // GeometryRestorableObserver
 	void OnFontChanged(const QFont &) override
 	{
@@ -190,6 +198,7 @@ private:
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.checkBoxAddUnindexedBooks->setEnabled(m_createMode);
 		m_ui.checkBoxScanUnindexedArchives->setEnabled(m_createMode);
+		m_ui.checkBoxSkipLostBooks->setEnabled(m_createMode);
 		(void)CheckData();
 	}
 
@@ -360,4 +369,9 @@ bool AddCollectionDialog::AddUnIndexedBooks() const
 bool AddCollectionDialog::ScanUnIndexedFolders() const
 {
 	return m_impl->ScanUnIndexedFolders();
+}
+
+bool AddCollectionDialog::SkipLostBooks() const
+{
+	return m_impl->SkipLostBooks();
 }

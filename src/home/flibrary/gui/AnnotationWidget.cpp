@@ -1,8 +1,6 @@
 #include "ui_AnnotationWidget.h"
 #include "AnnotationWidget.h"
 
-#include <ranges>
-
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -16,7 +14,6 @@
 
 #include "GuiUtil/GeometryRestorable.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
@@ -25,7 +22,6 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
-#include "interface/ui/IRateStarsProvider.h"
 #include "interface/ui/IUiFactory.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
@@ -40,20 +36,6 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto CONTEXT = "Annotation";
-constexpr auto KEYWORDS_FB2 = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
-constexpr auto AUTHORS = QT_TRANSLATE_NOOP("Annotation", "Authors:");
-constexpr auto SERIES = QT_TRANSLATE_NOOP("Annotation", "Series:");
-constexpr auto GENRES = QT_TRANSLATE_NOOP("Annotation", "Genres:");
-constexpr auto ARCHIVE = QT_TRANSLATE_NOOP("Annotation", "Archives:");
-constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
-constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords:");
-constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
-constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
-constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
-constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
-constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
-constexpr auto USER_RATE = QT_TRANSLATE_NOOP("Annotation", "My rate:");
-constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
 constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
@@ -63,8 +45,6 @@ constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 i
 constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
-constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
-constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
 
 #if(false)
 QT_TRANSLATE_NOOP("Annotation", "Read")
@@ -77,106 +57,19 @@ QT_TRANSLATE_NOOP("Annotation", "Inpx")
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
 
-constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
-constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
-constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
-
 constexpr const char * CUSTOM_URL_SCHEMA[]
 {
-	AUTHORS,
-	SERIES,
-	GENRES,
-	KEYWORDS,
-	ARCHIVE,
-	GROUPS,
+	Loc::AUTHORS,
+	Loc::SERIES,
+	Loc::GENRES,
+	Loc::KEYWORDS,
+	Loc::ARCHIVE,
+	Loc::GROUPS,
 	nullptr
 };
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
 
 TR_DEF
-
-template<typename T>
-T Round(const T value, const int digits)
-{
-	if (value == 0)
-		return 0;
-
-	const double factor = pow(10.0, digits + ceil(log10(value)));
-	if (factor < 10.0)
-		return value;
-
-	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
-}
-
-QString Join(const std::vector<QString> & strings, const QString & delimiter = ", ")
-{
-	if (strings.empty())
-		return {};
-
-	auto result = strings.front();
-	std::ranges::for_each(strings | std::views::drop(1), [&] (const QString & item)
-	{
-		result.append(delimiter).append(item);
-	});
-
-	return result;
-}
-
-void Add(QString & text, const QString & str, const char * pattern = "%1")
-{
-	if (!str.isEmpty())
-		text.append(QString("<p>%1</p>").arg(Tr(pattern).arg(str)));
-}
-
-QString Url(const char * type, const QString & id, const QString & str)
-{
-	return str.isEmpty() ? QString{} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
-}
-
-QString GetTitle(const IDataItem & item)
-{
-	return item.GetData(DataItem::Column::Title);
-}
-
-QString GetTitleAuthor(const IDataItem & item)
-{
-	auto result = item.GetData(AuthorItem::Column::LastName);
-	AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
-	AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
-	return result;
-}
-
-using TitleGetter = QString(*)(const IDataItem & item);
-
-QString Urls(const char * type, const IDataItem & parent, const TitleGetter tileGetter = &GetTitle)
-{
-	std::vector<QString> urls;
-	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
-	{
-		const auto item = parent.GetChild(i);
-		urls.emplace_back(Url(type, item->GetId(), tileGetter(*item)));
-	}
-
-	return Join(urls);
-}
-
-struct Table
-{
-	Table & Add(const char * name, const QString & value)
-	{
-		if (!value.isEmpty())
-			data << QString(R"(<tr><td>%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
-
-		return *this;
-	}
-
-	[[nodiscard]] QString ToString() const
-	{
-		return data.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(data.join("\n"));
-	}
-
-	QStringList data;
-};
 
 bool SaveImage(QString fileName, const QByteArray & bytes)
 {
@@ -202,16 +95,6 @@ bool SaveImage(QString fileName, const QByteArray & bytes)
 	return true;
 }
 
-QString GetPublishInfo(const IAnnotationController::IDataProvider & dataProvider)
-{
-	QString result = dataProvider.GetPublisher();
-	AppendTitle(result, dataProvider.GetPublishCity(), ", ");
-	AppendTitle(result, dataProvider.GetPublishYear(), ", ");
-	const auto isbn = dataProvider.GetPublishIsbn().isEmpty() ? QString {} : QString("ISBN %1").arg(dataProvider.GetPublishIsbn());
-	AppendTitle(result, isbn, ". ");
-	return result;
-}
-
 }
 
 class AnnotationWidget::Impl final
@@ -230,7 +113,6 @@ public:
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<IBooksExtractorProgressController> progressController
 		, const std::shared_ptr<ICollectionController> & collectionController
-		, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 	)
 		: m_self(self)
 		, m_settings(std::move(settings))
@@ -239,7 +121,6 @@ public:
 		, m_logicFactory(logicFactory)
 		, m_uiFactory(std::move(uiFactory))
 		, m_progressController(std::move(progressController))
-		, m_rateStarsProvider(std::move(rateStarsProvider))
 		, m_navigationController(logicFactory->GetTreeViewController(ItemType::Navigation))
 		, m_currentCollectionId(collectionController->GetActiveCollectionId())
 	{
@@ -462,99 +343,21 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider & dataProvider) override
 	{
-		const auto & book = dataProvider.GetBook();
-		QString annotation;
-		Add(annotation, book.GetRawData(BookItem::Column::Title), TITLE_PATTERN);
-		Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
-		Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
-		Add(annotation, dataProvider.GetAnnotation());
+		auto annotation = m_annotationController->CreateAnnotation(dataProvider);
 
-		auto& keywords = dataProvider.GetKeywords();
-		if (keywords.GetChildCount() == 0)
-			Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
-
-		const auto & folder = book.GetRawData(BookItem::Column::Folder);
-
-		Add(annotation, Table()
-			.Add(AUTHORS, Urls(AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
-			.Add(SERIES, Url(SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
-			.Add(GENRES, Urls(GENRES, dataProvider.GetGenres()))
-			.Add(ARCHIVE, Url(ARCHIVE, folder, folder))
-			.Add(GROUPS, Urls(GROUPS, dataProvider.GetGroups()))
-			.Add(KEYWORDS, Urls(KEYWORDS, keywords))
-			.ToString());
-
-		if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
+		const auto addRate = [&] (const char * name, const int column)
 		{
-			Table table;
-			for (size_t i = 0, sz = translators->GetChildCount(); i < sz; ++i)
-				table.Add(i == 0 ? TRANSLATORS : "", GetAuthorFull(*translators->GetChild(i)));
-			Add(annotation, table.ToString());
-		}
-
-		m_covers = dataProvider.GetCovers();
-		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
-
-		{
-			const auto addRate = [&] (Table & info, const char * name, const int column)
-			{
-				const auto rate = book.GetRawData(column).toInt();
-				if (rate <= 0 || rate > 5)
-					return;
-
-				const auto byteArray = [this, rate]{
-					const auto stars = m_rateStarsProvider->GetStars(rate);
-					QByteArray bytes;
-					QBuffer buffer(&bytes);
-					stars.save(&buffer, "PNG");
-					return bytes;
-				}();
-
-				info.Add(name, QString(R"(<img src="data:image/png;base64,%1"/>)").arg(byteArray.toBase64()));
-			};
-
-			auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
-			if (dataProvider.GetTextSize() > 0)
-				info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
-			info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
-			addRate(info, RATE, BookItem::Column::LibRate);
-			addRate(info, USER_RATE, BookItem::Column::UserRate);
-			if (!m_covers.empty())
-			{
-				const auto total = std::accumulate(m_covers.cbegin(), m_covers.cend(), qsizetype { 0 }, [] (const auto init, const auto & cover)
-				{
-					return init + cover.bytes.size();
-				});
-				info.Add(IMAGES, QString("%1 (%L2)").arg(m_covers.size()).arg(total));
-			}
-
-			Add(annotation, info.ToString());
-		}
-
-		Add(annotation, GetPublishInfo(dataProvider));
-
-		Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
-
-		if (!dataProvider.GetExportStatistics().empty())
-		{
-			const auto toDateList = [] (const std::vector<QDateTime>& dates)
-			{
-				QStringList result;
-				result.reserve(static_cast<int>(dates.size()));
-				std::ranges::transform(dates, std::back_inserter(result), [] (const QDateTime & date)
-				{
-					return date.toString("yy.MM.dd hh:mm");
-				});
-				return result.join(", ");
-			};
-			auto exportStatistics = Table().Add(EXPORT_STATISTICS, " ");
-			for (const auto & [type, dates] : dataProvider.GetExportStatistics())
-				exportStatistics.Add(GetName(type), toDateList(dates));
-			Add(annotation, exportStatistics.ToString());
-		}
+			const auto & book = dataProvider.GetBook();
+			const auto rate = book.GetRawData(column).toInt();
+			if (rate > 0 && rate <= 5)
+				annotation.replace(QString("@%1@").arg(name), QString(rate, QChar(0x2B50)));
+		};
+		addRate(Loc::RATE, BookItem::Column::LibRate);
+		addRate(Loc::USER_RATE, BookItem::Column::UserRate);
 
 		m_ui.info->setText(annotation);
-
+		m_covers = dataProvider.GetCovers();
+		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
 		if (m_covers.empty())
 			return;
 
@@ -618,7 +421,6 @@ private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
-	std::shared_ptr<const IRateStarsProvider> m_rateStarsProvider;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
@@ -640,7 +442,6 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, const std::shared_ptr<ICollectionController> & collectionController
-	, std::shared_ptr<const IRateStarsProvider> rateStarsProvider
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -652,7 +453,6 @@ AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
 		, std::move(uiFactory)
 		, std::move(progressController)
 		, collectionController
-		, std::move(rateStarsProvider)
 	)
 {
 	PLOGD << "AnnotationWidget created";

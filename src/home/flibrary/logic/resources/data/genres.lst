@@ -29,7 +29,7 @@ date_added_code_root||По дате добавления
 unknown_root||Жанры не из справочника
 
 # жанры
-sf:sf_writing|sf_all_root|Научная Фантастика
+sf:sf_writing:romance_sf|sf_all_root|Научная Фантастика
 sf_history|sf_all_root|Альтернативная история
 sf_action|sf_all_root|Боевая фантастика
 sf_epic|sf_all_root|Эпическая фантастика

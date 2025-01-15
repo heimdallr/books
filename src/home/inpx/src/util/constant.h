@@ -31,3 +31,12 @@
 [[maybe_unused]] constexpr auto NO_DATE_SPECIFIED = L"No date specified";
 
 [[maybe_unused]] constexpr size_t LOG_INTERVAL = 10000;
+
+[[maybe_unused]] constexpr auto GET_MAX_ID_QUERY =
+	"select coalesce(max(m), 0) from ("
+	"      select max(BookID)    m from Books "
+	"union select max(AuthorID)  m from Authors "
+	"union select max(SeriesID)  m from Series "
+	"union select max(KeywordID) m from Keywords "
+	"union select max(FolderID)  m from Folders "
+	")";

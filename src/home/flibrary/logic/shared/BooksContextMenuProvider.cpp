@@ -2,25 +2,27 @@
 
 #include <ranges>
 
-#include <QString>
+#include <QTimer>
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
+#include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
+#include "database/interface/IQuery.h"
 #include "util/ISettings.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
-#include "database/DatabaseUser.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxCollectionExtractor.h"
 #include "shared/ReaderController.h"
@@ -138,7 +140,7 @@ void CreateMyRateMenu(const IDataItem::Ptr & root, const QString & id, DB::IData
 {
 	const auto parent = Add(root, Tr(MY_RATE));
 	for (int rate = 1; rate <= 5; ++rate)
-		Add(parent, QString().assign(rate, QChar(9733)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+		Add(parent, QString(rate, QChar(0x2B50)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
@@ -186,7 +188,7 @@ class BooksContextMenuProvider::Impl final
 {
 public:
 	explicit Impl(std::shared_ptr<const ISettings> settings
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
@@ -490,7 +492,7 @@ private:
 
 private:
 	std::shared_ptr<const ISettings> m_settings;
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
@@ -511,7 +513,7 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController

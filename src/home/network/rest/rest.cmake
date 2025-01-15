@@ -7,5 +7,5 @@ AddTarget(rest	shared_lib
 	LINK_TARGETS
 		logging
 	LINK_LIBRARIES
-		Qt6::Network
+		Qt${QT_MAJOR_VERSION}::Network
 )

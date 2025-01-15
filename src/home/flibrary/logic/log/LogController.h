@@ -12,7 +12,7 @@ class LogController : virtual public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	explicit LogController(std::shared_ptr<class DatabaseUser> databaseUser);
+	explicit LogController(std::shared_ptr<class IDatabaseUser> databaseUser);
 	~LogController() override;
 
 private:

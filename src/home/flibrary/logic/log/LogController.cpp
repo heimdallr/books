@@ -6,10 +6,12 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/PLogSeverityLocalization.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/LogModelRole.h"
-#include "database/DatabaseUser.h"
 #include "model/LogModel.h"
 
 using namespace HomeCompa::Flibrary;
@@ -17,14 +19,14 @@ using namespace HomeCompa::Flibrary;
 struct LogController::Impl
 {
 	std::unique_ptr<QAbstractItemModel> model { CreateLogModel() };
-	std::shared_ptr<const DatabaseUser> databaseUser;
-	explicit Impl(std::shared_ptr<const DatabaseUser> databaseUser)
+	std::shared_ptr<const IDatabaseUser> databaseUser;
+	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser)
 		: databaseUser(std::move(databaseUser))
 	{
 	}
 };
 
-LogController::LogController(std::shared_ptr<DatabaseUser> databaseUser)
+LogController::LogController(std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl(std::move(databaseUser))
 {
 }

@@ -28,11 +28,6 @@ constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto BINARY = "FictionBook/binary";
 constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
 
-struct hash
-{
-	std::size_t operator()(const QString & s) const noexcept { return qHash(s); }
-};
-
 }
 
 class Fb2Parser::Impl final
@@ -107,12 +102,12 @@ private: // Util::SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString & name, const QString & path) override
+	bool OnEndElement(const QString &, const QString & path) override
 	{
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return true;
 
-		m_writer.WriteEndElement(name);
+		m_writer.WriteEndElement();
 
 		return true;
 	}
@@ -194,7 +189,7 @@ private:
 	QString m_binaryId;
 	QString m_coverpage;
 	Data m_data {};
-	std::unordered_map<QString, size_t, hash, std::equal_to<>> m_imageNames;
+	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
 };
 
 Fb2Parser::Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)

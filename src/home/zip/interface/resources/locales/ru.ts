@@ -4,47 +4,47 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../error.cpp" line="13"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot open file &apos;%1&apos;</source>
         <translation>Не удалось открыть файл %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="14"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot open archive &apos;%1&apos;</source>
         <translation>Не удалось открыть архив %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="15"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot find file &apos;%1&apos;</source>
         <translation>Не удалось найти в архиве файл %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="16"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot extract file &apos;%1&apos;</source>
         <translation>Не удалось извлечь из архива файл %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="17"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot create file &apos;%1&apos;</source>
         <translation>Не удалось создать файл %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="18"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot add file &apos;%1&apos; to archive</source>
         <translation>Не удалось добавить в архив файл %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="19"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot load %1</source>
         <translation>Не удалось загрузить %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="20"/>
+        <location filename="../../error.cpp"/>
         <source>Cannon find entry point &apos;%1&apos;</source>
         <translation>Не удалось получить адрес функции %1</translation>
     </message>
     <message>
-        <location filename="../../error.cpp" line="21"/>
+        <location filename="../../error.cpp"/>
         <source>Cannot  create object</source>
         <translation>Не удалось создать объект</translation>
     </message>

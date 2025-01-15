@@ -7,17 +7,19 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 
 #include "Util/IExecutor.h"
 
 #include "interface/constants/ExportStat.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
 
-#include "database/DatabaseUser.h"
 #include "shared/ImageRestore.h"
 
 #include "zip.h"
@@ -160,7 +162,7 @@ public:
 		, std::shared_ptr<IProgressController> progressController
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const IScriptController> scriptController
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 	)
 		: m_collectionController(std::move(collectionController))
 		, m_progressController(std::move(progressController))
@@ -280,7 +282,7 @@ private:
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IScriptController> m_scriptController;
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	Callback m_callback;
 	size_t m_taskCount { 0 };
 	bool m_hasError { false };
@@ -296,7 +298,7 @@ BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collection
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<const IScriptController> scriptController
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: m_impl(std::move(collectionController)
 		, std::move(progressController)

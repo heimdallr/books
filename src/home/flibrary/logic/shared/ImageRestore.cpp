@@ -24,6 +24,12 @@ constexpr auto BINARY = "binary";
 constexpr auto ID = "id";
 constexpr auto CONTENT_TYPE = "content-type";
 constexpr auto JPEG = "image/jpeg";
+constexpr auto PNG = "image/png";
+constexpr std::pair<const char*, const char*> SIGNATURES[]
+{
+	{ "\xFF\xD8\xFF\xE0", JPEG },
+	{ "\x89\x50\x4E\x47", PNG },
+};
 
 class SaxPrinter final
 	: public Util::SaxParser
@@ -58,12 +64,12 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QString & name, const QString & path) override
+	bool OnEndElement(const QString &, const QString & path) override
 	{
 		if (path == "FictionBook")
 			WriteImages();
 
-		return m_writer.WriteEndElement(name), true;
+		return m_writer.WriteEndElement(), true;
 	}
 
 	bool OnCharacters(const QString & /*path*/, const QString & value) override
@@ -123,12 +129,14 @@ private:
 	{
 		for (const auto & [name, body] : m_covers)
 		{
+			const auto it = std::ranges::find_if(SIGNATURES, [&] (const auto & item) { return body.startsWith(item.first); });
+			const auto * contentType = it != std::end(SIGNATURES) ? it->second : JPEG;
 			m_writer
 				.WriteStartElement(BINARY)
 				.WriteAttribute(ID, name)
-				.WriteAttribute(CONTENT_TYPE, JPEG)
+				.WriteAttribute(CONTENT_TYPE, contentType)
 				.WriteCharacters(QString::fromUtf8(body.toBase64()))
-				.WriteEndElement(BINARY)
+				.WriteEndElement()
 				;
 		}
 

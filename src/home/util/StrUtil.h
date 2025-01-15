@@ -47,7 +47,9 @@ inline const wchar_t * WideData(const wchar_t * data)
 {
 	return data;
 }
-template<typename StringType>
+template <typename T>
+concept WideStringType = std::is_same_v<T, const std::wstring &> || std::is_same_v<T, std::wstring> || std::is_same_v<T, std::wstring_view> || std::is_same_v<T, const wchar_t *>;
+template<WideStringType StringType>
 std::string ToMultiByte(const StringType & str)
 {
 	const auto size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));

@@ -4,27 +4,27 @@
 <context>
     <name>Common</name>
     <message>
-        <location filename="../../localization.h" line="34"/>
+        <location filename="../../localization.h"/>
         <source>Error!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../localization.h" line="35"/>
+        <location filename="../../localization.h"/>
         <source>Information</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../localization.h" line="36"/>
+        <location filename="../../localization.h"/>
         <source>Question</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../localization.h" line="37"/>
+        <location filename="../../localization.h"/>
         <source>Warning!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../localization.h" line="38"/>
+        <location filename="../../localization.h"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
         <translation></translation>
@@ -33,12 +33,12 @@ Restart now?</source>
 <context>
     <name>Language</name>
     <message>
-        <location filename="../../localization.h" line="30"/>
+        <location filename="../../localization.h"/>
         <source>en</source>
         <translation>&amp;English</translation>
     </message>
     <message>
-        <location filename="../../localization.h" line="31"/>
+        <location filename="../../localization.h"/>
         <source>ru</source>
         <translation>&amp;Русский</translation>
     </message>

@@ -2,36 +2,24 @@
 
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
-#include "fnd/observer.h"
-
-namespace HomeCompa::DB {
-class IDatabase;
-}
+#include "interface/logic/IDatabaseController.h"
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseController final
+class DatabaseController final : virtual public IDatabaseController
 {
 	NON_COPY_MOVABLE(DatabaseController)
 
 public:
-	class IObserver : public Observer
-	{
-	public:
-		virtual void AfterDatabaseCreated(DB::IDatabase &) = 0;
-		virtual void BeforeDatabaseDestroyed(DB::IDatabase &) = 0;
-	};
+	explicit DatabaseController(std::shared_ptr<class ICollectionProvider> collectionProvider);
+	~DatabaseController() override;
 
 public:
-	explicit DatabaseController(std::shared_ptr<class ICollectionController> collectionController);
-	~DatabaseController();
+	std::shared_ptr<DB::IDatabase> GetDatabase(bool readOnly) const override;
+	std::shared_ptr<DB::IDatabase> CheckDatabase() const override;
 
-public:
-	std::shared_ptr<DB::IDatabase> GetDatabase() const;
-	std::shared_ptr<DB::IDatabase> CheckDatabase() const;
-
-	void RegisterObserver(IObserver * observer);
-	void UnregisterObserver(IObserver * observer);
+	void RegisterObserver(IObserver * observer) override;
+	void UnregisterObserver(IObserver * observer) override;
 
 private:
 	class Impl;

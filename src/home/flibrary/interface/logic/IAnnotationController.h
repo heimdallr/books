@@ -69,7 +69,8 @@ public:
 	virtual ~IAnnotationController() = default;
 
 public:
-	virtual void SetCurrentBookId(QString bookId) = 0;
+	virtual void SetCurrentBookId(QString bookId, bool extractNow = false) = 0;
+	virtual QString CreateAnnotation(const IDataProvider & dataProvider) const = 0;
 
 	virtual void RegisterObserver(IObserver * observer) = 0;
 	virtual void UnregisterObserver(IObserver * observer) = 0;

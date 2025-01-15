@@ -21,7 +21,7 @@ public:
 		, const std::shared_ptr<const IModelProvider>& modelProvider
 		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
-		, std::shared_ptr<class DatabaseController> databaseController
+		, std::shared_ptr<class IDatabaseController> databaseController
 	);
 	~TreeViewControllerNavigation() override;
 

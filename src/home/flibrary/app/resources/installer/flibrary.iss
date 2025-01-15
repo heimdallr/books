@@ -69,3 +69,13 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function InitializeUninstall(): Boolean;
+var
+  ErrorCode: Integer;
+begin
+  Exec('taskkill.exe', '/f /im FLibrary.exe', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+  Exec('taskkill.exe', '/f /im opds.exe', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+  Result := True;
+end;

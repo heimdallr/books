@@ -7,7 +7,7 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
@@ -365,13 +365,13 @@ class ArchiveParser::Impl
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(std::shared_ptr<ICollectionController> collectionController
+	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider
 		, std::shared_ptr<IProgressController> progressController
 		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 	)
-		: m_collectionController(std::move(collectionController))
-		, m_progressController(std::move(progressController))
-		, m_zipProgressCallback(std::move(zipProgressCallback))
+		: m_collectionProvider { std::move(collectionProvider) }
+		, m_progressController { std::move(progressController) }
+		, m_zipProgressCallback { std::move(zipProgressCallback) }
 	{
 		m_zipProgressCallback->RegisterObserver(this);
 		m_progressController->RegisterObserver(this);
@@ -392,7 +392,7 @@ public:
 	{
 		try
 		{
-			assert(m_collectionController->ActiveCollectionExists());
+			assert(m_collectionProvider->ActiveCollectionExists());
 
 			auto data = ParseFb2(book);
 
@@ -434,7 +434,7 @@ private: // IProgressController::IObserver
 private:
 	Data ParseFb2(const IDataItem & book) const
 	{
-		const auto& collection = m_collectionController->GetActiveCollection();
+		const auto& collection = m_collectionProvider->GetActiveCollection();
 		const auto folder = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
 		if (!QFile::exists(folder))
 		{
@@ -455,18 +455,18 @@ private:
 	}
 
 private:
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
+	PropagateConstPtr<const ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	std::shared_ptr<IProgressController> m_progressController;
 	std::shared_ptr<ZipProgressCallback> m_zipProgressCallback;
 	mutable std::unique_ptr<IProgressController::IProgressItem> m_extractArchiveProgressItem;
 	mutable int m_extractArchivePercents { 0 };
 };
 
-ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionController> collectionController
+ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider
 	, std::shared_ptr<IAnnotationProgressController> progressController
 	, std::shared_ptr<ZipProgressCallback> zipProgressCallback
 )
-	: m_impl(std::move(collectionController)
+	: m_impl(std::move(collectionProvider)
 		, std::move(progressController)
 		, std::move(zipProgressCallback)
 	)

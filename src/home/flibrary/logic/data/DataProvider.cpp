@@ -2,21 +2,19 @@
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include <QString> // for plog
+#include <QTimer>
 
 #include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
 #include "util/UiTimer.h"
-
-#include "database/DatabaseUser.h"
 
 #include "BooksTreeGenerator.h"
 #include "DataItem.h"
@@ -43,7 +41,7 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[]
 class DataProvider::Impl
 {
 public:
-	Impl(std::shared_ptr<const DatabaseUser> databaseUser
+	Impl(std::shared_ptr<const IDatabaseUser> databaseUser
 		, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 	)
 		: m_databaseUser(std::move(databaseUser))
@@ -179,13 +177,13 @@ private:
 	Callback m_booksRequestCallback;
 
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
-	std::shared_ptr<const DatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
 	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };
 };
 
-DataProvider::DataProvider(std::shared_ptr<DatabaseUser> databaseUser
+DataProvider::DataProvider(std::shared_ptr<IDatabaseUser> databaseUser
 	, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor
 )
 	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor))

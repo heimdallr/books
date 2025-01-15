@@ -20,7 +20,7 @@ public:
 	using Ids = std::unordered_set<Id>;
 
 public:
-	GroupController(std::shared_ptr<class DatabaseUser> databaseUser
+	GroupController(std::shared_ptr<class IDatabaseUser> databaseUser
 		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
 		, std::shared_ptr<class IUiFactory> uiFactory
 	);

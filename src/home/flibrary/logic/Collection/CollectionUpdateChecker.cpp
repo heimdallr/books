@@ -5,9 +5,10 @@
 
 #include <plog/Log.h>
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 #include "interface/logic/ICollectionController.h"
-
-#include "database/DatabaseUser.h"
+#include "interface/logic/IDatabaseUser.h"
 
 #include "zip.h"
 
@@ -43,7 +44,7 @@ QStringList & PrepareFolders(QStringList & folders)
 QStringList GetDbFolders(DB::IDatabase & db)
 {
 	QStringList folders;
-	const auto query = db.CreateQuery("select distinct Folder from Books");
+	const auto query = db.CreateQuery("select FolderTitle from Folders");
 	for (query->Execute(); !query->Eof(); query->Next())
 		folders << query->Get<const char *>(0);
 
@@ -86,10 +87,10 @@ QStringList GetInpxFolders(const ICollectionController & collectionController, C
 struct CollectionUpdateChecker::Impl
 {
 	std::shared_ptr<ICollectionController> collectionController;
-	std::shared_ptr<const DatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
 
 	Impl(std::shared_ptr<ICollectionController> collectionController
-		, std::shared_ptr<const DatabaseUser> databaseUser
+		, std::shared_ptr<const IDatabaseUser> databaseUser
 	)
 		: collectionController(std::move(collectionController))
 		, databaseUser(std::move(databaseUser))
@@ -98,7 +99,7 @@ struct CollectionUpdateChecker::Impl
 };
 
 CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<ICollectionController> collectionController
-	, std::shared_ptr<DatabaseUser> databaseUser
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: m_impl(std::move(collectionController)
 		, std::move(databaseUser)

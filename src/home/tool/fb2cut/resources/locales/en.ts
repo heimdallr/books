@@ -4,27 +4,27 @@
 <context>
     <name>HomeCompa::fb2cut::MainWindow</name>
     <message>
-        <location filename="../../MainWindow.cpp" line="183"/>
+        <location filename="../../MainWindow.cpp"/>
         <source>Select input archive</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="189"/>
+        <location filename="../../MainWindow.cpp"/>
         <source>Select output folder</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="195"/>
+        <location filename="../../MainWindow.cpp"/>
         <source>Select external archiver executable</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="201"/>
+        <location filename="../../MainWindow.cpp"/>
         <source>Select ffmpeg executable</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp" line="235"/>
+        <location filename="../../MainWindow.cpp"/>
         <source>Executables (*.exe);;All files (*.*)</source>
         <translation></translation>
     </message>

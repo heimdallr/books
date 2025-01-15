@@ -12,7 +12,7 @@ class CollectionUpdateChecker final
 	NON_COPY_MOVABLE(CollectionUpdateChecker)
 public:
 	CollectionUpdateChecker(std::shared_ptr<class ICollectionController> collectionController
-		, std::shared_ptr<class DatabaseUser> databaseUser
+		, std::shared_ptr<class IDatabaseUser> databaseUser
 	);
 	~CollectionUpdateChecker() override;
 

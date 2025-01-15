@@ -40,9 +40,19 @@ DROP TABLE IF EXISTS Genre_List;
 DROP TABLE IF EXISTS Author_List;
 --@@
 
+DROP TABLE IF EXISTS Folders;
+--@@
+
+CREATE TABLE Folders (
+  FolderID    INTEGER       NOT NULL,
+  FolderTitle VARCHAR (200) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+);
+--@@
+
 CREATE TABLE Series (
-  SeriesID          INTEGER     NOT NULL,
-  SeriesTitle       VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  SeriesID    INTEGER     NOT NULL,
+  SeriesTitle VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  SearchTitle VARCHAR (80)         COLLATE NOCASE
 );
 --@@
 
@@ -58,7 +68,8 @@ CREATE TABLE Authors (
   AuthorID   INTEGER      NOT NULL,
   LastName   VARCHAR(128) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   FirstName  VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
-  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE
+  MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
+  SearchName VARCHAR (128)         COLLATE NOCASE
 );
 --@@
 
@@ -71,12 +82,13 @@ CREATE TABLE Books (
   UpdateDate       VARCHAR(23)   NOT NULL,
   LibRate          INTEGER       NOT NULL                           DEFAULT 0,
   Lang             VARCHAR(2)            COLLATE MHL_SYSTEM_NOCASE,
-  Folder           VARCHAR(200)          COLLATE MHL_SYSTEM_NOCASE,
+  FolderID         INTEGER       NOT NULL,
   FileName         VARCHAR(170)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
-  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0
+  IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
+  SearchTitle      VARCHAR (150)         COLLATE NOCASE
 );
 --@@
 
@@ -154,7 +166,8 @@ CREATE TABLE Searches_User (
 
 CREATE TABLE Keywords (
   KeywordID     INTEGER       NOT NULL,
-  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  SearchTitle  VARCHAR (150)           COLLATE NOCASE
 );
 --@@
 
