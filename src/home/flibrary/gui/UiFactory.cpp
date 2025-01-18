@@ -12,6 +12,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITreeViewController.h"
+#include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
@@ -63,6 +64,7 @@ struct UiFactory::Impl
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
 	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
 	mutable QAbstractItemView * abstractItemView { nullptr };
+	mutable QString title;
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -123,6 +125,12 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 {
 	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
+{
+	m_impl->title = std::move(title);
+	return m_impl->container.resolve<IComboBoxTextDialog>();
 }
 
 void UiFactory::ShowAbout() const
@@ -214,6 +222,11 @@ QAbstractItemView & UiFactory::GetAbstractItemView() const noexcept
 {
 	assert(m_impl->abstractItemView);
 	return *m_impl->abstractItemView;
+}
+
+QString UiFactory::GetTitle() const noexcept
+{
+	return std::move(m_impl->title);
 }
 
 }
