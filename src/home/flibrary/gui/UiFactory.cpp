@@ -86,6 +86,11 @@ QObject * UiFactory::GetParentObject() const noexcept
 	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject();
 }
 
+QWidget * UiFactory::GetParentWidget() const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget();
+}
+
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {
 	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);

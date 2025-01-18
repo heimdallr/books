@@ -71,6 +71,11 @@ UiFactory::~UiFactory() = default;
 
 QObject * UiFactory::GetParentObject() const noexcept
 {
+	return GetParentWidget();
+}
+
+QWidget * UiFactory::GetParentWidget() const noexcept
+{
 	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
 }
 

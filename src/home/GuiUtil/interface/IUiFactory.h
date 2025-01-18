@@ -18,6 +18,7 @@ public:
 	virtual ~IUiFactory() = default;
 
 	[[nodiscard]] virtual QObject * GetParentObject() const noexcept = 0;
+	[[nodiscard]] virtual QWidget * GetParentWidget() const noexcept = 0;
 
 	[[nodiscard]] virtual QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, QMessageBox::ButtonRole defaultButton = QMessageBox::NoRole) const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(const QString & text, const QMessageBox::StandardButtons & buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;

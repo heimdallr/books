@@ -21,6 +21,7 @@ public:
 
 private:
 	QObject * GetParentObject() const noexcept override;
+	QWidget * GetParentWidget() const noexcept override;
 
 	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, QMessageBox::ButtonRole defaultButton) const override;
 	QMessageBox::StandardButton ShowQuestion(const QString & text, const QMessageBox::StandardButtons & buttons, QMessageBox::StandardButton defaultButton) const override;
