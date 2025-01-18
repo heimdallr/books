@@ -1,5 +1,6 @@
 #include "SearchController.h"
 
+#include <QComboBox>
 #include <plog/Log.h>
 
 #include "database/interface/ICommand.h"
@@ -14,6 +15,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
+#include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
 #include "util/ISettings.h"
 
@@ -23,27 +25,53 @@ using namespace Flibrary;
 namespace {
 
 constexpr auto CONTEXT               =                   "SearchController";
-constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Input new search string");
-constexpr auto SEARCH                = QT_TRANSLATE_NOOP("SearchController", "Search");
+constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Find books whose titles");
 constexpr auto REMOVE_SEARCH_CONFIRM = QT_TRANSLATE_NOOP("SearchController", "Are you sure you want to delete the search results (%1)?");
 constexpr auto CANNOT_CREATE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot create search query (%1)");
 constexpr auto CANNOT_REMOVE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot remove search query");
 constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required.\nTry again?");
 constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
-constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query %1 already exists.\nTry again?");
+constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query \"%1\" already exists.\nTry again?");
+
+struct SearchMode
+{
+	enum
+	{
+		Contains,
+		StartsWith,
+		EndsWith,
+		Equals,
+	};
+};
+
+constexpr std::pair<int, const char *> CONDITIONS[]
+{
+	{ SearchMode::Contains  , QT_TRANSLATE_NOOP("SearchController", "contain") },
+	{ SearchMode::StartsWith, QT_TRANSLATE_NOOP("SearchController", "begin with") },
+	{ SearchMode::EndsWith  , QT_TRANSLATE_NOOP("SearchController", "end with") },
+	{ SearchMode::Equals    , QT_TRANSLATE_NOOP("SearchController", "is equal to") },
+};
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
-constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
+constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, Mode, SearchTitle, CreatedAt) values(?, ?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
 using Names = std::unordered_set<QString>;
 
-long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & name)
+QString GetSearchTitle(const QString & value, int mode)
+{
+	mode = ~mode;
+	return QString("%1%2%3").arg(mode & SearchMode::StartsWith ? "~" : "", value, mode & SearchMode::EndsWith ? "~" : "");
+}
+
+long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & name, const int mode)
 {
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
-	command->Bind(0, name.toStdString());
+	command->Bind(0, GetSearchTitle(name, mode).toStdString());
+	command->Bind(1, mode);
+	command->Bind(2, name.toUpper().toStdString());
 	if (!command->Execute())
 		return 0;
 
@@ -84,22 +112,22 @@ struct SearchController::Impl
 		{
 			Names names;
 			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-				names.insert(root->GetChild(i)->GetData());
+				names.emplace(root->GetChild(i)->GetData().toUpper());
 			callback(names);
 		});
 	}
 
 	void CreateNewSearch(const Names & names, Callback callback)
 	{
-		auto searchString = GetNewSearchText(names);
+		auto [searchMode, searchString] = GetNewSearchText(names);
 		if (searchString.isEmpty())
 			return;
 
-		databaseUser->Execute({ "Create search string", [&, searchString = std::move(searchString), callback = std::move(callback)] () mutable
+		databaseUser->Execute({ "Create search string", [&, searchMode, searchString = std::move(searchString), callback = std::move(callback)] () mutable
 		{
 			const auto db = databaseUser->Database();
 			const auto transaction = db->CreateTransaction();
-			const auto id = CreateNewSearchImpl(*transaction, searchString);
+			const auto id = CreateNewSearchImpl(*transaction, searchString, searchMode);
 			transaction->Commit();
 
 			return [this, id, searchString = std::move(searchString), callback = std::move(callback)] (size_t)
@@ -113,11 +141,19 @@ struct SearchController::Impl
 		} });
 	}
 
-	QString GetNewSearchText(const Names & names) const
+	std::pair<int, QString> GetNewSearchText(const Names & names) const
 	{
 		while (true)
 		{
-			auto searchString = uiFactory->GetText(Tr(INPUT_NEW_SEARCH), Tr(SEARCH));
+			const auto searchStringDialog = uiFactory->CreateComboBoxTextDialog(Tr(INPUT_NEW_SEARCH));
+			for (const auto & [id, text] : CONDITIONS)
+				searchStringDialog->GetComboBox().addItem(Tr(text), id);
+
+			if (searchStringDialog->GetDialog().exec() != QDialog::Accepted)
+				return {};
+
+			auto searchString = searchStringDialog->GetLineEdit().text();
+			const auto searchMode = searchStringDialog->GetComboBox().currentData().toInt();
 			if (searchString.isEmpty())
 				return {};
 
@@ -129,7 +165,7 @@ struct SearchController::Impl
 				return {};
 			}
 
-			if (names.contains(searchString))
+			if (names.contains(GetSearchTitle(searchString, searchMode).toUpper()))
 			{
 				if (uiFactory->ShowWarning(Tr(SEARCH_ALREADY_EXISTS).arg(searchString), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 					continue;
@@ -145,7 +181,7 @@ struct SearchController::Impl
 				return {};
 			}
 
-			return searchString;
+			return std::make_pair(searchMode, std::move(searchString));
 		}
 	}
 };

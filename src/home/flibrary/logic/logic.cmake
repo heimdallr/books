@@ -7,6 +7,7 @@ AddTarget(logic	shared_lib
 		plog
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Network
+		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		DatabaseFactory
 		flint
