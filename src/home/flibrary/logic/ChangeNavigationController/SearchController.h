@@ -24,6 +24,18 @@ public:
 	using Ids = std::unordered_set<Id>;
 
 public:
+	struct SearchMode
+	{
+		enum
+		{
+			Contains,
+			StartsWith,
+			EndsWith,
+			Equals,
+		};
+	};
+
+public:
 	SearchController(std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IDatabaseUser> databaseUser
 		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
