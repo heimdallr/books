@@ -444,13 +444,8 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Input new search string</source>
-        <translation>Введите подстроку для поиска</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Search</source>
-        <translation>Поиск</translation>
+        <source>Find books whose titles</source>
+        <translation>Найти книги, названия которых</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
@@ -483,9 +478,29 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Search query %1 already exists.
+        <source>contain</source>
+        <translation>содержат</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>begin with</source>
+        <translation>начианются с</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>end with</source>
+        <translation>оканчиваются на</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>is equal to</source>
+        <translation>равны</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>Search query &quot;%1&quot; already exists.
 Try again?</source>
-        <translation>Поисковый запрос %1 уже есть.
+        <translation>Поисковый запрос &quot;%1&quot; уже есть.
 Попробуете ещё раз?</translation>
     </message>
 </context>

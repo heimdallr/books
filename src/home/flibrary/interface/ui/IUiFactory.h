@@ -16,6 +16,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class QDialog> CreateOpdsDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
 
 	virtual void ShowAbout() const = 0;
 
@@ -24,6 +25,7 @@ public: // special
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController> GetTreeViewController() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractScrollArea & GetAbstractScrollArea() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractItemView & GetAbstractItemView() const noexcept = 0;
+	[[nodiscard]] virtual QString GetTitle() const noexcept = 0;
 };
 
 }

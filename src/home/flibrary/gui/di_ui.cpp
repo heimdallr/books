@@ -23,6 +23,7 @@
 #include "delegate/OpenFileDialogDelegateEditor.h"
 #include "delegate/StorableComboboxDelegateEditor.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/ComboBoxTextDialog.h"
 #include "dialogs/script/ComboBoxDelegate.h"
 #include "dialogs/script/CommandArgDelegate.h"
 #include "dialogs/script/CommandDelegate.h"
@@ -43,6 +44,7 @@ namespace HomeCompa::Flibrary {
 void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
 {
 	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
+	builder.registerType<ComboBoxTextDialog>().as<IComboBoxTextDialog>();
 	builder.registerType<LineOption>().as<ILineOption>();
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();

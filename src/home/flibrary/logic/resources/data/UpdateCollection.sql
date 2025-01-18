@@ -61,5 +61,8 @@ CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE);
 CREATE INDEX IX_ExportListUser_BookID ON Export_List_User (BookID);
 --@@
 
+CREATE INDEX IX_Searches_User_SearchTitle ON Searches_User (SearchTitle COLLATE NOCASE);
+--@@
+
 ANALYZE;
 --@@

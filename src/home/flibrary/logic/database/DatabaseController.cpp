@@ -132,6 +132,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string & databaseNa
 		AddUserTableField(*transaction, "Series", "SearchTitle", "VARCHAR (80) COLLATE NOCASE", { "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)", "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)" });
 		if (AddUserTableField(*transaction, "Books", "FolderID", "INTEGER", { "CREATE INDEX IX_Books_FolderID ON Books(FolderID)", "CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID)", "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }))
 			OnBooksFolderIDAdded(*transaction);
+		AddUserTableField(*transaction, "Searches_User", "Mode", "INTEGER NOT NULL DEFAULT (0)");
+		AddUserTableField(*transaction, "Searches_User", "SearchTitle", "VARCHAR (150) COLLATE NOCASE", { "CREATE INDEX IX_Searches_User_SearchTitle ON Searches_User(SearchTitle COLLATE NOCASE)", "UPDATE Searches_User SET SearchTitle = MHL_UPPER(Title)", "UPDATE Searches_User SET Title = '~'||Title||'~'" });
 
 		transaction->Commit();
 		return db;
