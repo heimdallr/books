@@ -1039,7 +1039,7 @@ private:
 			if (!(m_mode & CreateCollectionMode::SkipLostBooks) || fileList.empty() || fileList.contains(std::wstring(buf.fileName).append(L".").append(buf.ext)))
 				AddBook(files, buf, folder);
 			else
-				PLOGW << ToMultiByte(buf.fileName) << "." << ToMultiByte(buf.ext) << " not found. Skipped";
+				PLOGW << std::quoted(ToMultiByte(buf.title)) << " skipped because its file " << ToMultiByte(buf.fileName) << "." << ToMultiByte(buf.ext) << " not found.";
 		}
 
 		if (!archiveFileInfo.exists())
