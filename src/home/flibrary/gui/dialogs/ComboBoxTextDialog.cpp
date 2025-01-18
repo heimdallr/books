@@ -45,12 +45,13 @@ ComboBoxTextDialog::ComboBoxTextDialog(const std::shared_ptr<const IUiFactory> &
 	: QDialog(parent ? parent : uiFactory->GetParentWidget())
 	, m_impl(*this, std::move(settings))
 {
-	m_impl->ui.setupUi(this);
+	auto & ui = m_impl->ui;
+	ui.setupUi(this);
 	setWindowTitle(uiFactory->GetTitle());
 
 	auto setOkButtonEnabled = [this] (const QString & text) { m_impl->ui.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!text.isEmpty()); };
-	setOkButtonEnabled(m_impl->ui.lineEdit->text());
-	connect(m_impl->ui.lineEdit, &QLineEdit::textChanged, std::move(setOkButtonEnabled));
+	setOkButtonEnabled(ui.lineEdit->text());
+	connect(ui.lineEdit, &QLineEdit::textChanged, std::move(setOkButtonEnabled));
 }
 
 ComboBoxTextDialog::~ComboBoxTextDialog() = default;
