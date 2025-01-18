@@ -33,23 +33,12 @@ constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Se
 constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query \"%1\" already exists.\nTry again?");
 
-struct SearchMode
-{
-	enum
-	{
-		Contains,
-		StartsWith,
-		EndsWith,
-		Equals,
-	};
-};
-
 constexpr std::pair<int, const char *> CONDITIONS[]
 {
-	{ SearchMode::Contains  , QT_TRANSLATE_NOOP("SearchController", "contain") },
-	{ SearchMode::StartsWith, QT_TRANSLATE_NOOP("SearchController", "begin with") },
-	{ SearchMode::EndsWith  , QT_TRANSLATE_NOOP("SearchController", "end with") },
-	{ SearchMode::Equals    , QT_TRANSLATE_NOOP("SearchController", "is equal to") },
+	{ SearchController::SearchMode::Contains  , QT_TRANSLATE_NOOP("SearchController", "contain") },
+	{ SearchController::SearchMode::StartsWith, QT_TRANSLATE_NOOP("SearchController", "begin with") },
+	{ SearchController::SearchMode::EndsWith  , QT_TRANSLATE_NOOP("SearchController", "end with") },
+	{ SearchController::SearchMode::Equals    , QT_TRANSLATE_NOOP("SearchController", "is equal to") },
 };
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
@@ -62,7 +51,7 @@ using Names = std::unordered_set<QString>;
 QString GetSearchTitle(const QString & value, int mode)
 {
 	mode = ~mode;
-	return QString("%1%2%3").arg(mode & SearchMode::StartsWith ? "~" : "", value, mode & SearchMode::EndsWith ? "~" : "");
+	return QString("%1%2%3").arg(mode & SearchController::SearchMode::StartsWith ? "~" : "", value, mode & SearchController::SearchMode::EndsWith ? "~" : "");
 }
 
 long long CreateNewSearchImpl(DB::ITransaction & transaction, const QString & name, const int mode)
