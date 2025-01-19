@@ -23,7 +23,7 @@ namespace {
 struct Created
 {
 	QString title;
-	int mode;
+	int mode { 0 };
 	QString createdAt;
 };
 
