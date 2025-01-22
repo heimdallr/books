@@ -375,16 +375,13 @@ private: // IContextMenuHandler
 		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
-	void SendAsInpx(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
 		if (idList.empty())
 			return;
 
-		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id)
-		{
-			return std::move(id.front());
-		});
+		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id) { return std::move(id.front()); });
 		auto dir = m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
 		if (dir.isEmpty())
 			return callback(item);
