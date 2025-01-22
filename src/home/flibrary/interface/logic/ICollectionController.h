@@ -8,7 +8,7 @@ class ICollectionController
 	: virtual public ICollectionProvider
 {
 public:
-	virtual void AddCollection(const std::filesystem::path & inpx) = 0;
+	virtual void AddCollection(const std::filesystem::path & inpxDir) = 0;
 	virtual void RemoveCollection() = 0;
 
 	virtual void SetActiveCollection(const QString & id) = 0;

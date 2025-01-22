@@ -17,19 +17,21 @@ using namespace Flibrary;
 
 namespace {
 
-QString GetFileHash(const QString & fileName)
+QString GetFileHash(const std::set<QString> & fileNames)
 {
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly))
-		return {};
-
-	constexpr auto size = 1024ll * 32;
-	const auto buf = std::make_unique<char[]>(size);
-
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+	for (const auto & fileName : fileNames)
+	{
+		QFile file(fileName);
+		if (!file.open(QIODevice::ReadOnly))
+			return {};
 
-	while (const auto readSize = file.read(buf.get(), size))
-		hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+		constexpr auto size = 1024ll * 32;
+		const auto buf = std::make_unique<char[]>(size);
+
+		while (const auto readSize = file.read(buf.get(), size))
+			hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+	}
 
 	return hash.result().toHex();
 }
@@ -59,25 +61,28 @@ QStringList GetInpxFolders(const ICollectionController & collectionController, C
 	const auto& collection = collectionController.GetActiveCollection();
 
 	updatedCollection = collection;
-	const auto inpxFileName = collectionController.GetInpx(collection.folder);
-	if (inpxFileName.isEmpty())
+	const auto inpxFileNames = collectionController.GetInpxFiles(collection.folder);
+	if (inpxFileNames.empty())
 		return {};
 
-	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileName); updatedCollection.discardedUpdate == collection.discardedUpdate)
+	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileNames); updatedCollection.discardedUpdate == collection.discardedUpdate)
 		return {};
 
 	QStringList folders;
 
-	if (QFile::exists(inpxFileName))
+	for (const auto & inpxFileName : inpxFileNames)
 	{
+		assert(QFile::exists(inpxFileName));
+
 		const Zip zip(inpxFileName);
-		folders = zip.GetFileNameList();
-		if (auto [begin, end] = std::ranges::remove_if(folders, [] (const auto & item)
-		{
-			return QFileInfo(item).suffix().toLower() != "inp";
-		}); begin != end)
-			folders.erase(begin, end);
+		folders << zip.GetFileNameList();
 	}
+
+	if (auto [begin, end] = std::ranges::remove_if(folders, [] (const auto & item)
+	{
+		return QFileInfo(item).suffix().toLower() != "inp";
+	}); begin != end)
+		folders.erase(begin, end);
 
 	return PrepareFolders(folders);
 }

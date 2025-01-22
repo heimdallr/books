@@ -51,7 +51,7 @@ constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionControlle
 TR_DEF
 
 using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, Inpx::Parser::IniMap>;
-IniMapPair GetIniMap(const QString & db, const QString & inpx, bool createFiles)
+IniMapPair GetIniMap(const QString & db, const QString & inpxFolder, bool createFiles)
 {
 	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap{} };
 	const auto getFile = [&tempDir = *result.first, createFiles] (const QString & name)
@@ -71,11 +71,14 @@ IniMapPair GetIniMap(const QString & db, const QString & inpx, bool createFiles)
 		{ GENRES, getFile(QString::fromStdWString(DEFAULT_GENRES)).toStdWString() },
 		{ DB_CREATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT)).toStdWString() },
 		{ DB_UPDATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT)).toStdWString() },
-		{ INPX, inpx.toStdWString() },
+		{ INPX_FOLDER, inpxFolder.toStdWString() },
 	};
 
-	for (const auto & [key, value] : result.second)
+	for (auto & [key, value] : result.second)
+	{
+		value.make_preferred();
 		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
+	}
 
 	return result;
 }
@@ -219,9 +222,9 @@ public:
 		return m_collectionProvider->GetCollectionDatabaseName(databaseFileName);
 	}
 
-	QString GetInpx(const QString & folder) const
+	auto GetInpxFiles(const QString & folder) const
 	{
-		return m_collectionProvider->GetInpx(folder);
+		return m_collectionProvider->GetInpxFiles(folder);
 	}
 
 	bool IsCollectionFolderHasInpx(const QString & folder) const
@@ -255,7 +258,7 @@ private:
 
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto & parserRef = *parser;
-		auto [tmpDir, ini] = GetIniMap(db, GetInpx(folder), true);
+		auto [tmpDir, ini] = GetIniMap(db, folder, true);
 		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)] (const Inpx::UpdateResult & updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
@@ -282,7 +285,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto & parserRef = *parser;
-		auto [tmpDir, ini] = GetIniMap(collection.database, GetInpx(collection.folder), true);
+		auto [tmpDir, ini] = GetIniMap(collection.database, collection.folder, true);
 		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name] (const Inpx::UpdateResult & updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
@@ -290,7 +293,7 @@ private:
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
-		parserRef.UpdateCollection(GetIniMap(collection.database, GetInpx(collection.folder), true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+		parserRef.UpdateCollection(GetIniMap(collection.database, collection.folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
 	}
 
 	void ShowUpdateResult(const Inpx::UpdateResult & updateResult, const QString & name, const char * action)
@@ -338,9 +341,9 @@ CollectionController::~CollectionController()
 	PLOGD << "CollectionController destroyed";
 }
 
-void CollectionController::AddCollection(const std::filesystem::path & inpx)
+void CollectionController::AddCollection(const std::filesystem::path & inpxDir)
 {
-	m_impl->AddCollection(inpx);
+	m_impl->AddCollection(inpxDir);
 }
 
 void CollectionController::RemoveCollection()
@@ -363,9 +366,9 @@ QString CollectionController::GetCollectionDatabaseName(const QString & database
 	return m_impl->GetCollectionDatabaseName(databaseFileName);
 }
 
-QString CollectionController::GetInpx(const QString & folder) const
+std::set<QString> CollectionController::GetInpxFiles(const QString & folder) const
 {
-	return m_impl->GetInpx(folder);
+	return m_impl->GetInpxFiles(folder);
 }
 
 bool CollectionController::IsCollectionFolderHasInpx(const QString & folder) const
