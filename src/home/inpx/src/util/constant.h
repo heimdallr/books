@@ -13,13 +13,12 @@
 [[maybe_unused]] constexpr auto DB_PATH                  = L"db_path";
 [[maybe_unused]] constexpr auto DB_UPDATE_SCRIPT         = L"db_update_script";
 [[maybe_unused]] constexpr auto DEFAULT_DB_CREATE_SCRIPT = L"CreateCollection.sql";
-[[maybe_unused]] constexpr auto DEFAULT_DB_PATH          = L"db.hlc2";
 [[maybe_unused]] constexpr auto DEFAULT_DB_UPDATE_SCRIPT = L"UpdateCollection.sql";
 [[maybe_unused]] constexpr auto DEFAULT_GENRES           = L"genres.lst";
-[[maybe_unused]] constexpr auto DEFAULT_INPX             = L"db.inpx";
 [[maybe_unused]] constexpr auto GENRES                   = L"genres";
 [[maybe_unused]] constexpr auto INI_EXT                  = L"ini";
-[[maybe_unused]] constexpr auto INPX                     = L"inpx";
+[[maybe_unused]] constexpr auto INPX_EXT                 = L".inpx";
+[[maybe_unused]] constexpr auto INPX_FOLDER              = L"inpx_folder";
 [[maybe_unused]] constexpr auto MHL_TRIGGERS_ON          = L"mhl_triggers_on";
 [[maybe_unused]] constexpr auto VERSION_INFO             = L"version.info";
 [[maybe_unused]] constexpr auto ZIP                      = L"zip";

@@ -102,10 +102,17 @@ public:
 		}
 	}
 
-	const Path & operator()(const Parser::IniMap::value_type::first_type & key, const Path & defaultValue) const
+	const Path & operator()(const Parser::IniMap::value_type::first_type & key, const Path & defaultValue = {}) const
 	{
 		const auto it = _data.find(key);
-		return it != _data.end() ? it->second : defaultValue;
+		if (it != _data.end())
+			return it->second;
+
+		if (!defaultValue.empty())
+			return defaultValue;
+
+		assert(false && "value required");
+		throw std::runtime_error("value required");
 	}
 
 private:
@@ -582,7 +589,17 @@ std::wstring RemoveExt(std::wstring & str)
 	return result;
 }
 
-std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
+auto GetInpxFilesInFolder(const Path & inpxFolder)
+{
+	return std::filesystem::directory_iterator { inpxFolder } | std::views::filter([] (const Path & path)
+	{
+		const auto ext = path.extension().wstring();
+		const auto proj = [] (const auto & ch) { return std::tolower(ch); };
+		return std::ranges::equal(ext, std::wstring(INPX_EXT), {}, proj, proj);
+	});
+}
+
+auto GetNewInpxFolders(const Ini & ini, Data & data)
 {
 	std::map<std::wstring, std::wstring> dbExt;
 	std::ranges::transform(data.folders, std::inserter(dbExt, std::end(dbExt)), [] (const auto & item)
@@ -592,19 +609,27 @@ std::vector<std::wstring> GetNewInpxFolders(const Ini & ini, Data & data)
 		return std::make_pair(std::move(folder), std::move(ext));
 	});
 	std::map<std::wstring, std::wstring> inpxExt;
-	std::ranges::transform(ExtractInpxFileNames(ini(INPX, DEFAULT_INPX)).inpx, std::inserter(inpxExt, std::end(inpxExt)), [&inpxExt] (auto item)
+	const auto inpxFolder = ini(INPX_FOLDER);
+	std::unordered_map<Path, std::vector<std::wstring>> result;
+
+	for (const auto & inpx : GetInpxFilesInFolder(inpxFolder))
 	{
-		auto ext = RemoveExt(ToLower(item));
-		return std::make_pair(std::move(item), std::move(ext));
-	});
+		std::ranges::transform(ExtractInpxFileNames(inpx).inpx, std::inserter(inpxExt, std::end(inpxExt)), [] (auto item)
+		{
+			auto ext = RemoveExt(ToLower(item));
+			return std::make_pair(std::move(item), std::move(ext));
+		});
 
-	std::vector<std::pair<std::wstring, std::wstring>> resultExt;
-	const auto proj = [] (const auto & item) { return item.first; };
-	std::ranges::set_difference(inpxExt, dbExt, std::back_inserter(resultExt), {}, proj, proj);
+		std::vector<std::pair<std::wstring, std::wstring>> resultExt;
+		const auto proj = [] (const auto & item) { return item.first; };
+		std::ranges::set_difference(inpxExt, dbExt, std::back_inserter(resultExt), {}, proj, proj);
+		if (resultExt.empty())
+			continue;
 
-	std::vector<std::wstring> result;
-	result.reserve(resultExt.size());
-	std::ranges::transform(resultExt, std::back_inserter(result), [] (const auto & item) { return item.first + L'.' + item.second; });
+		auto & files = result.try_emplace(inpx, std::vector<std::wstring>{}).first->second;
+		files.reserve(resultExt.size());
+		std::ranges::transform(resultExt, std::back_inserter(files), [&] (const auto & item) { return item.first + L'.' + item.second; });
+	}
 
 	return result;
 }
@@ -854,7 +879,7 @@ private:
 	{
 		Util::Timer t(L"work");
 
-		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
+		const auto & dbFileName = m_ini(DB_PATH);
 
 		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 
@@ -875,7 +900,7 @@ private:
 
 	size_t UpdateDatabaseImpl()
 	{
-		const auto & dbFileName = m_ini(DB_PATH, DEFAULT_DB_PATH);
+		const auto & dbFileName = m_ini(DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
 
 		std::ranges::transform(oldData.keywords, std::inserter(m_uniqueKeywords, m_uniqueKeywords.end()), [] (const auto & item) { return std::pair(QString::fromStdWString(item.first).toLower(), item.first); });
@@ -884,10 +909,17 @@ private:
 		m_genresIndex = oldGenresIndex;
 		SetUnknownGenreId();
 
-		const auto & inpxFileName = m_ini(INPX, DEFAULT_INPX);
-		const Zip zip(QString::fromStdWString(inpxFileName));
 		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
-		ParseInpxFiles(inpxFileName, &zip, newInpxFolders);
+		for (const auto & inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
+		{
+			const auto & inpxFileName = inpxFileNameEntry.path();
+			const auto it = newInpxFolders.find(inpxFileName);
+			if (it == newInpxFolders.end())
+				continue;
+
+			const Zip zip(QString::fromStdWString(inpxFileName));
+			ParseInpxFiles(inpxFileName, &zip, it->second);
+		}
 
 		const auto filter = [] (auto & dst, const auto & src)
 		{
@@ -916,30 +948,33 @@ private:
 		m_genresIndex = std::move(genresIndex);
 		SetUnknownGenreId();
 
-		const Path & inpxFileName = m_ini(INPX, DEFAULT_INPX);
-		const auto inpxContent = ExtractInpxFileNames(inpxFileName);
-
-		const auto zip = [&]
+		for (const auto & inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
-			if (!exists(inpxFileName))
+			const auto & inpxFileName = inpxFileNameEntry.path();
+			const auto inpxContent = ExtractInpxFileNames(inpxFileName);
+
+			const auto zip = [&]
+			{
+				if (!exists(inpxFileName))
+					return std::unique_ptr<Zip>{};
+
+				try
+				{
+					return std::make_unique<Zip>(QString::fromStdWString(inpxFileName.generic_wstring()));
+				}
+				catch (const std::exception & ex)
+				{
+					PLOGE << ex.what();
+				}
+				catch (...)
+				{
+					PLOGE << "Unknown error";
+				}
 				return std::unique_ptr<Zip>{};
+			}();
 
-			try
-			{
-				return std::make_unique<Zip>(QString::fromStdWString(inpxFileName.generic_wstring()));
-			}
-			catch (const std::exception & ex)
-			{
-				PLOGE << ex.what();
-			}
-			catch(...)
-			{
-				PLOGE << "Unknown error";
-			}
-			return std::unique_ptr<Zip>{};
-		}();
-
-		ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
+			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
+		}
 	}
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
