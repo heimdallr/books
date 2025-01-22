@@ -113,11 +113,11 @@ public:
 		Init();
 		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 		{
-			if (m_collectionController->IsEmpty() || !commandLine->GetInpx().empty())
+			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
 			{
 				if (!m_ui.actionShowLog->isChecked())
 					m_ui.actionShowLog->trigger();
-				return m_collectionController->AddCollection(commandLine->GetInpx());
+				return m_collectionController->AddCollection(commandLine->GetInpxDir());
 			}
 
 			if (!databaseChecker->IsDatabaseValid())

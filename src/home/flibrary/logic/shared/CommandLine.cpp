@@ -40,13 +40,13 @@ CommandLine::CommandLine()
 		return;
 
 	firstStart = false;
-	if (std::filesystem::path file = positionalArguments.front().toStdWString(); file.extension() == ".inpx")
-		m_impl->inpx = std::move(file);
+	if (const std::filesystem::path file = positionalArguments.front().toStdWString(); file.extension() == ".inpx")
+		m_impl->inpx = file.parent_path().make_preferred();
 }
 
 CommandLine::~CommandLine() = default;
 
-const std::filesystem::path & CommandLine::GetInpx() const noexcept
+const std::filesystem::path & CommandLine::GetInpxDir() const noexcept
 {
 	return m_impl->inpx;
 }

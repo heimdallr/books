@@ -20,10 +20,14 @@ using namespace Flibrary;
 
 namespace {
 
-QString GetInpxImpl(const QString & folder)
+auto GetInpxImpl(const QString & folder)
 {
-	const auto inpxList = QDir(folder).entryList({ "*.inpx" });
-	return inpxList.isEmpty() ? QString{} : QString("%1/%2").arg(folder, inpxList.front());
+	std::set<QString> result;
+	std::ranges::transform(QDir(folder).entryList({ "*.inpx" }), std::inserter(result, result.end()), [&] (const auto & item)
+	{
+		return QString("%1/%2").arg(folder, item);
+	});
+	return result;
 }
 
 }
@@ -105,14 +109,14 @@ QString CollectionProvider::GetCollectionDatabaseName(const QString & databaseFi
 	return collection ? collection->name : QString{};
 }
 
-QString CollectionProvider::GetInpx(const QString & folder) const
+std::set<QString> CollectionProvider::GetInpxFiles(const QString & folder) const
 {
 	return GetInpxImpl(folder);
 }
 
 bool CollectionProvider::IsCollectionFolderHasInpx(const QString & folder) const
 {
-	return !GetInpx(folder).isEmpty();
+	return !GetInpxFiles(folder).empty();
 }
 
 Collections & CollectionProvider::GetCollections() noexcept
