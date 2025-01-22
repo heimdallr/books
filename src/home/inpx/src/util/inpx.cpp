@@ -361,12 +361,6 @@ void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::fun
 	}
 }
 
-bool TableExists(sqlite3pp::database & db, const std::string & table)
-{
-	sqlite3pp::query query(db, std::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}'", table).data());
-	return std::begin(query) != std::end(query);
-}
-
 void ExecuteScript(const std::wstring & action, const Path & dbFileName, const Path & scriptFileName)
 {
 	Util::Timer t(action);
@@ -818,15 +812,19 @@ private: // IPool
 			}
 			try
 			{
-				PLOGI << folder;
+				PLOGI << "parsing " << folder;
 				std::unordered_set<std::string> files;
 				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
-				for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
+				const Zip zip(archiveFileInfo.filePath());
+				const auto zipFileList = zip.GetFileNameList();
+				for (size_t counter = 0; const auto & fileName : zipFileList)
 				{
+					++counter;
 					if (QFileInfo(fileName).suffix() == "fb2")
 					{
 						try
 						{
+							PLOGV << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
 							ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
 						}
 						catch (const std::exception & ex)
