@@ -20,7 +20,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortNavigation.h"
+#include "interface/logic/SortString.h"
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
 #include "Util/FunctorExecutionForwarder.h"
