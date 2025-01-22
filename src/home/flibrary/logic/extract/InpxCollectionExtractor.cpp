@@ -152,7 +152,7 @@ public:
 				command->Execute();
 			}
 
-			(*m_executor)(CreateTask(std::move(books)));
+			(*m_executor)(CreateTask(std::move(bookInfoList)));
 		});
 
 		transaction->Commit();
