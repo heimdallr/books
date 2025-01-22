@@ -11,7 +11,7 @@
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortNavigation.h"
+#include "interface/logic/SortString.h"
 #include "database/DatabaseUtil.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
