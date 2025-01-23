@@ -385,41 +385,17 @@ private: // IContextMenuHandler
 
 	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
-		if (idList.empty())
-			return;
-
-		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id) { return std::move(id.front()); });
-		auto dir = m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
-		if (dir.isEmpty())
-			return callback(item);
-
-		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
-		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &InpxCollectionExtractor::ExtractAsInpxCollection, [this]
 		{
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
+			return m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
 		});
 	}
 
 	void SendAsInpxFile(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
-		if (idList.empty())
-			return;
-
-		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id) { return std::move(id.front());});
-		const auto inpxFileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, SELECT_INPX_FILE, SELECT_INPX_FILE_FILTER);
-		if (inpxFileName.isEmpty())
-			return callback(item);
-
-		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
-		extractor->GenerateInpx(inpxFileName, idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &InpxCollectionExtractor::GenerateInpx, [this]
 		{
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
+			return m_uiFactory->GetSaveFileName(DIALOG_KEY, SELECT_INPX_FILE, SELECT_INPX_FILE_FILTER);
 		});
 	}
 
@@ -435,6 +411,33 @@ private: // IContextMenuHandler
 	}
 
 private:
+	void SendAsInpxImpl(QAbstractItemModel * model
+		, const QModelIndex & index
+		, const QList<QModelIndex> & indexList
+		, IDataItem::Ptr item
+		, Callback callback
+		, void (InpxCollectionExtractor::*extractorMethod)(QString, const std::vector<QString> &, const DataProvider &, InpxCollectionExtractor::Callback)
+		, const std::function<QString()> & nameGenerator
+		) const
+	{
+		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		if (idList.empty())
+			return;
+
+		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id) { return std::move(id.front()); });
+		auto inpxName = nameGenerator();
+		if (inpxName.isEmpty())
+			return callback(item);
+
+		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
+		std::invoke(extractorMethod, *extractor, std::move(inpxName), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		{
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+			callback(item);
+			extractor.reset();
+		});
+	}
+
 	void SendAsImpl(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
 	{
 		auto outputFileNameTemplate = m_settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());

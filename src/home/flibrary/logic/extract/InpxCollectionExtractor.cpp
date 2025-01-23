@@ -341,10 +341,10 @@ void InpxCollectionExtractor::ExtractAsInpxCollection(QString folder, const std:
 	m_impl->Extract(std::move(folder), std::move(bookInfo), std::move(callback));
 }
 
-void InpxCollectionExtractor::GenerateInpx(const QString & inpxFileName, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)
+void InpxCollectionExtractor::GenerateInpx(QString inpxFileName, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)
 {
 	std::vector<BookInfo> bookInfo;
 	std::ranges::transform(idList, std::back_inserter(bookInfo), [&] (const auto & id) { return dataProvider.GetBookInfo(id.toLongLong()); });
 
-	m_impl->GenerateInpx(inpxFileName, std::move(bookInfo), std::move(callback));
+	m_impl->GenerateInpx(std::move(inpxFileName), std::move(bookInfo), std::move(callback));
 }
