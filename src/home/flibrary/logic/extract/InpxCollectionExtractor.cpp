@@ -93,6 +93,8 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 		output.write(bytes);
 		Write(inpx, uid, book, n);
 		progress.Increment(input.size());
+		if (progress.IsStopped())
+			break;
 	}
 
 	return inpx;
@@ -101,10 +103,7 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 }
 
 class InpxCollectionExtractor::Impl final
-	: IProgressController::IObserver
 {
-	NON_COPY_MOVABLE(Impl)
-
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
@@ -116,12 +115,6 @@ public:
 		, m_databaseUser(std::move(databaseUser))
 		, m_logicFactory(logicFactory)
 	{
-		m_progressController->RegisterObserver(this);
-	}
-
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
 	}
 
 	void Extract(QString dstFolder, BookInfoList && books, Callback callback)
@@ -174,6 +167,8 @@ public:
 				auto & stream = m_paths[id];
 				Write(stream, id, book, n);
 				progressItem->Increment(1);
+				if (progressItem->IsStopped())
+					break;
 			}
 			return [this, inpxFileName = std::move(inpxFileName)] (size_t)
 			{
@@ -181,25 +176,6 @@ public:
 			};
 		}});
 
-	}
-
-private: // IProgressController::IObserver
-	void OnStartedChanged() override
-	{
-	}
-
-	void OnValueChanged() override
-	{
-	}
-
-	void OnStop() override
-	{
-		m_executor->Stop();
-		m_executor.reset();
-		QTimer::singleShot(0, [&]
-		{
-			m_callback(m_hasError);
-		});
 	}
 
 private:
