@@ -83,6 +83,11 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Generate inde&amp;x file (*.inpx)</source>
+        <translation>Создять инде&amp;кс (*.inpx)</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Groups</source>
         <translation>&amp;Группы</translation>
     </message>
@@ -175,6 +180,16 @@
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Save index file</source>
+        <translation>Сохранить индексный файл</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Index files (*.inpx);;All files (*.*)</source>
+        <translation>Индексные файлы (*.inpx);;Все файлы (*.*)</translation>
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>

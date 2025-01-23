@@ -38,6 +38,7 @@ constexpr auto EXPORT                         = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto     SEND_AS_ARCHIVE            = QT_TRANSLATE_NOOP("BookContextMenu", "As &zip archive");
 constexpr auto     SEND_AS_IS                 = QT_TRANSLATE_NOOP("BookContextMenu", "As &original format");
 constexpr auto     SEND_AS_INPX               = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
+constexpr auto     SEND_AS_SINGLE_INPX        = QT_TRANSLATE_NOOP("BookContextMenu", "Generate inde&x file (*.inpx)");
 constexpr auto GROUPS                         = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
 constexpr auto     GROUPS_ADD_TO              = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
 constexpr auto         GROUPS_ADD_TO_NEW      = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
@@ -57,6 +58,8 @@ constexpr auto     TREE_EXPAND_ALL            = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+constexpr auto SELECT_INPX_FILE               = QT_TRANSLATE_NOOP("BookContextMenu", "Save index file");
+constexpr auto SELECT_INPX_FILE_FILTER        = QT_TRANSLATE_NOOP("BookContextMenu", "Index files (*.inpx);;All files (*.*)");
 
 constexpr auto CANNOT_SET_USER_RATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_REMOVE_BOOK             = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
@@ -158,13 +161,18 @@ void CreateSendMenu(const IDataItem::Ptr & root, const IScriptController::Script
 	const auto & send = Add(root, Tr(EXPORT));
 	Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
 	Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
-	Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	for (const auto & script : scripts)
+	if (!scripts.empty())
 	{
-		const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
-		scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
+		Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+		for (const auto & script : scripts)
+		{
+			const auto & scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
+			scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
+		}
 	}
-	Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpx);
+	Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpxCollection);
+	Add(send, Tr(SEND_AS_SINGLE_INPX), BooksMenuAction::SendAsInpxFile);
 }
 
 void CreateCheckMenu(const IDataItem::Ptr & root)
@@ -375,26 +383,19 @@ private: // IContextMenuHandler
 		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
-	void SendAsInpx(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
-		if (idList.empty())
-			return;
-
-		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id)
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &InpxCollectionExtractor::ExtractAsInpxCollection, [this]
 		{
-			return std::move(id.front());
+			return m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
 		});
-		auto dir = m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER);
-		if (dir.isEmpty())
-			return callback(item);
+	}
 
-		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
-		extractor->ExtractAsInpxCollection(std::move(dir), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+	void SendAsInpxFile(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &InpxCollectionExtractor::GenerateInpx, [this]
 		{
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
+			return m_uiFactory->GetSaveFileName(DIALOG_KEY, SELECT_INPX_FILE, SELECT_INPX_FILE_FILTER);
 		});
 	}
 
@@ -410,6 +411,33 @@ private: // IContextMenuHandler
 	}
 
 private:
+	void SendAsInpxImpl(QAbstractItemModel * model
+		, const QModelIndex & index
+		, const QList<QModelIndex> & indexList
+		, IDataItem::Ptr item
+		, Callback callback
+		, void (InpxCollectionExtractor::*extractorMethod)(QString, const std::vector<QString> &, const DataProvider &, InpxCollectionExtractor::Callback)
+		, const std::function<QString()> & nameGenerator
+		) const
+	{
+		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		if (idList.empty())
+			return;
+
+		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [] (auto & id) { return std::move(id.front()); });
+		auto inpxName = nameGenerator();
+		if (inpxName.isEmpty())
+			return callback(item);
+
+		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
+		std::invoke(extractorMethod, *extractor, std::move(inpxName), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)] (const bool hasError) mutable
+		{
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+			callback(item);
+			extractor.reset();
+		});
+	}
+
 	void SendAsImpl(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
 	{
 		auto outputFileNameTemplate = m_settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
