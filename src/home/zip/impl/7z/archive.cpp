@@ -125,8 +125,7 @@ private: // IZip
 		if (it == m_files.end())
 			Error::CannotFindFileInArchive(filename);
 
-		auto archive = CreateInputArchive(m_lib, m_filename, m_format);
-		return File::Read(std::move(archive), it->second.n, m_progress);
+		return File::Read(m_archive, it->second.n, m_progress);
 	}
 
 	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
@@ -161,24 +160,27 @@ private:
 		if (!m_files.empty())
 			return;
 
-		const auto archive = CreateInputArchive(m_lib, m_filename, m_format);
-		ScopedCall archiveGuard([&] { archive->Close(); });
+		if (!m_archive)
+		{
+			Format format { Format::Unknown };
+			m_archive = CreateInputArchive(m_lib, m_filename, format);
+		}
 
 		UInt32 numItems = 0;
-		archive->GetNumberOfItems(&numItems);
+		m_archive->GetNumberOfItems(&numItems);
 		for (UInt32 i = 0; i < numItems; i++)
 		{
 			CPropVariant prop;
-			archive->GetProperty(i, kpidIsDir, &prop);
+			m_archive->GetProperty(i, kpidIsDir, &prop);
 			if (prop.boolVal != VARIANT_FALSE)
 				continue;
 
-			archive->GetProperty(i, kpidSize, &prop);
+			m_archive->GetProperty(i, kpidSize, &prop);
 			const auto size = prop.uhVal.QuadPart;
 
 			auto time = [&]
 			{
-				if (FAILED(archive->GetProperty(i, kpidCTime, &prop)) || (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime))
+				if (FAILED(m_archive->GetProperty(i, kpidCTime, &prop)) || (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime))
 					return QDateTime {};
 
 				SYSTEMTIME systemTime {};
@@ -188,7 +190,7 @@ private:
 				return QDateTime(QDate(systemTime.wYear, systemTime.wMonth, systemTime.wDay), QTime(systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds));
 			}();
 
-			archive->GetProperty(i, kpidPath, &prop);
+			m_archive->GetProperty(i, kpidPath, &prop);
 			if (prop.vt == VT_BSTR)
 				m_files.try_emplace(QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal)), FileItem { i, size, std::move(time) });
 		}
@@ -198,8 +200,8 @@ private:
 	QString m_filename;
 	std::shared_ptr<ProgressCallback> m_progress;
 	Lib m_lib;
+	mutable CComPtr<IInArchive> m_archive;
 	mutable Files m_files;
-	mutable Format m_format { Unknown };
 };
 
 }
