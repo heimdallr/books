@@ -6,8 +6,8 @@
 
 #include "zip/interface/error.h"
 #include "zip/interface/zip.h"
-#include "zip/impl/zip/archive.h"
 #include "zip/impl/7z/archive.h"
+#include "zip/impl/zip/archive.h"
 
 using namespace HomeCompa::ZipDetails;
 
