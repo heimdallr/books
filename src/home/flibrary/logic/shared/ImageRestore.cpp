@@ -232,11 +232,36 @@ bool ExtractBookImages(const QString & folder, const QString & fileName, const E
 	bool stop = false;
 	const auto result = std::accumulate(std::cbegin(EXTENSIONS), std::cend(EXTENSIONS), false, [&] (const bool init, const char * ext)
 	{
-		return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+		try
+		{
+			return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+		}
+		catch(const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch(...)
+		{
+			PLOGE << "unknown error";
+		}
+		return init;
 	});
 
 	for (const auto * ext : EXTENSIONS)
-		ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
+	{
+		try
+		{
+			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
+		}
+		catch (const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch (...)
+		{
+			PLOGE << "unknown error";
+		}
+	}
 
 	return result;
 }
