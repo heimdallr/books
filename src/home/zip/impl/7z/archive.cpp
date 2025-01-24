@@ -93,16 +93,8 @@ CComPtr<IInArchive> CreateInputArchive(const Lib & lib, const QString & filename
 
 class Reader final : virtual public IZip
 {
-	struct FileItem
-	{
-		uint32_t n;
-		size_t size;
-		QDateTime time;
-	};
-	using Files = std::unordered_map<QString, FileItem>;
-
 public:
-	explicit Reader(QString filename, std::shared_ptr<ProgressCallback> progress)
+	Reader(QString filename, std::shared_ptr<ProgressCallback> progress)
 		: m_filename(std::move(filename))
 		, m_progress(std::move(progress))
 	{
@@ -125,7 +117,7 @@ private: // IZip
 		if (it == m_files.end())
 			Error::CannotFindFileInArchive(filename);
 
-		return File::Read(m_archive, it->second.n, m_progress);
+		return File::Read(m_archive, it->second, m_progress);
 	}
 
 	std::unique_ptr<IFile> Write(const QString & /*filename*/) override

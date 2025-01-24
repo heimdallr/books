@@ -1,66 +1,265 @@
 #include <atlcomcli.h>
+#include <comdef.h>
 
 #include "file.h"
 
 #include <QBuffer>
 
+#include "7z/CPP/7zip/Archive/IArchive.h"
+#include "7z/CPP/7zip/IPassword.h"
+
 #include "zip/interface/file.h"
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
 
-#include "MemExtractCallback.h"
 #include "PropVariant.h"
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
 namespace {
 
-class StreamImpl : public Stream
+constexpr auto EMPTY_FILE_ALIAS = "[Content]";
+
+class StreamImpl final
+	: public Stream
+	, public IArchiveExtractCallback
+	, public ICryptoGetTextPassword
+	, public ISequentialOutStream
 {
 public:
-	explicit StreamImpl(QByteArray bytes)
-		: m_bytes(std::move(bytes))
-		, m_buffer(&m_bytes)
+	StreamImpl(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
+		: m_zip { std::move(zip) }
+		, m_fileItem { fileItem }
+		, m_progress { std::move(progress) }
 	{
+		m_progress->OnStartWithTotal(static_cast<int64_t>(m_fileItem.size));
+
+		const UInt32 indices[] = { fileItem.n };
+		m_zip->Extract(indices, 1, 0, this);
+		m_progress->OnDone();
 	}
 
 private: // Stream
 	QIODevice & GetStream() override
 	{
-		m_buffer.open(QIODevice::ReadOnly);
-		return m_buffer;
+		m_buffer = std::make_unique<QBuffer>(&m_bytes);
+		m_buffer->open(QIODevice::ReadOnly);
+		return *m_buffer;
+	}
+
+private: // IUnknown
+	HRESULT QueryInterface(REFIID iid, void ** ppvObject) override//-V835
+	{
+		if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+		{
+			*ppvObject = reinterpret_cast<IUnknown *>(this);
+			AddRef();
+			return S_OK;
+		}
+
+		if (iid == IID_IArchiveExtractCallback)
+		{
+			*ppvObject = static_cast<IArchiveExtractCallback *>(this);
+			AddRef();
+			return S_OK;
+		}
+
+		if (iid == IID_ICryptoGetTextPassword)
+		{
+			*ppvObject = static_cast<ICryptoGetTextPassword *>(this);
+			AddRef();
+			return S_OK;
+		}
+
+		if (iid == IID_ISequentialOutStream)
+		{
+			*ppvObject = static_cast<ISequentialOutStream *>(this);
+			AddRef();
+			return S_OK;
+		}
+
+		return E_NOINTERFACE;
+	}
+
+	ULONG AddRef() override
+	{
+		return static_cast<ULONG>(InterlockedIncrement(&m_refCount));
+	}
+
+	ULONG Release() override
+	{
+		return static_cast<ULONG>(InterlockedDecrement(&m_refCount));
+	}
+
+private: // IProgress
+	HRESULT SetTotal(const UInt64 /*size*/) noexcept override
+	{
+		// SetTotal is never called for ZIP and 7z formats
+		return CheckBreak();
+	}
+
+	HRESULT SetCompleted(const UInt64 * /*completeValue*/) noexcept override
+	{
+		//Callback Event calls
+		/*
+		NB:
+		- For ZIP format SetCompleted only called once per 1000 files in central directory and once per 100 in local ones.
+		- For 7Z format SetCompleted is never called.
+		*/
+		return CheckBreak();
+	}
+
+private: // IArchiveExtractCallback
+	HRESULT GetStream(const UInt32 index, ISequentialOutStream ** outStream, const Int32 askExtractMode) noexcept override
+	{
+		try
+		{
+			// Retrieve all the various properties for the file at this index.
+			GetPropertyFilePath(index);
+			if (askExtractMode != NArchive::NExtract::NAskMode::kExtract)
+				return S_OK;
+
+			GetPropertyIsDir(index);
+		}
+		catch (_com_error & ex)
+		{
+			return ex.Error();
+		}
+
+		if (!m_isDir)
+			QueryInterface(IID_ISequentialOutStream, reinterpret_cast<void **>(outStream));
+
+		return CheckBreak();
+	}
+
+	HRESULT PrepareOperation(Int32 /*askExtractMode*/) noexcept override
+	{
+		return S_OK;
+	}
+
+	HRESULT SetOperationResult(const Int32 operationResult) noexcept override
+	{
+		if (operationResult != NArchive::NExtract::NOperationResult::kOK)
+			return E_FAIL;
+
+		EmitFileDoneCallback();
+		return CheckBreak();
+	}
+
+private: // ICryptoGetTextPassword
+	HRESULT CryptoGetTextPassword(BSTR * password) noexcept override
+	{
+		if (!m_password.isEmpty())
+			*password = SysAllocString(m_password.toStdWString().data());
+
+		return S_OK;
+	}
+
+
+private: // ISequentialOutStream
+	HRESULT Write(const void * data, const UInt32 size, UInt32 * processedSize) noexcept override
+	{
+		if (processedSize)
+			*processedSize = 0;
+
+		if (!data || size == 0)
+			return E_FAIL;
+
+		if (m_progress->OnCheckBreak())
+			return E_ABORT;
+
+		const auto * byte_data = static_cast<const char *>(data);
+		m_bytes.append(byte_data, size);
+		if (processedSize)
+			*processedSize = size;
+
+		m_progress->OnIncrement(size);
+
+		return S_OK;
+	}
+private:
+	HRESULT CheckBreak() const
+	{
+		return m_progress->OnCheckBreak() ? E_ABORT : S_OK;
+	}
+
+	void GetPropertyFilePath(const UInt32 index)
+	{
+		CPropVariant prop;
+		const HRESULT hr = m_zip->GetProperty(index, kpidPath, &prop);
+		if (hr != S_OK)
+		{
+			_com_issue_error(hr);
+		}
+
+		if (prop.vt == VT_EMPTY)
+		{
+			m_filePath = EMPTY_FILE_ALIAS;
+		}
+		else if (prop.vt != VT_BSTR)
+		{
+			_com_issue_error(E_FAIL);
+		}
+		else
+		{
+			m_filePath = QString::fromStdWString(prop.bstrVal);
+		}
+	}
+
+	void GetPropertyIsDir(const UInt32 index)
+	{
+		CPropVariant prop;
+		const HRESULT hr = m_zip->GetProperty(index, kpidIsDir, &prop);
+		if (hr != S_OK)
+		{
+			_com_issue_error(hr);
+		}
+
+		if (prop.vt == VT_EMPTY)
+		{
+			m_isDir = false;
+		}
+		else if (prop.vt != VT_BOOL)
+		{
+			_com_issue_error(E_FAIL);
+		}
+		else
+		{
+			m_isDir = prop.boolVal != VARIANT_FALSE;
+		}
+	}
+
+	void EmitFileDoneCallback(const QString & path = {}) const
+	{
+		m_progress->OnFileDone(path);
 	}
 
 private:
+	CComPtr<IInArchive> m_zip;
+	const FileItem & m_fileItem;
+	std::shared_ptr<ProgressCallback> m_progress;
 	QByteArray m_bytes;
-	QBuffer m_buffer;
+	std::unique_ptr<QBuffer> m_buffer;
+	LONG m_refCount { 1 };
+	QString m_password;
+	bool m_isDir { false };
+	QString m_filePath;
 };
 
-class FileReader : virtual public IFile
+class FileReader final : virtual public IFile
 {
 public:
-	FileReader(CComPtr<IInArchive> zip, const uint32_t index, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(std::move(zip))
-		, m_index(index)
-		, m_progress(std::move(progress))
+	FileReader(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
+		: m_zip { std::move(zip) }
+		, m_fileItem { fileItem }
+		, m_progress { std::move(progress) }
 	{
 	}
 
 private:
 	std::unique_ptr<Stream> Read() override
 	{
-		const UInt32 indices[] = { m_index };
-		QByteArray bytes;
-		const auto callback = MemExtractCallback::Create(m_zip, bytes, m_progress);
-
-		CPropVariant prop;
-		m_zip->GetProperty(m_index, kpidSize, &prop);
-		m_progress->OnStartWithTotal(static_cast<int64_t>(prop.uhVal.QuadPart));
-
-		m_zip->Extract(indices, 1, 0, callback);
-		m_progress->OnDone();
-
-		return std::make_unique<StreamImpl>(std::move(bytes));
+		return std::make_unique<StreamImpl>(m_zip, m_fileItem, m_progress);
 	}
 
 	std::unique_ptr<Stream> Write() override
@@ -70,15 +269,15 @@ private:
 
 private:
 	CComPtr<IInArchive> m_zip;
-	const uint32_t m_index;
+	const FileItem & m_fileItem;
 	std::shared_ptr<ProgressCallback> m_progress;
 };
 
 }
 
-std::unique_ptr<IFile> File::Read(CComPtr<IInArchive> zip, const uint32_t index, std::shared_ptr<ProgressCallback> progress)
+std::unique_ptr<IFile> File::Read(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
 {
-	return std::make_unique<FileReader>(std::move(zip), index, std::move(progress));
+	return std::make_unique<FileReader>(std::move(zip), fileItem, std::move(progress));
 }
 
 }
