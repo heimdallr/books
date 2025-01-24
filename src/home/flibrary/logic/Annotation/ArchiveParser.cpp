@@ -447,10 +447,10 @@ private:
 		auto parseProgressItem = m_progressController->Add(100);
 
 		const Zip zip(folder, m_zipProgressCallback);
-		auto & stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
+		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 		m_extractArchiveProgressItem.reset();
 
-		XmlParser parser(stream);
+		XmlParser parser(stream->GetStream());
 		return parser.Parse(collection.folder, book, std::move(parseProgressItem));
 	}
 

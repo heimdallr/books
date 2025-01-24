@@ -49,8 +49,8 @@ bool Archive(const QByteArray & input, const std::filesystem::path & path, const
 	try
 	{
 		Zip zip(QString::fromStdWString(path), Zip::Format::Zip);
-		auto & stream = zip.Write(fileName);
-		stream.write(input);
+		const auto stream = zip.Write(fileName);
+		stream->GetStream().write(input);
 		return true;
 	}
 	catch(const std::exception & ex)
@@ -110,7 +110,8 @@ std::filesystem::path Process(const std::filesystem::path & archiveFolder
 
 	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
 	const Zip zip(folder);
-	auto [ok, path] = Write(zip.Read(book.file), outputFileTemplate, folder, book, progress, pathChecker, asArchives);
+	const auto stream = zip.Read(book.file);
+	auto [ok, path] = Write(stream->GetStream(), outputFileTemplate, folder, book, progress, pathChecker, asArchives);
 	if (!ok && exists(path))
 		remove(path);
 

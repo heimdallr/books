@@ -7,6 +7,7 @@
 #include "zip/interface/error.h"
 #include "zip/interface/zip.h"
 #include "zip/impl/7z/archive.h"
+#include "zip/impl/bit7z/archive.h"
 #include "zip/impl/zip/archive.h"
 
 using namespace HomeCompa::ZipDetails;
@@ -16,13 +17,13 @@ namespace {
 using ReaderCreator = std::unique_ptr<IZip>(*)(const QString & filename, std::shared_ptr<ProgressCallback> progress);
 constexpr std::pair<const char *, ReaderCreator> CREATORS_BY_EXT[]
 {
-	{"zip", &Impl::Zip::Archive::CreateReader},
+	{"zip", &Impl::SevenZip::Archive::CreateReader},
 	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 
 constexpr std::pair<const char *, ReaderCreator> CREATORS_BY_SIGNATURE[]
 {
-	{"PK", &Impl::Zip::Archive::Archive::CreateReader},
+	{"PK", &Impl::SevenZip::Archive::Archive::CreateReader},
 	{"7z", &Impl::SevenZip::Archive::CreateReader},
 };
 

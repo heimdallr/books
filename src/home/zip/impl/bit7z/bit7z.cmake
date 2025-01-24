@@ -1,13 +1,15 @@
-AddTarget(ZipFactory	shared_lib
+AddTarget(bit7zWrapper	shared_lib
 	PROJECT_GROUP Util/zip/impl
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
-		7zWrapper
-		bit7zWrapper
 		logging
+		Util
 		ZipInterface
-		ZipWrapper
+	LINK_LIBRARIES
+		bit7z
+	COMPILE_DEFINITIONS
+		BIT7Z_AUTO_FORMAT
 )

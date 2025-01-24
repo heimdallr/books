@@ -5,8 +5,29 @@
 #include "fnd/FindPair.h"
 #include "zip/interface/error.h"
 #include "zip/interface/file.h"
+#include "zip/interface/stream.h"
 
 namespace HomeCompa::ZipDetails::Impl::Zip {
+
+namespace {
+
+class StreamQuaZipImpl : public Stream
+{
+public:
+	explicit StreamQuaZipImpl(QuaZipFile & zipFile)
+		: m_zipFile(zipFile)
+	{
+	}
+
+private: // Stream
+	QIODevice & GetStream() override
+	{
+		return m_zipFile;
+	}
+
+private:
+	QuaZipFile & m_zipFile;
+};
 
 class QuaZipImpl final : virtual public IFile
 {
@@ -31,12 +52,12 @@ public:
 	}
 
 private: // IFile
-	QIODevice & Read() override
+	std::unique_ptr<Stream> Read() override
 	{
-		return m_zipFile;
+		return std::make_unique<StreamQuaZipImpl>(m_zipFile);
 	}
 
-	QIODevice & Write() override
+	std::unique_ptr<Stream> Write() override
 	{
 		return Read();
 	}
@@ -57,6 +78,8 @@ private:
 private:
 	QuaZipFile m_zipFile;
 };
+
+}
 
 std::unique_ptr<IFile> File::Read(QuaZip & zip, const QString & filename)
 {

@@ -86,13 +86,13 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 	{
 		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
 		const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
-		auto & output = zip.Write(fileName);
+		const auto output = zip.Write(fileName);
 		const Zip zipInput(folder);
-		auto & input = zipInput.Read(fileName);
-		const auto bytes = RestoreImages(input, folder, fileName);
-		output.write(bytes);
+		const auto input = zipInput.Read(fileName);
+		const auto bytes = RestoreImages(input->GetStream(), folder, fileName);
+		output->GetStream().write(bytes);
 		Write(inpx, uid, book, n);
-		progress.Increment(input.size());
+		progress.Increment(input->GetStream().size());
 		if (progress.IsStopped())
 			break;
 	}
@@ -252,18 +252,18 @@ private:
 		if (!inpxFileExists)
 		{
 			{
-				auto & stream = zip.Write("collection.info");
-				stream.write("Collection");
+				const auto stream = zip.Write("collection.info");
+				stream->GetStream().write("Collection");
 			}
 			{
-				auto & stream = zip.Write("version.info");
-				stream.write(QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
+				const auto stream = zip.Write("version.info");
+				stream->GetStream().write(QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
 			}
 		}
 
 		for (const auto & [uid, data] : m_paths)
 			if (!data.isEmpty())
-				zip.Write(QString("%1.inp").arg(uid)).write(data);
+				zip.Write(QString("%1.inp").arg(uid))->GetStream().write(data);
 
 		m_callback(m_hasError);
 	}

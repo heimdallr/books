@@ -67,14 +67,14 @@ public:
 		return m_zip->GetFileNameList();
 	}
 
-	QIODevice & Read(const QString & filename)
+	std::unique_ptr<Stream> Read(const QString & filename)
 	{
 		m_file.reset();
 		m_file.reset(m_zip->Read(filename));
 		return m_file->Read();
 	}
 
-	QIODevice & Write(const QString & filename)
+	std::unique_ptr<Stream> Write(const QString & filename)
 	{
 		m_file.reset();
 		m_file.reset(m_zip->Write(filename));
@@ -113,7 +113,7 @@ Zip::Zip(QIODevice & stream, Format format, bool appendMode, std::shared_ptr<Pro
 
 Zip::~Zip() = default;
 
-QIODevice & Zip::Read(const QString & filename) const
+std::unique_ptr<Stream> Zip::Read(const QString & filename) const
 {
 	return m_impl->Read(filename);
 }
@@ -123,7 +123,7 @@ QStringList Zip::GetFileNameList() const
 	return m_impl->GetFileNameList();
 }
 
-QIODevice & Zip::Write(const QString & filename)
+std::unique_ptr<Stream> Zip::Write(const QString & filename)
 {
 	return m_impl->Write(filename);
 }

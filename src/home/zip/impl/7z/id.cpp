@@ -119,15 +119,16 @@ DEFINE_GUID(CLSID_CFormatGZip,
 
 constexpr std::pair<Format, const GUID *> GUIDS[]
 {
-	{ Zip   , &CLSID_CFormatZip },
-	{ GZip  , & CLSID_CFormatGZip },
-	{ BZip2 , & CLSID_CFormatBZip2 },
-	{ Rar   , & CLSID_CFormatRar },
-	{ Tar   , & CLSID_CFormatTar },
-	{ Iso   , & CLSID_CFormatIso },
-	{ Cab   , & CLSID_CFormatCab },
-	{ Lzma  , & CLSID_CFormatLzma },
-	{ Lzma86, & CLSID_CFormatLzma86 },
+	{ Zip     , & CLSID_CFormatZip },
+	{ SevenZip, & CLSID_CFormat7z },
+	{ GZip    , & CLSID_CFormatGZip },
+	{ BZip2   , & CLSID_CFormatBZip2 },
+	{ Rar     , & CLSID_CFormatRar },
+	{ Tar     , & CLSID_CFormatTar },
+	{ Iso     , & CLSID_CFormatIso },
+	{ Cab     , & CLSID_CFormatCab },
+	{ Lzma    , & CLSID_CFormatLzma },
+	{ Lzma86  , & CLSID_CFormatLzma86 },
 };
 
 }

@@ -13,7 +13,7 @@ namespace HomeCompa::ZipDetails::Impl::SevenZip
 
 namespace {
 
-constexpr auto LIBRARY_NAME = L"7za.dll";
+constexpr auto LIBRARY_NAME = L"7z.dll";
 constexpr auto ENTRY_POINT = "CreateObject";
 
 using ObjectCreator = UINT32(WINAPI *)(const GUID * clsID, const GUID * interfaceID, void ** outObject);

@@ -7,9 +7,9 @@
 #include "export/zip.h"
 
 #include "zip/interface/ProgressCallback.h"
+#include "zip/interface/stream.h"
 
 class QDateTime;
-class QIODevice;
 
 namespace HomeCompa {
 
@@ -32,8 +32,8 @@ public:
 	~Zip();
 
 	[[nodiscard]] QStringList GetFileNameList() const;
-	[[nodiscard]] QIODevice & Read(const QString & filename) const;
-	[[nodiscard]] QIODevice & Write(const QString & filename);
+	[[nodiscard]] std::unique_ptr<Stream> Read(const QString & filename) const;
+	[[nodiscard]] std::unique_ptr<Stream> Write(const QString & filename);
 	[[nodiscard]] size_t GetFileSize(const QString & filename) const;
 	[[nodiscard]] const QDateTime & GetFileTime(const QString & filename) const;
 

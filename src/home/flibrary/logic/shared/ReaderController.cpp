@@ -57,11 +57,11 @@ std::shared_ptr<QTemporaryDir> Extract(const ILogicFactory& logicFactory, const 
 	try
 	{
 		const Zip zip(archive);
-		auto & stream = zip.Read(fileName);
+		const auto stream = zip.Read(fileName);
 		auto temporaryDir = logicFactory.CreateTemporaryDir();
 		const auto fileNameDst = temporaryDir->filePath(fileName);
 		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-			file.write(RestoreImages(stream, archive, fileName));
+			file.write(RestoreImages(stream->GetStream(), archive, fileName));
 
 		fileName = fileNameDst;
 		return temporaryDir;

@@ -351,12 +351,13 @@ InpxContent ExtractInpxFileNames(const Path & inpxFileName)
 	return inpxContent;
 }
 
-void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::function<void(QIODevice& stream)> & f)
+void GetDecodedStream(const Zip & zip, const std::wstring & file, const std::function<void(QIODevice&)> & f)
 {
 	PLOGI << file;
 	try
 	{
-		f(zip.Read(QString::fromStdWString(file)));
+		const auto stream = zip.Read(QString::fromStdWString(file));
+		f(stream->GetStream());
 	}
 	catch (const std::exception & ex)
 	{
@@ -1095,8 +1096,8 @@ private:
 	void ParseFile(std::unordered_set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
-		auto & stream = zip.Read(fileName);
-		Fb2Parser parser(stream, fileName);
+		const auto stream = zip.Read(fileName);
+		Fb2Parser parser(stream->GetStream(), fileName);
 		const auto parserData = parser.Parse();
 		PLOGI_IF(++m_parsedN % LOG_INTERVAL == 0) << m_parsedN << " books parsed";
 

@@ -86,7 +86,7 @@ bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
 {
 	return !std::ranges::all_of(images, [&] (const auto & item)
 	{
-		return zip.Write(item.first).write(item.second) == item.second.size();
+		return zip.Write(item.first)->GetStream().write(item.second) == item.second.size();
 	});
 }
 
@@ -635,7 +635,7 @@ bool ZipIt(const Settings & settings)
 
 		const auto body = input.readAll();
 		input.close();
-		if (zip.Write(file).write(body) != body.size())
+		if (zip.Write(file)->GetStream().write(body) != body.size())
 			result = true;
 		else
 			input.remove();
@@ -680,8 +680,8 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 		{
 			if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
 			{
-				auto & input = zip.Read(fileList.front());
-				auto body = input.readAll();
+				const auto input = zip.Read(fileList.front());
+				auto body = input->GetStream().readAll();
 				if (!body.isEmpty())
 				{
 					fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
