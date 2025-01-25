@@ -352,14 +352,21 @@ static inline uint64_t bswap64( uint64_t x ) {
 }
 #endif
 
-auto read_signature( IInStream* stream, uint32_t size ) noexcept -> uint64_t {
+auto read_signature( IStream* stream, uint32_t size ) noexcept -> uint64_t {
     uint64_t signature = 0;
     stream->Read( &signature, size, nullptr );
     return bswap64( signature );
 }
 
+auto to_large_integer(const std::streamoff offset)
+{
+    LARGE_INTEGER result;
+    result.QuadPart = offset;
+    return result;
+}
+
 // Note: the left shifting of the signature mask might overflow, but it is intentional, so we suppress the sanitizer.
-auto detect_format_from_signature( IInStream* stream ) -> const BitInFormat& {
+auto detect_format_from_signature( IStream* stream ) -> const BitInFormat& {
     constexpr auto kSignatureSize = 8U;
     constexpr auto kBaseSignatureMask = 0xFFFFFFFFFFFFFFFFULL;
     constexpr auto kByteShift = 8ULL;
@@ -369,7 +376,7 @@ auto detect_format_from_signature( IInStream* stream ) -> const BitInFormat& {
     for ( auto i = 0U; i < kSignatureSize - 1; ++i ) {
         const BitInFormat* format = find_format_by_signature( fileSignature );
         if ( format != nullptr ) {
-            stream->Seek( 0, 0, nullptr );
+            stream->Seek(to_large_integer(0), 0, nullptr );
             return *format;
         }
         signatureMask <<= kByteShift;    // left shifting the mask of one byte, so that
@@ -393,10 +400,10 @@ auto detect_format_from_signature( IInStream* stream ) -> const BitInFormat& {
     };
 
     for ( const auto& sig : commonSignaturesWithOffset ) {
-        stream->Seek( sig.offset, 0, nullptr );
+        stream->Seek(to_large_integer(sig.offset), 0, nullptr );
         fileSignature = read_signature( stream, sig.size );
         if ( fileSignature == sig.signature ) {
-            stream->Seek( 0, 0, nullptr );
+            stream->Seek(to_large_integer(0), 0, nullptr );
             return sig.format;
         }
     }
@@ -408,7 +415,7 @@ auto detect_format_from_signature( IInStream* stream ) -> const BitInFormat& {
     constexpr auto kIsoSignatureOffset = 0x8001;
 
     // Checking for ISO signature
-    stream->Seek( kIsoSignatureOffset, 0, nullptr );
+    stream->Seek(to_large_integer(kIsoSignatureOffset), 0, nullptr );
     fileSignature = read_signature( stream, kIsoSignatureSize );
 
     const bool isIso = fileSignature == kIsoSignature;
@@ -420,22 +427,22 @@ auto detect_format_from_signature( IInStream* stream ) -> const BitInFormat& {
         constexpr auto kUdfSignatureSize = 4U;
 
         for ( auto descriptorIndex = 1; descriptorIndex < kMaxVolumeDescriptors; ++descriptorIndex ) {
-            stream->Seek( kIsoSignatureOffset + descriptorIndex * kIsoVolumeDescriptorSize, 0, nullptr );
+            stream->Seek(to_large_integer(kIsoSignatureOffset + descriptorIndex * kIsoVolumeDescriptorSize), 0, nullptr );
             fileSignature = read_signature( stream, kUdfSignatureSize );
 
             if ( fileSignature == kUdfSignature ) { // The file is ISO+UDF or just UDF
-                stream->Seek( 0, 0, nullptr );
+                stream->Seek(to_large_integer(0), 0, nullptr );
                 return BitFormat::Udf;
             }
         }
 
         if ( isIso ) { // The file is pure ISO (no UDF).
-            stream->Seek( 0, 0, nullptr );
+            stream->Seek(to_large_integer(0), 0, nullptr );
             return BitFormat::Iso; //No UDF volume signature found, i.e. simple ISO!
         }
     }
 
-    stream->Seek( 0, 0, nullptr );
+    stream->Seek(to_large_integer(0), 0, nullptr );
     throw std::invalid_argument("Failed to detect the format of the file");
 }
 
