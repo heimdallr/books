@@ -6,6 +6,7 @@
 
 #include "export/zip.h"
 
+#include "zip/interface/format.h"
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
 
@@ -16,14 +17,11 @@ namespace HomeCompa {
 class ZIP_EXPORT Zip
 {
 public:
-	enum class Format
-	{
-		Zip,
-	};
-
 	class ProgressCallback : public ZipDetails::ProgressCallback
 	{
 	};
+
+	using Format = ZipDetails::Format;
 
 public:
 	explicit Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress = {});

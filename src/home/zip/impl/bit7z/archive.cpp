@@ -117,12 +117,12 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::share
 	return std::make_unique<Bit7zImpl>(filename, Bit7zImpl::Mode::Read);
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, std::shared_ptr<ProgressCallback> /*progress*/, const bool appendMode)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, Format, std::shared_ptr<ProgressCallback> /*progress*/, const bool appendMode)
 {
 	return std::make_unique<Bit7zImpl>(filename, Bit7zImpl::Mode::Write, appendMode);
 }
 
-std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & stream, std::shared_ptr<ProgressCallback> /*progress*/, const bool /*appendMode*/)
+std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & stream, Format, std::shared_ptr<ProgressCallback> /*progress*/, const bool /*appendMode*/)
 {
 	return std::make_unique<Bit7zImpl>(stream, Bit7zImpl::Mode::Write);
 }

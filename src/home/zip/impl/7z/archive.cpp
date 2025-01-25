@@ -189,13 +189,13 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::share
 	return std::make_unique<Reader>(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString & /*filename*/, Format, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
 {
 	assert(false);
 	return nullptr;
 }
 
-std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & /*stream*/, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
+std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & /*stream*/, Format, std::shared_ptr<ProgressCallback> /*progress*/, bool /*appendMode*/)
 {
 	assert(false);
 	return nullptr;

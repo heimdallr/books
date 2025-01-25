@@ -1,6 +1,5 @@
 #include "zip.h"
 
-#include "fnd/FindPair.h"
 #include "fnd/memory.h"
 
 #include "zip/interface/file.h"
@@ -11,11 +10,6 @@ using namespace HomeCompa;
 using namespace ZipDetails;
 
 namespace {
-
-constexpr std::pair<Zip::Format, Factory::Format> FORMATS[]
-{
-	{Zip::Format::Zip, Factory::Format::Zip},
-};
 
 class ProgressCallbackStub final
 	: public Zip::ProgressCallback
@@ -51,13 +45,13 @@ public:
 	}
 
 	Impl(const QString & filename, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format), appendMode))
+		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), format, appendMode))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
 
 	Impl(QIODevice & stream, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(stream, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), FindSecond(FORMATS, format), appendMode))
+		: m_zip(Factory::Create(stream, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), format, appendMode))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
