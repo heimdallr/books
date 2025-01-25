@@ -102,6 +102,13 @@ CPropVariant::CPropVariant(LPCOLESTR lpszSrc)
 	*this = lpszSrc;
 }
 
+CPropVariant::CPropVariant(const std::wstring & value)
+	: PROPVARIANT()
+{
+	vt = VT_EMPTY;
+	*this = value.data();
+}
+
 CPropVariant & CPropVariant::operator=(const CPropVariant & varSrc)
 {
 	InternalCopy(&varSrc);

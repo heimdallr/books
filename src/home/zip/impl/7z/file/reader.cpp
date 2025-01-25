@@ -1,7 +1,7 @@
 #include <atlcomcli.h>
 #include <comdef.h>
 
-#include "file.h"
+#include "reader.h"
 
 #include <QBuffer>
 
@@ -256,7 +256,7 @@ public:
 	{
 	}
 
-private:
+private: // IFile
 	std::unique_ptr<Stream> Read() override
 	{
 		return std::make_unique<StreamImpl>(m_zip, m_fileItem, m_progress);
@@ -275,9 +275,13 @@ private:
 
 }
 
-std::unique_ptr<IFile> File::Read(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
+namespace File {
+
+std::unique_ptr<IFile> Read(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
 {
 	return std::make_unique<FileReader>(std::move(zip), fileItem, std::move(progress));
+}
+
 }
 
 }

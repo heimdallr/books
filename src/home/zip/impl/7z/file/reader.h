@@ -22,10 +22,9 @@ struct FileItem
 };
 using Files = std::unordered_map<QString, FileItem>;
 
-struct File
+namespace File
 {
-	static std::unique_ptr<IFile> Read(CComPtr<IInArchive> zip, const FileItem& fileItem, std::shared_ptr<ProgressCallback> progress);
-//	static std::unique_ptr<IFile> Write(QuaZip & zip, const QString & filename, std::shared_ptr<ProgressCallback> progress);
+std::unique_ptr<IFile> Read(CComPtr<IInArchive> zip, const FileItem& fileItem, std::shared_ptr<ProgressCallback> progress);
 };
 
 }

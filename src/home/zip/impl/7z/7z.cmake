@@ -8,6 +8,7 @@ AddTarget(7zWrapper	shared_lib
 		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		logging
+		Util
 		ZipInterface
 	COMPILE_DEFINITIONS
 	LINK_LIBRARIES

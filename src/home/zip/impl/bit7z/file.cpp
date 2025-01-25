@@ -57,7 +57,7 @@ public:
 	explicit StreamImpl(std::unique_ptr<QIODevice> ioDevice)
 		: m_ioDevice(std::move(ioDevice))
 	{
-		m_ioDevice->open(QIODevice::ReadOnly);
+		m_ioDevice->open(QIODevice::WriteOnly);
 	}
 
 private: // Stream

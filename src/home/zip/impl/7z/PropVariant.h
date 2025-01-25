@@ -1,6 +1,7 @@
 #pragma once
 
 #include <propidlbase.h>
+#include <string>
 #include <7z/CPP/Common/MyTypes.h>
 
 
@@ -17,6 +18,7 @@ public:
 	CPropVariant(const PROPVARIANT & varSrc);
 	CPropVariant(BSTR bstrSrc);
 	CPropVariant(LPCOLESTR lpszSrc);
+	CPropVariant(const std::wstring & value);
 	CPropVariant(bool bSrc);
 	CPropVariant(Byte value);
 	CPropVariant(Int16 value);
