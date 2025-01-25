@@ -4,8 +4,9 @@
 
 #include <QDir>
 
-#include <atlcomcli.h>
 #include <Windows.h>
+#include <atlcomcli.h>
+#include <InitGuid.h>
 #include <Shlwapi.h>
 
 #include "7z/CPP/7zip/Archive/IArchive.h"
@@ -18,10 +19,12 @@
 
 #include "ArchiveOpenCallback.h"
 #include "file.h"
-#include "id.h"
 #include "InStreamWrapper.h"
 #include "lib.h"
 #include "PropVariant.h"
+
+#include "bit7z/formatdetect.hpp"
+#include "bit7z/guiddef.hpp"
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
@@ -35,16 +38,16 @@ auto CreateStream(const QString & filename)
 	return fileStream;
 }
 
-CComPtr<IInArchive> GetArchiveReader(const Lib & lib, const Format format)
+CComPtr<IInArchive> GetArchiveReader(const Lib & lib, const bit7z::BitInFormat & format)
 {
-	const GUID * guid = GetCompressionGUID(format);
+	const auto guid = bit7z::format_guid(format);
 
 	CComPtr<IInArchive> archive;
-	lib.CreateObject(*guid, IID_IInArchive, reinterpret_cast<void **>(&archive));
+	lib.CreateObject(guid, IID_IInArchive, reinterpret_cast<void **>(&archive));
 	return archive;
 }
 
-CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> stream, const Format format)
+CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> stream, const bit7z::BitInFormat & format)
 {
 	auto archive = GetArchiveReader(lib, format);
 	if (!archive)
@@ -61,32 +64,17 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> str
 	return {};
 }
 
-CComPtr<IInArchive> DetectFormatAndCreateInputArchiveImpl(const Lib & lib, const CComPtr<IStream> & stream, Format & format)
-{
-	for (static constexpr Format formats[]
-		{
-#define ARCHIVE_FORMAT_ITEM(NAME) Format::NAME,
-		ARCHIVE_FORMAT_ITEMS_X_MACRO
-#undef  ARCHIVE_FORMAT_ITEM
-		}; const auto f : formats)
-	{
-		if (auto archive = CreateInputArchiveImpl(lib, stream, f))
-		{
-			format = f;
-			return archive;
-		}
-	}
-
-	return {};
-}
-
-CComPtr<IInArchive> CreateInputArchive(const Lib & lib, const QString & filename, Format & format)
+CComPtr<IInArchive> CreateInputArchive(const Lib & lib, const QString & filename)
 {
 	auto stream = CreateStream(filename);
-	if (auto archive = format == Unknown
-		? DetectFormatAndCreateInputArchiveImpl(lib, stream, format)
-		: CreateInputArchiveImpl(lib, std::move(stream), format))
-		return archive;
+	
+	if (const auto & format = bit7z::detect_format_from_extension(filename.toStdWString()); format != bit7z::BitFormat::Auto)
+		if (auto archive = CreateInputArchiveImpl(lib, stream, format))
+			return archive;
+
+	if (const auto & format = bit7z::detect_format_from_signature(stream); format != bit7z::BitFormat::Auto)
+		if (auto archive = CreateInputArchiveImpl(lib, std::move(stream), format))
+			return archive;
 
 	Error::CannotOpenArchive(filename);
 }
@@ -153,10 +141,7 @@ private:
 			return;
 
 		if (!m_archive)
-		{
-			Format format { Format::Unknown };
-			m_archive = CreateInputArchive(m_lib, m_filename, format);
-		}
+			m_archive = CreateInputArchive(m_lib, m_filename);
 
 		UInt32 numItems = 0;
 		m_archive->GetNumberOfItems(&numItems);
