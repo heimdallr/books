@@ -12,8 +12,9 @@ public:
 
 	CPropVariant();
 	~CPropVariant();
-	CPropVariant(const PROPVARIANT & varSrc);
 	CPropVariant(const CPropVariant & varSrc);
+	CPropVariant(CPropVariant && varSrc) noexcept;
+	CPropVariant(const PROPVARIANT & varSrc);
 	CPropVariant(BSTR bstrSrc);
 	CPropVariant(LPCOLESTR lpszSrc);
 	CPropVariant(bool bSrc);
@@ -25,6 +26,7 @@ public:
 	CPropVariant(FILETIME value);
 
 	CPropVariant & operator=(const CPropVariant & varSrc);
+	CPropVariant & operator=(CPropVariant && varSrc) noexcept;
 	CPropVariant & operator=(const PROPVARIANT & varSrc);
 	CPropVariant & operator=(BSTR bstrSrc);
 	CPropVariant & operator=(LPCOLESTR lpszSrc);

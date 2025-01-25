@@ -86,6 +86,8 @@ CPropVariant::CPropVariant(const CPropVariant & varSrc)
 	InternalCopy(&varSrc);
 }
 
+CPropVariant::CPropVariant(CPropVariant &&) noexcept = default;
+
 CPropVariant::CPropVariant(BSTR bstrSrc)
 	: PROPVARIANT()
 {
@@ -105,6 +107,9 @@ CPropVariant & CPropVariant::operator=(const CPropVariant & varSrc)
 	InternalCopy(&varSrc);
 	return *this;
 }
+
+CPropVariant & CPropVariant::operator=(CPropVariant &&) noexcept = default;
+
 CPropVariant & CPropVariant::operator=(const PROPVARIANT & varSrc)
 {
 	InternalCopy(&varSrc);
