@@ -14,6 +14,7 @@
 #include "zip/interface/file.h"
 #include "zip/interface/stream.h"
 #include "bit7z/bitformat.hpp"
+#include "zip/interface/ProgressCallback.h"
 
 using namespace bit7z;
 
@@ -47,7 +48,9 @@ private: // QIODevice
 	{
 		m_filedata = data;
 		m_filesize = static_cast<uint64_t>(len);
+		m_progress.OnStartWithTotal(len);
 		m_zip.UpdateItems(this, 1, this);
+		m_progress.OnDone();
 		return len;
 	}
 
@@ -178,18 +181,7 @@ private: // IArchiveUpdateCallback
 				return {};
 		}
 		}();
-//		if (propId == kpidIsAnti)
-//		{
-//			prop = false;
-//		}
-//		else
-//		{
-//			const auto property = static_cast<BitProperty>(propId);
-//			if (mOutputArchive.creator().storeSymbolicLinks() || property != BitProperty::SymLink)
-//			{
-//				prop = mOutputArchive.outputItemProperty(index, property);
-//			}
-//		}
+
 		*value = prop;
 		prop.bstrVal = nullptr;
 		return S_OK;
@@ -203,18 +195,9 @@ private: // IArchiveUpdateCallback
 
 	HRESULT GetStream(UInt32 /*index*/, ISequentialInStream ** inStream) noexcept override
 	{
-		//		RINOK(finalize())
-		//
-		//			if (mHandler.fileCallback())
-		//			{
-		//				const BitPropVariant filePath = mOutputArchive.outputItemProperty(index, BitProperty::Path);
-		//				if (filePath.isString())
-		//				{
-		//					mHandler.fileCallback()(filePath.getString());
-		//				}
-		//			}
-		//
-		//		return mOutputArchive.outputItemStream(index, inStream);
+		if (m_progress.OnCheckBreak())
+			return E_ABORT;
+
 		return QueryInterface(IID_ISequentialInStream, reinterpret_cast<void **>(inStream));
 	}
 
@@ -234,11 +217,16 @@ private:
 			return S_OK;
 		}
 
+		if (m_progress.OnCheckBreak())
+			return E_ABORT;
+
 		const auto realSize = std::min(static_cast<ptrdiff_t>(size), static_cast<ptrdiff_t>(m_filesize) - m_position);
 		std::copy_n(m_filedata + m_position, realSize, reinterpret_cast<char *>(data));
 		m_position += realSize;
 		if (processedSize)
 			*processedSize = static_cast<UInt32>(realSize);
+
+		m_progress.OnIncrement(realSize);
 
 		return S_OK;
 	}

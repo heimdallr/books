@@ -192,7 +192,7 @@ private: // IZip
 		if (it == m_files.end())
 			Error::CannotFindFileInArchive(filename);
 
-		return File::Read(m_archive.archive, it->second, m_progress);
+		return File::Read(*m_archive.archive, it->second, *m_progress);
 	}
 
 	std::unique_ptr<IFile> Write(const QString & /*filename*/) override

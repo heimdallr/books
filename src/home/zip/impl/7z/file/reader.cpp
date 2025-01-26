@@ -27,16 +27,16 @@ class StreamImpl final
 	, public ISequentialOutStream
 {
 public:
-	StreamImpl(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
-		: m_zip { std::move(zip) }
+	StreamImpl(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+		: m_zip { zip }
 		, m_fileItem { fileItem }
-		, m_progress { std::move(progress) }
+		, m_progress { progress }
 	{
-		m_progress->OnStartWithTotal(static_cast<int64_t>(m_fileItem.size));
+		m_progress.OnStartWithTotal(static_cast<int64_t>(m_fileItem.size));
 
 		const UInt32 indices[] = { fileItem.n };
-		m_zip->Extract(indices, 1, 0, this);
-		m_progress->OnDone();
+		m_zip.Extract(indices, 1, 0, this);
+		m_progress.OnDone();
 	}
 
 private: // Stream
@@ -165,7 +165,7 @@ private: // ISequentialOutStream
 		if (!data || size == 0)
 			return E_FAIL;
 
-		if (m_progress->OnCheckBreak())
+		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
 		const auto * byte_data = static_cast<const char *>(data);
@@ -173,71 +173,55 @@ private: // ISequentialOutStream
 		if (processedSize)
 			*processedSize = size;
 
-		m_progress->OnIncrement(size);
+		m_progress.OnIncrement(size);
 
 		return S_OK;
 	}
 private:
 	HRESULT CheckBreak() const
 	{
-		return m_progress->OnCheckBreak() ? E_ABORT : S_OK;
+		return m_progress.OnCheckBreak() ? E_ABORT : S_OK;
 	}
 
 	void GetPropertyFilePath(const UInt32 index)
 	{
 		CPropVariant prop;
-		const HRESULT hr = m_zip->GetProperty(index, kpidPath, &prop);
+		const HRESULT hr = m_zip.GetProperty(index, kpidPath, &prop);
 		if (hr != S_OK)
-		{
 			_com_issue_error(hr);
-		}
 
 		if (prop.vt == VT_EMPTY)
-		{
 			m_filePath = EMPTY_FILE_ALIAS;
-		}
 		else if (prop.vt != VT_BSTR)
-		{
 			_com_issue_error(E_FAIL);
-		}
 		else
-		{
 			m_filePath = QString::fromStdWString(prop.bstrVal);
-		}
 	}
 
 	void GetPropertyIsDir(const UInt32 index)
 	{
 		CPropVariant prop;
-		const HRESULT hr = m_zip->GetProperty(index, kpidIsDir, &prop);
+		const HRESULT hr = m_zip.GetProperty(index, kpidIsDir, &prop);
 		if (hr != S_OK)
-		{
 			_com_issue_error(hr);
-		}
 
 		if (prop.vt == VT_EMPTY)
-		{
 			m_isDir = false;
-		}
 		else if (prop.vt != VT_BOOL)
-		{
 			_com_issue_error(E_FAIL);
-		}
 		else
-		{
 			m_isDir = prop.boolVal != VARIANT_FALSE;
-		}
 	}
 
 	void EmitFileDoneCallback(const QString & path = {}) const
 	{
-		m_progress->OnFileDone(path);
+		m_progress.OnFileDone(path);
 	}
 
 private:
-	CComPtr<IInArchive> m_zip;
+	IInArchive & m_zip;
 	const FileItem & m_fileItem;
-	std::shared_ptr<ProgressCallback> m_progress;
+	ProgressCallback & m_progress;
 	QByteArray m_bytes;
 	std::unique_ptr<QBuffer> m_buffer;
 	LONG m_refCount { 1 };
@@ -249,10 +233,10 @@ private:
 class FileReader final : virtual public IFile
 {
 public:
-	FileReader(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
-		: m_zip { std::move(zip) }
+	FileReader(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+		: m_zip { zip }
 		, m_fileItem { fileItem }
-		, m_progress { std::move(progress) }
+		, m_progress { progress }
 	{
 	}
 
@@ -268,18 +252,18 @@ private: // IFile
 	}
 
 private:
-	CComPtr<IInArchive> m_zip;
+	IInArchive & m_zip;
 	const FileItem & m_fileItem;
-	std::shared_ptr<ProgressCallback> m_progress;
+	ProgressCallback & m_progress;
 };
 
 }
 
 namespace File {
 
-std::unique_ptr<IFile> Read(CComPtr<IInArchive> zip, const FileItem & fileItem, std::shared_ptr<ProgressCallback> progress)
+std::unique_ptr<IFile> Read(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
 {
-	return std::make_unique<FileReader>(std::move(zip), fileItem, std::move(progress));
+	return std::make_unique<FileReader>(zip, fileItem, progress);
 }
 
 }
