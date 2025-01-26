@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fnd/memory.h"
+#include <memory>
 #include "fnd/NonCopyMovable.h"
 #include "interface/logic/ILogicFactory.h"
 
@@ -30,11 +30,14 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<BooksExtractor> CreateBooksExtractor() const override;
 	[[nodiscard]] std::shared_ptr<InpxCollectionExtractor> CreateInpxCollectionExtractor() const override;
 	[[nodiscard]] std::shared_ptr<IUpdateChecker> CreateUpdateChecker() const override;
+	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
 	[[nodiscard]] std::shared_ptr<QTemporaryDir> CreateTemporaryDir() const override;
 
+public: // special
+	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const override;
 private:
 	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 }

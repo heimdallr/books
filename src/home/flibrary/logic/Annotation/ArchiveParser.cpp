@@ -16,6 +16,7 @@
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "zip.h"
+#include "interface/logic/ILogicFactory.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -359,28 +360,16 @@ private:
 }
 
 class ArchiveParser::Impl
-	: virtual ZipProgressCallback::IObserver
-	, virtual IProgressController::IObserver
 {
-	NON_COPY_MOVABLE(Impl)
-
 public:
 	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider
 		, std::shared_ptr<IProgressController> progressController
-		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+		, std::shared_ptr<const ILogicFactory> logicFactory
 	)
 		: m_collectionProvider { std::move(collectionProvider) }
 		, m_progressController { std::move(progressController) }
-		, m_zipProgressCallback { std::move(zipProgressCallback) }
+		, m_logicFactory { std::move(logicFactory) }
 	{
-		m_zipProgressCallback->RegisterObserver(this);
-		m_progressController->RegisterObserver(this);
-	}
-
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
-		m_zipProgressCallback->UnregisterObserver(this);
 	}
 
 	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const
@@ -409,28 +398,6 @@ public:
 		return {};
 	}
 
-private: // ZipProgressCallback::IObserver
-	void OnProgress(const int percents) override
-	{
-		if (m_extractArchiveProgressItem)
-			m_extractArchiveProgressItem->Increment(percents - m_extractArchivePercents);
-		m_extractArchivePercents = percents;
-	}
-
-private: // IProgressController::IObserver
-	void OnStartedChanged() override
-	{
-	}
-
-	void OnValueChanged() override
-	{
-	}
-
-	void OnStop() override
-	{
-		m_zipProgressCallback->Stop();
-	}
-
 private:
 	Data ParseFb2(const IDataItem & book) const
 	{
@@ -442,13 +409,10 @@ private:
 			return {};
 		}
 
-		m_extractArchivePercents = 0;
-		m_extractArchiveProgressItem = m_progressController->Add(100);
 		auto parseProgressItem = m_progressController->Add(100);
 
-		const Zip zip(folder, m_zipProgressCallback);
+		const Zip zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
 		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
-		m_extractArchiveProgressItem.reset();
 
 		XmlParser parser(stream->GetStream());
 		return parser.Parse(collection.folder, book, std::move(parseProgressItem));
@@ -457,18 +421,16 @@ private:
 private:
 	PropagateConstPtr<const ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	std::shared_ptr<IProgressController> m_progressController;
-	std::shared_ptr<ZipProgressCallback> m_zipProgressCallback;
-	mutable std::unique_ptr<IProgressController::IProgressItem> m_extractArchiveProgressItem;
-	mutable int m_extractArchivePercents { 0 };
+	std::shared_ptr<const ILogicFactory> m_logicFactory;
 };
 
 ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider
 	, std::shared_ptr<IAnnotationProgressController> progressController
-	, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+	, std::shared_ptr<const ILogicFactory> logicFactory
 )
 	: m_impl(std::move(collectionProvider)
 		, std::move(progressController)
-		, std::move(zipProgressCallback)
+		, std::move(logicFactory)
 	)
 {
 	PLOGD << "AnnotationParser created";

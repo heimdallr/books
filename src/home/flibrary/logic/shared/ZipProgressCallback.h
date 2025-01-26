@@ -13,20 +13,11 @@ class ZipProgressCallback final : public Zip::ProgressCallback
 	NON_COPY_MOVABLE(ZipProgressCallback)
 
 public:
-	class IObserver : public Observer
-	{
-	public:
-		virtual void OnProgress(int percents) = 0;
-	};
-
-public:
-	ZipProgressCallback();
+	explicit ZipProgressCallback(const std::shared_ptr<const class ILogicFactory> & logicFactory);
 	~ZipProgressCallback() override;
 
 public:
 	void Stop();
-	void RegisterObserver(IObserver * observer);
-	void UnregisterObserver(IObserver * observer);
 
 private: // ProgressCallback
 	void OnStartWithTotal(int64_t totalBytes) override;
