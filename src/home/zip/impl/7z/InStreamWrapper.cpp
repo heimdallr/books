@@ -16,7 +16,7 @@ InStreamWrapper::InStreamWrapper(CComPtr<IStream> baseStream)
 
 HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** ppvObject) //-V835
 {
-	if (iid == __uuidof(IUnknown))
+	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
 	{
 		*ppvObject = reinterpret_cast<IUnknown *>(this);
 		AddRef();
@@ -45,20 +45,6 @@ HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** pp
 	}
 
 	return E_NOINTERFACE;
-}
-
-ULONG STDMETHODCALLTYPE InStreamWrapper::AddRef()
-{
-	return static_cast<ULONG>(InterlockedIncrement(&m_refCount));
-}
-
-ULONG STDMETHODCALLTYPE InStreamWrapper::Release()
-{
-	const auto res = static_cast<ULONG>(InterlockedDecrement(&m_refCount));
-	if (res == 0)
-		delete this;
-
-	return res;
 }
 
 STDMETHODIMP InStreamWrapper::Read(void * data, const UInt32 size, UInt32 * processedSize)

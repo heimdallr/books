@@ -26,8 +26,6 @@
 #include "bit7z/guiddef.hpp"
 #include "bit7z/bitcompressionlevel.hpp"
 
-#include "util/QIODeviceStreamWrapper.h"
-
 #include "ArchiveOpenCallback.h"
 #include "InStreamWrapper.h"
 #include "lib.h"
@@ -243,7 +241,6 @@ public:
 	Writer(QString filename, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
 		: Reader(std::move(filename), std::move(progress))
 		, m_ioDevice { std::make_unique<QFile>(m_filename) }
-		, m_oStream { QStdOStream::create(*m_ioDevice) }
 		, m_outFormat { GetInOutFormat(m_archive.format, format) }
 		, m_outArchive { CreateOutputArchive(m_lib, {}, m_outFormat) }
 		, m_appendMode { appendMode }
@@ -255,12 +252,11 @@ private: // IZip
 	{
 		const auto it = m_files.find(QDir::fromNativeSeparators(filename));
 		m_ioDevice->open(!m_appendMode || m_archive.format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
-		return File::Write(*m_outArchive, *m_oStream, filename, *m_progress);
+		return File::Write(*m_outArchive, *m_ioDevice, filename, *m_progress);
 	}
 
 private:
 	std::unique_ptr<QIODevice> m_ioDevice;
-	std::unique_ptr<std::ostream> m_oStream;
 	const bit7z::BitInOutFormat & m_outFormat;
 	CComPtr<IOutArchive> m_outArchive;
 	const bool m_appendMode;

@@ -2,54 +2,21 @@
 
 #include "OutMemStream.h"
 
-#include <QByteArray>
+#include <QIODevice>
 
 #include "zip/interface/ProgressCallback.h"
 
 using namespace HomeCompa::ZipDetails::Impl::SevenZip;
 
-CComPtr<ISequentialOutStream> OutMemStream::Create(QByteArray & buffer, std::shared_ptr<ProgressCallback> progress)
+CComPtr<ISequentialOutStream> OutMemStream::Create(QIODevice & stream, ProgressCallback & progress)
 {
-	return new OutMemStream(buffer, std::move(progress));
+	return new OutMemStream(stream, progress);
 }
 
-OutMemStream::OutMemStream(QByteArray & buffer, std::shared_ptr<ProgressCallback> progress)
-	: m_buffer(buffer)
-	, m_progress(std::move(progress))
+OutMemStream::OutMemStream(QIODevice & stream, ProgressCallback & progress)
+	: m_stream { stream }
+	, m_progress { progress }
 {
-}
-
-STDMETHODIMP OutMemStream::QueryInterface(REFIID iid, void ** ppvObject) //-V835
-{
-	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
-	{
-		*ppvObject = static_cast<IUnknown *>(this);
-		AddRef();
-		return S_OK;
-	}
-
-	if (iid == IID_ISequentialOutStream)
-	{
-		*ppvObject = static_cast<ISequentialOutStream *>(this);
-		AddRef();
-		return S_OK;
-	}
-
-	return E_NOINTERFACE;
-}
-
-STDMETHODIMP_(ULONG) OutMemStream::AddRef()
-{
-	return static_cast<ULONG>(InterlockedIncrement(&m_refCount));
-}
-
-STDMETHODIMP_(ULONG) OutMemStream::Release()
-{
-	const auto res = static_cast<ULONG>(InterlockedDecrement(&m_refCount));
-	if (res == 0)
-		delete this;
-
-	return res;
 }
 
 STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * processedSize)
@@ -60,15 +27,15 @@ STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * 
 	if (!data || size == 0)
 		return E_FAIL;
 
-	if (m_progress->OnCheckBreak())
+	if (m_progress.OnCheckBreak())
 		return E_ABORT;
 
 	const auto* byte_data = static_cast<const char *>(data);
-	m_buffer.append(byte_data, size);
+	m_stream.write(byte_data, size);
 	if (processedSize)
 		*processedSize = size;
 
-	m_progress->OnIncrement(size);
+	m_progress.OnIncrement(size);
 
 	return S_OK;
 }

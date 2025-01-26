@@ -5,6 +5,9 @@
 
 #include <QBuffer>
 
+#include "fnd/ScopedCall.h"
+#include "fnd/unknown_impl.h"
+
 #include "7z/CPP/7zip/Archive/IArchive.h"
 #include "7z/CPP/7zip/IPassword.h"
 
@@ -12,6 +15,7 @@
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
 
+#include "OutMemStream.h"
 #include "PropVariant.h"
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
@@ -20,31 +24,52 @@ namespace {
 
 constexpr auto EMPTY_FILE_ALIAS = "[Content]";
 
-class StreamImpl final
-	: public Stream
-	, public IArchiveExtractCallback
-	, public ICryptoGetTextPassword
-	, public ISequentialOutStream
-{
-public:
-	StreamImpl(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
-		: m_zip { zip }
-		, m_fileItem { fileItem }
-		, m_progress { progress }
-	{
-		m_progress.OnStartWithTotal(static_cast<int64_t>(m_fileItem.size));
 
-		const UInt32 indices[] = { fileItem.n };
-		m_zip.Extract(indices, 1, 0, this);
-		m_progress.OnDone();
+class CryptoGetTextPasswordImpl final : public ICryptoGetTextPassword
+{
+	UNKNOWN_IMPL(ICryptoGetTextPassword)
+
+public:
+	static CComPtr<ICryptoGetTextPassword> Create(QString password = {})
+	{
+		return new CryptoGetTextPasswordImpl(std::move(password));
 	}
 
-private: // Stream
-	QIODevice & GetStream() override
+private:
+	explicit CryptoGetTextPasswordImpl(QString password)
+		: m_password { std::move(password) }
 	{
-		m_buffer = std::make_unique<QBuffer>(&m_bytes);
-		m_buffer->open(QIODevice::ReadOnly);
-		return *m_buffer;
+	}
+
+private: // ICryptoGetTextPassword
+	HRESULT CryptoGetTextPassword(BSTR * password) noexcept override
+	{
+		if (!m_password.isEmpty())
+			*password = SysAllocString(m_password.toStdWString().data());
+
+		return S_OK;
+	}
+
+private:
+	QString m_password;
+};
+
+class ArchiveExtractCallback final : public IArchiveExtractCallback
+{
+	ADD_RELEASE_REF_IMPL
+
+public:
+	static CComPtr<IArchiveExtractCallback> Create(IInArchive & zip, QIODevice & outStream, ProgressCallback & progress)
+	{
+		return new ArchiveExtractCallback(zip, outStream, progress);
+	}
+
+private:
+	ArchiveExtractCallback(IInArchive & zip, QIODevice & outStream, ProgressCallback & progress)
+		: m_zip { zip }
+		, m_outStream { outStream }
+		, m_progress { progress }
+	{
 	}
 
 private: // IUnknown
@@ -66,35 +91,18 @@ private: // IUnknown
 
 		if (iid == IID_ICryptoGetTextPassword)
 		{
-			*ppvObject = static_cast<ICryptoGetTextPassword *>(this);
-			AddRef();
-			return S_OK;
-		}
-
-		if (iid == IID_ISequentialOutStream)
-		{
-			*ppvObject = static_cast<ISequentialOutStream *>(this);
-			AddRef();
+			auto cryptoGetTextPassword = CryptoGetTextPasswordImpl::Create();
+			*ppvObject = cryptoGetTextPassword.Detach();
 			return S_OK;
 		}
 
 		return E_NOINTERFACE;
 	}
 
-	ULONG AddRef() override
-	{
-		return static_cast<ULONG>(InterlockedIncrement(&m_refCount));
-	}
-
-	ULONG Release() override
-	{
-		return static_cast<ULONG>(InterlockedDecrement(&m_refCount));
-	}
-
 private: // IProgress
-	HRESULT SetTotal(const UInt64 /*size*/) noexcept override
+	HRESULT SetTotal(const UInt64 size) noexcept override
 	{
-		// SetTotal is never called for ZIP and 7z formats
+		m_progress.OnStartWithTotal(static_cast<int64_t>(size));
 		return CheckBreak();
 	}
 
@@ -127,7 +135,10 @@ private: // IArchiveExtractCallback
 		}
 
 		if (!m_isDir)
-			QueryInterface(IID_ISequentialOutStream, reinterpret_cast<void **>(outStream));
+		{
+			auto outStreamLoc = OutMemStream::Create(m_outStream, m_progress);
+			*outStream = outStreamLoc.Detach();
+		}
 
 		return CheckBreak();
 	}
@@ -146,37 +157,6 @@ private: // IArchiveExtractCallback
 		return CheckBreak();
 	}
 
-private: // ICryptoGetTextPassword
-	HRESULT CryptoGetTextPassword(BSTR * password) noexcept override
-	{
-		if (!m_password.isEmpty())
-			*password = SysAllocString(m_password.toStdWString().data());
-
-		return S_OK;
-	}
-
-
-private: // ISequentialOutStream
-	HRESULT Write(const void * data, const UInt32 size, UInt32 * processedSize) noexcept override
-	{
-		if (processedSize)
-			*processedSize = 0;
-
-		if (!data || size == 0)
-			return E_FAIL;
-
-		if (m_progress.OnCheckBreak())
-			return E_ABORT;
-
-		const auto * byte_data = static_cast<const char *>(data);
-		m_bytes.append(byte_data, size);
-		if (processedSize)
-			*processedSize = size;
-
-		m_progress.OnIncrement(size);
-
-		return S_OK;
-	}
 private:
 	HRESULT CheckBreak() const
 	{
@@ -220,14 +200,37 @@ private:
 
 private:
 	IInArchive & m_zip;
-	const FileItem & m_fileItem;
+	QIODevice & m_outStream;
 	ProgressCallback & m_progress;
+
+	QString m_filePath;
+	bool m_isDir { false };
+};
+
+class StreamImpl final : public Stream
+{
+public:
+	StreamImpl(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+		: m_outStream(&m_bytes)
+	{
+		const ScopedCall ioDeviceGuard([this]{ m_outStream.open(QIODevice::WriteOnly); }, [this] { m_outStream.close(); });
+		const UInt32 indices[] = { fileItem.n };
+		auto archiveExtractCallback = ArchiveExtractCallback::Create(zip, m_outStream, progress);
+		zip.Extract(indices, 1, 0, std::move(archiveExtractCallback));
+	}
+
+private: // Stream
+	QIODevice & GetStream() override
+	{
+		m_buffer = std::make_unique<QBuffer>(&m_bytes);
+		m_buffer->open(QIODevice::ReadOnly);
+		return *m_buffer;
+	}
+
+private:
+	QBuffer m_outStream;
 	QByteArray m_bytes;
 	std::unique_ptr<QBuffer> m_buffer;
-	LONG m_refCount { 1 };
-	QString m_password;
-	bool m_isDir { false };
-	QString m_filePath;
 };
 
 class FileReader final : virtual public IFile

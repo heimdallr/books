@@ -11,27 +11,13 @@ using namespace ZipDetails;
 
 namespace {
 
-class ProgressCallbackStub final
-	: public Zip::ProgressCallback
+std::shared_ptr<ProgressCallback> GetProgress(std::shared_ptr<ProgressCallback> progress)
 {
-public:
-	void OnStartWithTotal(int64_t) override
-	{
-	}
-	void OnIncrement(int64_t) override
-	{
-	}
-	void OnDone() override
-	{
-	}
-	void OnFileDone(const QString &) override
-	{
-	}
-	bool OnCheckBreak() override
-	{
-		return false;
-	}
-};
+	if (progress)
+		return progress;
+
+	return std::make_shared<ProgressCallbackStub>();
+}
 
 }
 
@@ -39,19 +25,19 @@ class Zip::Impl
 {
 public:
 	Impl(const QString & filename, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>()))
+		: m_zip(Factory::Create(filename, GetProgress(std::move(progress))))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
 
 	Impl(const QString & filename, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(filename, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), format, appendMode))
+		: m_zip(Factory::Create(filename, GetProgress(std::move(progress)), format, appendMode))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}
 
 	Impl(QIODevice & stream, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
-		: m_zip(Factory::Create(stream, progress ? std::move(progress) : std::make_shared<ProgressCallbackStub>(), format, appendMode))
+		: m_zip(Factory::Create(stream, GetProgress(std::move(progress)), format, appendMode))
 		, m_file(std::unique_ptr<IFile>{})
 	{
 	}

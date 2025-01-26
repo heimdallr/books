@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 
+class QIODevice;
 class QString;
 struct IOutArchive;
 
@@ -14,7 +15,7 @@ class Lib;
 
 namespace File
 {
-std::unique_ptr<IFile> Write(IOutArchive & zip, std::ostream & oStream, QString filename, ProgressCallback & progress);
+std::unique_ptr<IFile> Write(IOutArchive & zip, QIODevice & oStream, QString filename, ProgressCallback & progress);
 };
 
 }

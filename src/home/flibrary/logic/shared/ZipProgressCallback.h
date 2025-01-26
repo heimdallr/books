@@ -22,6 +22,7 @@ public:
 private: // ProgressCallback
 	void OnStartWithTotal(int64_t totalBytes) override;
 	void OnIncrement(int64_t bytes) override;
+	void OnSetCompleted(int64_t bytes) override;
 	void OnDone() override;
 	void OnFileDone(const QString & filePath) override;
 	bool OnCheckBreak() override;

@@ -54,7 +54,12 @@ void ZipProgressCallback::OnStartWithTotal(const int64_t totalBytes)
 
 void ZipProgressCallback::OnIncrement(const int64_t bytes)
 {
-	m_impl->progress += bytes;
+	OnSetCompleted(m_impl->progress + bytes);
+}
+
+void ZipProgressCallback::OnSetCompleted(const int64_t bytes)
+{
+	m_impl->progress = std::min(bytes, m_impl->total);
 	const auto percents = static_cast<int>(100 * m_impl->progress / m_impl->total);
 	if (m_impl->percents == percents)
 		return;
