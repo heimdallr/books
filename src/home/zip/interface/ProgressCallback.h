@@ -1,9 +1,13 @@
 #pragma once
 #include <cstdint>
+#include <functional>
 
+class QIODevice;
 class QString;
 
 namespace HomeCompa::ZipDetails {
+
+using StreamGetter = std::function<std::unique_ptr<QIODevice>(size_t)>;
 
 class ProgressCallback  // NOLINT(cppcoreguidelines-special-member-functions)
 {

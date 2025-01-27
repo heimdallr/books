@@ -31,15 +31,16 @@ constexpr std::pair<const char *, ReaderCreator> CREATORS_BY_SIGNATURE[]
 using WriterCreator = std::unique_ptr<IZip>(*)(const QString & /*filename*/, Format, std::shared_ptr<ProgressCallback>, bool /*appendMode*/);
 constexpr std::pair<Format, WriterCreator> CREATORS_BY_FORMAT[]
 {
-	{Factory::Format::Zip, &Impl::Zip::Archive::CreateWriter},
-	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
+//	{Format::Zip, &Impl::Bit7z::Archive::CreateWriter},
+	{Format::Zip, &Impl::SevenZip::Archive::CreateWriter},
+	{Format::SevenZip, &Impl::SevenZip::Archive::CreateWriter},
 };
 
 using WriterCreatorStream = std::unique_ptr<IZip>(*)(QIODevice & /*stream*/, Format, std::shared_ptr<ProgressCallback>, bool /*appendMode*/);
 constexpr std::pair<Format, WriterCreatorStream> CREATORS_BY_FORMAT_STREAM[]
 {
-	{Factory::Format::Zip, &Impl::Zip::Archive::CreateWriterStream},
-	{Factory::Format::SevenZip, &Impl::SevenZip::Archive::CreateWriterStream},
+	{Format::Zip, &Impl::SevenZip::Archive::CreateWriterStream},
+	{Format::SevenZip, &Impl::SevenZip::Archive::CreateWriterStream},
 };
 
 std::unique_ptr<IZip> CreateBySignature(const QString & filename, std::shared_ptr<ProgressCallback> progress)

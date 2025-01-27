@@ -15,6 +15,7 @@
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
 
+#include "FileItem.h"
 #include "OutMemStream.h"
 #include "PropVariant.h"
 
@@ -214,7 +215,7 @@ public:
 		: m_outStream(&m_bytes)
 	{
 		const ScopedCall ioDeviceGuard([this]{ m_outStream.open(QIODevice::WriteOnly); }, [this] { m_outStream.close(); });
-		const UInt32 indices[] = { fileItem.n };
+		const UInt32 indices[] = { fileItem.index };
 		auto archiveExtractCallback = ArchiveExtractCallback::Create(zip, m_outStream, progress);
 		zip.Extract(indices, 1, 0, std::move(archiveExtractCallback));
 	}

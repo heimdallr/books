@@ -1,9 +1,15 @@
 #include "zip.h"
 
+#include <ranges>
+
+#include "fnd/FindPair.h"
 #include "fnd/memory.h"
 
 #include "zip/interface/file.h"
 #include "zip/interface/zip.h"
+
+#include <QBuffer>
+
 #include "zip/factory/factory.h"
 
 using namespace HomeCompa;
@@ -18,6 +24,12 @@ std::shared_ptr<ProgressCallback> GetProgress(std::shared_ptr<ProgressCallback> 
 
 	return std::make_shared<ProgressCallbackStub>();
 }
+
+constexpr std::pair<const char *, Zip::Format> ZIP_FORMATS[]
+{
+	{ "zip", Zip::Format::Zip },
+	{ "7z", Zip::Format::SevenZip },
+};
 
 }
 
@@ -59,6 +71,11 @@ public:
 		m_file.reset();
 		m_file.reset(m_zip->Write(filename));
 		return m_file->Write();
+	}
+
+	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter)
+	{
+		return m_zip->Write(fileNames, streamGetter);
 	}
 
 	size_t GetFileSize(const QString & filename) const
@@ -103,9 +120,20 @@ QStringList Zip::GetFileNameList() const
 	return m_impl->GetFileNameList();
 }
 
-std::unique_ptr<Stream> Zip::Write(const QString & filename)
+bool Zip::Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter)
 {
-	return m_impl->Write(filename);
+	return m_impl->Write(fileNames, streamGetter);
+}
+
+bool Zip::Write(std::vector<std::pair<QString, QByteArray>> data)
+{
+	std::vector<QString> fileNames;
+	fileNames.reserve(data.size());
+	std::ranges::move(data | std::views::keys, std::back_inserter(fileNames));
+	return Write(fileNames, [&] (const size_t index)
+	{
+		return std::make_unique<QBuffer>(&data[index].second);
+	});
 }
 
 size_t Zip::GetFileSize(const QString & filename) const
@@ -116,4 +144,14 @@ size_t Zip::GetFileSize(const QString & filename) const
 const QDateTime & Zip::GetFileTime(const QString & filename) const
 {
 	return m_impl->GetFileTime(filename);
+}
+
+Zip::Format Zip::FindFormat(const QString & str)
+{
+	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparer {});
+}
+
+std::ostream & operator<<(std::ostream & stream, const Zip::Format format)
+{
+	return stream << FindFirst(ZIP_FORMATS, format);
 }

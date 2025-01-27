@@ -31,9 +31,9 @@ STDMETHODIMP OutMemStream::Write(const void * data, const UInt32 size, UInt32 * 
 		return E_ABORT;
 
 	const auto* byte_data = static_cast<const char *>(data);
-	m_stream.write(byte_data, size);
+	const auto realSize = m_stream.write(byte_data, size);
 	if (processedSize)
-		*processedSize = size;
+		*processedSize = realSize;
 
 	m_progress.OnIncrement(size);
 

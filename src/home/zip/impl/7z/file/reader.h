@@ -1,9 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
-
-#include <QDateTime>
 
 struct IInArchive;
 
@@ -14,13 +11,7 @@ class ProgressCallback;
 
 namespace HomeCompa::ZipDetails::Impl::SevenZip {
 
-struct FileItem
-{
-	uint32_t n;
-	size_t size;
-	QDateTime time;
-};
-using Files = std::unordered_map<QString, FileItem>;
+struct FileItem;
 
 namespace File
 {

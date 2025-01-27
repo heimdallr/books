@@ -89,6 +89,11 @@ private: // IZip
 		return File::Write(*m_zip, filename);
 	}
 
+	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter & /*streamGetter*/) override
+	{
+		return false;
+	}
+
 	size_t GetFileSize(const QString & filename) const override
 	{
 		CreateFileList();

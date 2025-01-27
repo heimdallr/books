@@ -289,16 +289,16 @@ QByteArray Decompress(const QString & path, const QString & archive, const QStri
        return data;
    }
 
-   QByteArray Compress(const QByteArray & data, const QString & fileName)
+   QByteArray Compress(QByteArray data, const QString & fileName)
    {
        QByteArray zippedData;
        {
            QBuffer buffer(&zippedData);
            const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
            buffer.open(QIODevice::WriteOnly);
-		Zip zip(buffer, Zip::Format::Zip);
-		const auto output = zip.Write(fileName);
-		output->GetStream().write(data);
+		   Zip zip(buffer, Zip::Format::Zip);
+           std::vector<std::pair<QString, QByteArray>> toZip { {fileName, std::move(data)} };
+		   zip.Write(std::move(toZip));
        }
        return zippedData;
    }
@@ -490,8 +490,8 @@ struct Requester::Impl
 
     QByteArray GetBookZip(const QString & bookId) const
     {
-        const auto [fileName, data] = GetBookImpl(bookId);
-        return Compress(data, fileName);
+        auto [fileName, data] = GetBookImpl(bookId);
+        return Compress(std::move(data), fileName);
     }
 
     Node WriteAuthorsNavigation(const QString & self, const QString & value) const

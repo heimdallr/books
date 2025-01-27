@@ -4,6 +4,7 @@
 #include <QString>
 #include <QSize>
 
+#include "zip.h"
 #include "common/Constant.h"
 
 namespace HomeCompa::fb2cut {
@@ -52,20 +53,12 @@ struct Settings
 	bool archiveFb2 { true };
 	QDir dstDir;
 	QString ffmpeg;
-	QString archiver;
-	QStringList archiverOptions { QStringList {}
-		<< "a"
-		<< "-mx9"
-		<< "-sdel"
-		<< "-m0=ppmd"
-		<< "-ms=off"
-		<< "-bt"
-	};
 	bool defaultArchiverOptions { true };
 	int totalFileCount { 0 };
+	Zip::Format format { Zip::Format::SevenZip };
 };
 
-std::ostream & operator<<(std::ostream & stream, const ImageSettings & settings);
-std::ostream & operator<<(std::ostream & stream, const Settings & settings);
-
 }
+
+std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::ImageSettings & settings);
+std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::Settings & settings);

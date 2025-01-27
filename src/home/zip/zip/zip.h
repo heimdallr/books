@@ -4,11 +4,11 @@
 
 #include <QStringList>
 
-#include "export/zip.h"
-
 #include "zip/interface/format.h"
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
+
+#include "export/zip.h"
 
 class QDateTime;
 
@@ -22,6 +22,7 @@ public:
 	};
 
 	using Format = ZipDetails::Format;
+	static Format FindFormat(const QString & str);
 
 public:
 	explicit Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress = {});
@@ -31,7 +32,8 @@ public:
 
 	[[nodiscard]] QStringList GetFileNameList() const;
 	[[nodiscard]] std::unique_ptr<Stream> Read(const QString & filename) const;
-	[[nodiscard]] std::unique_ptr<Stream> Write(const QString & filename);
+	bool Write(const std::vector<QString> & fileNames, const ZipDetails::StreamGetter & streamGetter);
+	bool Write(std::vector<std::pair<QString, QByteArray>> data);
 	[[nodiscard]] size_t GetFileSize(const QString & filename) const;
 	[[nodiscard]] const QDateTime & GetFileTime(const QString & filename) const;
 
@@ -47,3 +49,5 @@ private:
 };
 
 }
+
+ZIP_EXPORT std::ostream & operator<<(std::ostream & stream, HomeCompa::Zip::Format format);

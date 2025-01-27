@@ -3,10 +3,6 @@
 
 #include "writer.h"
 
-#include <QBuffer>
-#include <QIODevice>
-#include <QString>
-
 #include <plog/Log.h>
 
 #include "fnd/unknown_impl.h"
@@ -14,10 +10,9 @@
 #include "7z/CPP/7zip/Archive/IArchive.h"
 #include "bit7z/bitformat.hpp"
 
-#include "zip/interface/file.h"
-#include "zip/interface/stream.h"
 #include "zip/interface/ProgressCallback.h"
 
+#include "FileItem.h"
 #include "OutMemStream.h"
 #include "PropVariant.h"
 
@@ -67,15 +62,16 @@ class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(QIODevice & inStream, QString filename, ProgressCallback & progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
 	{
-		return new ArchiveUpdateCallback(inStream, std::move(filename), progress);
+		return new ArchiveUpdateCallback(files, fileNames, streamGetter, progress);
 	}
 
 private:
-	ArchiveUpdateCallback(QIODevice & inStream, QString filename, ProgressCallback & progress)
-		: m_inStream { inStream }
-		, m_filename { std::move(filename) }
+	ArchiveUpdateCallback(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
+		: m_files { files }
+		, m_fileNames { fileNames }
+		, m_streamGetter { streamGetter }
 		, m_progress { progress }
 	{
 	}
@@ -118,24 +114,26 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(UInt32 /*index*/,
+	HRESULT GetUpdateItemInfo(const UInt32 index,
 		Int32 * newData,
 		Int32 * newProperties,
 		UInt32 * indexInArchive) noexcept override
 	{
 		if (newData != nullptr)
-			*newData = 1; //1 = true, 0 = false;
+			*newData = index >= m_files.files.size() ? 1 : 0; //1 = true, 0 = false;
 		if (newProperties != nullptr)
-			*newProperties = 1; //1 = true, 0 = false;
+			*newProperties = index >= m_files.files.size() ? 1 : 0; //1 = true, 0 = false;
 		if (indexInArchive != nullptr)
-			*indexInArchive = static_cast<UInt32>(-1);
+			*indexInArchive = index >= m_files.files.size() ? static_cast<UInt32>(-1) : m_files.files[index].index;
 
 		return S_OK;
 	}
 
-	HRESULT GetProperty(UInt32 /*index*/, PROPID propId, PROPVARIANT * value) noexcept override try
+	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT * value) noexcept override try
 	{
-		CPropVariant prop = [this, propId] () -> CPropVariant
+		const auto & stream = GetStream(index);
+
+		CPropVariant prop = [&, propId] () -> CPropVariant
 		{
 			switch (propId)
 			{
@@ -144,7 +142,7 @@ private: // IArchiveUpdateCallback
 				case kpidAttrib:
 					return uint32_t { 128 };
 				case kpidPath:
-					return m_filename.toStdWString();
+					return m_fileNames[index - m_files.files.size()].toStdWString();
 				case kpidIsDir:
 					return false;
 				case kpidMTime:
@@ -152,7 +150,7 @@ private: // IArchiveUpdateCallback
 				case kpidComment:
 					return {};
 				case kpidSize:
-					return static_cast<uint64_t>(m_inStream.size());
+					return static_cast<uint64_t>(stream.size());
 				default:
 					return {};
 			}
@@ -166,15 +164,14 @@ private: // IArchiveUpdateCallback
 	{
 		PLOGE << ex.what();
 		return S_FALSE;
-		//		return ex.hresultCode();
 	}
 
-	HRESULT GetStream(UInt32 /*index*/, ISequentialInStream ** inStream) noexcept override
+	HRESULT GetStream(const UInt32 index, ISequentialInStream ** inStream) noexcept override
 	{
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
-		auto inStreamLoc = SequentialInStream::Create(m_inStream);
+		auto inStreamLoc = SequentialInStream::Create(GetStream(index));
 		*inStream = inStreamLoc.Detach();
 		return S_OK;
 	}
@@ -186,105 +183,40 @@ private: // IArchiveUpdateCallback
 	}
 
 private:
-	QIODevice & m_inStream;
-	const QString m_filename;
-	ProgressCallback & m_progress;
-};
-
-class Writer
-	: public QIODevice
-{
-public:
-	Writer(IOutArchive & zip, QIODevice & oStream, QString filename, ProgressCallback & progress)
-		: m_zip { zip }
-		, m_oStream { oStream }
-		, m_filename { std::move(filename) }
-		, m_progress { progress }
+	QIODevice& GetStream(const UInt32 index)
 	{
-	}
+		if (m_streams.size() <= index)
+			m_streams.resize(index + 1);
 
-private: // QIODevice
-	qint64 readData(char * /*data*/, qint64 /*maxLen*/) override
-	{
-		assert(false);
-		return 0;
-	}
+		if (!m_streams[index])
+			m_streams[index] = m_streamGetter(index - m_files.files.size());
 
-	qint64 writeData(const char * data, const qint64 len) override
-	{
-		QByteArray bytes(data, len);
-		QBuffer buffer(&bytes);
-		buffer.open(QIODevice::ReadOnly);
-		ProgressCallbackStub progressCallbackStub;
-		auto sequentialOutStream = OutMemStream::Create(m_oStream, progressCallbackStub);
-		auto archiveUpdateCallback = ArchiveUpdateCallback::Create(buffer, m_filename, m_progress);
-		m_zip.UpdateItems(std::move(sequentialOutStream), 1, std::move(archiveUpdateCallback));
-		m_progress.OnDone();
-		return len;
+		if (!m_streams[index]->isOpen())
+			m_streams[index]->open(QIODevice::ReadOnly);
+
+		return *m_streams[index];
 	}
 
 private:
-	IOutArchive & m_zip;
-	QIODevice & m_oStream;
-	QString m_filename;
+	FileStorage & m_files;
+	const std::vector<QString> & m_fileNames;
+	const StreamGetter & m_streamGetter;
 	ProgressCallback & m_progress;
-};
-
-class StreamImpl : public Stream
-{
-public:
-	explicit StreamImpl(std::unique_ptr<QIODevice> ioDevice)
-		: m_ioDevice(std::move(ioDevice))
-	{
-		m_ioDevice->open(QIODevice::WriteOnly);
-	}
-
-private: // Stream
-	QIODevice & GetStream() override
-	{
-		return *m_ioDevice;
-	}
-
-private:
-	std::unique_ptr<QIODevice> m_ioDevice;
-};
-
-class FileWriter final : virtual public IFile
-{
-public:
-	FileWriter(IOutArchive & zip, QIODevice & oStream, QString filename, ProgressCallback & progress)
-		: m_zip { zip }
-		, m_oStream { oStream }
-		, m_filename { std::move(filename) }
-		, m_progress { progress }
-	{
-	}
-
-private: // IFile
-	std::unique_ptr<Stream> Read() override
-	{
-		throw std::runtime_error("Cannot read with writer");
-	}
-
-	std::unique_ptr<Stream> Write() override
-	{
-		return std::make_unique<StreamImpl>(std::make_unique<Writer>(m_zip, m_oStream, m_filename, m_progress));
-	}
-
-private:
-	IOutArchive & m_zip;
-	QIODevice & m_oStream;
-	QString m_filename;
-	ProgressCallback & m_progress;
+	std::vector<std::unique_ptr<QIODevice>> m_streams;
 };
 
 }
 
 namespace File {
 
-std::unique_ptr<IFile> Write(IOutArchive & zip, QIODevice & oStream, QString filename, ProgressCallback & progress)
+bool Write(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
 {
-	return std::make_unique<FileWriter>(zip, oStream, std::move(filename), progress);
+	ProgressCallbackStub progressCallbackStub;
+	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
+	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, progress);
+	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + fileNames.size()), std::move(archiveUpdateCallback)) == S_OK;
+	progress.OnDone();
+	return result;
 }
 
 }

@@ -17,8 +17,8 @@
 #include <plog/Record.h>
 #include <plog/Util.h>
 
+#include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
-#include "fnd/ScopedCall.h"
 
 #include "logging/init.h"
 #include "logging/LogAppender.h"
@@ -35,8 +35,7 @@
 
 #include "di_app.h"
 #include "Fb2Parser.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include "ImageSettingsWidget.h" // for creating MainWindow via Hypodermic
+#include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "settings.h"
 
@@ -65,10 +64,9 @@ constexpr auto NO_ARCHIVE_FB2_OPTION_NAME = "no-archive-fb2";
 constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
-constexpr auto ARCHIVER_OPTION_NAME = "archiver";
-constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
+constexpr auto FORMAT = "format";
 
 constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
@@ -81,30 +79,6 @@ constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
-
-bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
-{
-	return !std::ranges::all_of(images, [&] (const auto & item)
-	{
-		return zip.Write(item.first)->GetStream().write(item.second) == item.second.size();
-	});
-}
-
-bool WriteImages(const std::unique_ptr<Zip> & zip, std::mutex & guard, const QString & name, std::vector<DataItem> & images)
-{
-	if (images.empty())
-		return false;
-
-	assert(zip);
-
-	PLOGI << QString("zipping %1: %2").arg(name).arg(images.size());
-
-	std::scoped_lock lock(guard);
-	const auto result = WriteImagesImpl(*zip, images);
-	images.clear();
-
-	return result;
-}
 
 void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QString & ext, const QByteArray & body)
 {
@@ -209,6 +183,14 @@ class Worker
 	NON_COPY_MOVABLE(Worker)
 
 public:
+	class IClient  // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IClient() = default;
+		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) = 0;
+	};
+
+public:
 	Worker(const Settings & settings
 		, std::condition_variable & queueCondition
 		, std::mutex & queueGuard
@@ -217,11 +199,7 @@ public:
 		, std::atomic_bool & hasError
 		, std::atomic_int & queueSize
 		, std::atomic_int & fileCount
-		, std::mutex & zipCoversGuard
-		, std::mutex & zipImagesGuard
-		, const std::unique_ptr<Zip> & zipCovers
-		, const std::unique_ptr<Zip> & zipImages
-
+		, IClient & client
 	)
 		: m_settings { settings }
 		, m_queueCondition { queueCondition }
@@ -231,10 +209,7 @@ public:
 		, m_hasError { hasError }
 		, m_queueSize { queueSize }
 		, m_fileCount { fileCount }
-		, m_zipCoversGuard { zipCoversGuard }
-		, m_zipImagesGuard { zipImagesGuard }
-		, m_zipCovers { zipCovers }
-		, m_zipImages { zipImages }
+		, m_client { client }
 		, m_thread { &Worker::Process, this }
 	{
 	}
@@ -273,8 +248,7 @@ private:
 			m_hasError = ProcessFile(name, body) || m_hasError;
 		}
 
-		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, Global::COVERS, m_covers) || m_hasError;
-		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, Global::IMAGES, m_images) || m_hasError;
+		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images));
 	}
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
@@ -474,16 +448,12 @@ private:
 	std::atomic_bool & m_hasError;
 	std::atomic_int & m_queueSize, & m_fileCount;
 
-	std::mutex & m_zipCoversGuard;
-	std::mutex & m_zipImagesGuard;
-
-	const std::unique_ptr<Zip> & m_zipCovers;
-	const std::unique_ptr<Zip> & m_zipImages;
-
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
 	const Util::XmlValidator m_validator;
+
+	IClient & m_client;
 
 	std::thread m_thread;
 };
@@ -494,14 +464,15 @@ QString GetImagesFolder(const QDir & dir, const QString & type)
 	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
 }
 
-class FileProcessor
+class FileProcessor : public Worker::IClient
 {
 public:
 	FileProcessor(const Settings & settings, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize, std::atomic_int & fileCount)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { settings.cover.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.image.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_dstDir { settings.dstDir }
+		, m_saveCovers{ settings.cover.save }
+		, m_saveImages { settings.image.save }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -514,10 +485,7 @@ public:
 					, m_hasError
 					, m_queueSize
 					, fileCount
-					, m_zipCoversGuard
-					, m_zipImagesGuard
-					, m_zipCovers
-					, m_zipImages
+					, *this
 				)
 			);
 	}
@@ -544,14 +512,28 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
-		ResetZip(m_zipCovers, m_zipCoversGuard);
-		ResetZip(m_zipImages, m_zipImagesGuard);
+
+		if (m_saveCovers)
+		{
+			Zip zip(GetImagesFolder(m_dstDir, Global::COVERS), Zip::Format::Zip);
+			zip.Write(m_covers);
+		}
+
+		if (m_saveImages)
+		{
+			Zip zip(GetImagesFolder(m_dstDir, Global::IMAGES), Zip::Format::Zip);
+			zip.Write(m_images);
+		}
 	}
 
-	static void ResetZip(std::unique_ptr<Zip> & zip, std::mutex & zipGuard)
+private:
+	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) override
 	{
-		std::scoped_lock lock(zipGuard);
-		zip.reset();
+		std::lock_guard lock(m_workClientGuard);
+		m_covers.reserve(m_covers.size() + covers.size());
+		std::ranges::move(covers, std::back_inserter(m_covers));
+		m_images.reserve(m_images.size() + images.size());
+		std::ranges::move(images, std::back_inserter(m_images));
 	}
 
 private:
@@ -562,94 +544,39 @@ private:
 	std::atomic_int m_queueSize { 0 };
 	std::mutex m_fileSystemGuard;
 
-	std::mutex m_zipCoversGuard;
-	std::mutex m_zipImagesGuard;
+	std::mutex m_workClientGuard;
 
-	std::unique_ptr<Zip> m_zipCovers;
-	std::unique_ptr<Zip> m_zipImages;
+	QDir m_dstDir;
+	const bool m_saveCovers;
+	const bool m_saveImages;
+
+	std::vector<DataItem> m_covers;
+	std::vector<DataItem> m_images;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
-
-bool SevenZipIt(const Settings & settings)
-{
-	if (!settings.saveFb2 || settings.archiver.isEmpty())
-		return false;
-
-	PLOGI << "launching an external archiver";
-
-	QProcess process;
-	QEventLoop eventLoop;
-	auto args = settings.archiverOptions;
-
-	if (settings.defaultArchiverOptions)
-		args << QString("-mmt%1").arg(settings.maxThreadCount);
-
-	args
-		<< QString("%1.7z").arg(settings.dstDir.path())
-		<< QString("%1/*.fb2").arg(settings.dstDir.path())
-		;
-
-	QObject::connect(&process, &QProcess::started, [&]
-	{
-		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(" ");
-	});
-	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
-	{
-		if (code == 0)
-			PLOGI << QFileInfo(settings.archiver).fileName() << " finished successfully";
-		else
-			PLOGW << QFileInfo(settings.archiver).fileName() << " finished with " << code;
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
-	{
-		PLOGI << process.readAllStandardError();
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
-	{
-		PLOGW << process.readAllStandardOutput();
-	});
-
-	process.start(settings.archiver, args, QIODevice::ReadOnly);
-
-	eventLoop.exec();
-	return false;
-}
-
-bool ZipIt(const Settings & settings)
-{
-	bool result = false;
-	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), Zip::Format::Zip);
-	const auto files = settings.dstDir.entryList({ "*.fb2" });
-	for (qsizetype i = 0; const auto & file : files)
-	{
-		++i;
-		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(i).arg(files.size()).arg(i * 100 / files.size());
-		QFile input(settings.dstDir.filePath(file));
-		if (!input.open(QIODevice::ReadOnly))
-		{
-			result = true;
-			continue;
-		}
-
-		const auto body = input.readAll();
-		input.close();
-		if (zip.Write(file)->GetStream().write(body) != body.size())
-			result = true;
-		else
-			input.remove();
-	}
-
-	return result;
-}
 
 bool ArchiveFb2(const Settings & settings)
 {
 	if (!settings.archiveFb2)
 		return false;
 
-	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
+	auto files = settings.dstDir.entryList({ "*.fb2" });
+	std::vector<QString> fileList;
+	fileList.reserve(files.size());
+	std::ranges::move(files, std::back_inserter(fileList));
+	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), settings.format);
+	const auto result = zip.Write(fileList, [&] (size_t index)
+	{
+		const auto & file = fileList[index++];
+		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(index).arg(files.size()).arg(index * 100 / files.size());
+		return std::make_unique<QFile>(settings.dstDir.filePath(file));
+	});
+	if (result)
+		for (const auto & file : fileList)
+			QFile::remove(settings.dstDir.filePath(file));
+
+	return !result;
 }
 
 bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
@@ -836,14 +763,6 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 {
 	Settings settings {};
 
-	const auto get_archiver_default_options = [&]
-	{
-		return QStringList()
-			<< settings.archiverOptions
-			<< QString("-mmt%1").arg(settings.maxThreadCount)
-			;
-	};
-
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
@@ -852,9 +771,8 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
-		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
+		{ { QString(FORMAT[0])              , FORMAT                           } , "Output format [7z | zip]"                                          , QString("%1 [%2]").arg(FORMAT, "7z")},
 
-		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
 		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
 		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
 		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
@@ -879,13 +797,9 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	settings.dstDir = parser.value(FOLDER);
 
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
-	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
 
-	if (const auto archiverCommandline = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME); !archiverCommandline.isEmpty())
-	{
-		settings.archiverOptions = archiverCommandline.split('_', Qt::SkipEmptyParts);
-		settings.defaultArchiverOptions = false;
-	}
+	if (parser.isSet(FORMAT))
+		settings.format = Zip::FindFormat(parser.value(FORMAT));
 
 	QSize size;
 	if (SetValue(parser, MAX_SIZE_OPTION_NAME, size))
@@ -949,7 +863,11 @@ bool run(int argc, char * argv[])
 			return false;
 	}
 
-	PLOGI << "Process started with " << settings.settings;
+	{
+		std::ostringstream stream;
+		stream << "Process started with " << settings.settings;
+		PLOGI << stream.str();
+	}
 
 	const auto failedArchives = ProcessArchives(settings.settings);
 	if (failedArchives.isEmpty())

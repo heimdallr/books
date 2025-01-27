@@ -32,11 +32,12 @@ public:
 	};
 
 public:
-	Bit7zImpl(const QString & filename, const Mode mode, const bool appendMode = false)
-		: m_ioDevice(std::make_unique<QFile>(filename))
+	Bit7zImpl(QString filename, const Mode mode, const bool appendMode = false)
+		: m_filename { std::move(filename) }
+		, m_ioDevice { std::make_unique<QFile>(m_filename) }
 	{
 		if (!m_ioDevice->open(mode == Mode::Read ? QIODevice::ReadOnly : appendMode ? QIODevice::ReadWrite : QIODevice::WriteOnly))
-			mode == Mode::Read ? Error::CannotOpenArchive(filename) : Error::CannotCreateArchive(filename);
+			mode == Mode::Read ? Error::CannotOpenArchive(m_filename) : Error::CannotCreateArchive(m_filename);
 
 		Open(*m_ioDevice, mode);
 	}
@@ -66,7 +67,12 @@ private: // IZip
 
 	std::unique_ptr<IFile> Write(const QString & filename) override
 	{
-		return File::Write(m_lib, *m_oStream, filename);
+		return File::Write(m_lib, m_filename, *m_oStream, filename);
+	}
+
+	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter & /*streamGetter*/) override
+	{
+		return false;
 	}
 
 	size_t GetFileSize(const QString & filename) const override
@@ -104,6 +110,7 @@ private:
 
 private:
 	bit7z::Bit7zLibrary m_lib { (QCoreApplication::applicationDirPath() + "/7z.dll").toStdString() };
+	QString m_filename;
 	std::unique_ptr<QIODevice> m_ioDevice;
 	std::unique_ptr<std::istream> m_iStream;
 	std::unique_ptr<std::ostream> m_oStream;

@@ -28,7 +28,7 @@ struct FileItem
 struct File
 {
 	static std::unique_ptr<IFile> Read(const bit7z::Bit7zLibrary & lib, std::istream & stream, const FileItem & item);
-	static std::unique_ptr<IFile> Write(const bit7z::Bit7zLibrary & lib, std::ostream & stream, QString filename);
+	static std::unique_ptr<IFile> Write(const bit7z::Bit7zLibrary & lib, QString zipFilename, std::ostream & oStream, QString filename);
 };
 
 }

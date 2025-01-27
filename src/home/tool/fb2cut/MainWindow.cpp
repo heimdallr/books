@@ -14,8 +14,7 @@ namespace {
 
 constexpr auto KEY_INPUT_FILES = "ui/fb2cut/inputFiles";
 constexpr auto KEY_DST_FOLDER = "ui/fb2cut/outputFolder";
-constexpr auto KEY_EXT_ARCHIVER = "ui/fb2cut/externalArchiver";
-constexpr auto KEY_EXT_ARCHIVER_CMD_LINE = "ui/fb2cut/externalArchiverCmdLine";
+constexpr auto KEY_ARCHIVER_FORMAT = "ui/fb2cut/format";
 constexpr auto KEY_FFMPEG = "ui/fb2cut/externalFfmpeg";
 constexpr auto KEY_SAVE_FB2 = "ui/fb2cut/saveFb2";
 constexpr auto KEY_ARCHIVE_FB2 = "ui/fb2cut/archiveFb2";
@@ -78,8 +77,9 @@ MainWindow::MainWindow(
 
 	m_ui->editInputFiles->setText(m_settingsManager->Get(KEY_INPUT_FILES, QString {}));
 	m_ui->editDstFolder->setText(m_settingsManager->Get(KEY_DST_FOLDER, QString {}));
-	m_ui->editExternalArchiver->setText(m_settingsManager->Get(KEY_EXT_ARCHIVER, defaultSettings.archiver));
-	m_ui->editArchiverCommandLine->setText(m_settingsManager->Get(KEY_EXT_ARCHIVER_CMD_LINE, QString {}));
+	assert(false);
+//	m_ui->editExternalArchiver->setText(m_settingsManager->Get(KEY_EXT_ARCHIVER, defaultSettings.archiver));
+//	m_ui->editArchiverCommandLine->setText(m_settingsManager->Get(KEY_EXT_ARCHIVER_CMD_LINE, QString {}));
 	m_ui->editFfmpeg->setText(m_settingsManager->Get(KEY_FFMPEG, defaultSettings.ffmpeg));
 	m_ui->saveFb2->setChecked(m_settingsManager->Get(KEY_SAVE_FB2, defaultSettings.saveFb2));
 	m_ui->archiveFb2->setChecked(m_settingsManager->Get(KEY_ARCHIVE_FB2, defaultSettings.archiveFb2));
@@ -101,11 +101,12 @@ void MainWindow::SetSettings(Settings * settings)
 	if (m_settings->dstDir != defaultSettings.dstDir)
 		m_ui->editDstFolder->setText(m_settings->dstDir.path());
 
-	if (m_settings->archiver != defaultSettings.archiver)
-		m_ui->editExternalArchiver->setText(m_settings->archiver);
-
-	if (m_settings->archiverOptions != defaultSettings.archiverOptions)
-		m_ui->editArchiverCommandLine->setText(m_settings->archiverOptions.join(' '));
+	assert(false);
+//	if (m_settings->archiver != defaultSettings.archiver)
+//		m_ui->editExternalArchiver->setText(m_settings->archiver);
+//
+//	if (m_settings->archiverOptions != defaultSettings.archiverOptions)
+//		m_ui->editArchiverCommandLine->setText(m_settings->archiverOptions.join(' '));
 
 	if (m_settings->ffmpeg != defaultSettings.ffmpeg)
 		m_ui->editFfmpeg->setText(m_settings->ffmpeg);
@@ -154,10 +155,10 @@ void MainWindow::OnStartClicked()
 
 	m_settings->inputWildcards = { m_ui->editInputFiles->text() };
 	m_settings->dstDir = m_ui->editDstFolder->text();
-	m_settings->archiver = m_ui->editExternalArchiver->text();
 	m_settings->ffmpeg = m_ui->editFfmpeg->text();
-	if (!m_ui->editArchiverCommandLine->text().isEmpty())
-		m_settings->archiverOptions = m_ui->editArchiverCommandLine->text().split(' ', Qt::SkipEmptyParts);
+//	m_settings->archiver = m_ui->editExternalArchiver->text();
+//	if (!m_ui->editArchiverCommandLine->text().isEmpty())
+//		m_settings->archiverOptions = m_ui->editArchiverCommandLine->text().split(' ', Qt::SkipEmptyParts);
 
 	m_settings->saveFb2 = m_ui->saveFb2->isChecked();
 	m_settings->archiveFb2 = m_ui->archiveFb2->isChecked();
@@ -167,8 +168,8 @@ void MainWindow::OnStartClicked()
 
 	m_settingsManager->Set(KEY_INPUT_FILES, m_ui->editInputFiles->text());
 	m_settingsManager->Set(KEY_DST_FOLDER, m_ui->editDstFolder->text());
-	m_settingsManager->Set(KEY_EXT_ARCHIVER, m_ui->editExternalArchiver->text());
-	m_settingsManager->Set(KEY_EXT_ARCHIVER_CMD_LINE, m_ui->editArchiverCommandLine->text());
+//	m_settingsManager->Set(KEY_EXT_ARCHIVER, m_ui->editExternalArchiver->text());
+//	m_settingsManager->Set(KEY_EXT_ARCHIVER_CMD_LINE, m_ui->editArchiverCommandLine->text());
 	m_settingsManager->Set(KEY_FFMPEG, m_ui->editFfmpeg->text());
 	m_settingsManager->Set(KEY_SAVE_FB2, m_ui->saveFb2->isChecked());
 	m_settingsManager->Set(KEY_ARCHIVE_FB2, m_ui->archiveFb2->isChecked());

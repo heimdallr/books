@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include <QTemporaryDir>
-#include <QTimer>
 
 #include <plog/Log.h>
 
@@ -44,7 +43,7 @@ bool Write(const QByteArray & input, const std::filesystem::path & path)
 		&& output.write(input) == input.size();
 }
 
-bool Archive(const QByteArray & input
+bool Archive(QByteArray input
 	, const std::filesystem::path & path
 	, const QString & fileName
 	, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback
@@ -53,8 +52,8 @@ bool Archive(const QByteArray & input
 	try
 	{
 		Zip zip(QString::fromStdWString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
-		const auto stream = zip.Write(fileName);
-		stream->GetStream().write(input);
+		std::vector<std::pair<QString, QByteArray>> data { {fileName, std::move(input) } };
+		zip.Write(std::move(data));
 		return true;
 	}
 	catch(const std::exception & ex)
@@ -89,8 +88,8 @@ std::pair<bool, std::filesystem::path> Write(QIODevice & input
 		if(!remove(result.second))
 			return assert(false), result;
 
-	const auto bytes = RestoreImages(input, folder, book.file);
-	result.first = archive ? Archive(bytes, result.second, dstFileInfo.fileName(), std::move(zipProgressCallback)) : Write(bytes, result.second);
+	auto bytes = RestoreImages(input, folder, book.file);
+	result.first = archive ? Archive(std::move(bytes), result.second, dstFileInfo.fileName(), std::move(zipProgressCallback)) : Write(bytes, result.second);
 	progress.Increment(1);
 
 	return result;
