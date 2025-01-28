@@ -7,6 +7,7 @@
 #include "zip/interface/format.h"
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/stream.h"
+#include "zip/interface/types.h"
 
 #include "export/zip.h"
 
@@ -22,6 +23,10 @@ public:
 	};
 
 	using Format = ZipDetails::Format;
+	using PropertyId = ZipDetails::PropertyId;
+	using CompressionLevel = ZipDetails::CompressionLevel;
+	using CompressionMethod = ZipDetails::CompressionMethod;
+
 	static Format FormatFromString(const QString & str);
 	static QString FormatToString(Format format);
 
@@ -31,6 +36,7 @@ public:
 	Zip(QIODevice & stream, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	~Zip();
 
+	void SetProperty(PropertyId id, QVariant value);
 	[[nodiscard]] QStringList GetFileNameList() const;
 	[[nodiscard]] std::unique_ptr<Stream> Read(const QString & filename) const;
 	bool Write(const std::vector<QString> & fileNames, const ZipDetails::StreamGetter & streamGetter);

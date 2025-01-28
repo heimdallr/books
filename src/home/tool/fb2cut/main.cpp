@@ -565,7 +565,14 @@ bool ArchiveFb2(const Settings & settings)
 	std::vector<QString> fileList;
 	fileList.reserve(files.size());
 	std::ranges::move(files, std::back_inserter(fileList));
+
 	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
+	zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
+	zip.SetProperty(Zip::PropertyId::SolidArchive, false);
+	zip.SetProperty(Zip::PropertyId::ThreadsCount, settings.maxThreadCount);
+	if (settings.format == Zip::Format::SevenZip)
+		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
+
 	const auto result = zip.Write(fileList, [&] (size_t index)
 	{
 		const auto & file = fileList[index++];

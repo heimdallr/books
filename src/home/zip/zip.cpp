@@ -11,6 +11,7 @@
 #include "impl/archive.h"
 
 #include <QBuffer>
+#include <QVariant>
 
 using namespace HomeCompa;
 using namespace ZipDetails;
@@ -54,6 +55,11 @@ public:
 	{
 	}
 
+	void SetProperty(const PropertyId id, QVariant value)
+	{
+		m_zip->SetProperty(id, std::move(value));
+	}
+
 	QStringList GetFileNameList() const
 	{
 		return m_zip->GetFileNameList();
@@ -64,13 +70,6 @@ public:
 		m_file.reset();
 		m_file.reset(m_zip->Read(filename));
 		return m_file->Read();
-	}
-
-	std::unique_ptr<Stream> Write(const QString & filename)
-	{
-		m_file.reset();
-		m_file.reset(m_zip->Write(filename));
-		return m_file->Write();
 	}
 
 	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter)
@@ -109,6 +108,11 @@ Zip::Zip(QIODevice & stream, Format format, bool appendMode, std::shared_ptr<Pro
 }
 
 Zip::~Zip() = default;
+
+void Zip::SetProperty(const PropertyId id, QVariant value)
+{
+	m_impl->SetProperty(id, std::move(value));
+}
 
 std::unique_ptr<Stream> Zip::Read(const QString & filename) const
 {

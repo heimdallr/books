@@ -8,6 +8,7 @@
 #include <atlcomcli.h>
 #include <InitGuid.h>
 #include <Shlwapi.h>
+#include <interface/types.h>
 #include <plog/Log.h>
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
@@ -78,7 +79,7 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> str
 	return {};
 }
 
-CComPtr<IOutArchive> GetArchiveWriter(const Lib & lib, IInArchive * inArchive, const bit7z::BitInFormat & format)
+CComPtr<IOutArchive> CreateOutputArchive(const Lib & lib, IInArchive * inArchive, const bit7z::BitInFormat & format)
 {
 	CComPtr<IOutArchive> archive;
 	if (inArchive)
@@ -91,20 +92,68 @@ CComPtr<IOutArchive> GetArchiveWriter(const Lib & lib, IInArchive * inArchive, c
 	return archive;
 }
 
-CComPtr<IOutArchive> CreateOutputArchive(const Lib & lib, IInArchive * inArchive, const bit7z::BitInFormat & format)
+std::wstring GetCompressionMethodName(const CompressionMethod method)
 {
-	auto archive = GetArchiveWriter(lib, inArchive, format);
-	if (!archive)
-		return {};
+	constexpr std::pair<CompressionMethod, const wchar_t *> methods[]
+	{
+		{ CompressionMethod::Copy     , L"Copy"},
+		{ CompressionMethod::Ppmd     , L"PPMd"},
+		{ CompressionMethod::Lzma     , L"LZMA"},
+		{ CompressionMethod::Lzma2    , L"LZMA2"},
+		{ CompressionMethod::BZip2    , L"BZip2"},
+		{ CompressionMethod::Deflate  , L"Deflate"},
+		{ CompressionMethod::Deflate64, L"Deflate64"},
+	};
 
+	return FindSecond(methods, method);
+}
+
+constexpr auto CompressionLevelName = L"x";
+constexpr auto CompressionMethodName = L"m";
+constexpr auto CompressionMethodNameSevenZip = L"0";
+constexpr auto SolidModeName = L"s";
+constexpr auto ThreadCountName = L"mt";
+
+void SetArchiveProperties(IOutArchive & archive, const bit7z::BitInOutFormat & format, const std::unordered_map<PropertyId, QVariant> & properties)
+{
 	CComPtr<ISetProperties> setProperties;
-	[[maybe_unused]] HRESULT res = archive->QueryInterface(IID_ISetProperties, reinterpret_cast<void **>(&setProperties));
+	if (archive.QueryInterface(IID_ISetProperties, reinterpret_cast<void **>(&setProperties)) != S_OK)
+		return;
 
-	const wchar_t * names[] { L"x" };
-	const CPropVariant values[] { static_cast<uint32_t>(bit7z::BitCompressionLevel::Ultra) };
-	res = setProperties->SetProperties(names, values, static_cast<uint32_t>(std::size(names)));
+	const auto getProperty = [&] (const PropertyId id)
+	{
+		const auto it = properties.find(id);
+		return it != properties.end() ? it->second : QVariant {};
+	};
+	std::vector<const wchar_t *> names;
+	std::vector<CPropVariant> values;
 
-	return archive;
+	if (const auto value = getProperty(PropertyId::CompressionLevel); value.isValid() && format.hasFeature(bit7z::FormatFeatures::CompressionLevel))
+	{
+		names.emplace_back(CompressionLevelName);
+		values.emplace_back(static_cast<uint32_t>(value.value<CompressionLevel>()));
+	}
+
+	if (const auto value = getProperty(PropertyId::CompressionMethod); value.isValid() && format.hasFeature(bit7z::FormatFeatures::MultipleMethods))
+	{
+		names.emplace_back(format == bit7z::BitFormat::SevenZip ? CompressionMethodNameSevenZip : CompressionMethodName);
+		values.emplace_back(GetCompressionMethodName(value.value<CompressionMethod>()));
+	}
+
+	if (const auto value = getProperty(PropertyId::SolidArchive); value.isValid() && format.hasFeature(bit7z::FormatFeatures::SolidArchive))
+	{
+		names.emplace_back(SolidModeName);
+		values.emplace_back(value.toBool());
+	}
+
+	if (const auto value = getProperty(PropertyId::ThreadsCount); value.isValid())
+	{
+		names.emplace_back(ThreadCountName);
+		values.emplace_back(value.toUInt());
+	}
+
+	[[maybe_unused]] const auto res = setProperties->SetProperties(names.data(), values.data(), static_cast<uint32_t>(std::size(names)));
+	assert(res == S_OK);
 }
 
 struct ArchiveWrapper
@@ -218,6 +267,11 @@ public:
 	}
 
 private: // IZip
+	void SetProperty(const PropertyId id, QVariant value) override
+	{
+		m_properties[id] = std::move(value);
+	}
+
 	QStringList GetFileNameList() const override
 	{
 		QStringList files;
@@ -229,12 +283,6 @@ private: // IZip
 	std::unique_ptr<IFile> Read(const QString & filename) const override
 	{
 		return File::Read(*m_archive->archive, m_files.GetFile(filename), *m_progress);
-	}
-
-	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
-	{
-		assert(false && "Cannot write with reader");
-		return {};
 	}
 
 	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter & /*streamGetter*/) override
@@ -258,6 +306,9 @@ protected:
 	std::unique_ptr<ArchiveWrapper> m_archive;
 	FileStorage m_files;
 	std::shared_ptr<ProgressCallback> m_progress;
+	std::unordered_map<PropertyId, QVariant> m_properties {
+		{ PropertyId::CompressionLevel, QVariant::fromValue(CompressionLevel::Ultra) },
+		{ PropertyId::ThreadsCount    , static_cast<uint32_t>(std::thread::hardware_concurrency()) }, };
 };
 
 class ReaderFile : public Reader
@@ -301,23 +352,21 @@ public:
 			m_archive = std::make_unique<ArchiveWrapper>();
 		m_ioDevice->open(!appendMode || m_archive->format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
 
-		const auto & outFormat = GetInOutFormat(m_archive->format, format);
-		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, outFormat);
+		m_format = &GetInOutFormat(m_archive->format, format);
+		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, *m_format);
+		assert(m_outArchive);
 	}
 
 private: // IZip
-	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
-	{
-		return {};
-	}
-
 	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter) override
 	{
+		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
 		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, *m_progress);
 	}
 
 private:
 	std::unique_ptr<QIODevice> m_ioDevice;
+	const bit7z::BitInOutFormat * m_format { nullptr };
 	CComPtr<IOutArchive> m_outArchive;
 };
 
@@ -333,23 +382,21 @@ public:
 			m_archive = std::make_unique<ArchiveWrapper>();
 		m_ioDevice.open(!appendMode || m_archive->format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
 
-		const auto & outFormat = GetInOutFormat(m_archive->format, format);
-		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, outFormat);
+		m_format = &GetInOutFormat(m_archive->format, format);
+		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, *m_format);
+		assert(m_outArchive);
 	}
 
 private: // IZip
-	std::unique_ptr<IFile> Write(const QString & /*filename*/) override
-	{
-		return {};
-	}
-
 	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter) override
 	{
+		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
 		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, *m_progress);
 	}
 
 private:
 	QIODevice & m_ioDevice;
+	const bit7z::BitInOutFormat * m_format { nullptr };
 	CComPtr<IOutArchive> m_outArchive;
 };
 
