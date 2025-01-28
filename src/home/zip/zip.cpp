@@ -146,9 +146,14 @@ const QDateTime & Zip::GetFileTime(const QString & filename) const
 	return m_impl->GetFileTime(filename);
 }
 
-Zip::Format Zip::FindFormat(const QString & str)
+Zip::Format Zip::FormatFromString(const QString & str)
 {
 	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparer {});
+}
+
+QString Zip::FormatToString(const Format format)
+{
+	return FindFirst(ZIP_FORMATS, format);
 }
 
 std::ostream & operator<<(std::ostream & stream, const Zip::Format format)

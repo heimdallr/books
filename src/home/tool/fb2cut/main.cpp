@@ -565,7 +565,7 @@ bool ArchiveFb2(const Settings & settings)
 	std::vector<QString> fileList;
 	fileList.reserve(files.size());
 	std::ranges::move(files, std::back_inserter(fileList));
-	Zip zip(QString("%1.7z").arg(settings.dstDir.path()), Zip::Format::SevenZip);
+	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
 	const auto result = zip.Write(fileList, [&] (size_t index)
 	{
 		const auto & file = fileList[index++];
@@ -799,7 +799,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
 
 	if (parser.isSet(FORMAT))
-		settings.format = Zip::FindFormat(parser.value(FORMAT));
+		settings.format = Zip::FormatFromString(parser.value(FORMAT));
 
 	QSize size;
 	if (SetValue(parser, MAX_SIZE_OPTION_NAME, size))

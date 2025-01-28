@@ -22,7 +22,8 @@ public:
 	};
 
 	using Format = ZipDetails::Format;
-	static Format FindFormat(const QString & str);
+	static Format FormatFromString(const QString & str);
+	static QString FormatToString(Format format);
 
 public:
 	explicit Zip(const QString & filename, std::shared_ptr<ProgressCallback> progress = {});
