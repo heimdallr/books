@@ -565,7 +565,7 @@ bool ArchiveFb2(const Settings & settings)
 	std::vector<QString> fileList;
 	fileList.reserve(files.size());
 	std::ranges::move(files, std::back_inserter(fileList));
-	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), settings.format);
+	Zip zip(QString("%1.7z").arg(settings.dstDir.path()), Zip::Format::SevenZip);
 	const auto result = zip.Write(fileList, [&] (size_t index)
 	{
 		const auto & file = fileList[index++];
