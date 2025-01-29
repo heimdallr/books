@@ -8,6 +8,7 @@ class QString;
 namespace HomeCompa::ZipDetails {
 
 using StreamGetter = std::function<std::unique_ptr<QIODevice>(size_t)>;
+using SizeGetter = std::function<size_t(size_t)>;
 
 class ProgressCallback  // NOLINT(cppcoreguidelines-special-member-functions)
 {

@@ -99,16 +99,17 @@ class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
 	{
-		return new ArchiveUpdateCallback(files, fileNames, streamGetter, progress);
+		return new ArchiveUpdateCallback(files, fileNames, streamGetter, sizeGetter, progress);
 	}
 
 private:
-	ArchiveUpdateCallback(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
+	ArchiveUpdateCallback(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
 		: m_files { files }
 		, m_fileNames { fileNames }
 		, m_streamGetter { streamGetter }
+		, m_sizeGetter { sizeGetter }
 		, m_progress { progress }
 	{
 	}
@@ -182,8 +183,6 @@ private: // IArchiveUpdateCallback
 
 	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT * value) noexcept override try
 	{
-		const auto & stream = GetStream(index);
-
 		CPropVariant prop = [&, propId] () -> CPropVariant
 		{
 			switch (propId)
@@ -201,7 +200,7 @@ private: // IArchiveUpdateCallback
 				case kpidComment:
 					return {};
 				case kpidSize:
-					return static_cast<uint64_t>(stream.size());
+					return m_sizeGetter(index - m_files.files.size());
 				default:
 					return {};
 			}
@@ -252,6 +251,7 @@ private:
 	FileStorage & m_files;
 	const std::vector<QString> & m_fileNames;
 	const StreamGetter & m_streamGetter;
+	const SizeGetter & m_sizeGetter;
 	ProgressCallback & m_progress;
 	std::vector<std::unique_ptr<QIODevice>> m_streams;
 };
@@ -260,11 +260,11 @@ private:
 
 namespace File {
 
-bool Write(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, ProgressCallback & progress)
+bool Write(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
 {
 	ProgressCallbackStub progressCallbackStub;
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
-	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, progress);
+	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, sizeGetter, progress);
 	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + fileNames.size()), std::move(archiveUpdateCallback));
 	progress.OnDone();
 	return result == S_OK;

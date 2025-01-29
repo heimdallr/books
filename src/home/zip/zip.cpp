@@ -72,9 +72,9 @@ public:
 		return m_file->Read();
 	}
 
-	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter)
+	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter)
 	{
-		return m_zip->Write(fileNames, streamGetter);
+		return m_zip->Write(fileNames, streamGetter, sizeGetter);
 	}
 
 	size_t GetFileSize(const QString & filename) const
@@ -124,9 +124,18 @@ QStringList Zip::GetFileNameList() const
 	return m_impl->GetFileNameList();
 }
 
-bool Zip::Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter)
+bool Zip::Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter)
 {
-	return m_impl->Write(fileNames, streamGetter);
+	return sizeGetter
+		? m_impl->Write(fileNames, streamGetter, sizeGetter)
+		: m_impl->Write(fileNames, streamGetter, [&] (const size_t index)
+	{
+		const auto stream = streamGetter(index);
+		if (!stream->isOpen())
+			stream->open(QIODevice::ReadOnly);
+		return static_cast<size_t>(stream->size());
+	});
+
 }
 
 bool Zip::Write(std::vector<std::pair<QString, QByteArray>> data)
@@ -137,6 +146,9 @@ bool Zip::Write(std::vector<std::pair<QString, QByteArray>> data)
 	return Write(fileNames, [&] (const size_t index)
 	{
 		return std::make_unique<QBuffer>(&data[index].second);
+	}, [&] (const size_t index)
+	{
+		return static_cast<size_t>(data[index].second.size());
 	});
 }
 

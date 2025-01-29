@@ -285,7 +285,7 @@ private: // IZip
 		return File::Read(*m_archive->archive, m_files.GetFile(filename), *m_progress);
 	}
 
-	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter & /*streamGetter*/) override
+	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter &, const SizeGetter &) override
 	{
 		assert(false && "Cannot write with reader");
 		return false;
@@ -358,10 +358,10 @@ public:
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter) override
+	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
 	{
 		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
-		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, *m_progress);
+		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
 	}
 
 private:
@@ -388,10 +388,10 @@ public:
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter) override
+	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
 	{
 		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
-		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, *m_progress);
+		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
 	}
 
 private:

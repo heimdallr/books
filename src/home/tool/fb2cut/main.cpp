@@ -578,6 +578,12 @@ bool ArchiveFb2(const Settings & settings)
 		const auto & file = fileList[index++];
 		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(index).arg(files.size()).arg(index * 100 / files.size());
 		return std::make_unique<QFile>(settings.dstDir.filePath(file));
+	},
+	[&](const size_t index)
+	{
+		const QFileInfo fileInfo(settings.dstDir.filePath(fileList[index]));
+		assert(fileInfo.exists());
+		return static_cast<size_t>(fileInfo.size());
 	});
 	if (result)
 		for (const auto & file : fileList)

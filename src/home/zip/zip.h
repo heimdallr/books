@@ -36,13 +36,15 @@ public:
 	Zip(QIODevice & stream, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	~Zip();
 
-	void SetProperty(PropertyId id, QVariant value);
 	[[nodiscard]] QStringList GetFileNameList() const;
-	[[nodiscard]] std::unique_ptr<Stream> Read(const QString & filename) const;
-	bool Write(const std::vector<QString> & fileNames, const ZipDetails::StreamGetter & streamGetter);
-	bool Write(std::vector<std::pair<QString, QByteArray>> data);
 	[[nodiscard]] size_t GetFileSize(const QString & filename) const;
 	[[nodiscard]] const QDateTime & GetFileTime(const QString & filename) const;
+
+	[[nodiscard]] std::unique_ptr<Stream> Read(const QString & filename) const;
+
+	void SetProperty(PropertyId id, QVariant value);
+	bool Write(const std::vector<QString> & fileNames, const ZipDetails::StreamGetter & streamGetter, const ZipDetails::SizeGetter & sizeGetter = {});
+	bool Write(std::vector<std::pair<QString, QByteArray>> data);
 
 public:
 	Zip(const Zip &) = delete;
