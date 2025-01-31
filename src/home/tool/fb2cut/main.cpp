@@ -475,6 +475,7 @@ public:
 		, m_dstDir { settings.dstDir }
 		, m_saveCovers{ settings.cover.save }
 		, m_saveImages { settings.image.save }
+		, m_maxThreadCount { settings.maxThreadCount }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -523,6 +524,7 @@ public:
 		if (!saveFlag || images.empty())
 			return;
 
+		PLOGI << "archive " << images.size() << " images: " << GetImagesFolder(m_dstDir, type);
 		std::unordered_map<QString, qsizetype> unique;
 		for (const auto & image : images)
 		{
@@ -540,9 +542,11 @@ public:
 		const auto proj = [] (const auto & item) { return item.first; };
 		std::ranges::sort(images, {}, proj);
 		if (const auto range = std::ranges::unique(images, {}, proj); !range.empty())
-			images.erase(range.begin(), range.end());
+			images.erase(range.begin(), range.end()); //-V539
 
 		Zip zip(GetImagesFolder(m_dstDir, type), Zip::Format::Zip);
+		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
+		zip.SetProperty(Zip::PropertyId::ThreadsCount, m_maxThreadCount);
 		zip.Write(images);
 	}
 
@@ -569,6 +573,7 @@ private:
 	QDir m_dstDir;
 	const bool m_saveCovers;
 	const bool m_saveImages;
+	const int m_maxThreadCount;
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
