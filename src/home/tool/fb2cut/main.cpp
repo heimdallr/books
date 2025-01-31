@@ -475,6 +475,7 @@ public:
 		, m_dstDir { settings.dstDir }
 		, m_saveCovers{ settings.cover.save }
 		, m_saveImages { settings.image.save }
+		, m_maxThreadCount { settings.maxThreadCount }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -514,18 +515,39 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
+		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
+		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
+	}
 
-		if (m_saveCovers)
+	void ArchiveImages(const bool saveFlag, const char * type, std::vector<DataItem> & images) const
+	{
+		if (!saveFlag || images.empty())
+			return;
+
+		PLOGI << "archive " << images.size() << " images: " << GetImagesFolder(m_dstDir, type);
+		std::unordered_map<QString, qsizetype> unique;
+		for (const auto & image : images)
 		{
-			Zip zip(GetImagesFolder(m_dstDir, Global::COVERS), Zip::Format::Zip);
-			zip.Write(m_covers);
+			auto & item = unique[image.first];
+			item = std::max(item, image.second.size());
 		}
 
-		if (m_saveImages)
+		std::erase_if(images, [&] (const auto & image)
 		{
-			Zip zip(GetImagesFolder(m_dstDir, Global::IMAGES), Zip::Format::Zip);
-			zip.Write(m_images);
-		}
+			const auto it = unique.find(image.first);
+			assert(it != unique.end());
+			return image.second.size() < it->second;
+		});
+
+		const auto proj = [] (const auto & item) { return item.first; };
+		std::ranges::sort(images, {}, proj);
+		if (const auto range = std::ranges::unique(images, {}, proj); !range.empty())
+			images.erase(range.begin(), range.end()); //-V539
+
+		Zip zip(GetImagesFolder(m_dstDir, type), Zip::Format::Zip);
+		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
+		zip.SetProperty(Zip::PropertyId::ThreadsCount, m_maxThreadCount);
+		zip.Write(images);
 	}
 
 private:
@@ -551,6 +573,7 @@ private:
 	QDir m_dstDir;
 	const bool m_saveCovers;
 	const bool m_saveImages;
+	const int m_maxThreadCount;
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
