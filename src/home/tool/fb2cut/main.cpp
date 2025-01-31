@@ -515,13 +515,13 @@ public:
 	{
 		m_workers.clear();
 
-		if (m_saveCovers)
+		if (m_saveCovers && !m_covers.empty())
 		{
 			Zip zip(GetImagesFolder(m_dstDir, Global::COVERS), Zip::Format::Zip);
 			zip.Write(m_covers);
 		}
 
-		if (m_saveImages)
+		if (m_saveImages && !m_images.empty())
 		{
 			Zip zip(GetImagesFolder(m_dstDir, Global::IMAGES), Zip::Format::Zip);
 			zip.Write(m_images);
