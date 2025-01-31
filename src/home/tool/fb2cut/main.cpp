@@ -514,18 +514,36 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
+		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
+		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
+	}
 
-		if (m_saveCovers && !m_covers.empty())
+	void ArchiveImages(const bool saveFlag, const char * type, std::vector<DataItem> & images) const
+	{
+		if (!saveFlag || images.empty())
+			return;
+
+		std::unordered_map<QString, qsizetype> unique;
+		for (const auto & image : images)
 		{
-			Zip zip(GetImagesFolder(m_dstDir, Global::COVERS), Zip::Format::Zip);
-			zip.Write(m_covers);
+			auto & item = unique[image.first];
+			item = std::max(item, image.second.size());
 		}
 
-		if (m_saveImages && !m_images.empty())
+		std::erase_if(images, [&] (const auto & image)
 		{
-			Zip zip(GetImagesFolder(m_dstDir, Global::IMAGES), Zip::Format::Zip);
-			zip.Write(m_images);
-		}
+			const auto it = unique.find(image.first);
+			assert(it != unique.end());
+			return image.second.size() < it->second;
+		});
+
+		const auto proj = [] (const auto & item) { return item.first; };
+		std::ranges::sort(images, {}, proj);
+		if (const auto range = std::ranges::unique(images, {}, proj); !range.empty())
+			images.erase(range.begin(), range.end());
+
+		Zip zip(GetImagesFolder(m_dstDir, type), Zip::Format::Zip);
+		zip.Write(images);
 	}
 
 private:
