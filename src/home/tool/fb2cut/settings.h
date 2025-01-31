@@ -53,7 +53,8 @@ struct Settings
 	bool archiveFb2 { true };
 	QDir dstDir;
 	QString ffmpeg;
-	bool defaultArchiverOptions { true };
+	QString archiver;
+	QString archiverOptions;
 	int totalFileCount { 0 };
 	Zip::Format format { Zip::Format::SevenZip };
 };

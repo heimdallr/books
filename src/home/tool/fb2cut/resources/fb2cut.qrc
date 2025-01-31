@@ -5,5 +5,6 @@
 		<file alias="add_folder.png">icons/add_folder.png</file>
 		<file alias="exe.png">icons/exe.png</file>
 		<file alias="lock.png">icons/lock.png</file>
+		<file alias="set_default.png">icons/set_default.png</file>
 	</qresource>
 </RCC>

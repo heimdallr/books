@@ -58,6 +58,8 @@ constexpr auto IMAGE_QUALITY_OPTION_NAME = "image-quality";
 constexpr auto GRAYSCALE_OPTION_NAME = "grayscale";
 constexpr auto COVER_GRAYSCALE_OPTION_NAME = "cover-grayscale";
 constexpr auto IMAGE_GRAYSCALE_OPTION_NAME = "image-grayscale";
+constexpr auto ARCHIVER_OPTION_NAME = "archiver";
+constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_ARCHIVE_FB2_OPTION_NAME = "no-archive-fb2";
@@ -74,7 +76,7 @@ constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 constexpr auto PATH = "path";
-constexpr auto COMMANDLINE = "list of options [%1]";
+constexpr auto COMMANDLINE = "list of options";
 constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 using DataItem = std::pair<QString, QByteArray>;
@@ -556,10 +558,59 @@ private:
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
 
+bool ArchiveFb2External(const Settings & settings)
+{
+	if (!settings.saveFb2 || settings.archiver.isEmpty())
+		return false;
+
+	PLOGI << "launching an external archiver";
+
+	QProcess process;
+	QEventLoop eventLoop;
+	auto args = settings.archiverOptions.split(' ', Qt::SkipEmptyParts);
+	for (auto & arg : args)
+	{
+		arg.replace("%src%", QString("%1/*.fb2").arg(settings.dstDir.path()));
+		arg.replace("%dst%", QString("%1").arg(settings.dstDir.path()));
+	}
+
+	bool hasErrors = false;
+
+	QObject::connect(&process, &QProcess::started, [&]
+	{
+		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(' ');
+	});
+	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+	{
+		if (code == 0)
+			PLOGI << QFileInfo(settings.archiver).fileName() << " finished successfully";
+		else
+			PLOGW << QFileInfo(settings.archiver).fileName() << " finished with " << code;
+		eventLoop.exit(code);
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+	{
+		hasErrors = true;
+		PLOGE << process.readAllStandardError();
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+	{
+		PLOGI << process.readAllStandardOutput();
+	});
+
+	process.start(settings.archiver, args, QIODevice::ReadOnly);
+
+	eventLoop.exec();
+	return hasErrors;
+}
+
 bool ArchiveFb2(const Settings & settings)
 {
 	if (!settings.archiveFb2)
 		return false;
+
+	if (!settings.archiver.isEmpty())
+		return ArchiveFb2External(settings);
 
 	auto files = settings.dstDir.entryList({ "*.fb2" });
 	std::vector<QString> fileList;
@@ -784,8 +835,10 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
-		{ { QString(FORMAT[0])              , FORMAT                           } , "Output format [7z | zip]"                                          , QString("%1 [%2]").arg(FORMAT, "7z")},
+		{ { QString(FORMAT[0])              , FORMAT                           } , "Output fb2 archive format [7z | zip]"                              , QString("%1 [%2]").arg(FORMAT, "7z")},
+		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
 
+		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", COMMANDLINE },
 		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
 		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
 		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
@@ -810,6 +863,8 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	settings.dstDir = parser.value(FOLDER);
 
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
+	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
+	settings.archiverOptions = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME);
 
 	if (parser.isSet(FORMAT))
 		settings.format = Zip::FormatFromString(parser.value(FORMAT));
