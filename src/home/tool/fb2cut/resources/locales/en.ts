@@ -131,11 +131,6 @@
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
-        <source>External archiver executable not found</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.ui"/>
         <source>FFmpeg executable not found</source>
         <translation></translation>
     </message>
@@ -148,6 +143,21 @@
         <location filename="../../MainWindow.ui"/>
         <source>fb2cut - fb2 libraries zip archive repacker</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Image settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source> bytes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>For advanced users (optional)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

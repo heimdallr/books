@@ -1,6 +1,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
+#include "fnd/FindPair.h"
 #include "GuiUtil/interface/IUiFactory.h"
 #include "util/files.h"
 #include "util/ISettings.h"
@@ -16,6 +17,7 @@ constexpr auto KEY_INPUT_FILES = "ui/fb2cut/inputFiles";
 constexpr auto KEY_DST_FOLDER = "ui/fb2cut/outputFolder";
 constexpr auto KEY_EXT_ARCHIVER = "ui/fb2cut/externalArchiver";
 constexpr auto KEY_EXT_ARCHIVER_CMD_LINE = "ui/fb2cut/externalArchiverCmdLine";
+constexpr auto KEY_ARCHIVE_FORMAT = "ui/fb2cut/format";
 constexpr auto KEY_FFMPEG = "ui/fb2cut/externalFfmpeg";
 constexpr auto KEY_SAVE_FB2 = "ui/fb2cut/saveFb2";
 constexpr auto KEY_ARCHIVE_FB2 = "ui/fb2cut/archiveFb2";
@@ -33,7 +35,7 @@ MainWindow::MainWindow(
 	, QWidget *parent
 )
 	: QMainWindow(parent)
-	, GeometryRestorable(*this, settingsManager, "fb2cutMainWindow")
+	, GeometryRestorable(*this, settingsManager, "fb2cut/MainWindow")
 	, GeometryRestorableObserver(static_cast<QWidget&>(*this))
 	, m_settingsManager { std::move(settingsManager) }
 	, m_uiFactory { std::move(uiFactory) }
@@ -60,19 +62,20 @@ MainWindow::MainWindow(
 
 	m_ui->editInputFiles->addAction(m_ui->actionInputFilesNotFound, QLineEdit::TrailingPosition);
 	m_ui->editDstFolder->addAction(m_ui->actionDstFolderNotExists, QLineEdit::TrailingPosition);
-	m_ui->editExternalArchiver->addAction(m_ui->actionExternalArchiverNotFound, QLineEdit::TrailingPosition);
 	m_ui->editFfmpeg->addAction(m_ui->actionFfmpegNotFound, QLineEdit::TrailingPosition);
 
 	connect(m_ui->btnStart, &QAbstractButton::clicked, this, &MainWindow::OnStartClicked);
 	connect(m_ui->btnInputFiles, &QAbstractButton::clicked, this, &MainWindow::OnInputFilesClicked);
 	connect(m_ui->btnDstFolder, &QAbstractButton::clicked, this, &MainWindow::OnDstFolderClicked);
 	connect(m_ui->btnExternalArchiver, &QAbstractButton::clicked, this, &MainWindow::OnExternalArchiverClicked);
+	connect(m_ui->btnDefaultArgs, &QAbstractButton::clicked, this, &MainWindow::OnExternalArchiverDefaultArgsClicked);
 	connect(m_ui->btnFfmpeg, &QAbstractButton::clicked, this, &MainWindow::OnFfmpegClicked);
 
 	connect(m_ui->editInputFiles, &QLineEdit::textChanged, this, &MainWindow::OnInputFilesChanged);
 	connect(m_ui->editDstFolder, &QLineEdit::textChanged, this, &MainWindow::OnDstFolderChanged);
 	connect(m_ui->editExternalArchiver, &QLineEdit::textChanged, this, &MainWindow::OnExternalArchiverChanged);
 	connect(m_ui->editFfmpeg, &QLineEdit::textChanged, this, &MainWindow::OnFfmpegChanged);
+	connect(m_ui->saveFb2, &QAbstractButton::toggled, this, [this] (const bool checked) { m_ui->format->setEnabled(checked && m_ui->archiveFb2->isChecked()); });
 
 	const Settings defaultSettings;
 
@@ -85,6 +88,8 @@ MainWindow::MainWindow(
 	m_ui->archiveFb2->setChecked(m_settingsManager->Get(KEY_ARCHIVE_FB2, defaultSettings.archiveFb2));
 	m_ui->minImageFileSize->setValue(m_settingsManager->Get(KEY_MIN_IMAGE_FILE_SIZE, defaultSettings.minImageFileSize));
 	m_ui->maxThreadCount->setValue(m_settingsManager->Get(KEY_MAX_THREAD_COUNT, defaultSettings.maxThreadCount));
+	if (const auto index = m_ui->format->findText(m_settingsManager->Get(KEY_ARCHIVE_FORMAT, Zip::FormatToString(defaultSettings.format))))
+		m_ui->format->setCurrentIndex(index);
 }
 
 MainWindow::~MainWindow() = default;
@@ -105,7 +110,11 @@ void MainWindow::SetSettings(Settings * settings)
 		m_ui->editExternalArchiver->setText(m_settings->archiver);
 
 	if (m_settings->archiverOptions != defaultSettings.archiverOptions)
-		m_ui->editArchiverCommandLine->setText(m_settings->archiverOptions.join(' '));
+		m_ui->editArchiverCommandLine->setText(m_settings->archiverOptions);
+
+	if (m_settings->format != defaultSettings.format)
+		if (const auto index = m_ui->format->findText(Zip::FormatToString(m_settings->format)))
+			m_ui->format->setCurrentIndex(index);
 
 	if (m_settings->ffmpeg != defaultSettings.ffmpeg)
 		m_ui->editFfmpeg->setText(m_settings->ffmpeg);
@@ -140,7 +149,6 @@ void MainWindow::CheckEnabled()
 	const bool startDisabled = false
 		|| m_ui->actionInputFilesNotFound->isVisible()
 		|| m_ui->actionDstFolderNotExists->isVisible()
-		|| m_ui->actionExternalArchiverNotFound->isVisible()
 		|| m_ui->actionFfmpegNotFound->isVisible()
 		;
 
@@ -154,10 +162,11 @@ void MainWindow::OnStartClicked()
 
 	m_settings->inputWildcards = { m_ui->editInputFiles->text() };
 	m_settings->dstDir = m_ui->editDstFolder->text();
-	m_settings->archiver = m_ui->editExternalArchiver->text();
 	m_settings->ffmpeg = m_ui->editFfmpeg->text();
+	m_settings->format = Zip::FormatFromString(m_ui->format->currentText());
+	m_settings->archiver = m_ui->editExternalArchiver->text();
 	if (!m_ui->editArchiverCommandLine->text().isEmpty())
-		m_settings->archiverOptions = m_ui->editArchiverCommandLine->text().split(' ', Qt::SkipEmptyParts);
+		m_settings->archiverOptions = m_ui->editArchiverCommandLine->text();
 
 	m_settings->saveFb2 = m_ui->saveFb2->isChecked();
 	m_settings->archiveFb2 = m_ui->archiveFb2->isChecked();
@@ -167,6 +176,7 @@ void MainWindow::OnStartClicked()
 
 	m_settingsManager->Set(KEY_INPUT_FILES, m_ui->editInputFiles->text());
 	m_settingsManager->Set(KEY_DST_FOLDER, m_ui->editDstFolder->text());
+	m_settingsManager->Set(KEY_ARCHIVE_FORMAT, m_ui->format->currentText());
 	m_settingsManager->Set(KEY_EXT_ARCHIVER, m_ui->editExternalArchiver->text());
 	m_settingsManager->Set(KEY_EXT_ARCHIVER_CMD_LINE, m_ui->editArchiverCommandLine->text());
 	m_settingsManager->Set(KEY_FFMPEG, m_ui->editFfmpeg->text());
@@ -196,6 +206,12 @@ void MainWindow::OnExternalArchiverClicked()
 		m_ui->editExternalArchiver->setText(fileName);
 }
 
+void MainWindow::OnExternalArchiverDefaultArgsClicked()
+{
+	if (m_ui->editExternalArchiver->text().contains("7z"))
+		Set7zDefaultSettings();
+}
+
 void MainWindow::OnFfmpegClicked()
 {
 	if (const auto fileName = GetExecutableFileName("fb2cut/ffmpeg", tr("Select ffmpeg executable")); !fileName.isEmpty())
@@ -219,8 +235,8 @@ void MainWindow::OnDstFolderChanged()
 void MainWindow::OnExternalArchiverChanged()
 {
 	const auto text = m_ui->editExternalArchiver->text();
-	m_ui->actionExternalArchiverNotFound->setVisible(!(text.isEmpty() || QFile(text).exists()));
 	m_ui->archiveOptionsFrame->setVisible(!text.isEmpty());
+	m_ui->btnDefaultArgs->setEnabled(text.contains("7z"));
 	CheckEnabled();
 }
 
@@ -233,4 +249,15 @@ void MainWindow::OnFfmpegChanged()
 QString MainWindow::GetExecutableFileName(const QString & key, const QString & title) const
 {
 	return m_uiFactory->GetOpenFileName(key, title, tr("Executables (*.exe);;All files (*.*)"));
+}
+
+void MainWindow::Set7zDefaultSettings()
+{
+	static constexpr std::pair<Zip::Format, const char *> args[]
+	{
+		{ Zip::Format::SevenZip, "a %dst%.7z -mx9 -sdel -m0=ppmd -ms=off -bt -mmt%1 %src%" },
+		{ Zip::Format::Zip     , "a %dst%.zip -mx9 -sdel -mmt%1 %src%" },
+	};
+
+	m_ui->editArchiverCommandLine->setText(QString(FindSecond(args, Zip::FormatFromString(m_ui->format->currentText()))).arg(m_ui->maxThreadCount->value()));
 }

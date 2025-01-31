@@ -1,6 +1,7 @@
 #include "InpxCollectionExtractor.h"
 
 #include <filesystem>
+#include <QBuffer>
 
 #include <QCryptographicHash>
 #include <QFileInfo>
@@ -82,20 +83,27 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 	Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip);
 	QByteArray inpx;
 
-	for (const auto & book : books)
+	std::vector<QString> fileNames;
+	fileNames.reserve(books.size());
+	std::ranges::transform(books, std::back_inserter(fileNames), [] (const auto & book) { return book.book->GetRawData(BookItem::Column::FileName); });
+
+	QByteArray bytes;
+
+	zip.Write(fileNames, [&] (const size_t index) -> std::unique_ptr<QIODevice>
 	{
+		const auto & book = books[index];
 		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
 		const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
-		auto & output = zip.Write(fileName);
 		const Zip zipInput(folder);
-		auto & input = zipInput.Read(fileName);
-		const auto bytes = RestoreImages(input, folder, fileName);
-		output.write(bytes);
-		Write(inpx, uid, book, n);
-		progress.Increment(input.size());
+		const auto input = zipInput.Read(fileName);
+		bytes = RestoreImages(input->GetStream(), folder, fileName);
+		progress.Increment(bytes.size());
 		if (progress.IsStopped())
-			break;
-	}
+			return {};
+
+		Write(inpx, uid, book, n);
+		return std::make_unique<QBuffer>(&bytes);
+	});
 
 	return inpx;
 }
@@ -244,26 +252,24 @@ private:
 		});
 	}
 
-	void WriteInpx(const QString & inpxFileName) const
+	void WriteInpx(const QString & inpxFileName)
 	{
 		const auto inpxFileExists = QFile::exists(inpxFileName);
-		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
+
+		std::vector<std::pair<QString, QByteArray>> toZip;
 
 		if (!inpxFileExists)
 		{
-			{
-				auto & stream = zip.Write("collection.info");
-				stream.write("Collection");
-			}
-			{
-				auto & stream = zip.Write("version.info");
-				stream.write(QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
-			}
+			toZip.emplace_back("collection.info", QString("Collection").toUtf8());
+			toZip.emplace_back("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
 		}
 
-		for (const auto & [uid, data] : m_paths)
+		for (auto && [uid, data] : m_paths)
 			if (!data.isEmpty())
-				zip.Write(QString("%1.inp").arg(uid)).write(data);
+				toZip.emplace_back(QString("%1.inp").arg(uid), std::move(data));
+
+		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
+		zip.Write(std::move(toZip));
 
 		m_callback(m_hasError);
 	}

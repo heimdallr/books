@@ -187,8 +187,8 @@ bool ParseCovers(const QString & folder, const QString & fileName, const Extract
 	if (!fileList.contains(file))
 		return false;
 
-	auto & stream = zip.Read(file);
-	stop = callback(Global::COVER, stream.readAll());
+	const auto stream = zip.Read(file);
+	stop = callback(Global::COVER, stream->GetStream().readAll());
 	return true;
 }
 
@@ -208,7 +208,7 @@ void ParseImages(const QString & folder, const QString & fileName, const Extract
 
 	for (const auto & file : fileList)
 	{
-		auto body = zip.Read(file).readAll();
+		auto body = zip.Read(file)->GetStream().readAll();
 		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
 			return;
 	}

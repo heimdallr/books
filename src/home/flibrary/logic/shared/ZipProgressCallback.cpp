@@ -2,12 +2,16 @@
 
 #include <plog/Log.h>
 
-#include "fnd/observable.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
 
 using namespace HomeCompa::Flibrary;
 
-struct ZipProgressCallback::Impl : Observable<IObserver>
+struct ZipProgressCallback::Impl
 {
+	std::shared_ptr<IProgressController> progressController;
+	std::unique_ptr<IProgressController::IProgressItem> progressItem;
+
 	std::atomic_bool stopped { false };
 	int64_t total { 0 };
 	int64_t progress { 0 };
@@ -15,17 +19,25 @@ struct ZipProgressCallback::Impl : Observable<IObserver>
 
 	void Stop()
 	{
+		progressController->Stop();
 		stopped = true;
+	}
+
+	explicit Impl(std::shared_ptr<IProgressController> progressController)
+		: progressController { std::move(progressController) }
+		, progressItem { this->progressController->Add(100) }
+
+	{
 	}
 };
 
-ZipProgressCallback::ZipProgressCallback()
+ZipProgressCallback::ZipProgressCallback(const std::shared_ptr<const ILogicFactory> & logicFactory)
+	: m_impl(logicFactory->GetProgressController())
 {
 	PLOGD << "ZipProgressCallback created";
 }
 ZipProgressCallback::~ZipProgressCallback()
 {
-	m_impl->Perform(&IObserver::OnProgress, 100);
 	PLOGD << "ZipProgressCallback destroyed";
 }
 
@@ -35,37 +47,33 @@ void ZipProgressCallback::Stop()
 	PLOGD << "ZipProgressCallback stopped";
 }
 
-void ZipProgressCallback::RegisterObserver(IObserver * observer)
-{
-	m_impl->Register(observer);
-}
-
-void ZipProgressCallback::UnregisterObserver(IObserver * observer)
-{
-	m_impl->Unregister(observer);
-}
-
 void ZipProgressCallback::OnStartWithTotal(const int64_t totalBytes)
 {
 	m_impl->total = totalBytes;
-	m_impl->Perform(&IObserver::OnProgress, 0);
 }
 
 void ZipProgressCallback::OnIncrement(const int64_t bytes)
 {
-	m_impl->progress += bytes;
+	OnSetCompleted(m_impl->progress + bytes);
+}
+
+void ZipProgressCallback::OnSetCompleted(const int64_t bytes)
+{
+	m_impl->progress = std::min(bytes, m_impl->total);
 	const auto percents = static_cast<int>(100 * m_impl->progress / m_impl->total);
 	if (m_impl->percents == percents)
 		return;
 
+	assert(m_impl->progressItem);
+	m_impl->progressItem->Increment(percents - m_impl->percents);
+
 	m_impl->percents = percents;
-	m_impl->Perform(&IObserver::OnProgress, percents);
 }
 
 void ZipProgressCallback::OnDone()
 {
-	m_impl->Perform(&IObserver::OnProgress, 100);
-	m_impl->Stop();
+	m_impl->progressItem->Increment(100 - m_impl->percents);
+	m_impl->percents = 100;
 }
 
 void ZipProgressCallback::OnFileDone(const QString & /*filePath*/)
@@ -74,5 +82,5 @@ void ZipProgressCallback::OnFileDone(const QString & /*filePath*/)
 
 bool ZipProgressCallback::OnCheckBreak()
 {
-	return m_impl->stopped;
+	return m_impl->progressItem->IsStopped();
 }

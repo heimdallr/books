@@ -295,7 +295,7 @@ private:
 
 		try
 		{
-			m_ui.editName->setText(Zip(*inpxFiles.begin()).Read("collection.info").readLine().simplified());
+			m_ui.editName->setText(Zip(*inpxFiles.begin()).Read("collection.info")->GetStream().readLine().simplified());
 		}
 		catch(const std::exception & ex)
 		{

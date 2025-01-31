@@ -1,5 +1,12 @@
-include("${CMAKE_CURRENT_LIST_DIR}/interface/interface.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/factory/factory.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/impl/zip/zip.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/impl/7z/7z.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/zip/zip.cmake")
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+
+AddTarget(zip	shared_lib
+	PROJECT_GROUP Util
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}"
+	LINK_LIBRARIES
+		Qt${QT_MAJOR_VERSION}::Gui
+		Shlwapi.lib
+	LINK_TARGETS
+		logging
+)

@@ -44,10 +44,12 @@ public:
 	}
 
 private: // IProgressController::IProgressItem
-	void Increment(const int64_t value) override
+	void Increment(int64_t value) override
 	{
+		value = std::min(value, m_maximum - m_value);
 		m_value += value;
-		m_observer.OnIncremented(value);
+		if (value)
+			m_observer.OnIncremented(value);
 	}
 
 	bool IsStopped() const noexcept override

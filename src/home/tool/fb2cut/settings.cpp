@@ -2,9 +2,9 @@
 
 #include <ostream>
 
-namespace HomeCompa::fb2cut {
+#include "zip.h"
 
-std::ostream & operator<<(std::ostream & stream, const ImageSettings & settings)
+std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::ImageSettings & settings)
 {
 	return stream
 		<< std::endl << "max size: " << settings.maxSize.width() << "x" << settings.maxSize.height()
@@ -13,7 +13,7 @@ std::ostream & operator<<(std::ostream & stream, const ImageSettings & settings)
 		;
 }
 
-std::ostream & operator<<(std::ostream & stream, const Settings & settings)
+std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::Settings & settings)
 {
 	if (settings.cover.save)
 		stream << std::endl << "covers settings: " << settings.cover;
@@ -30,11 +30,8 @@ std::ostream & operator<<(std::ostream & stream, const Settings & settings)
 	else
 		stream << std::endl << "fb2 archiving " << (settings.archiveFb2 ? "enabled" : "disabled");
 
-	if (!settings.archiver.isEmpty())
-	{
-		stream << std::endl << "external archiver: " << settings.archiver.toStdString();
-		stream << std::endl << "external archiver options: " << settings.archiverOptions.join(" ").toStdString();
-	}
+	stream << std::endl << "output format: " << settings.format;
+
 	if (!settings.ffmpeg.isEmpty())
 		stream << std::endl << "ffmpeg: " << settings.ffmpeg.toStdString();
 
@@ -42,6 +39,4 @@ std::ostream & operator<<(std::ostream & stream, const Settings & settings)
 		<< std::endl << "max thread count: " << settings.maxThreadCount
 		<< std::endl << "min image file size: " << settings.minImageFileSize
 		;
-}
-
 }
