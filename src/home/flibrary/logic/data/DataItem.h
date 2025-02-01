@@ -132,7 +132,8 @@ BOOKS_COLUMN_ITEM(LibRate)         \
 BOOKS_COLUMN_ITEM(UserRate)        \
 BOOKS_COLUMN_ITEM(UpdateDate)      \
 BOOKS_COLUMN_ITEM(Lang)            \
-BOOKS_COLUMN_ITEM(AuthorFull)
+BOOKS_COLUMN_ITEM(AuthorFull)      \
+BOOKS_COLUMN_ITEM(FolderID)
 
 public:
 	struct Column
