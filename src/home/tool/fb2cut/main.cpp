@@ -19,6 +19,7 @@
 
 #include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/ScopedCall.h"
 
 #include "logging/init.h"
 #include "logging/LogAppender.h"
@@ -40,6 +41,8 @@
 #include "settings.h"
 
 #include "config/version.h"
+
+#include "libimagequant.h"
 
 using namespace HomeCompa;
 using namespace fb2cut;
@@ -146,38 +149,68 @@ bool HasAlpha(const QImage & image, const char * data)
 	return true;
 }
 
-void ReducePng(const char * imageType, const QString & imageFile, QByteArray & body)
+QImage ReducePng(const char * imageType, const QString & imageFile, QImage image, int quantity)
 {
-	const QString pngquant = QCoreApplication::applicationDirPath() + "/pngquant.exe";
-	QProcess process;
-	QEventLoop eventLoop;
-	const auto args = QStringList() << "--quality=50-90" << "--strip" << "-";
-	QByteArray reduces;
+	if (quantity < 0)
+		quantity = 80;
 
-	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+	quantity = std::min(quantity, 100);
+
+	const auto size = image.size();
+	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
+	std::vector<void*> rowsIn;
+	rowsIn.reserve(size.height());
+	for (int i = 0, sz = size.height(); i < sz; ++i)
+		rowsIn.emplace_back(imageSrc.scanLine(i));
+	auto* attr = liq_attr_create();
+	if (!attr)
 	{
-		if (code != 0)
-			PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+		PLOGE << "liq_attr_create failed";
+		return image;
+	}
+	const ScopedCall attrGuard([=] { liq_attr_destroy(attr); });
+
+	liq_set_quality(attr, quantity / 3, quantity);
+
+	liq_image* im = liq_image_create_rgba_rows(attr, rowsIn.data(), size.width(), size.height(), 0);
+	if (!im)
 	{
-		reduces.append(process.readAllStandardOutput());
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+		PLOGE << "liq_attr_create failed";
+		return image;
+	}
+	const ScopedCall imGuard([=] { liq_image_destroy(im); });
+
+	liq_result* res = nullptr;
+	if (const auto opResult = liq_image_quantize(im, attr, &res); opResult != LIQ_OK || !res)
 	{
-		PLOGE << "\n" << process.readAllStandardError();
-	});
+		PLOGW << QString("Cannot quantize %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
+		return image;
+	}
+	const ScopedCall resGuard([=] { liq_result_destroy(res); });
 
-	process.start(pngquant, args, QIODevice::ReadWrite);
-	process.write(body);
-	process.closeWriteChannel();
+	QImage result(size, QImage::Format_Indexed8);
+	std::vector<unsigned char*> rowsOut;
+	rowsIn.reserve(size.height());
+	for (int i = 0, sz = size.height(); i < sz; ++i)
+		rowsOut.emplace_back(result.scanLine(i));
 
-	if (eventLoop.exec())
-		return;
+	if (const auto opResult = liq_write_remapped_image_rows(res, im, rowsOut.data()); opResult != LIQ_OK)
+	{
+		PLOGW << QString("Cannot remap %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
+		return image;
+	}
+	const liq_palette* pal = liq_get_palette(res);
+	result.setColorCount(pal->count);
 
-	if (!reduces.isEmpty() && reduces.size() < body.size())
-		body = std::move(reduces);
+	QList<QRgb> colors;
+	for (unsigned int i = 0; i < pal->count; ++i)
+	{
+		const auto& entry = pal->entries[i];
+		colors.push_back(qRgba(entry.r, entry.g, entry.b, entry.a));
+	}
+	result.setColorTable(colors);
+
+	return result;
 }
 
 class Worker
@@ -313,14 +346,15 @@ private:
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
 			const auto hasAlpha = HasAlpha(image, body.constData());
+			if (hasAlpha)
+				ReducePng(settings.type, imageFile, image, settings.quality);
+
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
 				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
 					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
-			if (hasAlpha)
-				ReducePng(settings.type, imageFile, imageBody);
 
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -515,8 +549,8 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
-		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
+		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 	}
 
 	void ArchiveImages(const bool saveFlag, const char * type, std::vector<DataItem> & images) const
@@ -548,6 +582,8 @@ public:
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
 		zip.SetProperty(Zip::PropertyId::ThreadsCount, m_maxThreadCount);
 		zip.Write(images);
+
+		images.clear();
 	}
 
 private:
