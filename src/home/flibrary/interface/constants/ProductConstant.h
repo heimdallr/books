@@ -22,4 +22,5 @@ constexpr auto OPDS_SERVER_NAME = "02bb69b1-003a-4892-85c7-7bcef3938565";
 constexpr auto OPDS_SERVER_COMMAND_RESTART = "restart";
 constexpr auto OPDS_SERVER_COMMAND_STOP = "stop";
 
+constexpr auto BOOK = "Book:";
 }

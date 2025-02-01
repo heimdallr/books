@@ -15,6 +15,7 @@
 #include "GuiUtil/GeometryRestorable.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
@@ -400,6 +401,10 @@ private:
 	{
 		const auto url = link.split("://");
 		assert(url.size() == 2);
+		if (QString(Constant::BOOK).startsWith(url.front()))
+		{
+			return;
+		}
 		if (std::ranges::none_of(CUSTOM_URL_SCHEMA, [&] (const char * schema)
 		{
 			return QString(schema).startsWith(url.front());
