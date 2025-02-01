@@ -175,3 +175,7 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 		};
 	} });
 }
+
+void ReaderController::Read(long long /*id*/) const
+{
+}

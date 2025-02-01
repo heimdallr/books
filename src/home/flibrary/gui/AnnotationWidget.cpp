@@ -23,6 +23,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/ui/IUiFactory.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
@@ -107,23 +108,25 @@ class AnnotationWidget::Impl final
 
 public:
 	Impl(AnnotationWidget & self
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<IAnnotationController> annotationController
 		, const std::shared_ptr<const IModelProvider>& modelProvider
 		, const std::shared_ptr<const ILogicFactory>& logicFactory
+		, const std::shared_ptr<ICollectionController>& collectionController
+		, std::shared_ptr<const IReaderController> readerController
+		, std::shared_ptr<ISettings> settings
+		, std::shared_ptr<IAnnotationController> annotationController
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<IBooksExtractorProgressController> progressController
-		, const std::shared_ptr<ICollectionController> & collectionController
 	)
-		: m_self(self)
-		, m_settings(std::move(settings))
-		, m_annotationController(std::move(annotationController))
-		, m_modelProvider(modelProvider)
-		, m_logicFactory(logicFactory)
-		, m_uiFactory(std::move(uiFactory))
-		, m_progressController(std::move(progressController))
-		, m_navigationController(logicFactory->GetTreeViewController(ItemType::Navigation))
-		, m_currentCollectionId(collectionController->GetActiveCollectionId())
+		: m_self{ self }
+		, m_readerController{ std::move(readerController) }
+		, m_settings{ std::move(settings) }
+		, m_annotationController{ std::move(annotationController) }
+		, m_modelProvider{ modelProvider }
+		, m_logicFactory{ logicFactory }
+		, m_uiFactory{ std::move(uiFactory) }
+		, m_progressController{ std::move(progressController) }
+		, m_navigationController{ logicFactory->GetTreeViewController(ItemType::Navigation) }
+		, m_currentCollectionId{ collectionController->GetActiveCollectionId() }
 	{
 		m_ui.setupUi(&m_self);
 
@@ -403,7 +406,7 @@ private:
 		assert(url.size() == 2);
 		if (QString(Constant::BOOK).startsWith(url.front()))
 		{
-			return;
+			return m_readerController->Read(url.back().toLongLong());
 		}
 		if (std::ranges::none_of(CUSTOM_URL_SCHEMA, [&] (const char * schema)
 		{
@@ -420,6 +423,7 @@ private:
 
 private:
 	AnnotationWidget & m_self;
+	std::shared_ptr<const IReaderController> m_readerController;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	std::weak_ptr<const IModelProvider> m_modelProvider;
@@ -440,24 +444,26 @@ private:
 	QTimer m_progressTimer;
 };
 
-AnnotationWidget::AnnotationWidget(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<IAnnotationController> annotationController
-	, const std::shared_ptr<const IModelProvider>& modelProvider
+AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
+	, const std::shared_ptr<ICollectionController>& collectionController
+	, std::shared_ptr<const IReaderController> readerController
+	, std::shared_ptr<ISettings> settings
+	, std::shared_ptr<IAnnotationController> annotationController
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
-	, const std::shared_ptr<ICollectionController> & collectionController
 	, QWidget * parent
 )
 	: QWidget(parent)
 	, m_impl(*this
-		, std::move(settings)
-		, std::move(annotationController)
 		, modelProvider
 		, logicFactory
+		, collectionController
+		, std::move(readerController)
+		, std::move(settings)
+		, std::move(annotationController)
 		, std::move(uiFactory)
 		, std::move(progressController)
-		, collectionController
 	)
 {
 	PLOGD << "AnnotationWidget created";

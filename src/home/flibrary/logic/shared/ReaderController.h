@@ -29,6 +29,7 @@ public:
 
 public:
 	void Read(const QString & folderName, QString fileName, Callback callback) const override;
+	void Read(long long id) const override;
 
 private:
 	struct Impl;
