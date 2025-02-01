@@ -17,6 +17,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -25,7 +26,6 @@
 #include "data/DataProvider.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxCollectionExtractor.h"
-#include "shared/ReaderController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -195,21 +195,23 @@ class BooksContextMenuProvider::Impl final
 	: public IContextMenuHandler
 {
 public:
-	explicit Impl(std::shared_ptr<const ISettings> settings
+	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
+		, std::shared_ptr<const ISettings> settings
+		, std::shared_ptr<const IReaderController> readerController
 		, std::shared_ptr<const IDatabaseUser> databaseUser
-		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<const DataProvider> dataProvider
 		, std::shared_ptr<IScriptController> scriptController
 	)
-		: m_settings(std::move(settings))
-		, m_databaseUser(std::move(databaseUser))
-		, m_logicFactory(logicFactory)
-		, m_uiFactory(std::move(uiFactory))
-		, m_groupController(std::move(groupController))
-		, m_dataProvider(std::move(dataProvider))
-		, m_scriptController(std::move(scriptController))
+		: m_logicFactory{ logicFactory }
+		, m_settings{ std::move(settings) }
+		, m_readerController{ std::move(readerController) }
+		, m_databaseUser{ std::move(databaseUser) }
+		, m_uiFactory{ std::move(uiFactory) }
+		, m_groupController{ std::move(groupController) }
+		, m_dataProvider{ std::move(dataProvider) }
+		, m_scriptController{ std::move(scriptController) }
 	{
 	}
 
@@ -258,11 +260,9 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel * /*model*/, const QModelIndex & index, const QList<QModelIndex> & /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		auto readerController = ILogicFactory::Lock(m_logicFactory)->CreateReaderController();
-		readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [readerController, item = std::move(item), callback = std::move(callback)] () mutable
+		m_readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [item = std::move(item), callback = std::move(callback)]
 		{
 			callback(item);
-			readerController.reset();
 		});
 	}
 
@@ -519,9 +519,10 @@ private:
 	}
 
 private:
-	std::shared_ptr<const ISettings> m_settings;
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const ISettings> m_settings;
+	std::shared_ptr<const IReaderController> m_readerController;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<const DataProvider> m_dataProvider;
@@ -540,17 +541,19 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 
-BooksContextMenuProvider::BooksContextMenuProvider(std::shared_ptr<const ISettings> settings
+BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const ILogicFactory>& logicFactory
+	, std::shared_ptr<const ISettings> settings
+	, std::shared_ptr<const IReaderController> readerController
 	, std::shared_ptr<IDatabaseUser> databaseUser
-	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<DataProvider> dataProvider
 	, std::shared_ptr<IScriptController> scriptController
 )
-	: m_impl(std::move(settings)
+	: m_impl(logicFactory
+		, std::move(settings)
+		, std::move(readerController)
 		, std::move(databaseUser)
-		, logicFactory
 		, std::move(uiFactory)
 		, std::move(groupController)
 		, std::move(dataProvider)

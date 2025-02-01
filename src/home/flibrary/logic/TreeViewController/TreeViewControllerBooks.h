@@ -22,6 +22,7 @@ public:
 		, std::shared_ptr<DataProvider> dataProvider
 		, const std::shared_ptr<const IModelProvider>& modelProvider
 		, const std::shared_ptr<const class ILogicFactory>& logicFactory
+		, std::shared_ptr<const class IReaderController> readerController
 		, std::shared_ptr<class IAnnotationController> annotationController
 		, std::shared_ptr<class IDatabaseUser> databaseUser
 	);

@@ -5,6 +5,8 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/IReaderController.h"
+
 class QString;
 
 namespace HomeCompa {
@@ -13,12 +15,9 @@ class ISettings;
 
 namespace HomeCompa::Flibrary {
 
-class ReaderController
+class ReaderController : virtual public IReaderController
 {
 	NON_COPY_MOVABLE(ReaderController)
-
-public:
-	using Callback = std::function<void()>;
 
 public:
 	ReaderController(std::shared_ptr<ISettings> settings
@@ -29,7 +28,7 @@ public:
 	~ReaderController();
 
 public:
-	void Read(const QString & folderName, QString fileName, Callback callback) const;
+	void Read(const QString & folderName, QString fileName, Callback callback) const override;
 
 private:
 	struct Impl;
