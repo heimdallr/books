@@ -347,7 +347,7 @@ private:
 
 			const auto hasAlpha = HasAlpha(image, body.constData());
 			if (hasAlpha)
-				ReducePng(settings.type, imageFile, image, settings.quality);
+				image = ReducePng(settings.type, imageFile, image, settings.quality);
 
 			QByteArray imageBody;
 			{
