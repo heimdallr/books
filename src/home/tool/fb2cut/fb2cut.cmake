@@ -7,6 +7,7 @@ AddTarget(fb2cut	app_console
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Widgets
+		imagequant
 	LINK_TARGETS
 		logging
 		Util
@@ -14,5 +15,3 @@ AddTarget(fb2cut	app_console
 		GuiUtil
 		logic
 )
-
-file(COPY ${SDK_PATH}/pngquant/pngquant.exe DESTINATION ${CMAKE_BINARY_DIR}/bin)

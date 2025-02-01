@@ -37,7 +37,6 @@ include(${BUILDSCRIPTS_ROOT}/cmake/GenerateTranslations.cmake)
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Hypodermic REQUIRED)
-find_package(QuaZip REQUIRED)
 find_package(xercesc REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
