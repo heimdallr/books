@@ -499,7 +499,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider & dataProvide
 		.Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 		.Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
 		.Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
-		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, folder, folder))
+		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
 		.ToString());

@@ -22,6 +22,7 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[]
 	{ BookQueryFields::UserRate, BookItem::Column::UserRate },
 	{ BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
 	{ BookQueryFields::Lang, BookItem::Column::Lang },
+	{ BookQueryFields::FolderID, BookItem::Column::FolderID },
 };
 
 }
