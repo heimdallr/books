@@ -420,6 +420,16 @@ Try again?</source>
         <source>Use the default reader?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>Cannot start default reader. Will you specify the application manually?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>&apos;%1&apos; not found. Will you specify another application?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
