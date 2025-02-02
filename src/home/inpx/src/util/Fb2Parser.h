@@ -30,6 +30,7 @@ public:
 		QString title;
 		QString lang;
 		QString series;
+		QString keywords;
 		int seqNumber { -1 };
 
 		QString error;
