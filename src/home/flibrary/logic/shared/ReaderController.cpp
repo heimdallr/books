@@ -36,6 +36,7 @@ constexpr auto CONTEXT = "ReaderController";
 constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 reader");
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
 constexpr auto USE_DEFAULT = QT_TRANSLATE_NOOP("ReaderController", "Use the default reader?");
+constexpr auto CANNOT_START_DEFAULT_READER = QT_TRANSLATE_NOOP("ReaderController", "Cannot start default reader. Will you specify the application manually?");
 
 constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
@@ -129,8 +130,8 @@ ReaderController::~ReaderController()
 
 void ReaderController::Read(const QString & folderName, QString fileName, Callback callback) const
 {
-	const auto ext = QFileInfo(fileName).suffix();
-	const auto key = QString(READER_KEY).arg(ext);
+	auto ext = QFileInfo(fileName).suffix();
+	auto key = QString(READER_KEY).arg(ext);
 	auto reader = m_impl->settings->Get(key).toString();
 	if (reader.isEmpty())
 	{
@@ -158,6 +159,8 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 	(*executor)({ "Extract book", [this
 		, executor
+		, ext = std::move(ext)
+		, key = std::move(key)
 		, reader = std::move(reader)
 		, archive = std::move(archive)
 		, fileName = std::move(fileName)
@@ -168,6 +171,8 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 		auto temporaryDir = Extract(*ILogicFactory::Lock(m_impl->logicFactory), archive, fileName, error);
 		return [this
 			, executor = std::move(executor)
+			, ext = std::move(ext)
+			, key = std::move(key)
 			, reader = std::move(reader)
 			, fileName = std::move(fileName)
 			, callback = std::move(callback)
@@ -181,7 +186,19 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 				return m_impl->uiFactory->ShowError(error);
 
 			if (reader == DEFAULT)
-				return (void)QDesktopServices::openUrl(fileName);
+			{
+				if (QDesktopServices::openUrl(fileName))
+					return;
+
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+					return;
+
+				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+				if (reader.isEmpty())
+					return;
+
+				m_impl->settings->Set(key, reader);
+			}
 
 			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
 		};
