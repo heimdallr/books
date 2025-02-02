@@ -55,6 +55,7 @@ public:
 	{
 		setFirstSectionMovable(false);
 		setSectionsMovable(true);
+		setSortIndicator(0, Qt::AscendingOrder);
 	}
 
 private: // QHeaderView
