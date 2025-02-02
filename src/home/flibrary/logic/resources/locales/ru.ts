@@ -423,6 +423,16 @@ Try again?</source>
         <source>Use the default reader?</source>
         <translation>Использовать системную читалку?</translation>
     </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>Cannot start default reader. Will you specify the application manually?</source>
+        <translation>Не удалось запустить системную читалку. Попробуете указать приложение для чтения книг вручную?</translation>
+    </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>&apos;%1&apos; not found. Will you specify another application?</source>
+        <translation>Файл &apos;%1&apos; не найден. Попробуете указать другое приложение?</translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
