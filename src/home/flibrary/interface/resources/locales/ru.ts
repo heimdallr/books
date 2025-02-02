@@ -1918,6 +1918,36 @@
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>
+        <source>%author_last_fm%</source>
+        <translation>Фамилия И.О. автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_last_name%</source>
+        <translation>Фимилия автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_first_name%</source>
+        <translation>Имя автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_middle_name%</source>
+        <translation>Отчество автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_f%</source>
+        <translation>И. автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_m%</source>
+        <translation>О. автора</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
         <source>%db_id%</source>
         <translation>Идентификатор книги из базы данных</translation>
     </message>
@@ -1929,7 +1959,7 @@
     <message>
         <location filename="../../logic/IScriptController.h"/>
         <source>%author%</source>
-        <translation>Автор</translation>
+        <translation>Фамилия Имя Отчество автора</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>
