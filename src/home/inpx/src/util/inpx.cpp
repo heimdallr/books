@@ -45,9 +45,35 @@ size_t GetId()
 }
 
 template <typename T>
+QString ToQString(const T& str) = delete;
+template <>
+QString ToQString<std::string>(const std::string& str)
+{
+	return QString::fromStdString(str);
+}
+template <>
+QString ToQString<std::wstring>(const std::wstring& str)
+{
+	return QString::fromStdWString(str);
+}
+
+template <typename T>
+T FromQString(const QString& str) = delete;
+template <>
+std::string FromQString<std::string>(const QString& str)
+{
+	return str.toStdString();
+}
+template <>
+std::wstring FromQString<std::wstring>(const QString& str)
+{
+	return str.toStdWString();
+}
+
+template <typename T>
 T & ToLower(T & str)
 {
-	std::ranges::transform(str, str.begin(), &tolower);
+	str = FromQString<T>(ToQString<T>(str).toLower());
 	return str;
 }
 
@@ -976,6 +1002,48 @@ private:
 
 			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 		}
+
+		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+		{
+			for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+			{
+				if (entry.is_directory())
+					continue;
+
+				auto folder = entry.path().wstring();
+				folder.erase(0, m_rootFolder.string().size() + 1);
+				ToLower(folder);
+
+				if (m_data.folders.contains(folder))
+					continue;
+
+				if (std::ranges::none_of(SUPPORTED_EXTENSIONS, [ext = entry.path().extension()](const auto* item) { return ext == item; }))
+					continue;
+
+				m_foldersToParse.push(std::move(folder));
+			}
+
+			if (!m_foldersToParse.empty())
+			{
+				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
+				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+				while (true)
+				{
+					std::unique_lock lock(m_foldersToParseGuard);
+					m_foldersToParseCondition.wait(lock, [&]
+						{
+							return m_foldersToParse.empty();
+						});
+
+					if (m_foldersToParse.empty())
+						break;
+				}
+
+				m_threads.clear();
+			}
+		}
 	}
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
@@ -994,48 +1062,6 @@ private:
 			PLOGI << m_n << " rows parsed";
 		}
 
-		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
-		{
-			for (auto const & entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
-			{
-				if (entry.is_directory())
-					continue;
-
-				auto folder = entry.path().wstring();
-				folder.erase(0, m_rootFolder.string().size() + 1);
-				ToLower(folder);
-
-				if (const auto ext = entry.path().extension(); ext != ".zip" && ext != ".7z")
-					continue;
-
-				if (m_data.folders.contains(folder))
-					continue;
-
-				m_foldersToParse.push(std::move(folder));
-			}
-
-			if (!m_foldersToParse.empty())
-			{
-				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
-				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
-
-				while (true)
-				{
-					std::unique_lock lock(m_foldersToParseGuard);
-					m_foldersToParseCondition.wait(lock, [&]
-					{
-						return m_foldersToParse.empty();
-					});
-
-					if (m_foldersToParse.empty())
-						break;
-				}
-
-				m_threads.clear();
-			}
-		}
-
 		LogErrors();
 	}
 
@@ -1046,8 +1072,7 @@ private:
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
 		if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
 		{
-			const auto ext = QFileInfo(file).suffix();
-			return ext != "zip" && ext != "7z";
+			return std::ranges::none_of(SUPPORTED_EXTENSIONS, [ext = "." + QFileInfo(file).suffix()](const auto* item) { return ext == item; });
 		}); begin != end)
 			suitableFiles.erase(begin, end);
 
