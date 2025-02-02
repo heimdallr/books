@@ -37,6 +37,7 @@ constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 r
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
 constexpr auto USE_DEFAULT = QT_TRANSLATE_NOOP("ReaderController", "Use the default reader?");
 constexpr auto CANNOT_START_DEFAULT_READER = QT_TRANSLATE_NOOP("ReaderController", "Cannot start default reader. Will you specify the application manually?");
+constexpr auto CANNOT_START_READER = QT_TRANSLATE_NOOP("ReaderController", "'%1' not found. Will you specify another application?");
 
 constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
@@ -185,19 +186,33 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 			if (!temporaryDir)
 				return m_impl->uiFactory->ShowError(error);
 
+			const auto getReader = [&]
+			{
+				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+				if (!reader.isEmpty())
+					m_impl->settings->Set(key, reader);
+			};
+
 			if (reader == DEFAULT)
 			{
 				if (QDesktopServices::openUrl(fileName))
 					return;
 
-				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
-					return;
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) == QMessageBox::Yes)
+					getReader();
 
-				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
 				if (reader.isEmpty())
 					return;
+			}
+			
+			while (!QFile::exists(reader))
+			{
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+					return;
 
-				m_impl->settings->Set(key, reader);
+				getReader();
+				if (reader.isEmpty())
+					return;
 			}
 
 			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
