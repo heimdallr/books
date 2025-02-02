@@ -1,6 +1,7 @@
 #include "InpxCollectionExtractor.h"
 
 #include <filesystem>
+#include <QBuffer>
 
 #include <QCryptographicHash>
 #include <QFileInfo>
@@ -82,18 +83,27 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 	Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip);
 	QByteArray inpx;
 
-	for (const auto & book : books)
+	std::vector<QString> fileNames;
+	fileNames.reserve(books.size());
+	std::ranges::transform(books, std::back_inserter(fileNames), [] (const auto & book) { return book.book->GetRawData(BookItem::Column::FileName); });
+
+	QByteArray bytes;
+
+	zip.Write(fileNames, [&] (const size_t index) -> std::unique_ptr<QIODevice>
 	{
+		const auto & book = books[index];
 		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
 		const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
-		auto & output = zip.Write(fileName);
 		const Zip zipInput(folder);
-		auto & input = zipInput.Read(fileName);
-		const auto bytes = RestoreImages(input, folder, fileName);
-		output.write(bytes);
+		const auto input = zipInput.Read(fileName);
+		bytes = RestoreImages(input->GetStream(), folder, fileName);
+		progress.Increment(bytes.size());
+		if (progress.IsStopped())
+			return {};
+
 		Write(inpx, uid, book, n);
-		progress.Increment(input.size());
-	}
+		return std::make_unique<QBuffer>(&bytes);
+	});
 
 	return inpx;
 }
@@ -101,10 +111,7 @@ QByteArray Process(const std::filesystem::path & archiveFolder
 }
 
 class InpxCollectionExtractor::Impl final
-	: IProgressController::IObserver
 {
-	NON_COPY_MOVABLE(Impl)
-
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController
 		, std::shared_ptr<IProgressController> progressController
@@ -116,12 +123,6 @@ public:
 		, m_databaseUser(std::move(databaseUser))
 		, m_logicFactory(logicFactory)
 	{
-		m_progressController->RegisterObserver(this);
-	}
-
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
 	}
 
 	void Extract(QString dstFolder, BookInfoList && books, Callback callback)
@@ -152,29 +153,37 @@ public:
 				command->Execute();
 			}
 
-			(*m_executor)(CreateTask(std::move(books)));
+			(*m_executor)(CreateTask(std::move(bookInfoList)));
 		});
 
 		transaction->Commit();
 	}
 
-private: // IProgressController::IObserver
-	void OnStartedChanged() override
+	void GenerateInpx(QString inpxFileName, BookInfoList && books, Callback callback)
 	{
-	}
+		assert(!m_callback);
+		m_hasError = false;
+		m_callback = std::move(callback);
+		ILogicFactory::Lock(m_logicFactory)->GetExecutor().swap(m_executor);
+		std::shared_ptr progressItem = m_progressController->Add(static_cast<int64_t>(books.size()));
 
-	void OnValueChanged() override
-	{
-	}
-
-	void OnStop() override
-	{
-		m_executor->Stop();
-		m_executor.reset();
-		QTimer::singleShot(0, [&]
+		(*m_executor)({ "Create inpx", [this, books = std::move(books), inpxFileName = std::move(inpxFileName), progressItem = std::move(progressItem), n= size_t{0}]() mutable
 		{
-			m_callback(m_hasError);
-		});
+			for (auto && book : books)
+			{
+				const auto id = QFileInfo(book.book->GetRawData(BookItem::Column::Folder)).completeBaseName();
+				auto & stream = m_paths[id];
+				Write(stream, id, book, n);
+				progressItem->Increment(1);
+				if (progressItem->IsStopped())
+					break;
+			}
+			return [this, inpxFileName = std::move(inpxFileName)] (size_t)
+			{
+				WriteInpx(inpxFileName);
+			};
+		}});
+
 	}
 
 private:
@@ -223,7 +232,7 @@ private:
 					m_hasError = error || m_hasError;
 					assert(m_taskCount > 0);
 					if (--m_taskCount == 0)
-						WriteInpx();
+						WriteInpx(GetInpxFileName());
 				};
 			}
 		};
@@ -243,27 +252,24 @@ private:
 		});
 	}
 
-	void WriteInpx() const
+	void WriteInpx(const QString & inpxFileName)
 	{
-		const auto inpxFileName = GetInpxFileName();
 		const auto inpxFileExists = QFile::exists(inpxFileName);
-		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
+
+		std::vector<std::pair<QString, QByteArray>> toZip;
 
 		if (!inpxFileExists)
 		{
-			{
-				auto & stream = zip.Write("collection.info");
-				stream.write("Collection");
-			}
-			{
-				auto & stream = zip.Write("version.info");
-				stream.write(QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
-			}
+			toZip.emplace_back("collection.info", QString("Collection").toUtf8());
+			toZip.emplace_back("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
 		}
 
-		for (const auto & [uid, data] : m_paths)
+		for (auto && [uid, data] : m_paths)
 			if (!data.isEmpty())
-				zip.Write(QString("%1.inp").arg(uid)).write(data);
+				toZip.emplace_back(QString("%1.inp").arg(uid), std::move(data));
+
+		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
+		zip.Write(std::move(toZip));
 
 		m_callback(m_hasError);
 	}
@@ -315,4 +321,12 @@ void InpxCollectionExtractor::ExtractAsInpxCollection(QString folder, const std:
 	std::ranges::transform(idList, std::back_inserter(bookInfo), [&] (const auto & id) { return dataProvider.GetBookInfo(id.toLongLong()); });
 
 	m_impl->Extract(std::move(folder), std::move(bookInfo), std::move(callback));
+}
+
+void InpxCollectionExtractor::GenerateInpx(QString inpxFileName, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)
+{
+	std::vector<BookInfo> bookInfo;
+	std::ranges::transform(idList, std::back_inserter(bookInfo), [&] (const auto & id) { return dataProvider.GetBookInfo(id.toLongLong()); });
+
+	m_impl->GenerateInpx(std::move(inpxFileName), std::move(bookInfo), std::move(callback));
 }

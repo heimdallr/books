@@ -1,12 +1,10 @@
 #pragma once
 
-#include "export/ZipInterface.h"
-
 class QString;
 
 namespace HomeCompa::ZipDetails {
 
-struct ZIPINTERFACE_EXPORT Error
+struct Error
 {
 	[[noreturn]] static void CannotOpenFile(const QString & filename);
 	[[noreturn]] static void CannotOpenArchive(const QString & filename);

@@ -41,7 +41,7 @@ public:
 public:
 	ArchiveParser(std::shared_ptr<class ICollectionProvider> collectionProvider
 		, std::shared_ptr<class IAnnotationProgressController> progressController
-		, std::shared_ptr<ZipProgressCallback> zipProgressCallback
+		, std::shared_ptr<const class ILogicFactory> logicFactory
 	);
 	~ArchiveParser();
 

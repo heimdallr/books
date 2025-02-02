@@ -115,6 +115,24 @@ struct PropogateConstCreator<std::unique_ptr<T>>
 	}
 };
 
+template <typename T>
+struct SmartGetter
+{
+	T operator()(T) const noexcept
+	{
+		return {};
+	}
+};
+
+template <typename T>
+struct SmartGetter<std::shared_ptr<T>>
+{
+	std::shared_ptr<T> operator()(std::shared_ptr<T> v) const noexcept
+	{
+		return v;
+	}
+};
+
 } // namespace details
 
 template <class T, template <class...> class P = std::unique_ptr>
@@ -135,6 +153,8 @@ public:
 	PropagateConstPtr & operator=(PropagateConstPtr &&) noexcept = default;
 
 	~PropagateConstPtr() = default;
+
+	operator P<T> () noexcept { return details::SmartGetter<P<T>>()(m_p); }
 
 	const T * get() const noexcept { return m_p.get(); }
 	T * get() noexcept { return m_p.get(); }

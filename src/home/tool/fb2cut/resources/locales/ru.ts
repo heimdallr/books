@@ -130,9 +130,8 @@
         <translation>Минимальный размер файла изображения</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>External archiver executable not found</source>
-        <translation>Внешний архиватор не найден</translation>
+        <translation type="vanished">Внешний архиватор не найден</translation>
     </message>
     <message>
         <location filename="../../MainWindow.ui"/>
@@ -148,6 +147,21 @@
         <location filename="../../MainWindow.ui"/>
         <source>fb2cut - fb2 libraries zip archive repacker</source>
         <translation>fb2cut - перепаковщик zip-архивов fb2-библиотек</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Image settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source> bytes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>For advanced users (optional)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

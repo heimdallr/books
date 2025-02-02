@@ -12,6 +12,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITreeViewController.h"
+#include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
@@ -40,15 +41,16 @@ constexpr const char * COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
 	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
-	"<tr><td><a href='https://github.com/SergiusTheBest/plog'>plog</a> &copy; 2022 Sergey Podobry <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
-	"<tr><td><a href='https://github.com/stachenov/quazip'>QuaZip</a> &copy; 2005-2020 Sergey A. Tachenov and contributors <a href='https://github.com/stachenov/quazip?tab=License-1-ov-file#License-1-ov-file'>GNU LGPL v2.1</a></td></tr>",
+	"<tr><td><a href='https://github.com/SergiusTheBest/plog'>plog</a> &copy; 2022 <a href='https://github.com/SergiusTheBest'>Sergey Podobry</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://xerces.apache.org/xerces-c/'>Xerces-C++ XML Parser</a> &copy; 2024 The Apache Xerces&trade; Project <a href='https://www.apache.org/licenses/LICENSE-2.0.html'>Apache License v2</a></td></tr>",
 	"<tr><td><a href='https://www.boost.org/'>boost</a> &copy; boost C++ libraries <a href='https://www.boost.org/LICENSE_1_0.txt'>Boost Software License v1.0</a></td></tr>",
-	"<tr><td><a href='https://www.7-zip.org/'>7za.dll</a> &copy; 1999-2023 Igor Pavlov <a href='https://www.7-zip.org/license.txt'>GNU LGPL</a></td></tr>",
+	"<tr><td><a href='https://www.7-zip.org/'>7z.dll</a> &copy; 1999-2023 Igor Pavlov <a href='https://www.7-zip.org/license.txt'>GNU LGPL, BSD 3-clause License</a></td></tr>",
+	"<tr><td><a href='https://github.com/rikyoz/bit7z'>bit7z</a> &copy; 2014-2022 <a href='https://github.com/rikyoz'>Riccardo Ostani</a> <a href='https://github.com/rikyoz/bit7z/blob/master/LICENSE'>MPL-2.0</a></td></tr>",
 	"<tr><td><a href='https://www.sqlite.org/'>SQLite</a> <a href='https://www.sqlite.org/copyright.html'>Public Domain</a></td></tr>",
-	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 Wongoo Lee <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
+	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 <a href='https://github.com/iwongu'>Wongoo Lee</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/heimdallr/MyHomeLib/tree/master/Utils/MHLSQLiteExt'>MyHomeLib SQLite extension library</a> &copy; 2010 Nick Rymanov <a href='https://www.gnu.org/licenses/gpl-3.0.html#license-text'>GNU GPL</a></td></tr>",
+	"<tr><td><a href='https://github.com/ImageOptim/libimagequant'>libimagequant</a> &copy; 2009-2018 Kornel Lesiński <a href='https://github.com/ImageOptim/libimagequant?tab=License-1-ov-file'>GNU GPL-v3</a></td></tr>",
 	"<tr><td><a href='https://icons8.ru/'>icons8</a> &copy; 2024 Icons8 <a href='https://icons8.ru/license'>License</a></td></tr>",
 	"</table>"
 };
@@ -59,10 +61,11 @@ struct UiFactory::Impl
 {
 	Hypodermic::Container & container;
 
-	mutable std::filesystem::path inpx;
+	mutable std::filesystem::path inpxFolder;
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
 	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
 	mutable QAbstractItemView * abstractItemView { nullptr };
+	mutable QString title;
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -86,15 +89,20 @@ QObject * UiFactory::GetParentObject() const noexcept
 	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject();
 }
 
+QWidget * UiFactory::GetParentWidget() const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget();
+}
+
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {
 	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);
 	return m_impl->container.resolve<TreeView>();
 }
 
-std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::filesystem::path inpx) const
+std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::filesystem::path inpxFolder) const
 {
-	m_impl->inpx = std::move(inpx);
+	m_impl->inpxFolder = std::move(inpxFolder);
 	return m_impl->container.resolve<IAddCollectionDialog>();
 }
 
@@ -118,6 +126,12 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 {
 	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
+{
+	m_impl->title = std::move(title);
+	return m_impl->container.resolve<IComboBoxTextDialog>();
 }
 
 void UiFactory::ShowAbout() const
@@ -186,10 +200,10 @@ QString UiFactory::GetExistingDirectory(const QString & key, const QString & tit
 	return m_impl->container.resolve<Util::IUiFactory>()->GetExistingDirectory(key, title, dir, options);
 }
 
-std::filesystem::path UiFactory::GetNewCollectionInpx() const noexcept
+std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
 {
-	auto result = std::move(m_impl->inpx);
-	m_impl->inpx = std::filesystem::path {};
+	auto result = std::move(m_impl->inpxFolder);
+	m_impl->inpxFolder = std::filesystem::path {};
 	return result;
 }
 
@@ -209,6 +223,11 @@ QAbstractItemView & UiFactory::GetAbstractItemView() const noexcept
 {
 	assert(m_impl->abstractItemView);
 	return *m_impl->abstractItemView;
+}
+
+QString UiFactory::GetTitle() const noexcept
+{
+	return std::move(m_impl->title);
 }
 
 }

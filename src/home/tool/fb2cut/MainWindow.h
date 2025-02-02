@@ -52,6 +52,7 @@ private:
 	void OnInputFilesClicked();
 	void OnDstFolderClicked();
 	void OnExternalArchiverClicked();
+	void OnExternalArchiverDefaultArgsClicked();
 	void OnFfmpegClicked();
 
 	void OnInputFilesChanged();
@@ -60,6 +61,7 @@ private:
 	void OnFfmpegChanged();
 
 	QString GetExecutableFileName(const QString & key, const QString & title) const;
+	void Set7zDefaultSettings();
 
 private:
 	PropagateConstPtr<Ui::MainWindowClass> m_ui;

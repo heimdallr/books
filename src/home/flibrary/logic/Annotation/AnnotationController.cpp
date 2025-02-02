@@ -12,6 +12,7 @@
 
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
@@ -484,7 +485,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider & dataProvide
 {
 	const auto & book = dataProvider.GetBook();
 	QString annotation;
-	Add(annotation, book.GetRawData(BookItem::Column::Title), TITLE_PATTERN);
+	Add(annotation, Url(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
 	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 	Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 	Add(annotation, dataProvider.GetAnnotation());
@@ -499,7 +500,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider & dataProvide
 		.Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 		.Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
 		.Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
-		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, folder, folder))
+		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
 		.ToString());

@@ -19,6 +19,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
@@ -36,7 +37,6 @@
 #include "extract/InpxCollectionExtractor.h"
 
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/ReaderController.h"
 #include "shared/ZipProgressCallback.h"
 
 using namespace HomeCompa;
@@ -45,8 +45,11 @@ using namespace Flibrary;
 struct LogicFactory::Impl final
 {
 	Hypodermic::Container & container;
-	mutable std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
-	mutable std::vector<std::shared_ptr<QTemporaryDir>> temporaryDirs;
+	std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
+	std::vector<std::shared_ptr<QTemporaryDir>> temporaryDirs;
+
+	std::mutex progressControllerGuard;
+	std::shared_ptr<IProgressController> progressController;
 
 	explicit Impl(Hypodermic::Container & container)
 		: container(container)
@@ -55,7 +58,7 @@ struct LogicFactory::Impl final
 };
 
 LogicFactory::LogicFactory(Hypodermic::Container & container)
-	: m_impl(container)
+	: m_impl { std::make_unique<Impl>(container) }
 {
 	PLOGD << "LogicFactory created";
 }
@@ -113,11 +116,6 @@ std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuPr
 	return m_impl->container.resolve<BooksContextMenuProvider>();
 }
 
-std::shared_ptr<ReaderController> LogicFactory::CreateReaderController() const
-{
-	return m_impl->container.resolve<ReaderController>();
-}
-
 std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() const
 {
 	return m_impl->container.resolve<IUserDataController>();
@@ -138,9 +136,23 @@ std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
 	return m_impl->container.resolve<IUpdateChecker>();
 }
 
+std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const
+{
+	m_impl->progressControllerGuard.lock();
+	m_impl->progressController = std::move(progressController);
+	return m_impl->container.resolve<ZipProgressCallback>();
+}
+
 std::shared_ptr<QTemporaryDir> LogicFactory::CreateTemporaryDir() const
 {
 	auto temporaryDir = std::make_shared<QTemporaryDir>();
 	m_impl->temporaryDirs.push_back(temporaryDir);
 	return temporaryDir;
+}
+
+std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const
+{
+	auto result = std::move(m_impl->progressController);
+	m_impl->progressControllerGuard.unlock();
+	return result;
 }

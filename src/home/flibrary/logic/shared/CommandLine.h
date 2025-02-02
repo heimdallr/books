@@ -16,7 +16,7 @@ public:
 	~CommandLine() override;
 
 public:
-	[[nodiscard]] const std::filesystem::path & GetInpx() const noexcept override;
+	[[nodiscard]] const std::filesystem::path & GetInpxDir() const noexcept override;
 
 private:
 	struct Impl;

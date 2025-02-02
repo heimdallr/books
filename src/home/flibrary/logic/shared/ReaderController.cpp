@@ -9,8 +9,15 @@
 
 #include "fnd/ScopedCall.h"
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
+
+#include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -29,6 +36,8 @@ constexpr auto CONTEXT = "ReaderController";
 constexpr auto DIALOG_TITLE = QT_TRANSLATE_NOOP("ReaderController", "Select %1 reader");
 constexpr auto DIALOG_FILTER = QT_TRANSLATE_NOOP("ReaderController", "Applications (*.exe)");
 constexpr auto USE_DEFAULT = QT_TRANSLATE_NOOP("ReaderController", "Use the default reader?");
+constexpr auto CANNOT_START_DEFAULT_READER = QT_TRANSLATE_NOOP("ReaderController", "Cannot start default reader. Will you specify the application manually?");
+constexpr auto CANNOT_START_READER = QT_TRANSLATE_NOOP("ReaderController", "'%1' not found. Will you specify another application?");
 
 constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
@@ -57,11 +66,11 @@ std::shared_ptr<QTemporaryDir> Extract(const ILogicFactory& logicFactory, const 
 	try
 	{
 		const Zip zip(archive);
-		auto & stream = zip.Read(fileName);
+		const auto stream = zip.Read(fileName);
 		auto temporaryDir = logicFactory.CreateTemporaryDir();
 		const auto fileNameDst = temporaryDir->filePath(fileName);
 		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-			file.write(RestoreImages(stream, archive, fileName));
+			file.write(RestoreImages(stream->GetStream(), archive, fileName));
 
 		fileName = fileNameDst;
 		return temporaryDir;
@@ -78,33 +87,38 @@ std::shared_ptr<QTemporaryDir> Extract(const ILogicFactory& logicFactory, const 
 
 struct ReaderController::Impl
 {
+	std::weak_ptr<const ILogicFactory> logicFactory;
 	std::shared_ptr<ISettings> settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
-	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	PropagateConstPtr<IDatabaseUser, std::shared_ptr> databaseUser;
 
-	Impl(std::shared_ptr<ISettings> settings
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
+		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
-		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<IDatabaseUser> databaseUser
 	)
-		: settings(std::move(settings))
-		, collectionController(std::move(collectionController))
-		, logicFactory(logicFactory)
-		, uiFactory(std::move(uiFactory))
+		: logicFactory{ logicFactory }
+		, settings{ std::move(settings) }
+		, collectionController{ std::move(collectionController) }
+		, uiFactory{ std::move(uiFactory) }
+		, databaseUser{ std::move(databaseUser) }
 	{
 	}
 };
 
-ReaderController::ReaderController(std::shared_ptr<ISettings> settings
+ReaderController::ReaderController(const std::shared_ptr<const ILogicFactory>& logicFactory
+	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
-	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
-	: m_impl(std::move(settings)
+	: m_impl(logicFactory
+		, std::move(settings)
 		, std::move(collectionController)
-		, logicFactory
 		, std::move(uiFactory)
+		, std::move(databaseUser)
 	)
 {
 	PLOGV << "ReaderController created";
@@ -117,8 +131,8 @@ ReaderController::~ReaderController()
 
 void ReaderController::Read(const QString & folderName, QString fileName, Callback callback) const
 {
-	const auto ext = QFileInfo(fileName).suffix();
-	const auto key = QString(READER_KEY).arg(ext);
+	auto ext = QFileInfo(fileName).suffix();
+	auto key = QString(READER_KEY).arg(ext);
 	auto reader = m_impl->settings->Get(key).toString();
 	if (reader.isEmpty())
 	{
@@ -146,6 +160,8 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 	(*executor)({ "Extract book", [this
 		, executor
+		, ext = std::move(ext)
+		, key = std::move(key)
 		, reader = std::move(reader)
 		, archive = std::move(archive)
 		, fileName = std::move(fileName)
@@ -156,6 +172,8 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 		auto temporaryDir = Extract(*ILogicFactory::Lock(m_impl->logicFactory), archive, fileName, error);
 		return [this
 			, executor = std::move(executor)
+			, ext = std::move(ext)
+			, key = std::move(key)
 			, reader = std::move(reader)
 			, fileName = std::move(fileName)
 			, callback = std::move(callback)
@@ -168,10 +186,62 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 			if (!temporaryDir)
 				return m_impl->uiFactory->ShowError(error);
 
+			const auto getReader = [&]
+			{
+				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+				if (!reader.isEmpty())
+					m_impl->settings->Set(key, reader);
+			};
+
 			if (reader == DEFAULT)
-				return (void)QDesktopServices::openUrl(fileName);
+			{
+				if (QDesktopServices::openUrl(fileName))
+					return;
+
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) == QMessageBox::Yes)
+					getReader();
+
+				if (reader.isEmpty())
+					return;
+			}
+			
+			while (!QFile::exists(reader))
+			{
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+					return;
+
+				getReader();
+				if (reader.isEmpty())
+					return;
+			}
 
 			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
 		};
 	} });
+}
+
+void ReaderController::Read(long long id) const
+{
+	m_impl->databaseUser->Execute({ "Get archive and file names", [this, id]()
+		{
+			const auto db = m_impl->databaseUser->Database();
+			{
+				const auto transaction = db->CreateTransaction();
+				const auto command = transaction->CreateQuery(ExportStat::INSERT_QUERY);
+				command->Bind(0, id);
+				command->Bind(1, static_cast<int>(ExportStat::Type::Read));
+				command->Execute();
+				transaction->Commit();
+			}
+
+			const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+			query->Bind(0, id);
+			query->Execute();
+			assert(!query->Eof());
+			QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
+			return [this, folderName = std::move(folderName), fileName = std::move(fileName)](size_t) mutable
+			{
+				Read(folderName, std::move(fileName), []() {});
+			};
+		} });
 }

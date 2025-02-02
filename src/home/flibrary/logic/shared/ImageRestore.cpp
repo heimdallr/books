@@ -187,8 +187,8 @@ bool ParseCovers(const QString & folder, const QString & fileName, const Extract
 	if (!fileList.contains(file))
 		return false;
 
-	auto & stream = zip.Read(file);
-	stop = callback(Global::COVER, stream.readAll());
+	const auto stream = zip.Read(file);
+	stop = callback(Global::COVER, stream->GetStream().readAll());
 	return true;
 }
 
@@ -208,7 +208,7 @@ void ParseImages(const QString & folder, const QString & fileName, const Extract
 
 	for (const auto & file : fileList)
 	{
-		auto body = zip.Read(file).readAll();
+		auto body = zip.Read(file)->GetStream().readAll();
 		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
 			return;
 	}
@@ -232,11 +232,36 @@ bool ExtractBookImages(const QString & folder, const QString & fileName, const E
 	bool stop = false;
 	const auto result = std::accumulate(std::cbegin(EXTENSIONS), std::cend(EXTENSIONS), false, [&] (const bool init, const char * ext)
 	{
-		return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+		try
+		{
+			return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+		}
+		catch(const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch(...)
+		{
+			PLOGE << "unknown error";
+		}
+		return init;
 	});
 
 	for (const auto * ext : EXTENSIONS)
-		ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
+	{
+		try
+		{
+			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
+		}
+		catch (const std::exception & ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch (...)
+		{
+			PLOGE << "unknown error";
+		}
+	}
 
 	return result;
 }

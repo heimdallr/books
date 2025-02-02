@@ -11,7 +11,7 @@
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortNavigation.h"
+#include "interface/logic/SortString.h"
 #include "database/DatabaseUtil.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -25,20 +25,20 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
-constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
+constexpr auto AUTHORS_QUERY  = "select AuthorID, FirstName, LastName, MiddleName from Authors";
+constexpr auto SERIES_QUERY   = "select SeriesID, SeriesTitle from Series";
 constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
-constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
+constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
+constexpr auto GROUPS_QUERY   = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders";
-constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
+constexpr auto SEARCH_QUERY   = "select SearchID, Title from Searches_User";
 
 constexpr auto WHERE_AUTHOR  = "where a.AuthorID  = :id";
 constexpr auto WHERE_SERIES  = "where b.SeriesID  = :id";
 constexpr auto WHERE_GENRE   = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
-constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
-constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and MHL_UPPER(b.Title) like '%'||MHL_UPPER(su.Title)||'%'";
+constexpr auto JOIN_GROUPS   = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
+constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and b.SearchTitle like case su.mode when 0 then '%'||su.SearchTitle||'%' when 1 then su.SearchTitle||'%' when 2 then '%'||su.SearchTitle when 3 then su.SearchTitle end";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;

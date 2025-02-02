@@ -12,7 +12,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortNavigation.h"
+#include "interface/logic/SortString.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -36,7 +36,6 @@ constexpr auto BOOKS_QUERY =
 	", a.AuthorID, a.LastName, a.FirstName, a.MiddleName "
 	", g.GenreCode, g.GenreAlias, g.FB2Code "
 	", coalesce(b.SeriesID, -1), s.SeriesTitle "
-	", f.FolderID "
 	"from Books b "
 	"join Author_List al on al.BookID = b.BookID "
 	"join Authors a on a.AuthorID = al.AuthorID "

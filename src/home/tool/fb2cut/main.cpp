@@ -17,6 +17,7 @@
 #include <plog/Record.h>
 #include <plog/Util.h>
 
+#include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
@@ -35,12 +36,13 @@
 
 #include "di_app.h"
 #include "Fb2Parser.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include "ImageSettingsWidget.h" // for creating MainWindow via Hypodermic
+#include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "settings.h"
 
 #include "config/version.h"
+
+#include "libimagequant.h"
 
 using namespace HomeCompa;
 using namespace fb2cut;
@@ -59,16 +61,17 @@ constexpr auto IMAGE_QUALITY_OPTION_NAME = "image-quality";
 constexpr auto GRAYSCALE_OPTION_NAME = "grayscale";
 constexpr auto COVER_GRAYSCALE_OPTION_NAME = "cover-grayscale";
 constexpr auto IMAGE_GRAYSCALE_OPTION_NAME = "image-grayscale";
+constexpr auto ARCHIVER_OPTION_NAME = "archiver";
+constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 
 constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
 constexpr auto NO_ARCHIVE_FB2_OPTION_NAME = "no-archive-fb2";
 constexpr auto NO_FB2_OPTION_NAME = "no-fb2";
 constexpr auto NO_IMAGES_OPTION_NAME = "no-images";
 constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
-constexpr auto ARCHIVER_OPTION_NAME = "archiver";
-constexpr auto ARCHIVER_COMMANDLINE_OPTION_NAME = "archiver-options";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
+constexpr auto FORMAT = "format";
 
 constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
@@ -76,35 +79,11 @@ constexpr auto QUALITY = "quality [-1]";
 constexpr auto THREADS = "threads [%1]";
 constexpr auto FOLDER = "folder";
 constexpr auto PATH = "path";
-constexpr auto COMMANDLINE = "list of options [%1]";
+constexpr auto COMMANDLINE = "list of options";
 constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
-
-bool WriteImagesImpl(Zip & zip, const std::vector<DataItem> & images)
-{
-	return !std::ranges::all_of(images, [&] (const auto & item)
-	{
-		return zip.Write(item.first).write(item.second) == item.second.size();
-	});
-}
-
-bool WriteImages(const std::unique_ptr<Zip> & zip, std::mutex & guard, const QString & name, std::vector<DataItem> & images)
-{
-	if (images.empty())
-		return false;
-
-	assert(zip);
-
-	PLOGI << QString("zipping %1: %2").arg(name).arg(images.size());
-
-	std::scoped_lock lock(guard);
-	const auto result = WriteImagesImpl(*zip, images);
-	images.clear();
-
-	return result;
-}
 
 void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QString & ext, const QByteArray & body)
 {
@@ -170,43 +149,81 @@ bool HasAlpha(const QImage & image, const char * data)
 	return true;
 }
 
-void ReducePng(const char * imageType, const QString & imageFile, QByteArray & body)
+QImage ReducePng(const char * imageType, const QString & imageFile, QImage image, int quantity)
 {
-	const QString pngquant = QCoreApplication::applicationDirPath() + "/pngquant.exe";
-	QProcess process;
-	QEventLoop eventLoop;
-	const auto args = QStringList() << "--quality=50-90" << "--strip" << "-";
-	QByteArray reduces;
+	if (quantity < 0)
+		quantity = 80;
 
-	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
+	quantity = std::min(quantity, 100);
+
+	const auto size = image.size();
+	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
+	std::vector<void*> rowsIn;
+	rowsIn.reserve(size.height());
+	for (int i = 0, sz = size.height(); i < sz; ++i)
+		rowsIn.emplace_back(imageSrc.scanLine(i));
+	auto* attr = liq_attr_create();
+	if (!attr)
 	{
-		if (code != 0)
-			PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
+		PLOGE << "liq_attr_create failed";
+		return image;
+	}
+	const ScopedCall attrGuard([=] { liq_attr_destroy(attr); });
+
+	liq_set_quality(attr, quantity / 3, quantity);
+
+	liq_image* im = liq_image_create_rgba_rows(attr, rowsIn.data(), size.width(), size.height(), 0);
+	if (!im)
 	{
-		reduces.append(process.readAllStandardOutput());
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
+		PLOGE << "liq_attr_create failed";
+		return image;
+	}
+	const ScopedCall imGuard([=] { liq_image_destroy(im); });
+
+	liq_result* res = nullptr;
+	if (const auto opResult = liq_image_quantize(im, attr, &res); opResult != LIQ_OK || !res)
 	{
-		PLOGE << "\n" << process.readAllStandardError();
-	});
+		PLOGW << QString("Cannot quantize %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
+		return image;
+	}
+	const ScopedCall resGuard([=] { liq_result_destroy(res); });
 
-	process.start(pngquant, args, QIODevice::ReadWrite);
-	process.write(body);
-	process.closeWriteChannel();
+	QImage result(size, QImage::Format_Indexed8);
+	std::vector<unsigned char*> rowsOut;
+	rowsIn.reserve(size.height());
+	for (int i = 0, sz = size.height(); i < sz; ++i)
+		rowsOut.emplace_back(result.scanLine(i));
 
-	if (eventLoop.exec())
-		return;
+	if (const auto opResult = liq_write_remapped_image_rows(res, im, rowsOut.data()); opResult != LIQ_OK)
+	{
+		PLOGW << QString("Cannot remap %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
+		return image;
+	}
+	const liq_palette* pal = liq_get_palette(res);
+	result.setColorCount(pal->count);
 
-	if (!reduces.isEmpty() && reduces.size() < body.size())
-		body = std::move(reduces);
+	QList<QRgb> colors;
+	for (unsigned int i = 0; i < pal->count; ++i)
+	{
+		const auto& entry = pal->entries[i];
+		colors.push_back(qRgba(entry.r, entry.g, entry.b, entry.a));
+	}
+	result.setColorTable(colors);
+
+	return result;
 }
 
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
+
+public:
+	class IClient  // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IClient() = default;
+		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) = 0;
+	};
 
 public:
 	Worker(const Settings & settings
@@ -217,11 +234,7 @@ public:
 		, std::atomic_bool & hasError
 		, std::atomic_int & queueSize
 		, std::atomic_int & fileCount
-		, std::mutex & zipCoversGuard
-		, std::mutex & zipImagesGuard
-		, const std::unique_ptr<Zip> & zipCovers
-		, const std::unique_ptr<Zip> & zipImages
-
+		, IClient & client
 	)
 		: m_settings { settings }
 		, m_queueCondition { queueCondition }
@@ -231,10 +244,7 @@ public:
 		, m_hasError { hasError }
 		, m_queueSize { queueSize }
 		, m_fileCount { fileCount }
-		, m_zipCoversGuard { zipCoversGuard }
-		, m_zipImagesGuard { zipImagesGuard }
-		, m_zipCovers { zipCovers }
-		, m_zipImages { zipImages }
+		, m_client { client }
 		, m_thread { &Worker::Process, this }
 	{
 	}
@@ -273,8 +283,7 @@ private:
 			m_hasError = ProcessFile(name, body) || m_hasError;
 		}
 
-		m_hasError = WriteImages(m_zipCovers, m_zipCoversGuard, Global::COVERS, m_covers) || m_hasError;
-		m_hasError = WriteImages(m_zipImages, m_zipImagesGuard, Global::IMAGES, m_images) || m_hasError;
+		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images));
 	}
 
 	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
@@ -337,14 +346,15 @@ private:
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
 			const auto hasAlpha = HasAlpha(image, body.constData());
+			if (hasAlpha)
+				image = ReducePng(settings.type, imageFile, image, settings.quality);
+
 			QByteArray imageBody;
 			{
 				QBuffer imageOutput(&imageBody);
 				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
 					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
-			if (hasAlpha)
-				ReducePng(settings.type, imageFile, imageBody);
 
 			auto & storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
@@ -474,16 +484,12 @@ private:
 	std::atomic_bool & m_hasError;
 	std::atomic_int & m_queueSize, & m_fileCount;
 
-	std::mutex & m_zipCoversGuard;
-	std::mutex & m_zipImagesGuard;
-
-	const std::unique_ptr<Zip> & m_zipCovers;
-	const std::unique_ptr<Zip> & m_zipImages;
-
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
 	const Util::XmlValidator m_validator;
+
+	IClient & m_client;
 
 	std::thread m_thread;
 };
@@ -494,14 +500,16 @@ QString GetImagesFolder(const QDir & dir, const QString & type)
 	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
 }
 
-class FileProcessor
+class FileProcessor : public Worker::IClient
 {
 public:
 	FileProcessor(const Settings & settings, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize, std::atomic_int & fileCount)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
-		, m_zipCovers { settings.cover.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::COVERS), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
-		, m_zipImages { settings.image.save ? std::make_unique<Zip>(GetImagesFolder(settings.dstDir, Global::IMAGES), Zip::Format::Zip) : std::unique_ptr<Zip>{} }
+		, m_dstDir { settings.dstDir }
+		, m_saveCovers{ settings.cover.save }
+		, m_saveImages { settings.image.save }
+		, m_maxThreadCount { settings.maxThreadCount }
 	{
 		for (int i = 0; i < poolSize; ++i)
 			m_workers.push_back(std::make_unique<Worker>
@@ -514,10 +522,7 @@ public:
 					, m_hasError
 					, m_queueSize
 					, fileCount
-					, m_zipCoversGuard
-					, m_zipImagesGuard
-					, m_zipCovers
-					, m_zipImages
+					, *this
 				)
 			);
 	}
@@ -544,14 +549,51 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
-		ResetZip(m_zipCovers, m_zipCoversGuard);
-		ResetZip(m_zipImages, m_zipImagesGuard);
+		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
+		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 	}
 
-	static void ResetZip(std::unique_ptr<Zip> & zip, std::mutex & zipGuard)
+	void ArchiveImages(const bool saveFlag, const char * type, std::vector<DataItem> & images) const
 	{
-		std::scoped_lock lock(zipGuard);
-		zip.reset();
+		if (!saveFlag || images.empty())
+			return;
+
+		PLOGI << "archive " << images.size() << " images: " << GetImagesFolder(m_dstDir, type);
+		std::unordered_map<QString, qsizetype> unique;
+		for (const auto & image : images)
+		{
+			auto & item = unique[image.first];
+			item = std::max(item, image.second.size());
+		}
+
+		std::erase_if(images, [&] (const auto & image)
+		{
+			const auto it = unique.find(image.first);
+			assert(it != unique.end());
+			return image.second.size() < it->second;
+		});
+
+		const auto proj = [] (const auto & item) { return item.first; };
+		std::ranges::sort(images, {}, proj);
+		if (const auto range = std::ranges::unique(images, {}, proj); !range.empty())
+			images.erase(range.begin(), range.end()); //-V539
+
+		Zip zip(GetImagesFolder(m_dstDir, type), Zip::Format::Zip);
+		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
+		zip.SetProperty(Zip::PropertyId::ThreadsCount, m_maxThreadCount);
+		zip.Write(images);
+
+		images.clear();
+	}
+
+private:
+	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) override
+	{
+		std::lock_guard lock(m_workClientGuard);
+		m_covers.reserve(m_covers.size() + covers.size());
+		std::ranges::move(covers, std::back_inserter(m_covers));
+		m_images.reserve(m_images.size() + images.size());
+		std::ranges::move(images, std::back_inserter(m_images));
 	}
 
 private:
@@ -562,16 +604,20 @@ private:
 	std::atomic_int m_queueSize { 0 };
 	std::mutex m_fileSystemGuard;
 
-	std::mutex m_zipCoversGuard;
-	std::mutex m_zipImagesGuard;
+	std::mutex m_workClientGuard;
 
-	std::unique_ptr<Zip> m_zipCovers;
-	std::unique_ptr<Zip> m_zipImages;
+	QDir m_dstDir;
+	const bool m_saveCovers;
+	const bool m_saveImages;
+	const int m_maxThreadCount;
+
+	std::vector<DataItem> m_covers;
+	std::vector<DataItem> m_images;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
 
-bool SevenZipIt(const Settings & settings)
+bool ArchiveFb2External(const Settings & settings)
 {
 	if (!settings.saveFb2 || settings.archiver.isEmpty())
 		return false;
@@ -580,19 +626,18 @@ bool SevenZipIt(const Settings & settings)
 
 	QProcess process;
 	QEventLoop eventLoop;
-	auto args = settings.archiverOptions;
+	auto args = settings.archiverOptions.split(' ', Qt::SkipEmptyParts);
+	for (auto & arg : args)
+	{
+		arg.replace("%src%", QString("%1/*.fb2").arg(settings.dstDir.path()));
+		arg.replace("%dst%", QString("%1").arg(settings.dstDir.path()));
+	}
 
-	if (settings.defaultArchiverOptions)
-		args << QString("-mmt%1").arg(settings.maxThreadCount);
-
-	args
-		<< QString("%1.7z").arg(settings.dstDir.path())
-		<< QString("%1/*.fb2").arg(settings.dstDir.path())
-		;
+	bool hasErrors = false;
 
 	QObject::connect(&process, &QProcess::started, [&]
 	{
-		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(" ");
+		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(' ');
 	});
 	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
 	{
@@ -604,44 +649,18 @@ bool SevenZipIt(const Settings & settings)
 	});
 	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
 	{
-		PLOGI << process.readAllStandardError();
+		hasErrors = true;
+		PLOGE << process.readAllStandardError();
 	});
 	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
 	{
-		PLOGW << process.readAllStandardOutput();
+		PLOGI << process.readAllStandardOutput();
 	});
 
 	process.start(settings.archiver, args, QIODevice::ReadOnly);
 
 	eventLoop.exec();
-	return false;
-}
-
-bool ZipIt(const Settings & settings)
-{
-	bool result = false;
-	Zip zip(QString("%1.zip").arg(settings.dstDir.path()), Zip::Format::Zip);
-	const auto files = settings.dstDir.entryList({ "*.fb2" });
-	for (qsizetype i = 0; const auto & file : files)
-	{
-		++i;
-		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(i).arg(files.size()).arg(i * 100 / files.size());
-		QFile input(settings.dstDir.filePath(file));
-		if (!input.open(QIODevice::ReadOnly))
-		{
-			result = true;
-			continue;
-		}
-
-		const auto body = input.readAll();
-		input.close();
-		if (zip.Write(file).write(body) != body.size())
-			result = true;
-		else
-			input.remove();
-	}
-
-	return result;
+	return hasErrors;
 }
 
 bool ArchiveFb2(const Settings & settings)
@@ -649,7 +668,38 @@ bool ArchiveFb2(const Settings & settings)
 	if (!settings.archiveFb2)
 		return false;
 
-	return settings.archiver.isEmpty() ? ZipIt(settings) : SevenZipIt(settings);
+	if (!settings.archiver.isEmpty())
+		return ArchiveFb2External(settings);
+
+	auto files = settings.dstDir.entryList({ "*.fb2" });
+	std::vector<QString> fileList;
+	fileList.reserve(files.size());
+	std::ranges::move(files, std::back_inserter(fileList));
+
+	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
+	zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
+	zip.SetProperty(Zip::PropertyId::SolidArchive, false);
+	zip.SetProperty(Zip::PropertyId::ThreadsCount, settings.maxThreadCount);
+	if (settings.format == Zip::Format::SevenZip)
+		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
+
+	const auto result = zip.Write(fileList, [&] (size_t index)
+	{
+		const auto & file = fileList[index++];
+		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(index).arg(files.size()).arg(index * 100 / files.size());
+		return std::make_unique<QFile>(settings.dstDir.filePath(file));
+	},
+	[&](const size_t index)
+	{
+		const QFileInfo fileInfo(settings.dstDir.filePath(fileList[index]));
+		assert(fileInfo.exists());
+		return static_cast<size_t>(fileInfo.size());
+	});
+	if (result)
+		for (const auto & file : fileList)
+			QFile::remove(settings.dstDir.filePath(file));
+
+	return !result;
 }
 
 bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
@@ -680,8 +730,8 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 		{
 			if (fileProcessor.GetQueueSize() < maxThreadCount * 2)
 			{
-				auto & input = zip.Read(fileList.front());
-				auto body = input.readAll();
+				const auto input = zip.Read(fileList.front());
+				auto body = input->GetStream().readAll();
 				if (!body.isEmpty())
 				{
 					fileProcessor.Enqueue(std::move(fileList.front()), std::move(body));
@@ -836,14 +886,6 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 {
 	Settings settings {};
 
-	const auto get_archiver_default_options = [&]
-	{
-		return QStringList()
-			<< settings.archiverOptions
-			<< QString("-mmt%1").arg(settings.maxThreadCount)
-			;
-	};
-
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QString("%1 extracts images from *.fb2").arg(APP_ID));
 	parser.addHelpOption();
@@ -852,9 +894,10 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
 		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
 		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
+		{ { QString(FORMAT[0])              , FORMAT                           } , "Output fb2 archive format [7z | zip]"                              , QString("%1 [%2]").arg(FORMAT, "7z")},
 		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
 
-		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", QString(COMMANDLINE).arg(QString(R"("%1")").arg(get_archiver_default_options().join(' '))) },
+		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", COMMANDLINE },
 		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
 		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
 		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
@@ -880,12 +923,10 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 
 	settings.ffmpeg = parser.value(FFMPEG_OPTION_NAME);
 	settings.archiver = parser.value(ARCHIVER_OPTION_NAME);
+	settings.archiverOptions = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME);
 
-	if (const auto archiverCommandline = parser.value(ARCHIVER_COMMANDLINE_OPTION_NAME); !archiverCommandline.isEmpty())
-	{
-		settings.archiverOptions = archiverCommandline.split('_', Qt::SkipEmptyParts);
-		settings.defaultArchiverOptions = false;
-	}
+	if (parser.isSet(FORMAT))
+		settings.format = Zip::FormatFromString(parser.value(FORMAT));
 
 	QSize size;
 	if (SetValue(parser, MAX_SIZE_OPTION_NAME, size))
@@ -949,7 +990,11 @@ bool run(int argc, char * argv[])
 			return false;
 	}
 
-	PLOGI << "Process started with " << settings.settings;
+	{
+		std::ostringstream stream;
+		stream << "Process started with " << settings.settings;
+		PLOGI << stream.str();
+	}
 
 	const auto failedArchives = ProcessArchives(settings.settings);
 	if (failedArchives.isEmpty())

@@ -20,7 +20,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortNavigation.h"
+#include "interface/logic/SortString.h"
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
 #include "Util/FunctorExecutionForwarder.h"
@@ -283,22 +283,22 @@ QByteArray Decompress(const QString & path, const QString & archive, const QStri
            QBuffer buffer(&data);
            const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
            const Zip unzip(path + "/" + archive);
-           auto & stream = unzip.Read(fileName);
-           buffer.write(Flibrary::RestoreImages(stream, archive, fileName));
+           const auto stream = unzip.Read(fileName);
+           buffer.write(Flibrary::RestoreImages(stream->GetStream(), archive, fileName));
        }
        return data;
    }
 
-   QByteArray Compress(const QByteArray & data, const QString & fileName)
+   QByteArray Compress(QByteArray data, const QString & fileName)
    {
        QByteArray zippedData;
        {
            QBuffer buffer(&zippedData);
            const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
            buffer.open(QIODevice::WriteOnly);
-		Zip zip(buffer, Zip::Format::Zip);
-		auto & output = zip.Write(fileName);
-		output.write(data);
+		   Zip zip(buffer, Zip::Format::Zip);
+           std::vector<std::pair<QString, QByteArray>> toZip { {fileName, std::move(data)} };
+		   zip.Write(std::move(toZip));
        }
        return zippedData;
    }
@@ -490,8 +490,8 @@ struct Requester::Impl
 
     QByteArray GetBookZip(const QString & bookId) const
     {
-        const auto [fileName, data] = GetBookImpl(bookId);
-        return Compress(data, fileName);
+        auto [fileName, data] = GetBookImpl(bookId);
+        return Compress(std::move(data), fileName);
     }
 
     Node WriteAuthorsNavigation(const QString & self, const QString & value) const

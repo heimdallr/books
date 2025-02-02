@@ -16,9 +16,9 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IReaderController.h"
 #include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/ReaderController.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -57,14 +57,17 @@ struct TreeViewControllerBooks::Impl final
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IReaderController> readerController;
 
 	explicit Impl(std::weak_ptr<const ILogicFactory> logicFactory
 		, std::shared_ptr<IAnnotationController> annotationController
 		, std::shared_ptr<const IDatabaseUser> databaseUser
+		, std::shared_ptr<const IReaderController> readerController
 	)
-		: logicFactory(std::move(logicFactory))
-		, annotationController(std::move(annotationController))
-		, databaseUser(std::move(databaseUser))
+		: logicFactory{ std::move(logicFactory) }
+		, annotationController{ std::move(annotationController) }
+		, databaseUser{ std::move(databaseUser) }
+		, readerController{ std::move(readerController) }
 	{
 	}
 };
@@ -73,6 +76,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	, std::shared_ptr<DataProvider> dataProvider
 	, const std::shared_ptr<const IModelProvider>& modelProvider
 	, const std::shared_ptr<const ILogicFactory>& logicFactory
+	, std::shared_ptr<const IReaderController> readerController
 	, std::shared_ptr<IAnnotationController> annotationController
 	, std::shared_ptr<IDatabaseUser> databaseUser
 )
@@ -84,6 +88,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 	, m_impl(logicFactory
 		, std::move(annotationController)
 		, std::move(databaseUser)
+		, std::move(readerController)
 	)
 {
 	Setup();
@@ -162,8 +167,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
 
-	auto readerController = ILogicFactory::Lock(m_impl->logicFactory)->CreateReaderController();
-	readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [this, readerController, id = index.data(Role::Id).toInt()]() mutable
+	m_impl->readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [this, id = index.data(Role::Id).toInt()]
 	{
 		try
 		{
@@ -180,7 +184,5 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex & index) const
 		{
 			PLOGE << "Unknown error";
 		}
-
-		readerController.reset();
 	});
 }

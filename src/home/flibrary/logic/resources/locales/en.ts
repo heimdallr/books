@@ -83,6 +83,11 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Generate inde&amp;x file (*.inpx)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Groups</source>
         <translation></translation>
     </message>
@@ -174,6 +179,16 @@
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Save index file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>Index files (*.inpx);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
@@ -405,6 +420,16 @@ Try again?</source>
         <source>Use the default reader?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>Cannot start default reader. Will you specify the application manually?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/ReaderController.cpp"/>
+        <source>&apos;%1&apos; not found. Will you specify another application?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
@@ -441,12 +466,7 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Input new search string</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Search</source>
+        <source>Find books whose titles</source>
         <translation></translation>
     </message>
     <message>
@@ -478,8 +498,28 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Search query %1 already exists.
+        <source>Search query &quot;%1&quot; already exists.
 Try again?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>contain</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>begin with</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>end with</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>is equal to</source>
         <translation></translation>
     </message>
 </context>

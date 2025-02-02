@@ -19,13 +19,13 @@ namespace HomeCompa::Flibrary::UserData {
 
 enum class Check
 {
-	None = 0,
-	RootNodeFound = 1 << 0,
-	VersionNodeFound = 1 << 1,
-	VersionAttributeFound = 1 << 2,
+	None                          = 0,
+	RootNodeFound                 = 1 << 0,
+	VersionNodeFound              = 1 << 1,
+	VersionAttributeFound         = 1 << 2,
 	VersionAttributeMustBeInteger = 1 << 3,
-	VersionNumberMustBeActual = 1 << 4,
-	UserDataNodeFound = 1 << 5,
+	VersionNumberMustBeActual     = 1 << 4,
+	UserDataNodeFound             = 1 << 5,
 };
 
 }
@@ -40,6 +40,7 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 		RESTORE_ITEM(Groups, 3)      \
 		RESTORE_ITEM(Searches, 1)    \
 		RESTORE_ITEM(Searches, 3)    \
+		RESTORE_ITEM(Searches, 5)    \
 		RESTORE_ITEM(ExportStat, 4)
 
 namespace HomeCompa::Flibrary::UserData {

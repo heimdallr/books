@@ -104,8 +104,8 @@ public:
 				SetDefaultCollectionName();
 		});
 
-		if (const auto inpx = m_uiFactory->GetNewCollectionInpx(); !inpx.empty())
-			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpx.parent_path())));
+		if (const auto inpxFolder = m_uiFactory->GetNewCollectionInpxFolder(); !inpxFolder.empty())
+			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpxFolder)));
 
 		connect(m_ui.btnSetDefaultName, &QAbstractButton::clicked, &m_self, [&] { SetDefaultCollectionName(true); });
 		connect(m_ui.btnAdd, &QAbstractButton::clicked, &m_self, [&] { if (CheckData()) m_self.done(m_createMode ? Result::CreateNew : Result::Add); } );
@@ -290,12 +290,12 @@ private:
 		if (!CheckFolder())
 			return false;
 
-		const auto inpx = m_collectionController->GetInpx(GetArchiveFolder());
-		assert(!inpx.isEmpty() && QFile::exists(inpx));
+		const auto inpxFiles = m_collectionController->GetInpxFiles(GetArchiveFolder());
+		assert(!inpxFiles.empty() && std::ranges::all_of(inpxFiles, [] (const auto & inpx) { return QFile::exists(inpx); }));
 
 		try
 		{
-			m_ui.editName->setText(Zip(inpx).Read("collection.info").readLine().simplified());
+			m_ui.editName->setText(Zip(*inpxFiles.begin()).Read("collection.info")->GetStream().readLine().simplified());
 		}
 		catch(const std::exception & ex)
 		{
