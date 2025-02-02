@@ -37,18 +37,12 @@ using namespace Inpx;
 namespace {
 
 using Path = Parser::IniMap::value_type::second_type;
+using UniqueFiles = std::unordered_set<std::string, CaseInsensitiveHash<std::string>>;
 
 size_t g_id = 0;
 size_t GetId()
 {
 	return ++g_id;
-}
-
-template <typename T>
-T & ToLower(T & str)
-{
-	std::ranges::transform(str, str.begin(), &tolower);
-	return str;
 }
 
 size_t GetIdDefault(std::wstring_view)
@@ -602,22 +596,22 @@ auto GetInpxFilesInFolder(const Path & inpxFolder)
 
 auto GetNewInpxFolders(const Ini & ini, Data & data)
 {
-	std::map<std::wstring, std::wstring> dbExt;
+	std::map<std::wstring, std::wstring, CaseInsensitiveComparer<>> dbExt;
 	std::ranges::transform(data.folders, std::inserter(dbExt, std::end(dbExt)), [] (const auto & item)
 	{
 		auto folder = item.first;
-		auto ext = RemoveExt(ToLower(folder));
+		auto ext = RemoveExt(folder);
 		return std::make_pair(std::move(folder), std::move(ext));
 	});
-	std::map<std::wstring, std::wstring> inpxExt;
+	std::map<std::wstring, std::wstring, CaseInsensitiveComparer<>> inpxExt;
 	const auto inpxFolder = ini(INPX_FOLDER);
-	std::unordered_map<Path, std::vector<std::wstring>> result;
+	std::unordered_map<Path, std::vector<std::wstring>, CaseInsensitiveHash<Path>> result;
 
 	for (const auto & inpx : GetInpxFilesInFolder(inpxFolder))
 	{
 		std::ranges::transform(ExtractInpxFileNames(inpx).inpx, std::inserter(inpxExt, std::end(inpxExt)), [] (auto item)
 		{
-			auto ext = RemoveExt(ToLower(item));
+			auto ext = RemoveExt(item);
 			return std::make_pair(std::move(item), std::move(ext));
 		});
 
@@ -839,7 +833,7 @@ private: // IPool
 			try
 			{
 				PLOGI << "parsing " << folder;
-				std::unordered_set<std::string> files;
+				UniqueFiles files;
 				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
 				const Zip zip(archiveFileInfo.filePath());
 				const auto zipFileList = zip.GetFileNameList();
@@ -910,6 +904,7 @@ private:
 		m_genresIndex = oldGenresIndex;
 		SetUnknownGenreId();
 
+		size_t result = 0;
 		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
 		for (const auto & inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
@@ -920,6 +915,7 @@ private:
 
 			const Zip zip(QString::fromStdWString(inpxFileName));
 			ParseInpxFiles(inpxFileName, &zip, it->second);
+			result += it->second.size();
 		}
 
 		const auto filter = [] (auto & dst, const auto & src)
@@ -937,7 +933,7 @@ private:
 
 		Analyze(dbFileName);
 
-		return newInpxFolders.size();
+		return result;
 	}
 
 	void Parse()
@@ -976,6 +972,44 @@ private:
 
 			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 		}
+
+		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+		{
+			for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+			{
+				if (entry.is_directory())
+					continue;
+
+				auto folder = entry.path().wstring();
+				folder.erase(0, m_rootFolder.string().size() + 1);
+
+				if (m_data.folders.contains(folder))
+					continue;
+
+				m_foldersToParse.push(std::move(folder));
+			}
+
+			if (!m_foldersToParse.empty())
+			{
+				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
+				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+				while (true)
+				{
+					std::unique_lock lock(m_foldersToParseGuard);
+					m_foldersToParseCondition.wait(lock, [&]
+						{
+							return m_foldersToParse.empty();
+						});
+
+					if (m_foldersToParse.empty())
+						break;
+				}
+
+				m_threads.clear();
+			}
+		}
 	}
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
@@ -994,48 +1028,6 @@ private:
 			PLOGI << m_n << " rows parsed";
 		}
 
-		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
-		{
-			for (auto const & entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
-			{
-				if (entry.is_directory())
-					continue;
-
-				auto folder = entry.path().wstring();
-				folder.erase(0, m_rootFolder.string().size() + 1);
-				ToLower(folder);
-
-				if (const auto ext = entry.path().extension(); ext != ".zip" && ext != ".7z")
-					continue;
-
-				if (m_data.folders.contains(folder))
-					continue;
-
-				m_foldersToParse.push(std::move(folder));
-			}
-
-			if (!m_foldersToParse.empty())
-			{
-				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
-				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
-
-				while (true)
-				{
-					std::unique_lock lock(m_foldersToParseGuard);
-					m_foldersToParseCondition.wait(lock, [&]
-					{
-						return m_foldersToParse.empty();
-					});
-
-					if (m_foldersToParse.empty())
-						break;
-				}
-
-				m_threads.clear();
-			}
-		}
-
 		LogErrors();
 	}
 
@@ -1044,12 +1036,6 @@ private:
 		const auto mask = QString::fromStdWString(Path(folder).replace_extension("*"));
 		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
-		if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
-		{
-			const auto ext = QFileInfo(file).suffix();
-			return ext != "zip" && ext != "7z";
-		}); begin != end)
-			suitableFiles.erase(begin, end);
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
 		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
@@ -1060,7 +1046,7 @@ private:
 			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [] (const auto & item) { return item.toStdWString(); });
 		}
 
-		std::unordered_set<std::string> files;
+		UniqueFiles files;
 
 		while (true)
 		{
@@ -1093,7 +1079,7 @@ private:
 		}
 	}
 
-	void ParseFile(std::unordered_set<std::string> & files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
+	void ParseFile(UniqueFiles& files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
 		const auto stream = zip.Read(fileName);
@@ -1134,11 +1120,11 @@ private:
 		AddBook(files, buf, folder);
 	}
 
-	void AddBook(std::unordered_set<std::string> & files, const BookBuf & buf, const std::wstring & folder)
+	void AddBook(UniqueFiles& files, const BookBuf & buf, const std::wstring & folder)
 	{
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
-		files.emplace(ToLower(file));
+		files.emplace(file);
 
 		std::ranges::transform(ParseItem(buf.authors, m_data.authors), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
