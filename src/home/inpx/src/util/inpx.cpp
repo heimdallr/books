@@ -936,6 +936,7 @@ private:
 		m_genresIndex = oldGenresIndex;
 		SetUnknownGenreId();
 
+		size_t result = 0;
 		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
 		for (const auto & inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
@@ -946,6 +947,7 @@ private:
 
 			const Zip zip(QString::fromStdWString(inpxFileName));
 			ParseInpxFiles(inpxFileName, &zip, it->second);
+			result += it->second.size();
 		}
 
 		const auto filter = [] (auto & dst, const auto & src)
@@ -963,7 +965,7 @@ private:
 
 		Analyze(dbFileName);
 
-		return newInpxFolders.size();
+		return result;
 	}
 
 	void Parse()
