@@ -39,10 +39,3 @@ constexpr auto GET_MAX_ID_QUERY =
 	"union select max(KeywordID) m from Keywords "
 	"union select max(FolderID)  m from Folders "
 	")";
-
-constexpr const char* SUPPORTED_EXTENSIONS[]
-{
-	".7z",
-	".zip",
-	".rar",
-};

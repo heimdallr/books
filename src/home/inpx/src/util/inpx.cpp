@@ -986,9 +986,6 @@ private:
 				if (m_data.folders.contains(folder))
 					continue;
 
-				if (std::ranges::none_of(SUPPORTED_EXTENSIONS, [ext = entry.path().extension()](const auto* item) { return ext == item; }))
-					continue;
-
 				m_foldersToParse.push(std::move(folder));
 			}
 
@@ -1039,11 +1036,6 @@ private:
 		const auto mask = QString::fromStdWString(Path(folder).replace_extension("*"));
 		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
-		if (const auto [begin, end] = std::ranges::remove_if(suitableFiles, [] (const auto & file)
-		{
-			return std::ranges::none_of(SUPPORTED_EXTENSIONS, [ext = "." + QFileInfo(file).suffix()](const auto* item) { return ext == item; });
-		}); begin != end)
-			suitableFiles.erase(begin, end);
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
 		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
