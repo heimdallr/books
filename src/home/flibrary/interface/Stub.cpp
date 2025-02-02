@@ -147,7 +147,17 @@ ILogicFactory::ExtractedBooks ILogicFactory::GetExtractedBooks(QAbstractItemMode
 	std::ranges::transform(selected, std::back_inserter(books), [&] (auto && book)
 	{
 		assert(book.size() == roles.size());
-		return ExtractedBook { book[0].toInt(), std::move(book[1]), std::move(book[2]), book[3].toLongLong(), std::move(book[4]), std::move(book[5]), book[6].toInt(), std::move(book[7]) };
+		return ExtractedBook
+		{
+			.id = book[0].toInt(),
+			.folder = std::move(book[1]),
+			.file = std::move(book[2]),
+			.size = book[3].toLongLong(),
+			.author = std::move(book[4]),
+			.series = std::move(book[5]),
+			.seqNumber = book[6].toInt(),
+			.title = std::move(book[7])
+		};
 	});
 
 	return books;
@@ -155,6 +165,8 @@ ILogicFactory::ExtractedBooks ILogicFactory::GetExtractedBooks(QAbstractItemMode
 
 void ILogicFactory::FillScriptTemplate(QString & scriptTemplate, const ExtractedBook & book)
 {
+	const auto authorNameSplitted = RemoveIllegalCharacters(book.author).split(' ', Qt::SkipEmptyParts);
+
 	const QFileInfo fileInfo(book.file);
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Title, RemoveIllegalCharacters(book.title));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileExt, RemoveIllegalCharacters(fileInfo.suffix()));
@@ -166,6 +178,11 @@ void ILogicFactory::FillScriptTemplate(QString & scriptTemplate, const Extracted
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, RemoveIllegalCharacters(book.series));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileSize, QString::number(book.size));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorLastName, authorNameSplitted.size() > 0 ? authorNameSplitted[0] : QString{});
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorFirstName, authorNameSplitted.size() > 1 ? authorNameSplitted[1] : QString{});
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorMiddleName, authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString{});
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorF, authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString{});
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorM, authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString{});
 }
 
 }
