@@ -53,6 +53,7 @@ public:
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)              \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)         \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)               \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)         \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)       \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)      \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)     \
@@ -146,6 +147,7 @@ public:
 		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
 		{ Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
 		{ Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
+		{ Macro::AuthorLastFM, QT_TRANSLATE_NOOP("ScriptController", "%author_last_fm%") },
 		{ Macro::AuthorLastName, QT_TRANSLATE_NOOP("ScriptController", "%author_last_name%") },
 		{ Macro::AuthorFirstName, QT_TRANSLATE_NOOP("ScriptController", "%author_first_name%") },
 		{ Macro::AuthorMiddleName, QT_TRANSLATE_NOOP("ScriptController", "%author_middle_name%") },

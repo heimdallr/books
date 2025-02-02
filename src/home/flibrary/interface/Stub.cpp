@@ -178,6 +178,11 @@ void ILogicFactory::FillScriptTemplate(QString & scriptTemplate, const Extracted
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, RemoveIllegalCharacters(book.series));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileSize, QString::number(book.size));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorLastFM, QString("%1 %2%3")
+		.arg(authorNameSplitted.size() > 0 ? authorNameSplitted[0] : QString{})
+		.arg(authorNameSplitted.size() > 1 ? QString("%1.").arg(authorNameSplitted[1][0]) : QString{})
+		.arg(authorNameSplitted.size() > 2 ? QString("%1.").arg(authorNameSplitted[2][0]) : QString{})
+		.simplified());
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorLastName, authorNameSplitted.size() > 0 ? authorNameSplitted[0] : QString{});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorFirstName, authorNameSplitted.size() > 1 ? authorNameSplitted[1] : QString{});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorMiddleName, authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString{});
