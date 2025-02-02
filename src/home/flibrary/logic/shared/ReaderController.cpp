@@ -9,8 +9,15 @@
 
 #include "fnd/ScopedCall.h"
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
+
+#include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -78,33 +85,38 @@ std::shared_ptr<QTemporaryDir> Extract(const ILogicFactory& logicFactory, const 
 
 struct ReaderController::Impl
 {
+	std::weak_ptr<const ILogicFactory> logicFactory;
 	std::shared_ptr<ISettings> settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
-	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
+	PropagateConstPtr<IDatabaseUser, std::shared_ptr> databaseUser;
 
-	Impl(std::shared_ptr<ISettings> settings
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
+		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<ICollectionController> collectionController
-		, const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<IUiFactory> uiFactory
+		, std::shared_ptr<IDatabaseUser> databaseUser
 	)
-		: settings(std::move(settings))
-		, collectionController(std::move(collectionController))
-		, logicFactory(logicFactory)
-		, uiFactory(std::move(uiFactory))
+		: logicFactory{ logicFactory }
+		, settings{ std::move(settings) }
+		, collectionController{ std::move(collectionController) }
+		, uiFactory{ std::move(uiFactory) }
+		, databaseUser{ std::move(databaseUser) }
 	{
 	}
 };
 
-ReaderController::ReaderController(std::shared_ptr<ISettings> settings
+ReaderController::ReaderController(const std::shared_ptr<const ILogicFactory>& logicFactory
+	, std::shared_ptr<ISettings> settings
 	, std::shared_ptr<ICollectionController> collectionController
-	, const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<IUiFactory> uiFactory
+	, std::shared_ptr<IDatabaseUser> databaseUser
 )
-	: m_impl(std::move(settings)
+	: m_impl(logicFactory
+		, std::move(settings)
 		, std::move(collectionController)
-		, logicFactory
 		, std::move(uiFactory)
+		, std::move(databaseUser)
 	)
 {
 	PLOGV << "ReaderController created";
@@ -174,4 +186,30 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 			new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
 		};
 	} });
+}
+
+void ReaderController::Read(long long id) const
+{
+	m_impl->databaseUser->Execute({ "Get archive and file names", [this, id]()
+		{
+			const auto db = m_impl->databaseUser->Database();
+			{
+				const auto transaction = db->CreateTransaction();
+				const auto command = transaction->CreateQuery(ExportStat::INSERT_QUERY);
+				command->Bind(0, id);
+				command->Bind(1, static_cast<int>(ExportStat::Type::Read));
+				command->Execute();
+				transaction->Commit();
+			}
+
+			const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+			query->Bind(0, id);
+			query->Execute();
+			assert(!query->Eof());
+			QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
+			return [this, folderName = std::move(folderName), fileName = std::move(fileName)](size_t) mutable
+			{
+				Read(folderName, std::move(fileName), []() {});
+			};
+		} });
 }

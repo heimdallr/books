@@ -19,6 +19,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/logic/IProgressController.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
@@ -36,7 +37,6 @@
 #include "extract/InpxCollectionExtractor.h"
 
 #include "shared/BooksContextMenuProvider.h"
-#include "shared/ReaderController.h"
 #include "shared/ZipProgressCallback.h"
 
 using namespace HomeCompa;
@@ -114,11 +114,6 @@ std::shared_ptr<SearchController> LogicFactory::CreateSearchController() const
 std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const
 {
 	return m_impl->container.resolve<BooksContextMenuProvider>();
-}
-
-std::shared_ptr<ReaderController> LogicFactory::CreateReaderController() const
-{
-	return m_impl->container.resolve<ReaderController>();
 }
 
 std::shared_ptr<IUserDataController> LogicFactory::CreateUserDataController() const

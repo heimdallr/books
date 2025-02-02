@@ -31,6 +31,7 @@
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
 #include "shared/ZipProgressCallback.h"
+#include "shared/ReaderController.h"
 #include "userdata/UserDataController.h"
 #include "util/app.h"
 #include "util/ISettings.h"
@@ -59,6 +60,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
+	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<ScriptController>().as<IScriptController>();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
