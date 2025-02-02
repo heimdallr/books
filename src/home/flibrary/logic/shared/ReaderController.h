@@ -20,10 +20,11 @@ class ReaderController : virtual public IReaderController
 	NON_COPY_MOVABLE(ReaderController)
 
 public:
-	ReaderController(std::shared_ptr<ISettings> settings
+	ReaderController(const std::shared_ptr<const class ILogicFactory>& logicFactory
+		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class ICollectionController> collectionController
-		, const std::shared_ptr<const class ILogicFactory>& logicFactory
 		, std::shared_ptr<class IUiFactory> uiFactory
+		, std::shared_ptr<class IDatabaseUser> databaseUser
 	);
 	~ReaderController();
 
