@@ -7,6 +7,7 @@ AddTarget(gui	shared_lib
 	LINK_LIBRARIES
 		Hypodermic
 		plog
+		Qt${QT_MAJOR_VERSION}::Network
 		Qt${QT_MAJOR_VERSION}::Widgets
 		Qt${QT_MAJOR_VERSION}::Svg
 	LINK_TARGETS
@@ -31,6 +32,7 @@ AddTarget(gui	shared_lib
 	LINK_LIBRARIES
 		Hypodermic
 		plog
+		Qt${QT_MAJOR_VERSION}::Network
 		Qt${QT_MAJOR_VERSION}::Widgets
 		Qt${QT_MAJOR_VERSION}::Svg
 		Qt${QT_MAJOR_VERSION}::SvgWidgets
