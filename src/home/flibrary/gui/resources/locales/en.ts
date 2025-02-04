@@ -585,6 +585,21 @@
         <source>Start automatically</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Address</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Copy address to clipboard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.cpp"/>
+        <source>OPDS server address has been copied to the clipboard</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>

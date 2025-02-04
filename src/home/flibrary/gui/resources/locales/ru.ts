@@ -585,6 +585,21 @@
         <source>Start automatically</source>
         <translation>Запускать автоматически</translation>
     </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Address</source>
+        <translation>Адрес</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.ui"/>
+        <source>Copy address to clipboard</source>
+        <translation>Копировать адрес в буфер обмена</translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.cpp"/>
+        <source>OPDS server address has been copied to the clipboard</source>
+        <translation>Адрес сервера OPDS скопирован в буфер обмена</translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
