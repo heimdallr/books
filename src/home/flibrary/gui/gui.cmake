@@ -18,9 +18,6 @@ AddTarget(gui	shared_lib
 		GuiUtil
 		ver
 		zip
-	DEPENDENCIES
-		ThemeDark
-		ThemeLight
 )
 
 else()
@@ -44,9 +41,6 @@ AddTarget(gui	shared_lib
 		GuiUtil
 		ver
 		zip
-	DEPENDENCIES
-		ThemeDark
-		ThemeLight
 )
 
 endif()

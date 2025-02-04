@@ -71,8 +71,7 @@
            <string notr="true"/>
           </property>
           <property name="icon">
-           <iconset resource="resources/fb2cut.qrc">
-            <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
+           <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -106,8 +105,7 @@
            <string notr="true"/>
           </property>
           <property name="icon">
-           <iconset resource="resources/fb2cut.qrc">
-            <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
+           <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -278,8 +276,7 @@
               <string notr="true"/>
              </property>
              <property name="icon">
-              <iconset resource="resources/fb2cut.qrc">
-               <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+              <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
              </property>
              <property name="autoRaise">
               <bool>true</bool>
@@ -323,8 +320,7 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset resource="resources/fb2cut.qrc">
-             <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+            <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -372,8 +368,7 @@
             <item>
              <widget class="QToolButton" name="btnDefaultArgs">
               <property name="icon">
-               <iconset resource="resources/fb2cut.qrc">
-                <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
+               <iconset theme="QIcon::ThemeIcon::DocumentRevert"/>
               </property>
               <property name="autoRaise">
                <bool>true</bool>
@@ -466,8 +461,7 @@
   </widget>
   <action name="actionInputFilesNotFound">
    <property name="icon">
-    <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+    <iconset theme="QIcon::ThemeIcon::DialogError"/>
    </property>
    <property name="text">
     <string notr="true">Input Files</string>
@@ -478,8 +472,7 @@
   </action>
   <action name="actionDstFolderNotExists">
    <property name="icon">
-    <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+    <iconset theme="QIcon::ThemeIcon::DialogError"/>
    </property>
    <property name="text">
     <string notr="true">Destination Folder</string>
@@ -490,8 +483,7 @@
   </action>
   <action name="actionFfmpegNotFound">
    <property name="icon">
-    <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+    <iconset theme="QIcon::ThemeIcon::DialogError"/>
    </property>
    <property name="text">
     <string notr="true">FFmpeg Not Found</string>
