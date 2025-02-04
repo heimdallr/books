@@ -120,6 +120,9 @@ CollectionUpdateChecker::~CollectionUpdateChecker()
 
 void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 {
+	if (!(m_impl->collectionController->ActiveCollectionExists() && m_impl->collectionController->GetActiveCollection().updatable))
+		return callback(false);
+
 	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute({ "Check for collection index updated", [&, db = std::move(db), callback = std::move(callback)] () mutable
 	{
@@ -140,9 +143,6 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 				callback(true);
 			};
 		};
-
-		if (!m_impl->collectionController->ActiveCollectionExists())
-			return getResult();
 
 		const auto inpxFolders = GetInpxFolders(*m_impl->collectionController, updatedCollection);
 		if (inpxFolders.isEmpty())

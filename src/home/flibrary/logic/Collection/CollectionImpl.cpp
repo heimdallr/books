@@ -19,6 +19,7 @@ constexpr auto DATABASE = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
+constexpr auto UPDATABLE = "updatable";
 constexpr auto CREATION_MODE = "creationMode";
 
 Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
@@ -44,18 +45,20 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 
 	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString{});
 	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
+	collection->updatable = settings.Get(UPDATABLE, true);
 
 	return collection;
 }
 
 }
 
-CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_)
+CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_, bool updatable_)
 {
 	id = Util::md5(database_.toUtf8());
 	name = std::move(name_);
 	database = std::move(database_);
 	folder = std::move(folder_);
+	updatable = updatable_;
 
 	database.replace("\\", "/");
 	folder.replace("\\", "/");
@@ -79,6 +82,7 @@ void CollectionImpl::Serialize(const Collection & collection, ISettings & settin
 	settings.Set(FOLDER, collection.folder);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
+	settings.Set(UPDATABLE, collection.updatable);
 }
 
 Collections CollectionImpl::Deserialize(ISettings & settings)

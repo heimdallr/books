@@ -19,6 +19,7 @@ struct Collection
 	QString folder;
 	QString discardedUpdate;
 	int createCollectionMode;
+	bool updatable;
 
 	using Ptr = std::unique_ptr<Collection>;
 };

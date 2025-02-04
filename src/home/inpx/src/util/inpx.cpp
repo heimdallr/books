@@ -37,7 +37,6 @@ using namespace Inpx;
 namespace {
 
 using Path = Parser::IniMap::value_type::second_type;
-using UniqueFiles = std::unordered_set<std::string, CaseInsensitiveHash<std::string>>;
 
 size_t g_id = 0;
 size_t GetId()
@@ -301,7 +300,7 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 		return itGenre;
 	};
 
-	if (buf.date.empty())
+	if (buf.DATE.empty())
 	{
 		auto itIndex = genresIndex.find(NO_DATE_SPECIFIED);
 		if (itIndex == genresIndex.end())
@@ -310,8 +309,8 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 		return;
 	}
 
-	auto itDate = std::cbegin(buf.date);
-	const auto endDate = std::cend(buf.date);
+	auto itDate = std::cbegin(buf.DATE);
+	const auto endDate = std::cend(buf.DATE);
 	const auto year = Next(itDate, endDate, DATE_SEPARATOR);
 	const auto month = Next(itDate, endDate, DATE_SEPARATOR);
 	const auto dateCode = ToWide(std::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
@@ -329,29 +328,22 @@ void AddGenres(const BookBuf & buf, Dictionary & genresIndex, Data & data, std::
 	idGenres.emplace(itIndexDate->second);
 }
 
-BookBuf ParseBook(std::wstring & line)
+using BookBufFieldGetter = std::wstring_view& (*)(BookBuf&);
+using BookBufMapping = std::vector<BookBufFieldGetter>;
+
+#define BOOK_BUF_FIELD_ITEM(NAME) std::wstring_view& Get##NAME(BookBuf& buf) { return buf.NAME; }
+		BOOK_BUF_FIELD_ITEMS_XMACRO
+#undef	BOOK_BUF_FIELD_ITEM
+
+BookBuf ParseBook(std::wstring_view folder, std::wstring & line, const BookBufMapping& f)
 {
+	BookBuf buf{ .FOLDER = folder };
+
 	auto it = std::begin(line);
 	const auto end = std::end(line);
+	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
+		f[i](buf) = Next(it, end, FIELDS_SEPARATOR);
 
-	//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
-	BookBuf buf
-	{
-		.authors = Next(it, end, FIELDS_SEPARATOR),
-		.genres = Next(it, end, FIELDS_SEPARATOR),
-		.title = Next(it, end, FIELDS_SEPARATOR),
-		.seriesName = Next(it, end, FIELDS_SEPARATOR),
-		.seriesNum = Next(it, end, FIELDS_SEPARATOR),
-		.fileName = Next(it, end, FIELDS_SEPARATOR),
-		.size = Next(it, end, FIELDS_SEPARATOR),
-		.libId = Next(it, end, FIELDS_SEPARATOR),
-		.del = Next(it, end, FIELDS_SEPARATOR),
-		.ext = Next(it, end, FIELDS_SEPARATOR),
-		.date = Next(it, end, FIELDS_SEPARATOR),
-		.lang = Next(it, end, FIELDS_SEPARATOR),
-		.rate = Next(it, end, FIELDS_SEPARATOR),
-	};
-	buf.keywords = Next(it, end, FIELDS_SEPARATOR);
 	return buf;
 }
 
@@ -847,7 +839,7 @@ public:
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, genres] (size_t)
 			{
-				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
+				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
 			};
 		} });
 	}
@@ -860,7 +852,7 @@ public:
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, foldersCount, genres] (size_t)
 			{
-				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
+				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
 			};
 		} });
 	}
@@ -886,7 +878,7 @@ private: // IPool
 			try
 			{
 				PLOGI << "parsing " << folder;
-				UniqueFiles files;
+
 				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
 				const Zip zip(archiveFileInfo.filePath());
 				const auto zipFileList = zip.GetFileNameList();
@@ -898,7 +890,7 @@ private: // IPool
 						try
 						{
 							PLOGV << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-							ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
+							ParseFile(folder, zip, fileName, archiveFileInfo.birthTime());
 						}
 						catch (const std::exception & ex)
 						{
@@ -1026,42 +1018,64 @@ private:
 			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 		}
 
-		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+		AddUnIndexedBooks();
+		ScanUnIndexedFolders();
+	}
+
+	void AddUnIndexedBooks()
+	{
+		if (!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
+			return;
+
+		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
 		{
-			for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+			for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : files)
 			{
-				if (entry.is_directory())
-					continue;
+				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
+				ParseFile(folder, zip, QString::fromStdWString(fileName), archiveFileInfo.birthTime());
+			}
+		}
+	}
 
-				auto folder = entry.path().wstring();
-				folder.erase(0, m_rootFolder.string().size() + 1);
+	void ScanUnIndexedFolders()
+	{
+		if (!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+			return;
 
-				if (m_data.folders.contains(folder))
-					continue;
+		for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+		{
+			if (entry.is_directory())
+				continue;
 
-				m_foldersToParse.push(std::move(folder));
+			auto folder = entry.path().wstring();
+			folder.erase(0, m_rootFolder.string().size() + 1);
+
+			if (m_foldersContent.contains(folder))
+				continue;
+
+			m_foldersToParse.push(std::move(folder));
+		}
+
+		if (!m_foldersToParse.empty())
+		{
+			const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+			const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
+			std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+			while (true)
+			{
+				std::unique_lock lock(m_foldersToParseGuard);
+				m_foldersToParseCondition.wait(lock, [&]
+					{
+						return m_foldersToParse.empty();
+					});
+
+				if (m_foldersToParse.empty())
+					break;
 			}
 
-			if (!m_foldersToParse.empty())
-			{
-				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
-				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
-
-				while (true)
-				{
-					std::unique_lock lock(m_foldersToParseGuard);
-					m_foldersToParseCondition.wait(lock, [&]
-						{
-							return m_foldersToParse.empty();
-						});
-
-					if (m_foldersToParse.empty())
-						break;
-				}
-
-				m_threads.clear();
-			}
+			m_threads.clear();
 		}
 	}
 
@@ -1072,6 +1086,7 @@ private:
 		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
 		{
+			GetFieldList(*zipInpx);
 			for (const auto & fileName : inpxFiles)
 				GetDecodedStream(*zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
 			{
@@ -1084,6 +1099,39 @@ private:
 		LogErrors();
 	}
 
+	void GetFieldList(const Zip& zip)
+	{
+		const auto fieldList = [&]() -> QString
+		{
+			return zip.GetFileNameList().contains("structure.info")
+				? QString::fromUtf8(zip.Read("structure.info")->GetStream().readAll())
+				: QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;");
+		}();
+
+		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping{
+#define		BOOK_BUF_FIELD_ITEM(NAME) { QString(#NAME), &Get##NAME },
+			BOOK_BUF_FIELD_ITEMS_XMACRO
+#undef		BOOK_BUF_FIELD_ITEM
+		};
+
+		auto fields = fieldList.split(';', Qt::SkipEmptyParts);
+		if (const auto range = std::ranges::remove_if(fields, [](const auto& item) { return item.simplified().isEmpty(); }))
+			fields.erase(range.begin(), range.end());
+		m_bookBufMapping.clear();
+		m_bookBufMapping.reserve(fields.size());
+		std::ranges::transform(fields, std::back_inserter(m_bookBufMapping), [&](const auto& str)
+			{
+				const auto it = bookBufMapping.find(str.simplified());
+				if (it == bookBufMapping.end())
+				{
+					PLOGF << "unexpected field name " << str;
+					throw std::runtime_error("unexpected field name");
+				}
+
+				return it->second;
+			});
+	}
+
 	void ProcessInpx(QIODevice & stream, const Path & rootFolder, std::wstring folder)
 	{
 		const auto mask = QString::fromStdWString(Path(folder).replace_extension("*"));
@@ -1091,15 +1139,6 @@ private:
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [] (const auto & file) { return file.toLower(); });
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
-		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
-		std::unordered_set<std::wstring> fileList;
-		if (archiveFileInfo.exists() && !!(m_mode & CreateCollectionMode::SkipLostBooks))
-		{
-			Zip archiveFile(archiveFileInfo.filePath());
-			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [] (const auto & item) { return item.toStdWString(); });
-		}
-
-		UniqueFiles files;
 
 		while (true)
 		{
@@ -1108,31 +1147,35 @@ private:
 				break;
 
 			auto line = ToWide(byteArray.constData());
-			const auto buf = ParseBook(line);
-			if (!(m_mode & CreateCollectionMode::SkipLostBooks) || fileList.empty() || fileList.contains(std::wstring(buf.fileName).append(L".").append(buf.ext)))
-				AddBook(files, buf, folder);
+			const auto buf = ParseBook(folder, line, m_bookBufMapping);
+			if (folder != buf.FOLDER)
+				m_updatable = false;
+
+			auto& fileList = m_foldersContent[std::wstring(buf.FOLDER)];
+			if (fileList.empty())
+			{
+				const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / buf.FOLDER));
+				if (archiveFileInfo.exists())
+				{
+					Zip archiveFile(archiveFileInfo.filePath());
+					std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [](const auto& item) { return item.toStdWString(); });
+				}
+			}
+
+			const auto fileName = std::wstring(buf.FILE).append(L".").append(buf.EXT);
+			const auto it = fileList.find(fileName);
+			const auto found = it != fileList.end();
+			if (found)
+				fileList.erase(it);
+
+			if (found || !(m_mode & CreateCollectionMode::SkipLostBooks))
+				AddBook(buf);
 			else
-				PLOGW << std::quoted(ToMultiByte(buf.title)) << " skipped because its file " << ToMultiByte(buf.fileName) << "." << ToMultiByte(buf.ext) << " not found.";
-		}
-
-		if (!archiveFileInfo.exists())
-		{
-			PLOGW << archiveFileInfo.fileName() << " not found";
-			return;
-		}
-
-		for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
-		{
-			if (files.contains(fileName.toLower().toStdString()))
-				continue;
-
-			PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
-			if (!!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
-				ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
+				PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
 		}
 	}
 
-	void ParseFile(UniqueFiles& files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
+	void ParseFile(const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
 		const auto stream = zip.Read(fileName);
@@ -1168,21 +1211,22 @@ private:
 			;
 
 		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
-		const auto buf = ParseBook(line);
+		const auto buf = ParseBook(folder, line, m_bookBufMapping);
+		if (folder != buf.FOLDER)
+			m_updatable = false;
 
 		std::lock_guard lock(m_dataGuard);
-		AddBook(files, buf, folder);
+		AddBook(buf);
 	}
 
-	void AddBook(UniqueFiles& files, const BookBuf & buf, const std::wstring & folder)
+	void AddBook(const BookBuf & buf)
 	{
 		const auto id = GetId();
-		auto file = ToMultiByte(buf.fileName) + "." + ToMultiByte(buf.ext);
-		files.emplace(file);
+		auto file = ToMultiByte(buf.FILE) + "." + ToMultiByte(buf.EXT);
 
-		std::ranges::transform(ParseItem(buf.authors, m_data.authors), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
+		std::ranges::transform(ParseItem(buf.AUTHOR, m_data.authors), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
-		auto idGenres = ParseItem(buf.genres, m_genresIndex, LIST_SEPARATOR, &ParseCheckerDefault,
+		auto idGenres = ParseItem(buf.GENRE, m_genresIndex, LIST_SEPARATOR, &ParseCheckerDefault,
 			[&, &data = m_data.genres] (std::wstring_view newItemTitle)
 			{
 				const auto result = std::size(data);
@@ -1206,14 +1250,27 @@ private:
 
 		std::ranges::transform(idGenres, std::back_inserter(m_data.booksGenres), [&] (const size_t idGenre) { return std::make_pair(id, idGenre); });
 
-		if (!buf.keywords.empty())
-			std::ranges::transform(ParseKeywords(buf.keywords, m_data.keywords, m_uniqueKeywords), std::back_inserter(m_data.booksKeywords), [=](size_t idKeyword) { return std::make_pair(id, idKeyword); } );
+		if (!buf.KEYWORDS.empty())
+			std::ranges::transform(ParseKeywords(buf.KEYWORDS, m_data.keywords, m_uniqueKeywords), std::back_inserter(m_data.booksKeywords), [=](size_t idKeyword) { return std::make_pair(id, idKeyword); } );
 
-		auto & idFolder = m_data.folders[folder];
+		auto & idFolder = m_data.folders[std::wstring(buf.FOLDER)];
 		if (idFolder == 0)
 			idFolder = GetId();
 
-		m_data.books.emplace_back(id, buf.libId, buf.title, Add<int, -1>(buf.seriesName, m_data.series), To<int>(buf.seriesNum, -1), buf.date, To<int>(buf.rate), buf.lang, idFolder, buf.fileName, files.size() - 1, buf.ext, To<size_t>(buf.size), To<bool>(buf.del, false));
+		m_data.books.emplace_back(id
+			, buf.LIBID
+			, buf.TITLE
+			, Add<int, -1>(buf.SERIES, m_data.series)
+			, To<int>(buf.SERNO, -1)
+			, buf.DATE, To<int>(buf.LIBRATE)
+			, buf.LANG
+			, idFolder
+			, buf.FILE
+			, To<size_t>(buf.INSNO)
+			, buf.EXT
+			, To<size_t>(buf.SIZE)
+			, To<bool>(buf.DEL, false)
+		);
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
@@ -1249,8 +1306,12 @@ private:
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
+	std::unordered_map<std::wstring, std::unordered_set<std::wstring, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	std::atomic_bool m_updatable { true };
 
 	std::vector<QString> m_errors;
+
+	BookBufMapping m_bookBufMapping;
 
 	std::queue<std::wstring> m_foldersToParse;
 	std::mutex m_foldersToParseGuard;

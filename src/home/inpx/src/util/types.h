@@ -189,20 +189,28 @@ inline std::ostream & operator<<(std::ostream & stream, const Genre & genre)
 	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
 }
 
+//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
+#define BOOK_BUF_FIELD_ITEMS_XMACRO  \
+		BOOK_BUF_FIELD_ITEM(AUTHOR)  \
+		BOOK_BUF_FIELD_ITEM(GENRE)   \
+		BOOK_BUF_FIELD_ITEM(TITLE)   \
+		BOOK_BUF_FIELD_ITEM(SERIES)  \
+		BOOK_BUF_FIELD_ITEM(SERNO)   \
+		BOOK_BUF_FIELD_ITEM(FILE)    \
+		BOOK_BUF_FIELD_ITEM(SIZE)    \
+		BOOK_BUF_FIELD_ITEM(LIBID)   \
+		BOOK_BUF_FIELD_ITEM(DEL)     \
+		BOOK_BUF_FIELD_ITEM(EXT)     \
+		BOOK_BUF_FIELD_ITEM(DATE)    \
+		BOOK_BUF_FIELD_ITEM(INSNO)   \
+		BOOK_BUF_FIELD_ITEM(FOLDER)  \
+		BOOK_BUF_FIELD_ITEM(LANG)    \
+		BOOK_BUF_FIELD_ITEM(LIBRATE) \
+		BOOK_BUF_FIELD_ITEM(KEYWORDS)
+
 struct BookBuf
 {
-	std::wstring_view authors;
-	std::wstring_view genres;
-	std::wstring_view title;
-	std::wstring_view seriesName;
-	std::wstring_view seriesNum;
-	std::wstring_view fileName;
-	std::wstring_view size;
-	std::wstring_view libId;
-	std::wstring_view del;
-	std::wstring_view ext;
-	std::wstring_view date;
-	std::wstring_view lang;
-	std::wstring_view rate;
-	std::wstring_view keywords;
+#define BOOK_BUF_FIELD_ITEM(NAME) std::wstring_view NAME;
+		BOOK_BUF_FIELD_ITEMS_XMACRO
+#undef	BOOK_BUF_FIELD_ITEM
 };
