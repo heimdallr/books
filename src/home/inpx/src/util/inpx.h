@@ -28,6 +28,7 @@ struct UpdateResult
 	size_t books;
 	size_t keywords;
 	size_t genres;
+	bool updatable;
 };
 
 class INPXLIB_EXPORT Parser

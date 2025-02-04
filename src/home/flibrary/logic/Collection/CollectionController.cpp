@@ -138,7 +138,7 @@ public:
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode, false);
 				break;
 
 			default:
@@ -264,15 +264,15 @@ private:
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
-			Add(std::move(name), std::move(db), std::move(folder), mode);
+			Add(std::move(name), std::move(db), std::move(folder), mode, updateResult.updatable);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
-	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
+	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode, const bool updatable)
 	{
-		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), updatable);
 		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		auto & collections = m_collectionProvider->GetCollections();

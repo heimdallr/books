@@ -839,7 +839,7 @@ public:
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, genres] (size_t)
 			{
-				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
+				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
 			};
 		} });
 	}
@@ -852,7 +852,7 @@ public:
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, foldersCount, genres] (size_t)
 			{
-				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres });
+				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
 			};
 		} });
 	}
@@ -1148,6 +1148,8 @@ private:
 
 			auto line = ToWide(byteArray.constData());
 			const auto buf = ParseBook(folder, line, m_bookBufMapping);
+			if (folder != buf.FOLDER)
+				m_updatable = false;
 
 			auto& fileList = m_foldersContent[std::wstring(buf.FOLDER)];
 			if (fileList.empty())
@@ -1210,6 +1212,8 @@ private:
 
 		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
+		if (folder != buf.FOLDER)
+			m_updatable = false;
 
 		std::lock_guard lock(m_dataGuard);
 		AddBook(buf);
@@ -1303,6 +1307,7 @@ private:
 	size_t m_unknownGenreId { 0 };
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 	std::unordered_map<std::wstring, std::unordered_set<std::wstring, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	std::atomic_bool m_updatable { true };
 
 	std::vector<QString> m_errors;
 
