@@ -111,7 +111,7 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
-		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
+		StartDelayed([&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
 			{
@@ -189,6 +189,9 @@ private:
 		m_self.setWindowTitle(PRODUCT_ID);
 
 		m_parentWidgetProvider->SetWidget(&m_self);
+
+		m_delayStarter.setSingleShot(true);
+		m_delayStarter.setInterval(std::chrono::milliseconds(200));
 
 		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
@@ -474,6 +477,12 @@ private:
 		});
 	}
 
+	void StartDelayed(std::function<void()> f)
+	{
+		connect(&m_delayStarter, &QTimer::timeout, &m_self, [this, f = std::move(f)] { m_delayStarter.disconnect(); f(); });
+		m_delayStarter.start();
+	}
+
 	template<typename T>
 	static void OnObjectVisibleChanged(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const bool value)
 	{
@@ -513,6 +522,7 @@ private:
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
+	QTimer m_delayStarter;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
