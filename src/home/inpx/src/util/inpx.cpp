@@ -37,7 +37,6 @@ using namespace Inpx;
 namespace {
 
 using Path = Parser::IniMap::value_type::second_type;
-using UniqueFiles = std::unordered_set<std::string, CaseInsensitiveHash<std::string>>;
 
 size_t g_id = 0;
 size_t GetId()
@@ -879,7 +878,7 @@ private: // IPool
 			try
 			{
 				PLOGI << "parsing " << folder;
-				UniqueFiles files;
+
 				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
 				const Zip zip(archiveFileInfo.filePath());
 				const auto zipFileList = zip.GetFileNameList();
@@ -891,7 +890,7 @@ private: // IPool
 						try
 						{
 							PLOGV << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-							ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
+							ParseFile(folder, zip, fileName, archiveFileInfo.birthTime());
 						}
 						catch (const std::exception & ex)
 						{
@@ -1019,42 +1018,64 @@ private:
 			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 		}
 
-		if (!!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+		AddUnIndexedBooks();
+		ScanUnIndexedFolders();
+	}
+
+	void AddUnIndexedBooks()
+	{
+		if (!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
+			return;
+
+		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
 		{
-			for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+			for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : files)
 			{
-				if (entry.is_directory())
-					continue;
+				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
+				ParseFile(folder, zip, QString::fromStdWString(fileName), archiveFileInfo.birthTime());
+			}
+		}
+	}
 
-				auto folder = entry.path().wstring();
-				folder.erase(0, m_rootFolder.string().size() + 1);
+	void ScanUnIndexedFolders()
+	{
+		if (!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
+			return;
 
-				if (m_data.folders.contains(folder))
-					continue;
+		for (auto const& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+		{
+			if (entry.is_directory())
+				continue;
 
-				m_foldersToParse.push(std::move(folder));
+			auto folder = entry.path().wstring();
+			folder.erase(0, m_rootFolder.string().size() + 1);
+
+			if (m_foldersContent.contains(folder))
+				continue;
+
+			m_foldersToParse.push(std::move(folder));
+		}
+
+		if (!m_foldersToParse.empty())
+		{
+			const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+			const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
+			std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+			while (true)
+			{
+				std::unique_lock lock(m_foldersToParseGuard);
+				m_foldersToParseCondition.wait(lock, [&]
+					{
+						return m_foldersToParse.empty();
+					});
+
+				if (m_foldersToParse.empty())
+					break;
 			}
 
-			if (!m_foldersToParse.empty())
-			{
-				const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-				const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
-				std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
-
-				while (true)
-				{
-					std::unique_lock lock(m_foldersToParseGuard);
-					m_foldersToParseCondition.wait(lock, [&]
-						{
-							return m_foldersToParse.empty();
-						});
-
-					if (m_foldersToParse.empty())
-						break;
-				}
-
-				m_threads.clear();
-			}
+			m_threads.clear();
 		}
 	}
 
@@ -1119,8 +1140,6 @@ private:
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
 
-		UniqueFiles files;
-
 		while (true)
 		{
 			const auto byteArray = stream.readLine();
@@ -1148,29 +1167,13 @@ private:
 				fileList.erase(it);
 
 			if (found || !(m_mode & CreateCollectionMode::SkipLostBooks))
-				AddBook(files, buf);
+				AddBook(buf);
 			else
 				PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
 		}
-
-//		if (!archiveFileInfo.exists())
-//		{
-//			PLOGW << archiveFileInfo.fileName() << " not found";
-//			return;
-//		}
-//
-//		for (const Zip zip(archiveFileInfo.filePath()); const auto & fileName : zip.GetFileNameList())
-//		{
-//			if (files.contains(fileName.toLower().toStdString()))
-//				continue;
-//
-//			PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
-//			if (!!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
-//				ParseFile(files, folder, zip, fileName, archiveFileInfo.birthTime());
-//		}
 	}
 
-	void ParseFile(UniqueFiles& files, const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
+	void ParseFile(const std::wstring & folder, const Zip & zip, const QString & fileName, const QDateTime & zipDateTime)
 	{
 		QFileInfo fileInfo(fileName);
 		const auto stream = zip.Read(fileName);
@@ -1209,14 +1212,13 @@ private:
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
 
 		std::lock_guard lock(m_dataGuard);
-		AddBook(files, buf);
+		AddBook(buf);
 	}
 
-	void AddBook(UniqueFiles& files, const BookBuf & buf)
+	void AddBook(const BookBuf & buf)
 	{
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.FILE) + "." + ToMultiByte(buf.EXT);
-		files.emplace(file);
 
 		std::ranges::transform(ParseItem(buf.AUTHOR, m_data.authors), std::back_inserter(m_data.booksAuthors), [=] (size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
@@ -1251,7 +1253,20 @@ private:
 		if (idFolder == 0)
 			idFolder = GetId();
 
-		m_data.books.emplace_back(id, buf.LIBID, buf.TITLE, Add<int, -1>(buf.SERIES, m_data.series), To<int>(buf.SERNO, -1), buf.DATE, To<int>(buf.LIBRATE), buf.LANG, idFolder, buf.FILE, files.size() - 1, buf.EXT, To<size_t>(buf.SIZE), To<bool>(buf.DEL, false));
+		m_data.books.emplace_back(id
+			, buf.LIBID
+			, buf.TITLE
+			, Add<int, -1>(buf.SERIES, m_data.series)
+			, To<int>(buf.SERNO, -1)
+			, buf.DATE, To<int>(buf.LIBRATE)
+			, buf.LANG
+			, idFolder
+			, buf.FILE
+			, To<size_t>(buf.INSNO)
+			, buf.EXT
+			, To<size_t>(buf.SIZE)
+			, To<bool>(buf.DEL, false)
+		);
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
