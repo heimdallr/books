@@ -52,7 +52,7 @@ void SetStyle(QApplication & app)
 	app.setStyleSheet(ts.readAll());
 }
 
-std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
+void SetTheme(const ISettings & settings)
 {
 	{
 		auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
@@ -79,9 +79,6 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
 		else
 			QGuiApplication::styleHints()->disconnect();
 	}
-
-	const auto palette = QGuiApplication::palette();
-	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "ThemeDark" : "ThemeLight");
 }
 
 }
@@ -116,7 +113,7 @@ int main(int argc, char * argv[])
 			}
 			PLOGD << "DI-container created";
 
-			const auto themeLib = SetTheme(*container->resolve<ISettings>());
+			SetTheme(*container->resolve<ISettings>());
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);

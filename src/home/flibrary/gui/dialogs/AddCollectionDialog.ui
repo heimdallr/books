@@ -3,14 +3,14 @@
  <class>AddCollectionDialog</class>
  <widget class="QDialog" name="AddCollectionDialog">
   <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
+   <enum>Qt::WindowModality::WindowModal</enum>
   </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>201</height>
+    <height>208</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -51,8 +51,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
+        <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
@@ -99,8 +98,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
+        <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
@@ -119,8 +117,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
+        <iconset theme="QIcon::ThemeIcon::DocumentRevert"/>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
@@ -159,12 +156,12 @@
    <item>
     <layout class="QHBoxLayout" name="layoutButton" stretch="0,1,0,0">
      <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
      </property>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -183,7 +180,7 @@
         <bool>false</bool>
        </property>
        <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
        </property>
       </widget>
      </item>
