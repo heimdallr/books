@@ -524,6 +524,16 @@
         <source>OPDS server management</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Hide cover &amp;buttons</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.ui"/>
+        <source>Show cover &amp;buttons</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
