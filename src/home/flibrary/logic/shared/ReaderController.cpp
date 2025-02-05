@@ -198,9 +198,10 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 				if (QDesktopServices::openUrl(fileName))
 					return;
 
-				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) == QMessageBox::Yes)
-					getReader();
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+					return;
 
+				getReader();
 				if (reader.isEmpty())
 					return;
 			}
