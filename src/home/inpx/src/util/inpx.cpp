@@ -1088,26 +1088,28 @@ private:
 			m_foldersToParse.push(std::move(folder));
 		}
 
-		if (!m_foldersToParse.empty())
+		if (m_foldersToParse.empty())
+			return;
+
+		GetFieldList();
+
+		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+		const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
+		std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+
+		while (true)
 		{
-			const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
-			const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
-			std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] { return std::make_unique<Thread>(*this); });
+			std::unique_lock lock(m_foldersToParseGuard);
+			m_foldersToParseCondition.wait(lock, [&]
+				{
+					return m_foldersToParse.empty();
+				});
 
-			while (true)
-			{
-				std::unique_lock lock(m_foldersToParseGuard);
-				m_foldersToParseCondition.wait(lock, [&]
-					{
-						return m_foldersToParse.empty();
-					});
-
-				if (m_foldersToParse.empty())
-					break;
-			}
-
-			m_threads.clear();
+			if (m_foldersToParse.empty())
+				break;
 		}
+
+		m_threads.clear();
 	}
 
 	void ParseInpxFiles(const Path & inpxFileName, const Zip * zipInpx, const std::vector<std::wstring> & inpxFiles)
@@ -1117,7 +1119,7 @@ private:
 		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
 		{
-			GetFieldList(*zipInpx);
+			GetFieldList(zipInpx);
 			for (const auto & fileName : inpxFiles)
 				GetDecodedStream(*zipInpx, fileName, [&] (QIODevice & zipDecodedStream)
 			{
@@ -1128,12 +1130,12 @@ private:
 		}
 	}
 
-	void GetFieldList(const Zip& zip)
+	void GetFieldList(const Zip* zip = nullptr)
 	{
 		const auto fieldList = [&]() -> QString
 		{
-			return zip.GetFileNameList().contains("structure.info")
-				? QString::fromUtf8(zip.Read("structure.info")->GetStream().readAll())
+			return zip && zip->GetFileNameList().contains("structure.info")
+				? QString::fromUtf8(zip->Read("structure.info")->GetStream().readAll())
 				: QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;");
 		}();
 
