@@ -22,6 +22,8 @@ public:
 
 	virtual void SetProperty(PropertyId id, QVariant value) = 0;
 	virtual bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) = 0;
+
+	virtual bool Remove(const std::vector<QString>& fileNames) = 0;
 };
 
 }

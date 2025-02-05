@@ -77,6 +77,11 @@ public:
 		return m_zip->Write(fileNames, streamGetter, sizeGetter);
 	}
 
+	void Remove(const std::vector<QString>& fileNames)
+	{
+		m_zip->Remove(fileNames);
+	}
+
 	size_t GetFileSize(const QString & filename) const
 	{
 		return m_zip->GetFileSize(filename);
@@ -150,6 +155,11 @@ bool Zip::Write(std::vector<std::pair<QString, QByteArray>> data)
 	{
 		return static_cast<size_t>(data[index].second.size());
 	});
+}
+
+void Zip::Remove(const std::vector<QString>& fileNames)
+{
+	m_impl->Remove(fileNames);
 }
 
 size_t Zip::GetFileSize(const QString & filename) const

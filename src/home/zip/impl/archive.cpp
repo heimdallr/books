@@ -31,6 +31,7 @@
 #include "lib.h"
 #include "PropVariant.h"
 #include "reader.h"
+#include "remover.h"
 #include "writer.h"
 
 namespace HomeCompa::ZipDetails::SevenZip {
@@ -297,6 +298,12 @@ private: // IZip
 		return false;
 	}
 
+	bool Remove(const std::vector<QString>& /*fileNames*/) override
+	{
+		assert(false && "Cannot remove with reader");
+		return false;
+	}
+
 	size_t GetFileSize(const QString & filename) const override
 	{
 		return m_files.GetFile(filename).size;
@@ -372,6 +379,11 @@ private: // IZip
 		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
 	}
 
+	bool Remove(const std::vector<QString>& fileNames) override
+	{
+		return File::Remove(m_files, *m_outArchive, *m_ioDevice, fileNames, *m_progress);
+	}
+
 private:
 	const Format m_format;
 	std::unique_ptr<QIODevice> m_ioDevice;
@@ -402,6 +414,11 @@ private: // IZip
 		if (!m_archive->archive)
 			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
 		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
+	}
+
+	bool Remove(const std::vector<QString>& fileNames) override
+	{
+		return File::Remove(m_files, *m_outArchive, m_ioDevice, fileNames, *m_progress);
 	}
 
 private:
