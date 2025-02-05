@@ -42,3 +42,13 @@ void ClickableLabel::mousePressEvent(QMouseEvent * event)
 		m_impl->timer.start();
 	}
 }
+
+void ClickableLabel::enterEvent(QEnterEvent* event)
+{
+	emit mouseEnter(event);
+}
+
+void ClickableLabel::leaveEvent(QEvent* event)
+{
+	emit mouseLeave(event);
+}

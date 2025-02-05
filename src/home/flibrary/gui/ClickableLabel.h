@@ -17,11 +17,15 @@ public:
 	~ClickableLabel() override;
 
 signals:
-    void clicked(const QPoint & pos);
-	void doubleClicked(const QPoint & pos);
+    void clicked(const QPoint & pos) const;
+	void doubleClicked(const QPoint & pos) const;
+	void mouseEnter(QEnterEvent* event) const;
+	void mouseLeave(QEvent* event) const;
 
-private:
+private: // QWidget
     void mousePressEvent(QMouseEvent * event) override;
+	void enterEvent(QEnterEvent* event) override;
+	void leaveEvent(QEvent* event) override;
 
 private:
 	struct Impl;
