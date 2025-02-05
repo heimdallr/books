@@ -330,9 +330,10 @@ private:
 
 		const auto & model = *m_ui.treeView->model();
 
-		ITreeViewController::RequestContextMenuOptions options = model.data({}, Role::IsTree).toBool()
-			? ITreeViewController::RequestContextMenuOptions::IsTree
-			: ITreeViewController::RequestContextMenuOptions::None;
+		ITreeViewController::RequestContextMenuOptions options
+			= (model.data({}, Role::IsTree).toBool()           ? ITreeViewController::RequestContextMenuOptions::IsTree       : ITreeViewController::RequestContextMenuOptions::None)
+			| (m_ui.treeView->selectionModel()->hasSelection() ? ITreeViewController::RequestContextMenuOptions::HasSelection : ITreeViewController::RequestContextMenuOptions::None)
+			;
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
