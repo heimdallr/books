@@ -302,6 +302,11 @@ public:
 		OnResize();
 	}
 
+	void ShowCoverButtons(const bool value)
+	{
+		m_coverButtonsVisible = value;
+	}
+
 	void OnResize()
 	{
 		m_ui.coverArea->setVisible(m_showCover);
@@ -456,7 +461,7 @@ private:
 
 	void OnCoverEnter()
 	{
-		if (!m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.begin()->second->size().width() * 4)
+		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.begin()->second->size().width() * 4)
 			return;
 
 		for (auto* btn : m_coverButtons | std::views::values)
@@ -495,6 +500,7 @@ private:
 
 	std::unordered_map<QIcon::ThemeIcon, QAbstractButton*> m_coverButtons;
 	bool m_coverButtonsEnabled{ false };
+	bool m_coverButtonsVisible{ true };
 };
 
 AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider
@@ -535,4 +541,9 @@ void AnnotationWidget::ShowContent(const bool value)
 void AnnotationWidget::ShowCover(const bool value)
 {
 	m_impl->ShowCover(value);
+}
+
+void AnnotationWidget::ShowCoverButtons(const bool value)
+{
+	m_impl->ShowCoverButtons(value);
 }
