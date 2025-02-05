@@ -78,12 +78,12 @@ auto GetSubscribedTable(const std::string_view name)
 	return FindSecond(SUBSCRIBED_TABLES, name, nullptr);
 }
 
-void Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
+IDataItem::Ptr& Add(const IDataItem::Ptr & dst, QString title, const MenuAction id)
 {
 	auto item = MenuItem::Create();
 	item->SetData(std::move(title), MenuItem::Column::Title);
 	item->SetData(QString::number(static_cast<int>(id)), MenuItem::Column::Id);
-	dst->AppendChild(std::move(item));
+	return dst->AppendChild(std::move(item));
 }
 
 IDataItem::Ptr MenuRequesterGenres(const ITreeViewController::RequestContextMenuOptions options)
@@ -96,19 +96,25 @@ IDataItem::Ptr MenuRequesterGenres(const ITreeViewController::RequestContextMenu
 	return item;
 }
 
-IDataItem::Ptr MenuRequesterGroups(ITreeViewController::RequestContextMenuOptions)
+IDataItem::Ptr MenuRequesterGroups(const ITreeViewController::RequestContextMenuOptions options)
 {
 	auto result = MenuItem::Create();
 	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
-	Add(result, REMOVE, MenuAction::RemoveGroup);
+	auto& removeItem = Add(result, REMOVE, MenuAction::RemoveGroup);
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
+		removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+
 	return result;
 }
 
-IDataItem::Ptr MenuRequesterSearches(ITreeViewController::RequestContextMenuOptions)
+IDataItem::Ptr MenuRequesterSearches(const ITreeViewController::RequestContextMenuOptions options)
 {
 	auto result = MenuItem::Create();
 	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
-	Add(result, REMOVE, MenuAction::RemoveSearch);
+	auto& removeItem = Add(result, REMOVE, MenuAction::RemoveSearch);
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
+		removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+
 	return result;
 }
 
@@ -214,7 +220,9 @@ private: // IContextMenuHandler
 			return ind.data(Role::Id).toLongLong();
 		};
 
-		typename T::Ids ids { toId(index) };
+		typename T::Ids ids;
+		if (index.isValid())
+			ids.emplace(toId(index));
 		std::ranges::transform(indexList, std::inserter(ids, ids.end()), toId);
 		if (ids.empty())
 			return;

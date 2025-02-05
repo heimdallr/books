@@ -29,6 +29,7 @@ public:
 		HasCollapsed  = 1 << 2,
 		NodeExpanded  = 1 << 3,
 		NodeCollapsed = 1 << 4,
+		HasSelection  = 1 << 5,
 	};
 
 public:
