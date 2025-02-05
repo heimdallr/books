@@ -250,6 +250,11 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
+        <source>The collection was not %1 due to errors. See log.</source>
+        <translation>Коллекция не была %1 из-за ошибок. Подробности в журнале.</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
     </message>

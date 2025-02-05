@@ -249,6 +249,11 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
+        <source>The collection was not %1 due to errors. See log.</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>

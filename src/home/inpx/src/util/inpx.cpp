@@ -831,15 +831,31 @@ public:
 	{
 	}
 
+	~Impl()
+	{
+		LogErrors();
+	}
+
 	void Process()
 	{
 		(*m_executor)({ "Create collection", [&]
 		{
-			ProcessImpl();
+			try
+			{
+				ProcessImpl();
+			}
+			catch (const std::exception& ex)
+			{
+				m_errors.push_back(ex.what());
+			}
+			catch (...)
+			{
+				m_errors.push_back("Unknown error");
+			}
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, genres] (size_t)
 			{
-				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
+				m_callback(UpdateResult { m_data.folders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable, !m_errors.empty() });
 			};
 		} });
 	}
@@ -848,11 +864,26 @@ public:
 	{
 		(*m_executor)({ "Update collection", [&]
 		{
-			const auto foldersCount = UpdateDatabaseImpl();
+			const auto foldersCount = [this]() -> size_t
+			{
+				try
+				{
+					return UpdateDatabaseImpl();
+				}
+				catch (const std::exception& ex)
+				{
+					m_errors.push_back(ex.what());
+				}
+				catch (...)
+				{
+					m_errors.push_back("Unknown error");
+				}
+				return 0;
+			}();
 			const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [] (const Genre & genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 			return [this, foldersCount, genres] (size_t)
 			{
-				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable });
+				m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_updatable, !m_errors.empty() });
 			};
 		} });
 	}
@@ -1095,8 +1126,6 @@ private:
 
 			PLOGI << m_n << " rows parsed";
 		}
-
-		LogErrors();
 	}
 
 	void GetFieldList(const Zip& zip)
