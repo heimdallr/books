@@ -56,6 +56,7 @@ constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
+constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto ACTION_PROPERTY_NAME = "value";
@@ -210,6 +211,7 @@ private:
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, m_settings->Get(SHOW_ANNOTATION_CONTENT_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, m_settings->Get(SHOW_ANNOTATION_COVER_KEY, true));
+		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, m_settings->Get(SHOW_ANNOTATION_COVER_BUTTONS_KEY, true));
 		OnObjectVisibleChanged<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, m_settings->Get(SHOW_STATUS_BAR_KEY, true));
 		m_ui.actionPermanentLanguageFilter->setChecked(m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false));
 
@@ -357,6 +359,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
+		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 
 		const auto addActionGroup = [this] (const std::vector<QAction *> & actions, const QString & key, const QString & defaultValue)

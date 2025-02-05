@@ -1,6 +1,8 @@
 #include "ui_AnnotationWidget.h"
 #include "AnnotationWidget.h"
 
+#include <ranges>
+
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -9,6 +11,7 @@
 #include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QToolButton>
 
 #include <plog/Log.h>
 
@@ -156,35 +159,38 @@ public:
 		m_annotationController->RegisterObserver(this);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&] (const QString & link) { OnLinkActivated(link); });
-		connect(m_ui.cover, &ClickableLabel::clicked, [&] (const QPoint & pos)
+
+		const auto onCoverClicked = [&](const QPoint& pos)
 		{
 			if (m_covers.size() < 2)
 				return;
 
 			switch (3 * pos.x() / m_ui.cover->width())
 			{
-				case 0:
-					if (*m_currentCoverIndex == 0)
-						m_currentCoverIndex = m_covers.size() - 1;
-					else
-						--*m_currentCoverIndex;
-					break;
+			case 0:
+				if (*m_currentCoverIndex == 0)
+					m_currentCoverIndex = m_covers.size() - 1;
+				else
+					--*m_currentCoverIndex;
+				break;
 
-				case 1:
-					m_currentCoverIndex = m_coverIndex;
-					break;
+			case 1:
+				m_currentCoverIndex = m_coverIndex;
+				m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setVisible(false);
+				break;
 
-				case 2:
-					if (++*m_currentCoverIndex >= m_covers.size())
-						m_currentCoverIndex = 0;
-					break;
+			case 2:
+				if (++*m_currentCoverIndex >= m_covers.size())
+					m_currentCoverIndex = 0;
+				break;
 
-				default:
-					assert(false && "wtf?");
+			default:
+				assert(false && "wtf?");
 			}
 
 			OnResize();
-		});
+		};
+		connect(m_ui.cover, &ClickableLabel::clicked, onCoverClicked);
 
 		m_ui.cover->addAction(m_ui.actionOpenImage);
 		m_ui.cover->addAction(m_ui.actionCopyImage);
@@ -204,8 +210,10 @@ public:
 			if (!QDesktopServices::openUrl(path))
 				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
 		};
-
 		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
+
+		connect(m_ui.cover, &ClickableLabel::mouseEnter, &m_self, [this] { OnCoverEnter(); });
+		connect(m_ui.cover, &ClickableLabel::mouseLeave, &m_self, [this] { OnCoverLeave(); });
 
 		connect(m_ui.actionOpenImage, &QAction::triggered, &m_self, openImage);
 
@@ -261,6 +269,19 @@ public:
 				};
 			} });
 		});
+
+		const auto createCoverButton = [this, onCoverClicked](const QIcon::ThemeIcon icon)
+		{
+			auto* btn = new QToolButton(m_ui.cover);
+			btn->setVisible(false);
+			btn->setIcon(QIcon::fromTheme(icon));
+			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
+			m_coverButtons.try_emplace(icon, btn);
+		};
+
+		createCoverButton(QIcon::ThemeIcon::GoPrevious);
+		createCoverButton(QIcon::ThemeIcon::GoHome);
+		createCoverButton(QIcon::ThemeIcon::GoNext);
 	}
 
 	~Impl() override
@@ -281,9 +302,15 @@ public:
 		OnResize();
 	}
 
+	void ShowCoverButtons(const bool value)
+	{
+		m_coverButtonsVisible = value;
+	}
+
 	void OnResize()
 	{
 		m_ui.coverArea->setVisible(m_showCover);
+		m_coverButtonsEnabled = false;
 
 		if (m_covers.empty() || !m_ui.coverArea->isVisible())
 		{
@@ -316,10 +343,21 @@ public:
 				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
 			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+		if (m_covers.size() > 1)
+			m_coverButtonsEnabled = true;
 		}
 
 		m_ui.coverArea->setMinimumWidth(imgWidth);
 		m_ui.coverArea->setMaximumWidth(imgWidth);
+
+		const QFontMetrics metrics(m_self.font());
+		const auto height = 3 * metrics.lineSpacing() / 2;
+		const QSize size{ height, height };
+		const auto top = imgHeight - height - height / 8;
+		m_coverButtons.at(QIcon::ThemeIcon::GoPrevious)->setGeometry(QRect{ QPoint{height / 8, top}, size});
+		m_coverButtons.at(QIcon::ThemeIcon::GoNext)->setGeometry(QRect{ QPoint{imgWidth - height - height / 8, top}, size });
+		m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setGeometry(QRect{ QPoint{(imgWidth - height) / 2, top}, size });
 	}
 
 private: // QObject
@@ -421,6 +459,23 @@ private:
 		m_navigationController->SetMode(url.front());
 	}
 
+	void OnCoverEnter()
+	{
+		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.begin()->second->size().width() * 4)
+			return;
+
+		for (auto* btn : m_coverButtons | std::views::values)
+			btn->setVisible(true);
+
+		m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setVisible(m_currentCoverIndex != m_coverIndex);
+	}
+
+	void OnCoverLeave()
+	{
+		for (auto* btn : m_coverButtons | std::views::values)
+			btn->setVisible(false);
+	}
+
 private:
 	AnnotationWidget & m_self;
 	std::shared_ptr<const IReaderController> m_readerController;
@@ -442,6 +497,10 @@ private:
 	bool m_showCover { true };
 	Util::FunctorExecutionForwarder m_forwarder;
 	QTimer m_progressTimer;
+
+	std::unordered_map<QIcon::ThemeIcon, QAbstractButton*> m_coverButtons;
+	bool m_coverButtonsEnabled{ false };
+	bool m_coverButtonsVisible{ true };
 };
 
 AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider
@@ -482,4 +541,9 @@ void AnnotationWidget::ShowContent(const bool value)
 void AnnotationWidget::ShowCover(const bool value)
 {
 	m_impl->ShowCover(value);
+}
+
+void AnnotationWidget::ShowCoverButtons(const bool value)
+{
+	m_impl->ShowCoverButtons(value);
 }

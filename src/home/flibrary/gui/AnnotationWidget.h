@@ -31,6 +31,7 @@ public:
 public:
 	void ShowContent(bool value);
 	void ShowCover(bool value);
+	void ShowCoverButtons(bool value);
 
 private:
 	class Impl;
