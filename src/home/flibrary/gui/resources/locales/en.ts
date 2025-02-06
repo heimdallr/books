@@ -466,6 +466,14 @@
         <source>Show cover &amp;buttons</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Allow destructive operations</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Deny destructive operations</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
