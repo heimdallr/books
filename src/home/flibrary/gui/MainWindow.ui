@@ -298,6 +298,8 @@
     <addaction name="menuSelectCollection"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
+    <addaction name="actionAllowDestructiveOperations"/>
+    <addaction name="actionDenyDestructiveOperations"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -747,6 +749,22 @@
   <action name="actionShowAnnotationCoverButtons">
    <property name="text">
     <string>Show cover &amp;buttons</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAllowDestructiveOperations">
+   <property name="text">
+    <string>Allow destructive operations</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDenyDestructiveOperations">
+   <property name="text">
+    <string>Deny destructive operations</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

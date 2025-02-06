@@ -13,6 +13,8 @@ public:
 
 	virtual void SetActiveCollection(const QString & id) = 0;
 	virtual void OnInpxUpdateFound(const Collection & updatedCollection) = 0;
+
+	virtual void AllowDestructiveOperation(bool value) = 0;
 };
 
 }

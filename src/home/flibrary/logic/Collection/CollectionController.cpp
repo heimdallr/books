@@ -203,6 +203,14 @@ public:
 		}
 	}
 
+	void AllowDestructiveOperation(const bool value)
+	{
+		assert(ActiveCollectionExists());
+		auto& collection = m_collectionProvider->GetActiveCollection();
+		collection.destructiveOperationsAllowed = value;
+		CollectionImpl::Serialize(collection, *m_settings);
+	}
+
 	Collection& GetActiveCollection() noexcept
 	{
 		return m_collectionProvider->GetActiveCollection();

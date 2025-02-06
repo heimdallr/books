@@ -257,8 +257,11 @@ public:
 
 			if (type == ItemType::Books)
 			{
+				Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-				Add(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+				auto removeItem = Add(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+				if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
+					removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 			}
 
 			return [callback = std::move(callback), result = std::move(result)] (size_t)

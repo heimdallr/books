@@ -213,6 +213,15 @@ private:
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, m_settings->Get(SHOW_ANNOTATION_COVER_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, m_settings->Get(SHOW_ANNOTATION_COVER_BUTTONS_KEY, true));
 		OnObjectVisibleChanged<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, m_settings->Get(SHOW_STATUS_BAR_KEY, true));
+		if (m_collectionController->ActiveCollectionExists())
+		{
+			OnObjectVisibleChanged(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations, m_collectionController->GetActiveCollection().destructiveOperationsAllowed);
+		}
+		else
+		{
+			m_ui.actionAllowDestructiveOperations->setVisible(false);
+			m_ui.actionDenyDestructiveOperations->setVisible(false);
+		}
 		m_ui.actionPermanentLanguageFilter->setChecked(m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false));
 
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
@@ -220,6 +229,11 @@ private:
 
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
+	}
+
+	void AllowDestructiveOperation(const bool value)
+	{
+		m_collectionController->AllowDestructiveOperation(value);
 	}
 
 	void ConnectActions()
@@ -360,6 +374,7 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY);
+		ConnectShowHide(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 
 		const auto addActionGroup = [this] (const std::vector<QAction *> & actions, const QString & key, const QString & defaultValue)
@@ -495,11 +510,12 @@ private:
 	}
 
 	template<typename T>
-	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key)
+	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key = nullptr)
 	{
 		const auto showHide = [=, &settings = *m_settings] (const bool value)
 		{
-			settings.Set(key, value);
+			if (key)
+				settings.Set(key, value);
 			Impl::OnObjectVisibleChanged<T>(obj, f, show, hide, value);
 		};
 

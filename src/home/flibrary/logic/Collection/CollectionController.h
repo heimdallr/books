@@ -40,6 +40,7 @@ public: // ICollectionController
 	[[nodiscard]] QString GetActiveCollectionId() const noexcept override;
 	void SetActiveCollection(const QString & id) override;
 	void OnInpxUpdateFound(const Collection & updatedCollection) override;
+	void AllowDestructiveOperation(bool value) override;
 
 	void RegisterObserver(ICollectionsObserver * observer) override;
 	void UnregisterObserver(ICollectionsObserver * observer) override;
