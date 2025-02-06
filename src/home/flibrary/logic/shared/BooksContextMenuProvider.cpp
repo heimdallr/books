@@ -72,6 +72,9 @@ constexpr auto CANNOT_REMOVE_BOOK             = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto REMOVE                         = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
 constexpr auto RESTORE                        = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
 
+constexpr auto REMOVE_PERMANENTLY_CONFIRM     = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
+constexpr auto REMOVE_PERMANENTLY_INFO        = QT_TRANSLATE_NOOP("BookContextMenu", "%1 book(s) deleted permanently");
+
 TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
@@ -290,6 +293,9 @@ private: // IContextMenuHandler
 
 	void RemoveBookFromArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
+		if (m_uiFactory->ShowQuestion(Tr(REMOVE_PERMANENTLY_CONFIRM), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			return;
+
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id, Role::Folder, Role::FileName });
 		if (idList.empty())
 			return;
@@ -384,8 +390,9 @@ private: // IContextMenuHandler
 			});
 			ok = transaction->Commit() && ok;
 
-			return [this, item = std::move(item), callback = std::move(callback), ok] (size_t)
+			return [this, item = std::move(item), callback = std::move(callback), count = idList.size(), ok](size_t)
 			{
+				m_uiFactory->ShowInfo(Tr(REMOVE_PERMANENTLY_INFO).arg(count));
 				callback(item);
 				if (ok)
 					m_dataProvider->RequestBooks(true);

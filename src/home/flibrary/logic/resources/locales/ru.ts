@@ -216,6 +216,16 @@
         <source>restoring</source>
         <translation>восстановить</translation>
     </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation>Результат этой операции нельзя отменить. Уверены, что хотите навсегда удалить эти книги?</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>%1 book(s) deleted permanently</source>
+        <translation>Удалено книг: %1</translation>
+    </message>
 </context>
 <context>
     <name>Books</name>
