@@ -4,22 +4,18 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Add new collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Database file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Archive folder</source>
         <translation></translation>
     </message>
@@ -29,28 +25,23 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Add</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection database file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection archive folder</source>
         <translation></translation>
     </message>
@@ -70,32 +61,26 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Open file dialog</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Open folder dialog</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Retrieve collection name from index file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Add unindexed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Scan unindexed archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Skip books not in archives</source>
         <translation></translation>
     </message>
@@ -176,17 +161,14 @@
 <context>
     <name>AnnotationWidget</name>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Copy image</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Save image as...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Open image</source>
         <translation></translation>
     </message>
@@ -270,102 +252,82 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;File</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;View</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>E&amp;xit</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Add &amp;new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;User data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Settings</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Help</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;About...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Hide removed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Show log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Log &amp;verbosity level</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Clear log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show collection s&amp;tatistics</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Size &amp;Up</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Size &amp;Down</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
@@ -385,152 +347,122 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>E&amp;xport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>I&amp;mport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Show removed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Language</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Restore default values</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Annotation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Hide</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show &amp;content</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide &amp;content</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show &amp;annotation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show s&amp;tatus line</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide s&amp;tatus line</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show co&amp;ver</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide co&amp;ver</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Test colors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Scripts...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Book &amp;export tempate</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Permanent language filter</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Theme</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;System</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Light</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Dark</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Color scheme</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;OPDS Server...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>OPDS server management</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide cover &amp;buttons</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show cover &amp;buttons</source>
         <translation></translation>
     </message>
@@ -561,47 +493,38 @@
 <context>
     <name>OpdsDialog</name>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>OPDS Server</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Port</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Start</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Stop</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Close</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Autostart</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Start automatically</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Address</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Copy address to clipboard</source>
         <translation></translation>
     </message>
@@ -627,7 +550,6 @@
 <context>
     <name>ProgressBar</name>
     <message>
-        <location filename="../../ProgressBar.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
@@ -635,42 +557,34 @@
 <context>
     <name>ScriptDialog</name>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Scripts</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Save</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Script commands</source>
         <translation></translation>
     </message>
