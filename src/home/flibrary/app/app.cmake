@@ -30,4 +30,10 @@ AddTarget(${PROJECT_NAME}	app
 		rest
 		Util
 		ver
+	QT_PLUGINS
+		Qt6::QWindowsIntegrationPlugin
+		Qt6::QModernWindowsStylePlugin
+		Qt6::QGifPlugin
+		Qt6::QJpegPlugin
+		Qt6::QSchannelBackendPlugin
 )
