@@ -203,6 +203,11 @@ public:
 		}
 	}
 
+	Collection& GetActiveCollection() noexcept
+	{
+		return m_collectionProvider->GetActiveCollection();
+	}
+
 	const Collection& GetActiveCollection() const noexcept
 	{
 		return m_collectionProvider->GetActiveCollection();
@@ -391,6 +396,11 @@ const Collections & CollectionController::GetCollections() const noexcept
 	return m_impl->GetCollections();
 }
 
+Collection & CollectionController::GetActiveCollection() noexcept
+{
+	return m_impl->GetActiveCollection();
+}
+
 const Collection& CollectionController::GetActiveCollection() const noexcept
 {
 	return m_impl->GetActiveCollection();
@@ -414,6 +424,11 @@ void CollectionController::SetActiveCollection(const QString & id)
 void CollectionController::OnInpxUpdateFound(const Collection & updatedCollection)
 {
 	m_impl->OnInpxUpdateFound(updatedCollection);
+}
+
+void CollectionController::AllowDestructiveOperation(const bool value)
+{
+	m_impl->AllowDestructiveOperation(value);
 }
 
 void CollectionController::RegisterObserver(ICollectionsObserver * observer)
