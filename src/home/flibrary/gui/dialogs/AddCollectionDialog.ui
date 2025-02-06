@@ -105,7 +105,8 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+        <iconset resource="../../theme/light/resources/light.qrc">
+         <normaloff>:/icons/open-folder.svg</normaloff>:/icons/open-folder.svg</iconset>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
@@ -124,7 +125,8 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset theme="QIcon::ThemeIcon::DocumentRevert"/>
+        <iconset resource="../../theme/light/resources/light.qrc">
+         <normaloff>:/icons/set-default.svg</normaloff>:/icons/set-default.svg</iconset>
        </property>
        <property name="autoRaise">
         <bool>true</bool>

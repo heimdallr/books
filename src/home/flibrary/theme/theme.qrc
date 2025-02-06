@@ -1,11 +1,13 @@
 <RCC>
 	<qresource prefix="icons">
-		<file alias="add_file.png">icons/add_file.png</file>
-		<file alias="add_folder.png">icons/add_folder.png</file>
-		<file alias="set_default.png">icons/set_default.png</file>
-		<file alias="down.png">icons/down.png</file>
-		<file alias="up.png">icons/up.png</file>
-		<file alias="exe.png">icons/exe.png</file>
+		<file alias="open-folder.svg">icons/open-folder.svg</file>
+		<file alias="set-default.svg">icons/set-default.svg</file>
+		<file alias="down.svg">icons/down.svg</file>
+		<file alias="up.svg">icons/up.svg</file>
+		<file alias="exe.svg">icons/exe.svg</file>
 		<file alias="database.svg">icons/database.svg</file>
+		<file alias="left.svg">icons/left.svg</file>
+		<file alias="right.svg">icons/right.svg</file>
+		<file alias="center.svg">icons/center.svg</file>
 	</qresource>
 </RCC>

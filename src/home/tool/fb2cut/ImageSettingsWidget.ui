@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>108</height>
+    <height>114</height>
    </rect>
   </property>
   <property name="title">
@@ -124,7 +124,8 @@
       <widget class="QToolButton" name="btnFixSize">
        <property name="icon">
         <iconset resource="resources/fb2cut.qrc">
-         <normaloff>:/icons/lock.png</normaloff>:/icons/lock.png</iconset>
+         <normaloff>:/icons/lock-open.svg</normaloff>
+         <normalon>:/icons/lock-closed.svg</normalon>:/icons/lock-open.svg</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -147,6 +148,7 @@
  </widget>
  <resources>
   <include location="resources/fb2cut.qrc"/>
+  <include location="../../flibrary/theme/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

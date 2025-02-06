@@ -1,10 +1,11 @@
 <RCC>
 	<qresource prefix="icons">
-		<file alias="exclamation.png">icons/exclamation.png</file>
-		<file alias="add_file.png">icons/add_file.png</file>
-		<file alias="add_folder.png">icons/add_folder.png</file>
-		<file alias="exe.png">icons/exe.png</file>
-		<file alias="lock.png">icons/lock.png</file>
-		<file alias="set_default.png">icons/set_default.png</file>
+		<file alias="open-folder.svg">icons/open-folder.svg</file>
+		<file alias="set-default.svg">icons/set-default.svg</file>
+		<file alias="exe.svg">icons/exe.svg</file>
+		<file alias="zip.svg">icons/zip.svg</file>
+		<file alias="lock-closed.svg">icons/lock-closed.svg</file>
+		<file alias="lock-open.svg">icons/lock-open.svg</file>
+		<file alias="exclamation.svg">icons/exclamation.svg</file>
 	</qresource>
 </RCC>
