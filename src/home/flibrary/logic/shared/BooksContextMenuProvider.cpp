@@ -7,6 +7,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "common/Constant.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
@@ -310,10 +312,43 @@ private: // IContextMenuHandler
 					progress = ILogicFactory::Lock(m_logicFactory)->CreateZipProgressCallback(m_progressController);
 			}
 
+			const auto getFolderPath = [&](const QString& name)
+			{
+				return QString("%1/%2").arg(collectionFolder, name);
+			};
+
+			static constexpr std::pair<const char*, const char*> imageTypes[]
+			{
+				{ Global::COVERS, "" },
+				{ Global::IMAGES, "/*" },
+			};
+
+			decltype(allFiles) images;
+			for (const auto& [folder, archiveItem] : allFiles)
+			{
+				const QFileInfo fileInfo(folder);
+				for (const auto & [type, replacedExt] : imageTypes)
+				{
+					const auto imageFolderName = QString("%1/%2.zip").arg(type, fileInfo.completeBaseName());
+					if (QFile::exists(getFolderPath(imageFolderName)))
+					{
+						auto& [files, progress] = images[imageFolderName];
+						std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString & file)
+						{
+							const QFileInfo fileInfo(file);
+							return fileInfo.completeBaseName() + replacedExt;
+						});
+						progress = ILogicFactory::Lock(m_logicFactory)->CreateZipProgressCallback(m_progressController);
+					}
+				}
+			}
+
+			std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+
 			for (auto&& [folder, archiveItem] : allFiles)
 			{
 				auto&& [files, progressCallback] = archiveItem;
-				Zip zip(QString("%1/%2").arg(collectionFolder, folder), Zip::Format::Auto, true, std::move(progressCallback));
+				Zip zip(getFolderPath(folder), Zip::Format::Auto, true, std::move(progressCallback));
 				zip.Remove(files);
 			}
 
