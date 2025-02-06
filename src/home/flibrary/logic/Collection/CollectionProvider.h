@@ -1,6 +1,7 @@
 #pragma once
 
-#include "fnd/memory.h"
+#include <memory>
+
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/ICollectionProvider.h"
@@ -32,7 +33,8 @@ private: // ICollectionProvider
 	[[nodiscard]] bool IsCollectionFolderHasInpx(const QString & folder) const override;
 	[[nodiscard]] Collections & GetCollections() noexcept override;
 	[[nodiscard]] const Collections & GetCollections() const noexcept override;
-	[[nodiscard]] const Collection& GetActiveCollection() const noexcept override;
+	[[nodiscard]] Collection& GetActiveCollection() noexcept override;
+	[[nodiscard]] const Collection & GetActiveCollection() const noexcept override;
 	[[nodiscard]] bool ActiveCollectionExists() const noexcept override;
 	[[nodiscard]] QString GetActiveCollectionId() const noexcept override;
 
@@ -43,7 +45,7 @@ private: // ICollectionProvider
 
 private:
 	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 }

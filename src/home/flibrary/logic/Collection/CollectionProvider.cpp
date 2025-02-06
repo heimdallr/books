@@ -6,6 +6,7 @@
 
 #include <plog/Log.h>
 
+#include "fnd/memory.h"
 #include "fnd/observable.h"
 #include "fnd/ScopedCall.h"
 
@@ -46,26 +47,26 @@ public:
 		return m_collections;
 	}
 
-	const Collection& GetActiveCollection() const noexcept
+	Collection & GetActiveCollection() noexcept
 	{
-		const auto collection = FindCollectionById(GetActiveCollectionId());
+		auto collection = FindCollectionById(GetActiveCollectionId());
 		assert(collection);
 		return *collection;
 	}
 
-	bool ActiveCollectionExists() const noexcept
+	bool ActiveCollectionExists() noexcept
 	{
 		const auto collection = FindCollectionById(GetActiveCollectionId());
 		return !!collection;
 	}
 
-	const Collection* FindCollectionById(const QString & id) const noexcept
+	Collection* FindCollectionById(const QString & id) noexcept
 	{
 		const auto it = std::ranges::find(m_collections, id, [&] (const auto & item) { return item->id; });
 		if (it == std::cend(m_collections))
 			return nullptr;
 
-		const auto & collection = **it;
+		auto & collection = **it;
 		return &collection;
 	}
 
@@ -80,7 +81,7 @@ private:
 };
 
 CollectionProvider::CollectionProvider(std::shared_ptr<ISettings> settings)
-	: m_impl(std::move(settings))
+	: m_impl{ std::make_unique<Impl>(std::move(settings)) }
 {
 	PLOGD << "CollectionProvider created";
 }
@@ -126,7 +127,12 @@ Collections & CollectionProvider::GetCollections() noexcept
 
 const Collections & CollectionProvider::GetCollections() const noexcept
 {
-	return const_cast<Impl&>(*m_impl).GetCollections();
+	return m_impl->GetCollections();
+}
+
+Collection& CollectionProvider::GetActiveCollection() noexcept
+{
+	return m_impl->GetActiveCollection();
 }
 
 const Collection& CollectionProvider::GetActiveCollection() const noexcept

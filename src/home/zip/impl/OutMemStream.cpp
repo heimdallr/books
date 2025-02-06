@@ -3,10 +3,32 @@
 #include "OutMemStream.h"
 
 #include <QIODevice>
+#include <QFileDevice>
 
+#include "fnd/unknown_impl.h"
 #include "zip/interface/ProgressCallback.h"
 
 using namespace HomeCompa::ZipDetails::SevenZip;
+
+class StreamSetRestriction : public IStreamSetRestriction
+{
+	UNKNOWN_IMPL(IStreamSetRestriction)
+
+public:
+	static CComPtr<IStreamSetRestriction> Create()
+	{
+		return new StreamSetRestriction();
+	}
+
+private:
+	HRESULT SetRestriction(UInt64 begin, UInt64 end) noexcept override
+	{
+		if (begin > end)
+			return E_FAIL;
+
+		return S_OK;
+	}
+};
 
 CComPtr<ISequentialOutStream> OutMemStream::Create(QIODevice & stream, ProgressCallback & progress)
 {
@@ -17,6 +39,12 @@ OutMemStream::OutMemStream(QIODevice & stream, ProgressCallback & progress)
 	: m_stream { stream }
 	, m_progress { progress }
 {
+}
+
+OutMemStream::~OutMemStream()
+{
+	if (auto* file = dynamic_cast<QFileDevice*>(&m_stream))
+		file->resize(m_maxPos);
 }
 
 HRESULT OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
@@ -42,6 +70,12 @@ HRESULT OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
 		return S_OK;
 	}
 
+	if (iid == IID_IStreamSetRestriction)
+	{
+		auto obj = StreamSetRestriction::Create();
+		*ppvObject = obj.Detach();
+	}
+
 	return E_NOINTERFACE;
 }
 
@@ -62,6 +96,8 @@ HRESULT OutMemStream::Write(const void * data, const UInt32 size, UInt32 * proce
 		*processedSize = realSize;
 
 	m_progress.OnIncrement(size);
+
+	m_maxPos = std::max(m_maxPos, m_stream.pos());
 
 	return S_OK;
 }

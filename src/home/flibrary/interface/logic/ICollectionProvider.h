@@ -19,7 +19,8 @@ struct Collection
 	QString folder;
 	QString discardedUpdate;
 	int createCollectionMode;
-	bool updatable;
+	bool updatable{ true };
+	bool destructiveOperationsAllowed{ false };
 
 	using Ptr = std::unique_ptr<Collection>;
 };
@@ -44,7 +45,8 @@ public:
 
 	[[nodiscard]] virtual Collections & GetCollections() noexcept = 0;
 	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
-	[[nodiscard]] virtual const Collection& GetActiveCollection() const noexcept = 0;
+	[[nodiscard]] virtual Collection & GetActiveCollection() noexcept = 0;
+	[[nodiscard]] virtual const Collection & GetActiveCollection() const noexcept = 0;
 	[[nodiscard]] virtual bool ActiveCollectionExists() const noexcept = 0;
 	[[nodiscard]] virtual QString GetActiveCollectionId() const noexcept = 0;
 

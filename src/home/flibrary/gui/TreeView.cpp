@@ -22,7 +22,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 #include "interface/ui/IUiFactory.h"
@@ -149,15 +149,15 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-		, const std::shared_ptr<ICollectionController> & collectionController
+		, std::shared_ptr<const ICollectionProvider> collectionProvider
 	)
-		: m_self(self)
-		, m_controller(uiFactory->GetTreeViewController())
-		, m_settings(std::move(settings))
-		, m_uiFactory(std::move(uiFactory))
-		, m_itemViewToolTipper(std::move(itemViewToolTipper))
-		, m_delegate(std::shared_ptr<ITreeViewDelegate>())
-		, m_currentCollectionId(collectionController->GetActiveCollectionId())
+		: m_self{ self }
+		, m_controller{ uiFactory->GetTreeViewController() }
+		, m_settings{ std::move(settings) }
+		, m_uiFactory{ std::move(uiFactory) }
+		, m_itemViewToolTipper{ std::move(itemViewToolTipper) }
+		, m_collectionProvider{ std::move(collectionProvider) }
+		, m_delegate{ std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
 	}
@@ -330,9 +330,15 @@ private:
 
 		const auto & model = *m_ui.treeView->model();
 
+		const auto addOption = [](const bool condition, const ITreeViewController::RequestContextMenuOptions option)
+		{
+			return condition ? option : ITreeViewController::RequestContextMenuOptions::None;
+		};
+
 		ITreeViewController::RequestContextMenuOptions options
-			= (model.data({}, Role::IsTree).toBool()           ? ITreeViewController::RequestContextMenuOptions::IsTree       : ITreeViewController::RequestContextMenuOptions::None)
-			| (m_ui.treeView->selectionModel()->hasSelection() ? ITreeViewController::RequestContextMenuOptions::HasSelection : ITreeViewController::RequestContextMenuOptions::None)
+			= addOption(model.data({}, Role::IsTree).toBool()                                   , ITreeViewController::RequestContextMenuOptions::IsTree)
+			| addOption(m_ui.treeView->selectionModel()->hasSelection()                         , ITreeViewController::RequestContextMenuOptions::HasSelection)
+			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 			;
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -805,7 +811,7 @@ private:
 	QString GetRecentIdKey() const
 	{
 		auto key = QString("Collections/%1/%2%3/LastId")
-			.arg(m_currentCollectionId)
+			.arg(m_collectionProvider->GetActiveCollection().id)
 			.arg(m_controller->TrContext())
 			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {})
 			;
@@ -819,8 +825,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
-	const QString m_currentCollectionId;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -835,7 +841,7 @@ private:
 TreeView::TreeView(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-	, const std::shared_ptr<ICollectionController> & collectionController
+	, std::shared_ptr<const ICollectionProvider> collectionProvider
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -843,7 +849,7 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings
 		, std::move(settings)
 		, std::move(uiFactory)
 		, std::move(itemViewToolTipper)
-		, collectionController
+		, std::move(collectionProvider)
 	)
 {
 	PLOGD << "TreeView created";

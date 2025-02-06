@@ -17,7 +17,6 @@ namespace HomeCompa::ZipDetails::SevenZip {
 class OutMemStream final
 	: public IOutStream
 {
-//	UNKNOWN_IMPL(ISequentialOutStream)
 	ADD_RELEASE_REF_IMPL
 
 public:
@@ -25,6 +24,9 @@ public:
 
 private:
 	explicit OutMemStream(QIODevice & stream, ProgressCallback & progress);
+
+public:
+	~OutMemStream();
 
 private: // IUnknown
 	HRESULT QueryInterface(REFIID iid, void ** ppvObject) override;
@@ -37,5 +39,7 @@ private: // IUnknown
 private:
 	QIODevice & m_stream;
 	ProgressCallback & m_progress;
+	int64_t m_maxPos{ 0 };
 };
+
 }

@@ -178,6 +178,11 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>&amp;Delete permanently</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>

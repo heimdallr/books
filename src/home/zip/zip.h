@@ -46,6 +46,8 @@ public:
 	bool Write(const std::vector<QString> & fileNames, const ZipDetails::StreamGetter & streamGetter, const ZipDetails::SizeGetter & sizeGetter = {});
 	bool Write(std::vector<std::pair<QString, QByteArray>> data);
 
+	void Remove(const std::vector<QString>& fileNames);
+
 public:
 	Zip(const Zip &) = delete;
 	Zip(Zip &&) = default;

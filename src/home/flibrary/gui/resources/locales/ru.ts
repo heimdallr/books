@@ -466,6 +466,14 @@
         <source>Show cover &amp;buttons</source>
         <translation>Скрывать &amp;кнопки на обложке</translation>
     </message>
+    <message>
+        <source>Allow destructive operations</source>
+        <translation>Разрешить деструктивные операции</translation>
+    </message>
+    <message>
+        <source>Deny destructive operations</source>
+        <translation>Запретить деструктивные операции</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

@@ -23,13 +23,14 @@ public:
 	using RemoveItems = std::function<void(const QList<QModelIndex> & indexList)>;
 	enum class RequestContextMenuOptions
 	{
-		None          = 0,
-		IsTree        = 1 << 0,
-		HasExpanded   = 1 << 1,
-		HasCollapsed  = 1 << 2,
-		NodeExpanded  = 1 << 3,
-		NodeCollapsed = 1 << 4,
-		HasSelection  = 1 << 5,
+		None                       = 0,
+		IsTree                     = 1 << 0,
+		HasExpanded                = 1 << 1,
+		HasCollapsed               = 1 << 2,
+		NodeExpanded               = 1 << 3,
+		NodeCollapsed              = 1 << 4,
+		HasSelection               = 1 << 5,
+		AllowDestructiveOperations = 1 << 6,
 	};
 
 public:

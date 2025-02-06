@@ -21,6 +21,7 @@ constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
 constexpr auto UPDATABLE = "updatable";
 constexpr auto CREATION_MODE = "creationMode";
+constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED = "destructiveOperationsAllowed";
 
 Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 {
@@ -46,6 +47,7 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString{});
 	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
 	collection->updatable = settings.Get(UPDATABLE, true);
+	collection->destructiveOperationsAllowed = settings.Get(DESTRUCTIVE_OPERATIONS_ALLOWED, false);
 
 	return collection;
 }
@@ -83,6 +85,7 @@ void CollectionImpl::Serialize(const Collection & collection, ISettings & settin
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
 	settings.Set(UPDATABLE, collection.updatable);
+	settings.Set(DESTRUCTIVE_OPERATIONS_ALLOWED, collection.destructiveOperationsAllowed);
 }
 
 Collections CollectionImpl::Deserialize(ISettings & settings)
