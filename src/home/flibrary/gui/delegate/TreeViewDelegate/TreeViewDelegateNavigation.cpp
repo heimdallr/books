@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QItemSelectionModel>
 #include <QStyledItemDelegate>
-#include <QSvgWidget>
 #include <QToolButton>
 
 #include <plog/Log.h>
@@ -16,23 +15,6 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
-
-QByteArray GetSvgWidgetContent(const QPalette & palette)
-{
-	QFile file(":/icons/plus.svg");
-	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-	assert(ok);
-
-	return QString::fromUtf8(file.readAll())
-		.arg(45)
-		.arg(Util::ToString(palette, QPalette::Base))
-		.arg(Util::ToString(palette, QPalette::Text))
-		.toUtf8();
-}
-
-}
-
 class TreeViewDelegateNavigation::Impl final
 	: public QStyledItemDelegate
 	, public Observable<ITreeViewDelegate::IObserver>
@@ -40,7 +22,6 @@ class TreeViewDelegateNavigation::Impl final
 public:
 	explicit Impl(const IUiFactory & uiFactory)
 		: m_view(uiFactory.GetAbstractItemView())
-		, m_svgWidgetContent(GetSvgWidgetContent(m_view.palette()))
 	{
 	}
 
@@ -63,18 +44,13 @@ private: // QStyledItemDelegate
 			return QStyledItemDelegate::createEditor(parent, option, index);
 
 		auto * btn = new QToolButton(parent);
+		btn->setIcon(QIcon(":/icons/remove.svg"));
 		btn->setAutoRaise(true);
 		QPersistentModelIndex persistentIndex { index };
 		connect(btn, &QAbstractButton::clicked, [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)]
 		{
 			this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex)));
 		});
-
-		auto * icon = new QSvgWidget(btn);
-		icon->load(m_svgWidgetContent);
-		auto * layout = new QHBoxLayout(btn);
-		btn->setLayout(layout);
-		btn->layout()->addWidget(icon);
 
 		return btn;
 	}
@@ -83,27 +59,22 @@ private: // QStyledItemDelegate
 	{
 		auto rect = option.rect;
 		rect.setLeft(rect.right() - rect.height());
-
-		const auto size = rect.height() / 10;
-		editor->layout()->setContentsMargins(size, size, size, size);
-
 		editor->setGeometry(rect);
 	}
 
 private:
 	void OnSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) const
 	{
-		for (const auto index : deselected.indexes())
+		for (const auto& index : deselected.indexes())
 			m_view.closePersistentEditor(index);
 
-		for (const auto index : selected.indexes())
+		for (const auto& index : selected.indexes())
 			m_view.openPersistentEditor(index);
 	}
 
 private:
 	QAbstractItemView & m_view;
 	QMetaObject::Connection m_connection;
-	QByteArray m_svgWidgetContent;
 	bool m_enabled { false };
 };
 

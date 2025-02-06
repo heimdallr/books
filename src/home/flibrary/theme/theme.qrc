@@ -9,5 +9,8 @@
 		<file alias="left.svg">icons/left.svg</file>
 		<file alias="right.svg">icons/right.svg</file>
 		<file alias="center.svg">icons/center.svg</file>
+		<file alias="plus.svg">icons/plus.svg</file>
+		<file alias="remove.svg">icons/remove.svg</file>
+		<file alias="language.svg">icons/language.svg</file>
 	</qresource>
 </RCC>
