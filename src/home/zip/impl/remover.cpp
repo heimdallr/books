@@ -1,7 +1,7 @@
 #include <atlcomcli.h>
 #include <comdef.h>
 
-#include <unordered_set>
+#include <QRegularExpression>
 
 #include "writer.h"
 
@@ -209,15 +209,21 @@ namespace File {
 
 bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, ProgressCallback& progress)
 {
-	std::unordered_set<QString> fileNameSet(fileNames.cbegin(), fileNames.cend());
-	std::erase_if(files.files, [&](const auto& file) { return fileNameSet.contains(file.name); });
+	for (const auto fileName : fileNames)
+	{
+		const auto rx = QRegularExpression::fromWildcard(fileName, Qt::CaseInsensitive);		
+		std::erase_if(files.files, [&](const auto& file) { return rx.match(file.name).hasMatch(); });
+	}
+
+	if (files.files.size() == files.index.size())
+		return true;
+
 	ProgressCallbackStub progressCallbackStub;
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
 	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, progress);
 	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size()), std::move(archiveUpdateCallback));
 	progress.OnDone();
 	return result == S_OK;
-	return false;
 }
 
 }
