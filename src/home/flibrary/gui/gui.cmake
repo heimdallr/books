@@ -18,6 +18,8 @@ AddTarget(gui	shared_lib
 		GuiUtil
 		ver
 		zip
+	DEPENDENCIES
+		${THEMES}
 )
 
 else()
@@ -41,6 +43,8 @@ AddTarget(gui	shared_lib
 		GuiUtil
 		ver
 		zip
+	DEPENDENCIES
+		${THEMES}
 )
 
 endif()

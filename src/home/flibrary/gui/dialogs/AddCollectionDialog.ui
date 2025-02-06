@@ -51,7 +51,14 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+        <iconset resource="../../theme/light/resources/light.qrc">
+         <normaloff>:/icons/database.svg</normaloff>:/icons/database.svg</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
@@ -220,6 +227,7 @@
  </tabstops>
  <resources>
   <include location="../resources/gui.qrc"/>
+  <include location="../../theme/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

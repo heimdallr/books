@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>114</height>
+    <height>108</height>
    </rect>
   </property>
   <property name="title">
@@ -123,7 +123,8 @@
      <item>
       <widget class="QToolButton" name="btnFixSize">
        <property name="icon">
-        <iconset theme="QIcon::ThemeIcon::SyncSynchronizing"/>
+        <iconset resource="resources/fb2cut.qrc">
+         <normaloff>:/icons/lock.png</normaloff>:/icons/lock.png</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>

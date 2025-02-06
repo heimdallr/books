@@ -17,7 +17,7 @@
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
-      <enum>Qt::Orientation::Vertical</enum>
+      <enum>Qt::Vertical</enum>
      </property>
      <property name="handleWidth">
       <number>0</number>
@@ -30,7 +30,7 @@
        <item>
         <widget class="QTableView" name="viewScript">
          <property name="frameShape">
-          <enum>QFrame::Shape::Box</enum>
+          <enum>QFrame::Box</enum>
          </property>
          <attribute name="horizontalHeaderVisible">
           <bool>true</bool>
@@ -71,7 +71,7 @@
          <item>
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
+            <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -90,7 +90,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoUp"/>
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -106,7 +107,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoDown"/>
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -118,10 +120,10 @@
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
+          <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Policy::Fixed</enum>
+          <enum>QSizePolicy::Fixed</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -141,7 +143,7 @@
        <item>
         <widget class="QTableView" name="viewCommand">
          <property name="frameShape">
-          <enum>QFrame::Shape::Box</enum>
+          <enum>QFrame::Box</enum>
          </property>
          <attribute name="horizontalHeaderVisible">
           <bool>true</bool>
@@ -191,7 +193,7 @@
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
+            <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -210,7 +212,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoUp"/>
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -226,7 +229,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoDown"/>
+            <iconset resource="../../resources/gui.qrc">
+             <normaloff>:/icons/down.png</normaloff>:/icons/down.png</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -256,7 +260,7 @@
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+        <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
