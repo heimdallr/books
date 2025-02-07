@@ -1,7 +1,0 @@
-<RCC>
-	<qresource prefix="icons">
-		<file alias="Find.svg">icons/find.svg</file>
-		<file alias="Filter.svg">icons/filter.svg</file>
-		<file alias="unsupported_image.svg">icons/unsupported_image.svg</file>
-	</qresource>
-</RCC>
