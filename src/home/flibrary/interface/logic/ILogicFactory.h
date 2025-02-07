@@ -59,6 +59,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class InpxCollectionExtractor> CreateInpxCollectionExtractor() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker> CreateUpdateChecker() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner> CreateCollectionCleaner() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QTemporaryDir> CreateTemporaryDir() const = 0;
 

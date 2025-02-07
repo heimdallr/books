@@ -13,6 +13,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
@@ -134,6 +135,11 @@ std::shared_ptr<InpxCollectionExtractor> LogicFactory::CreateInpxCollectionExtra
 std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
 {
 	return m_impl->container.resolve<IUpdateChecker>();
+}
+
+std::shared_ptr<ICollectionCleaner> LogicFactory::CreateCollectionCleaner() const
+{
+	return m_impl->container.resolve<ICollectionCleaner>();
 }
 
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const

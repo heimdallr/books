@@ -7,21 +7,17 @@
 
 #include "fnd/FindPair.h"
 
-#include "common/Constant.h"
-
-#include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
-#include "database/interface/ITransaction.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 #include "util/ISettings.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/IProgressController.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
@@ -207,24 +203,20 @@ public:
 	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<const ISettings> settings
 		, std::shared_ptr<const IReaderController> readerController
-		, std::shared_ptr<const ICollectionProvider> collectionProvider
 		, std::shared_ptr<const IDatabaseUser> databaseUser
 		, std::shared_ptr<const DataProvider> dataProvider
 		, std::shared_ptr<const IUiFactory> uiFactory
 		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<IScriptController> scriptController
-		, std::shared_ptr<IBooksExtractorProgressController> progressController
 	)
 		: m_logicFactory{ logicFactory }
 		, m_settings{ std::move(settings) }
 		, m_readerController{ std::move(readerController) }
-		, m_collectionProvider{ std::move(collectionProvider) }
 		, m_databaseUser{ std::move(databaseUser) }
 		, m_dataProvider{ std::move(dataProvider) }
 		, m_uiFactory{ std::move(uiFactory) }
 		, m_groupController{ std::move(groupController) }
 		, m_scriptController{ std::move(scriptController) }
-		, m_progressController{ std::move(progressController) }
 	{
 	}
 
@@ -300,104 +292,19 @@ private: // IContextMenuHandler
 		if (idList.empty())
 			return;
 
-		m_databaseUser->Execute({ "Delete books permanently", [this
-			, idList = std::move(idList)
-			, item = std::move(item)
-			, callback = std::move(callback)
-			, collectionFolder = m_collectionProvider->GetActiveCollection().folder
-		]() mutable
+		ICollectionCleaner::Books books;
+		books.reserve(idList.size());
+		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& item) { return ICollectionCleaner::Book{item[0].toLongLong(), std::move(item[1]), std::move(item[2])}; });
+		auto cleaner = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
+		auto& cleanerRef = *cleaner;
+		cleanerRef.Remove(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count = idList.size()](const bool result) mutable
 		{
-			std::unordered_map<QString, std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>> allFiles;
-			auto progressItem = m_progressController->Add(100);
-
-			for (auto&& id : idList)
-			{
-				auto& [files, progress] = allFiles[id[1]];
-				files.emplace_back(std::move(id[2]));
-				if (!progress)
-					progress = ILogicFactory::Lock(m_logicFactory)->CreateZipProgressCallback(m_progressController);
-			}
-
-			const auto getFolderPath = [&](const QString& name)
-			{
-				return QString("%1/%2").arg(collectionFolder, name);
-			};
-
-			static constexpr std::pair<const char*, const char*> imageTypes[]
-			{
-				{ Global::COVERS, "" },
-				{ Global::IMAGES, "/*" },
-			};
-
-			decltype(allFiles) images;
-			for (const auto& [folder, archiveItem] : allFiles)
-			{
-				const QFileInfo fileInfo(folder);
-				for (const auto & [type, replacedExt] : imageTypes)
-				{
-					const auto imageFolderName = QString("%1/%2.zip").arg(type, fileInfo.completeBaseName());
-					if (QFile::exists(getFolderPath(imageFolderName)))
-					{
-						auto& [files, progress] = images[imageFolderName];
-						std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString & file)
-						{
-							const QFileInfo fileInfo(file);
-							return fileInfo.completeBaseName() + replacedExt;
-						});
-						progress = ILogicFactory::Lock(m_logicFactory)->CreateZipProgressCallback(m_progressController);
-					}
-				}
-			}
-
-			std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-
-			for (auto&& [folder, archiveItem] : allFiles)
-			{
-				auto&& [files, progressCallback] = archiveItem;
-				Zip zip(getFolderPath(folder), Zip::Format::Auto, true, std::move(progressCallback));
-				zip.Remove(files);
-			}
-
-			const auto db = m_databaseUser->Database();
-			const auto transaction = db->CreateTransaction();
-			const auto commandBooks = transaction->CreateCommand("delete from Books where BookID = ?");
-			const auto commandAuthorList = transaction->CreateCommand("delete from Author_List where BookID = ?");
-			const auto commandKeywordList = transaction->CreateCommand("delete from Keyword_List where BookID = ?");
-
-			auto ok = std::accumulate(idList.cbegin(), idList.cend(), true, [&
-				, progressItem = std::move(progressItem)
-				, total = idList.size()
-				, currentPct = int64_t{ 0 }
-				, lastPct = int64_t{ 0 }
-				, n = size_t{ 0 }
-			](const bool init, const auto& bookItem) mutable
-			{
-				const auto id = bookItem[0].toLongLong();
-
-				commandBooks->Bind(0, id);
-				commandAuthorList->Bind(0, id);
-				commandKeywordList->Bind(0, id);
-
-				auto res = commandBooks->Execute();
-				res = commandAuthorList->Execute() || res;
-				res = commandKeywordList->Execute() || res;
-
-				currentPct = 100 * n / total;
-				progressItem->Increment(currentPct - lastPct);
-				lastPct = currentPct;
-
-				return res && init;
-			});
-			ok = transaction->Commit() && ok;
-
-			return [this, item = std::move(item), callback = std::move(callback), count = idList.size(), ok](size_t)
-			{
+			if (result)
 				m_uiFactory->ShowInfo(Tr(REMOVE_PERMANENTLY_INFO).arg(count));
-				callback(item);
-				if (ok)
-					m_dataProvider->RequestBooks(true);
-			};
-		} });
+			callback(item);
+			if (result)
+				m_dataProvider->RequestBooks(true);
+		});
 	}
 
 	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -651,13 +558,11 @@ private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const IReaderController> m_readerController;
-	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::shared_ptr<const DataProvider> m_dataProvider;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
-	std::shared_ptr<IBooksExtractorProgressController> m_progressController;
 };
 
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, const ITreeViewController::RequestContextMenuOptions options)
@@ -675,24 +580,20 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<const ISettings> settings
 	, std::shared_ptr<const IReaderController> readerController
-	, std::shared_ptr<const ICollectionProvider> collectionProvider
 	, std::shared_ptr<const IDatabaseUser> databaseUser
 	, std::shared_ptr<DataProvider> dataProvider
 	, std::shared_ptr<const IUiFactory> uiFactory
 	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<IScriptController> scriptController
-	, std::shared_ptr<IBooksExtractorProgressController> progressController
 )
 	: m_impl(logicFactory
 		, std::move(settings)
 		, std::move(readerController)
-		, std::move(collectionProvider)
 		, std::move(databaseUser)
 		, std::move(dataProvider)
 		, std::move(uiFactory)
 		, std::move(groupController)
 		, std::move(scriptController)
-		, std::move(progressController)
 	)
 {
 	PLOGD << "BooksContextMenuProvider created";
