@@ -15,7 +15,66 @@
 
 #include "Zip.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
+
+namespace {
+
+template<typename Value, size_t ArraySize>
+std::vector<std::unique_ptr<DB::ICommand>> CreateCommands(Value (&commandTexts)[ArraySize], DB::ITransaction& transaction)
+{
+	std::vector<std::unique_ptr<DB::ICommand>> commands;
+	commands.reserve(ArraySize);
+	std::ranges::transform(commandTexts, std::back_inserter(commands), [&](const char* text) { return transaction.CreateCommand(text); });
+	return commands;
+}
+
+bool RemoveBooksImpl(ICollectionCleaner::Books books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+{
+	constexpr const char* commandTexts[]
+	{
+		"delete from Books where BookID = ?",
+		"delete from Author_List where BookID = ?",
+		"delete from Keyword_List where BookID = ?",
+		"delete from Genre_List where BookID = ?",
+	};
+	const auto commands = CreateCommands(commandTexts, transaction);
+
+	return std::accumulate(books.cbegin(), books.cend(), true, [&
+		, progressItem = std::move(progressItem)
+		, total = books.size()
+		, currentPct = int64_t{ 0 }
+		, lastPct = int64_t{ 0 }
+		, n = size_t{ 0 }
+	](const bool init, const auto& book) mutable
+		{
+			auto res = std::accumulate(commands.begin(), commands.end(), true, [&](const bool init, const auto& command)
+				{
+					command->Bind(0, book.id);
+					return command->Execute() && init;
+				});
+
+			currentPct = 100 * n / total;
+			progressItem->Increment(currentPct - lastPct);
+			lastPct = currentPct;
+
+			return res && init;
+		});
+}
+
+bool CleanupNavigationItems(DB::ITransaction& transaction)
+{
+	constexpr const char* commandTexts[]
+	{
+		"delete from Series where not exists(select 42 from Books where Books.SeriesID = Series.SeriesID)",
+		"delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)",
+		"delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)",
+	};
+	const auto commands = CreateCommands(commandTexts, transaction);
+	return std::accumulate(commands.begin(), commands.end(), true, [&](const bool init, const auto& command) { return command->Execute() && init; });
+}
+
+}
 
 struct CollectionCleaner::Impl
 {
@@ -97,39 +156,24 @@ void CollectionCleaner::Remove(Books books, Callback callback)
 
 		for (auto&& [folder, archiveItem] : allFiles)
 		{
-			auto&& [files, progressCallback] = archiveItem;
-			Zip zip(getFolderPath(folder), Zip::Format::Auto, true, std::move(progressCallback));
-			zip.Remove(files);
+			const auto archive = getFolderPath(folder);
+			if ([&]
+				{
+					auto&& [files, progressCallback] = archiveItem;
+					Zip zip(archive, Zip::Format::Auto, true, std::move(progressCallback));
+					zip.Remove(files);
+					return zip.GetFileNameList().isEmpty();
+				}())
+			{
+				QFile::remove(archive);
+			}
 		}
 
 		const auto db = m_impl->databaseUser->Database();
 		const auto transaction = db->CreateTransaction();
-		const auto commandBooks = transaction->CreateCommand("delete from Books where BookID = ?");
-		const auto commandAuthorList = transaction->CreateCommand("delete from Author_List where BookID = ?");
-		const auto commandKeywordList = transaction->CreateCommand("delete from Keyword_List where BookID = ?");
 
-		auto ok = std::accumulate(books.cbegin(), books.cend(), true,[&
-			, progressItem = std::move(progressItem)
-			, total = books.size()
-			, currentPct = int64_t{ 0 }
-			, lastPct = int64_t{ 0 }
-			, n = size_t{ 0 }
-		](const bool init, const auto& book) mutable
-		{
-			commandBooks->Bind(0, book.id);
-			commandAuthorList->Bind(0, book.id);
-			commandKeywordList->Bind(0, book.id);
-
-			auto res = commandBooks->Execute();
-			res = commandAuthorList->Execute() || res;
-			res = commandKeywordList->Execute() || res;
-
-			currentPct = 100 * n / total;
-			progressItem->Increment(currentPct - lastPct);
-			lastPct = currentPct;
-
-			return res && init;
-		});
+		auto ok = RemoveBooksImpl(std::move(books), *transaction, std::move(progressItem));
+		ok = CleanupNavigationItems(*transaction) && ok;
 		ok = transaction->Commit() && ok;
 
 		return [callback = std::move(callback), ok](size_t) { callback(ok); };

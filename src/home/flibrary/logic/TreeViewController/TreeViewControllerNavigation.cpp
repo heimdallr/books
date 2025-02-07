@@ -53,24 +53,37 @@ enum class MenuAction
 		Last
 };
 
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_XMACRO         \
+SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)    \
+SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search)  \
+SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)       \
+SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)         \
+SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)
+
+#define SUBSCRIBED_TABLES_ITEMS_XMACRO   \
+SUBSCRIBED_TABLES_ITEM(Groups_List_User) \
+SUBSCRIBED_TABLES_ITEM(Groups_User)      \
+SUBSCRIBED_TABLES_ITEM(Searches_User)    \
+SUBSCRIBED_TABLES_ITEM(Authors)          \
+SUBSCRIBED_TABLES_ITEM(Series)           \
+SUBSCRIBED_TABLES_ITEM(Keywords)
+
 class ITableSubscriptionHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Function = void(ITableSubscriptionHandler::*)();
 public:
 	virtual ~ITableSubscriptionHandler() = default;
-	virtual void On_Groups_User_Changed() = 0;
-	virtual void On_Groups_List_User_Changed() = 0;
-	virtual void On_Searches_User_Changed() = 0;
+#define SUBSCRIBED_TABLES_ITEM(NAME) virtual void On_##NAME##_Changed() = 0;
+		SUBSCRIBED_TABLES_ITEMS_XMACRO
+#undef  SUBSCRIBED_TABLES_ITEM
 };
 
 constexpr std::pair<std::string_view, ITableSubscriptionHandler::Function> SUBSCRIBED_TABLES[]
 {
-#define ITEM(NAME) {#NAME, &ITableSubscriptionHandler::On_##NAME##_Changed}
-		ITEM(Groups_User),
-		ITEM(Groups_List_User),
-		ITEM(Searches_User),
-#undef	ITEM
+#define SUBSCRIBED_TABLES_ITEM(NAME) { #NAME, &ITableSubscriptionHandler::On_##NAME##_Changed },
+		SUBSCRIBED_TABLES_ITEMS_XMACRO
+#undef  SUBSCRIBED_TABLES_ITEM
 };
 
 auto GetSubscribedTable(const std::string_view name)
@@ -124,8 +137,8 @@ public:
 	virtual ~IContextMenuHandler() = default;
 	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
 #define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> & indexList, const QModelIndex & index) const = 0;
-	MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
+		MENU_ACTION_ITEMS_X_MACRO
+#undef  MENU_ACTION_ITEM
 };
 
 using ContextMenuHandlerFunction = void (IContextMenuHandler::*)(const QList<QModelIndex> & indexList, const QModelIndex & index) const;
@@ -134,7 +147,7 @@ constexpr std::pair<MenuAction, ContextMenuHandlerFunction> MENU_HANDLERS[]
 {
 #define MENU_ACTION_ITEM(NAME) { MenuAction::NAME, &IContextMenuHandler::On##NAME##Triggered },
 		MENU_ACTION_ITEMS_X_MACRO
-#undef	MENU_ACTION_ITEM
+#undef  MENU_ACTION_ITEM
 };
 static_assert(std::size(MENU_HANDLERS) == static_cast<size_t>(MenuAction::Last) - static_cast<size_t>(MenuAction::Unknown) - 1);
 
@@ -287,26 +300,22 @@ private: // DB::IDatabaseObserver
 	}
 
 private: // ITableSubscriptionHandler
-	void On_Groups_User_Changed() override
-	{
-		if (static_cast<NavigationMode>(mode) == NavigationMode::Groups)
-			self.RequestNavigation();
-		else
-			models[static_cast<int>(NavigationMode::Groups)].reset();
-	}
-
 	void On_Groups_List_User_Changed() override
 	{
 		if (static_cast<NavigationMode>(mode) == NavigationMode::Groups)
 			self.RequestBooks(true);
 	}
 
-	void On_Searches_User_Changed() override
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE) void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
+		SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_XMACRO
+#undef  SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
+
+private:
+	void OnTableChanged(const NavigationMode tableMode)
 	{
-		if (static_cast<NavigationMode>(mode) == NavigationMode::Search)
-			self.RequestNavigation();
-		else
-			models[static_cast<int>(NavigationMode::Search)].reset();
+		static_cast<NavigationMode>(mode) == tableMode
+			? self.RequestNavigation()
+			: models[static_cast<int>(tableMode)].reset();
 	}
 
 	NON_COPY_MOVABLE(Impl)

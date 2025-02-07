@@ -222,6 +222,12 @@ bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std:
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
 	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, progress);
 	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size()), std::move(archiveUpdateCallback));
+	files.index.clear();
+	for (size_t i = 0, sz = files.files.size(); i < sz; ++i)
+	{		
+		files.files[i].index = static_cast<decltype(FileItem::index)>(i);
+		files.index.try_emplace(files.files[i].name, i);
+	}
 	progress.OnDone();
 	return result == S_OK;
 }

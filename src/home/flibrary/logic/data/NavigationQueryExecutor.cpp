@@ -30,7 +30,7 @@ constexpr auto SERIES_QUERY   = "select SeriesID, SeriesTitle from Series";
 constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
 constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
 constexpr auto GROUPS_QUERY   = "select GroupID, Title from Groups_User";
-constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders";
+constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto SEARCH_QUERY   = "select SearchID, Title from Searches_User";
 
 constexpr auto WHERE_AUTHOR  = "where a.AuthorID  = :id";
