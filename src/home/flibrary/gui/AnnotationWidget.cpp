@@ -1,14 +1,11 @@
 #include "ui_AnnotationWidget.h"
 #include "AnnotationWidget.h"
 
-#include <ranges>
-
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QPainter>
-#include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolButton>
@@ -100,6 +97,16 @@ bool SaveImage(QString fileName, const QByteArray & bytes)
 	return true;
 }
 
+struct CoverButtonType
+{
+	enum
+	{
+		Previous,
+		Home,
+		Next,
+	};
+};
+
 }
 
 class AnnotationWidget::Impl final
@@ -176,7 +183,7 @@ public:
 
 			case 1:
 				m_currentCoverIndex = m_coverIndex;
-				m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setVisible(false);
+				m_coverButtons[CoverButtonType::Home]->setVisible(false);
 				break;
 
 			case 2:
@@ -270,18 +277,18 @@ public:
 			} });
 		});
 
-		const auto createCoverButton = [this, onCoverClicked](const QIcon::ThemeIcon icon)
+		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName)
 		{
 			auto* btn = new QToolButton(m_ui.cover);
 			btn->setVisible(false);
-			btn->setIcon(QIcon::fromTheme(icon));
+			btn->setIcon(QIcon(iconFileName));
 			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
-			m_coverButtons.try_emplace(icon, btn);
+			m_coverButtons.push_back(btn);
 		};
 
-		createCoverButton(QIcon::ThemeIcon::GoPrevious);
-		createCoverButton(QIcon::ThemeIcon::GoHome);
-		createCoverButton(QIcon::ThemeIcon::GoNext);
+		createCoverButton(":/icons/left.svg");
+		createCoverButton(":/icons/center.svg");
+		createCoverButton(":/icons/right.svg");
 	}
 
 	~Impl() override
@@ -321,21 +328,8 @@ public:
 
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth = m_ui.mainWidget->width() / 3;
-
-		QPixmap pixmap;
-		if (!pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
-		{
-			const auto defaultSize = m_svgRenderer.defaultSize();
-			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
-			pixmap = QPixmap(imgWidth, imgHeight);
-
-			pixmap.fill(Qt::transparent);
-			QPainter p(&pixmap);
-			m_svgRenderer.render(&p, QRect(QPoint {}, pixmap.size()));
-
-			m_ui.cover->setPixmap(pixmap);
-		}
-		else
+		
+		if (QPixmap pixmap; pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
 		{
 			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
 				imgHeight = pixmap.height() * imgWidth / pixmap.width();
@@ -343,10 +337,17 @@ public:
 				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
 			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		}
+		else
+		{
+			const QIcon icon(":/icons/unsupported-image.svg");
+			const auto defaultSize = icon.availableSizes().front();
+			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
+			m_ui.cover->setPixmap(icon.pixmap(imgWidth, imgHeight));
+		}
 
 		if (m_covers.size() > 1)
 			m_coverButtonsEnabled = true;
-		}
 
 		m_ui.coverArea->setMinimumWidth(imgWidth);
 		m_ui.coverArea->setMaximumWidth(imgWidth);
@@ -355,9 +356,9 @@ public:
 		const auto height = 3 * metrics.lineSpacing() / 2;
 		const QSize size{ height, height };
 		const auto top = imgHeight - height - height / 8;
-		m_coverButtons.at(QIcon::ThemeIcon::GoPrevious)->setGeometry(QRect{ QPoint{height / 8, top}, size});
-		m_coverButtons.at(QIcon::ThemeIcon::GoNext)->setGeometry(QRect{ QPoint{imgWidth - height - height / 8, top}, size });
-		m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setGeometry(QRect{ QPoint{(imgWidth - height) / 2, top}, size });
+		m_coverButtons[CoverButtonType::Previous]->setGeometry(QRect{ QPoint{height / 8, top}, size});
+		m_coverButtons[CoverButtonType::Next]->setGeometry(QRect{ QPoint{imgWidth - height - height / 8, top}, size });
+		m_coverButtons[CoverButtonType::Home]->setGeometry(QRect{ QPoint{(imgWidth - height) / 2, top}, size });
 	}
 
 private: // QObject
@@ -461,18 +462,18 @@ private:
 
 	void OnCoverEnter()
 	{
-		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.begin()->second->size().width() * 4)
+		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.front()->size().width() * 4)
 			return;
 
-		for (auto* btn : m_coverButtons | std::views::values)
+		for (auto* btn : m_coverButtons)
 			btn->setVisible(true);
 
-		m_coverButtons.at(QIcon::ThemeIcon::GoHome)->setVisible(m_currentCoverIndex != m_coverIndex);
+		m_coverButtons[CoverButtonType::Home]->setVisible(m_currentCoverIndex != m_coverIndex);
 	}
 
 	void OnCoverLeave()
 	{
-		for (auto* btn : m_coverButtons | std::views::values)
+		for (auto* btn : m_coverButtons)
 			btn->setVisible(false);
 	}
 
@@ -489,7 +490,6 @@ private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
 	IAnnotationController::IDataProvider::Covers m_covers;
-	QSvgRenderer m_svgRenderer { QString(":/icons/unsupported_image.svg") };
 	const QString m_currentCollectionId;
 	std::optional<size_t> m_coverIndex;
 	std::optional<size_t> m_currentCoverIndex;
@@ -498,7 +498,7 @@ private:
 	Util::FunctorExecutionForwarder m_forwarder;
 	QTimer m_progressTimer;
 
-	std::unordered_map<QIcon::ThemeIcon, QAbstractButton*> m_coverButtons;
+	std::vector<QAbstractButton*> m_coverButtons;
 	bool m_coverButtonsEnabled{ false };
 	bool m_coverButtonsVisible{ true };
 };

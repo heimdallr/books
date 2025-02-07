@@ -90,7 +90,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoUp"/>
+            <iconset resource="../../../theme/light/resources/light.qrc">
+             <normaloff>:/icons/up.svg</normaloff>:/icons/up.svg</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -106,7 +107,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoDown"/>
+            <iconset resource="../../../theme/light/resources/light.qrc">
+             <normaloff>:/icons/down.svg</normaloff>:/icons/down.svg</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -210,7 +212,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoUp"/>
+            <iconset resource="../../../theme/light/resources/light.qrc">
+             <normaloff>:/icons/up.svg</normaloff>:/icons/up.svg</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -226,7 +229,8 @@
             <string notr="true"/>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::GoDown"/>
+            <iconset resource="../../../theme/light/resources/light.qrc">
+             <normaloff>:/icons/down.svg</normaloff>:/icons/down.svg</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -292,6 +296,7 @@
  </widget>
  <resources>
   <include location="../../resources/gui.qrc"/>
+  <include location="../../../theme/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

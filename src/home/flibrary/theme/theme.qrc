@@ -1,0 +1,19 @@
+<RCC>
+	<qresource prefix="icons">
+		<file alias="open-folder.svg">icons/open-folder.svg</file>
+		<file alias="set-default.svg">icons/set-default.svg</file>
+		<file alias="down.svg">icons/down.svg</file>
+		<file alias="up.svg">icons/up.svg</file>
+		<file alias="exe.svg">icons/exe.svg</file>
+		<file alias="database.svg">icons/database.svg</file>
+		<file alias="left.svg">icons/left.svg</file>
+		<file alias="right.svg">icons/right.svg</file>
+		<file alias="center.svg">icons/center.svg</file>
+		<file alias="plus.svg">icons/plus.svg</file>
+		<file alias="remove.svg">icons/remove.svg</file>
+		<file alias="language.svg">icons/language.svg</file>
+		<file alias="unsupported-image.svg">icons/unsupported-image.svg</file>
+        <file alias="Find.svg">icons/find.svg</file>
+        <file alias="Filter.svg">icons/filter.svg</file>
+	</qresource>
+</RCC>

@@ -35,5 +35,6 @@ AddTarget(${PROJECT_NAME}	app
 		Qt6::QModernWindowsStylePlugin
 		Qt6::QGifPlugin
 		Qt6::QJpegPlugin
+		Qt6::QSvgPlugin
 		Qt6::QSchannelBackendPlugin
 )

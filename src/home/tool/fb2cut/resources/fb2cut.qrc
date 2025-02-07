@@ -1,0 +1,11 @@
+<RCC>
+	<qresource prefix="icons">
+		<file alias="open-folder.svg">icons/open-folder.svg</file>
+		<file alias="set-default.svg">icons/set-default.svg</file>
+		<file alias="exe.svg">icons/exe.svg</file>
+		<file alias="zip.svg">icons/zip.svg</file>
+		<file alias="lock-closed.svg">icons/lock-closed.svg</file>
+		<file alias="lock-open.svg">icons/lock-open.svg</file>
+		<file alias="exclamation.svg">icons/exclamation.svg</file>
+	</qresource>
+</RCC>

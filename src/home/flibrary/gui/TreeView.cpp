@@ -8,8 +8,6 @@
 #include <QMenu>
 #include <QPainter>
 #include <QResizeEvent>
-#include <QSvgRenderer>
-#include <QSvgWidget>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -93,26 +91,15 @@ private: // QHeaderView
 private:
 	bool PaintIcon(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
-		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
-		if (!icon.isValid())
+		const auto iconFileName = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		if (!iconFileName.isValid())
 			return false;
 
-		if (!m_svgRenderer.isValid())
-		{
-			QFile file(icon.toString());
-			if (!file.open(QIODevice::ReadOnly))
-				return false;
-
-			const auto content = QString::fromUtf8(file.readAll()).arg(Util::ToString(palette(), QPalette::Text));
-			if (!m_svgRenderer.load(content.toUtf8()))
-				return false;
-		}
-
-		auto iconSize = m_svgRenderer.defaultSize();
-		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
-		iconSize = iconSize.width() > iconSize.height() ? QSize { size, size * iconSize.height() / iconSize.width() } : QSize { size * iconSize.width() / iconSize.height(), size };
-		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 2 * (rect.height() - size) / 3 };
-		m_svgRenderer.render(painter, QRect { topLeft, iconSize });
+		QIcon icon(iconFileName.toString());
+		icon.pixmap(QSize{rect.height(), rect.height()});
+		auto size = 6 * QSize{ rect.height(), rect.height() } / 10;
+		const auto center = (rect.size() - size) / 2;
+		painter->drawPixmap(rect.topLeft() + QPoint{center.width(), center.height()}, icon.pixmap(size));
 
 		return true;
 	}
@@ -123,9 +110,6 @@ private:
 		painter->setPen(QApplication::palette().color(QPalette::Text));
 		painter->drawText(rect, Qt::AlignCenter, text);
 	}
-
-private:
-	mutable QSvgRenderer m_svgRenderer;
 };
 
 void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, const std::function<void(const QModelIndex &)> & f)
@@ -207,8 +191,6 @@ public:
 		m_ui.btnNew->setMaximumSize(size, size);
 		m_ui.cbValueMode->setMinimumSize(size, size);
 		m_ui.cbValueMode->setMaximumSize(size, size);
-		size /= 10;
-		m_ui.btnNew->layout()->setContentsMargins(size, size, size, size);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
@@ -502,21 +484,7 @@ private:
 	{
 		m_ui.btnNew->setVisible(false);
 		m_ui.btnNew->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-		auto * icon = new QSvgWidget(m_ui.btnNew);
-
-		QFile file(":/icons/plus.svg");
-		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-		assert(ok);
-
-		const auto content = QString::fromUtf8(file.readAll())
-			.arg(0)
-			.arg(Util::ToString(m_self.palette(), QPalette::Base))
-			.arg(Util::ToString(m_self.palette(), QPalette::Text))
-			.toUtf8();
-
-		icon->load(content);
-		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
-		m_ui.btnNew->layout()->addWidget(icon);
+		m_ui.btnNew->setIcon(QIcon(":/icons/plus.svg"));
 	}
 
 	void FillComboBoxes()

@@ -24,7 +24,7 @@ class OpenFileDialogDelegateEditor::Impl : public QLineEdit
 public:
 	Impl(const OpenFileDialogDelegateEditor& self, std::shared_ptr<const IUiFactory> uiFactory)
 	{
-		const auto* action = addAction(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen), TrailingPosition);
+		const auto* action = addAction(QIcon(":/icons/exe.svg"), TrailingPosition);
 		connect(action, &QAction::triggered, this, [&, uiFactory = std::move(uiFactory)]
 		{
 			const auto fileName = QDir::toNativeSeparators(uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)));
