@@ -19,7 +19,7 @@ ModeComboBox::ModeComboBox(QWidget *parent)
 	: QComboBox(parent)
 {
 	for (const auto * name : VALUE_MODES | std::views::keys)
-		addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), QString(name));
+        addItem(QIcon(QString(VALUE_MODE_ICON_TEMPLATE).arg(name)), {});
 }
 
 void ModeComboBox::paintEvent(QPaintEvent * event)
