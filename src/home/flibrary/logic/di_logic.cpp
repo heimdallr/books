@@ -21,6 +21,7 @@
 #include "database/DatabaseController.h"
 #include "database/DatabaseUser.h"
 #include "model/FilteredProxyModel.h"
+#include "model/LanguageModel.h"
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
@@ -56,6 +57,7 @@ void DiLogic(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypod
 	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
+	builder.registerType<LanguageModel>().as<ILanguageModel>();
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();

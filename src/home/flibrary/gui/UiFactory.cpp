@@ -9,6 +9,7 @@
 #include "fnd/FindPair.h"
 
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILanguageModel.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITreeViewController.h"
@@ -26,6 +27,7 @@
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
+#include "CollectionCleaner.h"
 #include "ItemViewToolTipper.h"
 #include "TreeView.h"
 
@@ -132,6 +134,11 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 {
 	m_impl->title = std::move(title);
 	return m_impl->container.resolve<IComboBoxTextDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateCollectionCleaner() const
+{
+	return m_impl->container.resolve<CollectionCleaner>();
 }
 
 void UiFactory::ShowAbout() const

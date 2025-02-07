@@ -29,6 +29,7 @@ private: // IUiFactory
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const override;
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
+	std::shared_ptr<QDialog> CreateCollectionCleaner() const override;
 
 	void ShowAbout() const override;
 	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, QMessageBox::ButtonRole defaultButton) const override;

@@ -300,6 +300,7 @@
     <addaction name="separator"/>
     <addaction name="actionAllowDestructiveOperations"/>
     <addaction name="actionDenyDestructiveOperations"/>
+    <addaction name="actionShowCollectionCleaner"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -770,10 +771,18 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionShowCollectionCleaner">
+   <property name="text">
+    <string>Cleaner...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources/gui.qrc"/>
+  <include location="../theme/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>
