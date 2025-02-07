@@ -20,13 +20,13 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortString.h"
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
-#include "Util/FunctorExecutionForwarder.h"
-#include "Util/localization.h"
-#include "Util/timer.h"
-#include "Util/xml/XmlWriter.h"
+#include "util/FunctorExecutionForwarder.h"
+#include "util/localization.h"
+#include "util/SortString.h"
+#include "util/timer.h"
+#include "util/xml/XmlWriter.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -166,7 +166,7 @@ std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase & db
     for (query->Execute(); !query->Eof(); query->Next())
         result.emplace_back(query->Get<const char *>(0), query->Get<int>(1));
 
-    std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return QStringWrapper { lhs.first } < QStringWrapper { rhs.first }; });
+    std::ranges::sort(result, [] (const auto & lhs, const auto & rhs) { return Util::QStringWrapper { lhs.first } < Util::QStringWrapper { rhs.first }; });
     std::ranges::transform(result, result.begin(), [&] (const auto & item) { return std::make_pair(value + item.first, item.second); });
 
     return result;
@@ -271,7 +271,7 @@ Node WriteNavigationStartsWith(DB::IDatabase & db
         WriteEntry(children, id, QString("%1~").arg(title), count);
     }
 
-	std::ranges::sort(children, [] (const auto & lhs, const auto & rhs) { return QStringWrapper(lhs.title) < QStringWrapper(rhs.title); });
+	std::ranges::sort(children, [] (const auto & lhs, const auto & rhs) { return Util::QStringWrapper(lhs.title) < Util::QStringWrapper(rhs.title); });
 
     return head;
 }

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "export/flint.h"
+#include "export/util.h"
 
 class QString;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Util {
 
-struct FLINT_EXPORT QStringWrapper
+struct UTIL_EXPORT QStringWrapper
 {
 	const QString & data;
 

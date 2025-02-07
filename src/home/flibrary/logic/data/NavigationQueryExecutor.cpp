@@ -11,12 +11,12 @@
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortString.h"
 #include "database/DatabaseUtil.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "BooksTreeGenerator.h"
 #include "inpx/src/util/constant.h"
+#include "util/SortString.h"
 
 #include <plog/Log.h>
 
@@ -103,7 +103,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 
 		std::ranges::sort(items, [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 		{
-			return QStringWrapper { lhs->GetData() } < QStringWrapper { rhs->GetData() };
+			return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() };
 		});
 
 		auto root = NavigationItem::Create();
