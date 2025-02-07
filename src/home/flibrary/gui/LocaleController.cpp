@@ -10,6 +10,7 @@
 #include "util/KeyboardLayout.h"
 
 #include "interface/constants/Localization.h"
+#include "interface/logic/SortString.h"
 #include "interface/ui/IUiFactory.h"
 
 namespace HomeCompa::Flibrary {
@@ -37,6 +38,7 @@ public:
 	void Setup(QMenu & menu)
 	{
 		const auto currentLocale = Loc::GetLocale(*m_settings);
+		QStringWrapper::SetLocale(currentLocale);
 		SetKeyboardLayout(currentLocale.toStdString());
 		for (const auto * locale : Loc::LOCALES)
 		{
