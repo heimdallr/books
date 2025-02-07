@@ -5,6 +5,7 @@
 #include <QItemSelectionModel>
 #include <QStyledItemDelegate>
 #include <QToolButton>
+#include <QPainter>
 
 #include <plog/Log.h>
 
@@ -53,6 +54,21 @@ private: // QStyledItemDelegate
 		});
 
 		return btn;
+	}
+
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		if (!(option.state & QStyle::State_Selected))
+			return QStyledItemDelegate::paint(painter, option, index);
+
+		const QWidget* widget = option.widget;
+		assert(widget);
+		QStyle* style = widget->style();
+		assert(style);
+		style->drawControl(QStyle::CE_ItemViewItem, &option, painter, widget);
+		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
+		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
+		style->drawItemText(painter, option.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin), Qt::AlignLeft, option.palette, option.state & QStyle::State_Enabled, index.data(Qt::DisplayRole).toString());
 	}
 
 	void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, [[maybe_unused]] const QModelIndex & index) const override
