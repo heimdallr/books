@@ -6,7 +6,6 @@
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QPainter>
-#include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolButton>
@@ -329,21 +328,8 @@ public:
 
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth = m_ui.mainWidget->width() / 3;
-
-		QPixmap pixmap;
-		if (!pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
-		{
-			const auto defaultSize = m_svgRenderer.defaultSize();
-			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
-			pixmap = QPixmap(imgWidth, imgHeight);
-
-			pixmap.fill(Qt::transparent);
-			QPainter p(&pixmap);
-			m_svgRenderer.render(&p, QRect(QPoint {}, pixmap.size()));
-
-			m_ui.cover->setPixmap(pixmap);
-		}
-		else
+		
+		if (QPixmap pixmap; pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
 		{
 			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
 				imgHeight = pixmap.height() * imgWidth / pixmap.width();
@@ -351,10 +337,17 @@ public:
 				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
 			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		}
+		else
+		{
+			const QIcon icon(":/icons/unsupported-image.svg");
+			const auto defaultSize = icon.availableSizes().front();
+			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
+			m_ui.cover->setPixmap(icon.pixmap(imgWidth, imgHeight));
+		}
 
 		if (m_covers.size() > 1)
 			m_coverButtonsEnabled = true;
-		}
 
 		m_ui.coverArea->setMinimumWidth(imgWidth);
 		m_ui.coverArea->setMaximumWidth(imgWidth);
@@ -497,7 +490,6 @@ private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel{ std::shared_ptr<QAbstractItemModel>{} };
 	Ui::AnnotationWidget m_ui {};
 	IAnnotationController::IDataProvider::Covers m_covers;
-	QSvgRenderer m_svgRenderer { QString(":/icons/unsupported_image.svg") };
 	const QString m_currentCollectionId;
 	std::optional<size_t> m_coverIndex;
 	std::optional<size_t> m_currentCoverIndex;
