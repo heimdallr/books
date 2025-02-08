@@ -406,6 +406,24 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>LanguageModel</name>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Code</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Count</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Language</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../TreeViewController/TreeViewControllerNavigation.cpp"/>

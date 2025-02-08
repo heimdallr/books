@@ -91,7 +91,7 @@ private: // QAbstractItemModel
 				return item.count;
 			case 2:
 				if (const auto it = m_translations.find(item.language); it != m_translations.end())
-					return Tr(it->second);
+					return Loc::Tr(LANGUAGES_CONTEXT, it->second);
 				return {};
 			}
 

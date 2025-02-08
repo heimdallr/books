@@ -11,13 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CollectionCleaner</string>
+   <string>Collection Cleaner</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QCheckBox" name="deuplicates">
      <property name="text">
-      <string>Find and remove duplicates</string>
+      <string>Find and remove duplicate books</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -34,7 +34,7 @@
      </property>
      <widget class="QGroupBox" name="groupBoxGenres">
       <property name="title">
-       <string>Remove genres</string>
+       <string>Delete books by genre</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
@@ -88,12 +88,27 @@
      </widget>
      <widget class="QGroupBox" name="groupBoxLanguages">
       <property name="title">
-       <string>Remove languages</string>
+       <string>Delete books by language</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QTableView" name="languages">
          <property name="horizontalScrollBarPolicy">
