@@ -188,6 +188,10 @@
         <source>Find and remove duplicate books</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Delete books marked as deleted</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>

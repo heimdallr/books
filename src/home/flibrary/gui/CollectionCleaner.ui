@@ -15,12 +15,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QCheckBox" name="deuplicates">
+    <widget class="QCheckBox" name="removeRemoved">
+     <property name="text">
+      <string>Delete books marked as deleted</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="duplicates">
      <property name="text">
       <string>Find and remove duplicate books</string>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -40,7 +50,7 @@
        <bool>true</bool>
       </property>
       <property name="checked">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
@@ -92,6 +102,9 @@
       </property>
       <property name="checkable">
        <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>

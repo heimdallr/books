@@ -184,6 +184,10 @@
         <source>Find and remove duplicate books</source>
         <translation>Найти и удалить дубликаты книг</translation>
     </message>
+    <message>
+        <source>Delete books marked as deleted</source>
+        <translation>Удалить книги, помеченые как удаленные</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
