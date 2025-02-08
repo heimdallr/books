@@ -391,7 +391,7 @@ Restart now?</source>
     <message>
         <location filename="../../localization.h"/>
         <source>Chinese (Simplified)</source>
-        <translation>Китайский</translation>
+        <translation>Китайский (упрощённый)</translation>
     </message>
 </context>
 </TS>
