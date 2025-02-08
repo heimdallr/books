@@ -121,11 +121,7 @@ private: // QAbstractItemModel
 
 private:
 	Items m_items;
-	std::unordered_map<QString, const char*> m_translations {
-		{ "ru", QT_TRANSLATE_NOOP("LanguageModel", "Russian") },
-		{ "en", QT_TRANSLATE_NOOP("LanguageModel", "English") },
-		{ "uk", QT_TRANSLATE_NOOP("LanguageModel", "Ukrainian") },
-	};
+	std::unordered_map<QString, const char*> m_translations {std::cbegin(LANGUAGES), std::cend(LANGUAGES)};
 };
 
 }
