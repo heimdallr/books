@@ -7,9 +7,7 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-
 #include "interface/logic/IDatabaseUser.h"
-
 #include "util/localization.h"
 
 using namespace HomeCompa;

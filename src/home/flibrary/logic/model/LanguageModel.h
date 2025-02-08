@@ -3,11 +3,11 @@
 #include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "interface/logic/ILanguageModel.h"
+#include "interface/logic/IModel.h"
 
 namespace HomeCompa::Flibrary {
 
-class LanguageModel final : virtual public ILanguageModel
+class LanguageModel final : public ILanguageModel
 {
 	NON_COPY_MOVABLE(LanguageModel)
 

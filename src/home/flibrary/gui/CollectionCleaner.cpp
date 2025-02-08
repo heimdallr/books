@@ -6,7 +6,7 @@
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IUiFactory.h"
 
-#include "interface/logic/ILanguageModel.h"
+#include "interface/logic/IModel.h"
 #include "interface/logic/IReaderController.h"
 
 using namespace HomeCompa;
@@ -18,7 +18,7 @@ struct CollectionCleaner::Impl final
 {
 	Ui::CollectionCleaner ui;
 	std::shared_ptr<const IReaderController> readerController;
-	PropagateConstPtr<ILanguageModel, std::shared_ptr> languageModel;
+	PropagateConstPtr<IModel, std::shared_ptr> languageModel;
 
 	Impl(CollectionCleaner& self
 		, std::shared_ptr<const IReaderController> readerController
@@ -28,7 +28,7 @@ struct CollectionCleaner::Impl final
 		: GeometryRestorable(*this, std::move(settings), "CollectionCleaner")
 		, GeometryRestorableObserver(self)
 		, readerController{ std::move(readerController) }
-		, languageModel{ std::move(languageModel) }
+		, languageModel{ std::shared_ptr<IModel>{std::move(languageModel)} }
 	{
 		ui.setupUi(&self);
 		ui.languages->setModel(this->languageModel->GetModel());
@@ -38,9 +38,9 @@ struct CollectionCleaner::Impl final
 		connect(ui.languages, &QWidget::customContextMenuRequested, &self, [&] { OnContextMenuRequested(self); });
 
 		connect(ui.actionLanguageReadRandomBook, &QAction::triggered, &self, [&] { OpenRandomBook(); });
-		connect(ui.actionLanguageCheckAll, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), ILanguageModel::Role::CheckAll); });
-		connect(ui.actionLanguageUnckeckAll, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), ILanguageModel::Role::UncheckAll); });
-		connect(ui.actionLanguageInvertChecks, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), ILanguageModel::Role::RevertChecks); });
+		connect(ui.actionLanguageCheckAll, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), IModel::Role::CheckAll); });
+		connect(ui.actionLanguageUnckeckAll, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), IModel::Role::UncheckAll); });
+		connect(ui.actionLanguageInvertChecks, &QAction::triggered, &self, [&] { SetModelData(*ui.languages->model(), IModel::Role::RevertChecks); });
 
 		Init();
 	}
