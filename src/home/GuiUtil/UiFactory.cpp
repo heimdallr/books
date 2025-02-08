@@ -69,14 +69,18 @@ UiFactory::UiFactory(Hypodermic::Container & container)
 
 UiFactory::~UiFactory() = default;
 
-QObject * UiFactory::GetParentObject() const noexcept
+QObject * UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 {
-	return GetParentWidget();
+	if (auto* object = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget())
+		return object;
+	return defaultObject;
 }
 
-QWidget * UiFactory::GetParentWidget() const noexcept
+QWidget * UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
-	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
+	if (auto* widget = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget())
+		return widget;
+	return defaultWidget;
 }
 
 QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, const QMessageBox::ButtonRole defaultButton) const

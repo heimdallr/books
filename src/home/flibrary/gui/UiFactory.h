@@ -19,8 +19,8 @@ public:
 	~UiFactory() override;
 
 private: // IUiFactory
-	QObject * GetParentObject() const noexcept override;
-	QWidget * GetParentWidget() const noexcept override;
+	QObject * GetParentObject(QObject* defaultObject) const noexcept override;
+	QWidget * GetParentWidget(QWidget* defaultWidget) const noexcept override;
 
 	std::shared_ptr<TreeView> CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
