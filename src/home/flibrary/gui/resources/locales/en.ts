@@ -220,11 +220,11 @@
         <translation></translation>
     </message>
     <message>
-        <source>Unckeck all</source>
+        <source>Invert checks</source>
         <translation></translation>
     </message>
     <message>
-        <source>Invert checks</source>
+        <source>Uncheck all</source>
         <translation></translation>
     </message>
 </context>

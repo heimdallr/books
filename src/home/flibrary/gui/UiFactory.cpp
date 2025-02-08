@@ -9,8 +9,8 @@
 #include "fnd/FindPair.h"
 
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/ILanguageModel.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IModel.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/ITreeViewController.h"

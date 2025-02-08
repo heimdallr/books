@@ -7,13 +7,13 @@
 
 namespace HomeCompa::Flibrary {
 
-class LanguageModel final : public ILanguageModel
+class GenreModel final : public IGenreModel
 {
-	NON_COPY_MOVABLE(LanguageModel)
+	NON_COPY_MOVABLE(GenreModel)
 
 public:
-	explicit LanguageModel(std::shared_ptr<const class IDatabaseUser> databaseUser);
-	~LanguageModel() override;
+	explicit GenreModel(std::shared_ptr<const class IDatabaseUser> databaseUser);
+	~GenreModel() override;
 
 protected: // ILanguageMode
 	QAbstractItemModel* GetModel() noexcept override;

@@ -216,12 +216,12 @@
         <translation>Выделить всё</translation>
     </message>
     <message>
-        <source>Unckeck all</source>
-        <translation>Снять выделение</translation>
-    </message>
-    <message>
         <source>Invert checks</source>
         <translation>Инвертировать выделение</translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation>Снять выделение</translation>
     </message>
 </context>
 <context>

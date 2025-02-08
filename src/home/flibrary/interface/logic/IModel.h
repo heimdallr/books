@@ -6,7 +6,7 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary {
 
-class ILanguageModel // NOLINT(cppcoreguidelines-special-member-functions)
+class IModel // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	struct Role
@@ -20,8 +20,16 @@ public:
 	};
 
 public:
-	virtual ~ILanguageModel() = default;
+	virtual ~IModel() = default;
 	virtual QAbstractItemModel* GetModel() noexcept = 0;
+};
+
+class ILanguageModel : virtual public IModel
+{
+};
+
+class IGenreModel : virtual public IModel
+{
 };
 
 }
