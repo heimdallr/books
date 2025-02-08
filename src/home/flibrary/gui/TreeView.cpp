@@ -27,6 +27,7 @@
 
 #include "util/ColorUtil.h"
 #include "util/ISettings.h"
+#include "util/localization.h"
 
 #include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
@@ -669,7 +670,9 @@ private:
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
-		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu())->exec(m_ui.treeView->header()->mapToGlobal(pos));
+		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
+		contextMenu->setFont(m_self.font());
+		contextMenu->exec(m_ui.treeView->header()->mapToGlobal(pos));
 	}
 
 	std::shared_ptr<QMenu> GetHeaderContextMenu()
@@ -711,12 +714,28 @@ private:
 		auto * menuGroup = new QActionGroup(m_languageContextMenu.get());
 
 		languages.push_front("");
-		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
-			languages.push_front(std::move(recentLanguage));
+		auto sortBeginIndex = 1;
 
-		for (const auto & language : languages)
+		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
 		{
-			auto * action = m_languageContextMenu->addAction(language, &m_self, [&, language]
+			languages.push_front(recentLanguage);
+			sortBeginIndex = 2;
+		}
+
+		std::vector<std::pair<QString, QString>> languageTranslated;
+		languageTranslated.reserve(languages.size());
+		std::ranges::transform(std::move(languages), std::back_inserter(languageTranslated), [translations = std::unordered_map<QString, const char*>{ std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](auto&& language)
+			{
+				const auto it = translations.find(language);
+				auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
+				return std::make_pair(std::move(language), std::move(translated));
+			});
+		std::ranges::sort(languageTranslated | std::views::drop(sortBeginIndex), {}, [](const auto& item) { return item.second; });
+
+
+		for (const auto & [language, translated] : languageTranslated)
+		{
+			auto * action = m_languageContextMenu->addAction(translated, &m_self, [&, language]
 			{
 				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
 				OnCountChanged();
