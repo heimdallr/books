@@ -4,6 +4,16 @@
 
 namespace HomeCompa::Util {
 
+template<typename T>
+static bool Set(T & dst, T value)
+{
+	if (dst == value)
+		return false;
+
+	dst = std::move(value);
+	return true;
+}
+
 template
 	< typename T
 	, typename Obj
@@ -11,12 +21,12 @@ template
 	>
 static bool Set(T & dst, T value, Obj & obj, const Signal signal = nullptr)
 {
-	if (dst == value)
+	if (!Set<T>(dst, std::move(value)))
 		return false;
 
-	dst = std::move(value);
 	if (signal)
 		(obj.*signal)();
+
 	return true;
 }
 
@@ -27,12 +37,12 @@ template
 	>
 static bool Set(T & dst, T value, const Obj & obj, const Signal signal = nullptr)
 {
-	if (dst == value)
+	if (!Set<T>(dst, std::move(value)))
 		return false;
 
-	dst = std::move(value);
 	if (signal)
 		(obj.*signal)();
+
 	return true;
 }
 
@@ -40,6 +50,7 @@ static bool Set(T & dst, T value, const Obj & obj, const Signal signal = nullptr
 template <typename InputIterator, typename Value = typename std::iterator_traits<InputIterator>::value_type>
 std::vector<std::pair<Value, Value>> CreateRanges(InputIterator begin, InputIterator end)
 {
+	assert(std::is_sorted(begin, end));
 	if (begin == end)
 		return {};
 

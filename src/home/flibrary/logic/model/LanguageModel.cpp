@@ -3,6 +3,8 @@
 #include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
 
+#include "fnd/algorithm.h"
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
@@ -14,6 +16,8 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
+using Role = ILanguageModel::Role;
 
 constexpr auto CONTEXT = "LanguageModel";
 
@@ -107,16 +111,50 @@ private: // QAbstractItemModel
 
 	bool setData(const QModelIndex& index, const QVariant& value, [[maybe_unused]] const int role) override
 	{
-		assert(index.isValid() && role == Qt::CheckStateRole);
-		auto& item = m_items[index.row()];
-		item.checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
-		return true;
+		if (index.isValid())
+		{
+			assert(role == Qt::CheckStateRole);
+			auto& item = m_items[index.row()];
+			item.checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
+			return true;
+		}
+
+		switch (role)
+		{
+		case Role::CheckAll:
+			return SetChecks([](const auto&) {return true; });
+		case Role::UncheckAll:
+			return SetChecks([](const auto&) {return false; });
+		case Role::RevertChecks:
+			return SetChecks([](const auto& item) {return !item.checked; });
+		default:
+			break;
+		}
+
+		return assert(false && "unexpected role"), false;
 	}
 
 	Qt::ItemFlags flags(const QModelIndex& index) const override
 	{
 		auto flags = QAbstractTableModel::flags(index);
 		return index.column() == 0 ? flags |= Qt::ItemIsUserCheckable : flags &= ~Qt::ItemIsUserCheckable;
+	}
+
+private:
+	bool SetChecks(const std::function<bool(const Item&)>& f)
+	{
+		std::vector<int> indices;
+		std::ranges::for_each(m_items, [&, n = 0](Item& item) mutable
+			{
+				if (Util::Set(item.checked, f(item)))
+					indices.emplace_back(n);
+				++n;
+			});
+
+		for (const auto [begin, end] : Util::CreateRanges(indices))
+			emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
+
+		return !indices.empty();
 	}
 
 private:

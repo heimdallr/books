@@ -124,6 +124,9 @@
        </item>
        <item>
         <widget class="QTableView" name="languages">
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+         </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
@@ -153,6 +156,38 @@
     </widget>
    </item>
   </layout>
+  <action name="actionLanguageReadRandomBook">
+   <property name="text">
+    <string>Read random book</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLanguageCheckAll">
+   <property name="text">
+    <string>Check all</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLanguageUnckeckAll">
+   <property name="text">
+    <string>Unckeck all</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLanguageInvertChecks">
+   <property name="text">
+    <string>Invert checks</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
