@@ -28,4 +28,8 @@ class ILanguageModel : virtual public IModel
 {
 };
 
+class IGenreModel : virtual public IModel
+{
+};
+
 }

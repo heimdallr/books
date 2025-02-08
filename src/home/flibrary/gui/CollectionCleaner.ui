@@ -89,9 +89,15 @@
        </item>
        <item>
         <widget class="QTreeView" name="genres">
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+         </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
+         <attribute name="headerVisible">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -172,15 +178,39 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionLanguageUnckeckAll">
+  <action name="actionLanguageUncheckAll">
    <property name="text">
-    <string>Unckeck all</string>
+    <string>Uncheck all</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionLanguageInvertChecks">
+   <property name="text">
+    <string>Invert checks</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreCheckAll">
+   <property name="text">
+    <string>Check all</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreUncheckAll">
+   <property name="text">
+    <string>Uncheck all</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreInvertChecks">
    <property name="text">
     <string>Invert checks</string>
    </property>
