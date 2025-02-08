@@ -4,12 +4,10 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Create new</source>
         <translation>Создать новую</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
@@ -46,17 +44,14 @@
         <translation>Папка с архивами книг коллекции</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
@@ -88,72 +83,58 @@
 <context>
     <name>Annotation</name>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Select image file name</source>
         <translation>Укажите имя файла</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)</source>
         <translation>Jpeg изображения (*.jpg *.jpeg);;PNG изображения (*.png);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Save &amp;all images (%1)...</source>
         <translation>Сохранить &amp;все изображения (%1)...</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>All %1 images were successfully saved</source>
         <translation>Все %1 изображения успешно сохранены</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>%1 out of %2 images were saved</source>
         <translation>Были сохранены %1 изображения из %2</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>%1 images out of %2 could not be saved</source>
         <translation>%1 изображений из %2 сохранить не удалось</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Cannot save image to %1</source>
         <translation>Не удалось сохранить изображение в %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Cannot open %1</source>
         <translation>Не удалось открыть %1</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Read</source>
         <translation>Чтение</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>AsIs</source>
         <translation>Как есть</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Archive</source>
         <translation>В архиве</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Script</source>
         <translation>Скрипт</translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.cpp"/>
         <source>Inpx</source>
         <translation>Inpx</translation>
     </message>
@@ -174,19 +155,47 @@
     </message>
 </context>
 <context>
+    <name>CollectionCleaner</name>
+    <message>
+        <source>Match full</source>
+        <translation>Полное совпадение</translation>
+    </message>
+    <message>
+        <source>Match partial</source>
+        <translation>Частичное совпадение</translation>
+    </message>
+    <message>
+        <source>Collection Cleaner</source>
+        <translation>Очистка коллекции</translation>
+    </message>
+    <message>
+        <source>Delete books by genre</source>
+        <translation>Удалить книги указанных жанров</translation>
+    </message>
+    <message>
+        <source>Delete books by language</source>
+        <translation>Удалить книги на указанных языках</translation>
+    </message>
+    <message>
+        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
+        <translation>Осторожо! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
+    </message>
+    <message>
+        <source>Find and remove duplicate books</source>
+        <translation>Найти и удалить дубликаты книг</translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
-        <location filename="../../UiFactory.cpp"/>
         <source>About FLibrary</source>
         <translation>О FLibrary</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
         <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../../UiFactory.cpp"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненты / Библиотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
@@ -194,57 +203,46 @@
 <context>
     <name>Error</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Name cannot be empty</source>
         <translation>Имя не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Database file name cannot be empty</source>
         <translation>Имя файла базы данных не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Bad database file extension (.inpx)</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Same named collection has already been added</source>
         <translation>Коллекция с таким именем уже добавлена</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder name cannot be empty</source>
         <translation>Путь к архивам не может быть пустым</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder not found</source>
         <translation>Папка с архивами не найдена</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Index file (*.inpx) not found</source>
         <translation>Индексный файл (*.inpx) не найден</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Cannot create database folder %1</source>
         <translation>Не удалось создать папку %1</translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>
     </message>
@@ -332,17 +330,14 @@
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp"/>
         <source>Select font</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp"/>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Уверены, что хотите вернуться к настройкам по умолчанию?</translation>
     </message>
     <message>
-        <location filename="../../MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
@@ -474,26 +469,26 @@
         <source>Deny destructive operations</source>
         <translation>Запретить деструктивные операции</translation>
     </message>
+    <message>
+        <source>Cleaner...</source>
+        <translation>Очистка...</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
     <message>
-        <location filename="../../Measure.cpp"/>
         <source>%1 Gb</source>
         <translation>%1 Гб</translation>
     </message>
     <message>
-        <location filename="../../Measure.cpp"/>
         <source>%1 Mb</source>
         <translation>%1 Мб</translation>
     </message>
     <message>
-        <location filename="../../Measure.cpp"/>
         <source>%1 Kb</source>
         <translation>%1 Кб</translation>
     </message>
     <message>
-        <location filename="../../Measure.cpp"/>
         <source>%1 b</source>
         <translation>%1 б</translation>
     </message>
@@ -537,7 +532,6 @@
         <translation>Копировать адрес в буфер обмена</translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.cpp"/>
         <source>OPDS server address has been copied to the clipboard</source>
         <translation>Адрес сервера OPDS скопирован в буфер обмена</translation>
     </message>
@@ -545,12 +539,10 @@
 <context>
     <name>OpenFileDialogDelegateEditor</name>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp"/>
         <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
         <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../delegate/OpenFileDialogDelegateEditor.cpp"/>
         <source>Select Application</source>
         <translation>Выберите приложение</translation>
     </message>
@@ -600,12 +592,10 @@
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../ModeComboBox.h"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../ModeComboBox.h"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

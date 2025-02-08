@@ -9,8 +9,10 @@
 #include "fnd/FindPair.h"
 
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILanguageModel.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
@@ -26,6 +28,7 @@
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
+#include "CollectionCleaner.h"
 #include "ItemViewToolTipper.h"
 #include "TreeView.h"
 
@@ -84,14 +87,14 @@ UiFactory::~UiFactory()
 	PLOGD << "UiFactory destroyed";
 }
 
-QObject * UiFactory::GetParentObject() const noexcept
+QObject * UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject();
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject(defaultObject);
 }
 
-QWidget * UiFactory::GetParentWidget() const noexcept
+QWidget * UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget();
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
 }
 
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
@@ -132,6 +135,11 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 {
 	m_impl->title = std::move(title);
 	return m_impl->container.resolve<IComboBoxTextDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateCollectionCleaner() const
+{
+	return m_impl->container.resolve<CollectionCleaner>();
 }
 
 void UiFactory::ShowAbout() const

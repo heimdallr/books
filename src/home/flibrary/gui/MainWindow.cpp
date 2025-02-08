@@ -234,6 +234,7 @@ private:
 	void AllowDestructiveOperation(const bool value)
 	{
 		m_collectionController->AllowDestructiveOperation(value);
+		m_ui.actionShowCollectionCleaner->setEnabled(value);
 	}
 
 	void ConnectActions()
@@ -368,6 +369,8 @@ private:
 		{
 			m_settings->Set(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, checked);
 		});
+
+		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [&] {m_uiFactory->CreateCollectionCleaner()->exec(); });
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
