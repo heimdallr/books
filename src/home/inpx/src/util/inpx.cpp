@@ -9,6 +9,10 @@
 
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QRegularExpression>
 
 #include <plog/Log.h>
@@ -829,6 +833,7 @@ public:
 		, m_callback(std::move(callback))
 		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async))
 	{
+		ReadLangMapping();
 	}
 
 	~Impl()
@@ -946,6 +951,31 @@ private: // IPool
 	}
 
 private:
+	void ReadLangMapping()
+	{
+		const auto langMappingFile = m_ini(LANGUAGES_MAPPING);
+		QFile file(langMappingFile);
+		if (!file.open(QIODevice::ReadOnly))
+			return;
+
+		QJsonParseError error;
+		const auto jDocument = QJsonDocument::fromJson(file.readAll(), &error);
+		if (error.error != QJsonParseError::NoError)
+		{
+			PLOGE << error.errorString();
+			return;
+		}
+
+		const auto jObject = jDocument.object();
+		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
+		{
+			const auto lang = langIt.key().toStdWString();
+			assert(langIt.value().isArray());
+			for (const auto& key : langIt.value().toArray())
+				m_langMap.try_emplace(key.toString().toStdWString(), lang);
+		}
+	}
+
 	void ProcessImpl()
 	{
 		Util::Timer t(L"work");
@@ -1288,7 +1318,7 @@ private:
 		if (idFolder == 0)
 			idFolder = GetId();
 
-		m_data.books.emplace_back(id
+		auto & book = m_data.books.emplace_back(id
 			, buf.LIBID
 			, buf.TITLE
 			, Add<int, -1>(buf.SERIES, m_data.series)
@@ -1302,6 +1332,9 @@ private:
 			, To<size_t>(buf.SIZE)
 			, To<bool>(buf.DEL, false)
 		);
+
+		if (const auto it = m_langMap.find(book.language); it != m_langMap.end())
+			book.language = it->second;
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 	}
@@ -1337,6 +1370,7 @@ private:
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
+	std::unordered_map<std::wstring, std::wstring> m_langMap;
 	std::unordered_map<std::wstring, std::unordered_set<std::wstring, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	std::atomic_bool m_updatable { true };
 

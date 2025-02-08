@@ -72,6 +72,7 @@ IniMapPair GetIniMap(const QString & db, const QString & inpxFolder, bool create
 		{ GENRES, getFile(QString::fromStdWString(DEFAULT_GENRES)).toStdWString() },
 		{ DB_CREATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT)).toStdWString() },
 		{ DB_UPDATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT)).toStdWString() },
+		{ LANGUAGES_MAPPING, getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING)).toStdWString() },
 		{ INPX_FOLDER, inpxFolder.toStdWString() },
 	};
 
