@@ -48,10 +48,10 @@ bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& t
 		, n = size_t{ 0 }
 	](const bool init, const auto& book) mutable
 		{
-			auto res = std::accumulate(commands.begin(), commands.end(), true, [&](const bool init, const auto& command)
+			auto res = std::accumulate(commands.begin(), commands.end(), true, [&](const bool initAccumulate, const auto& command)
 				{
 					command->Bind(0, book.id);
-					return command->Execute() && init;
+					return command->Execute() && initAccumulate;
 				});
 
 			currentPct = 100 * n / total;
@@ -76,9 +76,9 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
 using AllFiles = std::unordered_map<QString, AllFilesItem>;
 
-AllFiles CollectBookFiles(ICollectionCleaner::Books&& books
-	, std::shared_ptr<const ILogicFactory> logicFactory
-	, std::shared_ptr<IProgressController> progressController
+AllFiles CollectBookFiles(ICollectionCleaner::Books& books
+	, const ILogicFactory& logicFactory
+	, const std::shared_ptr<IProgressController>& progressController
 )
 {
 	AllFiles result;
@@ -88,7 +88,7 @@ AllFiles CollectBookFiles(ICollectionCleaner::Books&& books
 		auto& [files, progress] = it->second;
 		files.emplace_back(std::move(file));
 		if (ok)
-			progress = logicFactory->CreateZipProgressCallback(progressController);
+			progress = logicFactory.CreateZipProgressCallback(progressController);
 	}
 	return result;
 }
@@ -98,10 +98,10 @@ auto GetFolderPath(const QString& collectionFolder, const QString& name)
 	return QString("%1/%2").arg(collectionFolder, name);
 };
 
-AllFiles CollectiImageFiles(const AllFiles& bookFiles
+AllFiles CollectImageFiles(const AllFiles& bookFiles
 	, const QString& collectionFolder
-	, std::shared_ptr<const ILogicFactory> logicFactory
-	, std::shared_ptr<IProgressController> progressController
+	, const ILogicFactory& logicFactory
+	, const std::shared_ptr<IProgressController>& progressController
 )
 {
 	static constexpr std::pair<const char*, const char*> imageTypes[]
@@ -122,10 +122,9 @@ AllFiles CollectiImageFiles(const AllFiles& bookFiles
 				auto& [files, progress] = result[imageFolderName];
 				std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file)
 					{
-						const QFileInfo fileInfo(file);
-						return fileInfo.completeBaseName() + replacedExt;
+						return QFileInfo(file).completeBaseName() + replacedExt;
 					});
-				progress = logicFactory->CreateZipProgressCallback(progressController);
+				progress = logicFactory.CreateZipProgressCallback(progressController);
 			}
 		}
 	}
@@ -133,7 +132,7 @@ AllFiles CollectiImageFiles(const AllFiles& bookFiles
 	return result;
 }
 
-void RemoveFiles(const AllFiles& allFiles
+void RemoveFiles(AllFiles& allFiles
 	, const QString& collectionFolder
 )
 {
@@ -161,6 +160,50 @@ struct CollectionCleaner::Impl
 	std::shared_ptr<const IDatabaseUser> databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IBooksExtractorProgressController> progressController;
+	bool analyzeCanceled{ false };
+
+	void Analyze(IAnalyzeObserver& observer) const
+	{
+		databaseUser->Execute({ "Analyze", [&]
+		{
+			std::function result{[&](size_t) { observer.AnalyzeFinished({}); } };
+			return result;
+		} });
+	}
+
+	void AnalyzeCancel()
+	{
+		analyzeCanceled = true;
+		progressController->Stop();
+	}
+
+	void Remove(Books books, Callback callback) const
+	{
+		databaseUser->Execute({ "Delete books permanently", [this
+			, books = std::move(books)
+			, callback = std::move(callback)
+			, collectionFolder = collectionProvider->GetActiveCollection().folder
+		]() mutable
+		{
+			auto progressItem = progressController->Add(100);
+
+			auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+			auto allFiles = CollectBookFiles(books, *logicFactoryPtr, progressController);
+			auto images = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
+
+			std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+			RemoveFiles(allFiles, collectionFolder);
+
+			const auto db = databaseUser->Database();
+			const auto transaction = db->CreateTransaction();
+
+			auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+			ok = CleanupNavigationItems(*transaction) && ok;
+			ok = transaction->Commit() && ok;
+
+			return [callback = std::move(callback), ok](size_t) { callback(ok); };
+		} });
+	}
 };
 
 CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory
@@ -168,41 +211,29 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>&
 	, std::shared_ptr<const ICollectionProvider> collectionProvider
 	, std::shared_ptr<IBooksExtractorProgressController> progressController
 )
-	: m_impl
-		{ logicFactory
+	: m_impl{ std::make_unique<Impl>
+		( logicFactory
 		, std::move(databaseUser)
 		, std::move(collectionProvider)
 		, std::move(progressController)
-		}
+		)
+	}
 {
 }
 
 CollectionCleaner::~CollectionCleaner() = default;
 
-void CollectionCleaner::Remove(Books books, Callback callback)
+void CollectionCleaner::Remove(Books books, Callback callback) const
 {
-	m_impl->databaseUser->Execute({ "Delete books permanently", [this
-		, books = std::move(books)
-		, callback = std::move(callback)
-		, collectionFolder = m_impl->collectionProvider->GetActiveCollection().folder
-	]() mutable
-	{
-		auto progressItem = m_impl->progressController->Add(100);
+	m_impl->Remove(std::move(books), std::move(callback));
+}
 
-		auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
-		auto allFiles = CollectBookFiles(std::move(books), logicFactory, m_impl->progressController);
-		auto images = CollectiImageFiles(allFiles, collectionFolder, logicFactory, m_impl->progressController);
+void CollectionCleaner::Analyze(IAnalyzeObserver& observer) const
+{
+	m_impl->Analyze(observer);
+}
 
-		std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-		RemoveFiles(allFiles, collectionFolder);
-
-		const auto db = m_impl->databaseUser->Database();
-		const auto transaction = db->CreateTransaction();
-
-		auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
-		ok = CleanupNavigationItems(*transaction) && ok;
-		ok = transaction->Commit() && ok;
-
-		return [callback = std::move(callback), ok](size_t) { callback(ok); };
-	} });
+void CollectionCleaner::AnalyzeCancel() const
+{
+	m_impl->AnalyzeCancel();
 }

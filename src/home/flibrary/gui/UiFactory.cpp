@@ -8,6 +8,7 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModel.h"

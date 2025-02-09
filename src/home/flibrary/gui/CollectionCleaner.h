@@ -18,18 +18,21 @@ namespace HomeCompa::Flibrary {
 
 class CollectionCleaner final : public QDialog
 {
+	NON_COPY_MOVABLE(CollectionCleaner)
+
 public:
 	CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiFactory
 		, std::shared_ptr<const class IReaderController> readerController
+		, std::shared_ptr<const class ICollectionCleaner> collectionCleaner
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<class IGenreModel> genreModel
 		, std::shared_ptr<class ILanguageModel> languageModel
 		, QWidget *parent = nullptr
 	);
-	~CollectionCleaner();
+	~CollectionCleaner() override;
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
