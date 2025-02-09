@@ -302,8 +302,6 @@ private: // IContextMenuHandler
 			if (result)
 				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 			callback(item);
-			if (result)
-				m_dataProvider->RequestBooks(true);
 		});
 	}
 
