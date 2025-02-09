@@ -271,6 +271,8 @@ struct CollectionCleaner::Impl
 			auto analysedBooks = GetAnalysedBooks(*db, observer, !genres.isEmpty(), analyzeCanceled);
 
 			std::unordered_set<long long> toDelete;
+			if (observer.NeedDeleteMarkedAsDeleted())
+				std::ranges::transform(analysedBooks | std::views::filter([](const auto& item) { return item.second.deleted; }), std::inserter(toDelete, toDelete.end()), [](const auto& item) { return item.first; });
 
 			Books books;
 			books.reserve(toDelete.size());
