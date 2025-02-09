@@ -271,9 +271,17 @@ struct CollectionCleaner::Impl
 			auto analysedBooks = GetAnalysedBooks(*db, observer, !genres.isEmpty(), analyzeCanceled);
 
 			std::unordered_set<long long> toDelete;
-			if (observer.NeedDeleteMarkedAsDeleted())
-				std::ranges::transform(analysedBooks | std::views::filter([](const auto& item) { return item.second.deleted; }), std::inserter(toDelete, toDelete.end()), [](const auto& item) { return item.first; });
 
+			const auto addToDelete = [&](const auto filter)
+			{
+				std::ranges::transform(analysedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) { return item.first; });
+			};
+
+			if (observer.NeedDeleteMarkedAsDeleted())
+				addToDelete([](const auto& item) { return item.second.deleted; });
+			if (!languages.isEmpty())
+				addToDelete([languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) { return languages.contains(item.second.lang); });
+			
 			Books books;
 			books.reserve(toDelete.size());
 			std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id)
