@@ -6,6 +6,8 @@
 
 #include "common/Constant.h"
 
+#include "fnd/algorithm.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
@@ -281,6 +283,22 @@ struct CollectionCleaner::Impl
 				addToDelete([](const auto& item) { return item.second.deleted; });
 			if (!languages.isEmpty())
 				addToDelete([languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) { return languages.contains(item.second.lang); });
+			if (!genres.isEmpty())
+			{
+				const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
+				switch(observer.GetCleanGenreMode())
+				{
+					case CleanGenreMode::Full:
+						addToDelete([&](const auto& item) { return std::ranges::includes(item.second.genres, indexedGenres); });
+						break;
+					case CleanGenreMode::Partial:
+						addToDelete([&](const auto& item) { return Util::Intersect(item.second.genres, indexedGenres); });
+						break;
+					default:  // NOLINT(clang-diagnostic-covered-switch-default)
+						assert(false && "unexpected mode");
+						break;
+				}
+			}
 			
 			Books books;
 			books.reserve(toDelete.size());
