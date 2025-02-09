@@ -14,12 +14,12 @@ using namespace Util;
 Dialog::Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider)
 	: m_parentProvider(std::move(parentProvider))
 {
-	PLOGD << "Dialog created";
+	PLOGV << "Dialog created";
 }
 
 Dialog::~Dialog()
 {
-	PLOGD << "Dialog destroyed";
+	PLOGV << "Dialog destroyed";
 }
 
 QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QString & title, const QString & text, const QMessageBox::StandardButtons & buttons, const QMessageBox::StandardButton defaultButton) const

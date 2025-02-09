@@ -104,12 +104,12 @@ struct ProgressController::Impl final
 
 ProgressController::ProgressController()
 {
-	PLOGD << "ProgressController created";
+	PLOGV << "ProgressController created";
 }
 
 ProgressController::~ProgressController()
 {
-	PLOGD << "ProgressController destroyed";
+	PLOGV << "ProgressController destroyed";
 }
 
 bool ProgressController::IsStarted() const noexcept

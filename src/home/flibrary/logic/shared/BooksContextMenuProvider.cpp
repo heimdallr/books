@@ -594,12 +594,12 @@ BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const I
 		, std::move(scriptController)
 	)
 {
-	PLOGD << "BooksContextMenuProvider created";
+	PLOGV << "BooksContextMenuProvider created";
 }
 
 BooksContextMenuProvider::~BooksContextMenuProvider()
 {
-	PLOGD << "BooksContextMenuProvider destroyed";
+	PLOGV << "BooksContextMenuProvider destroyed";
 }
 
 void BooksContextMenuProvider::Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)

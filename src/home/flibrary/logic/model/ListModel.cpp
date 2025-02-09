@@ -14,12 +14,12 @@ AbstractListModel::AbstractListModel(const std::shared_ptr<IModelProvider> & mod
 ListModel::ListModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: AbstractListModel(modelProvider, parent)
 {
-	PLOGD << "ListModel created";
+	PLOGV << "ListModel created";
 }
 
 ListModel::~ListModel()
 {
-	PLOGD << "ListModel destroyed";
+	PLOGV << "ListModel destroyed";
 }
 
 QModelIndex ListModel::index(const int row, const int column, const QModelIndex & parent) const

@@ -188,12 +188,12 @@ DataProvider::DataProvider(std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor))
 {
-	PLOGD << "DataProvider created";
+	PLOGV << "DataProvider created";
 }
 
 DataProvider::~DataProvider()
 {
-	PLOGD << "DataProvider destroyed";
+	PLOGV << "DataProvider destroyed";
 }
 
 void DataProvider::SetNavigationMode(const NavigationMode navigationMode)

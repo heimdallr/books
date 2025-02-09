@@ -66,13 +66,13 @@ struct OpdsController::Impl : Observable<IObserver>
 OpdsController::OpdsController()
 	: m_impl(*this)
 {
-	PLOGD << "OpdsController created";
+	PLOGV << "OpdsController created";
 	m_impl->socket.connectToServer(Constant::OPDS_SERVER_NAME);
 }
 
 OpdsController::~OpdsController()
 {
-	PLOGD << "OpdsController destroyed";
+	PLOGV << "OpdsController destroyed";
 }
 
 bool OpdsController::IsRunning() const

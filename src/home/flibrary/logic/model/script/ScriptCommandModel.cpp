@@ -186,12 +186,12 @@ ScriptCommandModel::ScriptCommandModel(const std::shared_ptr<IScriptControllerPr
 {
 	QSortFilterProxyModel::setSourceModel(m_source.get());
 
-	PLOGD << "ScriptCommandModel created";
+	PLOGV << "ScriptCommandModel created";
 }
 
 ScriptCommandModel::~ScriptCommandModel()
 {
-	PLOGD << "ScriptCommandModel destroyed";
+	PLOGV << "ScriptCommandModel destroyed";
 }
 
 bool ScriptCommandModel::setData(const QModelIndex & index, const QVariant & value, const int role)

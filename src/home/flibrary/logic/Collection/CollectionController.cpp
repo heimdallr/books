@@ -352,12 +352,12 @@ CollectionController::CollectionController(std::shared_ptr<ICollectionProvider> 
 		, taskQueue
 	)
 {
-	PLOGD << "CollectionController created";
+	PLOGV << "CollectionController created";
 }
 
 CollectionController::~CollectionController()
 {
-	PLOGD << "CollectionController destroyed";
+	PLOGV << "CollectionController destroyed";
 }
 
 void CollectionController::AddCollection(const std::filesystem::path & inpxDir)

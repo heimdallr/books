@@ -70,10 +70,10 @@ ProgressBar::ProgressBar(std::shared_ptr<IBooksExtractorProgressController> prog
 	: QWidget(parent)
 	, m_impl(*this, std::move(progressController))
 {
-	PLOGD << "ProgressBar created";
+	PLOGV << "ProgressBar created";
 }
 
 ProgressBar::~ProgressBar()
 {
-	PLOGD << "ProgressBar destroyed";
+	PLOGV << "ProgressBar destroyed";
 }

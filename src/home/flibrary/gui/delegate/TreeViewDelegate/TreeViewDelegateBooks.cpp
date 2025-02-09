@@ -114,12 +114,12 @@ private:
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory)
 	: m_impl(*uiFactory)
 {
-	PLOGD << "TreeViewDelegateBooks created";
+	PLOGV << "TreeViewDelegateBooks created";
 }
 
 TreeViewDelegateBooks::~TreeViewDelegateBooks()
 {
-	PLOGD << "TreeViewDelegateBooks destroyed";
+	PLOGV << "TreeViewDelegateBooks destroyed";
 }
 
 QAbstractItemDelegate * TreeViewDelegateBooks::GetDelegate() noexcept

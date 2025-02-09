@@ -598,12 +598,12 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::move(databaseChecker)
 	)
 {
-	PLOGD << "MainWindow created";
+	PLOGV << "MainWindow created";
 }
 
 MainWindow::~MainWindow()
 {
-	PLOGD << "MainWindow destroyed";
+	PLOGV << "MainWindow destroyed";
 }
 
 void MainWindow::Show()

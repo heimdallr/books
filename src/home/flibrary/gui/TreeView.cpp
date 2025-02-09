@@ -839,12 +839,12 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings
 		, std::move(collectionProvider)
 	)
 {
-	PLOGD << "TreeView created";
+	PLOGV << "TreeView created";
 }
 
 TreeView::~TreeView()
 {
-	PLOGD << "TreeView destroyed";
+	PLOGV << "TreeView destroyed";
 }
 
 void TreeView::SetNavigationModeName(QString navigationModeName)

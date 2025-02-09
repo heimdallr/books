@@ -34,11 +34,11 @@ struct ZipProgressCallback::Impl
 ZipProgressCallback::ZipProgressCallback(const std::shared_ptr<const ILogicFactory> & logicFactory)
 	: m_impl(logicFactory->GetProgressController())
 {
-	PLOGD << "ZipProgressCallback created";
+	PLOGV << "ZipProgressCallback created";
 }
 ZipProgressCallback::~ZipProgressCallback()
 {
-	PLOGD << "ZipProgressCallback destroyed";
+	PLOGV << "ZipProgressCallback destroyed";
 }
 
 void ZipProgressCallback::Stop()

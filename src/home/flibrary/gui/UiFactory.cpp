@@ -80,12 +80,12 @@ struct UiFactory::Impl
 UiFactory::UiFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
-	PLOGD << "UiFactory created";
+	PLOGV << "UiFactory created";
 }
 
 UiFactory::~UiFactory()
 {
-	PLOGD << "UiFactory destroyed";
+	PLOGV << "UiFactory destroyed";
 }
 
 QObject * UiFactory::GetParentObject(QObject* defaultObject) const noexcept

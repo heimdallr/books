@@ -22,12 +22,12 @@ ScriptModel::ScriptModel(const std::shared_ptr<IScriptControllerProvider> & scri
 	: QAbstractTableModel(parent)
 	, m_scriptController(scriptControllerProvider->GetScriptController())
 {
-	PLOGD << "ScriptModel created";
+	PLOGV << "ScriptModel created";
 }
 
 ScriptModel::~ScriptModel()
 {
-	PLOGD << "ScriptModel destroyed";
+	PLOGV << "ScriptModel destroyed";
 }
 
 int ScriptModel::columnCount(const QModelIndex & /*parent*/) const

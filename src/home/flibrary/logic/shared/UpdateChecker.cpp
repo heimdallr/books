@@ -326,12 +326,12 @@ UpdateChecker::UpdateChecker(std::shared_ptr<ISettings> settings
 		, std::move(progressController)
 	))
 {
-	PLOGD << "UpdateChecker created";
+	PLOGV << "UpdateChecker created";
 }
 
 UpdateChecker::~UpdateChecker()
 {
-	PLOGD << "UpdateChecker destroyed";
+	PLOGV << "UpdateChecker destroyed";
 }
 
 void UpdateChecker::CheckForUpdate(const bool force, Callback callback)

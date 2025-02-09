@@ -283,12 +283,12 @@ private:
 NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl(std::move(databaseUser))
 {
-	PLOGD << "NavigationQueryExecutor created";
+	PLOGV << "NavigationQueryExecutor created";
 }
 
 NavigationQueryExecutor::~NavigationQueryExecutor()
 {
-	PLOGD << "NavigationQueryExecutor destroyed";
+	PLOGV << "NavigationQueryExecutor destroyed";
 }
 
 void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback) const

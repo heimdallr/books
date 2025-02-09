@@ -220,12 +220,12 @@ private:
 DatabaseController::DatabaseController(std::shared_ptr<ICollectionProvider> collectionProvider)
 	: m_impl(std::move(collectionProvider))
 {
-	PLOGD << "DatabaseController created";
+	PLOGV << "DatabaseController created";
 }
 
 DatabaseController::~DatabaseController()
 {
-	PLOGD << "DatabaseController destroyed";
+	PLOGV << "DatabaseController destroyed";
 }
 
 std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase(const bool readOnly) const

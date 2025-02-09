@@ -241,12 +241,12 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider> & parent
 		, std::move(commandArgLineEditDelegate)
 	)
 {
-	PLOGD << "ScriptDialog created";
+	PLOGV << "ScriptDialog created";
 }
 
 ScriptDialog::~ScriptDialog()
 {
-	PLOGD << "ScriptDialog destroyed";
+	PLOGV << "ScriptDialog destroyed";
 }
 
 int ScriptDialog::Exec()

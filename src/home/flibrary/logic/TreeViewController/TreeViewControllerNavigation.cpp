@@ -355,12 +355,12 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});
 
-	PLOGD << "TreeViewControllerNavigation created";
+	PLOGV << "TreeViewControllerNavigation created";
 }
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
-	PLOGD << "TreeViewControllerNavigation destroyed";
+	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 
 void TreeViewControllerNavigation::RequestNavigation() const

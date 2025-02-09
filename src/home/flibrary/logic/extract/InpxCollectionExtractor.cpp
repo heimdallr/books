@@ -305,12 +305,12 @@ InpxCollectionExtractor::InpxCollectionExtractor(std::shared_ptr<ICollectionCont
 		, logicFactory
 	)
 {
-	PLOGD << "InpxCollectionExtractor created";
+	PLOGV << "InpxCollectionExtractor created";
 }
 
 InpxCollectionExtractor::~InpxCollectionExtractor()
 {
-	PLOGD << "InpxCollectionExtractor destroyed";
+	PLOGV << "InpxCollectionExtractor destroyed";
 }
 
 void InpxCollectionExtractor::ExtractAsInpxCollection(QString folder, const std::vector<QString> & idList, const DataProvider & dataProvider, Callback callback)

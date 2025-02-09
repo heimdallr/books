@@ -88,12 +88,12 @@ DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
 )
 	: m_impl(*logicFactory, std::move(databaseController))
 {
-	PLOGD << "DatabaseUser created";
+	PLOGV << "DatabaseUser created";
 }
 
 DatabaseUser::~DatabaseUser()
 {
-	PLOGD << "DatabaseUser destroyed";
+	PLOGV << "DatabaseUser destroyed";
 }
 
 size_t DatabaseUser::Execute(Util::IExecutor::Task && task, const int priority) const
