@@ -32,12 +32,14 @@ struct AnalyzedBook
 	QString file;
 	QString lang;
 	bool deleted;
+	QString date;
+	QString title;
 	std::set<QString> genres;
 	std::set<long long> authors;
 };
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
-constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), %1, %3 
+constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
 	left join Books_User bu on bu.BookID = b.BookID)";
@@ -237,16 +239,51 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db
 			it->second.file = query->Get<const char*>(2);
 			it->second.lang = query->Get<const char*>(3);
 			it->second.deleted = query->Get<int>(4);
+			it->second.date = query->Get<const char*>(5);
+			it->second.title = QString(query->Get<const char*>(6)).toLower();
 		}
 
-		if (QString genre = query->Get<const char*>(5); !addDateGenres.contains(genre))
+		if (QString genre = query->Get<const char*>(7); !addDateGenres.contains(genre))
 			it->second.genres.emplace(std::move(genre));
-		it->second.authors.emplace(query->Get<long long>(6));
+		it->second.authors.emplace(query->Get<long long>(8));
 		if (analyzeCanceled)
 			break;
 	}
 
 	return analyzedBooks;
+}
+
+void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<long long>& toDelete)
+{
+	std::unordered_map<QString, std::multimap<QString, long long, std::greater<>>> duplicates;
+	for (const auto& [id, book] : analysedBooks)
+		if (!toDelete.contains(id))
+			duplicates[book.title].emplace(book.date, id);
+
+	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) { return item.size() > 1; }))
+	{
+		while (!dup.empty())
+		{
+			const auto id = dup.begin()->second;
+			dup.erase(dup.begin());
+			const auto itOrigin = analysedBooks.find(id);
+			assert(itOrigin != analysedBooks.end());
+
+			for (auto iit = dup.begin(); iit != dup.end(); )
+			{
+				const auto itCopy = analysedBooks.find(iit->second);
+				assert(itCopy != analysedBooks.end());
+				if (!Util::Intersect(itCopy->second.authors, itOrigin->second.authors))
+				{
+					++iit;
+					continue;
+				}
+
+				toDelete.emplace(iit->second);
+				iit = dup.erase(iit);
+			}
+		}
+	}
 }
 
 }
@@ -281,8 +318,10 @@ struct CollectionCleaner::Impl
 
 			if (observer.NeedDeleteMarkedAsDeleted())
 				addToDelete([](const auto& item) { return item.second.deleted; });
+
 			if (!languages.isEmpty())
 				addToDelete([languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) { return languages.contains(item.second.lang); });
+
 			if (!genres.isEmpty())
 			{
 				const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
@@ -299,6 +338,9 @@ struct CollectionCleaner::Impl
 						break;
 				}
 			}
+
+			if (observer.NeedDeleteDuplicates())
+				RemoveDuplicates(analysedBooks, toDelete);
 			
 			Books books;
 			books.reserve(toDelete.size());
