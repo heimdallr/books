@@ -29,7 +29,7 @@ std::vector<std::unique_ptr<DB::ICommand>> CreateCommands(Value (&commandTexts)[
 	return commands;
 }
 
-bool RemoveBooksImpl(ICollectionCleaner::Books books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
 	constexpr const char* commandTexts[]
 	{
@@ -73,6 +73,85 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 	const auto commands = CreateCommands(commandTexts, transaction);
 	return std::accumulate(commands.begin(), commands.end(), true, [&](const bool init, const auto& command) { return command->Execute() && init; });
 }
+using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
+using AllFiles = std::unordered_map<QString, AllFilesItem>;
+
+AllFiles CollectBookFiles(ICollectionCleaner::Books&& books
+	, std::shared_ptr<const ILogicFactory> logicFactory
+	, std::shared_ptr<IProgressController> progressController
+)
+{
+	AllFiles result;
+	for (auto&& [id, folder, file] : books)
+	{
+		auto [it, ok] = result.try_emplace(std::move(folder), AllFilesItem{});
+		auto& [files, progress] = it->second;
+		files.emplace_back(std::move(file));
+		if (ok)
+			progress = logicFactory->CreateZipProgressCallback(progressController);
+	}
+	return result;
+}
+
+auto GetFolderPath(const QString& collectionFolder, const QString& name)
+{
+	return QString("%1/%2").arg(collectionFolder, name);
+};
+
+AllFiles CollectiImageFiles(const AllFiles& bookFiles
+	, const QString& collectionFolder
+	, std::shared_ptr<const ILogicFactory> logicFactory
+	, std::shared_ptr<IProgressController> progressController
+)
+{
+	static constexpr std::pair<const char*, const char*> imageTypes[]
+	{
+		{ Global::COVERS, "" },
+		{ Global::IMAGES, "/*" },
+	};
+
+	AllFiles result;
+	for (const auto& [folder, archiveItem] : bookFiles)
+	{
+		const QFileInfo fileInfo(folder);
+		for (const auto& [type, replacedExt] : imageTypes)
+		{
+			const auto imageFolderName = QString("%1/%2.zip").arg(type, fileInfo.completeBaseName());
+			if (QFile::exists(GetFolderPath(collectionFolder, imageFolderName)))
+			{
+				auto& [files, progress] = result[imageFolderName];
+				std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file)
+					{
+						const QFileInfo fileInfo(file);
+						return fileInfo.completeBaseName() + replacedExt;
+					});
+				progress = logicFactory->CreateZipProgressCallback(progressController);
+			}
+		}
+	}
+
+	return result;
+}
+
+void RemoveFiles(const AllFiles& allFiles
+	, const QString& collectionFolder
+)
+{
+	for (auto&& [folder, archiveItem] : allFiles)
+	{
+		const auto archive = GetFolderPath(collectionFolder, folder);
+		if ([&]
+			{
+				auto&& [files, progressCallback] = archiveItem;
+					Zip zip(archive, Zip::Format::Auto, true, std::move(progressCallback));
+					zip.Remove(files);
+					return zip.GetFileNameList().isEmpty();
+			}())
+		{
+			QFile::remove(archive);
+		}
+	}
+}
 
 }
 
@@ -108,71 +187,19 @@ void CollectionCleaner::Remove(Books books, Callback callback)
 		, collectionFolder = m_impl->collectionProvider->GetActiveCollection().folder
 	]() mutable
 	{
-		using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
-		std::unordered_map<QString, AllFilesItem> allFiles;
 		auto progressItem = m_impl->progressController->Add(100);
 
-		for (auto&& [id, folder, file] : books)
-		{
-			auto [it, ok] = allFiles.try_emplace(std::move(folder), AllFilesItem{});
-			auto& [files, progress] = it->second;
-			files.emplace_back(std::move(file));
-			if (ok)
-				progress = ILogicFactory::Lock(m_impl->logicFactory)->CreateZipProgressCallback(m_impl->progressController);
-		}
-
-		const auto getFolderPath = [&](const QString& name)
-		{
-			return QString("%1/%2").arg(collectionFolder, name);
-		};
-
-		static constexpr std::pair<const char*, const char*> imageTypes[]
-		{
-			{ Global::COVERS, "" },
-			{ Global::IMAGES, "/*" },
-		};
-
-		decltype(allFiles) images;
-		for (const auto& [folder, archiveItem] : allFiles)
-		{
-			const QFileInfo fileInfo(folder);
-			for (const auto& [type, replacedExt] : imageTypes)
-			{
-				const auto imageFolderName = QString("%1/%2.zip").arg(type, fileInfo.completeBaseName());
-				if (QFile::exists(getFolderPath(imageFolderName)))
-				{
-					auto& [files, progress] = images[imageFolderName];
-					std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file)
-					{
-						const QFileInfo fileInfo(file);
-						return fileInfo.completeBaseName() + replacedExt;
-					});
-					progress = ILogicFactory::Lock(m_impl->logicFactory)->CreateZipProgressCallback(m_impl->progressController);
-				}
-			}
-		}
+		auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
+		auto allFiles = CollectBookFiles(std::move(books), logicFactory, m_impl->progressController);
+		auto images = CollectiImageFiles(allFiles, collectionFolder, logicFactory, m_impl->progressController);
 
 		std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-
-		for (auto&& [folder, archiveItem] : allFiles)
-		{
-			const auto archive = getFolderPath(folder);
-			if ([&]
-				{
-					auto&& [files, progressCallback] = archiveItem;
-					Zip zip(archive, Zip::Format::Auto, true, std::move(progressCallback));
-					zip.Remove(files);
-					return zip.GetFileNameList().isEmpty();
-				}())
-			{
-				QFile::remove(archive);
-			}
-		}
+		RemoveFiles(allFiles, collectionFolder);
 
 		const auto db = m_impl->databaseUser->Database();
 		const auto transaction = db->CreateTransaction();
 
-		auto ok = RemoveBooksImpl(std::move(books), *transaction, std::move(progressItem));
+		auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
 		ok = CleanupNavigationItems(*transaction) && ok;
 		ok = transaction->Commit() && ok;
 
