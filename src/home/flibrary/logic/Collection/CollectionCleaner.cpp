@@ -1,5 +1,7 @@
 #include "CollectionCleaner.h"
 
+#include <ranges>
+
 #include <QFileInfo>
 
 #include "common/Constant.h"
@@ -33,19 +35,15 @@ struct AnalyzedBook
 };
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
-constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(
-select b.BookID, f.FolderTitle, b.FileName||b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), %1, %3 
-from Books b 
-join Folders f on f.FolderID = b.FolderID 
-%2 
-%4 
-left join Books_User bu on bu.BookID = b.BookID 
-)";
+constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), %1, %3 
+	from Books b 
+	join Folders f on f.FolderID = b.FolderID %2 %4 
+	left join Books_User bu on bu.BookID = b.BookID)";
 
 constexpr auto EMPTY_FIELD = "42";
-constexpr auto GENRE_JOIN = "join Genre_List gl on gl.BookID = b.BookID";
+constexpr auto GENRE_JOIN = "\n	join Genre_List gl on gl.BookID = b.BookID";
 constexpr auto GENRE_FIELD = "gl.GenreCode";
-constexpr auto AUTHOR_JOIN = "join Author_List al on al.BookID = b.BookID";
+constexpr auto AUTHOR_JOIN = "\n	join Author_List al on al.BookID = b.BookID";
 constexpr auto AUTHOR_FIELD = "al.AuthorID";
 
 template<typename Value, size_t ArraySize>
@@ -212,6 +210,43 @@ std::unordered_set<QString> GetAddDateGenres(DB::IDatabase& db)
 	return result;
 }
 
+AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db
+	, const ICollectionCleaner::IAnalyzeObserver& observer
+	, const bool hasGenres
+	, const std::atomic_bool& analyzeCanceled
+)
+{
+	const auto addDateGenres = GetAddDateGenres(db);
+
+	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
+		.arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
+		.arg(hasGenres ? GENRE_JOIN : "")
+		.arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
+		.arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+		.toStdString());
+
+	AnalyzedBooks analyzedBooks;
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		auto [it, inserted] = analyzedBooks.try_emplace(query->Get<long long>(0), AnalyzedBook{});
+		if (inserted)
+		{
+			it->second.folder = query->Get<const char*>(1);
+			it->second.file = query->Get<const char*>(2);
+			it->second.lang = query->Get<const char*>(3);
+			it->second.deleted = query->Get<int>(4);
+		}
+
+		if (QString genre = query->Get<const char*>(5); !addDateGenres.contains(genre))
+			it->second.genres.emplace(std::move(genre));
+		it->second.authors.emplace(query->Get<long long>(6));
+		if (analyzeCanceled)
+			break;
+	}
+
+	return analyzedBooks;
+}
+
 }
 
 struct CollectionCleaner::Impl
@@ -233,34 +268,20 @@ struct CollectionCleaner::Impl
 				return result;
 
 			const auto db = databaseUser->Database();
+			auto analysedBooks = GetAnalysedBooks(*db, observer, !genres.isEmpty(), analyzeCanceled);
 
-			const auto addDateGenres = GetAddDateGenres(*db);
+			std::unordered_set<long long> toDelete;
 
-			const auto query = db->CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
-				.arg(genres.isEmpty() ? EMPTY_FIELD : GENRE_FIELD)
-				.arg(genres.isEmpty() ? "" : GENRE_JOIN)
-				.arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
-				.arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN  : "")
-				.toStdString());
-
-			AnalyzedBooks analyzedBooks;
-			for (query->Execute(); !query->Eof(); query->Next())
+			Books books;
+			books.reserve(toDelete.size());
+			std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id)
 			{
-				auto[it, inserted] = analyzedBooks.try_emplace(query->Get<long long>(0), AnalyzedBook{});
-				if (inserted)
-				{
-					it->second.folder = query->Get<const char*>(1);
-					it->second.file = query->Get<const char*>(2);
-					it->second.lang = query->Get<const char*>(3);
-					it->second.deleted = query->Get<int>(4);
-				}
+				const auto it = analysedBooks.find(id);
+				assert(it != analysedBooks.end());
+				return Book{id, std::move(it->second.folder), std::move(it->second.file)};
+			});
 
-				if (QString genre = query->Get<const char*>(5); !addDateGenres.contains(genre))
-					it->second.genres.emplace(std::move(genre));
-				it->second.authors.emplace(query->Get<long long>(6));
-				if (analyzeCanceled)
-					break;
-			}
+			result = [&, books = std::move(books)](size_t) mutable { observer.AnalyzeFinished(std::move(books)); };
 
 			return result;
 		} });
