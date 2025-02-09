@@ -223,6 +223,21 @@
         <source>Uncheck all</source>
         <translation>Снять выделение</translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>No books were found in the collection according to the specified criteria</source>
+        <translation>По указанным критериям в коллекции не найдено ни одной книги</translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите их удалить?</translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Wait. Collection analysis in progress...</source>
+        <translation>Ждите. Идет анализ коллекции...</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>

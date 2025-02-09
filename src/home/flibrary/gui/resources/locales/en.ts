@@ -227,6 +227,21 @@
         <source>Uncheck all</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>No books were found in the collection according to the specified criteria</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Wait. Collection analysis in progress...</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>

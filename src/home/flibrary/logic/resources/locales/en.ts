@@ -221,11 +221,6 @@
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation></translation>
     </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>%1 book(s) deleted permanently</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>Books</name>
