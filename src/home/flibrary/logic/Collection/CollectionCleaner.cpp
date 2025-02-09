@@ -14,11 +14,39 @@
 #include "interface/logic/IProgressController.h"
 
 #include "Zip.h"
+#include "database/interface/IQuery.h"
+#include "inpx/src/util/constant.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
+struct AnalyzedBook
+{
+	QString folder;
+	QString file;
+	QString lang;
+	bool deleted;
+	std::set<QString> genres;
+	std::set<long long> authors;
+};
+using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
+
+constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(
+select b.BookID, f.FolderTitle, b.FileName||b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), %1, %3 
+from Books b 
+join Folders f on f.FolderID = b.FolderID 
+%2 
+%4 
+left join Books_User bu on bu.BookID = b.BookID 
+)";
+
+constexpr auto EMPTY_FIELD = "42";
+constexpr auto GENRE_JOIN = "join Genre_List gl on gl.BookID = b.BookID";
+constexpr auto GENRE_FIELD = "gl.GenreCode";
+constexpr auto AUTHOR_JOIN = "join Author_List al on al.BookID = b.BookID";
+constexpr auto AUTHOR_FIELD = "al.AuthorID";
 
 template<typename Value, size_t ArraySize>
 std::vector<std::unique_ptr<DB::ICommand>> CreateCommands(Value (&commandTexts)[ArraySize], DB::ITransaction& transaction)
@@ -152,6 +180,38 @@ void RemoveFiles(AllFiles& allFiles
 	}
 }
 
+std::unordered_set<QString> GetAddDateGenres(DB::IDatabase& db)
+{
+	std::unordered_set<QString> result;
+	std::unordered_map<QString, std::vector<QString>> genres;
+	std::vector<QString> stack;
+
+	const auto dateAddedCode = QString::fromStdWString(DATE_ADDED_CODE);
+
+	const auto query = db.CreateQuery("select ParentCode, GenreCode, FB2Code from Genres");
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		genres[query->Get<const char*>(0)].emplace_back(query->Get<const char*>(1));
+		if (query->Get<const char*>(2) == dateAddedCode)
+			stack.emplace_back(query->Get<const char*>(1));
+	}
+
+	while (!stack.empty())
+	{
+		auto item = std::move(stack.back());
+		stack.pop_back();
+		const auto it = genres.find(item);
+		if (it == genres.end())
+			continue;
+
+		std::ranges::copy(it->second, std::inserter(result, result.end()));
+		stack.reserve(stack.size() + it->second.size());
+		std::ranges::move(std::move(it->second), std::back_inserter(stack));
+	}
+
+	return result;
+}
+
 }
 
 struct CollectionCleaner::Impl
@@ -160,13 +220,48 @@ struct CollectionCleaner::Impl
 	std::shared_ptr<const IDatabaseUser> databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IBooksExtractorProgressController> progressController;
-	bool analyzeCanceled{ false };
+	std::atomic_bool analyzeCanceled{ false };
 
 	void Analyze(IAnalyzeObserver& observer) const
 	{
 		databaseUser->Execute({ "Analyze", [&]
 		{
 			std::function result{[&](size_t) { observer.AnalyzeFinished({}); } };
+			auto genres = observer.GetGenres();
+			auto languages = observer.GetLanguages();
+			if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted())
+				return result;
+
+			const auto db = databaseUser->Database();
+
+			const auto addDateGenres = GetAddDateGenres(*db);
+
+			const auto query = db->CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
+				.arg(genres.isEmpty() ? EMPTY_FIELD : GENRE_FIELD)
+				.arg(genres.isEmpty() ? "" : GENRE_JOIN)
+				.arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
+				.arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN  : "")
+				.toStdString());
+
+			AnalyzedBooks analyzedBooks;
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto[it, inserted] = analyzedBooks.try_emplace(query->Get<long long>(0), AnalyzedBook{});
+				if (inserted)
+				{
+					it->second.folder = query->Get<const char*>(1);
+					it->second.file = query->Get<const char*>(2);
+					it->second.lang = query->Get<const char*>(3);
+					it->second.deleted = query->Get<int>(4);
+				}
+
+				if (QString genre = query->Get<const char*>(5); !addDateGenres.contains(genre))
+					it->second.genres.emplace(std::move(genre));
+				it->second.authors.emplace(query->Get<long long>(6));
+				if (analyzeCanceled)
+					break;
+			}
+
 			return result;
 		} });
 	}
@@ -174,7 +269,6 @@ struct CollectionCleaner::Impl
 	void AnalyzeCancel()
 	{
 		analyzeCanceled = true;
-		progressController->Stop();
 	}
 
 	void Remove(Books books, Callback callback) const
