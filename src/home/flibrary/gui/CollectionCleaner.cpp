@@ -141,7 +141,7 @@ private: // ICollectionCleaner::IAnalyzeCallback
 		return m_ui.groupBoxGenres->isChecked() ? m_ui.genres->model()->data({}, Role::SelectedList).toStringList() : QStringList{};
 	}
 
-	ICollectionCleaner::CleanGenreMode GetCleanGenreModeGenre() const override
+	ICollectionCleaner::CleanGenreMode GetCleanGenreMode() const override
 	{
 		return m_ui.genresMathFull->isChecked() ? ICollectionCleaner::CleanGenreMode::Full : ICollectionCleaner::CleanGenreMode::Partial;
 	}

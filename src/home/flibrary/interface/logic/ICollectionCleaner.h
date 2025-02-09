@@ -34,7 +34,7 @@ public:
 		virtual bool NeedDeleteDuplicates() const = 0;
 		virtual QStringList GetLanguages() const = 0;
 		virtual QStringList GetGenres() const = 0;
-		virtual CleanGenreMode GetCleanGenreModeGenre() const = 0;
+		virtual CleanGenreMode GetCleanGenreMode() const = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
