@@ -25,6 +25,7 @@ using Role = IModel::Role;
 constexpr auto CONTEXT = "CollectionCleaner";
 constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
 constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
+constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
 
 TR_DEF
 
@@ -80,6 +81,13 @@ public:
 		connect(m_ui.buttons, &QDialogButtonBox::rejected, &self, [&] { OnCancelClicked(); });
 		connect(m_ui.buttons, &QDialogButtonBox::accepted, &self, [&] { Analyze(); });
 
+		auto label = new QLabel(Tr(ANALYZING));
+		label->setAlignment(Qt::AlignCenter);
+
+		auto layout = new QVBoxLayout(m_ui.progressBar);
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(label);
+
 		Init();
 	}
 
@@ -100,11 +108,17 @@ private: // ICollectionCleaner::IAnalyzeCallback
 		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
 
-		m_collectionCleaner->Remove(std::move(books), [this, dialogGuard = std::move(dialogGuard), count](const bool ok)
+		QEventLoop eventLoop;
+
+		m_collectionCleaner->Remove(std::move(books), [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
 		{
 			if (ok)
 				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+
+			eventLoop.exit();
 		});
+
+		eventLoop.exec();
 	}
 
 	bool NeedDeleteMarkedAsDeleted() const override
