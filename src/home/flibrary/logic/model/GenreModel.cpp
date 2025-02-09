@@ -28,12 +28,13 @@ struct Genre
 	std::vector<Genre> children;
 };
 
-void Enumerate(Genre& root, const auto& f)
+template<typename T>
+void Enumerate(T root, const auto& f)
 {
-	for (auto& child : root.children)
+	for (T child : root.children)
 	{
 		f(root, child);
-		Enumerate(child, f);
+		Enumerate<T>(child, f);
 	}
 }
 
@@ -115,7 +116,18 @@ private: // QAbstractItemModel
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		assert(index.isValid());
+		if (!index.isValid())
+		{
+			assert(role == Role::SelectedList);
+			QStringList result;
+			Enumerate<const Genre&>(m_root, [&](const Genre&, const Genre& item)
+			{
+				if (item.children.empty() && item.checked)
+					result << item.code;
+			});
+			return result;
+		}
+
 		const auto* genre = static_cast<Genre*>(index.internalPointer());
 		switch (role)
 		{
@@ -163,7 +175,7 @@ private: // QAbstractItemModel
 private:
 	bool SetChecks(const std::function<bool(const Genre&)>& f)
 	{
-		Enumerate(m_root, [&](Genre&, Genre& item)
+		Enumerate<Genre&>(m_root, [&](Genre&, Genre& item)
 		{
 			if (item.children.empty())
 				item.checked = f(item);
@@ -252,7 +264,7 @@ private:
 			{
 				const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
 				m_root = std::move(root);
-				Enumerate(m_root, [](Genre& parent, Genre& item) { item.parent = &parent; });				
+				Enumerate<Genre&>(m_root, [](Genre& parent, Genre& item) { item.parent = &parent; });
 			};
 		} });
 	}

@@ -1,6 +1,8 @@
 #include "LanguageModel.h"
 
-#include <QAbstractTableModel>
+#include <ranges>
+
+//#include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
 
 #include "fnd/algorithm.h"
@@ -79,7 +81,14 @@ private: // QAbstractItemModel
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		assert(index.isValid());
+		if (!index.isValid())
+		{
+			assert(role == Role::SelectedList);
+			QStringList result;
+			std::ranges::transform(m_items | std::views::filter([](const Item& item) { return item.checked; }), std::back_inserter(result), [](const Item& item) { return item.language; });
+			return result;
+		}
+
 		const auto& item = m_items[index.row()];
 
 		switch (role)
@@ -94,6 +103,9 @@ private: // QAbstractItemModel
 			case 2:
 				if (const auto it = m_translations.find(item.language); it != m_translations.end())
 					return Loc::Tr(LANGUAGES_CONTEXT, it->second);
+				return {};
+			default:
+				assert(false && "unexpected column");
 				return {};
 			}
 

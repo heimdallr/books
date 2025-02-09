@@ -16,6 +16,7 @@ public:
 			CheckAll = Qt::UserRole + 1,
 			UncheckAll,
 			RevertChecks,
+			SelectedList,
 		};
 	};
 
