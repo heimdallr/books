@@ -107,6 +107,31 @@ private: // ICollectionCleaner::IAnalyzeCallback
 		});
 	}
 
+	bool NeedDeleteMarkedAsDeleted() const override
+	{
+		return m_ui.removeRemoved->isChecked();
+	}
+
+	bool NeedDeleteDuplicates() const override
+	{
+		return m_ui.duplicates->isChecked();
+	}
+
+	QStringList GetLanguages() const override
+	{
+		return m_ui.groupBoxLanguages->isChecked() ? m_ui.languages->model()->data({}, Role::SelectedList).toStringList() : QStringList{};
+	}
+
+	QStringList GetGenres() const override
+	{
+		return m_ui.groupBoxGenres->isChecked() ? m_ui.genres->model()->data({}, Role::SelectedList).toStringList() : QStringList{};
+	}
+
+	ICollectionCleaner::CleanGenreMode GetCleanGenreModeGenre() const override
+	{
+		return m_ui.genresMathFull->isChecked() ? ICollectionCleaner::CleanGenreMode::Full : ICollectionCleaner::CleanGenreMode::Partial;
+	}
+
 private:
 	void OnGenresContextMenuRequested() const
 	{

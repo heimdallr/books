@@ -18,11 +18,23 @@ public:
 	};
 	using Books = std::vector<Book>;
 
+	enum class CleanGenreMode
+	{
+		Full,
+		Partial,
+	};
+
 	class IAnalyzeObserver  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IAnalyzeObserver() = default;
 		virtual void AnalyzeFinished(Books books) = 0;
+
+		virtual bool NeedDeleteMarkedAsDeleted() const = 0;
+		virtual bool NeedDeleteDuplicates() const = 0;
+		virtual QStringList GetLanguages() const = 0;
+		virtual QStringList GetGenres() const = 0;
+		virtual CleanGenreMode GetCleanGenreModeGenre() const = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
