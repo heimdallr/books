@@ -1,6 +1,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
+#include <QActionEvent>
 #include <QActionGroup>
 #include <QGuiApplication>
 #include <QPainter>
@@ -51,6 +52,15 @@ constexpr auto CONTEXT = MAIN_WINDOW;
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
+constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
+constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[]
+{
+	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
+	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
+};
+
+TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
@@ -60,7 +70,38 @@ constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButto
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto ACTION_PROPERTY_NAME = "value";
-TR_DEF
+
+class AllowDestructiveOperationsObserver : public QObject
+{
+public:
+	AllowDestructiveOperationsObserver(std::function<void()> function, std::shared_ptr<const IUiFactory> uiFactory, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_function{ std::move(function) }
+		, m_uiFactory{ std::move(uiFactory) }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() != QEvent::ActionChanged)
+			return QObject::eventFilter(watched, event);
+
+		const auto* actionChanged = static_cast<QActionEvent*>(event);
+		if (actionChanged->action()->isEnabled())
+			m_uiFactory->ShowInfo(Tr(DENY_DESTRUCTIVE_OPERATIONS_MESSAGE));
+		else if (std::ranges::any_of(ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS, [&](const char* message) { return m_uiFactory->ShowWarning(Tr(message), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes; }))
+			m_function();
+		else
+			m_uiFactory->ShowInfo(Tr(ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE));
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	const std::function<void()> m_function;
+	const std::shared_ptr<const IUiFactory> m_uiFactory;
+};
 
 }
 
@@ -216,6 +257,7 @@ private:
 		if (m_collectionController->ActiveCollectionExists())
 		{
 			OnObjectVisibleChanged(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations, m_collectionController->GetActiveCollection().destructiveOperationsAllowed);
+			m_ui.actionAllowDestructiveOperations->installEventFilter(new AllowDestructiveOperationsObserver([this] { OnObjectVisibleChanged(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations, false); }, m_uiFactory, &m_self));
 		}
 		else
 		{

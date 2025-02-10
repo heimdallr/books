@@ -417,6 +417,26 @@
         <translation></translation>
     </message>
     <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>The right decision!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Well, you only have yourself to blame!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Are you really sure?</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>E&amp;xport</source>
         <translation></translation>
     </message>

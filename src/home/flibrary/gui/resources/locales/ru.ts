@@ -413,6 +413,26 @@
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
     <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>The right decision!</source>
+        <translation>Правильное решение!</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Well, you only have yourself to blame!</source>
+        <translation>Что ж, пеняйте теперь на себя!</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
+        <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Are you really sure?</source>
+        <translation>Точно уверены?</translation>
+    </message>
+    <message>
         <source>E&amp;xport</source>
         <translation>&amp;Экспорт (сохранение)</translation>
     </message>
