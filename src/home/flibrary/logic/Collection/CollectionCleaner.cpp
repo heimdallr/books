@@ -163,7 +163,8 @@ void RemoveFiles(AllFiles& allFiles
 	, const QString& collectionFolder
 )
 {
-	for (auto&& [folder, archiveItem] : allFiles)
+	std::map toCleanup(std::make_move_iterator(allFiles.begin()), std::make_move_iterator(allFiles.end()));
+	for (auto&& [folder, archiveItem] : toCleanup)
 	{
 		const auto archive = GetFolderPath(collectionFolder, folder);
 		if ([&]
