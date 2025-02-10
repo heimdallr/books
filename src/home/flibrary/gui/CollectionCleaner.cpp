@@ -35,6 +35,9 @@ constexpr auto DELETE_BY_GENRE_MODE_KEY = "ui/Cleaner/DeleteByGenreMode";
 constexpr auto DELETE_BY_LANGUAGE_KEY = "ui/Cleaner/DeleteByLanguage";
 constexpr auto GENRE_LIST_KEY = "ui/Cleaner/Genres";
 constexpr auto LANGUAGE_LIST_KEY = "ui/Cleaner/Languages";
+constexpr auto LANGUAGE_FIELD_WIDTH_KEY = "ui/Cleaner/LanguageFieldWidths";
+constexpr auto LANGUAGE_SORT_INDICATOR_COLUMN = "ui/Cleaner/LanguageSortColumn";
+constexpr auto LANGUAGE_SORT_INDICATOR_ORDER = "ui/Cleaner/LanguageSortOrder";
 
 TR_DEF
 
@@ -235,23 +238,42 @@ private:
 				break;
 		}
 
-		m_ui.removeRemoved->setChecked(m_settings->Get(DELETE_DELETED_KEY, m_ui.removeRemoved->isChecked()));
-		m_ui.duplicates->setChecked(m_settings->Get(DELETE_DUPLICATE_KEY, m_ui.duplicates->isChecked()));
-		m_ui.groupBoxGenres->setChecked(m_settings->Get(DELETE_BY_GENRE_KEY, m_ui.groupBoxGenres->isChecked()));
-		m_ui.groupBoxLanguages->setChecked(m_settings->Get(DELETE_BY_LANGUAGE_KEY, m_ui.groupBoxLanguages->isChecked()));
-		m_ui.genres->model()->setData({}, m_settings->Get(GENRE_LIST_KEY, m_ui.genres->model()->data({}, Role::SelectedList)), Role::SelectedList);
-		m_ui.languages->model()->setData({}, m_settings->Get(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList)), Role::SelectedList);
+		auto* header = m_ui.languages->horizontalHeader();
+		header->setSortIndicator(m_settings->Get(LANGUAGE_SORT_INDICATOR_COLUMN, header->sortIndicatorSection()), m_settings->Get(LANGUAGE_SORT_INDICATOR_ORDER, header->sortIndicatorOrder()));
+
+		m_ui.removeRemoved     ->setChecked( m_settings->Get(DELETE_DELETED_KEY    , m_ui.removeRemoved->isChecked()));
+		m_ui.duplicates        ->setChecked( m_settings->Get(DELETE_DUPLICATE_KEY  , m_ui.duplicates->isChecked()));
+		m_ui.groupBoxGenres    ->setChecked( m_settings->Get(DELETE_BY_GENRE_KEY   , m_ui.groupBoxGenres->isChecked()));
+		m_ui.groupBoxLanguages ->setChecked( m_settings->Get(DELETE_BY_LANGUAGE_KEY, m_ui.groupBoxLanguages->isChecked()));
+		m_ui.genres->model()   ->setData({}, m_settings->Get(GENRE_LIST_KEY        , m_ui.genres->model()->data({}, Role::SelectedList)), Role::SelectedList);
+		m_ui.languages->model()->setData({}, m_settings->Get(LANGUAGE_LIST_KEY     , m_ui.languages->model()->data({}, Role::SelectedList)), Role::SelectedList);
+
+		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant{}); var.isValid())
+		{
+			const auto widths = var.value<QVector<int>>();
+			for (auto i = 0, sz = std::min(header->count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
+				header->resizeSection(i, widths[i]);
+		}
 	}
 
 	void Save()
 	{
-		m_settings->Set(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode()));
-		m_settings->Set(DELETE_DELETED_KEY      , m_ui.removeRemoved->isChecked());
-		m_settings->Set(DELETE_DUPLICATE_KEY    , m_ui.duplicates->isChecked());
-		m_settings->Set(DELETE_BY_GENRE_KEY     , m_ui.groupBoxGenres->isChecked());
-		m_settings->Set(DELETE_BY_LANGUAGE_KEY  , m_ui.groupBoxLanguages->isChecked());
-		m_settings->Set(GENRE_LIST_KEY          , m_ui.genres->model()->data({}, Role::SelectedList));
-		m_settings->Set(LANGUAGE_LIST_KEY       , m_ui.languages->model()->data({}, Role::SelectedList));
+		const auto* header = m_ui.languages->horizontalHeader();
+
+		m_settings->Set(DELETE_BY_GENRE_MODE_KEY      , FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode()));
+		m_settings->Set(DELETE_DELETED_KEY            , m_ui.removeRemoved->isChecked());
+		m_settings->Set(DELETE_DUPLICATE_KEY          , m_ui.duplicates->isChecked());
+		m_settings->Set(DELETE_BY_GENRE_KEY           , m_ui.groupBoxGenres->isChecked());
+		m_settings->Set(DELETE_BY_LANGUAGE_KEY        , m_ui.groupBoxLanguages->isChecked());
+		m_settings->Set(GENRE_LIST_KEY                , m_ui.genres->model()->data({}, Role::SelectedList));
+		m_settings->Set(LANGUAGE_LIST_KEY             , m_ui.languages->model()->data({}, Role::SelectedList));
+		m_settings->Set(LANGUAGE_SORT_INDICATOR_COLUMN, header->sortIndicatorSection());
+		m_settings->Set(LANGUAGE_SORT_INDICATOR_ORDER , header->sortIndicatorOrder());
+
+		QVector<int> widths;
+		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
+			widths << header->sectionSize(i);
+		m_settings->Set(LANGUAGE_FIELD_WIDTH_KEY, QVariant::fromValue(widths));
 	}
 
 private:
