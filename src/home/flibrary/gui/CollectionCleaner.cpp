@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QPushButton>
 
+#include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
 #include "GuiUtil/GeometryRestorable.h"
@@ -27,7 +28,23 @@ constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No book
 constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
 constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
 
+constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
+constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
+constexpr auto DELETE_BY_GENRE_KEY = "ui/Cleaner/DeleteByGenre";
+constexpr auto DELETE_BY_GENRE_MODE_KEY = "ui/Cleaner/DeleteByGenreMode";
+constexpr auto DELETE_BY_LANGUAGE_KEY = "ui/Cleaner/DeleteByLanguage";
+constexpr auto GENRE_LIST_KEY = "ui/Cleaner/Genres";
+constexpr auto LANGUAGE_LIST_KEY = "ui/Cleaner/Languages";
+
 TR_DEF
+
+constexpr std::pair<ICollectionCleaner::CleanGenreMode, const char*> CLEAN_GENRE_MODE[]
+{
+#define ITEM(NAME) { ICollectionCleaner::CleanGenreMode::NAME, #NAME }
+		ITEM(Full),
+		ITEM(Partial),
+#undef  ITEM
+};
 
 void SetModelData(QAbstractItemModel& model, const int role, const QVariant& value = {}, const QModelIndex& index = {})
 {
@@ -41,6 +58,8 @@ class CollectionCleaner::Impl final
 	, Util::GeometryRestorableObserver
 	, ICollectionCleaner::IAnalyzeObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(CollectionCleaner& self
 		, std::shared_ptr<const Util::IUiFactory> uiFactory
@@ -50,12 +69,13 @@ public:
 		, std::shared_ptr<IGenreModel> genreModel
 		, std::shared_ptr<ILanguageModel> languageModel
 	)
-		: GeometryRestorable(*this, std::move(settings), CONTEXT)
+		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self{ self }
 		, m_uiFactory{ std::move(uiFactory) }
 		, m_readerController{ std::move(readerController) }
 		, m_collectionCleaner{ std::move(collectionCleaner) }
+		, m_settings{ std::move(settings) }
 		, m_genreModel{ std::shared_ptr<IModel>{std::move(genreModel)} }
 		, m_languageModel{ std::shared_ptr<IModel>{std::move(languageModel)} }
 	{
@@ -66,6 +86,8 @@ public:
 		m_ui.languages->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
 		m_ui.progressBar->setVisible(false);
+
+		Load();
 
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] { OnGenresContextMenuRequested(); });
 		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
@@ -89,6 +111,11 @@ public:
 		layout->addWidget(label);
 
 		Init();
+	}
+
+	~Impl() override
+	{
+		Save();
 	}
 
 private: // ICollectionCleaner::IAnalyzeCallback
@@ -143,7 +170,10 @@ private: // ICollectionCleaner::IAnalyzeCallback
 
 	ICollectionCleaner::CleanGenreMode GetCleanGenreMode() const override
 	{
-		return m_ui.genresMathFull->isChecked() ? ICollectionCleaner::CleanGenreMode::Full : ICollectionCleaner::CleanGenreMode::Partial;
+		return
+			m_ui.genresMatchFull->isChecked()    ? ICollectionCleaner::CleanGenreMode::Full:
+			m_ui.genresMatchPartial->isChecked() ? ICollectionCleaner::CleanGenreMode::Partial:
+												   ICollectionCleaner::CleanGenreMode::None;
 	}
 
 private:
@@ -191,12 +221,46 @@ private:
 		m_collectionCleaner->Analyze(*this);
 	}
 
+	void Load()
+	{
+		switch(FindFirst(CLEAN_GENRE_MODE, m_settings->Get(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode())).toStdString().data(), ICollectionCleaner::CleanGenreMode::None, PszComparer{}))
+		{
+			case ICollectionCleaner::CleanGenreMode::Full:
+				m_ui.genresMatchFull->setChecked(true);
+				break;
+			case ICollectionCleaner::CleanGenreMode::Partial:
+				m_ui.genresMatchPartial->setChecked(true);
+				break;
+			case ICollectionCleaner::CleanGenreMode::None:
+				break;
+		}
+
+		m_ui.removeRemoved->setChecked(m_settings->Get(DELETE_DELETED_KEY, m_ui.removeRemoved->isChecked()));
+		m_ui.duplicates->setChecked(m_settings->Get(DELETE_DUPLICATE_KEY, m_ui.duplicates->isChecked()));
+		m_ui.groupBoxGenres->setChecked(m_settings->Get(DELETE_BY_GENRE_KEY, m_ui.groupBoxGenres->isChecked()));
+		m_ui.groupBoxLanguages->setChecked(m_settings->Get(DELETE_BY_LANGUAGE_KEY, m_ui.groupBoxLanguages->isChecked()));
+		m_ui.genres->model()->setData({}, m_settings->Get(GENRE_LIST_KEY, m_ui.genres->model()->data({}, Role::SelectedList)), Role::SelectedList);
+		m_ui.languages->model()->setData({}, m_settings->Get(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList)), Role::SelectedList);
+	}
+
+	void Save()
+	{
+		m_settings->Set(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode()));
+		m_settings->Set(DELETE_DELETED_KEY      , m_ui.removeRemoved->isChecked());
+		m_settings->Set(DELETE_DUPLICATE_KEY    , m_ui.duplicates->isChecked());
+		m_settings->Set(DELETE_BY_GENRE_KEY     , m_ui.groupBoxGenres->isChecked());
+		m_settings->Set(DELETE_BY_LANGUAGE_KEY  , m_ui.groupBoxLanguages->isChecked());
+		m_settings->Set(GENRE_LIST_KEY          , m_ui.genres->model()->data({}, Role::SelectedList));
+		m_settings->Set(LANGUAGE_LIST_KEY       , m_ui.languages->model()->data({}, Role::SelectedList));
+	}
+
 private:
 	QDialog& m_self;
 	Ui::CollectionCleaner m_ui;
 	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const ICollectionCleaner> m_collectionCleaner;
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IModel, std::shared_ptr> m_genreModel;
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
 	bool m_analyzeCanceled{ false };

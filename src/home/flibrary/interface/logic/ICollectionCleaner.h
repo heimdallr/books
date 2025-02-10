@@ -20,6 +20,7 @@ public:
 
 	enum class CleanGenreMode
 	{
+		None = -1,
 		Full,
 		Partial,
 	};

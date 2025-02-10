@@ -56,7 +56,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QRadioButton" name="genresMathFull">
+          <widget class="QRadioButton" name="genresMatchFull">
            <property name="text">
             <string>Match full</string>
            </property>
