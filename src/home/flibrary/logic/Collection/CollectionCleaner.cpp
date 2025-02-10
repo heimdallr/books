@@ -4,6 +4,8 @@
 
 #include <QFileInfo>
 
+#include <plog/Log.h>
+
 #include "common/Constant.h"
 
 #include "fnd/algorithm.h"
@@ -50,58 +52,53 @@ constexpr auto GENRE_FIELD = "gl.GenreCode";
 constexpr auto AUTHOR_JOIN = "\n	join Author_List al on al.BookID = b.BookID";
 constexpr auto AUTHOR_FIELD = "al.AuthorID";
 
-template<typename Value, size_t ArraySize>
-std::vector<std::unique_ptr<DB::ICommand>> CreateCommands(Value (&commandTexts)[ArraySize], DB::ITransaction& transaction)
-{
-	std::vector<std::unique_ptr<DB::ICommand>> commands;
-	commands.reserve(ArraySize);
-	std::ranges::transform(commandTexts, std::back_inserter(commands), [&](const char* text) { return transaction.CreateCommand(text); });
-	return commands;
-}
-
 bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
-	constexpr const char* commandTexts[]
-	{
-		"delete from Books where BookID = ?",
-		"delete from Author_List where BookID = ?",
-		"delete from Keyword_List where BookID = ?",
-		"delete from Genre_List where BookID = ?",
-	};
-	const auto commands = CreateCommands(commandTexts, transaction);
+	PLOGI << "Removing database books records started";
 
 	return std::accumulate(books.cbegin(), books.cend(), true, [&
 		, progressItem = std::move(progressItem)
+		, command = transaction.CreateCommand("delete from Books where BookID = ?")
 		, total = books.size()
-		, currentPct = int64_t{ 0 }
-		, lastPct = int64_t{ 0 }
+		, currentPct = 0
+		, lastPct = 0
+		, lastPctLog = 0
 		, n = size_t{ 0 }
 	](const bool init, const auto& book) mutable
+	{
+		++n;
+		currentPct = static_cast<int>(100U * n / total);
+		progressItem->Increment(currentPct - lastPct);
+		lastPct = currentPct;
+
+		if (!(lastPct % 10) && lastPctLog != lastPct)
 		{
-			auto res = std::accumulate(commands.begin(), commands.end(), true, [&](const bool initAccumulate, const auto& command)
-				{
-					command->Bind(0, book.id);
-					return command->Execute() && initAccumulate;
-				});
+			lastPctLog = lastPct;
+			PLOGV << lastPct << '%';
+		}
 
-			currentPct = 100 * n / total;
-			progressItem->Increment(currentPct - lastPct);
-			lastPct = currentPct;
-
-			return res && init;
-		});
+		command->Bind(0, book.id);
+		return command->Execute() && init;
+	});
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
 {
-	constexpr const char* commandTexts[]
+	PLOGI << "Removing database book references records started";
+	constexpr std::pair<const char*, const char*> commands[]
 	{
-		"delete from Series where not exists(select 42 from Books where Books.SeriesID = Series.SeriesID)",
-		"delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)",
-		"delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)",
+		{ "Series", "delete from Series where not exists(select 42 from Books where Books.SeriesID = Series.SeriesID)" },
+		{ "Genre_List", "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
+		{ "Author_List", "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
+		{ "Authors", "delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
+		{ "Keyword_List", "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
+		{ "Keywords", "delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
 	};
-	const auto commands = CreateCommands(commandTexts, transaction);
-	return std::accumulate(commands.begin(), commands.end(), true, [&](const bool init, const auto& command) { return command->Execute() && init; });
+	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command)
+	{
+		PLOGD << "removing from " << command.first;
+		return transaction.CreateCommand(command.second)->Execute() && init;
+	});
 }
 using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
 using AllFiles = std::unordered_map<QString, AllFilesItem>;
@@ -258,7 +255,7 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 	std::unordered_map<QString, std::multimap<QString, long long, std::greater<>>> duplicates;
 	for (const auto& [id, book] : analysedBooks)
 		if (!toDelete.contains(id))
-			duplicates[book.title].emplace(book.date, id);
+			duplicates[book.title].emplace(QString(book.date).append("/").append(book.file), id);
 
 	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) { return item.size() > 1; }))
 	{
@@ -307,20 +304,25 @@ struct CollectionCleaner::Impl
 				return result;
 
 			const auto db = databaseUser->Database();
+			PLOGI << "get books info";
 			auto analysedBooks = GetAnalysedBooks(*db, observer, !genres.isEmpty(), analyzeCanceled);
+			PLOGI << "total books found: " << analysedBooks.size();
 
 			std::unordered_set<long long> toDelete;
 
-			const auto addToDelete = [&](const auto filter)
+			const auto addToDelete = [&](const QString& name, const auto filter)
 			{
+				const auto n = toDelete.size();
 				std::ranges::transform(analysedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) { return item.first; });
+				PLOGI << name << " found: " << toDelete.size() - n;
 			};
 
 			if (observer.NeedDeleteMarkedAsDeleted())
-				addToDelete([](const auto& item) { return item.second.deleted; });
+				addToDelete("marked as deleted", [](const auto& item) { return item.second.deleted; });
 
 			if (!languages.isEmpty())
-				addToDelete([languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) { return languages.contains(item.second.lang); });
+				addToDelete("on specified languages", [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) { return languages.contains(item.second.lang); });
+			languages.clear();
 
 			if (!genres.isEmpty())
 			{
@@ -328,19 +330,24 @@ struct CollectionCleaner::Impl
 				switch(observer.GetCleanGenreMode())
 				{
 					case CleanGenreMode::Full:
-						addToDelete([&](const auto& item) { return std::ranges::includes(item.second.genres, indexedGenres); });
+						addToDelete("in specified genres", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
 						break;
 					case CleanGenreMode::Partial:
-						addToDelete([&](const auto& item) { return Util::Intersect(item.second.genres, indexedGenres); });
+						addToDelete("in specified genres", [&](const auto& item) { return Util::Intersect(indexedGenres, item.second.genres); });
 						break;
 					default:  // NOLINT(clang-diagnostic-covered-switch-default)
 						assert(false && "unexpected mode");
 						break;
 				}
+				genres.clear();
 			}
 
 			if (observer.NeedDeleteDuplicates())
+			{
+				const auto n = toDelete.size();
 				RemoveDuplicates(analysedBooks, toDelete);
+				PLOGI << "duplicates found: " << toDelete.size() - n;
+			}
 			
 			Books books;
 			books.reserve(toDelete.size());
@@ -350,6 +357,9 @@ struct CollectionCleaner::Impl
 				assert(it != analysedBooks.end());
 				return Book{id, std::move(it->second.folder), std::move(it->second.file)};
 			});
+
+			analysedBooks.clear();
+			toDelete.clear();
 
 			result = [&, books = std::move(books)](size_t) mutable { observer.AnalyzeFinished(std::move(books)); };
 
