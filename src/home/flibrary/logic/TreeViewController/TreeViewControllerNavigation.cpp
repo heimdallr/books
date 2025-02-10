@@ -309,6 +309,7 @@ private: // ITableSubscriptionHandler
 
 	void On_Books_Changed() override
 	{
+		OnTableChanged(NavigationMode::Genres);
 		self.RequestBooks(true);
 	}
 
