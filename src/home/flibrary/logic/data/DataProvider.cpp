@@ -78,8 +78,9 @@ public:
 		m_booksRequestCallback = std::move(callback);
 	}
 
-	void RequestNavigation() const
+	void RequestNavigation(const bool force) const
 	{
+		m_requestNavigationForce = force;
 		m_navigationTimer->start();
 	}
 
@@ -103,7 +104,7 @@ private:
 		m_navigationQueryExecutor->RequestNavigation(m_navigationMode, [&] (const NavigationMode mode, IDataItem::Ptr root)
 		{
 			SendNavigationCallback(mode, std::move(root));
-		});
+		}, m_requestNavigationForce);
 	}
 
 	void RequestBooksImpl() const
@@ -176,7 +177,9 @@ private:
 	Callback m_navigationRequestCallback;
 	Callback m_booksRequestCallback;
 
+	mutable bool m_requestNavigationForce{ false };
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
+
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
 	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
@@ -221,9 +224,9 @@ void DataProvider::SetBookRequestCallback(Callback callback)
 	m_impl->SetBookRequestCallback(std::move(callback));
 }
 
-void DataProvider::RequestNavigation() const
+void DataProvider::RequestNavigation(const bool force) const
 {
-	m_impl->RequestNavigation();
+	m_impl->RequestNavigation(force);
 }
 
 void DataProvider::RequestBooks(const bool force) const

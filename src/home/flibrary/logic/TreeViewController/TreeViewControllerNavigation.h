@@ -26,7 +26,7 @@ public:
 	~TreeViewControllerNavigation() override;
 
 public:
-	void RequestNavigation() const;
+	void RequestNavigation(bool force) const;
 	void RequestBooks(bool force) const;
 
 private: // ITreeViewController

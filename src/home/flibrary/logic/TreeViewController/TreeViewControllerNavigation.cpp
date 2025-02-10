@@ -309,6 +309,7 @@ private: // ITableSubscriptionHandler
 
 	void On_Books_Changed() override
 	{
+		OnTableChanged(NavigationMode::Genres);
 		self.RequestBooks(true);
 	}
 
@@ -320,7 +321,7 @@ private:
 	void OnTableChanged(const NavigationMode tableMode)
 	{
 		static_cast<NavigationMode>(mode) == tableMode
-			? self.RequestNavigation()
+			? self.RequestNavigation(true)
 			: models[static_cast<int>(tableMode)].reset();
 	}
 
@@ -363,9 +364,9 @@ TreeViewControllerNavigation::~TreeViewControllerNavigation()
 	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 
-void TreeViewControllerNavigation::RequestNavigation() const
+void TreeViewControllerNavigation::RequestNavigation(const bool force) const
 {
-	m_dataProvider->RequestNavigation();
+	m_dataProvider->RequestNavigation(force);
 }
 
 void TreeViewControllerNavigation::RequestBooks(const bool force) const
