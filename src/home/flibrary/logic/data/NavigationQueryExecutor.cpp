@@ -268,10 +268,15 @@ NavigationQueryExecutor::~NavigationQueryExecutor()
 	PLOGV << "NavigationQueryExecutor destroyed";
 }
 
-void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback) const
+void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback, const bool force) const
 {
 	if (const auto it = m_impl->cache.find(navigationMode); it != m_impl->cache.end())
-		return callback(navigationMode, it->second);
+	{
+		if (force)
+			m_impl->cache.erase(it);
+		else
+			return callback(navigationMode, it->second);
+	}
 
 	const auto & [request, description] = FindSecond(QUERIES, navigationMode);
 	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, m_impl->cache);
