@@ -168,12 +168,12 @@ public:
 			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
 		});
 
-		PLOGD << "database created";
+		PLOGV << "database created";
 	}
 
 	~Database() override
 	{
-		PLOGD << "database destroyed";
+		PLOGV << "database destroyed";
 	}
 
 private: // Database

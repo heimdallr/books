@@ -333,12 +333,12 @@ AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProv
 		, std::move(uiFactory)
 	)
 {
-	PLOGD << "AddCollectionDialog created";
+	PLOGV << "AddCollectionDialog created";
 }
 
 AddCollectionDialog::~AddCollectionDialog()
 {
-	PLOGD << "AddCollectionDialog destroyed";
+	PLOGV << "AddCollectionDialog destroyed";
 }
 
 int AddCollectionDialog::Exec()

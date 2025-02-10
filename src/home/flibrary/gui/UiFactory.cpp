@@ -8,6 +8,7 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModel.h"
@@ -79,12 +80,12 @@ struct UiFactory::Impl
 UiFactory::UiFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
-	PLOGD << "UiFactory created";
+	PLOGV << "UiFactory created";
 }
 
 UiFactory::~UiFactory()
 {
-	PLOGD << "UiFactory destroyed";
+	PLOGV << "UiFactory destroyed";
 }
 
 QObject * UiFactory::GetParentObject(QObject* defaultObject) const noexcept

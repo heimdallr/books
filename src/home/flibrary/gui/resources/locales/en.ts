@@ -227,6 +227,21 @@
         <source>Uncheck all</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>No books were found in the collection according to the specified criteria</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Wait. Collection analysis in progress...</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -399,6 +414,26 @@
     <message>
         <location filename="../../MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>The right decision!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Well, you only have yourself to blame!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Are you really sure?</source>
         <translation></translation>
     </message>
     <message>

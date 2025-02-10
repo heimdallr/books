@@ -69,7 +69,6 @@ constexpr auto REMOVE                         = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto RESTORE                        = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
 
 constexpr auto REMOVE_PERMANENTLY_CONFIRM     = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
-constexpr auto REMOVE_PERMANENTLY_INFO        = QT_TRANSLATE_NOOP("BookContextMenu", "%1 book(s) deleted permanently");
 
 TR_DEF
 
@@ -294,16 +293,15 @@ private: // IContextMenuHandler
 
 		ICollectionCleaner::Books books;
 		books.reserve(idList.size());
+		const auto count = idList.size();
 		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& item) { return ICollectionCleaner::Book{item[0].toLongLong(), std::move(item[1]), std::move(item[2])}; });
 		auto cleaner = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
-		cleanerRef.Remove(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count = idList.size()](const bool result) mutable
+		cleanerRef.Remove(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count](const bool result) mutable
 		{
 			if (result)
-				m_uiFactory->ShowInfo(Tr(REMOVE_PERMANENTLY_INFO).arg(count));
+				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 			callback(item);
-			if (result)
-				m_dataProvider->RequestBooks(true);
 		});
 	}
 
@@ -596,12 +594,12 @@ BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const I
 		, std::move(scriptController)
 	)
 {
-	PLOGD << "BooksContextMenuProvider created";
+	PLOGV << "BooksContextMenuProvider created";
 }
 
 BooksContextMenuProvider::~BooksContextMenuProvider()
 {
-	PLOGD << "BooksContextMenuProvider destroyed";
+	PLOGV << "BooksContextMenuProvider destroyed";
 }
 
 void BooksContextMenuProvider::Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)

@@ -110,12 +110,12 @@ CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<ICollectionCont
 		, std::move(databaseUser)
 	)
 {
-	PLOGD << "CollectionUpdateChecker created";
+	PLOGV << "CollectionUpdateChecker created";
 }
 
 CollectionUpdateChecker::~CollectionUpdateChecker()
 {
-	PLOGD << "CollectionUpdateChecker destroyed";
+	PLOGV << "CollectionUpdateChecker destroyed";
 }
 
 void CollectionUpdateChecker::CheckForUpdate(Callback callback) const

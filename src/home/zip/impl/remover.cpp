@@ -209,7 +209,7 @@ namespace File {
 
 bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, ProgressCallback& progress)
 {
-	for (const auto fileName : fileNames)
+	for (const auto& fileName : fileNames)
 	{
 		const auto rx = QRegularExpression::fromWildcard(fileName, Qt::CaseInsensitive);		
 		std::erase_if(files.files, [&](const auto& file) { return rx.match(file.name).hasMatch(); });

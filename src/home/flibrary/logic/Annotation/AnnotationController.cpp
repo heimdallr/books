@@ -477,11 +477,11 @@ AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFac
 		, std::move(databaseUser)
 	)
 {
-	PLOGD << "AnnotationController created";
+	PLOGV << "AnnotationController created";
 }
 AnnotationController::~AnnotationController()
 {
-	PLOGD << "AnnotationController destroyed";
+	PLOGV << "AnnotationController destroyed";
 }
 
 void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)

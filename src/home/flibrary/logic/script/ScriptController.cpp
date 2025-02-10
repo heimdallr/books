@@ -121,12 +121,12 @@ ScriptController::ScriptController(std::shared_ptr<ISettings> settings
 		, commandExecutor
 	)
 {
-	PLOGD << "ScriptController created";
+	PLOGV << "ScriptController created";
 }
 
 ScriptController::~ScriptController()
 {
-	PLOGD << "ScriptController destroyed";
+	PLOGV << "ScriptController destroyed";
 }
 
 const IScriptController::Scripts & ScriptController::GetScripts() const noexcept

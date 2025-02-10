@@ -525,12 +525,12 @@ AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& 
 		, std::move(progressController)
 	)
 {
-	PLOGD << "AnnotationWidget created";
+	PLOGV << "AnnotationWidget created";
 }
 
 AnnotationWidget::~AnnotationWidget()
 {
-	PLOGD << "AnnotationWidget destroyed";
+	PLOGV << "AnnotationWidget destroyed";
 }
 
 void AnnotationWidget::ShowContent(const bool value)

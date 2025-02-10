@@ -188,12 +188,12 @@ SearchController::SearchController(std::shared_ptr<ISettings> settings
 		, collectionController
 	)
 {
-	PLOGD << "SearchController created";
+	PLOGV << "SearchController created";
 }
 
 SearchController::~SearchController()
 {
-	PLOGD << "SearchController destroyed";
+	PLOGV << "SearchController destroyed";
 }
 
 void SearchController::CreateNew(Callback callback)

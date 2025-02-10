@@ -223,6 +223,21 @@
         <source>Uncheck all</source>
         <translation>Снять выделение</translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>No books were found in the collection according to the specified criteria</source>
+        <translation>По указанным критериям в коллекции не найдено ни одной книги</translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите их удалить?</translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Wait. Collection analysis in progress...</source>
+        <translation>Ждите. Идет анализ коллекции...</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -396,6 +411,26 @@
         <location filename="../../MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>The right decision!</source>
+        <translation>Правильное решение!</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Well, you only have yourself to blame!</source>
+        <translation>Что ж, пеняйте теперь на себя!</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
+        <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Are you really sure?</source>
+        <translation>Точно уверены?</translation>
     </message>
     <message>
         <source>E&amp;xport</source>

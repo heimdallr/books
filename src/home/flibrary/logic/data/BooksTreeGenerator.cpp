@@ -366,12 +366,12 @@ BooksTreeGenerator::BooksTreeGenerator(DB::IDatabase & db
 )
 	: m_impl(db, navigationMode, std::move(navigationId), description)
 {
-	PLOGD << "BooksTreeGenerator created";
+	PLOGV << "BooksTreeGenerator created";
 }
 
 BooksTreeGenerator::~BooksTreeGenerator()
 {
-	PLOGD << "BooksTreeGenerator destroyed";
+	PLOGV << "BooksTreeGenerator destroyed";
 }
 
 NavigationMode BooksTreeGenerator::GetNavigationMode() const noexcept

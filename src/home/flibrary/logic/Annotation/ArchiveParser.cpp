@@ -433,12 +433,12 @@ ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProv
 		, std::move(logicFactory)
 	)
 {
-	PLOGD << "AnnotationParser created";
+	PLOGV << "AnnotationParser created";
 }
 
 ArchiveParser::~ArchiveParser()
 {
-	PLOGD << "AnnotationParser destroyed";
+	PLOGV << "AnnotationParser destroyed";
 }
 
 std::shared_ptr<IProgressController> ArchiveParser::GetProgressController() const

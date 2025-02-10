@@ -97,12 +97,12 @@ private:
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory> & uiFactory)
 	: m_impl(*uiFactory)
 {
-	PLOGD << "TreeViewDelegateNavigation created";
+	PLOGV << "TreeViewDelegateNavigation created";
 }
 
 TreeViewDelegateNavigation::~TreeViewDelegateNavigation()
 {
-	PLOGD << "TreeViewDelegateNavigation destroyed";
+	PLOGV << "TreeViewDelegateNavigation destroyed";
 }
 
 QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate() noexcept

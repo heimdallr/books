@@ -83,12 +83,12 @@ private:
 CollectionProvider::CollectionProvider(std::shared_ptr<ISettings> settings)
 	: m_impl{ std::make_unique<Impl>(std::move(settings)) }
 {
-	PLOGD << "CollectionProvider created";
+	PLOGV << "CollectionProvider created";
 }
 
 CollectionProvider::~CollectionProvider()
 {
-	PLOGD << "CollectionProvider destroyed";
+	PLOGV << "CollectionProvider destroyed";
 }
 
 bool CollectionProvider::IsEmpty() const noexcept

@@ -381,7 +381,10 @@ private: // IZip
 
 	bool Remove(const std::vector<QString>& fileNames) override
 	{
-		return File::Remove(m_files, *m_outArchive, *m_ioDevice, fileNames, *m_progress);
+		const auto n = m_files.files.size();
+		const auto result = File::Remove(m_files, *m_outArchive, *m_ioDevice, fileNames, *m_progress);
+		PLOGI << m_filename << ". Files removed: " << n - m_files.files.size() << " out of " << n;
+		return result;
 	}
 
 private:
@@ -418,7 +421,10 @@ private: // IZip
 
 	bool Remove(const std::vector<QString>& fileNames) override
 	{
-		return File::Remove(m_files, *m_outArchive, m_ioDevice, fileNames, *m_progress);
+		const auto n = m_files.files.size();
+		const auto result = File::Remove(m_files, *m_outArchive, m_ioDevice, fileNames, *m_progress);
+		PLOGI << "files removed: " << n - m_files.files.size() << " out of " << n;
+		return result;
 	}
 
 private:

@@ -684,12 +684,12 @@ Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionPr
         , std::move(annotationController)
     )
 {
-	PLOGD << "Requester created";
+	PLOGV << "Requester created";
 }
 
 Requester::~Requester()
 {
-	PLOGD << "Requester destroyed";
+	PLOGV << "Requester destroyed";
 }
 
 QByteArray Requester::GetRoot(const QString & self) const

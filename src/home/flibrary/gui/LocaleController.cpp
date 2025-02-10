@@ -76,12 +76,12 @@ LocaleController::LocaleController(std::shared_ptr<ISettings> settings
 	: QObject(parent)
 	, m_impl(*this, std::move(settings), std::move(uiFactory))
 {
-	PLOGD << "LocaleController created";
+	PLOGV << "LocaleController created";
 }
 
 LocaleController::~LocaleController()
 {
-	PLOGD << "LocaleController destroyed";
+	PLOGV << "LocaleController destroyed";
 }
 
 void LocaleController::Setup(QMenu & menu)

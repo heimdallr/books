@@ -108,6 +108,14 @@
     </message>
 </context>
 <context>
+    <name>CollectionCleaner</name>
+    <message>
+        <location filename="../../logic/ICollectionCleaner.h"/>
+        <source>%1 book(s) deleted permanently</source>
+        <translation>Удалено книг: %1</translation>
+    </message>
+</context>
+<context>
     <name>Error</name>
     <message>
         <location filename="../../constants/Localization.h"/>

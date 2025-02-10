@@ -61,12 +61,12 @@ struct LogicFactory::Impl final
 LogicFactory::LogicFactory(Hypodermic::Container & container)
 	: m_impl { std::make_unique<Impl>(container) }
 {
-	PLOGD << "LogicFactory created";
+	PLOGV << "LogicFactory created";
 }
 
 LogicFactory::~LogicFactory()
 {
-	PLOGD << "LogicFactory destroyed";
+	PLOGV << "LogicFactory destroyed";
 }
 
 std::shared_ptr<ITreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const

@@ -66,7 +66,8 @@ SUBSCRIBED_TABLES_ITEM(Groups_User)      \
 SUBSCRIBED_TABLES_ITEM(Searches_User)    \
 SUBSCRIBED_TABLES_ITEM(Authors)          \
 SUBSCRIBED_TABLES_ITEM(Series)           \
-SUBSCRIBED_TABLES_ITEM(Keywords)
+SUBSCRIBED_TABLES_ITEM(Keywords)         \
+SUBSCRIBED_TABLES_ITEM(Books)
 
 class ITableSubscriptionHandler  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -306,6 +307,11 @@ private: // ITableSubscriptionHandler
 			self.RequestBooks(true);
 	}
 
+	void On_Books_Changed() override
+	{
+		self.RequestBooks(true);
+	}
+
 #define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE) void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
 		SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_XMACRO
 #undef  SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
@@ -349,12 +355,12 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});
 
-	PLOGD << "TreeViewControllerNavigation created";
+	PLOGV << "TreeViewControllerNavigation created";
 }
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
-	PLOGD << "TreeViewControllerNavigation destroyed";
+	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 
 void TreeViewControllerNavigation::RequestNavigation() const
@@ -406,13 +412,13 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex & index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback)
 {
 	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester(options))
 		callback(index.data(Role::Id).toString(), item);
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item)
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel *, const QModelIndex & index, const QList<QModelIndex> & indexList, const IDataItem::Ptr item)
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

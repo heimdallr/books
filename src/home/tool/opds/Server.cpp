@@ -270,10 +270,10 @@ Server::Server(const std::shared_ptr<const ISettings> & settings
 		, std::move(requester)
 		)
 {
-	PLOGD << "Server created";
+	PLOGV << "Server created";
 }
 
 Server::~Server()
 {
-	PLOGD << "Server destroyed";
+	PLOGV << "Server destroyed";
 }
