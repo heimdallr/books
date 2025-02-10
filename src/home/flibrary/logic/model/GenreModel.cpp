@@ -4,6 +4,7 @@
 
 #include <QAbstractItemModel>
 
+#include "fnd/algorithm.h"
 #include "fnd/ScopedCall.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -135,7 +136,7 @@ private: // QAbstractItemModel
 				return genre->name;
 
 			case Qt::CheckStateRole:
-				return GetChecked(*static_cast<Genre*>(index.internalPointer()));
+				return GetChecked(*genre);
 
 			default:
 				break;
@@ -160,6 +161,8 @@ private: // QAbstractItemModel
 			return SetChecks([](const auto&) {return false; });
 		case Role::RevertChecks:
 			return SetChecks([](const auto& item) {return !item.checked; });
+			case Role::SelectedList:
+			return Util::Set(m_checked, value.toStringList());
 		default:
 			break;
 		}
@@ -264,13 +267,19 @@ private:
 			{
 				const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
 				m_root = std::move(root);
-				Enumerate<Genre&>(m_root, [](Genre& parent, Genre& item) { item.parent = &parent; });
+				std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+				Enumerate<Genre&>(m_root, [&](Genre& parent, Genre& item)
+				{
+					item.parent = &parent;
+					item.checked = languagesIndexed.contains(item.code);
+				});
 			};
 		} });
 	}
 
 private:
 	Genre m_root;
+	QStringList m_checked;
 };
 
 GenreModel::GenreModel(std::shared_ptr<const IDatabaseUser> databaseUser)

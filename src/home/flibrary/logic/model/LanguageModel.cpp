@@ -49,6 +49,9 @@ public:
 			{
 				beginResetModel();
 				m_items = std::move(items);
+				std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+				for (auto& item : m_items)
+					item.checked = languagesIndexed.contains(item.language);
 				endResetModel();
 			};
 		} });
@@ -137,6 +140,8 @@ private: // QAbstractItemModel
 			return SetChecks([](const auto&) {return false; });
 		case Role::RevertChecks:
 			return SetChecks([](const auto& item) {return !item.checked; });
+			case Role::SelectedList:
+			return Util::Set(m_checked, value.toStringList());
 		default:
 			break;
 		}
@@ -170,6 +175,7 @@ private:
 private:
 	Items m_items;
 	const std::unordered_map<QString, const char*> m_translations {std::cbegin(LANGUAGES), std::cend(LANGUAGES)};
+	QStringList m_checked;
 };
 
 }
