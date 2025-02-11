@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QPainter>
 #include <QStyledItemDelegate>
+#include <QTreeView>
 
 #include <plog/Log.h>
 
@@ -56,7 +57,7 @@ class TreeViewDelegateBooks::Impl final
 {
 public:
 	explicit Impl(const IUiFactory & uiFactory)
-		: m_view { uiFactory.GetAbstractScrollArea() }
+		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 	{
 	}
@@ -106,7 +107,7 @@ private:
 	}
 
 private:
-	QWidget & m_view;
+	QTreeView & m_view;
 	mutable TextDelegate m_textDelegate;
 
 };
