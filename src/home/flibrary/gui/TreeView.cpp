@@ -8,8 +8,6 @@
 #include <QMenu>
 #include <QPainter>
 #include <QResizeEvent>
-#include <QSvgRenderer>
-#include <QSvgWidget>
 #include <QTimer>
 
 #include <plog/Log.h>
@@ -22,13 +20,14 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ColorUtil.h"
 #include "util/ISettings.h"
+#include "util/localization.h"
 
 #include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
@@ -55,6 +54,7 @@ public:
 	{
 		setFirstSectionMovable(false);
 		setSectionsMovable(true);
+		setSortIndicator(0, Qt::AscendingOrder);
 	}
 
 private: // QHeaderView
@@ -92,26 +92,15 @@ private: // QHeaderView
 private:
 	bool PaintIcon(QPainter * painter, const QRect & rect, const int logicalIndex) const
 	{
-		const auto icon = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
-		if (!icon.isValid())
+		const auto iconFileName = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+		if (!iconFileName.isValid())
 			return false;
 
-		if (!m_svgRenderer.isValid())
-		{
-			QFile file(icon.toString());
-			if (!file.open(QIODevice::ReadOnly))
-				return false;
-
-			const auto content = QString::fromUtf8(file.readAll()).arg(Util::ToString(palette(), QPalette::Text));
-			if (!m_svgRenderer.load(content.toUtf8()))
-				return false;
-		}
-
-		auto iconSize = m_svgRenderer.defaultSize();
-		const auto size = 6 * std::min(rect.width(), rect.height()) / 10;
-		iconSize = iconSize.width() > iconSize.height() ? QSize { size, size * iconSize.height() / iconSize.width() } : QSize { size * iconSize.width() / iconSize.height(), size };
-		const auto topLeft = rect.topLeft() + QPoint { (rect.width() - size) / 2, 2 * (rect.height() - size) / 3 };
-		m_svgRenderer.render(painter, QRect { topLeft, iconSize });
+		QIcon icon(iconFileName.toString());
+		icon.pixmap(QSize{rect.height(), rect.height()});
+		auto size = 6 * QSize{ rect.height(), rect.height() } / 10;
+		const auto center = (rect.size() - size) / 2;
+		painter->drawPixmap(rect.topLeft() + QPoint{center.width(), center.height()}, icon.pixmap(size));
 
 		return true;
 	}
@@ -122,9 +111,6 @@ private:
 		painter->setPen(QApplication::palette().color(QPalette::Text));
 		painter->drawText(rect, Qt::AlignCenter, text);
 	}
-
-private:
-	mutable QSvgRenderer m_svgRenderer;
 };
 
 void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, const std::function<void(const QModelIndex &)> & f)
@@ -148,15 +134,15 @@ public:
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IUiFactory> uiFactory
 		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-		, const std::shared_ptr<ICollectionController> & collectionController
+		, std::shared_ptr<const ICollectionProvider> collectionProvider
 	)
-		: m_self(self)
-		, m_controller(uiFactory->GetTreeViewController())
-		, m_settings(std::move(settings))
-		, m_uiFactory(std::move(uiFactory))
-		, m_itemViewToolTipper(std::move(itemViewToolTipper))
-		, m_delegate(std::shared_ptr<ITreeViewDelegate>())
-		, m_currentCollectionId(collectionController->GetActiveCollectionId())
+		: m_self{ self }
+		, m_controller{ uiFactory->GetTreeViewController() }
+		, m_settings{ std::move(settings) }
+		, m_uiFactory{ std::move(uiFactory) }
+		, m_itemViewToolTipper{ std::move(itemViewToolTipper) }
+		, m_collectionProvider{ std::move(collectionProvider) }
+		, m_delegate{ std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
 	}
@@ -206,8 +192,6 @@ public:
 		m_ui.btnNew->setMaximumSize(size, size);
 		m_ui.cbValueMode->setMinimumSize(size, size);
 		m_ui.cbValueMode->setMaximumSize(size, size);
-		size /= 10;
-		m_ui.btnNew->layout()->setContentsMargins(size, size, size, size);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
@@ -329,9 +313,16 @@ private:
 
 		const auto & model = *m_ui.treeView->model();
 
-		ITreeViewController::RequestContextMenuOptions options = model.data({}, Role::IsTree).toBool()
-			? ITreeViewController::RequestContextMenuOptions::IsTree
-			: ITreeViewController::RequestContextMenuOptions::None;
+		const auto addOption = [](const bool condition, const ITreeViewController::RequestContextMenuOptions option)
+		{
+			return condition ? option : ITreeViewController::RequestContextMenuOptions::None;
+		};
+
+		ITreeViewController::RequestContextMenuOptions options
+			= addOption(model.data({}, Role::IsTree).toBool()                                   , ITreeViewController::RequestContextMenuOptions::IsTree)
+			| addOption(m_ui.treeView->selectionModel()->hasSelection()                         , ITreeViewController::RequestContextMenuOptions::HasSelection)
+			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
+			;
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
@@ -494,21 +485,7 @@ private:
 	{
 		m_ui.btnNew->setVisible(false);
 		m_ui.btnNew->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-		auto * icon = new QSvgWidget(m_ui.btnNew);
-
-		QFile file(":/icons/plus.svg");
-		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-		assert(ok);
-
-		const auto content = QString::fromUtf8(file.readAll())
-			.arg(0)
-			.arg(Util::ToString(m_self.palette(), QPalette::Base))
-			.arg(Util::ToString(m_self.palette(), QPalette::Text))
-			.toUtf8();
-
-		icon->load(content);
-		m_ui.btnNew->setLayout(new QHBoxLayout(m_ui.btnNew));
-		m_ui.btnNew->layout()->addWidget(icon);
+		m_ui.btnNew->setIcon(QIcon(":/icons/plus.svg"));
 	}
 
 	void FillComboBoxes()
@@ -693,7 +670,9 @@ private:
 	void CreateHeaderContextMenu(const QPoint & pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
-		(column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu())->exec(m_ui.treeView->header()->mapToGlobal(pos));
+		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
+		contextMenu->setFont(m_self.font());
+		contextMenu->exec(m_ui.treeView->header()->mapToGlobal(pos));
 	}
 
 	std::shared_ptr<QMenu> GetHeaderContextMenu()
@@ -735,12 +714,28 @@ private:
 		auto * menuGroup = new QActionGroup(m_languageContextMenu.get());
 
 		languages.push_front("");
-		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
-			languages.push_front(std::move(recentLanguage));
+		auto sortBeginIndex = 1;
 
-		for (const auto & language : languages)
+		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
 		{
-			auto * action = m_languageContextMenu->addAction(language, &m_self, [&, language]
+			languages.push_front(recentLanguage);
+			sortBeginIndex = 2;
+		}
+
+		std::vector<std::pair<QString, QString>> languageTranslated;
+		languageTranslated.reserve(languages.size());
+		std::ranges::transform(std::move(languages), std::back_inserter(languageTranslated), [translations = std::unordered_map<QString, const char*>{ std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](auto&& language)
+			{
+				const auto it = translations.find(language);
+				auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
+				return std::make_pair(std::move(language), std::move(translated));
+			});
+		std::ranges::sort(languageTranslated | std::views::drop(sortBeginIndex), {}, [](const auto& item) { return item.second; });
+
+
+		for (const auto & [language, translated] : languageTranslated)
+		{
+			auto * action = m_languageContextMenu->addAction(translated, &m_self, [&, language]
 			{
 				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
 				OnCountChanged();
@@ -803,7 +798,7 @@ private:
 	QString GetRecentIdKey() const
 	{
 		auto key = QString("Collections/%1/%2%3/LastId")
-			.arg(m_currentCollectionId)
+			.arg(m_collectionProvider->GetActiveCollection().id)
 			.arg(m_controller->TrContext())
 			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {})
 			;
@@ -817,8 +812,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
-	const QString m_currentCollectionId;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
 	QString m_navigationModeName;
@@ -833,7 +828,7 @@ private:
 TreeView::TreeView(std::shared_ptr<ISettings> settings
 	, std::shared_ptr<IUiFactory> uiFactory
 	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-	, const std::shared_ptr<ICollectionController> & collectionController
+	, std::shared_ptr<const ICollectionProvider> collectionProvider
 	, QWidget * parent
 )
 	: QWidget(parent)
@@ -841,15 +836,15 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings
 		, std::move(settings)
 		, std::move(uiFactory)
 		, std::move(itemViewToolTipper)
-		, collectionController
+		, std::move(collectionProvider)
 	)
 {
-	PLOGD << "TreeView created";
+	PLOGV << "TreeView created";
 }
 
 TreeView::~TreeView()
 {
-	PLOGD << "TreeView destroyed";
+	PLOGV << "TreeView destroyed";
 }
 
 void TreeView::SetNavigationModeName(QString navigationModeName)

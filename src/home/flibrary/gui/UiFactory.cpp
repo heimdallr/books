@@ -8,9 +8,12 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IModel.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/IReaderController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
@@ -26,6 +29,7 @@
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
+#include "CollectionCleaner.h"
 #include "ItemViewToolTipper.h"
 #include "TreeView.h"
 
@@ -51,7 +55,7 @@ constexpr const char * COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 <a href='https://github.com/iwongu'>Wongoo Lee</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/heimdallr/MyHomeLib/tree/master/Utils/MHLSQLiteExt'>MyHomeLib SQLite extension library</a> &copy; 2010 Nick Rymanov <a href='https://www.gnu.org/licenses/gpl-3.0.html#license-text'>GNU GPL</a></td></tr>",
 	"<tr><td><a href='https://github.com/ImageOptim/libimagequant'>libimagequant</a> &copy; 2009-2018 Kornel Lesiński <a href='https://github.com/ImageOptim/libimagequant?tab=License-1-ov-file'>GNU GPL-v3</a></td></tr>",
-	"<tr><td><a href='https://icons8.ru/'>icons8</a> &copy; 2024 Icons8 <a href='https://icons8.ru/license'>License</a></td></tr>",
+	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
 	"</table>"
 };
 
@@ -63,7 +67,7 @@ struct UiFactory::Impl
 
 	mutable std::filesystem::path inpxFolder;
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
-	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
+	mutable QTreeView * treeView{ nullptr };
 	mutable QAbstractItemView * abstractItemView { nullptr };
 	mutable QString title;
 
@@ -76,22 +80,22 @@ struct UiFactory::Impl
 UiFactory::UiFactory(Hypodermic::Container & container)
 	: m_impl(container)
 {
-	PLOGD << "UiFactory created";
+	PLOGV << "UiFactory created";
 }
 
 UiFactory::~UiFactory()
 {
-	PLOGD << "UiFactory destroyed";
+	PLOGV << "UiFactory destroyed";
 }
 
-QObject * UiFactory::GetParentObject() const noexcept
+QObject * UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject();
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject(defaultObject);
 }
 
-QWidget * UiFactory::GetParentWidget() const noexcept
+QWidget * UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget();
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
 }
 
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
@@ -111,9 +115,9 @@ std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 	return m_impl->container.resolve<IScriptDialog>();
 }
 
-std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
 {
-	m_impl->abstractScrollArea = &parent;
+	m_impl->treeView = &parent;
 	return m_impl->container.resolve<TreeViewDelegateBooks>();
 }
 
@@ -132,6 +136,11 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 {
 	m_impl->title = std::move(title);
 	return m_impl->container.resolve<IComboBoxTextDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateCollectionCleaner() const
+{
+	return m_impl->container.resolve<CollectionCleaner>();
 }
 
 void UiFactory::ShowAbout() const
@@ -213,10 +222,10 @@ std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const no
 	return std::move(m_impl->treeViewController);
 }
 
-QAbstractScrollArea & UiFactory::GetAbstractScrollArea() const noexcept
+QTreeView& UiFactory::GetTreeView() const noexcept
 {
-	assert(m_impl->abstractScrollArea);
-	return *m_impl->abstractScrollArea;
+	assert(m_impl->treeView);
+	return *m_impl->treeView;
 }
 
 QAbstractItemView & UiFactory::GetAbstractItemView() const noexcept

@@ -1,22 +1,19 @@
 #include "NavigationQueryExecutor.h"
 
 #include <ranges>
-#include <stack>
 #include <unordered_map>
 
 #include <QHash>
 
 #include "fnd/FindPair.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortString.h"
 #include "database/DatabaseUtil.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "BooksTreeGenerator.h"
-#include "inpx/src/util/constant.h"
+#include "util/SortString.h"
 
 #include <plog/Log.h>
 
@@ -28,9 +25,9 @@ namespace {
 constexpr auto AUTHORS_QUERY  = "select AuthorID, FirstName, LastName, MiddleName from Authors";
 constexpr auto SERIES_QUERY   = "select SeriesID, SeriesTitle from Series";
 constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
-constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode from Genres g where exists (select 42 from Genres c where c.ParentCode = g.GenreCode) or exists (select 42 from Genre_List l where l.GenreCode = g.GenreCode)";
+constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g";
 constexpr auto GROUPS_QUERY   = "select GroupID, Title from Groups_User";
-constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders";
+constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto SEARCH_QUERY   = "select SearchID, Title from Searches_User";
 
 constexpr auto WHERE_AUTHOR  = "where a.AuthorID  = :id";
@@ -103,7 +100,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode
 
 		std::ranges::sort(items, [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 		{
-			return QStringWrapper { lhs->GetData() } < QStringWrapper { rhs->GetData() };
+			return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() };
 		});
 
 		auto root = NavigationItem::Create();
@@ -130,57 +127,37 @@ void RequestNavigationGenres(NavigationMode navigationMode
 
 	databaseUser.Execute({"Get navigation", [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)] () mutable
 	{
-		std::unordered_map<QString, IDataItem::Ptr> index;
-
-		auto root = NavigationItem::Create();
-		std::unordered_multimap<QString, IDataItem::Ptr> items;
-		index.try_emplace("0", root);
-
+		using AllGenresItem = std::tuple<IDataItem::Ptr, QString>;
+		std::unordered_map<QString, AllGenresItem> allGenres;
+		std::vector<AllGenresItem> buffer;
 		const auto query = db->CreateQuery(queryDescription.query);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto item = items.emplace(query->Get<const char *>(3), queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index))->second;
-			index.try_emplace(item->GetId(), std::move(item));
+			AllGenresItem item{ queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index), query->Get<const char*>(3) };
+			if (query->Get<int>(4))
+				buffer.emplace_back(std::move(item));
+			else
+				allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
 		}
 
+		auto root = NavigationItem::Create();
+
+		while (!buffer.empty())
 		{
-			std::stack<QString> stack { {"0"} };
-
-			while (!stack.empty())
+			for (auto&& [genre, parentCode] : buffer)
 			{
-				auto parentId = std::move(stack.top());
-				stack.pop();
-
-				const auto parent = [&]
-				{
-					const auto it = index.find(parentId);
-					assert(it != index.end());
-					return it->second;
-				}();
-
-				for (auto && [it, end] = items.equal_range(parentId); it != end; ++it)
-				{
-					const auto & item = parent->AppendChild(std::move(it->second));
-					stack.push(item->GetId());
-				}
+				genre->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
+				const auto it = allGenres.find(parentCode);
+				(it == allGenres.end() ? root : std::get<0>(it->second))->AppendChild(std::move(genre));
 			}
-		}
+			buffer.clear();
 
-		assert(std::ranges::all_of(items | std::views::values, [] (const auto & item) { return !item; }));
-		const auto rootName = Loc::Tr(GENRE, QString::fromStdWString(std::wstring(DATE_ADDED_CODE)).toStdString().data());
-		if (const auto dateRoot = root->FindChild([&] (const IDataItem & item) { return item.GetData() == rootName; }))
-		{
-			std::stack<IDataItem *> stack { {dateRoot.get()} };
-			while (!stack.empty())
-			{
-				auto * parent = stack.top();
-				stack.pop();
-
-				parent->SortChildren([] (const IDataItem & lhs, const IDataItem & rhs) { return lhs.GetData() < rhs.GetData(); });
-				for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
-					stack.push(parent->GetChild(i).get());
-			}
+			for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) {return get<0>(item)->GetChildCount() != 0; }))
+				buffer.emplace_back(std::move(genre));
+			for (const auto& [genre, _] : buffer)
+				allGenres.erase(genre->GetId());
 		}
+		root->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
 
 		return [&cache, mode, callback = std::move(callback), root = std::move(root)] (size_t) mutable
 		{
@@ -283,18 +260,23 @@ private:
 NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl(std::move(databaseUser))
 {
-	PLOGD << "NavigationQueryExecutor created";
+	PLOGV << "NavigationQueryExecutor created";
 }
 
 NavigationQueryExecutor::~NavigationQueryExecutor()
 {
-	PLOGD << "NavigationQueryExecutor destroyed";
+	PLOGV << "NavigationQueryExecutor destroyed";
 }
 
-void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback) const
+void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback, const bool force) const
 {
 	if (const auto it = m_impl->cache.find(navigationMode); it != m_impl->cache.end())
-		return callback(navigationMode, it->second);
+	{
+		if (force)
+			m_impl->cache.erase(it);
+		else
+			return callback(navigationMode, it->second);
+	}
 
 	const auto & [request, description] = FindSecond(QUERIES, navigationMode);
 	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, m_impl->cache);

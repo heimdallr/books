@@ -31,12 +31,12 @@ UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUs
 	: m_databaseUser(std::move(databaseUser))
 	, m_uiFactory(std::move(uiFactory))
 {
-	PLOGD << "UserDataController created";
+	PLOGV << "UserDataController created";
 }
 
 UserDataController::~UserDataController()
 {
-	PLOGD << "UserDataController destroyed";
+	PLOGV << "UserDataController destroyed";
 }
 
 void UserDataController::Backup(Callback callback) const

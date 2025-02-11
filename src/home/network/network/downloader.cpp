@@ -67,12 +67,12 @@ private:
 
 Downloader::Downloader()
 {
-	PLOGD << "Downloader created";
+	PLOGV << "Downloader created";
 }
 
 Downloader::~Downloader()
 {
-	PLOGD << "Downloader destroyed";
+	PLOGV << "Downloader destroyed";
 }
 
 void Downloader::Download(const QString & url, QIODevice & io, OnFinish callback, OnProgress progress)

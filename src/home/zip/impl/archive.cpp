@@ -31,6 +31,7 @@
 #include "lib.h"
 #include "PropVariant.h"
 #include "reader.h"
+#include "remover.h"
 #include "writer.h"
 
 namespace HomeCompa::ZipDetails::SevenZip {
@@ -79,16 +80,32 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> str
 	return {};
 }
 
-CComPtr<IOutArchive> CreateOutputArchive(const Lib & lib, IInArchive * inArchive, const bit7z::BitInFormat & format)
+const bit7z::BitInOutFormat& GetInOutFormat(const Format format)
+{
+	static constexpr std::pair<Format, const bit7z::BitInOutFormat&> formats[]
+	{
+		{ Format::SevenZip, bit7z::BitFormat::SevenZip },
+		{ Format::Zip, bit7z::BitFormat::Zip },
+	};
+
+	return FindSecond(formats, format);
+}
+
+CComPtr<IOutArchive> CreateOutputArchive(IInArchive * inArchive)
+{
+	assert(inArchive);
+	CComPtr<IOutArchive> archive;
+	if (inArchive->QueryInterface(IID_IOutArchive, reinterpret_cast<void **>(&archive)) == S_OK)
+		return archive;
+	return {};
+}
+
+CComPtr<IOutArchive> CreateOutputArchive(const Lib& lib, const Format format)
 {
 	CComPtr<IOutArchive> archive;
-	if (inArchive)
-		if (inArchive->QueryInterface(IID_IOutArchive, reinterpret_cast<void **>(&archive)) == S_OK)
-			return archive;
+	const auto guid = bit7z::format_guid(GetInOutFormat(format));
 
-	const auto guid = bit7z::format_guid(format);
-
-	lib.CreateObject(guid, IID_IOutArchive, reinterpret_cast<void **>(&archive));
+	lib.CreateObject(guid, IID_IOutArchive, reinterpret_cast<void**>(&archive));
 	return archive;
 }
 
@@ -248,16 +265,6 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 	return result;
 }
 
-const bit7z::BitInOutFormat & GetInOutFormat(const bit7z::BitInFormat & /*inFormat*/, const Format format)
-{
-	static constexpr std::pair<Format, const bit7z::BitInOutFormat &> formats[]
-	{
-		{Format::SevenZip, bit7z::BitFormat::SevenZip},
-		{Format::Zip, bit7z::BitFormat::Zip},
-	};
-	return FindSecond(formats, format);
-}
-
 class Reader : virtual public IZip
 {
 public:
@@ -288,6 +295,12 @@ private: // IZip
 	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter &, const SizeGetter &) override
 	{
 		assert(false && "Cannot write with reader");
+		return false;
+	}
+
+	bool Remove(const std::vector<QString>& /*fileNames*/) override
+	{
+		assert(false && "Cannot remove with reader");
 		return false;
 	}
 
@@ -346,27 +359,37 @@ class WriterFile final : public ReaderFile
 public:
 	WriterFile(QString filename, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
 		: ReaderFile(std::move(filename), std::move(progress))
+		, m_format{ format }
 		, m_ioDevice { std::make_unique<QFile>(m_filename) }
 	{
+		assert(m_archive->format != bit7z::BitFormat::Auto || format != Format::Auto);
 		if (!appendMode)
 			m_archive = std::make_unique<ArchiveWrapper>();
 		m_ioDevice->open(!appendMode || m_archive->format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
-
-		m_format = &GetInOutFormat(m_archive->format, format);
-		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, *m_format);
+		
+		m_outArchive = m_archive->archive ? CreateOutputArchive(m_archive->archive) : CreateOutputArchive(m_lib, format);
 		assert(m_outArchive);
 	}
 
 private: // IZip
 	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
 	{
-		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
+		if (!m_archive->archive)
+			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
 		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
 	}
 
+	bool Remove(const std::vector<QString>& fileNames) override
+	{
+		const auto n = m_files.files.size();
+		const auto result = File::Remove(m_files, *m_outArchive, *m_ioDevice, fileNames, *m_progress);
+		PLOGI << m_filename << ". Files removed: " << n - m_files.files.size() << " out of " << n;
+		return result;
+	}
+
 private:
+	const Format m_format;
 	std::unique_ptr<QIODevice> m_ioDevice;
-	const bit7z::BitInOutFormat * m_format { nullptr };
 	CComPtr<IOutArchive> m_outArchive;
 };
 
@@ -375,28 +398,38 @@ class WriterStream final : public ReaderStream
 public:
 	WriterStream(QIODevice & stream, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
 		: ReaderStream(stream, std::move(progress))
+		, m_format{ format }
 		, m_ioDevice { stream }
 	{
+		assert(m_archive->format != bit7z::BitFormat::Auto || format != Format::Auto);
 		m_ioDevice.close();
 		if (!appendMode)
 			m_archive = std::make_unique<ArchiveWrapper>();
 		m_ioDevice.open(!appendMode || m_archive->format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
 
-		m_format = &GetInOutFormat(m_archive->format, format);
-		m_outArchive = CreateOutputArchive(m_lib, m_archive->archive, *m_format);
+		m_outArchive = m_archive->archive ? CreateOutputArchive(m_archive->archive) : CreateOutputArchive(m_lib, format);
 		assert(m_outArchive);
 	}
 
 private: // IZip
 	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
 	{
-		SetArchiveProperties(*m_outArchive, *m_format, m_properties);
+		if (!m_archive->archive)
+			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
 		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
 	}
 
+	bool Remove(const std::vector<QString>& fileNames) override
+	{
+		const auto n = m_files.files.size();
+		const auto result = File::Remove(m_files, *m_outArchive, m_ioDevice, fileNames, *m_progress);
+		PLOGI << "files removed: " << n - m_files.files.size() << " out of " << n;
+		return result;
+	}
+
 private:
+	const Format m_format;
 	QIODevice & m_ioDevice;
-	const bit7z::BitInOutFormat * m_format { nullptr };
 	CComPtr<IOutArchive> m_outArchive;
 };
 

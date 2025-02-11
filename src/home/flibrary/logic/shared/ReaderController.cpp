@@ -1,5 +1,7 @@
 #include "ReaderController.h"
 
+#include <random>
+
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QProcess>
@@ -92,6 +94,9 @@ struct ReaderController::Impl
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseUser, std::shared_ptr> databaseUser;
+
+	mutable std::random_device rd{};
+	mutable std::mt19937 mt{ rd() };
 
 	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::shared_ptr<ISettings> settings
@@ -198,9 +203,10 @@ void ReaderController::Read(const QString & folderName, QString fileName, Callba
 				if (QDesktopServices::openUrl(fileName))
 					return;
 
-				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) == QMessageBox::Yes)
-					getReader();
+				if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+					return;
 
+				getReader();
 				if (reader.isEmpty())
 					return;
 			}
@@ -243,5 +249,32 @@ void ReaderController::Read(long long id) const
 			{
 				Read(folderName, std::move(fileName), []() {});
 			};
+		} });
+}
+
+void ReaderController::ReadRandomBook(QString lang) const
+{
+	m_impl->databaseUser->Execute({ "Get books for language", [this, lang = std::move(lang)]()
+		{
+			std::function<void(size_t)> result{ [](size_t) {} };
+			const auto db = m_impl->databaseUser->Database();
+			const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?");
+			query->Bind(0, lang.toStdString());
+			std::vector<std::pair<QString, QString>> allBooks;
+			for (query->Execute(); !query->Eof(); query->Next())
+				allBooks.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
+
+			if (allBooks.empty())
+				return result;
+
+			std::uniform_int_distribution<size_t> distribution(0, allBooks.size() - 1);
+			const auto n = distribution(m_impl->mt);
+
+			result = [this, folderName = std::move(allBooks[n].first), fileName = std::move(allBooks[n].second)](size_t) mutable
+			{
+				Read(folderName, std::move(fileName), []() {});
+			};
+
+			return result;
 		} });
 }

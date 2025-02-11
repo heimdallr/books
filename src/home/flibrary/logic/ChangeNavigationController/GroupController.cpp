@@ -187,12 +187,12 @@ GroupController::GroupController(std::shared_ptr<IDatabaseUser> databaseUser
 )
 	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
-	PLOGD << "GroupController created";
+	PLOGV << "GroupController created";
 }
 
 GroupController::~GroupController()
 {
-	PLOGD << "GroupController destroyed";
+	PLOGV << "GroupController destroyed";
 }
 
 void GroupController::CreateNew(Callback callback) const

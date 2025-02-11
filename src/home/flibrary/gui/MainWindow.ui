@@ -33,7 +33,7 @@
     <item>
      <widget class="QLineEdit" name="settingsLineEdit">
       <property name="contextMenuPolicy">
-       <enum>Qt::ActionsContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
       </property>
      </widget>
     </item>
@@ -80,10 +80,10 @@
            <item row="0" column="0">
             <widget class="QSplitter" name="verticalSplitter">
              <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
+              <enum>QFrame::Shape::NoFrame</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Plain</enum>
+              <enum>QFrame::Shadow::Plain</enum>
              </property>
              <property name="lineWidth">
               <number>0</number>
@@ -92,7 +92,7 @@
               <number>0</number>
              </property>
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="handleWidth">
               <number>0</number>
@@ -157,7 +157,7 @@
                   <number>0</number>
                  </property>
                  <property name="orientation">
-                  <enum>Qt::Vertical</enum>
+                  <enum>Qt::Orientation::Vertical</enum>
                  </property>
                  <property name="handleWidth">
                   <number>0</number>
@@ -243,10 +243,10 @@
         <item>
          <widget class="QListView" name="logView">
           <property name="contextMenuPolicy">
-           <enum>Qt::CustomContextMenu</enum>
+           <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
           </property>
           <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
+           <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -298,6 +298,9 @@
     <addaction name="menuSelectCollection"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
+    <addaction name="actionAllowDestructiveOperations"/>
+    <addaction name="actionDenyDestructiveOperations"/>
+    <addaction name="actionShowCollectionCleaner"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -319,6 +322,8 @@
       <addaction name="actionHideAnnotation"/>
       <addaction name="actionShowAnnotationCover"/>
       <addaction name="actionHideAnnotationCover"/>
+      <addaction name="actionShowAnnotationCoverButtons"/>
+      <addaction name="actionHideAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
       <addaction name="actionHideAnnotationContent"/>
      </widget>
@@ -405,7 +410,7 @@
     <string notr="true">Ctrl+Up</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionFontSizeDown">
@@ -416,7 +421,7 @@
     <string notr="true">Ctrl+Down</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionExit">
@@ -427,7 +432,7 @@
     <string notr="true">Alt+X</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::QuitRole</enum>
+    <enum>QAction::MenuRole::QuitRole</enum>
    </property>
   </action>
   <action name="actionAddNewCollection">
@@ -438,7 +443,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionRemoveCollection">
@@ -452,7 +457,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionAbout">
@@ -471,7 +476,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowLog">
@@ -485,7 +490,7 @@
     <string notr="true">Esc</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionClearLog">
@@ -496,7 +501,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowCollectionStatistics">
@@ -507,7 +512,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionFontSettings">
@@ -518,7 +523,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionExportUserData">
@@ -529,7 +534,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionImportUserData">
@@ -540,7 +545,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowRemoved">
@@ -551,7 +556,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionRestoreDefaultSettings">
@@ -562,7 +567,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionHideAnnotation">
@@ -573,7 +578,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowAnnotation">
@@ -584,7 +589,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowAnnotationContent">
@@ -595,7 +600,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionHideAnnotationContent">
@@ -606,7 +611,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowStatusBar">
@@ -617,7 +622,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionHideStatusBar">
@@ -628,7 +633,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowAnnotationCover">
@@ -636,7 +641,7 @@
     <string>Show co&amp;ver</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionHideAnnotationCover">
@@ -644,7 +649,7 @@
     <string>Hide co&amp;ver</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionTestLogColors">
@@ -655,7 +660,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionScripts">
@@ -663,7 +668,7 @@
     <string>&amp;Scripts...</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionExportTempate">
@@ -671,7 +676,7 @@
     <string>Book &amp;export tempate</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionCheckForUpdates">
@@ -682,7 +687,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionPermanentLanguageFilter">
@@ -734,10 +739,50 @@
     <string>OPDS server management</string>
    </property>
   </action>
+  <action name="actionHideAnnotationCoverButtons">
+   <property name="text">
+    <string>Hide cover &amp;buttons</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAnnotationCoverButtons">
+   <property name="text">
+    <string>Show cover &amp;buttons</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAllowDestructiveOperations">
+   <property name="text">
+    <string>Allow destructive operations</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDenyDestructiveOperations">
+   <property name="text">
+    <string>Deny destructive operations</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowCollectionCleaner">
+   <property name="text">
+    <string>Cleaner...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources/gui.qrc"/>
+  <include location="../theme/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1,6 +1,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.h"
 
+#include <QActionEvent>
 #include <QActionGroup>
 #include <QGuiApplication>
 #include <QPainter>
@@ -51,15 +52,56 @@ constexpr auto CONTEXT = MAIN_WINDOW;
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
+constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
+constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[]
+{
+	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
+	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
+};
+
+TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
+constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto ACTION_PROPERTY_NAME = "value";
-TR_DEF
+
+class AllowDestructiveOperationsObserver : public QObject
+{
+public:
+	AllowDestructiveOperationsObserver(std::function<void()> function, std::shared_ptr<const IUiFactory> uiFactory, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_function{ std::move(function) }
+		, m_uiFactory{ std::move(uiFactory) }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() != QEvent::ActionChanged)
+			return QObject::eventFilter(watched, event);
+
+		const auto* actionChanged = static_cast<QActionEvent*>(event);
+		if (actionChanged->action()->isEnabled())
+			m_uiFactory->ShowInfo(Tr(DENY_DESTRUCTIVE_OPERATIONS_MESSAGE));
+		else if (std::ranges::any_of(ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS, [&](const char* message) { return m_uiFactory->ShowWarning(Tr(message), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes; }))
+			m_function();
+		else
+			m_uiFactory->ShowInfo(Tr(ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE));
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	const std::function<void()> m_function;
+	const std::shared_ptr<const IUiFactory> m_uiFactory;
+};
 
 }
 
@@ -111,7 +153,7 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
-		QTimer::singleShot(0, [&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
+		StartDelayed([&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 		{
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
 			{
@@ -190,6 +232,9 @@ private:
 
 		m_parentWidgetProvider->SetWidget(&m_self);
 
+		m_delayStarter.setSingleShot(true);
+		m_delayStarter.setInterval(std::chrono::milliseconds(200));
+
 		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
@@ -207,7 +252,18 @@ private:
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, m_settings->Get(SHOW_ANNOTATION_CONTENT_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, m_settings->Get(SHOW_ANNOTATION_COVER_KEY, true));
+		OnObjectVisibleChanged(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, m_settings->Get(SHOW_ANNOTATION_COVER_BUTTONS_KEY, true));
 		OnObjectVisibleChanged<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, m_settings->Get(SHOW_STATUS_BAR_KEY, true));
+		if (m_collectionController->ActiveCollectionExists())
+		{
+			OnObjectVisibleChanged(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations, m_collectionController->GetActiveCollection().destructiveOperationsAllowed);
+			m_ui.actionAllowDestructiveOperations->installEventFilter(new AllowDestructiveOperationsObserver([this] { OnObjectVisibleChanged(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations, false); }, m_uiFactory, &m_self));
+		}
+		else
+		{
+			m_ui.actionAllowDestructiveOperations->setVisible(false);
+			m_ui.actionDenyDestructiveOperations->setVisible(false);
+		}
 		m_ui.actionPermanentLanguageFilter->setChecked(m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false));
 
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
@@ -215,6 +271,12 @@ private:
 
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
+	}
+
+	void AllowDestructiveOperation(const bool value)
+	{
+		m_collectionController->AllowDestructiveOperation(value);
+		m_ui.actionShowCollectionCleaner->setEnabled(value);
 	}
 
 	void ConnectActions()
@@ -350,10 +412,14 @@ private:
 			m_settings->Set(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, checked);
 		});
 
+		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [&] {m_uiFactory->CreateCollectionCleaner()->exec(); });
+
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowContent, m_ui.actionShowAnnotationContent, m_ui.actionHideAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
+		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY);
+		ConnectShowHide(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 
 		const auto addActionGroup = [this] (const std::vector<QAction *> & actions, const QString & key, const QString & defaultValue)
@@ -474,6 +540,12 @@ private:
 		});
 	}
 
+	void StartDelayed(std::function<void()> f)
+	{
+		connect(&m_delayStarter, &QTimer::timeout, &m_self, [this, f = std::move(f)] { m_delayStarter.disconnect(); f(); });
+		m_delayStarter.start();
+	}
+
 	template<typename T>
 	static void OnObjectVisibleChanged(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const bool value)
 	{
@@ -483,11 +555,12 @@ private:
 	}
 
 	template<typename T>
-	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key)
+	void ConnectShowHide(T * obj, void(T::* f)(bool), QAction * show, QAction * hide, const char * key = nullptr)
 	{
 		const auto showHide = [=, &settings = *m_settings] (const bool value)
 		{
-			settings.Set(key, value);
+			if (key)
+				settings.Set(key, value);
 			Impl::OnObjectVisibleChanged<T>(obj, f, show, hide, value);
 		};
 
@@ -513,6 +586,7 @@ private:
 private:
 	MainWindow & m_self;
 	Ui::MainWindow m_ui {};
+	QTimer m_delayStarter;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
@@ -566,12 +640,12 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory
 		, std::move(databaseChecker)
 	)
 {
-	PLOGD << "MainWindow created";
+	PLOGV << "MainWindow created";
 }
 
 MainWindow::~MainWindow()
 {
-	PLOGD << "MainWindow destroyed";
+	PLOGV << "MainWindow destroyed";
 }
 
 void MainWindow::Show()

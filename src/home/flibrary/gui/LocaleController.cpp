@@ -6,11 +6,12 @@
 
 #include <plog/Log.h>
 
-#include "util/ISettings.h"
-#include "util/KeyboardLayout.h"
-
 #include "interface/constants/Localization.h"
 #include "interface/ui/IUiFactory.h"
+
+#include "util/ISettings.h"
+#include "util/KeyboardLayout.h"
+#include "util/SortString.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -37,6 +38,7 @@ public:
 	void Setup(QMenu & menu)
 	{
 		const auto currentLocale = Loc::GetLocale(*m_settings);
+		Util::QStringWrapper::SetLocale(currentLocale);
 		SetKeyboardLayout(currentLocale.toStdString());
 		for (const auto * locale : Loc::LOCALES)
 		{
@@ -74,12 +76,12 @@ LocaleController::LocaleController(std::shared_ptr<ISettings> settings
 	: QObject(parent)
 	, m_impl(*this, std::move(settings), std::move(uiFactory))
 {
-	PLOGD << "LocaleController created";
+	PLOGV << "LocaleController created";
 }
 
 LocaleController::~LocaleController()
 {
-	PLOGD << "LocaleController destroyed";
+	PLOGV << "LocaleController destroyed";
 }
 
 void LocaleController::Setup(QMenu & menu)

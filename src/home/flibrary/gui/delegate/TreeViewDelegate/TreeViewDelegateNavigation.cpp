@@ -4,8 +4,8 @@
 #include <QHBoxLayout>
 #include <QItemSelectionModel>
 #include <QStyledItemDelegate>
-#include <QSvgWidget>
 #include <QToolButton>
+#include <QPainter>
 
 #include <plog/Log.h>
 
@@ -16,23 +16,6 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
-
-QByteArray GetSvgWidgetContent(const QPalette & palette)
-{
-	QFile file(":/icons/plus.svg");
-	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-	assert(ok);
-
-	return QString::fromUtf8(file.readAll())
-		.arg(45)
-		.arg(Util::ToString(palette, QPalette::Base))
-		.arg(Util::ToString(palette, QPalette::Text))
-		.toUtf8();
-}
-
-}
-
 class TreeViewDelegateNavigation::Impl final
 	: public QStyledItemDelegate
 	, public Observable<ITreeViewDelegate::IObserver>
@@ -40,7 +23,6 @@ class TreeViewDelegateNavigation::Impl final
 public:
 	explicit Impl(const IUiFactory & uiFactory)
 		: m_view(uiFactory.GetAbstractItemView())
-		, m_svgWidgetContent(GetSvgWidgetContent(m_view.palette()))
 	{
 	}
 
@@ -63,6 +45,7 @@ private: // QStyledItemDelegate
 			return QStyledItemDelegate::createEditor(parent, option, index);
 
 		auto * btn = new QToolButton(parent);
+		btn->setIcon(QIcon(":/icons/remove.svg"));
 		btn->setAutoRaise(true);
 		QPersistentModelIndex persistentIndex { index };
 		connect(btn, &QAbstractButton::clicked, [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)]
@@ -70,52 +53,56 @@ private: // QStyledItemDelegate
 			this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex)));
 		});
 
-		auto * icon = new QSvgWidget(btn);
-		icon->load(m_svgWidgetContent);
-		auto * layout = new QHBoxLayout(btn);
-		btn->setLayout(layout);
-		btn->layout()->addWidget(icon);
-
 		return btn;
+	}
+
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		if (!(option.state & QStyle::State_Selected))
+			return QStyledItemDelegate::paint(painter, option, index);
+
+		const QWidget* widget = option.widget;
+		assert(widget);
+		QStyle* style = widget->style();
+		assert(style);
+		style->drawControl(QStyle::CE_ItemViewItem, &option, painter, widget);
+		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
+		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
+		style->drawItemText(painter, option.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin), Qt::AlignLeft, option.palette, option.state & QStyle::State_Enabled, index.data(Qt::DisplayRole).toString());
 	}
 
 	void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, [[maybe_unused]] const QModelIndex & index) const override
 	{
 		auto rect = option.rect;
 		rect.setLeft(rect.right() - rect.height());
-
-		const auto size = rect.height() / 10;
-		editor->layout()->setContentsMargins(size, size, size, size);
-
 		editor->setGeometry(rect);
 	}
 
 private:
 	void OnSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) const
 	{
-		for (const auto index : deselected.indexes())
+		for (const auto& index : deselected.indexes())
 			m_view.closePersistentEditor(index);
 
-		for (const auto index : selected.indexes())
+		for (const auto& index : selected.indexes())
 			m_view.openPersistentEditor(index);
 	}
 
 private:
 	QAbstractItemView & m_view;
 	QMetaObject::Connection m_connection;
-	QByteArray m_svgWidgetContent;
 	bool m_enabled { false };
 };
 
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory> & uiFactory)
 	: m_impl(*uiFactory)
 {
-	PLOGD << "TreeViewDelegateNavigation created";
+	PLOGV << "TreeViewDelegateNavigation created";
 }
 
 TreeViewDelegateNavigation::~TreeViewDelegateNavigation()
 {
-	PLOGD << "TreeViewDelegateNavigation destroyed";
+	PLOGV << "TreeViewDelegateNavigation destroyed";
 }
 
 QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate() noexcept

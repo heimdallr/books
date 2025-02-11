@@ -72,7 +72,7 @@
           </property>
           <property name="icon">
            <iconset resource="resources/fb2cut.qrc">
-            <normaloff>:/icons/add_file.png</normaloff>:/icons/add_file.png</iconset>
+            <normaloff>:/icons/zip.svg</normaloff>:/icons/zip.svg</iconset>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -107,7 +107,7 @@
           </property>
           <property name="icon">
            <iconset resource="resources/fb2cut.qrc">
-            <normaloff>:/icons/add_folder.png</normaloff>:/icons/add_folder.png</iconset>
+            <normaloff>:/icons/open-folder.svg</normaloff>:/icons/open-folder.svg</iconset>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -279,7 +279,7 @@
              </property>
              <property name="icon">
               <iconset resource="resources/fb2cut.qrc">
-               <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+               <normaloff>:/icons/exe.svg</normaloff>:/icons/exe.svg</iconset>
              </property>
              <property name="autoRaise">
               <bool>true</bool>
@@ -324,7 +324,7 @@
            </property>
            <property name="icon">
             <iconset resource="resources/fb2cut.qrc">
-             <normaloff>:/icons/exe.png</normaloff>:/icons/exe.png</iconset>
+             <normaloff>:/icons/exe.svg</normaloff>:/icons/exe.svg</iconset>
            </property>
            <property name="autoRaise">
             <bool>true</bool>
@@ -373,7 +373,7 @@
              <widget class="QToolButton" name="btnDefaultArgs">
               <property name="icon">
                <iconset resource="resources/fb2cut.qrc">
-                <normaloff>:/icons/set_default.png</normaloff>:/icons/set_default.png</iconset>
+                <normaloff>:/icons/set-default.svg</normaloff>:/icons/set-default.svg</iconset>
               </property>
               <property name="autoRaise">
                <bool>true</bool>
@@ -467,7 +467,7 @@
   <action name="actionInputFilesNotFound">
    <property name="icon">
     <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+     <normaloff>:/icons/exclamation.svg</normaloff>:/icons/exclamation.svg</iconset>
    </property>
    <property name="text">
     <string notr="true">Input Files</string>
@@ -479,7 +479,7 @@
   <action name="actionDstFolderNotExists">
    <property name="icon">
     <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+     <normaloff>:/icons/exclamation.svg</normaloff>:/icons/exclamation.svg</iconset>
    </property>
    <property name="text">
     <string notr="true">Destination Folder</string>
@@ -491,7 +491,7 @@
   <action name="actionFfmpegNotFound">
    <property name="icon">
     <iconset resource="resources/fb2cut.qrc">
-     <normaloff>:/icons/exclamation.png</normaloff>:/icons/exclamation.png</iconset>
+     <normaloff>:/icons/exclamation.svg</normaloff>:/icons/exclamation.svg</iconset>
    </property>
    <property name="text">
     <string notr="true">FFmpeg Not Found</string>

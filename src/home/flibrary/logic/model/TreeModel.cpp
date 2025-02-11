@@ -15,12 +15,12 @@ AbstractTreeModel::AbstractTreeModel(const std::shared_ptr<IModelProvider> & mod
 TreeModel::TreeModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
 	: AbstractTreeModel(modelProvider, parent)
 {
-	PLOGD << "TreeModel created";
+	PLOGV << "TreeModel created";
 }
 
 TreeModel::~TreeModel()
 {
-	PLOGD << "TreeModel destroyed";
+	PLOGV << "TreeModel destroyed";
 }
 
 QModelIndex TreeModel::index(const int row, const int column, const QModelIndex & parent) const

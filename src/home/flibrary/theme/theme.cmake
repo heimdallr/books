@@ -1,0 +1,12 @@
+set(THEMES)
+
+file(GLOB sources_list LIST_DIRECTORIES true "${CMAKE_CURRENT_LIST_DIR}/*")
+foreach(dir ${sources_list})
+	if(IS_DIRECTORY ${dir})
+		get_filename_component(module ${dir} NAME)
+#		message(FATAL_ERROR "${dir}/resources/${module}.qrc")
+		file(CREATE_LINK "${CMAKE_CURRENT_LIST_DIR}/theme.qrc" "${dir}/resources/${module}.qrc")
+		include("${dir}/${module}.cmake")
+		list(APPEND THEMES "theme_${module}")
+	endif()
+endforeach()

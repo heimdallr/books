@@ -178,6 +178,11 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>&amp;Delete permanently</source>
+        <translation>Удалит&amp;ь навсегда</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
@@ -210,6 +215,11 @@
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>restoring</source>
         <translation>восстановить</translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation>Результат этой операции нельзя отменить. Уверены, что хотите навсегда удалить эти книги?</translation>
     </message>
 </context>
 <context>
@@ -247,6 +257,11 @@
         <location filename="../../Collection/CollectionController.cpp"/>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
+        <source>The collection was not %1 due to errors. See log.</source>
+        <translation>Коллекция не была %1 из-за ошибок. Подробности в журнале.</translation>
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
@@ -386,6 +401,24 @@ Try again?</source>
         <location filename="../../ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove books from group</source>
         <translation>Не удалось удалить книгу из группы</translation>
+    </message>
+</context>
+<context>
+    <name>LanguageModel</name>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Code</source>
+        <translation>Код</translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Count</source>
+        <translation>Количество</translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Language</source>
+        <translation>Язык</translation>
     </message>
 </context>
 <context>

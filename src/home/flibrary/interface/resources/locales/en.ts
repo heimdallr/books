@@ -108,6 +108,14 @@
     </message>
 </context>
 <context>
+    <name>CollectionCleaner</name>
+    <message>
+        <location filename="../../logic/ICollectionCleaner.h"/>
+        <source>%1 book(s) deleted permanently</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Error</name>
     <message>
         <location filename="../../constants/Localization.h"/>
@@ -1918,6 +1926,36 @@
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>
+        <source>%author_last_fm%</source>
+        <translation>Author&apos;s Surname F. M.</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_last_name%</source>
+        <translation>Author&apos;s surname</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_first_name%</source>
+        <translation>Author&apos;s first name</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_middle_name%</source>
+        <translation>Author&apos;s middle name</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_f%</source>
+        <translation>Author&apos;s F.</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
+        <source>%author_m%</source>
+        <translation>Author&apos;s M.</translation>
+    </message>
+    <message>
+        <location filename="../../logic/IScriptController.h"/>
         <source>%db_id%</source>
         <translation>Book ID from the database</translation>
     </message>
@@ -1929,7 +1967,7 @@
     <message>
         <location filename="../../logic/IScriptController.h"/>
         <source>%author%</source>
-        <translation>Author</translation>
+        <translation>Author&apos;s Surname Firstname. Middlename</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>

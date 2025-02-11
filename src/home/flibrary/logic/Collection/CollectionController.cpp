@@ -33,6 +33,7 @@ constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionControl
 constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
 constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
+constexpr auto ERROR = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
 constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
@@ -71,6 +72,7 @@ IniMapPair GetIniMap(const QString & db, const QString & inpxFolder, bool create
 		{ GENRES, getFile(QString::fromStdWString(DEFAULT_GENRES)).toStdWString() },
 		{ DB_CREATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT)).toStdWString() },
 		{ DB_UPDATE_SCRIPT, getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT)).toStdWString() },
+		{ LANGUAGES_MAPPING, getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING)).toStdWString() },
 		{ INPX_FOLDER, inpxFolder.toStdWString() },
 	};
 
@@ -138,7 +140,7 @@ public:
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode, false);
 				break;
 
 			default:
@@ -200,6 +202,19 @@ public:
 			default:
 				assert(false && "unexpected button");
 		}
+	}
+
+	void AllowDestructiveOperation(const bool value)
+	{
+		assert(ActiveCollectionExists());
+		auto& collection = m_collectionProvider->GetActiveCollection();
+		collection.destructiveOperationsAllowed = value;
+		CollectionImpl::Serialize(collection, *m_settings);
+	}
+
+	Collection& GetActiveCollection() noexcept
+	{
+		return m_collectionProvider->GetActiveCollection();
 	}
 
 	const Collection& GetActiveCollection() const noexcept
@@ -264,15 +279,16 @@ private:
 			const ScopedCall parserResetGuard([parser = std::move(parser)] () mutable { parser.reset(); });
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
-			Add(std::move(name), std::move(db), std::move(folder), mode);
+			if (!updateResult.error)
+				Add(std::move(name), std::move(db), std::move(folder), mode, updateResult.updatable);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
-	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
+	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode, const bool updatable)
 	{
-		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), updatable);
 		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		auto & collections = m_collectionProvider->GetCollections();
@@ -298,6 +314,9 @@ private:
 
 	void ShowUpdateResult(const Inpx::UpdateResult & updateResult, const QString & name, const char * action)
 	{
+		if (updateResult.error)
+			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
+
 		if (updateResult.folders == 0)
 			return;
 
@@ -333,12 +352,12 @@ CollectionController::CollectionController(std::shared_ptr<ICollectionProvider> 
 		, taskQueue
 	)
 {
-	PLOGD << "CollectionController created";
+	PLOGV << "CollectionController created";
 }
 
 CollectionController::~CollectionController()
 {
-	PLOGD << "CollectionController destroyed";
+	PLOGV << "CollectionController destroyed";
 }
 
 void CollectionController::AddCollection(const std::filesystem::path & inpxDir)
@@ -386,6 +405,11 @@ const Collections & CollectionController::GetCollections() const noexcept
 	return m_impl->GetCollections();
 }
 
+Collection & CollectionController::GetActiveCollection() noexcept
+{
+	return m_impl->GetActiveCollection();
+}
+
 const Collection& CollectionController::GetActiveCollection() const noexcept
 {
 	return m_impl->GetActiveCollection();
@@ -409,6 +433,11 @@ void CollectionController::SetActiveCollection(const QString & id)
 void CollectionController::OnInpxUpdateFound(const Collection & updatedCollection)
 {
 	m_impl->OnInpxUpdateFound(updatedCollection);
+}
+
+void CollectionController::AllowDestructiveOperation(const bool value)
+{
+	m_impl->AllowDestructiveOperation(value);
 }
 
 void CollectionController::RegisterObserver(ICollectionsObserver * observer)

@@ -53,6 +53,12 @@ public:
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)              \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)         \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)               \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)         \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)       \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)      \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)     \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorF)              \
+		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorM)              \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)               \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)            \
 		SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)             \
@@ -141,6 +147,12 @@ public:
 		{ Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController", "%file_ext%") },
 		{ Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController", "%base_file_name%") },
 		{ Macro::Author, QT_TRANSLATE_NOOP("ScriptController", "%author%") },
+		{ Macro::AuthorLastFM, QT_TRANSLATE_NOOP("ScriptController", "%author_last_fm%") },
+		{ Macro::AuthorLastName, QT_TRANSLATE_NOOP("ScriptController", "%author_last_name%") },
+		{ Macro::AuthorFirstName, QT_TRANSLATE_NOOP("ScriptController", "%author_first_name%") },
+		{ Macro::AuthorMiddleName, QT_TRANSLATE_NOOP("ScriptController", "%author_middle_name%") },
+		{ Macro::AuthorF, QT_TRANSLATE_NOOP("ScriptController", "%author_f%") },
+		{ Macro::AuthorM, QT_TRANSLATE_NOOP("ScriptController", "%author_m%") },
 		{ Macro::Series, QT_TRANSLATE_NOOP("ScriptController", "%series%") },
 		{ Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController", "%seq_number%") },
 		{ Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController", "%file_size%") },

@@ -45,12 +45,12 @@ struct ModelProvider::Impl
 ModelProvider::ModelProvider(Hypodermic::Container & container)
 	: m_impl(container)
 {
-	PLOGD << "ModelProvider created";
+	PLOGV << "ModelProvider created";
 }
 
 ModelProvider::~ModelProvider()
 {
-	PLOGD << "ModelProvider destroyed";
+	PLOGV << "ModelProvider destroyed";
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver & observer) const

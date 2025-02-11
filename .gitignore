@@ -34,3 +34,6 @@
 bin/*
 bin*/
 build*/
+
+dark.qrc
+light.qrc

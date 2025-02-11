@@ -1,10 +1,11 @@
 #include "AnnotationController.h"
 
-#include <QBuffer>
-#include <QPixmap>
 #include <ranges>
 
+#include <QBuffer>
 #include <QDateTime>
+#include <QFileInfo>
+#include <QPixmap>
 #include <QTimer>
 
 #include "fnd/observable.h"
@@ -335,6 +336,13 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
+		if (QFileInfo(book->GetRawData(BookItem::Column::FileName)).suffix().compare("fb2", Qt::CaseInsensitive))
+		{
+			m_book = std::move(book);
+			m_ready |= Ready::Archive;
+			return;
+		}
+
 		if (const auto progressController = m_archiveParserProgressController.lock())
 			progressController->Stop();
 
@@ -469,11 +477,11 @@ AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFac
 		, std::move(databaseUser)
 	)
 {
-	PLOGD << "AnnotationController created";
+	PLOGV << "AnnotationController created";
 }
 AnnotationController::~AnnotationController()
 {
-	PLOGD << "AnnotationController destroyed";
+	PLOGV << "AnnotationController destroyed";
 }
 
 void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)

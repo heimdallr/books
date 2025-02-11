@@ -101,12 +101,12 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 		Perform(&IObserver::OnModelChanged, m_impl->model.get());
 	});
 
-	PLOGD << "TreeViewControllerBooks created";
+	PLOGV << "TreeViewControllerBooks created";
 }
 
 TreeViewControllerBooks::~TreeViewControllerBooks()
 {
-	PLOGD << "TreeViewControllerBooks destroyed";
+	PLOGV << "TreeViewControllerBooks destroyed";
 }
 
 std::vector<const char *> TreeViewControllerBooks::GetModeNames() const

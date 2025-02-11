@@ -40,12 +40,12 @@ ScriptSortFilterModel::ScriptSortFilterModel(const std::shared_ptr<const IModelP
 
 	m_source->setData({}, QVariant::fromValue<ISourceModelObserver *>(this), Role::Observer);
 
-	PLOGD << "ScriptSortFilterModel created";
+	PLOGV << "ScriptSortFilterModel created";
 }
 
 ScriptSortFilterModel::~ScriptSortFilterModel()
 {
-	PLOGD << "ScriptSortFilterModel destroyed";
+	PLOGV << "ScriptSortFilterModel destroyed";
 }
 
 bool ScriptSortFilterModel::setData(const QModelIndex & index, const QVariant & value, const int role)

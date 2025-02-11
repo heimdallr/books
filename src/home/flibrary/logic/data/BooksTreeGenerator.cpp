@@ -12,11 +12,12 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/SortString.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "database/DatabaseUtil.h"
+
+#include "util/SortString.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -51,9 +52,9 @@ constexpr auto BOOKS_QUERY =
 auto ToAuthorItemComparable(const IDataItem::Ptr & author)
 {
 	return std::make_tuple(
-		  QStringWrapper { author->GetData(AuthorItem::Column::LastName) }
-		, QStringWrapper { author->GetData(AuthorItem::Column::FirstName) }
-		, QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
+		  Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) }
+		, Util::QStringWrapper { author->GetData(AuthorItem::Column::FirstName) }
+		, Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
 	);
 }
 
@@ -190,7 +191,7 @@ public:
 
 		const auto genresComparator = [] (const IDataItem::Ptr & lhs, const IDataItem::Ptr & rhs)
 		{
-			return QStringWrapper { lhs->GetId() } < QStringWrapper { rhs->GetId() };
+			return Util::QStringWrapper { lhs->GetId() } < Util::QStringWrapper { rhs->GetId() };
 		};
 
 		for (auto & [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
@@ -365,12 +366,12 @@ BooksTreeGenerator::BooksTreeGenerator(DB::IDatabase & db
 )
 	: m_impl(db, navigationMode, std::move(navigationId), description)
 {
-	PLOGD << "BooksTreeGenerator created";
+	PLOGV << "BooksTreeGenerator created";
 }
 
 BooksTreeGenerator::~BooksTreeGenerator()
 {
-	PLOGD << "BooksTreeGenerator destroyed";
+	PLOGV << "BooksTreeGenerator destroyed";
 }
 
 NavigationMode BooksTreeGenerator::GetNavigationMode() const noexcept

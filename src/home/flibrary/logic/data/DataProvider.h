@@ -32,7 +32,7 @@ public:
 	void SetNavigationRequestCallback(Callback callback);
 	void SetBookRequestCallback(Callback callback);
 
-	void RequestNavigation() const;
+	void RequestNavigation(bool force = false) const;
 	void RequestBooks(bool force = false) const;
 
 	BookInfo GetBookInfo(long long id) const;

@@ -178,6 +178,11 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>&amp;Delete permanently</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
@@ -209,6 +214,11 @@
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>restoring</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
+        <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation></translation>
     </message>
 </context>
@@ -245,6 +255,11 @@
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
         <source>No write access to %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
+        <source>The collection was not %1 due to errors. See log.</source>
         <translation></translation>
     </message>
     <message>
@@ -382,6 +397,24 @@ Try again?</source>
     <message>
         <location filename="../../ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove books from group</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>LanguageModel</name>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Code</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Count</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../model/LanguageModel.cpp"/>
+        <source>Language</source>
         <translation></translation>
     </message>
 </context>

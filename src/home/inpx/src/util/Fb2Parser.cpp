@@ -23,6 +23,7 @@ constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/m
 constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
+constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
 
 }
 
@@ -83,6 +84,7 @@ private: // Util::SaxParser
 			{ AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
 			{ BOOK_TITLE        , &Impl::ParseBookTitle },
 			{ LANG              , &Impl::ParseLang },
+			{ KEYWORDS          , &Impl::ParseKeywords },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -158,6 +160,12 @@ private:
 	bool ParseLang(const QString & value)
 	{
 		m_data.lang = value;
+		return true;
+	}
+
+	bool ParseKeywords(const QString& value)
+	{
+		m_data.keywords = value;
 		return true;
 	}
 

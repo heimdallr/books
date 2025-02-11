@@ -2,14 +2,10 @@
 
 #include <QComboBox>
 
-#include "Fnd/NonCopyMovable.h"
-
 namespace HomeCompa::Flibrary {
 
 class ModeComboBox : public QComboBox
 {
-	NON_COPY_MOVABLE(ModeComboBox)
-
 public:
 	class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
@@ -29,14 +25,9 @@ public:
 
 public:
 	explicit ModeComboBox(QWidget * parent);
-	~ModeComboBox() override;
 
 private:
 	void paintEvent(QPaintEvent * event) override;
-
-private:
-	struct Impl;
-	std::unique_ptr<Impl> m_impl;
 };
 
 }

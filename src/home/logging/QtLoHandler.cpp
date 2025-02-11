@@ -13,6 +13,11 @@ QString FileName(const QMessageLogContext& ctx)
 	return ctx.file ? QFileInfo(ctx.file).fileName() : "undefined";
 }
 
+constexpr const char* IGNORED[]
+{
+	"DirectWrite: CreateFontFaceFromHDC() failed",
+};
+
 }
 
 QtLogHandler* QtLogHandler::s_qtLogHandler = nullptr;
@@ -40,6 +45,9 @@ void QtLogHandler::HandleStatic(const QtMsgType type, const QMessageLogContext& 
 
 void QtLogHandler::Handle(const QtMsgType type, const QMessageLogContext& ctx, const QString& message) const
 {
+	if (std::ranges::any_of(IGNORED, [&](const auto* item) { return message.startsWith(item); }))
+		return;
+
 	const auto context = QString("[%1@%2] ").arg(FileName(ctx)).arg(ctx.line);
 
 	switch (type)

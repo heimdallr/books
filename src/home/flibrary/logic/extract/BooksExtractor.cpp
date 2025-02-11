@@ -313,12 +313,12 @@ BooksExtractor::BooksExtractor(std::shared_ptr<ICollectionController> collection
 		, std::move(databaseUser)
 	)
 {
-	PLOGD << "BooksExtractor created";
+	PLOGV << "BooksExtractor created";
 }
 
 BooksExtractor::~BooksExtractor()
 {
-	PLOGD << "BooksExtractor destroyed";
+	PLOGV << "BooksExtractor destroyed";
 }
 
 void BooksExtractor::ExtractAsArchives(QString folder, const QString &/*parameter*/, ILogicFactory::ExtractedBooks && books, QString outputFileNameTemplate, Callback callback)

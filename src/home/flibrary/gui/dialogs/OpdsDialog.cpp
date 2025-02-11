@@ -1,13 +1,26 @@
 #include "ui_OpdsDialog.h"
 #include "OpdsDialog.h"
 
+#include <QClipboard>
+#include <QHostAddress>
+#include <QNetworkInterface>
+#include <QToolTip>
+
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IOpdsController.h"
 
+#include "util/localization.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
+
+namespace {
+constexpr auto CONTEXT = "OpdsDialog";
+constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS server address has been copied to the clipboard");
+TR_DEF
+}
 
 struct OpdsDialog::Impl final
 	: Util::GeometryRestorable
@@ -23,7 +36,7 @@ struct OpdsDialog::Impl final
 		, std::shared_ptr<ISettings> settings
 		, std::shared_ptr<IOpdsController> opdsController
 	)
-		: GeometryRestorable(*this, settings, "OpdsDialog")
+		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, self { self }
 		, settings { std::move(settings) }
@@ -35,6 +48,7 @@ struct OpdsDialog::Impl final
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
 
+		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] {OnPortChanged(); });
 		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] { this->opdsController->Stop(); });
 		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this]
 		{
@@ -47,6 +61,15 @@ struct OpdsDialog::Impl final
 			checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
 		});
 
+		connect(ui.actionCopy, &QAction::triggered, &self, [&]
+		{
+			QApplication::clipboard()->setText(ui.lineEditAddress->text());
+			QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
+		});
+
+		ui.lineEditAddress->addAction(ui.actionCopy, QLineEdit::TrailingPosition);
+
+		OnPortChanged();
 		OnRunningChanged();
 		Init();
 	}
@@ -73,8 +96,23 @@ private: // IOpdsController::IObserver
 	{
 		const auto isRunning = opdsController->IsRunning();
 		ui.spinBoxPort->setEnabled(!isRunning);
-		ui.btnStart->setEnabled(!isRunning);
-		ui.btnStop->setEnabled(isRunning);
+		ui.lineEditAddress->setEnabled(isRunning);
+		ui.btnStart->setVisible(!isRunning);
+		ui.btnStop->setVisible(isRunning);
+	}
+
+private:
+	void OnPortChanged()
+	{
+		const QHostAddress& localhost = QHostAddress(QHostAddress::LocalHost);		
+		for (const QHostAddress& address : QNetworkInterface::allAddresses())
+		{
+			if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
+			{
+				ui.lineEditAddress->setText(QString("http://%1:%2/opds").arg(address.toString()).arg(ui.spinBoxPort->value()));
+				return;
+			}
+		}
 	}
 
 private:

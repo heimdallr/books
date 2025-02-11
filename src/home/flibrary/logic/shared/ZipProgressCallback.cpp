@@ -34,11 +34,11 @@ struct ZipProgressCallback::Impl
 ZipProgressCallback::ZipProgressCallback(const std::shared_ptr<const ILogicFactory> & logicFactory)
 	: m_impl(logicFactory->GetProgressController())
 {
-	PLOGD << "ZipProgressCallback created";
+	PLOGV << "ZipProgressCallback created";
 }
 ZipProgressCallback::~ZipProgressCallback()
 {
-	PLOGD << "ZipProgressCallback destroyed";
+	PLOGV << "ZipProgressCallback destroyed";
 }
 
 void ZipProgressCallback::Stop()
@@ -59,6 +59,9 @@ void ZipProgressCallback::OnIncrement(const int64_t bytes)
 
 void ZipProgressCallback::OnSetCompleted(const int64_t bytes)
 {
+	if (!m_impl->total)
+		return;
+
 	m_impl->progress = std::min(bytes, m_impl->total);
 	const auto percents = static_cast<int>(100 * m_impl->progress / m_impl->total);
 	if (m_impl->percents == percents)

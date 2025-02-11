@@ -3,7 +3,8 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/Enums.h"
 #include "interface/logic/IModelProvider.h"
-#include "interface/logic/SortString.h"
+
+#include "util/SortString.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -163,7 +164,7 @@ bool SortFilterProxyModel::lessThan(const QModelIndex & sourceLeft, const QModel
 	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
 	return
 		lhsType != rhsType                  ? lhsType < rhsType :
-		lhsType == QMetaType::Type::QString ? (assert(rhsType == QMetaType::Type::QString), QStringWrapper(lhs.toString()) < QStringWrapper(rhs.toString())) :
+		lhsType == QMetaType::Type::QString ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper(lhs.toString()) < Util::QStringWrapper(rhs.toString())) :
 											  QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
 }
 

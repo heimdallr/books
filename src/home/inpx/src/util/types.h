@@ -4,6 +4,59 @@
 
 #include "util/StrUtil.h"
 
+template <typename T>
+QString ToQString(const T& str) = delete;
+template <>
+QString ToQString<std::string>(const std::string& str)
+{
+	return QString::fromStdString(str);
+}
+template <>
+QString ToQString<std::wstring>(const std::wstring& str)
+{
+	return QString::fromStdWString(str);
+}
+template <>
+QString ToQString<std::filesystem::path>(const std::filesystem::path& str)
+{
+	return QString::fromStdWString(str);
+}
+
+template <class T>
+[[nodiscard]] T FakeCopyInit(T) noexcept = delete;
+
+template <class T = void>
+struct CaseInsensitiveComparer
+{
+	[[nodiscard]] constexpr bool operator()(const T& lhs, const T& rhs) const
+		noexcept(noexcept(FakeCopyInit<bool>(lhs < rhs)))
+	{
+		return QString::compare(ToQString(lhs), ToQString(rhs), Qt::CaseInsensitive) < 0;
+	}
+};
+
+template <>
+struct CaseInsensitiveComparer<void>
+{
+	template <class L, class R>
+	[[nodiscard]] constexpr auto operator()(L&& lhs, R&& rhs) const
+		noexcept(noexcept(static_cast<L&&>(lhs) < static_cast<R&&>(rhs))) -> decltype(static_cast<L&&>(lhs) < static_cast<R&&>(rhs))
+	{
+		return QString::compare(ToQString(static_cast<L&&>(lhs)), ToQString(static_cast<R&&>(rhs)), Qt::CaseInsensitive) < 0;
+	}
+
+	using is_transparent = int;
+};
+
+template <typename T>
+struct CaseInsensitiveHash
+{
+	size_t operator()(const T& value) const
+	{
+		return std::hash<QString>()(ToQString(value));
+	}
+};
+
 struct Book
 {
 	Book(const size_t id_
@@ -110,7 +163,7 @@ using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using Folders = std::map<std::wstring, size_t, std::less<>>;
+using Folders = std::map<std::wstring, size_t, CaseInsensitiveComparer<>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary &, std::wstring_view)>;
@@ -136,20 +189,28 @@ inline std::ostream & operator<<(std::ostream & stream, const Genre & genre)
 	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
 }
 
+//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
+#define BOOK_BUF_FIELD_ITEMS_XMACRO  \
+		BOOK_BUF_FIELD_ITEM(AUTHOR)  \
+		BOOK_BUF_FIELD_ITEM(GENRE)   \
+		BOOK_BUF_FIELD_ITEM(TITLE)   \
+		BOOK_BUF_FIELD_ITEM(SERIES)  \
+		BOOK_BUF_FIELD_ITEM(SERNO)   \
+		BOOK_BUF_FIELD_ITEM(FILE)    \
+		BOOK_BUF_FIELD_ITEM(SIZE)    \
+		BOOK_BUF_FIELD_ITEM(LIBID)   \
+		BOOK_BUF_FIELD_ITEM(DEL)     \
+		BOOK_BUF_FIELD_ITEM(EXT)     \
+		BOOK_BUF_FIELD_ITEM(DATE)    \
+		BOOK_BUF_FIELD_ITEM(INSNO)   \
+		BOOK_BUF_FIELD_ITEM(FOLDER)  \
+		BOOK_BUF_FIELD_ITEM(LANG)    \
+		BOOK_BUF_FIELD_ITEM(LIBRATE) \
+		BOOK_BUF_FIELD_ITEM(KEYWORDS)
+
 struct BookBuf
 {
-	std::wstring_view authors;
-	std::wstring_view genres;
-	std::wstring_view title;
-	std::wstring_view seriesName;
-	std::wstring_view seriesNum;
-	std::wstring_view fileName;
-	std::wstring_view size;
-	std::wstring_view libId;
-	std::wstring_view del;
-	std::wstring_view ext;
-	std::wstring_view date;
-	std::wstring_view lang;
-	std::wstring_view rate;
-	std::wstring_view keywords;
+#define BOOK_BUF_FIELD_ITEM(NAME) std::wstring_view NAME;
+		BOOK_BUF_FIELD_ITEMS_XMACRO
+#undef	BOOK_BUF_FIELD_ITEM
 };

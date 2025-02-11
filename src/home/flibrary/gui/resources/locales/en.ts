@@ -4,22 +4,18 @@
 <context>
     <name>AddCollectionDialog</name>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Add new collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Database file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Archive folder</source>
         <translation></translation>
     </message>
@@ -29,28 +25,23 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Add</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection database file name</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection title</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Collection archive folder</source>
         <translation></translation>
     </message>
@@ -70,32 +61,26 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Open file dialog</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Open folder dialog</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Retrieve collection name from index file</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Add unindexed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Scan unindexed archives</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/AddCollectionDialog.ui"/>
         <source>Skip books not in archives</source>
         <translation></translation>
     </message>
@@ -176,18 +161,85 @@
 <context>
     <name>AnnotationWidget</name>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Copy image</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Save image as...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../AnnotationWidget.ui"/>
         <source>&amp;Open image</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>CollectionCleaner</name>
+    <message>
+        <source>Find and remove duplicates</source>
+        <translation type="vanished">Найти и удалить дубликаты книг</translation>
+    </message>
+    <message>
+        <source>Match full</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Match partial</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Collection Cleaner</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books by genre</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books by language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Find and remove duplicate books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books marked as deleted</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Read random book</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Check all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Invert checks</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>No books were found in the collection according to the specified criteria</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Wait. Collection analysis in progress...</source>
         <translation></translation>
     </message>
 </context>
@@ -270,102 +322,82 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;File</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;View</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Select &amp;collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>E&amp;xit</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Add &amp;new collection...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;User data</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Settings</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Help</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;About...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Collection</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Hide removed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Show log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Log &amp;verbosity level</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Clear log</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show collection s&amp;tatistics</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Size &amp;Up</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Size &amp;Down</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
@@ -385,143 +417,155 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
+        <location filename="../../MainWindow.cpp"/>
+        <source>The right decision!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Well, you only have yourself to blame!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Are you really sure?</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>E&amp;xport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>I&amp;mport</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Show removed books</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Language</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Font</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Restore default values</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Annotation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Hide</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show &amp;content</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide &amp;content</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show &amp;annotation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show s&amp;tatus line</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide s&amp;tatus line</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Show co&amp;ver</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Hide co&amp;ver</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Test colors</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Scripts...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Book &amp;export tempate</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>Check for &amp;Updates</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Permanent language filter</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Theme</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;System</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Light</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Dark</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;Color scheme</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>&amp;OPDS Server...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../MainWindow.ui"/>
         <source>OPDS server management</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Hide cover &amp;buttons</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show cover &amp;buttons</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Allow destructive operations</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Deny destructive operations</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cleaner...</source>
         <translation></translation>
     </message>
 </context>
@@ -551,38 +595,44 @@
 <context>
     <name>OpdsDialog</name>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>OPDS Server</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Port</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Start</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Stop</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Close</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Autostart</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/OpdsDialog.ui"/>
         <source>Start automatically</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Copy address to clipboard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../dialogs/OpdsDialog.cpp"/>
+        <source>OPDS server address has been copied to the clipboard</source>
         <translation></translation>
     </message>
 </context>
@@ -602,7 +652,6 @@
 <context>
     <name>ProgressBar</name>
     <message>
-        <location filename="../../ProgressBar.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
@@ -610,42 +659,34 @@
 <context>
     <name>ScriptDialog</name>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Scripts</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove script</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Add command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Remove command</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Save</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Cancel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../dialogs/script/ScriptDialog.ui"/>
         <source>Script commands</source>
         <translation></translation>
     </message>

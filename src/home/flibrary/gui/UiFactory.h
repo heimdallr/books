@@ -19,16 +19,17 @@ public:
 	~UiFactory() override;
 
 private: // IUiFactory
-	QObject * GetParentObject() const noexcept override;
-	QWidget * GetParentWidget() const noexcept override;
+	QObject * GetParentObject(QObject* defaultObject) const noexcept override;
+	QWidget * GetParentWidget(QWidget* defaultWidget) const noexcept override;
 
 	std::shared_ptr<TreeView> CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
 	std::shared_ptr<IScriptDialog> CreateScriptDialog() const override;
-	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const override;
+	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView & parent) const override;
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const override;
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
+	std::shared_ptr<QDialog> CreateCollectionCleaner() const override;
 
 	void ShowAbout() const override;
 	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon, const QString & title, const QString & text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>> & buttons, QMessageBox::ButtonRole defaultButton) const override;
@@ -46,7 +47,7 @@ private: // IUiFactory
 private: // special
 	std::filesystem::path GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;
-	QAbstractScrollArea & GetAbstractScrollArea() const noexcept override;
+	QTreeView & GetTreeView() const noexcept override;
 	QAbstractItemView & GetAbstractItemView() const noexcept override;
 	QString GetTitle() const noexcept override;
 

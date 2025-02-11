@@ -8,14 +8,15 @@
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
-#include "database/interface/ITransaction.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 #include "util/ISettings.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
@@ -57,6 +58,7 @@ constexpr auto     TREE_COLLAPSE_ALL          = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto     TREE_EXPAND_ALL            = QT_TRANSLATE_NOOP("BookContextMenu", "&Expand all");
 constexpr auto REMOVE_BOOK                    = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO               = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
+constexpr auto REMOVE_BOOK_FROM_ARCHIVE       = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto SELECT_SEND_TO_FOLDER          = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 constexpr auto SELECT_INPX_FILE               = QT_TRANSLATE_NOOP("BookContextMenu", "Save index file");
 constexpr auto SELECT_INPX_FILE_FILTER        = QT_TRANSLATE_NOOP("BookContextMenu", "Index files (*.inpx);;All files (*.*)");
@@ -65,6 +67,8 @@ constexpr auto CANNOT_SET_USER_RATE           = QT_TRANSLATE_NOOP("BookContextMe
 constexpr auto CANNOT_REMOVE_BOOK             = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
 constexpr auto REMOVE                         = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
 constexpr auto RESTORE                        = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
+
+constexpr auto REMOVE_PERMANENTLY_CONFIRM     = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
 
 TR_DEF
 
@@ -199,18 +203,18 @@ public:
 		, std::shared_ptr<const ISettings> settings
 		, std::shared_ptr<const IReaderController> readerController
 		, std::shared_ptr<const IDatabaseUser> databaseUser
-		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<const DataProvider> dataProvider
+		, std::shared_ptr<const IUiFactory> uiFactory
+		, std::shared_ptr<GroupController> groupController
 		, std::shared_ptr<IScriptController> scriptController
 	)
 		: m_logicFactory{ logicFactory }
 		, m_settings{ std::move(settings) }
 		, m_readerController{ std::move(readerController) }
 		, m_databaseUser{ std::move(databaseUser) }
+		, m_dataProvider{ std::move(dataProvider) }
 		, m_uiFactory{ std::move(uiFactory) }
 		, m_groupController{ std::move(groupController) }
-		, m_dataProvider{ std::move(dataProvider) }
 		, m_scriptController{ std::move(scriptController) }
 	{
 	}
@@ -236,6 +240,7 @@ public:
 				Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
 			CreateSendMenu(result, scripts);
+			Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 
 			if (type == ItemType::Books)
 			{
@@ -247,7 +252,13 @@ public:
 			CreateTreeMenu(result, options);
 
 			if (type == ItemType::Books)
+			{
+				Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 				Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+				auto removeItem = Add(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+				if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
+					removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+			}
 
 			return [callback = std::move(callback), result = std::move(result)] (size_t)
 			{
@@ -269,6 +280,29 @@ private: // IContextMenuHandler
 	void RemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		ChangeBookRemoved(model, index, indexList, std::move(item), std::move(callback), true);
+	}
+
+	void RemoveBookFromArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		if (m_uiFactory->ShowQuestion(Tr(REMOVE_PERMANENTLY_CONFIRM), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			return;
+
+		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id, Role::Folder, Role::FileName });
+		if (idList.empty())
+			return;
+
+		ICollectionCleaner::Books books;
+		books.reserve(idList.size());
+		const auto count = idList.size();
+		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& item) { return ICollectionCleaner::Book{item[0].toLongLong(), std::move(item[1]), std::move(item[2])}; });
+		auto cleaner = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
+		auto& cleanerRef = *cleaner;
+		cleanerRef.Remove(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count](const bool result) mutable
+		{
+			if (result)
+				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+			callback(item);
+		});
 	}
 
 	void UndoRemoveBook(QAbstractItemModel * model, const QModelIndex & index, const QList<QModelIndex> & indexList, IDataItem::Ptr item, Callback callback) const override
@@ -523,9 +557,9 @@ private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<const DataProvider> m_dataProvider;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
+	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
 };
 
@@ -544,28 +578,28 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr & parent, c
 BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const ILogicFactory>& logicFactory
 	, std::shared_ptr<const ISettings> settings
 	, std::shared_ptr<const IReaderController> readerController
-	, std::shared_ptr<IDatabaseUser> databaseUser
-	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<GroupController> groupController
+	, std::shared_ptr<const IDatabaseUser> databaseUser
 	, std::shared_ptr<DataProvider> dataProvider
+	, std::shared_ptr<const IUiFactory> uiFactory
+	, std::shared_ptr<GroupController> groupController
 	, std::shared_ptr<IScriptController> scriptController
 )
 	: m_impl(logicFactory
 		, std::move(settings)
 		, std::move(readerController)
 		, std::move(databaseUser)
+		, std::move(dataProvider)
 		, std::move(uiFactory)
 		, std::move(groupController)
-		, std::move(dataProvider)
 		, std::move(scriptController)
 	)
 {
-	PLOGD << "BooksContextMenuProvider created";
+	PLOGV << "BooksContextMenuProvider created";
 }
 
 BooksContextMenuProvider::~BooksContextMenuProvider()
 {
-	PLOGD << "BooksContextMenuProvider destroyed";
+	PLOGV << "BooksContextMenuProvider destroyed";
 }
 
 void BooksContextMenuProvider::Request(const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions options, Callback callback)
