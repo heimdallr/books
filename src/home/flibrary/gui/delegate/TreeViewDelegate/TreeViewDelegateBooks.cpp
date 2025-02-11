@@ -1,9 +1,10 @@
 #include "TreeViewDelegateBooks.h"
 
-#include <QAbstractScrollArea>
 #include <QApplication>
+#include <QHeaderView>
 #include <QPainter>
 #include <QStyledItemDelegate>
+#include <QTreeView>
 
 #include <plog/Log.h>
 
@@ -56,7 +57,7 @@ class TreeViewDelegateBooks::Impl final
 {
 public:
 	explicit Impl(const IUiFactory & uiFactory)
-		: m_view { uiFactory.GetAbstractScrollArea() }
+		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 	{
 	}
@@ -71,7 +72,13 @@ private: // QStyledItemDelegate
 		if (index.column() != 0)
 			return;
 
-		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
+		const auto* header = m_view.header();
+		int width = 0;
+		for (auto i = 0, sz = header->count(); i < sz; ++i)
+			width += header->sectionSize(i);
+		width -= o.rect.x();
+
+		o.rect.setWidth(width);
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
@@ -106,7 +113,7 @@ private:
 	}
 
 private:
-	QWidget & m_view;
+	QTreeView & m_view;
 	mutable TextDelegate m_textDelegate;
 
 };

@@ -67,7 +67,7 @@ struct UiFactory::Impl
 
 	mutable std::filesystem::path inpxFolder;
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
-	mutable QAbstractScrollArea * abstractScrollArea { nullptr };
+	mutable QTreeView * treeView{ nullptr };
 	mutable QAbstractItemView * abstractItemView { nullptr };
 	mutable QString title;
 
@@ -115,9 +115,9 @@ std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 	return m_impl->container.resolve<IScriptDialog>();
 }
 
-std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
 {
-	m_impl->abstractScrollArea = &parent;
+	m_impl->treeView = &parent;
 	return m_impl->container.resolve<TreeViewDelegateBooks>();
 }
 
@@ -222,10 +222,10 @@ std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const no
 	return std::move(m_impl->treeViewController);
 }
 
-QAbstractScrollArea & UiFactory::GetAbstractScrollArea() const noexcept
+QTreeView& UiFactory::GetTreeView() const noexcept
 {
-	assert(m_impl->abstractScrollArea);
-	return *m_impl->abstractScrollArea;
+	assert(m_impl->treeView);
+	return *m_impl->treeView;
 }
 
 QAbstractItemView & UiFactory::GetAbstractItemView() const noexcept

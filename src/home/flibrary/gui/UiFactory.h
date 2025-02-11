@@ -25,7 +25,7 @@ private: // IUiFactory
 	std::shared_ptr<TreeView> CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
 	std::shared_ptr<IScriptDialog> CreateScriptDialog() const override;
-	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QAbstractScrollArea & parent) const override;
+	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView & parent) const override;
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView & parent) const override;
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
@@ -47,7 +47,7 @@ private: // IUiFactory
 private: // special
 	std::filesystem::path GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;
-	QAbstractScrollArea & GetAbstractScrollArea() const noexcept override;
+	QTreeView & GetTreeView() const noexcept override;
 	QAbstractItemView & GetAbstractItemView() const noexcept override;
 	QString GetTitle() const noexcept override;
 
