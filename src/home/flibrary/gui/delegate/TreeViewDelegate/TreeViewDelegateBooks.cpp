@@ -1,7 +1,7 @@
 #include "TreeViewDelegateBooks.h"
 
-#include <QAbstractScrollArea>
 #include <QApplication>
+#include <QHeaderView>
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTreeView>
@@ -72,7 +72,13 @@ private: // QStyledItemDelegate
 		if (index.column() != 0)
 			return;
 
-		o.rect.setWidth(m_view.width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent) - o.rect.x());
+		const auto* header = m_view.header();
+		int width = 0;
+		for (auto i = 0, sz = header->count(); i < sz; ++i)
+			width += header->sectionSize(i);
+		width -= o.rect.x();
+
+		o.rect.setWidth(width);
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
