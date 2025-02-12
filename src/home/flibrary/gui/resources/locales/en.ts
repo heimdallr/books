@@ -242,6 +242,14 @@
         <source>Wait. Collection analysis in progress...</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Removes books that have at least one genre in the set of marked ones</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Removes books whose genres are all included in the set of marked ones</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
