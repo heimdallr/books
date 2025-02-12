@@ -55,6 +55,9 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QRadioButton" name="genresMatchFull">
+         <property name="toolTip">
+          <string>Removes books whose genres are all included in the set of marked ones</string>
+         </property>
          <property name="text">
           <string>Match full</string>
          </property>
@@ -65,6 +68,9 @@
        </item>
        <item>
         <widget class="QRadioButton" name="genresMatchPartial">
+         <property name="toolTip">
+          <string>Removes books that have at least one genre in the set of marked ones</string>
+         </property>
          <property name="text">
           <string>Match partial</string>
          </property>

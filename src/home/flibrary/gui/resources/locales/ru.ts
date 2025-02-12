@@ -238,6 +238,14 @@
         <source>Wait. Collection analysis in progress...</source>
         <translation>Ждите. Идет анализ коллекции...</translation>
     </message>
+    <message>
+        <source>Removes books that have at least one genre in the set of marked ones</source>
+        <translation>Удаляет книги, имеющие хотя бы один жанр в наборе отмеченных</translation>
+    </message>
+    <message>
+        <source>Removes books whose genres are all included in the set of marked ones</source>
+        <translation>Удаляет книги, все жанры которых входят в набор отмеченных</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
