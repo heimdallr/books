@@ -50,10 +50,13 @@ public:
 	{
 		m_observer.GetWidget().installEventFilter(this);
 		for (auto * splitter : m_observer.GetWidget().findChildren<QSplitter *>())
+		{
 			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName())); value.isValid())
 				splitter->restoreState(value.toByteArray());
 			else
 				InitSplitter(splitter);
+			splitter->setChildrenCollapsible(false);
+		}
 	}
 
 	void OnShow()
