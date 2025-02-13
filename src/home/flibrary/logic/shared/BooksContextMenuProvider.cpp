@@ -16,6 +16,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
@@ -24,7 +25,6 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "extract/BooksExtractor.h"
-#include "extract/InpxCollectionExtractor.h"
 #include "util/ISettings.h"
 
 #include "log.h"
@@ -97,7 +97,7 @@ public:
 
 constexpr std::pair<BooksMenuAction, IContextMenuHandler::Function> MENU_HANDLERS[] {
 	{ BooksMenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
-#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME                                                           },
+#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME                                                   },
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef BOOKS_MENU_ACTION_ITEM
 };
@@ -424,7 +424,7 @@ private: // IContextMenuHandler
 		               indexList,
 		               std::move(item),
 		               std::move(callback),
-		               &InpxCollectionExtractor::ExtractAsInpxCollection,
+		               &IInpxGenerator::ExtractAsInpxCollection,
 		               [this] { return m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER); });
 	}
 
@@ -435,7 +435,7 @@ private: // IContextMenuHandler
 		               indexList,
 		               std::move(item),
 		               std::move(callback),
-		               &InpxCollectionExtractor::GenerateInpx,
+		               &IInpxGenerator::GenerateInpx,
 		               [this] { return m_uiFactory->GetSaveFileName(DIALOG_KEY, SELECT_INPX_FILE, SELECT_INPX_FILE_FILTER); });
 	}
 
@@ -459,7 +459,7 @@ private:
 	                    const QList<QModelIndex>& indexList,
 	                    IDataItem::Ptr item,
 	                    Callback callback,
-	                    void (InpxCollectionExtractor::*extractorMethod)(QString, const std::vector<QString>&, const DataProvider&, InpxCollectionExtractor::Callback),
+	                    void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback),
 	                    const std::function<QString()>& nameGenerator) const
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
@@ -471,7 +471,7 @@ private:
 		if (inpxName.isEmpty())
 			return callback(item);
 
-		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
+		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxGenerator();
 		std::invoke(extractorMethod,
 		            *extractor,
 		            std::move(inpxName),

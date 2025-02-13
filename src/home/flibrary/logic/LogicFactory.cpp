@@ -27,7 +27,7 @@
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "extract/BooksExtractor.h"
-#include "extract/InpxCollectionExtractor.h"
+#include "extract/InpxGenerator.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/ISettings.h"
@@ -122,9 +122,9 @@ std::shared_ptr<BooksExtractor> LogicFactory::CreateBooksExtractor() const
 	return m_impl->container.resolve<BooksExtractor>();
 }
 
-std::shared_ptr<InpxCollectionExtractor> LogicFactory::CreateInpxCollectionExtractor() const
+std::shared_ptr<IInpxGenerator> LogicFactory::CreateInpxGenerator() const
 {
-	return m_impl->container.resolve<InpxCollectionExtractor>();
+	return m_impl->container.resolve<InpxGenerator>();
 }
 
 std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const

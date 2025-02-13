@@ -1,4 +1,4 @@
-#include "InpxCollectionExtractor.h"
+#include "InpxGenerator.h"
 
 #include <QCryptographicHash>
 
@@ -13,6 +13,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
+#include "interface/logic/IBookInfoProvider.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
@@ -20,7 +21,6 @@
 
 #include "Util/IExecutor.h"
 #include "data/DataItem.h"
-#include "data/DataProvider.h"
 #include "inpx/src/util/constant.h"
 #include "shared/ImageRestore.h"
 
@@ -104,7 +104,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 
 } // namespace
 
-class InpxCollectionExtractor::Impl final
+class InpxGenerator::Impl final
 {
 public:
 	Impl(std::shared_ptr<ICollectionController> collectionController,
@@ -281,21 +281,21 @@ private:
 	std::unordered_map<QString, QByteArray> m_paths;
 };
 
-InpxCollectionExtractor::InpxCollectionExtractor(std::shared_ptr<ICollectionController> collectionController,
-                                                 std::shared_ptr<IBooksExtractorProgressController> progressController,
-                                                 std::shared_ptr<IDatabaseUser> databaseUser,
-                                                 const std::shared_ptr<const ILogicFactory>& logicFactory)
+InpxGenerator::InpxGenerator(const std::shared_ptr<const ILogicFactory>& logicFactory,
+                             std::shared_ptr<ICollectionController> collectionController,
+                             std::shared_ptr<IBooksExtractorProgressController> progressController,
+                             std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl(std::move(collectionController), std::move(progressController), std::move(databaseUser), logicFactory)
 {
-	PLOGV << "InpxCollectionExtractor created";
+	PLOGV << "InpxGenerator created";
 }
 
-InpxCollectionExtractor::~InpxCollectionExtractor()
+InpxGenerator::~InpxGenerator()
 {
-	PLOGV << "InpxCollectionExtractor destroyed";
+	PLOGV << "InpxGenerator destroyed";
 }
 
-void InpxCollectionExtractor::ExtractAsInpxCollection(QString folder, const std::vector<QString>& idList, const DataProvider& dataProvider, Callback callback)
+void InpxGenerator::ExtractAsInpxCollection(QString folder, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)
 {
 	PLOGD << QString("Extract %1 books as inpx-collection started").arg(idList.size());
 
@@ -305,7 +305,7 @@ void InpxCollectionExtractor::ExtractAsInpxCollection(QString folder, const std:
 	m_impl->Extract(std::move(folder), std::move(bookInfo), std::move(callback));
 }
 
-void InpxCollectionExtractor::GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const DataProvider& dataProvider, Callback callback)
+void InpxGenerator::GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)
 {
 	std::vector<BookInfo> bookInfo;
 	std::ranges::transform(idList, std::back_inserter(bookInfo), [&](const auto& id) { return dataProvider.GetBookInfo(id.toLongLong()); });
