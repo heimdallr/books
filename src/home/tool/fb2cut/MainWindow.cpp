@@ -1,3 +1,5 @@
+#include "ui_MainWindow.h"
+
 #include "MainWindow.h"
 
 #include "fnd/FindPair.h"
@@ -8,7 +10,6 @@
 
 #include "ImageSettingsWidget.h"
 #include "settings.h"
-#include "ui_MainWindow.h"
 
 using namespace HomeCompa::fb2cut;
 

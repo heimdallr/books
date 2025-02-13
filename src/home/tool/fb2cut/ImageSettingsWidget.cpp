@@ -1,9 +1,10 @@
+#include "ui_ImageSettingsWidget.h"
+
 #include "ImageSettingsWidget.h"
 
 #include "util/ISettings.h"
 
 #include "settings.h"
-#include "ui_ImageSettingsWidget.h"
 
 using namespace HomeCompa::fb2cut;
 

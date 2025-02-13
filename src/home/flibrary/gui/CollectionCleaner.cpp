@@ -1,3 +1,5 @@
+#include "ui_CollectionCleaner.h"
+
 #include "CollectionCleaner.h"
 
 #include <QMenu>
@@ -13,8 +15,6 @@
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IUiFactory.h"
 #include "util/localization.h"
-
-#include "ui_CollectionCleaner.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

@@ -1,6 +1,7 @@
 #include "reader.h"
 
 #include "win.h"
+
 #include <comdef.h>
 
 #include <QBuffer>

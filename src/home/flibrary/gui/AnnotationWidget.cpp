@@ -1,3 +1,5 @@
+#include "ui_AnnotationWidget.h"
+
 #include "AnnotationWidget.h"
 
 #include <QBuffer>
@@ -31,7 +33,6 @@
 #include "util/ISettings.h"
 
 #include "log.h"
-#include "ui_AnnotationWidget.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

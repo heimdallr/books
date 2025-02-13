@@ -1,3 +1,5 @@
+#include "ui_ComboBoxTextDialog.h"
+
 #include "ComboBoxTextDialog.h"
 
 #include <QPushButton>
@@ -5,8 +7,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-
-#include "ui_ComboBoxTextDialog.h"
 
 using namespace HomeCompa::Flibrary;
 

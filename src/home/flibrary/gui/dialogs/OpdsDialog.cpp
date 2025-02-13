@@ -1,3 +1,5 @@
+#include "ui_OpdsDialog.h"
+
 #include "OpdsDialog.h"
 
 #include <QClipboard>
@@ -11,8 +13,6 @@
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/localization.h"
-
-#include "ui_OpdsDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

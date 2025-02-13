@@ -1,9 +1,10 @@
+#include "ui_ProgressBar.h"
+
 #include "ProgressBar.h"
 
 #include "interface/logic/IProgressController.h"
 
 #include "log.h"
-#include "ui_ProgressBar.h"
 
 using namespace HomeCompa::Flibrary;
 

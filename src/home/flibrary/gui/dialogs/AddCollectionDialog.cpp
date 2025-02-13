@@ -1,3 +1,5 @@
+#include "ui_AddCollectionDialog.h"
+
 #include "AddCollectionDialog.h"
 
 #include <QStandardPaths>
@@ -11,7 +13,6 @@
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 
 #include "log.h"
-#include "ui_AddCollectionDialog.h"
 #include "zip.h"
 
 #include "config/version.h"

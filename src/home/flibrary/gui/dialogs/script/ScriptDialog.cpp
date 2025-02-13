@@ -1,3 +1,5 @@
+#include "ui_ScriptDialog.h"
+
 #include "ScriptDialog.h"
 
 #include <ranges>
@@ -17,7 +19,6 @@
 #include "CommandDelegate.h"
 #include "ScriptNameDelegate.h"
 #include "log.h"
-#include "ui_ScriptDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

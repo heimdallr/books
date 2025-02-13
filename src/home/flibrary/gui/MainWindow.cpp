@@ -1,3 +1,5 @@
+#include "ui_MainWindow.h"
+
 #include "MainWindow.h"
 
 #include <QActionEvent>
@@ -40,7 +42,6 @@
 #include "ProgressBar.h"
 #include "TreeView.h"
 #include "log.h"
-#include "ui_MainWindow.h"
 
 #include "config/version.h"
 

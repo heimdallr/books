@@ -113,11 +113,15 @@
   IncludeBlocks: Regroup
   IncludeCategories:
     - Regex: '^".*stdafx.h"$'
+      Priority: -20
+
+    # generated ui headers
+    - Regex: '^"ui_.*\.h"$'
       Priority: -10
 
     # system headers
     - Regex: '^<[a-z]+.h>$'
-      Priority: 30
+      Priority: 40
 
     # system headers
     - Regex: '^"win\.h"$'

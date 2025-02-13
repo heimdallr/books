@@ -1,3 +1,5 @@
+#include "ui_TreeView.h"
+
 #include "TreeView.h"
 
 #include <ranges>
@@ -29,7 +31,6 @@
 #include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
 #include "log.h"
-#include "ui_TreeView.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
