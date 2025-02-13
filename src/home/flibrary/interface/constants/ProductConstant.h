@@ -1,6 +1,7 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant {
+namespace HomeCompa::Flibrary::Constant
+{
 
 constexpr auto UI = "ui";
 

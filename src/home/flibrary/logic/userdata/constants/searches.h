@@ -1,6 +1,7 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant::UserData::Searches {
+namespace HomeCompa::Flibrary::Constant::UserData::Searches
+{
 
 constexpr auto RootNode = "Searches";
 constexpr auto Mode = "Mode";

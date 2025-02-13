@@ -1,24 +1,24 @@
 #include "ScriptModel.h"
 
-#include <plog/Log.h>
-
-#include "fnd/algorithm.h"
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/IScriptController.h"
 
 #include "ScriptSortFilterModel.h"
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 using Role = IScriptController::RoleScript;
 }
 
-ScriptModel::ScriptModel(const std::shared_ptr<IScriptControllerProvider> & scriptControllerProvider, QObject * parent)
+ScriptModel::ScriptModel(const std::shared_ptr<IScriptControllerProvider>& scriptControllerProvider, QObject* parent)
 	: QAbstractTableModel(parent)
 	, m_scriptController(scriptControllerProvider->GetScriptController())
 {
@@ -30,20 +30,19 @@ ScriptModel::~ScriptModel()
 	PLOGV << "ScriptModel destroyed";
 }
 
-int ScriptModel::columnCount(const QModelIndex & /*parent*/) const
+int ScriptModel::columnCount(const QModelIndex& /*parent*/) const
 {
 	return 2;
 }
 
-int ScriptModel::rowCount(const QModelIndex & /*parent*/) const
+int ScriptModel::rowCount(const QModelIndex& /*parent*/) const
 {
 	return static_cast<int>(m_scriptController->GetScripts().size());
 }
 
 QVariant ScriptModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
-	constexpr const char * headers[]
-	{
+	constexpr const char* headers[] {
 		QT_TRANSLATE_NOOP("ScriptModel", "Type"),
 		QT_TRANSLATE_NOOP("ScriptModel", "Name"),
 	};
@@ -51,10 +50,10 @@ QVariant ScriptModel::headerData(const int section, const Qt::Orientation orient
 	return orientation == Qt::Horizontal && role == Qt::DisplayRole ? Loc::Tr("ScriptModel", headers[section]) : QAbstractTableModel::headerData(section, orientation, role);
 }
 
-QVariant ScriptModel::data(const QModelIndex & index, const int role) const
+QVariant ScriptModel::data(const QModelIndex& index, const int role) const
 {
 	assert(index.isValid() && index.row() >= 0 && index.row() < rowCount());
-	const auto & item = m_scriptController->GetScripts()[static_cast<size_t>(index.row())];
+	const auto& item = m_scriptController->GetScripts()[static_cast<size_t>(index.row())];
 
 	switch (role)
 	{
@@ -91,17 +90,17 @@ QVariant ScriptModel::data(const QModelIndex & index, const int role) const
 	return {};
 }
 
-bool ScriptModel::setData(const QModelIndex & index, const QVariant & value, const int role)
+bool ScriptModel::setData(const QModelIndex& index, const QVariant& value, const int role)
 {
 	if (!index.isValid())
 	{
-		switch(role)
+		switch (role)
 		{
 			case Qt::EditRole:
 				return m_scriptController->Save(), true;
 
 			case Role::Observer:
-				return Util::Set(m_observer, value.value<ISourceModelObserver *>(), *this);
+				return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
 
 			default:
 				break;
@@ -136,23 +135,24 @@ bool ScriptModel::setData(const QModelIndex & index, const QVariant & value, con
 	return assert(false && "unexpected role"), false;
 }
 
-Qt::ItemFlags ScriptModel::flags(const QModelIndex & index) const
+Qt::ItemFlags ScriptModel::flags(const QModelIndex& index) const
 {
 	return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 
-bool ScriptModel::insertRows(const int row, const int count, const QModelIndex & parent)
+bool ScriptModel::insertRows(const int row, const int count, const QModelIndex& parent)
 {
 	const ScopedCall insertGuard([&] { beginInsertRows(parent, row, row + count - 1); }, [&] { endInsertRows(); });
 	return m_scriptController->InsertScripts(row, count);
 }
 
-bool ScriptModel::removeRows(const int row, const int count, const QModelIndex & /*parent*/)
+bool ScriptModel::removeRows(const int row, const int count, const QModelIndex& /*parent*/)
 {
-	const ScopedCall removeGuard([&]
-	{
-		if (m_observer)
-			m_observer->OnRowsRemoved(row, count);
-	});
+	const ScopedCall removeGuard(
+		[&]
+		{
+			if (m_observer)
+				m_observer->OnRowsRemoved(row, count);
+		});
 	return m_scriptController->RemoveScripts(row, count);
 }

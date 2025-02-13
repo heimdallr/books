@@ -5,23 +5,25 @@
 #include <QTimer>
 
 #include "fnd/observable.h"
-#include "util/UiTimer.h"
-#include "util/FunctorExecutionForwarder.h"
-
-#include <plog/Log.h>
 
 #include "interface/logic/IProgressController.h"
+
+#include "util/FunctorExecutionForwarder.h"
+#include "util/UiTimer.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 class ProgressItem final : public IProgressController::IProgressItem
 {
 	NON_COPY_MOVABLE(ProgressItem)
 public:
-	class IObserver  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IObserver() = default;
@@ -30,7 +32,7 @@ public:
 	};
 
 public:
-	ProgressItem(std::atomic_bool & stopped, IObserver & observer, const int64_t maximum)
+	ProgressItem(std::atomic_bool& stopped, IObserver& observer, const int64_t maximum)
 		: m_stopped(stopped)
 		, m_observer(observer)
 		, m_maximum(maximum)
@@ -58,13 +60,13 @@ private: // IProgressController::IProgressItem
 	}
 
 private:
-	std::atomic_bool & m_stopped;
-	IObserver & m_observer;
+	std::atomic_bool& m_stopped;
+	IObserver& m_observer;
 	const int64_t m_maximum;
 	int64_t m_value { 0 };
 };
 
-}
+} // namespace
 
 struct ProgressController::Impl final
 	: Observable<IObserver>
@@ -82,10 +84,7 @@ struct ProgressController::Impl final
 			return;
 
 		globalValue += value;
-		forwarder.Forward([&]
-		{
-			Perform(&IProgressController::IObserver::OnValueChanged);
-		});
+		forwarder.Forward([&] { Perform(&IProgressController::IObserver::OnValueChanged); });
 	}
 
 	void OnDestroyed() override
@@ -93,12 +92,13 @@ struct ProgressController::Impl final
 		if (--count != 0)
 			return;
 
-		forwarder.Forward([&, maximum = globalMaximum, value = globalValue.load()]
-		{
-			globalMaximum -= maximum;
-			globalValue -= value;
-			Perform(&IProgressController::IObserver::OnStartedChanged);
-		});
+		forwarder.Forward(
+			[&, maximum = globalMaximum, value = globalValue.load()]
+			{
+				globalMaximum -= maximum;
+				globalValue -= value;
+				Perform(&IProgressController::IObserver::OnStartedChanged);
+			});
 	}
 };
 
@@ -117,12 +117,12 @@ bool ProgressController::IsStarted() const noexcept
 	return m_impl->count != 0;
 }
 
-void ProgressController::RegisterObserver(IObserver * observer)
+void ProgressController::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void ProgressController::UnregisterObserver(IObserver * observer)
+void ProgressController::UnregisterObserver(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }
@@ -135,10 +135,7 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		m_impl->forwarder.Forward([&]
-		{
-			m_impl->Perform(&IObserver::OnStartedChanged);
-		});
+		m_impl->forwarder.Forward([&] { m_impl->Perform(&IObserver::OnStartedChanged); });
 	}
 	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);
 }

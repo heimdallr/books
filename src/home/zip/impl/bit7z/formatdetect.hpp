@@ -14,16 +14,17 @@
 
 #ifdef BIT7Z_AUTO_FORMAT
 
-#include "bitformat.hpp"
-#include "bitfs.hpp"
+	#include "bitformat.hpp"
+	#include "bitfs.hpp"
 
 struct IStream;
 
-namespace bit7z {
+namespace bit7z
+{
 
-auto detect_format_from_extension( const fs::path& inFile ) -> const BitInFormat&;
+auto detect_format_from_extension(const fs::path& inFile) -> const BitInFormat&;
 
-auto detect_format_from_signature( IStream * stream ) -> const BitInFormat&;
+auto detect_format_from_signature(IStream* stream) -> const BitInFormat&;
 
 } // namespace bit7z
 

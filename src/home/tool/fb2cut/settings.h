@@ -1,30 +1,33 @@
 #pragma once
 
 #include <QDir>
-#include <QString>
 #include <QSize>
+#include <QString>
 
-#include "zip.h"
 #include "common/Constant.h"
 
-namespace HomeCompa::fb2cut {
+#include "zip.h"
+
+namespace HomeCompa::fb2cut
+{
 
 constexpr auto MAX_SIZE = std::numeric_limits<int>::max();
 
-inline QString GetCoverFileName(const QString & file, const QString & /*image*/)
+inline QString GetCoverFileName(const QString& file, const QString& /*image*/)
 {
 	return file;
 }
-inline QString GetImageFileName(const QString & file, const QString & image)
+
+inline QString GetImageFileName(const QString& file, const QString& image)
 {
 	return QString("%1/%2").arg(file, image);
 }
 
 struct ImageSettings
 {
-	using ImageNameGetter = QString(*)(const QString & file, const QString & image);
+	using ImageNameGetter = QString (*)(const QString& file, const QString& image);
 
-	const char * type { nullptr };
+	const char* type { nullptr };
 	ImageNameGetter fileNameGetter { nullptr };
 
 	QSize maxSize { MAX_SIZE, MAX_SIZE };
@@ -34,12 +37,7 @@ struct ImageSettings
 
 	bool operator==(const ImageSettings& rhs) const noexcept
 	{
-		return true
-			&& maxSize == rhs.maxSize
-			&& quality == rhs.quality
-			&& save == rhs.save
-			&& grayscale == rhs.grayscale
-			;
+		return true && maxSize == rhs.maxSize && quality == rhs.quality && save == rhs.save && grayscale == rhs.grayscale;
 	}
 };
 
@@ -59,7 +57,7 @@ struct Settings
 	Zip::Format format { Zip::Format::SevenZip };
 };
 
-}
+} // namespace HomeCompa::fb2cut
 
-std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::ImageSettings & settings);
-std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::Settings & settings);
+std::ostream& operator<<(std::ostream& stream, const HomeCompa::fb2cut::ImageSettings& settings);
+std::ostream& operator<<(std::ostream& stream, const HomeCompa::fb2cut::Settings& settings);

@@ -3,15 +3,17 @@
 #include <QAbstractItemView>
 #include <QHBoxLayout>
 #include <QItemSelectionModel>
+#include <QPainter>
 #include <QStyledItemDelegate>
 #include <QToolButton>
-#include <QPainter>
-
-#include <plog/Log.h>
 
 #include "fnd/observable.h"
+
 #include "interface/ui/IUiFactory.h"
+
 #include "util/ColorUtil.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -21,7 +23,7 @@ class TreeViewDelegateNavigation::Impl final
 	, public Observable<ITreeViewDelegate::IObserver>
 {
 public:
-	explicit Impl(const IUiFactory & uiFactory)
+	explicit Impl(const IUiFactory& uiFactory)
 		: m_view(uiFactory.GetAbstractItemView())
 	{
 	}
@@ -39,19 +41,18 @@ public:
 	}
 
 private: // QStyledItemDelegate
-	QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
 		if (!m_enabled)
 			return QStyledItemDelegate::createEditor(parent, option, index);
 
-		auto * btn = new QToolButton(parent);
+		auto* btn = new QToolButton(parent);
 		btn->setIcon(QIcon(":/icons/remove.svg"));
 		btn->setAutoRaise(true);
 		QPersistentModelIndex persistentIndex { index };
-		connect(btn, &QAbstractButton::clicked, [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)]
-		{
-			this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex)));
-		});
+		connect(btn,
+		        &QAbstractButton::clicked,
+		        [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)] { this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex))); });
 
 		return btn;
 	}
@@ -68,10 +69,15 @@ private: // QStyledItemDelegate
 		style->drawControl(QStyle::CE_ItemViewItem, &option, painter, widget);
 		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
 		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
-		style->drawItemText(painter, option.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin), Qt::AlignLeft, option.palette, option.state & QStyle::State_Enabled, index.data(Qt::DisplayRole).toString());
+		style->drawItemText(painter,
+		                    option.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin),
+		                    Qt::AlignLeft,
+		                    option.palette,
+		                    option.state & QStyle::State_Enabled,
+		                    index.data(Qt::DisplayRole).toString());
 	}
 
-	void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, [[maybe_unused]] const QModelIndex & index) const override
+	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, [[maybe_unused]] const QModelIndex& index) const override
 	{
 		auto rect = option.rect;
 		rect.setLeft(rect.right() - rect.height());
@@ -79,7 +85,7 @@ private: // QStyledItemDelegate
 	}
 
 private:
-	void OnSelectionChanged(const QItemSelection & selected, const QItemSelection & deselected) const
+	void OnSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected) const
 	{
 		for (const auto& index : deselected.indexes())
 			m_view.closePersistentEditor(index);
@@ -89,12 +95,12 @@ private:
 	}
 
 private:
-	QAbstractItemView & m_view;
+	QAbstractItemView& m_view;
 	QMetaObject::Connection m_connection;
 	bool m_enabled { false };
 };
 
-TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory> & uiFactory)
+TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory>& uiFactory)
 	: m_impl(*uiFactory)
 {
 	PLOGV << "TreeViewDelegateNavigation created";
@@ -105,7 +111,7 @@ TreeViewDelegateNavigation::~TreeViewDelegateNavigation()
 	PLOGV << "TreeViewDelegateNavigation destroyed";
 }
 
-QAbstractItemDelegate * TreeViewDelegateNavigation::GetDelegate() noexcept
+QAbstractItemDelegate* TreeViewDelegateNavigation::GetDelegate() noexcept
 {
 	return m_impl.get();
 }
@@ -120,12 +126,12 @@ void TreeViewDelegateNavigation::SetEnabled(const bool enabled) noexcept
 	m_impl->SetEnabled(enabled);
 }
 
-void TreeViewDelegateNavigation::RegisterObserver(IObserver * observer)
+void TreeViewDelegateNavigation::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void TreeViewDelegateNavigation::UnregisterObserver(IObserver * observer)
+void TreeViewDelegateNavigation::UnregisterObserver(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }

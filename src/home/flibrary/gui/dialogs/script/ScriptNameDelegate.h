@@ -2,10 +2,10 @@
 
 #include "LineEditDelegate.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class ScriptNameDelegate final
-	: public LineEditDelegate
+class ScriptNameDelegate final : public LineEditDelegate
 {
 };
 

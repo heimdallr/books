@@ -8,13 +8,14 @@ class QIODevice;
 class QString;
 struct IOutArchive;
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 struct FileStorage;
 class Lib;
 
 namespace File
 {
-bool Remove(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const std::vector<QString> & fileNames, ProgressCallback & progress);
+bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, ProgressCallback& progress);
 };
 
 }

@@ -2,12 +2,13 @@
 
 #include <QComboBox>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ModeComboBox : public QComboBox
 {
 public:
-	class IValueApplier  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IValueApplier // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IValueApplier() = default;
@@ -15,19 +16,18 @@ public:
 		virtual void Filter() = 0;
 	};
 
-	using ApplyValue = void(IValueApplier:: *)();
+	using ApplyValue = void (IValueApplier::*)();
 
-	static constexpr std::pair<const char *, ApplyValue> VALUE_MODES[]
-	{
-		{ QT_TRANSLATE_NOOP("TreeView", "Find"), &IValueApplier::Find },
+	static constexpr std::pair<const char*, ApplyValue> VALUE_MODES[] {
+		{ QT_TRANSLATE_NOOP("TreeView",   "Find"),   &IValueApplier::Find },
 		{ QT_TRANSLATE_NOOP("TreeView", "Filter"), &IValueApplier::Filter },
 	};
 
 public:
-	explicit ModeComboBox(QWidget * parent);
+	explicit ModeComboBox(QWidget* parent);
 
 private:
-	void paintEvent(QPaintEvent * event) override;
+	void paintEvent(QPaintEvent* event) override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

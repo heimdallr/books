@@ -1,11 +1,10 @@
-#include <atlcomcli.h>
-
 #include "OutMemStream.h"
 
-#include <QIODevice>
 #include <QFileDevice>
+#include <QIODevice>
 
 #include "fnd/unknown_impl.h"
+
 #include "zip/interface/ProgressCallback.h"
 
 using namespace HomeCompa::ZipDetails::SevenZip;
@@ -30,12 +29,12 @@ private:
 	}
 };
 
-CComPtr<ISequentialOutStream> OutMemStream::Create(QIODevice & stream, ProgressCallback & progress)
+CComPtr<ISequentialOutStream> OutMemStream::Create(QIODevice& stream, ProgressCallback& progress)
 {
 	return new OutMemStream(stream, progress);
 }
 
-OutMemStream::OutMemStream(QIODevice & stream, ProgressCallback & progress)
+OutMemStream::OutMemStream(QIODevice& stream, ProgressCallback& progress)
 	: m_stream { stream }
 	, m_progress { progress }
 {
@@ -47,25 +46,25 @@ OutMemStream::~OutMemStream()
 		file->resize(m_maxPos);
 }
 
-HRESULT OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
+HRESULT OutMemStream::QueryInterface(REFIID iid, void** ppvObject)
 {
-	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+	if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 	{
-		*ppvObject = reinterpret_cast<IUnknown *>(this);  // NOLINT(clang-diagnostic-reinterpret-base-class)
+		*ppvObject = reinterpret_cast<IUnknown*>(this); // NOLINT(clang-diagnostic-reinterpret-base-class)
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_ISequentialOutStream)
 	{
-		*ppvObject = static_cast<ISequentialOutStream *>(this);
+		*ppvObject = static_cast<ISequentialOutStream*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_IOutStream)
 	{
-		*ppvObject = static_cast<IOutStream *>(this);
+		*ppvObject = static_cast<IOutStream*>(this);
 		AddRef();
 		return S_OK;
 	}
@@ -79,7 +78,7 @@ HRESULT OutMemStream::QueryInterface(REFIID iid, void ** ppvObject)
 	return E_NOINTERFACE;
 }
 
-HRESULT OutMemStream::Write(const void * data, const UInt32 size, UInt32 * processedSize) noexcept
+HRESULT OutMemStream::Write(const void* data, const UInt32 size, UInt32* processedSize) noexcept
 {
 	if (processedSize)
 		*processedSize = 0;
@@ -90,7 +89,7 @@ HRESULT OutMemStream::Write(const void * data, const UInt32 size, UInt32 * proce
 	if (m_progress.OnCheckBreak())
 		return E_ABORT;
 
-	const auto* byte_data = static_cast<const char *>(data);
+	const auto* byte_data = static_cast<const char*>(data);
 	const auto realSize = m_stream.write(byte_data, size);
 	if (processedSize)
 		*processedSize = realSize;
@@ -102,7 +101,7 @@ HRESULT OutMemStream::Write(const void * data, const UInt32 size, UInt32 * proce
 	return S_OK;
 }
 
-HRESULT OutMemStream::Seek(Int64 offset, const UInt32 seekOrigin, UInt64 * newPosition) noexcept
+HRESULT OutMemStream::Seek(Int64 offset, const UInt32 seekOrigin, UInt64* newPosition) noexcept
 {
 	offset = seekOrigin == 1 ? m_stream.pos() + offset : seekOrigin == 2 ? m_stream.size() - offset : (assert(seekOrigin == 0), offset);
 	if (offset < 0)

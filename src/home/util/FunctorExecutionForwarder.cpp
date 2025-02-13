@@ -1,8 +1,9 @@
-#include <QtCore>
-
 #include "FunctorExecutionForwarder.h"
 
-namespace HomeCompa::Util {
+#include <QtCore>
+
+namespace HomeCompa::Util
+{
 
 FunctorExecutionForwarder::FunctorExecutionForwarder()
 {

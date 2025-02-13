@@ -1,29 +1,28 @@
+#include "Database.h"
+
 #include <mutex>
+#include <numeric>
 #include <sstream>
 #include <string>
-
-#include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/observable.h"
 
 #include "IDatabase.h"
-#include "ITransaction.h"
 #include "IQuery.h"
-
+#include "ITransaction.h"
+#include "log.h"
 #include "sqlite3ppext.h"
 
-#include "Database.h"
+namespace HomeCompa::DB::Impl::Sqlite
+{
 
-#include <numeric>
+std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db);
+std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
 
-namespace HomeCompa::DB::Impl::Sqlite {
-
-std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex & mutex, sqlite3pp::database & db);
-std::unique_ptr<IQuery> CreateQueryImpl(std::mutex & mutex, sqlite3pp::database & db, std::string_view query);
-
-namespace {
+namespace
+{
 
 constexpr auto PATH = "path";
 constexpr auto EXTENSION = "extension";
@@ -31,42 +30,22 @@ constexpr auto FLAG = "flag";
 
 using ConnectionParameters = std::multimap<std::string, std::string, std::less<>>;
 
-using ObserverMethod = void(IDatabaseObserver::*)(std::string_view dbName, std::string_view tableName, int64_t rowId);
+using ObserverMethod = void (IDatabaseObserver::*)(std::string_view dbName, std::string_view tableName, int64_t rowId);
 // ocCodes: sqlite3.cpp
-constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[]
-{
+constexpr std::pair<int, ObserverMethod> g_opCodeToObserverMethod[] {
 	{ 18, &IDatabaseObserver::OnInsert },
 	{  9, &IDatabaseObserver::OnDelete },
 	{ 23, &IDatabaseObserver::OnUpdate },
 };
 
-constexpr std::pair<const char *, int> g_openFlags[]
-{
+constexpr std::pair<const char*, int> g_openFlags[] {
 #define ITEM(NAME) { #NAME, SQLITE_OPEN_##NAME }
-		ITEM(READONLY),
-		ITEM(READWRITE),
-		ITEM(CREATE),
-		ITEM(DELETEONCLOSE),
-		ITEM(EXCLUSIVE),
-		ITEM(AUTOPROXY),
-		ITEM(URI),
-		ITEM(MEMORY),
-		ITEM(MAIN_DB),
-		ITEM(TEMP_DB),
-		ITEM(TRANSIENT_DB),
-		ITEM(MAIN_JOURNAL),
-		ITEM(TEMP_JOURNAL),
-		ITEM(SUBJOURNAL),
-		ITEM(MASTER_JOURNAL),
-		ITEM(NOMUTEX),
-		ITEM(FULLMUTEX),
-		ITEM(SHAREDCACHE),
-		ITEM(PRIVATECACHE),
-		ITEM(WAL),
-#undef	ITEM
+	ITEM(READONLY),     ITEM(READWRITE),    ITEM(CREATE),       ITEM(DELETEONCLOSE), ITEM(EXCLUSIVE),      ITEM(AUTOPROXY), ITEM(URI),       ITEM(MEMORY),      ITEM(MAIN_DB),      ITEM(TEMP_DB),
+	ITEM(TRANSIENT_DB), ITEM(MAIN_JOURNAL), ITEM(TEMP_JOURNAL), ITEM(SUBJOURNAL),    ITEM(MASTER_JOURNAL), ITEM(NOMUTEX),   ITEM(FULLMUTEX), ITEM(SHAREDCACHE), ITEM(PRIVATECACHE), ITEM(WAL),
+#undef ITEM
 };
 
-std::vector<std::string> Split(const std::string & src, const char separator)
+std::vector<std::string> Split(const std::string& src, const char separator)
 {
 	std::vector<std::string> result;
 	std::istringstream stream(src);
@@ -77,10 +56,10 @@ std::vector<std::string> Split(const std::string & src, const char separator)
 	return result;
 }
 
-ConnectionParameters ParseConnectionString(const std::string & connection)
+ConnectionParameters ParseConnectionString(const std::string& connection)
 {
 	ConnectionParameters result;
-	for (const auto & parameter : Split(connection, ';'))
+	for (const auto& parameter : Split(connection, ';'))
 	{
 		auto pair = Split(parameter, '=');
 		if (std::size(pair) == 1)
@@ -92,18 +71,15 @@ ConnectionParameters ParseConnectionString(const std::string & connection)
 	return result;
 }
 
-int GetOpenFlags(const ConnectionParameters & parameters)
+int GetOpenFlags(const ConnectionParameters& parameters)
 {
 	auto [begin, end] = parameters.equal_range(FLAG);
-	const auto result = std::accumulate(begin, end, 0, [] (const int init, const auto & item)
-	{
-		return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {});
-	});
+	const auto result = std::accumulate(begin, end, 0, [](const int init, const auto& item) { return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {}); });
 
 	return result ? result : SQLITE_OPEN_READWRITE;
 }
 
-const std::string & GetValue(const ConnectionParameters & parameters, const std::string & key)
+const std::string& GetValue(const ConnectionParameters& parameters, const std::string& key)
 {
 	auto [begin, end] = parameters.equal_range(key);
 	if (begin == end)
@@ -112,11 +88,10 @@ const std::string & GetValue(const ConnectionParameters & parameters, const std:
 	return begin->second;
 }
 
-class DatabaseFunctionContext
-	: virtual public DB::DatabaseFunctionContext
+class DatabaseFunctionContext : virtual public DB::DatabaseFunctionContext
 {
 public:
-	explicit DatabaseFunctionContext(sqlite3pp::ext::context & ctx)
+	explicit DatabaseFunctionContext(sqlite3pp::ext::context& ctx)
 		: m_ctx(ctx)
 	{
 	}
@@ -127,7 +102,7 @@ public:
 	}
 
 private:
-	sqlite3pp::ext::context & m_ctx;
+	sqlite3pp::ext::context& m_ctx;
 };
 
 class Database
@@ -139,7 +114,7 @@ class Database
 private:
 	struct ObserverImpl
 	{
-		explicit ObserverImpl(Database & self)
+		explicit ObserverImpl(Database& self)
 			: m_self(self)
 		{
 		}
@@ -151,11 +126,11 @@ private:
 		}
 
 	private:
-		Database & m_self;
+		Database& m_self;
 	};
 
 public:
-	explicit Database(const std::string & connection)
+	explicit Database(const std::string& connection)
 		: m_connectionParameters(ParseConnectionString(connection))
 		, m_db(GetValue(m_connectionParameters, PATH).data(), GetOpenFlags(m_connectionParameters))
 		, m_observer(*this)
@@ -163,10 +138,7 @@ public:
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)
 			m_db.load_extension(begin->second.data());
 
-		m_db.set_update_handler([&] (const int opCode, char const * dbName, char const * tableName, const int64_t rowId)
-		{
-			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
-		});
+		m_db.set_update_handler([&](const int opCode, const char* dbName, const char* tableName, const int64_t rowId) { m_observer.OnUpdate(opCode, dbName, tableName, rowId); });
 
 		PLOGV << "database created";
 	}
@@ -189,20 +161,21 @@ private: // Database
 
 	void CreateFunction(const std::string_view name, DatabaseFunction function) override
 	{
-		m_functions.try_emplace(std::string(name), std::make_unique<sqlite3pp::ext::function>(m_db)).first->second
-			->create(name.data(), [function = std::move(function)] (sqlite3pp::ext::context & ctx)
-		{
-			DatabaseFunctionContext context(ctx);
-			function(context);
-		});
+		m_functions.try_emplace(std::string(name), std::make_unique<sqlite3pp::ext::function>(m_db))
+			.first->second->create(name.data(),
+		                           [function = std::move(function)](sqlite3pp::ext::context& ctx)
+		                           {
+									   DatabaseFunctionContext context(ctx);
+									   function(context);
+								   });
 	}
 
-	void RegisterObserver(IDatabaseObserver * observer) override
+	void RegisterObserver(IDatabaseObserver* observer) override
 	{
 		Register(observer);
 	}
 
-	void UnregisterObserver(IDatabaseObserver * observer) override
+	void UnregisterObserver(IDatabaseObserver* observer) override
 	{
 		Unregister(observer);
 	}
@@ -215,11 +188,11 @@ private:
 	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>, std::less<>> m_functions;
 };
 
-}
+} // namespace
 
-std::unique_ptr<IDatabase> CreateDatabase(const std::string & connection)
+std::unique_ptr<IDatabase> CreateDatabase(const std::string& connection)
 {
 	return std::make_unique<Database>(connection);
 }
 
-}
+} // namespace HomeCompa::DB::Impl::Sqlite

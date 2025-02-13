@@ -1,23 +1,24 @@
 #include "Fb2Parser.h"
 
-#include <QTextStream>
-#include <QString>
 #include <QHash>
 
-#include <plog/Log.h>
+#include <QString>
+#include <QTextStream>
 
 #include "fnd/FindPair.h"
 
 #include "common/Constant.h"
-
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
+#include "log.h"
+
 using namespace HomeCompa;
 using namespace fb2cut;
 
-namespace {
+namespace
+{
 
 constexpr auto ID = "id";
 constexpr auto IMAGE = "image";
@@ -30,11 +31,10 @@ constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/i
 
 }
 
-class Fb2Parser::Impl final
-	: public Util::SaxParser
+class Fb2Parser::Impl final : public Util::SaxParser
 {
 public:
-	explicit Impl(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
+	explicit Impl(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback)
 		: SaxParser(input, 512)
 		, m_fileName(std::move(fileName))
 		, m_binaryCallback(std::move(binaryCallback))
@@ -52,18 +52,17 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnProcessingInstruction(const QString & target, const QString & data) override
+	bool OnProcessingInstruction(const QString& target, const QString& data) override
 	{
 		m_writer.WriteProcessingInstruction(target, data);
 		return true;
 	}
 
-	bool OnStartElement(const QString & name, const QString & path, const Util::XmlAttributes & attributes) override
+	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		using ParseElementFunction = bool(Impl::*)(const Util::XmlAttributes &);
-		using ParseElementItem = std::pair<const char *, ParseElementFunction>;
-		static constexpr ParseElementItem PARSERS[]
-		{
+		using ParseElementFunction = bool (Impl::*)(const Util::XmlAttributes&);
+		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		static constexpr ParseElementItem PARSERS[] {
 			{ BINARY, &Impl::OnStartElementBinary },
 		};
 
@@ -102,7 +101,7 @@ private: // Util::SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString &, const QString & path) override
+	bool OnEndElement(const QString&, const QString& path) override
 	{
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return true;
@@ -112,16 +111,15 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnCharacters(const QString & path, const QString & value) override
+	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		using ParseCharacterFunction = bool(Impl::*)(const QString &);
-		using ParseCharacterItem = std::pair<const char *, ParseCharacterFunction>;
-		static constexpr ParseCharacterItem PARSERS[]
-		{
-			{ GENRE             , &Impl::ParseGenre },
-			{ BOOK_TITLE        , &Impl::ParseBookTitle },
-			{ LANG              , &Impl::ParseLang },
-			{ BINARY            , &Impl::ParseBinary },
+		using ParseCharacterFunction = bool (Impl::*)(const QString&);
+		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		static constexpr ParseCharacterItem PARSERS[] {
+			{      GENRE,     &Impl::ParseGenre },
+			{ BOOK_TITLE, &Impl::ParseBookTitle },
+			{       LANG,      &Impl::ParseLang },
+			{     BINARY,    &Impl::ParseBinary },
 		};
 
 		if (path.compare(BINARY, Qt::CaseInsensitive))
@@ -130,50 +128,50 @@ private: // Util::SaxParser
 		return Parse(*this, PARSERS, path, value);
 	}
 
-	bool OnWarning(const QString & text) override
+	bool OnWarning(const QString& text) override
 	{
 		PLOGW << m_fileName << ": " << text;
 		return true;
 	}
 
-	bool OnError(const QString & text) override
+	bool OnError(const QString& text) override
 	{
 		m_data.error = text;
 		PLOGE << m_fileName << ": " << text;
 		return false;
 	}
 
-	bool OnFatalError(const QString & text) override
+	bool OnFatalError(const QString& text) override
 	{
 		return OnError(text);
 	}
 
 private:
-	bool OnStartElementBinary(const Util::XmlAttributes & attributes)
+	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
 	{
 		m_binaryId = attributes.GetAttribute(ID);
 		return true;
 	}
 
-	bool ParseGenre(const QString & value)
+	bool ParseGenre(const QString& value)
 	{
 		m_data.genres.push_back(value);
 		return true;
 	}
 
-	bool ParseBookTitle(const QString & value)
+	bool ParseBookTitle(const QString& value)
 	{
 		m_data.title = value;
 		return true;
 	}
 
-	bool ParseLang(const QString & value)
+	bool ParseLang(const QString& value)
 	{
 		m_data.lang = value;
 		return true;
 	}
 
-	bool ParseBinary(const QString & value)
+	bool ParseBinary(const QString& value)
 	{
 		const auto it = m_imageNames.find(m_binaryId);
 		if (it != m_imageNames.end())
@@ -192,7 +190,7 @@ private:
 	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
 };
 
-Fb2Parser::Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback)
+Fb2Parser::Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback)
 	: m_impl(std::move(fileName), input, output, std::move(binaryCallback))
 {
 }

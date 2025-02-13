@@ -3,7 +3,8 @@
 #include <memory>
 #include <string_view>
 
-namespace HomeCompa::DB {
+namespace HomeCompa::DB
+{
 
 class ICommand;
 class IQuery;

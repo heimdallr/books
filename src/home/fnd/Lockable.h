@@ -2,9 +2,10 @@
 
 #include <memory>
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
-template<typename T>
+template <typename T>
 class Lockable
 {
 public:
@@ -14,6 +15,7 @@ public:
 		assert(ptr);
 		return ptr;
 	}
+
 	static std::shared_ptr<T> Lock(std::weak_ptr<T> weak)
 	{
 		auto ptr = weak.lock();

@@ -1,12 +1,10 @@
-#include "ui_ScriptDialog.h"
 #include "ScriptDialog.h"
 
 #include <ranges>
 #include <set>
 
-#include <plog/Log.h>
-
 #include "fnd/algorithm.h"
+
 #include "interface/constants/Localization.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
@@ -18,11 +16,14 @@
 #include "CommandArgDelegate.h"
 #include "CommandDelegate.h"
 #include "ScriptNameDelegate.h"
+#include "log.h"
+#include "ui_ScriptDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 using Role = IScriptController::RoleBase;
 
@@ -31,18 +32,18 @@ constexpr auto COLUMN_WIDTH_KEY_TEMPLATE = "ui/%1/%2/Column%3Width";
 void RemoveRows(const QAbstractItemView& view)
 {
 	std::set<int> rows;
-	std::ranges::transform(view.selectionModel()->selection().indexes(), std::inserter(rows, rows.end()), [] (const QModelIndex & index) { return index.row(); });
-	for (const auto & [begin, end] : Util::CreateRanges(rows) | std::views::reverse)
+	std::ranges::transform(view.selectionModel()->selection().indexes(), std::inserter(rows, rows.end()), [](const QModelIndex& index) { return index.row(); });
+	for (const auto& [begin, end] : Util::CreateRanges(rows) | std::views::reverse)
 		view.model()->removeRows(begin, end - begin);
 }
 
-void SaveLayout(const QObject & parent, const QTableView & view, ISettings & settings)
+void SaveLayout(const QObject& parent, const QTableView& view, ISettings& settings)
 {
 	for (int i = 0, sz = view.horizontalHeader()->count() - 1; i < sz; ++i)
 		settings.Set(QString(COLUMN_WIDTH_KEY_TEMPLATE).arg(parent.objectName()).arg(view.objectName()).arg(i), view.horizontalHeader()->sectionSize(i));
 }
 
-void LoadLayout(const QObject & parent, const QTableView & view, const ISettings & settings)
+void LoadLayout(const QObject& parent, const QTableView& view, const ISettings& settings)
 {
 	for (int i = 0, sz = view.horizontalHeader()->count() - 1; i < sz; ++i)
 		if (const auto width = settings.Get(QString(COLUMN_WIDTH_KEY_TEMPLATE).arg(parent.objectName()).arg(view.objectName()).arg(i)); width.isValid())
@@ -50,22 +51,21 @@ void LoadLayout(const QObject & parent, const QTableView & view, const ISettings
 }
 
 template <std::ranges::forward_range R, class Proj = std::identity>
-void SetupView(const QObject & parent, ISettings & settings, QTableView & view, QAbstractItemModel & model, ComboBoxDelegate & delegate, R && array, Proj proj = {})
+void SetupView(const QObject& parent, ISettings& settings, QTableView& view, QAbstractItemModel& model, ComboBoxDelegate& delegate, R&& array, Proj proj = {})
 {
 	view.setModel(&model);
 	view.setItemDelegateForColumn(0, &delegate);
 	ComboBoxDelegate::Values types;
 	types.reserve(std::size(array));
-	std::ranges::transform(array, std::back_inserter(types), [&] (const auto & item)
-	{
-		return std::make_pair(static_cast<int>(item.first), Loc::Tr(IScriptController::s_context, std::invoke(proj, item.second)));
-	});
+	std::ranges::transform(array,
+	                       std::back_inserter(types),
+	                       [&](const auto& item) { return std::make_pair(static_cast<int>(item.first), Loc::Tr(IScriptController::s_context, std::invoke(proj, item.second))); });
 	delegate.SetValues(std::move(types));
 
 	LoadLayout(parent, view, settings);
 }
 
-}
+} // namespace
 
 class ScriptDialog::Impl final
 	: Util::GeometryRestorable
@@ -74,15 +74,14 @@ class ScriptDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(ScriptDialog& self
-		, const IModelProvider & modelProvider
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<ComboBoxDelegate> scriptTypeDelegate
-		, std::shared_ptr<ComboBoxDelegate> commandTypeDelegate
-		, std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
-		, std::shared_ptr<QStyledItemDelegate> commandDelegate
-		, std::shared_ptr<QStyledItemDelegate> commandArgLineEditDelegate
-	)
+	Impl(ScriptDialog& self,
+	     const IModelProvider& modelProvider,
+	     std::shared_ptr<ISettings> settings,
+	     std::shared_ptr<ComboBoxDelegate> scriptTypeDelegate,
+	     std::shared_ptr<ComboBoxDelegate> commandTypeDelegate,
+	     std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate,
+	     std::shared_ptr<QStyledItemDelegate> commandDelegate,
+	     std::shared_ptr<QStyledItemDelegate> commandArgLineEditDelegate)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
 		, m_self(self)
@@ -122,66 +121,70 @@ public:
 private:
 	void SetConnections()
 	{
-		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&]
-		{
-			OnScriptSelectionChanged();
-		});
-		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [&]
-		{
-			OnScriptSelectionChanged();
-		});
-		connect(m_ui.btnAddScript, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_scriptModel->insertRow(m_scriptModel->rowCount());
-			m_ui.viewScript->setCurrentIndex(m_scriptModel->index(m_scriptModel->rowCount() - 1, 1));
-		});
-		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [&]
-		{
-			RemoveRows(*m_ui.viewScript);
-		});
-		connect(m_ui.btnScriptUp, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Up);
-			OnScriptSelectionChanged();
-		});
-		connect(m_ui.btnScriptDown, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Down);
-			OnScriptSelectionChanged();
-		});
+		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] { OnScriptSelectionChanged(); });
+		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] { OnScriptSelectionChanged(); });
+		connect(m_ui.btnAddScript,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_scriptModel->insertRow(m_scriptModel->rowCount());
+					m_ui.viewScript->setCurrentIndex(m_scriptModel->index(m_scriptModel->rowCount() - 1, 1));
+				});
+		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [&] { RemoveRows(*m_ui.viewScript); });
+		connect(m_ui.btnScriptUp,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Up);
+					OnScriptSelectionChanged();
+				});
+		connect(m_ui.btnScriptDown,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Down);
+					OnScriptSelectionChanged();
+				});
 
-		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&]
-		{
-			OnCommandSelectionChanged();
-		});
-		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [&]
-		{
-			OnCommandSelectionChanged();
-		});
-		connect(m_ui.btnAddCommand, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_commandModel->insertRow(m_commandModel->rowCount());
-			m_ui.viewCommand->setCurrentIndex(m_commandModel->index(m_commandModel->rowCount() - 1, 1));
-		});
-		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [&]
-		{
-			RemoveRows(*m_ui.viewCommand);
-		});
-		connect(m_ui.btnCommandUp, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Up);
-			OnCommandSelectionChanged();
-		});
-		connect(m_ui.btnCommandDown, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Down);
-			OnCommandSelectionChanged();
-		});
+		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] { OnCommandSelectionChanged(); });
+		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] { OnCommandSelectionChanged(); });
+		connect(m_ui.btnAddCommand,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_commandModel->insertRow(m_commandModel->rowCount());
+					m_ui.viewCommand->setCurrentIndex(m_commandModel->index(m_commandModel->rowCount() - 1, 1));
+				});
+		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [&] { RemoveRows(*m_ui.viewCommand); });
+		connect(m_ui.btnCommandUp,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Up);
+					OnCommandSelectionChanged();
+				});
+		connect(m_ui.btnCommandDown,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Down);
+					OnCommandSelectionChanged();
+				});
 
-		connect(m_ui.btnSave, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_scriptModel->setData({}, {}, Qt::EditRole); m_self.accept();
-		});
+		connect(m_ui.btnSave,
+		        &QAbstractButton::clicked,
+		        &m_self,
+		        [&]
+		        {
+					m_scriptModel->setData({}, {}, Qt::EditRole);
+					m_self.accept();
+				});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
 	}
 
@@ -209,7 +212,7 @@ private:
 	}
 
 private:
-	ScriptDialog & m_self;
+	ScriptDialog& m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_scriptModel;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_commandModel;
@@ -218,28 +221,26 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandDelegate;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_commandArgLineEditDelegate;
-	Ui::ScriptDialog m_ui{};
+	Ui::ScriptDialog m_ui {};
 };
 
-ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
-	, const std::shared_ptr<const IModelProvider> & modelProvider
-	, std::shared_ptr<ISettings> settings
-	, std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate
-	, std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate
-	, std::shared_ptr<ScriptNameDelegate> scriptNameLineEditDelegate
-	, std::shared_ptr<CommandDelegate> commandDelegate
-	, std::shared_ptr<CommandArgDelegate> commandArgLineEditDelegate
-)
+ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+                           const std::shared_ptr<const IModelProvider>& modelProvider,
+                           std::shared_ptr<ISettings> settings,
+                           std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate,
+                           std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate,
+                           std::shared_ptr<ScriptNameDelegate> scriptNameLineEditDelegate,
+                           std::shared_ptr<CommandDelegate> commandDelegate,
+                           std::shared_ptr<CommandArgDelegate> commandArgLineEditDelegate)
 	: QDialog(parentWidgetProvider->GetWidget())
-	, m_impl(*this
-		, *modelProvider
-		, std::move(settings)
-		, std::move(scriptTypeDelegate)
-		, std::move(commandTypeDelegate)
-		, std::move(scriptNameLineEditDelegate)
-		, std::move(commandDelegate)
-		, std::move(commandArgLineEditDelegate)
-	)
+	, m_impl(*this,
+             *modelProvider,
+             std::move(settings),
+             std::move(scriptTypeDelegate),
+             std::move(commandTypeDelegate),
+             std::move(scriptNameLineEditDelegate),
+             std::move(commandDelegate),
+             std::move(commandArgLineEditDelegate))
 {
 	PLOGV << "ScriptDialog created";
 }

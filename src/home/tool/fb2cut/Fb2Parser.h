@@ -2,12 +2,13 @@
 
 #include <QString>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 class QIODevice;
 
-namespace HomeCompa::fb2cut {
+namespace HomeCompa::fb2cut
+{
 
 class Fb2Parser
 {
@@ -26,7 +27,7 @@ public:
 	using OnBinaryFound = std::function<void(const QString& name, bool isCover, QByteArray data)>;
 
 public:
-	Fb2Parser(QString fileName, QIODevice & input, QIODevice & output, OnBinaryFound binaryCallback);
+	Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback);
 	~Fb2Parser();
 
 	Data Parse();
@@ -36,4 +37,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::fb2cut

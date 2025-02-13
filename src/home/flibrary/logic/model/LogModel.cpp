@@ -7,21 +7,25 @@
 #include <QString>
 #include <QTimer>
 
-#include <plog/Severity.h>
 #include <plog/Appenders/IAppender.h>
+#include <plog/Severity.h>
 
 #include "fnd/observable.h"
 #include "fnd/observer.h"
+
 #include "interface/constants/PLogSeverityLocalization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/LogModelRole.h"
+
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/UiTimer.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-namespace {
+namespace
+{
 
 struct Item
 {
@@ -29,10 +33,9 @@ struct Item
 	plog::Severity severity;
 };
 
-std::vector<Item> * s_items { nullptr };
+std::vector<Item>* s_items { nullptr };
 
-class ILogAppenderObserver
-	: public Observer
+class ILogAppenderObserver : public Observer
 {
 public:
 	virtual void OnInsertBegin(size_t begin, size_t end) = 0;
@@ -46,7 +49,7 @@ class LogAppenderImpl final
 	, public Observable<ILogAppenderObserver>
 {
 private: // plog::IAppender
-	void write(const plog::Record & record) override
+	void write(const plog::Record& record) override
 	{
 		std::lock_guard lock(m_itemsGuard);
 		if (!record.getMessage())
@@ -61,24 +64,18 @@ private: // plog::IAppender
 		plog::util::localtime_s(&t, &time);
 		{
 			auto str = QString("%1:%2:%3.%4 [%5] %6 %7")
-				.arg(t.tm_hour, 2, 10, QChar('0'))
-				.arg(t.tm_min, 2, 10, QChar('0'))
-				.arg(t.tm_sec, 2, 10, QChar('0'))
-				.arg(millieTime, 3, 10, QChar('0'))
-				.arg(tId, 6, 10, QChar('0'))
-				.arg(SEVERITIES[record.getSeverity()].first[0])
-				.arg(record.getMessage())
-				;
+			               .arg(t.tm_hour, 2, 10, QChar('0'))
+			               .arg(t.tm_min, 2, 10, QChar('0'))
+			               .arg(t.tm_sec, 2, 10, QChar('0'))
+			               .arg(millieTime, 3, 10, QChar('0'))
+			               .arg(tId, 6, 10, QChar('0'))
+			               .arg(SEVERITIES[record.getSeverity()].first[0])
+			               .arg(record.getMessage());
 
 			m_items.emplace_back(std::move(str), severity);
 		}
 
-		m_forwarder.Forward([&, force = std::size(m_items) > 100]
-		{
-			force
-				? OnLogUpdated()
-				: m_timer->start();
-		});
+		m_forwarder.Forward([&, force = std::size(m_items) > 100] { force ? OnLogUpdated() : m_timer->start(); });
 	}
 
 private:
@@ -108,13 +105,13 @@ private:
 
 private:
 	std::mutex m_itemsGuard;
-	Util::FunctorExecutionForwarder m_forwarder{};
-	std::unique_ptr<QTimer> m_timer {Util::CreateUiTimer([&] { OnLogUpdated(); })};
+	Util::FunctorExecutionForwarder m_forwarder {};
+	std::unique_ptr<QTimer> m_timer { Util::CreateUiTimer([&] { OnLogUpdated(); }) };
 	std::vector<Item> m_items;
 };
 
 using Role = LogModelRole;
-LogAppenderImpl * s_logAppenderImpl { nullptr };
+LogAppenderImpl* s_logAppenderImpl { nullptr };
 
 class Model final
 	: public QAbstractListModel
@@ -136,15 +133,15 @@ public:
 	}
 
 private: // QAbstractListModel
-	int rowCount(const QModelIndex & parent = QModelIndex()) const override
+	int rowCount(const QModelIndex& parent = QModelIndex()) const override
 	{
 		return parent.isValid() ? 0 : static_cast<int>(s_items->size());
 	}
 
-	QVariant data(const QModelIndex & index, const int role) const override
+	QVariant data(const QModelIndex& index, const int role) const override
 	{
 		assert(index.isValid());
-		const auto & item = (*s_items)[static_cast<size_t>(index.row())];
+		const auto& item = (*s_items)[static_cast<size_t>(index.row())];
 		switch (role)
 		{
 			case Qt::DisplayRole:
@@ -161,7 +158,7 @@ private: // QAbstractListModel
 		return {};
 	}
 
-	bool setData(const QModelIndex & index, const QVariant & /*value*/, const int role) override
+	bool setData(const QModelIndex& index, const QVariant& /*value*/, const int role) override
 	{
 		if (index.isValid())
 			return false;
@@ -204,11 +201,10 @@ private: // ILogAppenderObserver
 	}
 };
 
-class FilterProxyModel final
-	: public QSortFilterProxyModel
+class FilterProxyModel final : public QSortFilterProxyModel
 {
 public:
-	explicit FilterProxyModel(QObject * parent)
+	explicit FilterProxyModel(QObject* parent)
 		: QSortFilterProxyModel(parent)
 	{
 		QSortFilterProxyModel::setSourceModel(&m_model);
@@ -237,9 +233,9 @@ private: // QAbstractListModel
 	}
 
 private: // QSortFilterProxyModel
-	bool filterAcceptsRow(const int row, const QModelIndex & /*parent*/) const override
+	bool filterAcceptsRow(const int row, const QModelIndex& /*parent*/) const override
 	{
-		assert(row < static_cast<const QAbstractItemModel &>(m_model).rowCount());
+		assert(row < static_cast<const QAbstractItemModel&>(m_model).rowCount());
 		return static_cast<int>((*s_items)[static_cast<size_t>(row)].severity) <= m_logLevel;
 	}
 
@@ -253,9 +249,9 @@ private:
 	int m_logLevel { plog::Severity::info };
 };
 
-}
+} // namespace
 
-QAbstractItemModel * CreateLogModel(QObject * parent)
+QAbstractItemModel* CreateLogModel(QObject* parent)
 {
 	return new FilterProxyModel(parent);
 }
@@ -286,4 +282,4 @@ private:
 LogModelAppender::LogModelAppender() = default;
 LogModelAppender::~LogModelAppender() = default;
 
-}
+} // namespace HomeCompa::Flibrary

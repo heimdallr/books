@@ -1,7 +1,8 @@
 #include "TaskQueue.h"
 
 #include <queue>
-#include <plog/Log.h>
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -28,7 +29,7 @@ void TaskQueue::Execute()
 	std::queue<Task> tasks;
 	m_impl->tasks.swap(tasks);
 
-	while(!tasks.empty())
+	while (!tasks.empty())
 	{
 		auto task = std::move(tasks.front());
 		tasks.pop();

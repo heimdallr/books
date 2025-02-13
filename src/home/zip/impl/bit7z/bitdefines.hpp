@@ -19,97 +19,94 @@
 #define BIT7Z_USE_STD_BYTE
 //#define BIT7Z_USE_NATIVE_STRING
 
-#   define BIT7Z_CPP_STANDARD 17
+#define BIT7Z_CPP_STANDARD 17
 
 #ifndef BIT7Z_DISABLE_USE_STD_FILESYSTEM
-#   if defined( __cpp_lib_filesystem )
-#       define BIT7Z_USE_STANDARD_FILESYSTEM
-#   elif BIT7Z_CPP_STANDARD >= 17 && defined( __has_include )
-#       if __has_include( <filesystem> )
-#           define BIT7Z_USE_STANDARD_FILESYSTEM
-#       endif
-#   endif
+	#if defined(__cpp_lib_filesystem)
+		#define BIT7Z_USE_STANDARD_FILESYSTEM
+	#elif BIT7Z_CPP_STANDARD >= 17 && defined(__has_include)
+		#if __has_include(<filesystem> )
+			#define BIT7Z_USE_STANDARD_FILESYSTEM
+		#endif
+	#endif
 #endif
 
 /* Macro defines for [[nodiscard]] and [[maybe_unused]] attributes. */
-#if defined( __has_cpp_attribute )
-#   if __has_cpp_attribute( nodiscard )
-#       define BIT7Z_NODISCARD [[nodiscard]]
-#   endif
-#   if __has_cpp_attribute( maybe_unused )
-#       define BIT7Z_MAYBE_UNUSED [[maybe_unused]]
-#   endif
-#   if __has_cpp_attribute( deprecated )
-#       define BIT7Z_DEPRECATED [[deprecated]]
-#       define BIT7Z_DEPRECATED_MSG( msg ) [[deprecated( msg )]]
-#   endif
+#if defined(__has_cpp_attribute)
+	#if __has_cpp_attribute(nodiscard)
+		#define BIT7Z_NODISCARD [[nodiscard]]
+	#endif
+	#if __has_cpp_attribute(maybe_unused)
+		#define BIT7Z_MAYBE_UNUSED [[maybe_unused]]
+	#endif
+	#if __has_cpp_attribute(deprecated)
+		#define BIT7Z_DEPRECATED [[deprecated]]
+		#define BIT7Z_DEPRECATED_MSG(msg) [[deprecated(msg)]]
+	#endif
 #endif
 
 /* The compiler doesn't support __has_cpp_attribute, but it is using the C++17 standard. */
-#if !defined( BIT7Z_NODISCARD ) && BIT7Z_CPP_STANDARD >= 17
-#   define BIT7Z_NODISCARD [[nodiscard]]
+#if !defined(BIT7Z_NODISCARD) && BIT7Z_CPP_STANDARD >= 17
+	#define BIT7Z_NODISCARD [[nodiscard]]
 #endif
 
-#if !defined( BIT7Z_MAYBE_UNUSED ) && BIT7Z_CPP_STANDARD >= 17
-#   define BIT7Z_MAYBE_UNUSED [[maybe_unused]]
+#if !defined(BIT7Z_MAYBE_UNUSED) && BIT7Z_CPP_STANDARD >= 17
+	#define BIT7Z_MAYBE_UNUSED [[maybe_unused]]
 #endif
 
-#if !defined( BIT7Z_DEPRECATED ) && BIT7Z_CPP_STANDARD >= 14
-#   define BIT7Z_DEPRECATED [[deprecated]]
-#   define BIT7Z_DEPRECATED_MSG( msg ) [[deprecated( msg )]]
+#if !defined(BIT7Z_DEPRECATED) && BIT7Z_CPP_STANDARD >= 14
+	#define BIT7Z_DEPRECATED [[deprecated]]
+	#define BIT7Z_DEPRECATED_MSG(msg) [[deprecated(msg)]]
 #endif
 
 /* Compiler is using at most the C++14 standard, so we use the compiler-specific attributes/defines were possible. */
 #ifndef BIT7Z_NODISCARD
-#   if defined( __GNUC__ ) || defined(__clang__)
-#       define BIT7Z_NODISCARD __attribute__(( warn_unused_result ))
-#   elif defined( _Check_return_ ) // Old MSVC versions
-#       define BIT7Z_NODISCARD _Check_return_
-#   else
-#       define BIT7Z_NODISCARD
-#   endif
+	#if defined(__GNUC__) || defined(__clang__)
+		#define BIT7Z_NODISCARD __attribute__((warn_unused_result))
+	#elif defined(_Check_return_) // Old MSVC versions
+		#define BIT7Z_NODISCARD _Check_return_
+	#else
+		#define BIT7Z_NODISCARD
+	#endif
 #endif
 #ifndef BIT7Z_MAYBE_UNUSED
-#   if defined( __GNUC__ ) || defined(__clang__)
-#       define BIT7Z_MAYBE_UNUSED __attribute__(( unused ))
-#   else
-#       define BIT7Z_MAYBE_UNUSED
-#   endif
+	#if defined(__GNUC__) || defined(__clang__)
+		#define BIT7Z_MAYBE_UNUSED __attribute__((unused))
+	#else
+		#define BIT7Z_MAYBE_UNUSED
+	#endif
 #endif
 
 /* Compiler is using the C++11 standard, so we use the compiler-specific attributes were possible.
  * Note: these macros are used in the public API, so we cannot assume that we are always using a C++14 compiler.*/
 #ifndef BIT7Z_DEPRECATED
-#   if defined( __GNUC__ ) || defined( __clang__ )
-#       define BIT7Z_DEPRECATED __attribute__(( __deprecated__ ))
-#       define BIT7Z_DEPRECATED_MSG( msg ) __attribute__(( __deprecated__( msg ) ))
-#   elif defined( _MSC_VER )
-#       define BIT7Z_DEPRECATED __declspec( deprecated )
-#       define BIT7Z_DEPRECATED_MSG( msg ) __declspec( deprecated( msg ) )
-#   else
-#       define BIT7Z_DEPRECATED
-#       define BIT7Z_DEPRECATED_MSG( msg )
-#   endif
+	#if defined(__GNUC__) || defined(__clang__)
+		#define BIT7Z_DEPRECATED __attribute__((__deprecated__))
+		#define BIT7Z_DEPRECATED_MSG(msg) __attribute__((__deprecated__(msg)))
+	#elif defined(_MSC_VER)
+		#define BIT7Z_DEPRECATED __declspec(deprecated)
+		#define BIT7Z_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
+	#else
+		#define BIT7Z_DEPRECATED
+		#define BIT7Z_DEPRECATED_MSG(msg)
+	#endif
 #endif
 
 #ifndef BIT7Z_DEPRECATED_ENUMERATOR
-// Before v6.0, GCC didn't support deprecating single enumerators.
-#   if defined( __GNUC__ ) && !defined( __clang__ ) && __GNUC__ < 6
-#       define BIT7Z_DEPRECATED_ENUMERATOR( deprecated_value, new_value, msg ) deprecated_value = new_value
-#   else
-#       define BIT7Z_DEPRECATED_ENUMERATOR( deprecated_value, new_value, msg ) \
-                deprecated_value BIT7Z_DEPRECATED_MSG( msg ) = new_value
-#   endif
+	// Before v6.0, GCC didn't support deprecating single enumerators.
+	#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 6
+		#define BIT7Z_DEPRECATED_ENUMERATOR(deprecated_value, new_value, msg) deprecated_value = new_value
+	#else
+		#define BIT7Z_DEPRECATED_ENUMERATOR(deprecated_value, new_value, msg) deprecated_value BIT7Z_DEPRECATED_MSG(msg) = new_value
+	#endif
 #endif
 
 #ifndef BIT7Z_DEPRECATED_TYPEDEF
-#   if defined( __GNUC__ ) && !defined( __clang__ ) && __GNUC__ < 7
-#       define BIT7Z_DEPRECATED_TYPEDEF( alias_name, alias_value, msg ) \
-                using alias_name BIT7Z_MAYBE_UNUSED __attribute__(( __deprecated__( msg ) )) = alias_value
-#   else
-#       define BIT7Z_DEPRECATED_TYPEDEF( alias_name, alias_value, msg ) \
-                using alias_name BIT7Z_MAYBE_UNUSED BIT7Z_DEPRECATED_MSG( msg ) = alias_value
-#   endif
+	#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 7
+		#define BIT7Z_DEPRECATED_TYPEDEF(alias_name, alias_value, msg) using alias_name BIT7Z_MAYBE_UNUSED __attribute__((__deprecated__(msg))) = alias_value
+	#else
+		#define BIT7Z_DEPRECATED_TYPEDEF(alias_name, alias_value, msg) using alias_name BIT7Z_MAYBE_UNUSED BIT7Z_DEPRECATED_MSG(msg) = alias_value
+	#endif
 #endif
 
 #endif //BITDEFINES_HPP

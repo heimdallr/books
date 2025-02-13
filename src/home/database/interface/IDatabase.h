@@ -6,7 +6,8 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::DB {
+namespace HomeCompa::DB
+{
 
 class ITransaction;
 class IQuery;
@@ -27,7 +28,7 @@ public:
 	virtual void SetResult(int) = 0;
 };
 
-using DatabaseFunction = std::function<void(DatabaseFunctionContext &)>;
+using DatabaseFunction = std::function<void(DatabaseFunctionContext&)>;
 
 class IDatabase
 {
@@ -38,8 +39,8 @@ public:
 
 	virtual void CreateFunction(std::string_view name, DatabaseFunction function) = 0;
 
-	virtual void RegisterObserver(IDatabaseObserver * observer) = 0;
-	virtual void UnregisterObserver(IDatabaseObserver * observer) = 0;
+	virtual void RegisterObserver(IDatabaseObserver* observer) = 0;
+	virtual void UnregisterObserver(IDatabaseObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::DB

@@ -1,29 +1,27 @@
 #include "ScriptCommandModel.h"
 
-#include <plog/Log.h>
-
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/IScriptController.h"
 
 #include "ScriptSortFilterModel.h"
-#include "fnd/algorithm.h"
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 using Role = IScriptController::RoleCommand;
 
-
-class Model final
-	: public QAbstractTableModel
+class Model final : public QAbstractTableModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(IScriptControllerProvider & scriptControllerProvider)
+	static std::unique_ptr<QAbstractItemModel> Create(IScriptControllerProvider& scriptControllerProvider)
 	{
 		return std::make_unique<Model>(scriptControllerProvider.GetScriptController());
 	}
@@ -35,20 +33,19 @@ public:
 	}
 
 private: // QAbstractItemModel
-	int	columnCount(const QModelIndex & /*parent*/ = QModelIndex()) const override
+	int columnCount(const QModelIndex& /*parent*/ = QModelIndex()) const override
 	{
 		return 3;
 	}
 
-	int	rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const override
+	int rowCount(const QModelIndex& /*parent*/ = QModelIndex()) const override
 	{
 		return static_cast<int>(m_scriptController->GetCommands().size());
 	}
 
 	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override
 	{
-		constexpr const char * headers[]
-		{
+		constexpr const char* headers[] {
 			QT_TRANSLATE_NOOP("ScriptCommandModel", "Type"),
 			QT_TRANSLATE_NOOP("ScriptCommandModel", "Command"),
 			QT_TRANSLATE_NOOP("ScriptCommandModel", "Arguments"),
@@ -57,13 +54,13 @@ private: // QAbstractItemModel
 		return orientation == Qt::Horizontal && role == Qt::DisplayRole ? Loc::Tr("ScriptCommandModel", headers[section]) : QAbstractTableModel::headerData(section, orientation, role);
 	}
 
-	QVariant data(const QModelIndex & index, const int role) const override
+	QVariant data(const QModelIndex& index, const int role) const override
 	{
 		if (!index.isValid())
 			return role == Role::Uid ? m_uid : (assert(false && "unexpected role"), QVariant {});
 
 		assert(index.row() >= 0 && index.row() < rowCount());
-		const auto & item = m_scriptController->GetCommands()[static_cast<size_t>(index.row())];
+		const auto& item = m_scriptController->GetCommands()[static_cast<size_t>(index.row())];
 
 		switch (role)
 		{
@@ -103,14 +100,14 @@ private: // QAbstractItemModel
 		return {};
 	}
 
-	bool setData(const QModelIndex & index, const QVariant & value, const int role) override
+	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
 		if (!index.isValid())
 		{
 			switch (role)
 			{
 				case Role::Observer:
-					return Util::Set(m_observer, value.value<ISourceModelObserver *>(), *this);
+					return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
 
 				case Role::Uid:
 					return Util::Set(m_uid, value.toString(), *this);
@@ -151,36 +148,37 @@ private: // QAbstractItemModel
 		return assert(false && "unexpected role"), false;
 	}
 
-	Qt::ItemFlags flags(const QModelIndex & index) const override
+	Qt::ItemFlags flags(const QModelIndex& index) const override
 	{
 		return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 	}
 
-	bool insertRows(const int row, const int count, const QModelIndex & parent) override
+	bool insertRows(const int row, const int count, const QModelIndex& parent) override
 	{
 		const ScopedCall insertGuard([&] { beginInsertRows(parent, row, row + count - 1); }, [&] { endInsertRows(); });
 		return m_scriptController->InsertCommand(m_uid, row, count);
 	}
 
-	bool removeRows(const int row, const int count, const QModelIndex & /*parent*/) override
+	bool removeRows(const int row, const int count, const QModelIndex& /*parent*/) override
 	{
-		const ScopedCall removeGuard([&]
-		{
-			if (m_observer)
-				m_observer->OnRowsRemoved(row, count);
-		});
+		const ScopedCall removeGuard(
+			[&]
+			{
+				if (m_observer)
+					m_observer->OnRowsRemoved(row, count);
+			});
 		return m_scriptController->RemoveCommand(row, count);
 	}
 
 private:
 	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
-	ISourceModelObserver * m_observer { nullptr };
+	ISourceModelObserver* m_observer { nullptr };
 	QString m_uid;
 };
 
-}
+} // namespace
 
-ScriptCommandModel::ScriptCommandModel(const std::shared_ptr<IScriptControllerProvider> & scriptControllerProvider, QObject * parent)
+ScriptCommandModel::ScriptCommandModel(const std::shared_ptr<IScriptControllerProvider>& scriptControllerProvider, QObject* parent)
 	: QSortFilterProxyModel(parent)
 	, m_source(Model::Create(*scriptControllerProvider))
 {
@@ -194,7 +192,7 @@ ScriptCommandModel::~ScriptCommandModel()
 	PLOGV << "ScriptCommandModel destroyed";
 }
 
-bool ScriptCommandModel::setData(const QModelIndex & index, const QVariant & value, const int role)
+bool ScriptCommandModel::setData(const QModelIndex& index, const QVariant& value, const int role)
 {
 	const auto result = QSortFilterProxyModel::setData(index, value, role);
 	if (result && role == Role::Uid)
@@ -203,7 +201,7 @@ bool ScriptCommandModel::setData(const QModelIndex & index, const QVariant & val
 	return result;
 }
 
-bool ScriptCommandModel::filterAcceptsRow(const int sourceRow, const QModelIndex & sourceParent) const
+bool ScriptCommandModel::filterAcceptsRow(const int sourceRow, const QModelIndex& sourceParent) const
 {
 	return m_source->index(sourceRow, 0, sourceParent).data(Role::Uid) == m_source->data({}, Role::Uid);
 }

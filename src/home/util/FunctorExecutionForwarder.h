@@ -6,15 +6,15 @@
 
 #include "export/util.h"
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
-class UTIL_EXPORT FunctorExecutionForwarder
-	: public QObject
+class UTIL_EXPORT FunctorExecutionForwarder : public QObject
 {
 	Q_OBJECT
 
 public:
-	using FunctorType = std::function<void ()>;
+	using FunctorType = std::function<void()>;
 	FunctorExecutionForwarder();
 	void Forward(FunctorType f) const;
 

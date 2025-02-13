@@ -1,21 +1,25 @@
 #pragma once
 
 #include <memory>
+
 #include "fnd/NonCopyMovable.h"
+
 #include "interface/logic/ILogicFactory.h"
 
-namespace Hypodermic {
+namespace Hypodermic
+{
 class Container;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class LogicFactory final : virtual public ILogicFactory
 {
 	NON_COPY_MOVABLE(LogicFactory)
 
 public:
-	explicit LogicFactory(Hypodermic::Container & container);
+	explicit LogicFactory(Hypodermic::Container& container);
 	~LogicFactory() override;
 
 private: // ILogicFactory
@@ -35,9 +39,10 @@ private: // ILogicFactory
 
 public: // special
 	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const override;
+
 private:
 	struct Impl;
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

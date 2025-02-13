@@ -1,5 +1,3 @@
-#include <atlcomcli.h>
-
 #include "ArchiveOpenCallback.h"
 
 using namespace HomeCompa::ZipDetails::SevenZip;
@@ -14,25 +12,25 @@ ArchiveOpenCallback::ArchiveOpenCallback(QString password)
 {
 }
 
-STDMETHODIMP ArchiveOpenCallback::QueryInterface(REFIID iid, void ** ppvObject) //-V835
+STDMETHODIMP ArchiveOpenCallback::QueryInterface(REFIID iid, void** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown))
 	{
-		*ppvObject = reinterpret_cast<IUnknown *>(this);
+		*ppvObject = reinterpret_cast<IUnknown*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_IArchiveOpenCallback)
 	{
-		*ppvObject = static_cast<IArchiveOpenCallback *>(this);
+		*ppvObject = static_cast<IArchiveOpenCallback*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_ICryptoGetTextPassword)
 	{
-		*ppvObject = static_cast<ICryptoGetTextPassword *>(this);
+		*ppvObject = static_cast<ICryptoGetTextPassword*>(this);
 		AddRef();
 		return S_OK;
 	}
@@ -54,17 +52,17 @@ STDMETHODIMP_(ULONG) ArchiveOpenCallback::Release()
 	return res;
 }
 
-STDMETHODIMP ArchiveOpenCallback::SetTotal(const UInt64 * /*files*/, const UInt64 * /*bytes*/)
+STDMETHODIMP ArchiveOpenCallback::SetTotal(const UInt64* /*files*/, const UInt64* /*bytes*/)
 {
 	return S_OK;
 }
 
-STDMETHODIMP ArchiveOpenCallback::SetCompleted(const UInt64 * /*files*/, const UInt64 * /*bytes*/)
+STDMETHODIMP ArchiveOpenCallback::SetCompleted(const UInt64* /*files*/, const UInt64* /*bytes*/)
 {
 	return S_OK;
 }
 
-STDMETHODIMP ArchiveOpenCallback::CryptoGetTextPassword(BSTR * password)
+STDMETHODIMP ArchiveOpenCallback::CryptoGetTextPassword(BSTR* password)
 {
 	if (!m_password.isEmpty())
 		*password = SysAllocString(m_password.toStdWString().data());

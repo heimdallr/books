@@ -6,21 +6,20 @@
 
 #include "BaseDelegateEditor.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class StorableComboboxDelegateEditor final
-	: public BaseDelegateEditor
+class StorableComboboxDelegateEditor final : public BaseDelegateEditor
 {
 	NON_COPY_MOVABLE(StorableComboboxDelegateEditor)
 
 public:
-	explicit StorableComboboxDelegateEditor(std::shared_ptr<ISettings> settings
-		, QWidget * parent = nullptr
-	);
+	explicit StorableComboboxDelegateEditor(std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
 	~StorableComboboxDelegateEditor() override;
 
 public:
@@ -28,8 +27,8 @@ public:
 
 private: // BaseDelegateEditor
 	QString GetText() const override;
-	void SetText(const QString & value) override;
-	void OnSetModelData(const QString & value) override;
+	void SetText(const QString& value) override;
+	void OnSetModelData(const QString& value) override;
 
 private:
 	struct Impl;

@@ -2,11 +2,12 @@
 
 #include <qnamespace.h>
 
-#include "logic/data/DataItem.h"
-
 #include <QModelIndex>
 
-namespace HomeCompa::Flibrary {
+#include "logic/data/DataItem.h"
+
+namespace HomeCompa::Flibrary
+{
 
 struct Role
 {
@@ -17,12 +18,12 @@ struct Role
 		CheckState,
 		IsRemoved,
 
-#define	BOOKS_COLUMN_ITEM(NAME) NAME,
+#define BOOKS_COLUMN_ITEM(NAME) NAME,
 		BOOKS_COLUMN_ITEMS_X_MACRO
-#undef	BOOKS_COLUMN_ITEM
+#undef BOOKS_COLUMN_ITEM
 
-		// global
-		Count,
+			// global
+			Count,
 		Checkable,
 		Languages,
 		TextFilter,
@@ -43,7 +44,7 @@ struct SelectedRequest
 {
 	QModelIndex current;
 	QModelIndexList selected;
-	QModelIndexList * result { nullptr };
+	QModelIndexList* result { nullptr };
 };
 
 }

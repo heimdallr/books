@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "export/Util.h"
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
 class UTIL_EXPORT XMLPlatformInitializer
 {

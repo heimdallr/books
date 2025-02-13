@@ -1,30 +1,28 @@
-#include <atlcomcli.h>
+#include "win.h"
 #include <comdef.h>
 
 #include <QRegularExpression>
-
-#include "writer.h"
-
-#include <plog/Log.h>
 
 #include "fnd/unknown_impl.h"
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
 #include "7z-sdk/7z/CPP/7zip/IPassword.h"
-
 #include "bit7z/bitformat.hpp"
-
 #include "zip/interface/ProgressCallback.h"
 
 #include "FileItem.h"
 #include "OutMemStream.h"
 #include "PropVariant.h"
+#include "log.h"
+#include "writer.h"
 
 using namespace bit7z;
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 
-namespace {
+namespace
+{
 
 class CryptoGetTextPassword final : public ICryptoGetTextPassword2
 {
@@ -65,31 +63,31 @@ class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(FileStorage & files, ProgressCallback & progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, ProgressCallback& progress)
 	{
 		return new ArchiveUpdateCallback(files, progress);
 	}
 
 private:
-	ArchiveUpdateCallback(FileStorage & files, ProgressCallback & progress)
+	ArchiveUpdateCallback(FileStorage& files, ProgressCallback& progress)
 		: m_files { files }
 		, m_progress { progress }
 	{
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void ** ppvObject) override
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override
 	{
-		if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
-			*ppvObject = reinterpret_cast<IUnknown *>(this);  // NOLINT(clang-diagnostic-reinterpret-base-class)
+			*ppvObject = reinterpret_cast<IUnknown*>(this); // NOLINT(clang-diagnostic-reinterpret-base-class)
 			AddRef();
 			return S_OK;
 		}
 
 		if (iid == IID_IArchiveUpdateCallback)
 		{
-			*ppvObject = static_cast<IArchiveUpdateCallback *>(this);
+			*ppvObject = static_cast<IArchiveUpdateCallback*>(this);
 			AddRef();
 			return S_OK;
 		}
@@ -118,7 +116,7 @@ private: // IProgress
 		return S_OK;
 	}
 
-	HRESULT SetCompleted(const UInt64 * completeValue) noexcept override
+	HRESULT SetCompleted(const UInt64* completeValue) noexcept override
 	{
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
@@ -129,10 +127,7 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(const UInt32 index,
-		Int32 * newData,
-		Int32 * newProperties,
-		UInt32 * indexInArchive) noexcept override
+	HRESULT GetUpdateItemInfo(const UInt32 index, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
 	{
 		if (newData != nullptr)
 			*newData = 0; //1 = true, 0 = false;
@@ -147,9 +142,10 @@ private: // IArchiveUpdateCallback
 		return S_OK;
 	}
 
-	HRESULT GetProperty(UInt32 /*index*/, PROPID propId, PROPVARIANT * value) noexcept override try
+	HRESULT GetProperty(UInt32 /*index*/, PROPID propId, PROPVARIANT* value) noexcept override
+	try
 	{
-		CPropVariant prop = [&, propId] () -> CPropVariant
+		CPropVariant prop = [&, propId]() -> CPropVariant
 		{
 			switch (propId)
 			{
@@ -159,7 +155,7 @@ private: // IArchiveUpdateCallback
 					return uint32_t { 128 };
 				case kpidPath:
 					return {};
-//					return m_fileNames[index - m_files.files.size()].toStdWString();
+					//					return m_fileNames[index - m_files.files.size()].toStdWString();
 				case kpidIsDir:
 					return false;
 				case kpidMTime:
@@ -167,7 +163,7 @@ private: // IArchiveUpdateCallback
 				case kpidComment:
 					return {};
 				case kpidSize:
-//					return m_sizeGetter(index - m_files.files.size());
+					//					return m_sizeGetter(index - m_files.files.size());
 				default:
 					return {};
 			}
@@ -177,13 +173,13 @@ private: // IArchiveUpdateCallback
 		prop.bstrVal = nullptr;
 		return S_OK;
 	}
-	catch (const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGE << ex.what();
 		return S_FALSE;
 	}
 
-	HRESULT GetStream(UInt32 /*index*/, ISequentialInStream ** /*inStream*/) noexcept override
+	HRESULT GetStream(UInt32 /*index*/, ISequentialInStream** /*inStream*/) noexcept override
 	{
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
@@ -199,19 +195,20 @@ private: // IArchiveUpdateCallback
 	}
 
 private:
-	FileStorage & m_files;
-	ProgressCallback & m_progress;
+	FileStorage& m_files;
+	ProgressCallback& m_progress;
 };
 
-}
+} // namespace
 
-namespace File {
+namespace File
+{
 
 bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, ProgressCallback& progress)
 {
 	for (const auto& fileName : fileNames)
 	{
-		const auto rx = QRegularExpression::fromWildcard(fileName, Qt::CaseInsensitive);		
+		const auto rx = QRegularExpression::fromWildcard(fileName, Qt::CaseInsensitive);
 		std::erase_if(files.files, [&](const auto& file) { return rx.match(file.name).hasMatch(); });
 	}
 
@@ -224,7 +221,7 @@ bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std:
 	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size()), std::move(archiveUpdateCallback));
 	files.index.clear();
 	for (size_t i = 0, sz = files.files.size(); i < sz; ++i)
-	{		
+	{
 		files.files[i].index = static_cast<decltype(FileItem::index)>(i);
 		files.index.try_emplace(files.files[i].name, i);
 	}
@@ -232,6 +229,6 @@ bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std:
 	return result == S_OK;
 }
 
-}
+} // namespace File
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip

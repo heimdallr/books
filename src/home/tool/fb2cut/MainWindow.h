@@ -7,19 +7,23 @@
 
 #include "GuiUtil/GeometryRestorable.h"
 
-namespace Ui {
+namespace Ui
+{
 class MainWindowClass;
 };
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 class IUiFactory;
 }
 
-namespace HomeCompa::fb2cut {
+namespace HomeCompa::fb2cut
+{
 
 struct Settings;
 class ImageSettingsWidget;
@@ -33,18 +37,16 @@ class MainWindow final
 	NON_COPY_MOVABLE(MainWindow)
 
 public:
-	MainWindow(
-		  std::shared_ptr<ISettings> settingsManager
-		, std::shared_ptr<const Util::IUiFactory> uiFactory
-		, std::shared_ptr<ImageSettingsWidget> common
-		, std::shared_ptr<ImageSettingsWidget> covers
-		, std::shared_ptr<ImageSettingsWidget> images
-		, QWidget * parent = nullptr
-	);
+	MainWindow(std::shared_ptr<ISettings> settingsManager,
+	           std::shared_ptr<const Util::IUiFactory> uiFactory,
+	           std::shared_ptr<ImageSettingsWidget> common,
+	           std::shared_ptr<ImageSettingsWidget> covers,
+	           std::shared_ptr<ImageSettingsWidget> images,
+	           QWidget* parent = nullptr);
 	~MainWindow() override;
 
 public:
-	void SetSettings(Settings * settings);
+	void SetSettings(Settings* settings);
 
 private:
 	void CheckEnabled();
@@ -60,12 +62,12 @@ private:
 	void OnExternalArchiverChanged();
 	void OnFfmpegChanged();
 
-	QString GetExecutableFileName(const QString & key, const QString & title) const;
+	QString GetExecutableFileName(const QString& key, const QString& title) const;
 	void Set7zDefaultSettings();
 
 private:
 	PropagateConstPtr<Ui::MainWindowClass> m_ui;
-	Settings * m_settings {nullptr};
+	Settings* m_settings { nullptr };
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settingsManager;
 	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
 	PropagateConstPtr<ImageSettingsWidget, std::shared_ptr> m_common;
@@ -73,4 +75,4 @@ private:
 	PropagateConstPtr<ImageSettingsWidget, std::shared_ptr> m_images;
 };
 
-}
+} // namespace HomeCompa::fb2cut

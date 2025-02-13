@@ -1,22 +1,22 @@
-#include "sqlite3ppext.h"
-
 #include "Database.h"
 #include "ICommand.h"
+#include "sqlite3ppext.h"
 
-namespace HomeCompa::DB::Impl::Sqlite {
+namespace HomeCompa::DB::Impl::Sqlite
+{
 
-namespace {
+namespace
+{
 
 int Index(const size_t index)
 {
 	return static_cast<int>(index);
 }
 
-class Command
-	: virtual public DB::ICommand
+class Command : virtual public DB::ICommand
 {
 public:
-	Command(sqlite3pp::database & db, const std::string_view command)
+	Command(sqlite3pp::database& db, const std::string_view command)
 		: m_command(db, LogStatement(command).data())
 	{
 	}
@@ -83,11 +83,11 @@ private:
 	sqlite3pp::command m_command;
 };
 
-}
+} // namespace
 
-std::unique_ptr<DB::ICommand> CreateCommandImpl(sqlite3pp::database & db, std::string_view command)
+std::unique_ptr<DB::ICommand> CreateCommandImpl(sqlite3pp::database& db, std::string_view command)
 {
 	return std::make_unique<Command>(db, command);
 }
 
-}
+} // namespace HomeCompa::DB::Impl::Sqlite

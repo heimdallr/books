@@ -6,5 +6,5 @@ class Stream
 {
 public:
 	virtual ~Stream() = default;
-	virtual QIODevice & GetStream() = 0;
+	virtual QIODevice& GetStream() = 0;
 };

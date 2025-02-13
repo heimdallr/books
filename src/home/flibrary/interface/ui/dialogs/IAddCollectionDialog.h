@@ -2,9 +2,10 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IAddCollectionDialog  // NOLINT(cppcoreguidelines-special-member-functions)
+class IAddCollectionDialog // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	struct Result
@@ -30,4 +31,4 @@ public:
 	[[nodiscard]] virtual bool SkipLostBooks() const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

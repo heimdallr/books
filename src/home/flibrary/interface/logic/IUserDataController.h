@@ -2,9 +2,10 @@
 
 #include <functional>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IUserDataController  // NOLINT(cppcoreguidelines-special-member-functions)
+class IUserDataController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Callback = std::function<void()>;

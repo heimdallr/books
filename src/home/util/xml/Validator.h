@@ -1,14 +1,15 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "export/Util.h"
 
 class QIODevice;
 class QString;
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
 class UTIL_EXPORT XmlValidator
 {
@@ -19,7 +20,7 @@ public:
 	~XmlValidator();
 
 public:
-	QString Validate(QIODevice & input) const;
+	QString Validate(QIODevice& input) const;
 
 private:
 	class Impl;

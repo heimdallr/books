@@ -11,13 +11,9 @@
 
 Z7_PURE_INTERFACES_BEGIN
 
-#define Z7_IFACE_CONSTR_STREAM_SUB(i, base, n) \
-  Z7_DECL_IFACE_7ZIP_SUB(i, base, 3, n) \
-  { Z7_IFACE_COM7_PURE(i) };
+#define Z7_IFACE_CONSTR_STREAM_SUB(i, base, n) Z7_DECL_IFACE_7ZIP_SUB(i, base, 3, n) { Z7_IFACE_COM7_PURE(i) };
 
-#define Z7_IFACE_CONSTR_STREAM(i, n) \
-        Z7_IFACE_CONSTR_STREAM_SUB(i, IUnknown, n)
-
+#define Z7_IFACE_CONSTR_STREAM(i, n) Z7_IFACE_CONSTR_STREAM_SUB(i, IUnknown, n)
 
 /*
 ISequentialInStream::Read()
@@ -44,10 +40,8 @@ ISequentialInStream::Read()
       1) write part of data before error to (data) buffer and return S_OK.
       2) return error code for further calls of Read().
 */
-#define Z7_IFACEM_ISequentialInStream(x) \
-  x(Read(void *data, UInt32 size, UInt32 *processedSize))
+#define Z7_IFACEM_ISequentialInStream(x) x(Read(void* data, UInt32 size, UInt32* processedSize))
 Z7_IFACE_CONSTR_STREAM(ISequentialInStream, 0x01)
-
 
 /*
 ISequentialOutStream::Write()
@@ -65,25 +59,22 @@ ISequentialOutStream::Write()
     If the function returns error code, then (*processedSize) is size of
     data written from (data) buffer.
 */
-#define Z7_IFACEM_ISequentialOutStream(x) \
-  x(Write(const void *data, UInt32 size, UInt32 *processedSize))
+#define Z7_IFACEM_ISequentialOutStream(x) x(Write(const void* data, UInt32 size, UInt32* processedSize))
 Z7_IFACE_CONSTR_STREAM(ISequentialOutStream, 0x02)
-
 
 #ifdef _WIN32
 
-#ifdef __HRESULT_FROM_WIN32
-#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK __HRESULT_FROM_WIN32(ERROR_NEGATIVE_SEEK)
-#else
-#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK   HRESULT_FROM_WIN32(ERROR_NEGATIVE_SEEK)
-#endif
+	#ifdef __HRESULT_FROM_WIN32
+		#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK __HRESULT_FROM_WIN32(ERROR_NEGATIVE_SEEK)
+	#else
+		#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK HRESULT_FROM_WIN32(ERROR_NEGATIVE_SEEK)
+	#endif
 
 #else
 
-#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK   MY_E_ERROR_NEGATIVE_SEEK
+	#define HRESULT_WIN32_ERROR_NEGATIVE_SEEK MY_E_ERROR_NEGATIVE_SEEK
 
 #endif
-
 
 /*
 IInStream::Seek() / IOutStream::Seek()
@@ -95,51 +86,39 @@ IInStream::Seek() / IOutStream::Seek()
   if Seek() returns error, then the value of *newPosition is undefined.
 */
 
-#define Z7_IFACEM_IInStream(x) \
-  x(Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
+#define Z7_IFACEM_IInStream(x) x(Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosition))
 Z7_IFACE_CONSTR_STREAM_SUB(IInStream, ISequentialInStream, 0x03)
 
-#define Z7_IFACEM_IOutStream(x) \
-  x(Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition)) \
-  x(SetSize(UInt64 newSize))
+#define Z7_IFACEM_IOutStream(x) x(Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosition)) x(SetSize(UInt64 newSize))
 Z7_IFACE_CONSTR_STREAM_SUB(IOutStream, ISequentialOutStream, 0x04)
 
-#define Z7_IFACEM_IStreamGetSize(x) \
-  x(GetSize(UInt64 *size))
+#define Z7_IFACEM_IStreamGetSize(x) x(GetSize(UInt64* size))
 Z7_IFACE_CONSTR_STREAM(IStreamGetSize, 0x06)
 
-#define Z7_IFACEM_IOutStreamFinish(x) \
-  x(OutStreamFinish())
+#define Z7_IFACEM_IOutStreamFinish(x) x(OutStreamFinish())
 Z7_IFACE_CONSTR_STREAM(IOutStreamFinish, 0x07)
 
-#define Z7_IFACEM_IStreamGetProps(x) \
-  x(GetProps(UInt64 *size, FILETIME *cTime, FILETIME *aTime, FILETIME *mTime, UInt32 *attrib))
+#define Z7_IFACEM_IStreamGetProps(x) x(GetProps(UInt64* size, FILETIME* cTime, FILETIME* aTime, FILETIME* mTime, UInt32* attrib))
 Z7_IFACE_CONSTR_STREAM(IStreamGetProps, 0x08)
-
 
 struct CStreamFileProps
 {
-  UInt64 Size;
-  UInt64 VolID;
-  UInt64 FileID_Low;
-  UInt64 FileID_High;
-  UInt32 NumLinks;
-  UInt32 Attrib;
-  FILETIME CTime;
-  FILETIME ATime;
-  FILETIME MTime;
+	UInt64 Size;
+	UInt64 VolID;
+	UInt64 FileID_Low;
+	UInt64 FileID_High;
+	UInt32 NumLinks;
+	UInt32 Attrib;
+	FILETIME CTime;
+	FILETIME ATime;
+	FILETIME MTime;
 };
 
-
-#define Z7_IFACEM_IStreamGetProps2(x) \
-  x(GetProps2(CStreamFileProps *props))
+#define Z7_IFACEM_IStreamGetProps2(x) x(GetProps2(CStreamFileProps* props))
 Z7_IFACE_CONSTR_STREAM(IStreamGetProps2, 0x09)
 
-#define Z7_IFACEM_IStreamGetProp(x) \
-  x(GetProperty(PROPID propID, PROPVARIANT *value)) \
-  x(ReloadProps())
+#define Z7_IFACEM_IStreamGetProp(x) x(GetProperty(PROPID propID, PROPVARIANT* value)) x(ReloadProps())
 Z7_IFACE_CONSTR_STREAM(IStreamGetProp, 0x0a)
-
 
 /*
 IStreamSetRestriction::SetRestriction(UInt64 begin, UInt64 end)
@@ -201,8 +180,7 @@ inputs:
     IOutStream::SetSize() to region that was written before as unrestricted.
 */
 
-#define Z7_IFACEM_IStreamSetRestriction(x) \
-  x(SetRestriction(UInt64 begin, UInt64 end)) \
+#define Z7_IFACEM_IStreamSetRestriction(x) x(SetRestriction(UInt64 begin, UInt64 end))
 
 Z7_IFACE_CONSTR_STREAM(IStreamSetRestriction, 0x10)
 

@@ -17,18 +17,15 @@ struct ClickableLabel::Impl
 	}
 };
 
-ClickableLabel::ClickableLabel(QWidget * parent)
+ClickableLabel::ClickableLabel(QWidget* parent)
 	: QLabel(parent)
 {
-	connect(&m_impl->timer, &QTimer::timeout, [this]
-	{
-		emit clicked(m_impl->pos);
-	});
+	connect(&m_impl->timer, &QTimer::timeout, [this] { emit clicked(m_impl->pos); });
 }
 
 ClickableLabel::~ClickableLabel() = default;
 
-void ClickableLabel::mousePressEvent(QMouseEvent * event)
+void ClickableLabel::mousePressEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)
 	{

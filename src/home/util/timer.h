@@ -2,11 +2,12 @@
 
 #include <chrono>
 
-#include <plog/Log.h>
-
 #include "fnd/NonCopyMovable.h"
 
-namespace HomeCompa::Util {
+#include "log.h"
+
+namespace HomeCompa::Util
+{
 
 class Timer
 {
@@ -19,6 +20,7 @@ public:
 	{
 		PLOGI << m_process << " started";
 	}
+
 	~Timer()
 	{
 		PLOGI << m_process << " done for " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_t).count() << " ms";

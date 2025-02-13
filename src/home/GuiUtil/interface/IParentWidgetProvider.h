@@ -3,7 +3,8 @@
 #include <QPointer>
 #include <QWidget>
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
 class IParentWidgetProvider
 {
@@ -12,7 +13,7 @@ public:
 
 public:
 	virtual void SetWidget(QPointer<QWidget> widget) = 0;
-	virtual QWidget * GetWidget() const = 0;
+	virtual QWidget* GetWidget() const = 0;
 };
 
 }

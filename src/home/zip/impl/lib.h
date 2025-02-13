@@ -12,7 +12,7 @@ public:
 	Lib();
 	~Lib();
 
-	bool CreateObject( const _GUID& clsID, const _GUID& interfaceID, void** outObject ) const;
+	bool CreateObject(const _GUID& clsID, const _GUID& interfaceID, void** outObject) const;
 
 private:
 	struct Impl;

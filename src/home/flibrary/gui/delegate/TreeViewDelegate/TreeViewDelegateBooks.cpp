@@ -6,64 +6,63 @@
 #include <QStyledItemDelegate>
 #include <QTreeView>
 
-#include <plog/Log.h>
-
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
-#include "fnd/observable.h"
 #include "fnd/ValueGuard.h"
+#include "fnd/observable.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "Measure.h"
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
-namespace {
+namespace
+{
 
-QString PassThruDelegate(const QVariant & value)
+QString PassThruDelegate(const QVariant& value)
 {
 	return value.toString();
 }
 
-QString NumberDelegate(const QVariant & value)
+QString NumberDelegate(const QVariant& value)
 {
 	bool ok = false;
 	const auto result = value.toInt(&ok);
 	return ok && result > 0 ? QString::number(result) : QString {};
 }
 
-QString SizeDelegate(const QVariant & value)
+QString SizeDelegate(const QVariant& value)
 {
 	bool ok = false;
 	const auto result = value.toULongLong(&ok);
 	return ok && result > 0 ? Measure::GetSize(result) : QString {};
 }
 
-constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[]
-{
-	{ BookItem::Column::Size     , &SizeDelegate },
-	{ BookItem::Column::LibRate  , &NumberDelegate },
+constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
+	{	  BookItem::Column::Size,   &SizeDelegate },
+	{   BookItem::Column::LibRate, &NumberDelegate },
 	{ BookItem::Column::SeqNumber, &NumberDelegate },
 };
 
-}
+} // namespace
 
 class TreeViewDelegateBooks::Impl final
 	: public QStyledItemDelegate
 	, public Observable<ITreeViewDelegate::IObserver>
 {
 public:
-	explicit Impl(const IUiFactory & uiFactory)
+	explicit Impl(const IUiFactory& uiFactory)
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 	{
 	}
 
 private: // QStyledItemDelegate
-	void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
 		auto o = option;
 		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
@@ -82,13 +81,13 @@ private: // QStyledItemDelegate
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
-	QString displayText(const QVariant & value, const QLocale & /*locale*/) const override
+	QString displayText(const QVariant& value, const QLocale& /*locale*/) const override
 	{
 		return m_textDelegate(value);
 	}
 
 private:
-	void RenderBooks(QPainter * painter, QStyleOptionViewItem & o, const QModelIndex & index) const
+	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
 		const auto column = BookItem::Remap(index.column());
 		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::SeqNumber))
@@ -102,9 +101,8 @@ private:
 		if (!isRate)
 			return QStyledItemDelegate::paint(painter, o, index);
 
-		static constexpr std::pair<int, int> columnToRole[]
-		{
-			{ BookItem::Column::LibRate , Role::LibRate },
+		static constexpr std::pair<int, int> columnToRole[] {
+			{  BookItem::Column::LibRate,  Role::LibRate },
 			{ BookItem::Column::UserRate, Role::UserRate },
 		};
 		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
@@ -113,12 +111,11 @@ private:
 	}
 
 private:
-	QTreeView & m_view;
+	QTreeView& m_view;
 	mutable TextDelegate m_textDelegate;
-
 };
 
-TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory> & uiFactory)
+TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory)
 	: m_impl(*uiFactory)
 {
 	PLOGV << "TreeViewDelegateBooks created";
@@ -129,7 +126,7 @@ TreeViewDelegateBooks::~TreeViewDelegateBooks()
 	PLOGV << "TreeViewDelegateBooks destroyed";
 }
 
-QAbstractItemDelegate * TreeViewDelegateBooks::GetDelegate() noexcept
+QAbstractItemDelegate* TreeViewDelegateBooks::GetDelegate() noexcept
 {
 	return m_impl.get();
 }
@@ -142,12 +139,12 @@ void TreeViewDelegateBooks::SetEnabled(bool /*enabled*/) noexcept
 {
 }
 
-void TreeViewDelegateBooks::RegisterObserver(IObserver * observer)
+void TreeViewDelegateBooks::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void TreeViewDelegateBooks::UnregisterObserver(IObserver * observer)
+void TreeViewDelegateBooks::UnregisterObserver(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }

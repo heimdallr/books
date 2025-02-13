@@ -1,21 +1,23 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "DataItem.h"
 
-namespace HomeCompa::DB {
+namespace HomeCompa::DB
+{
 class IQuery;
 class IDatabase;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class IBooksTreeCreator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Creator = IDataItem::Ptr(IBooksTreeCreator::*)() const;
+	using Creator = IDataItem::Ptr (IBooksTreeCreator::*)() const;
 
 public:
 	virtual ~IBooksTreeCreator() = default;
@@ -27,7 +29,7 @@ public:
 class IBooksRootGenerator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Generator = IDataItem::Ptr(IBooksRootGenerator::*)(IBooksTreeCreator::Creator) const;
+	using Generator = IDataItem::Ptr (IBooksRootGenerator::*)(IBooksTreeCreator::Creator) const;
 
 public:
 	virtual ~IBooksRootGenerator() = default;
@@ -35,30 +37,37 @@ public:
 	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
-using QueryDataExtractor = IDataItem::Ptr(*)(const DB::IQuery & query, const size_t * index);
+using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index);
 
 struct QueryInfo
 {
 	QueryDataExtractor extractor;
-	const size_t * index;
+	const size_t* index;
 };
 
 struct QueryDescription
 {
-	using Binder = int(*)(DB::IQuery &, const QString &);
-	using MappingGetter = const BookItem::Mapping & (QueryDescription::*)() const noexcept;
+	using Binder = int (*)(DB::IQuery&, const QString&);
+	using MappingGetter = const BookItem::Mapping& (QueryDescription::*)() const noexcept;
 
-	const char * query;
-	const QueryInfo & queryInfo;
-	const char * whereClause;
-	const char * joinClause;
+	const char* query;
+	const QueryInfo& queryInfo;
+	const char* whereClause;
+	const char* joinClause;
 	Binder binder;
 	IBooksTreeCreator::Creator treeCreator;
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
 
-	constexpr const BookItem::Mapping & GetListMapping() const noexcept{ return listMapping; }
-	constexpr const BookItem::Mapping & GetTreeMapping() const noexcept{ return treeMapping; }
+	constexpr const BookItem::Mapping& GetListMapping() const noexcept
+	{
+		return listMapping;
+	}
+
+	constexpr const BookItem::Mapping& GetTreeMapping() const noexcept
+	{
+		return treeMapping;
+	}
 };
 
 class BooksTreeGenerator final
@@ -68,16 +77,12 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(DB::IDatabase & db
-		, enum class NavigationMode navigationMode
-		, QString navigationId
-		, const QueryDescription & description
-	);
+	BooksTreeGenerator(DB::IDatabase& db, enum class NavigationMode navigationMode, QString navigationId, const QueryDescription& description);
 	~BooksTreeGenerator() override;
 
 public:
 	NavigationMode GetNavigationMode() const noexcept;
-	const QString & GetNavigationId() const noexcept;
+	const QString& GetNavigationId() const noexcept;
 	enum class ViewMode GetBooksViewMode() const noexcept;
 	IDataItem::Ptr GetCached() const noexcept;
 	void SetBooksViewMode(ViewMode viewMode) noexcept;
@@ -89,7 +94,7 @@ private: // IBooksRootGenerator
 
 private: // IBooksTreeCreator
 	[[nodiscard]] IDataItem::Ptr CreateAuthorsTree() const override;
-	[[nodiscard]] IDataItem::Ptr CreateSeriesTree () const override;
+	[[nodiscard]] IDataItem::Ptr CreateSeriesTree() const override;
 	[[nodiscard]] IDataItem::Ptr CreateGeneralTree() const override;
 
 private:
@@ -97,4 +102,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

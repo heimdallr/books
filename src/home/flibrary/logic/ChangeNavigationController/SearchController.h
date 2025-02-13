@@ -3,16 +3,18 @@
 #include <functional>
 #include <unordered_set>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 class QString;
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class SearchController
 {
@@ -36,12 +38,11 @@ public:
 	};
 
 public:
-	SearchController(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class IDatabaseUser> databaseUser
-		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
-		, std::shared_ptr<class IUiFactory> uiFactory
-		, const std::shared_ptr<class ICollectionController> & collectionController
-	);
+	SearchController(std::shared_ptr<ISettings> settings,
+	                 std::shared_ptr<class IDatabaseUser> databaseUser,
+	                 std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor,
+	                 std::shared_ptr<class IUiFactory> uiFactory,
+	                 const std::shared_ptr<class ICollectionController>& collectionController);
 	~SearchController();
 
 public:
@@ -53,4 +54,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -10,9 +10,10 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
-QVariant GetValue(const IDataItem & item, const int column)
+QVariant GetValue(const IDataItem& item, const int column)
 {
 	if (item.GetType() == ItemType::Books && IsOneOf(column, BookItem::Column::SeqNumber, BookItem::Column::Size))
 	{
@@ -26,7 +27,7 @@ QVariant GetValue(const IDataItem & item, const int column)
 
 }
 
-BaseModel::BaseModel(const std::shared_ptr<IModelProvider> & modelProvider, QObject * parent)
+BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data(modelProvider->GetData())
 {
@@ -52,12 +53,12 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 	return {};
 }
 
-QVariant BaseModel::data(const QModelIndex & index, const int role) const
+QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
 	if (!index.isValid())
 		return {};
 
-	const auto * item = static_cast<IDataItem *>(index.internalPointer());
+	const auto* item = static_cast<IDataItem*>(index.internalPointer());
 	switch (role)
 	{
 		case Qt::DisplayRole:
@@ -80,9 +81,11 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 		case Role::IsRemoved:
 			return item->IsRemoved();
 
-#define	BOOKS_COLUMN_ITEM(NAME) case Role::NAME: return GetValue(*item, BookItem::Column::NAME);
-		BOOKS_COLUMN_ITEMS_X_MACRO
-#undef	BOOKS_COLUMN_ITEM
+#define BOOKS_COLUMN_ITEM(NAME) \
+	case Role::NAME:            \
+		return GetValue(*item, BookItem::Column::NAME);
+			BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
 
 		default:
 			break;
@@ -91,11 +94,11 @@ QVariant BaseModel::data(const QModelIndex & index, const int role) const
 	return {};
 }
 
-bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const int role)
+bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const int role)
 {
 	if (index.isValid())
 	{
-		auto * item = static_cast<IDataItem *>(index.internalPointer());
+		auto* item = static_cast<IDataItem*>(index.internalPointer());
 		switch (role)
 		{
 			case Role::CheckState:
@@ -122,7 +125,7 @@ bool BaseModel::setData(const QModelIndex & index, const QVariant & value, const
 	return assert(false && "unexpected role"), false;
 }
 
-Qt::ItemFlags BaseModel::flags(const QModelIndex & index) const
+Qt::ItemFlags BaseModel::flags(const QModelIndex& index) const
 {
 	auto flags = QAbstractItemModel::flags(index);
 

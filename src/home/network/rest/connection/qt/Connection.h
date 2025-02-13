@@ -1,14 +1,14 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "connection/BaseConnection.h"
 
-
 class QNetworkAccessManager;
 
-namespace HomeCompa::RestAPI::QtLib {
+namespace HomeCompa::RestAPI::QtLib
+{
 
 class Connection : public BaseConnection
 {
@@ -19,7 +19,7 @@ public:
 	~Connection() override;
 
 protected: // BaseConnection
-	Headers GetPage(const std::string & request) override;
+	Headers GetPage(const std::string& request) override;
 
 private:
 	struct Impl;

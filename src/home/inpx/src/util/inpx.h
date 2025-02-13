@@ -10,14 +10,15 @@
 
 #include "export/inpxlib.h"
 
-namespace HomeCompa::Inpx {
+namespace HomeCompa::Inpx
+{
 
 enum class CreateCollectionMode
 {
-	None                 = 0,
-	AddUnIndexedFiles    = 1 << 0,
+	None = 0,
+	AddUnIndexedFiles = 1 << 0,
 	ScanUnIndexedFolders = 1 << 1,
-	SkipLostBooks        = 1 << 2,
+	SkipLostBooks = 1 << 2,
 };
 
 struct UpdateResult
@@ -29,7 +30,7 @@ struct UpdateResult
 	size_t keywords;
 	size_t genres;
 	bool updatable;
-	bool error{ false };
+	bool error { false };
 };
 
 class INPXLIB_EXPORT Parser
@@ -37,7 +38,7 @@ class INPXLIB_EXPORT Parser
 	NON_COPY_MOVABLE(Parser)
 
 public:
-	using Callback = std::function<void(const UpdateResult &)>;
+	using Callback = std::function<void(const UpdateResult&)>;
 	using IniMap = std::map<std::wstring, std::filesystem::path>;
 
 public:
@@ -53,6 +54,6 @@ private:
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Inpx
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Inpx::CreateCollectionMode);

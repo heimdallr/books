@@ -1,23 +1,23 @@
 #include <mutex>
 
-#include "sqlite3ppext.h"
-
 #include "ICommand.h"
 #include "IQuery.h"
 #include "ITransaction.h"
+#include "sqlite3ppext.h"
 
-namespace HomeCompa::DB::Impl::Sqlite {
+namespace HomeCompa::DB::Impl::Sqlite
+{
 
-std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database & db, std::string_view command);
-std::unique_ptr<IQuery> CreateQueryImpl(std::mutex & mutex, sqlite3pp::database & db, std::string_view query);
+std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database& db, std::string_view command);
+std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
 
-namespace {
+namespace
+{
 
-class Transaction
-	: virtual public DB::ITransaction
+class Transaction : virtual public DB::ITransaction
 {
 public:
-	explicit Transaction(std::mutex & mutex, sqlite3pp::database & db)
+	explicit Transaction(std::mutex& mutex, sqlite3pp::database& db)
 		: m_lock(mutex)
 		, m_db(db)
 		, m_transaction(db)
@@ -55,17 +55,17 @@ private: // Transaction
 
 private:
 	std::lock_guard<std::mutex> m_lock;
-	sqlite3pp::database & m_db;
+	sqlite3pp::database& m_db;
 	sqlite3pp::transaction m_transaction;
 	bool m_active { true };
 	std::mutex m_queryMutex;
 };
 
-}
+} // namespace
 
-std::unique_ptr<DB::ITransaction> CreateTransactionImpl(std::mutex & mutex, sqlite3pp::database & db)
+std::unique_ptr<DB::ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db)
 {
 	return std::make_unique<Transaction>(mutex, db);
 }
 
-}
+} // namespace HomeCompa::DB::Impl::Sqlite

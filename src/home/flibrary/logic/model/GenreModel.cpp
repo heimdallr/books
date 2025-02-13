@@ -4,13 +4,16 @@
 
 #include <QAbstractItemModel>
 
-#include "fnd/algorithm.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "inpx/src/util/constant.h"
+
 #include "interface/constants/GenresLocalization.h"
 #include "interface/logic/IDatabaseUser.h"
+
+#include "inpx/src/util/constant.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;
@@ -23,13 +26,13 @@ struct Genre
 {
 	QString code;
 	QString name;
-	bool checked{ false };
-	int row{ 0 };
-	Genre* parent{ nullptr };
+	bool checked { false };
+	int row { 0 };
+	Genre* parent { nullptr };
 	std::vector<Genre> children;
 };
 
-template<typename T>
+template <typename T>
 void Enumerate(T root, const auto& f)
 {
 	for (T child : root.children)
@@ -49,18 +52,18 @@ Qt::CheckState GetChecked(const Genre& genre)
 	{
 		switch (GetChecked(item))
 		{
-		case Qt::CheckState::PartiallyChecked:
-			return Qt::CheckState::PartiallyChecked;
-		case Qt::CheckState::Checked:
-			if (hasUnchecked)
+			case Qt::CheckState::PartiallyChecked:
 				return Qt::CheckState::PartiallyChecked;
-			hasChecked = true;
-			break;
-		case Qt::CheckState::Unchecked:
-			if (hasChecked)
-				return Qt::CheckState::PartiallyChecked;
-			hasUnchecked = true;
-			break;
+			case Qt::CheckState::Checked:
+				if (hasUnchecked)
+					return Qt::CheckState::PartiallyChecked;
+				hasChecked = true;
+				break;
+			case Qt::CheckState::Unchecked:
+				if (hasChecked)
+					return Qt::CheckState::PartiallyChecked;
+				hasUnchecked = true;
+				break;
 		}
 	}
 
@@ -68,7 +71,7 @@ Qt::CheckState GetChecked(const Genre& genre)
 	return hasChecked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
 }
 
-}
+} // namespace
 
 class GenreModel::Model final : public QAbstractItemModel
 {
@@ -98,7 +101,7 @@ private: // QAbstractItemModel
 		auto* childItem = static_cast<Genre*>(index.internalPointer());
 		auto* parentItem = childItem->parent;
 
-		return parentItem != &m_root ? createIndex(parentItem->row, 0, parentItem) : QModelIndex{};
+		return parentItem != &m_root ? createIndex(parentItem->row, 0, parentItem) : QModelIndex {};
 	}
 
 	int rowCount(const QModelIndex& parent) const override
@@ -121,11 +124,12 @@ private: // QAbstractItemModel
 		{
 			assert(role == Role::SelectedList);
 			QStringList result;
-			Enumerate<const Genre&>(m_root, [&](const Genre&, const Genre& item)
-			{
-				if (item.children.empty() && item.checked)
-					result << item.code;
-			});
+			Enumerate<const Genre&>(m_root,
+			                        [&](const Genre&, const Genre& item)
+			                        {
+										if (item.children.empty() && item.checked)
+											result << item.code;
+									});
 			return result;
 		}
 
@@ -155,16 +159,16 @@ private: // QAbstractItemModel
 
 		switch (role)
 		{
-		case Role::CheckAll:
-			return SetChecks([](const auto&) {return true; });
-		case Role::UncheckAll:
-			return SetChecks([](const auto&) {return false; });
-		case Role::RevertChecks:
-			return SetChecks([](const auto& item) {return !item.checked; });
+			case Role::CheckAll:
+				return SetChecks([](const auto&) { return true; });
+			case Role::UncheckAll:
+				return SetChecks([](const auto&) { return false; });
+			case Role::RevertChecks:
+				return SetChecks([](const auto& item) { return !item.checked; });
 			case Role::SelectedList:
-			return Util::Set(m_checked, value.toStringList());
-		default:
-			break;
+				return Util::Set(m_checked, value.toStringList());
+			default:
+				break;
 		}
 
 		return assert(false && "unexpected role"), false;
@@ -178,11 +182,12 @@ private: // QAbstractItemModel
 private:
 	bool SetChecks(const std::function<bool(const Genre&)>& f)
 	{
-		Enumerate<Genre&>(m_root, [&](Genre&, Genre& item)
-		{
-			if (item.children.empty())
-				item.checked = f(item);
-		});
+		Enumerate<Genre&>(m_root,
+		                  [&](Genre&, Genre& item)
+		                  {
+							  if (item.children.empty())
+								  item.checked = f(item);
+						  });
 
 		const auto update = [this](const QModelIndex& parent, const auto& updateRef) -> void
 		{
@@ -220,61 +225,67 @@ private:
 	void CreateGenreTree(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create genre list", [&, databaseUser = std::move(databaseUser)]() mutable
-		{
-			using AllGenresItem = std::tuple<Genre, QString>;
-			std::unordered_map<QString, AllGenresItem> allGenres;
-			std::vector<AllGenresItem> buffer;
-			const auto db = databaseUser->Database();
-			const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				AllGenresItem item{ Genre{ .code = query->Get<const char*>(0), .name = Loc::Tr(GENRE, query->Get<const char*>(1)) }, query->Get<const char*>(2) };
-				if (query->Get<int>(3))
-					buffer.emplace_back(std::move(item));
-				else
-					allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
-			}
+		databaseUserRef.Execute(
+			{ "Create genre list",
+		      [&, databaseUser = std::move(databaseUser)]() mutable
+		      {
+				  using AllGenresItem = std::tuple<Genre, QString>;
+				  std::unordered_map<QString, AllGenresItem> allGenres;
+				  std::vector<AllGenresItem> buffer;
+				  const auto db = databaseUser->Database();
+				  const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
+				  for (query->Execute(); !query->Eof(); query->Next())
+				  {
+					  AllGenresItem item {
+						  Genre { .code = query->Get<const char*>(0), .name = Loc::Tr(GENRE, query->Get<const char*>(1)) },
+						  query->Get<const char*>(2)
+					  };
+					  if (query->Get<int>(3))
+						  buffer.emplace_back(std::move(item));
+					  else
+						  allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
+				  }
 
-			const auto updateChildren = [](auto& children)
-			{
-				std::ranges::sort(children, {}, [](const auto& item) { return item.code; });
-				for (int i = 0, sz = static_cast<int>(children.size()); i < sz; ++i)
-					children[i].row = i;
-			};
+				  const auto updateChildren = [](auto& children)
+				  {
+					  std::ranges::sort(children, {}, [](const auto& item) { return item.code; });
+					  for (int i = 0, sz = static_cast<int>(children.size()); i < sz; ++i)
+						  children[i].row = i;
+				  };
 
-			Genre root;
-			while (!buffer.empty())
-			{
-				for (auto&& [genre, parentCode] : buffer)
-				{
-					updateChildren(genre.children);
-					const auto it = allGenres.find(parentCode);
-					(it == allGenres.end() ? root : std::get<0>(it->second)).children.emplace_back(std::move(genre));
-				}
-				buffer.clear();
+				  Genre root;
+				  while (!buffer.empty())
+				  {
+					  for (auto&& [genre, parentCode] : buffer)
+					  {
+						  updateChildren(genre.children);
+						  const auto it = allGenres.find(parentCode);
+						  (it == allGenres.end() ? root : std::get<0>(it->second)).children.emplace_back(std::move(genre));
+					  }
+					  buffer.clear();
 
-				for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) {return !get<0>(item).children.empty(); }))
-					buffer.emplace_back(std::move(genre));
-				for (const auto& [genre, _] : buffer)
-					allGenres.erase(genre.code);
-			}
+					  for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) { return !get<0>(item).children.empty(); }))
+						  buffer.emplace_back(std::move(genre));
+					  for (const auto& [genre, _] : buffer)
+						  allGenres.erase(genre.code);
+				  }
 
-			std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
-			updateChildren(root.children);
+				  std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
+				  updateChildren(root.children);
 
-			return [this, root = std::move(root)](size_t) mutable
-			{
-				const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
-				m_root = std::move(root);
-				std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
-				Enumerate<Genre&>(m_root, [&](Genre& parent, Genre& item)
-				{
-					item.parent = &parent;
-					item.checked = languagesIndexed.contains(item.code);
-				});
-			};
-		} });
+				  return [this, root = std::move(root)](size_t) mutable
+				  {
+					  const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
+					  m_root = std::move(root);
+					  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+					  Enumerate<Genre&>(m_root,
+				                        [&](Genre& parent, Genre& item)
+				                        {
+											item.parent = &parent;
+											item.checked = languagesIndexed.contains(item.code);
+										});
+				  };
+			  } });
 	}
 
 private:

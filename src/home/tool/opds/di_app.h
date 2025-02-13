@@ -8,8 +8,9 @@ class Container;
 class ContainerBuilder;
 }
 
-namespace HomeCompa::Opds {
+namespace HomeCompa::Opds
+{
 
-void DiInit(Hypodermic::ContainerBuilder & builder, std::shared_ptr<Hypodermic::Container> & container);
+void DiInit(Hypodermic::ContainerBuilder& builder, std::shared_ptr<Hypodermic::Container>& container);
 
 }

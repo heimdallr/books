@@ -3,14 +3,15 @@
 #include <QString>
 
 #include "fnd/FindPair.h"
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "export/Util.h"
 
 class QIODevice;
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
 class XmlAttributes;
 
@@ -26,7 +27,7 @@ public:
 			if (lhs.size() < rhs.size())
 				return false;
 
-			const auto * lp = lhs.data() + (lhs.size() - rhs.size()), * rp = rhs.data();
+			const auto *lp = lhs.data() + (lhs.size() - rhs.size()), *rp = rhs.data();
 			while (*lp && *rp && std::tolower(*lp++) == std::tolower(*rp++))
 				;
 
@@ -35,12 +36,12 @@ public:
 	};
 
 protected:
-	explicit SaxParser(QIODevice & stream, int64_t maxChunkSize = std::numeric_limits<int64_t>::max());
+	explicit SaxParser(QIODevice& stream, int64_t maxChunkSize = std::numeric_limits<int64_t>::max());
 	virtual ~SaxParser();
 
 protected:
 	template <typename Obj, typename Value, size_t ArraySize, typename... ARGS>
-	bool Parse(Obj & obj, Value(&array)[ArraySize], const QString & key, const ARGS &... args)
+	bool Parse(Obj& obj, Value (&array)[ArraySize], const QString& key, const ARGS&... args)
 	{
 		m_processed = true;
 		const auto parser = FindSecond(array, key.toStdString().data(), &SaxParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
@@ -50,9 +51,9 @@ protected:
 	bool IsLastItemProcessed() const noexcept;
 
 private:
-	template<typename... ARGS>
+	template <typename... ARGS>
 	// ReSharper disable once CppMemberFunctionMayBeStatic
-	bool Stub(const ARGS &...)
+	bool Stub(const ARGS&...)
 	{
 		m_processed = false;
 		return true;
@@ -62,14 +63,18 @@ public:
 	void Parse();
 
 public:
-	virtual bool OnProcessingInstruction(const QString & /*target*/, const QString & /*data*/) { return true; }
-	virtual bool OnStartElement(const QString & name, const QString & path, const XmlAttributes & attributes) = 0;
-	virtual bool OnEndElement(const QString & name, const QString & path) = 0;
-	virtual bool OnCharacters(const QString & path, const QString & value) = 0;
+	virtual bool OnProcessingInstruction(const QString& /*target*/, const QString& /*data*/)
+	{
+		return true;
+	}
 
-	virtual bool OnWarning(const QString & text) = 0;
-	virtual bool OnError(const QString & text) = 0;
-	virtual bool OnFatalError(const QString & text) = 0;
+	virtual bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) = 0;
+	virtual bool OnEndElement(const QString& name, const QString& path) = 0;
+	virtual bool OnCharacters(const QString& path, const QString& value) = 0;
+
+	virtual bool OnWarning(const QString& text) = 0;
+	virtual bool OnError(const QString& text) = 0;
+	virtual bool OnFatalError(const QString& text) = 0;
 
 private:
 	class Impl;
@@ -77,4 +82,4 @@ private:
 	bool m_processed { true };
 };
 
-}
+} // namespace HomeCompa::Util
