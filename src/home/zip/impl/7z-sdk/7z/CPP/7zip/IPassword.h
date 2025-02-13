@@ -9,9 +9,7 @@
 
 Z7_PURE_INTERFACES_BEGIN
 
-#define Z7_IFACE_CONSTR_PASSWORD(i, n) \
-  Z7_DECL_IFACE_7ZIP(i, 5, n) \
-  { Z7_IFACE_COM7_PURE(i) };
+#define Z7_IFACE_CONSTR_PASSWORD(i, n) Z7_DECL_IFACE_7ZIP(i, 5, n) { Z7_IFACE_COM7_PURE(i) };
 
 /*
 How to use output parameter (BSTR *password):
@@ -23,10 +21,8 @@ out: The callee rewrites BSTR variable (*password) with new allocated string poi
      The caller must free BSTR string with function SysFreeString();
 */
 
-#define Z7_IFACEM_ICryptoGetTextPassword(x) \
-  x(CryptoGetTextPassword(BSTR *password))
+#define Z7_IFACEM_ICryptoGetTextPassword(x) x(CryptoGetTextPassword(BSTR* password))
 Z7_IFACE_CONSTR_PASSWORD(ICryptoGetTextPassword, 0x10)
-
 
 /*
 CryptoGetTextPassword2()
@@ -46,8 +42,7 @@ out:
   The caller must free BSTR string with function SysFreeString()
 */
 
-#define Z7_IFACEM_ICryptoGetTextPassword2(x) \
-  x(CryptoGetTextPassword2(Int32 *passwordIsDefined, BSTR *password))
+#define Z7_IFACEM_ICryptoGetTextPassword2(x) x(CryptoGetTextPassword2(Int32* passwordIsDefined, BSTR* password))
 Z7_IFACE_CONSTR_PASSWORD(ICryptoGetTextPassword2, 0x11)
 
 Z7_PURE_INTERFACES_END

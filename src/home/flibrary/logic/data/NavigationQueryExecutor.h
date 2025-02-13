@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/INavigationQueryExecutor.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class NavigationQueryExecutor final : virtual public INavigationQueryExecutor
 {
@@ -17,7 +18,7 @@ public:
 
 private: // INavigationQueryExecutor
 	void RequestNavigation(NavigationMode navigationMode, Callback callback, bool force) const override;
-	const QueryDescription & GetQueryDescription(NavigationMode navigationMode) const override;
+	const QueryDescription& GetQueryDescription(NavigationMode navigationMode) const override;
 
 private:
 	struct Impl;

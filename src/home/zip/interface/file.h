@@ -2,7 +2,8 @@
 
 class Stream;
 
-namespace HomeCompa::ZipDetails {
+namespace HomeCompa::ZipDetails
+{
 
 class IFile
 {

@@ -1,8 +1,9 @@
 #pragma once
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IDatabaseChecker  // NOLINT(cppcoreguidelines-special-member-functions)
+class IDatabaseChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IDatabaseChecker() = default;

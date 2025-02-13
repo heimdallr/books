@@ -4,7 +4,8 @@
 
 #include "interface/logic/IDatabaseChecker.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class DatabaseUser;
 

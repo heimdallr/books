@@ -1,22 +1,23 @@
 #include "FilteredProxyModel.h"
 
-#include <set>
 #include <queue>
+#include <set>
 
-#include "interface/constants/ModelRole.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
-namespace {
+namespace
+{
 
-void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & indexList, const std::function<void(const QModelIndex&)> & f)
+void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& indexList, const std::function<void(const QModelIndex&)>& f)
 {
 	std::set<QString> processed;
 
 	std::queue<QModelIndex> queue;
-	for (const auto & index : indexList)
+	for (const auto& index : indexList)
 		if (!index.isValid() || index.column() == 0)
 			queue.push(index);
 
@@ -33,14 +34,14 @@ void EnumerateLeafs(const QAbstractItemModel & model, const QModelIndexList & in
 	}
 }
 
-}
+} // namespace
 
-AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject * parent)
+AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject* parent)
 	: QIdentityProxyModel(parent)
 {
 }
 
-FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class IModelProvider> & modelProvider, QObject * parent)
+FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent)
 	: AbstractFilteredProxyModel(parent)
 	, m_sourceModel(modelProvider->GetSourceModel())
 {
@@ -49,12 +50,12 @@ FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class IModelProvide
 
 FilteredProxyModel::~FilteredProxyModel() = default;
 
-QVariant FilteredProxyModel::data(const QModelIndex & index, const int role) const
+QVariant FilteredProxyModel::data(const QModelIndex& index, const int role) const
 {
 	if (index.isValid())
 		return QIdentityProxyModel::data(index, role);
 
-	switch(role)
+	switch (role)
 	{
 		case Role::Languages:
 			return CollectLanguages();
@@ -69,7 +70,7 @@ QVariant FilteredProxyModel::data(const QModelIndex & index, const int role) con
 	return QIdentityProxyModel::data(index, role);
 }
 
-bool FilteredProxyModel::setData(const QModelIndex & index, const QVariant & value, const int role)
+bool FilteredProxyModel::setData(const QModelIndex& index, const QVariant& value, const int role)
 {
 	if (index.isValid())
 	{
@@ -107,10 +108,9 @@ bool FilteredProxyModel::setData(const QModelIndex & index, const QVariant & val
 			return Check(value, Qt::Unchecked);
 
 		case Role::InvertCheck:
-			return Check(value, [&] (const QModelIndex & bookIndex)
-			{
-				return setData(bookIndex, bookIndex.data(Qt::CheckStateRole).value<Qt::CheckState>() == Qt::Checked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole);
-			});
+			return Check(value,
+			             [&](const QModelIndex& bookIndex)
+			             { return setData(bookIndex, bookIndex.data(Qt::CheckStateRole).value<Qt::CheckState>() == Qt::Checked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole); });
 
 		default:
 			break;
@@ -119,18 +119,12 @@ bool FilteredProxyModel::setData(const QModelIndex & index, const QVariant & val
 	return QIdentityProxyModel::setData(index, value, role);
 }
 
-bool FilteredProxyModel::Check(const QVariant & value, const Qt::CheckState checkState)
+bool FilteredProxyModel::Check(const QVariant& value, const Qt::CheckState checkState)
 {
-	return Check(value, [&] (const QModelIndex & index)
-	{
-		return true
-			&& index.data(Qt::CheckStateRole).value<Qt::CheckState>() != checkState
-			&& setData(index, checkState, Qt::CheckStateRole)
-			;
-	});
+	return Check(value, [&](const QModelIndex& index) { return true && index.data(Qt::CheckStateRole).value<Qt::CheckState>() != checkState && setData(index, checkState, Qt::CheckStateRole); });
 }
 
-void FilteredProxyModel::Check(const QModelIndex & parent, const Qt::CheckState state)
+void FilteredProxyModel::Check(const QModelIndex& parent, const Qt::CheckState state)
 {
 	const auto count = rowCount(parent);
 	for (auto i = 0; i < count; ++i)
@@ -141,26 +135,30 @@ void FilteredProxyModel::Check(const QModelIndex & parent, const Qt::CheckState 
 	setData(parent, state, Role::CheckState);
 }
 
-bool FilteredProxyModel::Check(const QVariant & value, const std::function<bool(const QModelIndex &)> & f) const
+bool FilteredProxyModel::Check(const QVariant& value, const std::function<bool(const QModelIndex&)>& f) const
 {
 	bool result = false;
 	const auto indexList = value.value<QList<QModelIndex>>();
-	EnumerateLeafs(*this, indexList.size() > 1 ? indexList : QList { QModelIndex {} }, [&] (const QModelIndex & child)
-	{
-		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-			result = f(child) || result;
-	});
+	EnumerateLeafs(*this,
+	               indexList.size() > 1 ? indexList : QList { QModelIndex {} },
+	               [&](const QModelIndex& child)
+	               {
+					   if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+						   result = f(child) || result;
+				   });
 	return result;
 }
 
 QStringList FilteredProxyModel::CollectLanguages() const
 {
 	std::set<QString> languages;
-	EnumerateLeafs(*this, {QModelIndex{}}, [&] (const QModelIndex & child)
-	{
-		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-			languages.emplace(child.data(Role::Lang).toString().toLower());
-	});
+	EnumerateLeafs(*this,
+	               { QModelIndex {} },
+	               [&](const QModelIndex& child)
+	               {
+					   if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+						   languages.emplace(child.data(Role::Lang).toString().toLower());
+				   });
 	languages.erase(QString());
 
 	return { languages.cbegin(), languages.cend() };
@@ -169,28 +167,29 @@ QStringList FilteredProxyModel::CollectLanguages() const
 int FilteredProxyModel::GetCount() const
 {
 	int result = 0;
-	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex &)
-	{
-		++result;
-	});
+	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex&) { ++result; });
 
 	return result;
 }
 
-void FilteredProxyModel::GetSelected(const QModelIndex & index, const QModelIndexList & indexList, QModelIndexList * selected) const
+void FilteredProxyModel::GetSelected(const QModelIndex& index, const QModelIndexList& indexList, QModelIndexList* selected) const
 {
-	EnumerateLeafs(*this, { QModelIndex{} }, [&] (const QModelIndex & child)
-	{
-		if (child.data(Role::Type).value<ItemType>() == ItemType::Books && child.data(Role::CheckState).value<Qt::CheckState>() == Qt::Checked)
-			(*selected) << child;
-	});
+	EnumerateLeafs(*this,
+	               { QModelIndex {} },
+	               [&](const QModelIndex& child)
+	               {
+					   if (child.data(Role::Type).value<ItemType>() == ItemType::Books && child.data(Role::CheckState).value<Qt::CheckState>() == Qt::Checked)
+						   (*selected) << child;
+				   });
 
 	if (selected->isEmpty())
-		EnumerateLeafs(*this, indexList, [&] (const QModelIndex & child)
-		{
-			if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-				(*selected) << child;
-		});
+		EnumerateLeafs(*this,
+		               indexList,
+		               [&](const QModelIndex& child)
+		               {
+						   if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
+							   (*selected) << child;
+					   });
 
 	if (selected->isEmpty())
 		(*selected) << index;

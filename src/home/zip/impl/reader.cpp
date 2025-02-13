@@ -1,7 +1,7 @@
-#include <atlcomcli.h>
-#include <comdef.h>
-
 #include "reader.h"
+
+#include "win.h"
+#include <comdef.h>
 
 #include <QBuffer>
 
@@ -10,21 +10,21 @@
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
 #include "7z-sdk/7z/CPP/7zip/IPassword.h"
-
-#include "zip/interface/file.h"
 #include "zip/interface/ProgressCallback.h"
+#include "zip/interface/file.h"
 #include "zip/interface/stream.h"
 
 #include "FileItem.h"
 #include "OutMemStream.h"
 #include "PropVariant.h"
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 
-namespace {
+namespace
+{
 
 constexpr auto EMPTY_FILE_ALIAS = "[Content]";
-
 
 class CryptoGetTextPasswordImpl final : public ICryptoGetTextPassword
 {
@@ -43,7 +43,7 @@ private:
 	}
 
 private: // ICryptoGetTextPassword
-	HRESULT CryptoGetTextPassword(BSTR * password) noexcept override
+	HRESULT CryptoGetTextPassword(BSTR* password) noexcept override
 	{
 		if (!m_password.isEmpty())
 			*password = SysAllocString(m_password.toStdWString().data());
@@ -60,13 +60,13 @@ class ArchiveExtractCallback final : public IArchiveExtractCallback
 	ADD_RELEASE_REF_IMPL
 
 public:
-	static CComPtr<IArchiveExtractCallback> Create(IInArchive & zip, QIODevice & outStream, ProgressCallback & progress)
+	static CComPtr<IArchiveExtractCallback> Create(IInArchive& zip, QIODevice& outStream, ProgressCallback& progress)
 	{
 		return new ArchiveExtractCallback(zip, outStream, progress);
 	}
 
 private:
-	ArchiveExtractCallback(IInArchive & zip, QIODevice & outStream, ProgressCallback & progress)
+	ArchiveExtractCallback(IInArchive& zip, QIODevice& outStream, ProgressCallback& progress)
 		: m_zip { zip }
 		, m_outStream { outStream }
 		, m_progress { progress }
@@ -74,18 +74,18 @@ private:
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void ** ppvObject) override//-V835
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override //-V835
 	{
-		if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
-			*ppvObject = reinterpret_cast<IUnknown *>(this);
+			*ppvObject = reinterpret_cast<IUnknown*>(this);
 			AddRef();
 			return S_OK;
 		}
 
 		if (iid == IID_IArchiveExtractCallback)
 		{
-			*ppvObject = static_cast<IArchiveExtractCallback *>(this);
+			*ppvObject = static_cast<IArchiveExtractCallback*>(this);
 			AddRef();
 			return S_OK;
 		}
@@ -107,7 +107,7 @@ private: // IProgress
 		return CheckBreak();
 	}
 
-	HRESULT SetCompleted(const UInt64 * /*completeValue*/) noexcept override
+	HRESULT SetCompleted(const UInt64* /*completeValue*/) noexcept override
 	{
 		//Callback Event calls
 		/*
@@ -119,7 +119,7 @@ private: // IProgress
 	}
 
 private: // IArchiveExtractCallback
-	HRESULT GetStream(const UInt32 index, ISequentialOutStream ** outStream, const Int32 askExtractMode) noexcept override
+	HRESULT GetStream(const UInt32 index, ISequentialOutStream** outStream, const Int32 askExtractMode) noexcept override
 	{
 		try
 		{
@@ -130,7 +130,7 @@ private: // IArchiveExtractCallback
 
 			GetPropertyIsDir(index);
 		}
-		catch (_com_error & ex)
+		catch (_com_error& ex)
 		{
 			return ex.Error();
 		}
@@ -194,15 +194,15 @@ private:
 			m_isDir = prop.boolVal != VARIANT_FALSE;
 	}
 
-	void EmitFileDoneCallback(const QString & path = {}) const
+	void EmitFileDoneCallback(const QString& path = {}) const
 	{
 		m_progress.OnFileDone(path);
 	}
 
 private:
-	IInArchive & m_zip;
-	QIODevice & m_outStream;
-	ProgressCallback & m_progress;
+	IInArchive& m_zip;
+	QIODevice& m_outStream;
+	ProgressCallback& m_progress;
 
 	QString m_filePath;
 	bool m_isDir { false };
@@ -211,17 +211,17 @@ private:
 class StreamImpl final : public Stream
 {
 public:
-	StreamImpl(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+	StreamImpl(IInArchive& zip, const FileItem& fileItem, ProgressCallback& progress)
 		: m_outStream(&m_bytes)
 	{
-		const ScopedCall ioDeviceGuard([this]{ m_outStream.open(QIODevice::WriteOnly); }, [this] { m_outStream.close(); });
+		const ScopedCall ioDeviceGuard([this] { m_outStream.open(QIODevice::WriteOnly); }, [this] { m_outStream.close(); });
 		const UInt32 indices[] = { fileItem.index };
 		auto archiveExtractCallback = ArchiveExtractCallback::Create(zip, m_outStream, progress);
 		zip.Extract(indices, 1, 0, std::move(archiveExtractCallback));
 	}
 
 private: // Stream
-	QIODevice & GetStream() override
+	QIODevice& GetStream() override
 	{
 		m_buffer = std::make_unique<QBuffer>(&m_bytes);
 		m_buffer->open(QIODevice::ReadOnly);
@@ -237,7 +237,7 @@ private:
 class FileReader final : virtual public IFile
 {
 public:
-	FileReader(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+	FileReader(IInArchive& zip, const FileItem& fileItem, ProgressCallback& progress)
 		: m_zip { zip }
 		, m_fileItem { fileItem }
 		, m_progress { progress }
@@ -256,20 +256,21 @@ private: // IFile
 	}
 
 private:
-	IInArchive & m_zip;
-	const FileItem & m_fileItem;
-	ProgressCallback & m_progress;
+	IInArchive& m_zip;
+	const FileItem& m_fileItem;
+	ProgressCallback& m_progress;
 };
 
-}
+} // namespace
 
-namespace File {
+namespace File
+{
 
-std::unique_ptr<IFile> Read(IInArchive & zip, const FileItem & fileItem, ProgressCallback & progress)
+std::unique_ptr<IFile> Read(IInArchive& zip, const FileItem& fileItem, ProgressCallback& progress)
 {
 	return std::make_unique<FileReader>(zip, fileItem, progress);
 }
 
 }
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip

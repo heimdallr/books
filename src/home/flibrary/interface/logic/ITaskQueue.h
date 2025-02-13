@@ -4,7 +4,8 @@
 
 #include "fnd/Lockable.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ITaskQueue : public Lockable<ITaskQueue> // NOLINT(cppcoreguidelines-special-member-functions)
 {

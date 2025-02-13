@@ -2,19 +2,20 @@
 
 #include <filesystem>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "export/logging.h"
 
-namespace HomeCompa::Log {
+namespace HomeCompa::Log
+{
 
 class LOGGING_EXPORT LoggingInitializer final
 {
 	NON_COPY_MOVABLE(LoggingInitializer)
 
 public:
-	explicit LoggingInitializer(const std::filesystem::path & path);
+	explicit LoggingInitializer(const std::filesystem::path& path);
 	~LoggingInitializer();
 
 private:

@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/ICommandLine.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class CommandLine final : virtual public ICommandLine
 {
@@ -16,7 +17,7 @@ public:
 	~CommandLine() override;
 
 public:
-	[[nodiscard]] const std::filesystem::path & GetInpxDir() const noexcept override;
+	[[nodiscard]] const std::filesystem::path& GetInpxDir() const noexcept override;
 
 private:
 	struct Impl;

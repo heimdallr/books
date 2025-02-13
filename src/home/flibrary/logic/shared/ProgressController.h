@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/IProgressController.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ProgressController final
 	: public IAnnotationProgressController
@@ -23,12 +24,12 @@ private: // IProgressController
 	double GetValue() const noexcept override;
 	void Stop() override;
 
-	void RegisterObserver(IObserver * observer) override;
-	void UnregisterObserver(IObserver * observer) override;
+	void RegisterObserver(IObserver* observer) override;
+	void UnregisterObserver(IObserver* observer) override;
 
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

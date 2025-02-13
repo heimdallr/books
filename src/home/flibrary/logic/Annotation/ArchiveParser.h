@@ -1,13 +1,15 @@
 #pragma once
 
-#include "data/DataItem.h"
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IDataItem.h"
 
-namespace HomeCompa::Flibrary {
+#include "data/DataItem.h"
+
+namespace HomeCompa::Flibrary
+{
 
 class ZipProgressCallback;
 
@@ -25,6 +27,7 @@ public:
 			QString year;
 			QString isbn;
 		};
+
 		QString annotation;
 		QString epigraph;
 		QString epigraphAuthor;
@@ -39,19 +42,18 @@ public:
 	};
 
 public:
-	ArchiveParser(std::shared_ptr<class ICollectionProvider> collectionProvider
-		, std::shared_ptr<class IAnnotationProgressController> progressController
-		, std::shared_ptr<const class ILogicFactory> logicFactory
-	);
+	ArchiveParser(std::shared_ptr<class ICollectionProvider> collectionProvider,
+	              std::shared_ptr<class IAnnotationProgressController> progressController,
+	              std::shared_ptr<const class ILogicFactory> logicFactory);
 	~ArchiveParser();
 
 public:
 	[[nodiscard]] std::shared_ptr<class IProgressController> GetProgressController() const;
-	[[nodiscard]] Data Parse(const IDataItem & dataItem) const;
+	[[nodiscard]] Data Parse(const IDataItem& dataItem) const;
 
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

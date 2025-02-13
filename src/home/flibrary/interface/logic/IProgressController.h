@@ -2,9 +2,10 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IProgressController  // NOLINT(cppcoreguidelines-special-member-functions)
+class IProgressController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	class IObserver : public Observer
@@ -15,7 +16,7 @@ public:
 		virtual void OnStop() = 0;
 	};
 
-	class IProgressItem  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IProgressItem // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IProgressItem() = default;
@@ -31,8 +32,8 @@ public:
 	virtual double GetValue() const noexcept = 0;
 	virtual void Stop() = 0;
 
-	virtual void RegisterObserver(IObserver * observer) = 0;
-	virtual void UnregisterObserver(IObserver * observer) = 0;
+	virtual void RegisterObserver(IObserver* observer) = 0;
+	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
 class IBooksExtractorProgressController : virtual public IProgressController
@@ -43,4 +44,4 @@ class IAnnotationProgressController : virtual public IProgressController
 {
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -1,10 +1,11 @@
 #pragma once
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 constexpr auto GENRE = "Genre";
 
-#if(false)
+#if (false)
 QT_TRANSLATE_NOOP("Genre", "sf_all_root")
 QT_TRANSLATE_NOOP("Genre", "fantasy_all_root")
 QT_TRANSLATE_NOOP("Genre", "detective_all_root")
@@ -341,4 +342,4 @@ QT_TRANSLATE_NOOP("Genre", "unordered")
 QT_TRANSLATE_NOOP("Genre", "other")
 #endif
 
-}
+} // namespace HomeCompa::Flibrary

@@ -1,12 +1,12 @@
 #include "SaxParser.h"
 
+#include <QIODevice>
+#include <QStringList>
+
 #include <xercesc/parsers/SAXParser.hpp>
 #include <xercesc/sax/HandlerBase.hpp>
 #include <xercesc/sax/InputSource.hpp>
 #include <xercesc/util/BinInputStream.hpp>
-
-#include <QIODevice>
-#include <QStringList>
 
 #include "fnd/ScopedCall.h"
 
@@ -17,18 +17,19 @@ using namespace HomeCompa;
 using namespace Util;
 namespace xercesc = xercesc_3_2;
 
-namespace {
+namespace
+{
 
 class XmlAttributesImpl final : public XmlAttributes
 {
 public:
-	void SetAttributeList(const xercesc::AttributeList & attributes) noexcept
+	void SetAttributeList(const xercesc::AttributeList& attributes) noexcept
 	{
 		m_attributes = &attributes;
 	}
 
 private: // SaxParser::Attributes
-	QString GetAttribute(const QString & key) const override
+	QString GetAttribute(const QString& key) const override
 	{
 		if (const auto value = m_attributes->getValue(key.toStdU16String().data()))
 			return QString::fromStdU16String(value);
@@ -53,7 +54,7 @@ private: // SaxParser::Attributes
 	}
 
 private:
-	const xercesc::AttributeList * m_attributes { nullptr };
+	const xercesc::AttributeList* m_attributes { nullptr };
 };
 
 class XmlStack
@@ -75,7 +76,7 @@ public:
 		m_key.reset();
 	}
 
-	const QString & ToString() const
+	const QString& ToString() const
 	{
 		if (!m_key)
 			m_key = m_data.join('/');
@@ -91,7 +92,7 @@ private:
 class BinInputStream final : public xercesc_3_2::BinInputStream
 {
 public:
-	BinInputStream(QIODevice & source, const int64_t maxChunkSize)
+	BinInputStream(QIODevice& source, const int64_t maxChunkSize)
 		: m_source(source)
 		, m_maxChunkSize(maxChunkSize)
 	{
@@ -113,18 +114,18 @@ private: // xercesc::BinInputStream
 		return m_source.pos();
 	}
 
-	const XMLCh * getContentType() const override
+	const XMLCh* getContentType() const override
 	{
 		return nullptr;
 	}
 
-	XMLSize_t readBytes(XMLByte * const toFill, const XMLSize_t maxToRead) override
+	XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override
 	{
-		return m_stopped ? 0 : m_source.read(reinterpret_cast<char *>(toFill), std::min(static_cast<int64_t>(maxToRead), m_maxChunkSize));
+		return m_stopped ? 0 : m_source.read(reinterpret_cast<char*>(toFill), std::min(static_cast<int64_t>(maxToRead), m_maxChunkSize));
 	}
 
 private:
-	QIODevice & m_source;
+	QIODevice& m_source;
 	const int64_t m_maxChunkSize;
 	bool m_stopped { false };
 };
@@ -132,7 +133,7 @@ private:
 class InputSource final : public xercesc::InputSource
 {
 public:
-	InputSource(QIODevice & source, const int64_t maxChunkSize)
+	InputSource(QIODevice& source, const int64_t maxChunkSize)
 		: m_binInputStream(new BinInputStream(source, maxChunkSize))
 	{
 	}
@@ -148,26 +149,26 @@ public:
 	}
 
 private: // xercesc::InputSource
-	xercesc::BinInputStream * makeStream() const override
+	xercesc::BinInputStream* makeStream() const override
 	{
 		return m_binInputStream;
 	}
 
 private:
-	BinInputStream * m_binInputStream;
+	BinInputStream* m_binInputStream;
 };
 
-class SaxHandler final
-	: public xercesc::HandlerBase
+class SaxHandler final : public xercesc::HandlerBase
 {
 public:
-	explicit SaxHandler(SaxParser & parser, InputSource & inputSource)
+	explicit SaxHandler(SaxParser& parser, InputSource& inputSource)
 		: m_parser(parser)
 		, m_inputSource(inputSource)
 	{
 	}
+
 private: // xercesc::DocumentHandler
-	void processingInstruction(const  XMLCh * const target, const XMLCh * const data) override
+	void processingInstruction(const XMLCh* const target, const XMLCh* const data) override
 	{
 		ProcessCharacters();
 		if (m_inputSource.IsStopped())
@@ -177,33 +178,33 @@ private: // xercesc::DocumentHandler
 			m_inputSource.SetStopped(true);
 	}
 
-	void startElement(const XMLCh * const name, xercesc::AttributeList & args) override
+	void startElement(const XMLCh* const name, xercesc::AttributeList& args) override
 	{
 		ProcessCharacters();
 		if (m_inputSource.IsStopped())
 			return;
 
 		m_stack.Push(name);
-		const auto & key = m_stack.ToString();
+		const auto& key = m_stack.ToString();
 		m_attributes.SetAttributeList(args);
 		if (!m_parser.OnStartElement(QString::fromStdU16String(name), key, m_attributes))
 			m_inputSource.SetStopped(true);
 	}
 
-	void endElement(const XMLCh * const name) override
+	void endElement(const XMLCh* const name) override
 	{
 		if (m_inputSource.IsStopped())
 			return;
 
 		ProcessCharacters();
 
-		if (const auto & key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
+		if (const auto& key = m_stack.ToString(); !m_parser.OnEndElement(QString::fromStdU16String(name), key))
 			m_inputSource.SetStopped(true);
 
 		m_stack.Pop(name);
 	}
 
-	void characters(const XMLCh * const chars, const XMLSize_t length) override
+	void characters(const XMLCh* const chars, const XMLSize_t length) override
 	{
 		if (m_inputSource.IsStopped())
 			return;
@@ -213,7 +214,7 @@ private: // xercesc::DocumentHandler
 	}
 
 private: // xercesc::ErrorHandler
-	void warning(const xercesc::SAXParseException & exc) override
+	void warning(const xercesc::SAXParseException& exc) override
 	{
 		if (m_inputSource.IsStopped())
 			return;
@@ -222,7 +223,7 @@ private: // xercesc::ErrorHandler
 			m_inputSource.SetStopped(true);
 	}
 
-	void error(const xercesc::SAXParseException & exc) override
+	void error(const xercesc::SAXParseException& exc) override
 	{
 		if (m_inputSource.IsStopped())
 			return;
@@ -231,7 +232,7 @@ private: // xercesc::ErrorHandler
 			m_inputSource.SetStopped(true);
 	}
 
-	void fatalError(const xercesc::SAXParseException & exc) override
+	void fatalError(const xercesc::SAXParseException& exc) override
 	{
 		if (m_inputSource.IsStopped())
 			return;
@@ -251,25 +252,25 @@ private:
 		if (m_characters.simplified().isEmpty())
 			return;
 
-		if (const auto & key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
+		if (const auto& key = m_stack.ToString(); !m_parser.OnCharacters(key, m_characters))
 			m_inputSource.SetStopped(true);
 	}
 
 private:
 	XmlStack m_stack;
-	XmlAttributesImpl m_attributes{};
+	XmlAttributesImpl m_attributes {};
 
-	SaxParser & m_parser;
-	InputSource & m_inputSource;
+	SaxParser& m_parser;
+	InputSource& m_inputSource;
 	QString m_characters;
 };
 
-}
+} // namespace
 
 class SaxParser::Impl
 {
 public:
-	explicit Impl(SaxParser & self, QIODevice & stream, const int64_t maxChunkSize)
+	explicit Impl(SaxParser& self, QIODevice& stream, const int64_t maxChunkSize)
 		: m_self(self)
 		, m_inputSource(stream, maxChunkSize)
 	{
@@ -292,11 +293,11 @@ public:
 private:
 	XMLPlatformInitializer m_initializer;
 	xercesc::SAXParser m_saxParser;
-	SaxParser & m_self;
+	SaxParser& m_self;
 	InputSource m_inputSource;
 };
 
-SaxParser::SaxParser(QIODevice & stream, const int64_t maxChunkSize)
+SaxParser::SaxParser(QIODevice& stream, const int64_t maxChunkSize)
 	: m_impl(*this, stream, maxChunkSize)
 {
 }

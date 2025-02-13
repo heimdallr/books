@@ -2,16 +2,18 @@
 
 #include <QDialog>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ComboBoxTextDialog final
 	: public QDialog
@@ -20,16 +22,13 @@ class ComboBoxTextDialog final
 	NON_COPY_MOVABLE(ComboBoxTextDialog)
 
 public:
-	ComboBoxTextDialog(const std::shared_ptr<const class IUiFactory> & uiFactory
-		, std::shared_ptr<ISettings> settings
-		, QWidget * parent = nullptr
-	);
+	ComboBoxTextDialog(const std::shared_ptr<const class IUiFactory>& uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
 	~ComboBoxTextDialog() override;
 
 private:
-	QDialog & GetDialog() override;
-	QComboBox & GetComboBox() override;
-	QLineEdit & GetLineEdit() override;
+	QDialog& GetDialog() override;
+	QComboBox& GetComboBox() override;
+	QLineEdit& GetLineEdit() override;
 
 private:
 	struct Impl;

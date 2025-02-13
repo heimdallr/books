@@ -4,9 +4,10 @@
 
 #include <QStringList>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class ICollectionUpdateChecker  // NOLINT(cppcoreguidelines-special-member-functions)
+class ICollectionUpdateChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Callback = std::function<void(bool updateFound)>;

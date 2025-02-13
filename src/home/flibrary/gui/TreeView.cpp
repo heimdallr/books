@@ -1,4 +1,3 @@
-#include "ui_TreeView.h"
 #include "TreeView.h"
 
 #include <ranges>
@@ -9,8 +8,6 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
-
-#include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
@@ -31,11 +28,14 @@
 
 #include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
+#include "log.h"
+#include "ui_TreeView.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
@@ -45,11 +45,10 @@ constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
 
-class HeaderView final
-	: public QHeaderView
+class HeaderView final : public QHeaderView
 {
 public:
-	explicit HeaderView(QWidget * parent = nullptr)
+	explicit HeaderView(QWidget* parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
 	{
 		setFirstSectionMovable(false);
@@ -58,7 +57,7 @@ public:
 	}
 
 private: // QHeaderView
-	void paintSection(QPainter * painter, const QRect & rect, const int logicalIndex) const override
+	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
 		if (!model())
 			return QHeaderView::paintSection(painter, rect, logicalIndex);
@@ -82,7 +81,12 @@ private: // QHeaderView
 
 		const auto size = rect.height() / 4.0;
 		const auto height = std::sqrt(2.0) * size / 2;
-		auto triangle = QPolygonF({ QPointF{0.0, height}, QPointF{size, height}, QPointF{size / 2, 0}, QPointF{0.0, height} });
+		auto triangle = QPolygonF({
+			QPointF {      0.0, height },
+			QPointF {     size, height },
+			QPointF { size / 2,      0 },
+			QPointF {      0.0, height }
+        });
 		if (sortIndicatorOrder() == Qt::DescendingOrder)
 			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
 
@@ -90,22 +94,22 @@ private: // QHeaderView
 	}
 
 private:
-	bool PaintIcon(QPainter * painter, const QRect & rect, const int logicalIndex) const
+	bool PaintIcon(QPainter* painter, const QRect& rect, const int logicalIndex) const
 	{
 		const auto iconFileName = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
 		if (!iconFileName.isValid())
 			return false;
 
 		QIcon icon(iconFileName.toString());
-		icon.pixmap(QSize{rect.height(), rect.height()});
-		auto size = 6 * QSize{ rect.height(), rect.height() } / 10;
+		icon.pixmap(QSize { rect.height(), rect.height() });
+		auto size = 6 * QSize { rect.height(), rect.height() } / 10;
 		const auto center = (rect.size() - size) / 2;
-		painter->drawPixmap(rect.topLeft() + QPoint{center.width(), center.height()}, icon.pixmap(size));
+		painter->drawPixmap(rect.topLeft() + QPoint { center.width(), center.height() }, icon.pixmap(size));
 
 		return true;
 	}
 
-	void PaintText(QPainter * painter, const QRect & rect, const int logicalIndex) const
+	void PaintText(QPainter* painter, const QRect& rect, const int logicalIndex) const
 	{
 		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
 		painter->setPen(QApplication::palette().color(QPalette::Text));
@@ -113,14 +117,14 @@ private:
 	}
 };
 
-void TreeOperation(const QAbstractItemModel & model, const QModelIndex & index, const std::function<void(const QModelIndex &)> & f)
+void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
 {
 	f(index);
 	for (int row = 0, sz = model.rowCount(index); row < sz; ++row)
 		TreeOperation(model, model.index(row, 0, index), f);
 }
 
-}
+} // namespace
 
 class TreeView::Impl final
 	: ITreeViewController::IObserver
@@ -130,19 +134,18 @@ class TreeView::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(TreeView & self
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<IUiFactory> uiFactory
-		, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-		, std::shared_ptr<const ICollectionProvider> collectionProvider
-	)
-		: m_self{ self }
-		, m_controller{ uiFactory->GetTreeViewController() }
-		, m_settings{ std::move(settings) }
-		, m_uiFactory{ std::move(uiFactory) }
-		, m_itemViewToolTipper{ std::move(itemViewToolTipper) }
-		, m_collectionProvider{ std::move(collectionProvider) }
-		, m_delegate{ std::shared_ptr<ITreeViewDelegate>() }
+	Impl(TreeView& self,
+	     std::shared_ptr<ISettings> settings,
+	     std::shared_ptr<IUiFactory> uiFactory,
+	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
+	     std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: m_self { self }
+		, m_controller { uiFactory->GetTreeViewController() }
+		, m_settings { std::move(settings) }
+		, m_uiFactory { std::move(uiFactory) }
+		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
+		, m_collectionProvider { std::move(collectionProvider) }
+		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
 	}
@@ -163,7 +166,7 @@ public:
 	void ShowRemoved(const bool showRemoved)
 	{
 		m_showRemoved = showRemoved;
-		if (auto * model = m_ui.treeView->model())
+		if (auto* model = m_ui.treeView->model())
 		{
 			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			OnCountChanged();
@@ -171,21 +174,23 @@ public:
 		}
 	}
 
-	QAbstractItemView * GetView() const
+	QAbstractItemView* GetView() const
 	{
 		return m_ui.treeView;
 	}
 
-	void FillContextMenu(QMenu & menu)
+	void FillContextMenu(QMenu& menu)
 	{
-		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&] (const QString & id, const IDataItem::Ptr & item)
-		{
-			if (m_ui.treeView->currentIndex().data(Role::Id).toString() == id)
-				GenerateMenu(menu, *item);
-		});
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(),
+		                                 GetContextMenuOptions(),
+		                                 [&](const QString& id, const IDataItem::Ptr& item)
+		                                 {
+											 if (m_ui.treeView->currentIndex().data(Role::Id).toString() == id)
+												 GenerateMenu(menu, *item);
+										 });
 	}
 
-	void ResizeEvent(const QResizeEvent * event)
+	void ResizeEvent(const QResizeEvent* event)
 	{
 		auto size = m_ui.cbMode->height();
 		m_ui.btnNew->setMinimumSize(size, size);
@@ -206,7 +211,7 @@ private: // ITreeViewController::IObserver
 		m_ui.cbMode->setCurrentIndex(index);
 	}
 
-	void OnModelChanged(QAbstractItemModel * model) override
+	void OnModelChanged(QAbstractItemModel* model) override
 	{
 		if (m_ui.treeView->model() != model)
 			OnModelChangedImpl(model);
@@ -216,17 +221,17 @@ private: // ITreeViewController::IObserver
 		OnValueChanged();
 	}
 
-	void OnContextMenuTriggered(const QString & /*id*/, const IDataItem::Ptr & item) override
+	void OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& item) override
 	{
-		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()))  // NOLINT(clang-diagnostic-switch-enum)
+		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt())) // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case BooksMenuAction::Collapse:
-				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
-					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->collapse(index); });
+				for (const auto& row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this](const auto& index) { m_ui.treeView->collapse(index); });
 				return;
 			case BooksMenuAction::Expand:
-				for (const auto & row : m_ui.treeView->selectionModel()->selectedRows())
-					TreeOperation(*m_ui.treeView->model(), row, [this] (const auto & index) { m_ui.treeView->expand(index); });
+				for (const auto& row : m_ui.treeView->selectionModel()->selectedRows())
+					TreeOperation(*m_ui.treeView->model(), row, [this](const auto& index) { m_ui.treeView->expand(index); });
 				return;
 			case BooksMenuAction::CollapseAll:
 				return m_ui.treeView->collapseAll();
@@ -236,10 +241,8 @@ private: // ITreeViewController::IObserver
 				break;
 		}
 
-		if (true
-			&& IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
-			&& item->GetData(MenuItem::Column::HasError).toInt()
-			)
+		if (true && IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
+		    && item->GetData(MenuItem::Column::HasError).toInt())
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
@@ -268,15 +271,15 @@ private: //	ModeComboBox::IValueApplier
 	}
 
 private:
-	void OnModelChangedImpl(QAbstractItemModel * model)
+	void OnModelChangedImpl(QAbstractItemModel* model)
 	{
 		m_ui.treeView->setModel(model);
 		m_ui.treeView->setRootIsDecorated(m_controller->GetViewMode() == ViewMode::Tree);
 
-		connect(m_ui.treeView->selectionModel(), &QItemSelectionModel::currentRowChanged, &m_self, [&] (const QModelIndex & index)
-		{
-			m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString());
-		});
+		connect(m_ui.treeView->selectionModel(),
+		        &QItemSelectionModel::currentRowChanged,
+		        &m_self,
+		        [&](const QModelIndex& index) { m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString()); });
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
@@ -311,22 +314,18 @@ private:
 	{
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
 
-		const auto & model = *m_ui.treeView->model();
+		const auto& model = *m_ui.treeView->model();
 
-		const auto addOption = [](const bool condition, const ITreeViewController::RequestContextMenuOptions option)
-		{
-			return condition ? option : ITreeViewController::RequestContextMenuOptions::None;
-		};
+		const auto addOption = [](const bool condition, const ITreeViewController::RequestContextMenuOptions option) { return condition ? option : ITreeViewController::RequestContextMenuOptions::None; };
 
-		ITreeViewController::RequestContextMenuOptions options
-			= addOption(model.data({}, Role::IsTree).toBool()                                   , ITreeViewController::RequestContextMenuOptions::IsTree)
-			| addOption(m_ui.treeView->selectionModel()->hasSelection()                         , ITreeViewController::RequestContextMenuOptions::HasSelection)
-			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			;
+		ITreeViewController::RequestContextMenuOptions options =
+			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
+			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
+			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
-			const auto checkIndex = [&] (const QModelIndex & index, const ITreeViewController::RequestContextMenuOptions onExpanded, const ITreeViewController::RequestContextMenuOptions onCollapsed)
+			const auto checkIndex = [&](const QModelIndex& index, const ITreeViewController::RequestContextMenuOptions onExpanded, const ITreeViewController::RequestContextMenuOptions onCollapsed)
 			{
 				assert(index.isValid());
 				const auto result = model.rowCount(index) > 0;
@@ -338,7 +337,7 @@ private:
 			if (m_ui.treeView->currentIndex().isValid())
 				checkIndex(m_ui.treeView->currentIndex(), ITreeViewController::RequestContextMenuOptions::NodeExpanded, ITreeViewController::RequestContextMenuOptions::NodeCollapsed);
 
-			std::stack<QModelIndex> stack { {QModelIndex{}} };
+			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())
 			{
 				const auto parent = stack.top();
@@ -359,7 +358,7 @@ private:
 		return options;
 	}
 
-	void OnContextMenuReady(const QString & id, const IDataItem::Ptr & item)
+	void OnContextMenuReady(const QString& id, const IDataItem::Ptr& item)
 	{
 		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
 			return;
@@ -371,11 +370,11 @@ private:
 			menu.exec(QCursor::pos());
 	}
 
-	void GenerateMenu(QMenu & menu, const IDataItem & item)
+	void GenerateMenu(QMenu& menu, const IDataItem& item)
 	{
 		const auto font = menu.font();
 		const QFontMetrics metrics(font);
-		std::stack<std::pair<const IDataItem *, QMenu *>> stack { {{&item, &menu}} };
+		std::stack<std::pair<const IDataItem*, QMenu*>> stack { { { &item, &menu } } };
 		while (!stack.empty())
 		{
 			auto [parent, subMenu] = stack.top();
@@ -396,7 +395,7 @@ private:
 
 				if (child->GetChildCount() != 0)
 				{
-					auto * subSubMenu = stack.emplace(child.get(), subMenu->addMenu(titleText)).second;
+					auto* subSubMenu = stack.emplace(child.get(), subMenu->addMenu(titleText)).second;
 					subSubMenu->setFont(font);
 					subSubMenu->setEnabled(enabled);
 					subSubMenu->setStatusTip(statusTip);
@@ -409,19 +408,17 @@ private:
 					continue;
 				}
 
-				auto * action = subMenu->addAction(titleText, [&, child = std::move(child)] () mutable
-				{
-					const auto & view = *m_ui.treeView;
-					m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
+				auto* action = subMenu->addAction(titleText,
+				                                  [&, child = std::move(child)]() mutable
+				                                  {
+													  const auto& view = *m_ui.treeView;
+													  m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
 
-					auto selected = view.selectionModel()->selectedIndexes();
-					const auto [begin, end] = std::ranges::remove_if(selected, [] (const auto & index)
-					{
-						return index.column() != 0;
-					});
-					selected.erase(begin, end);
-					m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
-				});
+													  auto selected = view.selectionModel()->selectedIndexes();
+													  const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) { return index.column() != 0; });
+													  selected.erase(begin, end);
+													  m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
+												  });
 				action->setStatusTip(statusTip);
 
 				action->setEnabled(enabled);
@@ -438,7 +435,7 @@ private:
 		if (m_controller->GetItemType() == ItemType::Books)
 			m_ui.treeView->setHeader(new HeaderView(&m_self));
 
-		auto & treeViewHeader = *m_ui.treeView->header();
+		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
@@ -457,10 +454,7 @@ private:
 
 			treeViewHeader.setStretchLastSection(false);
 			treeViewHeader.setContextMenuPolicy(Qt::CustomContextMenu);
-			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&] (const QPoint & pos)
-			{
-				CreateHeaderContextMenu(pos);
-			});
+			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint& pos) { CreateHeaderContextMenu(pos); });
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
@@ -475,10 +469,7 @@ private:
 		Impl::OnModeChanged(m_controller->GetModeIndex());
 		m_controller->RegisterObserver(this);
 
-		QTimer::singleShot(0, [&]
-		{
-			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
-		});
+		QTimer::singleShot(0, [&] { emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString()); });
 	}
 
 	void SetupNewItemButton() const
@@ -490,13 +481,10 @@ private:
 
 	void FillComboBoxes()
 	{
-		for (const auto * name : m_controller->GetModeNames())
+		for (const auto* name : m_controller->GetModeNames())
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
 
-		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()] (const auto & item)
-		{
-			return mode == item.first;
-		});
+		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) { return mode == item.first; });
 		if (it != std::cend(ModeComboBox::VALUE_MODES))
 			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
@@ -505,49 +493,49 @@ private:
 
 	void Connect()
 	{
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&] (const int)
-		{
-			auto newMode = m_ui.cbMode->currentData().toString();
-			emit m_self.NavigationModeNameChanged(newMode);
-			m_controller->SetMode(newMode);
-			SaveHeaderLayout();
-			m_recentMode = std::move(newMode);
-		});
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&]
-		{
-			m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData());
-			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
-			OnValueChanged();
-		});
-		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&]
-		{
-			OnValueChanged();
-		});
-		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&]
-		{
-			auto & model = *m_ui.treeView->model();
-			model.setData({}, m_ui.value->text(), Role::TextFilter);
-			OnCountChanged();
-			if (!m_currentId.isEmpty())
-				return Find(m_currentId, Role::Id);
-			if (model.rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
-				m_ui.treeView->setCurrentIndex(model.index(0, 0));
-		});
-		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&]
-		{
-			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&] (const QString & id, const IDataItem::Ptr & item)
-			{
-				OnContextMenuReady(id, item);
-			});
-		});
-		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&]
-		{
-			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
-		});
-		connect(m_ui.treeView->header(), &QHeaderView::sortIndicatorChanged, &m_self, [&] (const int logicalIndex, const Qt::SortOrder sortOrder)
-		{
-			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(logicalIndex, sortOrder)), Role::SortOrder);
-		});
+		connect(m_ui.cbMode,
+		        &QComboBox::currentIndexChanged,
+		        &m_self,
+		        [&](const int)
+		        {
+					auto newMode = m_ui.cbMode->currentData().toString();
+					emit m_self.NavigationModeNameChanged(newMode);
+					m_controller->SetMode(newMode);
+					SaveHeaderLayout();
+					m_recentMode = std::move(newMode);
+				});
+		connect(m_ui.cbValueMode,
+		        &QComboBox::currentIndexChanged,
+		        &m_self,
+		        [&]
+		        {
+					m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData());
+					m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
+					OnValueChanged();
+				});
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] { OnValueChanged(); });
+		connect(&m_filterTimer,
+		        &QTimer::timeout,
+		        &m_self,
+		        [&]
+		        {
+					auto& model = *m_ui.treeView->model();
+					model.setData({}, m_ui.value->text(), Role::TextFilter);
+					OnCountChanged();
+					if (!m_currentId.isEmpty())
+						return Find(m_currentId, Role::Id);
+					if (model.rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
+						m_ui.treeView->setCurrentIndex(model.index(0, 0));
+				});
+		connect(m_ui.treeView,
+		        &QWidget::customContextMenuRequested,
+		        &m_self,
+		        [&] { m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&](const QString& id, const IDataItem::Ptr& item) { OnContextMenuReady(id, item); }); });
+		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&] { m_controller->OnDoubleClicked(m_ui.treeView->currentIndex()); });
+		connect(m_ui.treeView->header(),
+		        &QHeaderView::sortIndicatorChanged,
+		        &m_self,
+		        [&](const int logicalIndex, const Qt::SortOrder sortOrder) { m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(logicalIndex, sortOrder)), Role::SortOrder); });
 	}
 
 	void SaveHeaderLayout()
@@ -561,7 +549,7 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
-		const auto * header = m_ui.treeView->header();
+		const auto* header = m_ui.treeView->header();
 
 		SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 		for (int i = 1, sz = header->count(); i < sz; ++i)
@@ -588,7 +576,7 @@ private:
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
-		auto * header = m_ui.treeView->header();
+		auto* header = m_ui.treeView->header();
 
 		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
@@ -606,16 +594,14 @@ private:
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			const auto columns = m_settings->GetGroups();
-			for (const auto & column : columns)
+			for (const auto& column : columns)
 			{
 				bool ok = false;
 				if (const auto logicalIndex = column.toInt(&ok); ok)
 				{
 					widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
 					indices.try_emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
-					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false)
-						? header->hideSection(logicalIndex)
-						: header->showSection(logicalIndex);
+					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 				}
 			}
 
@@ -660,14 +646,14 @@ private:
 	void OnHeaderSectionsVisibleChanged() const
 	{
 		QVector<int> visibleSections;
-		const auto * header = m_ui.treeView->header();
+		const auto* header = m_ui.treeView->header();
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (!header->isSectionHidden(i))
 				visibleSections << i;
 		m_ui.treeView->model()->setData({}, QVariant::fromValue(visibleSections), Role::VisibleColumns);
 	}
 
-	void CreateHeaderContextMenu(const QPoint & pos)
+	void CreateHeaderContextMenu(const QPoint& pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
 		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
@@ -678,22 +664,24 @@ private:
 	std::shared_ptr<QMenu> GetHeaderContextMenu()
 	{
 		auto menu = std::make_shared<QMenu>();
-		auto * header = m_ui.treeView->header();
-		const auto * model = header->model();
+		auto* header = m_ui.treeView->header();
+		const auto* model = header->model();
 		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
 			const auto index = header->logicalIndex(i);
-			auto * action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index] (const bool checked)
-			{
-				if (!checked)
-					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
-				header->setSectionHidden(index, !checked);
-				if (checked)
-					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(),
+			                               &m_self,
+			                               [this_ = this, header, index](const bool checked)
+			                               {
+											   if (!checked)
+												   header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
+											   header->setSectionHidden(index, !checked);
+											   if (checked)
+												   header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 
-				this_->SaveHeaderLayout();
-				this_->OnHeaderSectionsVisibleChanged();
-			});
+											   this_->SaveHeaderLayout();
+											   this_->OnHeaderSectionsVisibleChanged();
+										   });
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));
 		}
@@ -711,7 +699,7 @@ private:
 			return GetHeaderContextMenu();
 
 		m_languageContextMenu = std::make_unique<QMenu>();
-		auto * menuGroup = new QActionGroup(m_languageContextMenu.get());
+		auto* menuGroup = new QActionGroup(m_languageContextMenu.get());
 
 		languages.push_front("");
 		auto sortBeginIndex = 1;
@@ -724,23 +712,26 @@ private:
 
 		std::vector<std::pair<QString, QString>> languageTranslated;
 		languageTranslated.reserve(languages.size());
-		std::ranges::transform(std::move(languages), std::back_inserter(languageTranslated), [translations = std::unordered_map<QString, const char*>{ std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](auto&& language)
-			{
-				const auto it = translations.find(language);
-				auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
-				return std::make_pair(std::move(language), std::move(translated));
-			});
+		std::ranges::transform(std::move(languages),
+		                       std::back_inserter(languageTranslated),
+		                       [translations = std::unordered_map<QString, const char*> { std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](auto&& language)
+		                       {
+								   const auto it = translations.find(language);
+								   auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
+								   return std::make_pair(std::move(language), std::move(translated));
+							   });
 		std::ranges::sort(languageTranslated | std::views::drop(sortBeginIndex), {}, [](const auto& item) { return item.second; });
 
-
-		for (const auto & [language, translated] : languageTranslated)
+		for (const auto& [language, translated] : languageTranslated)
 		{
-			auto * action = m_languageContextMenu->addAction(translated, &m_self, [&, language]
-			{
-				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
-				OnCountChanged();
-				m_settings->Set(RECENT_LANG_FILTER_KEY, language);
-			});
+			auto* action = m_languageContextMenu->addAction(translated,
+			                                                &m_self,
+			                                                [&, language]
+			                                                {
+																m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
+																OnCountChanged();
+																m_settings->Set(RECENT_LANG_FILTER_KEY, language);
+															});
 			action->setCheckable(true);
 			action->setChecked(language == languageFilter);
 			menuGroup->addAction(action);
@@ -763,10 +754,11 @@ private:
 		((*this).*ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
 	}
 
-	void Find(const QVariant & value, const int role) const
+	void Find(const QVariant& value, const int role) const
 	{
-		const auto & model = *m_ui.treeView->model();
-		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+		const auto& model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
+		    !matched.isEmpty())
 			m_ui.treeView->setCurrentIndex(matched.front());
 		else if (role == Role::Id)
 			m_ui.treeView->setCurrentIndex(model.index(0, 0));
@@ -780,14 +772,9 @@ private:
 		m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
 	}
 
-	QString GetColumnSettingsKey(const char * value = nullptr) const
+	QString GetColumnSettingsKey(const char* value = nullptr) const
 	{
-		return QString("ui/%1/%2/Columns/%3%4")
-			.arg(m_controller->TrContext())
-			.arg(m_recentMode)
-			.arg(m_navigationModeName)
-			.arg(value ? QString("/%1").arg(value) : QString {})
-			;
+		return QString("ui/%1/%2/Columns/%3%4").arg(m_controller->TrContext()).arg(m_recentMode).arg(m_navigationModeName).arg(value ? QString("/%1").arg(value) : QString {});
 	}
 
 	QString GetValueModeKey() const
@@ -798,16 +785,15 @@ private:
 	QString GetRecentIdKey() const
 	{
 		auto key = QString("Collections/%1/%2%3/LastId")
-			.arg(m_collectionProvider->GetActiveCollection().id)
-			.arg(m_controller->TrContext())
-			.arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {})
-			;
+		               .arg(m_collectionProvider->GetActiveCollection().id)
+		               .arg(m_controller->TrContext())
+		               .arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {});
 
 		return key;
 	}
 
 private:
-	TreeView & m_self;
+	TreeView& m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
@@ -825,19 +811,13 @@ private:
 	ITreeViewController::RemoveItems m_removeItems;
 };
 
-TreeView::TreeView(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<IUiFactory> uiFactory
-	, std::shared_ptr<ItemViewToolTipper> itemViewToolTipper
-	, std::shared_ptr<const ICollectionProvider> collectionProvider
-	, QWidget * parent
-)
+TreeView::TreeView(std::shared_ptr<ISettings> settings,
+                   std::shared_ptr<IUiFactory> uiFactory,
+                   std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
+                   std::shared_ptr<const ICollectionProvider> collectionProvider,
+                   QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this
-		, std::move(settings)
-		, std::move(uiFactory)
-		, std::move(itemViewToolTipper)
-		, std::move(collectionProvider)
-	)
+	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(collectionProvider))
 {
 	PLOGV << "TreeView created";
 }
@@ -857,17 +837,17 @@ void TreeView::ShowRemoved(const bool showRemoved)
 	m_impl->ShowRemoved(showRemoved);
 }
 
-QAbstractItemView * TreeView::GetView() const
+QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
 }
 
-void TreeView::FillMenu(QMenu & menu)
+void TreeView::FillMenu(QMenu& menu)
 {
 	m_impl->FillContextMenu(menu);
 }
 
-void TreeView::resizeEvent(QResizeEvent * event)
+void TreeView::resizeEvent(QResizeEvent* event)
 {
 	m_impl->ResizeEvent(event);
 	QWidget::resizeEvent(event);

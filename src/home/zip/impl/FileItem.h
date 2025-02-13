@@ -21,7 +21,7 @@ struct FileStorage
 	std::vector<FileItem> files;
 	std::unordered_map<QString, size_t> index;
 
-	const FileItem & GetFile(const QString & name) const
+	const FileItem& GetFile(const QString& name) const
 	{
 		const auto it = index.find(QDir::fromNativeSeparators(name));
 		if (it == index.end())
@@ -31,4 +31,4 @@ struct FileStorage
 	}
 };
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip

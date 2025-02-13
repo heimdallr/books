@@ -1,16 +1,18 @@
 #pragma once
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class Observer;
 }
 
-namespace HomeCompa::ObserverHelper {
+namespace HomeCompa::ObserverHelper
+{
 
 class IObservable
 {
 public:
 	virtual ~IObservable() = default;
-	virtual void HandleObserverDestructed(Observer * observer) = 0;
+	virtual void HandleObserverDestructed(Observer* observer) = 0;
 };
 
 }

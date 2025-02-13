@@ -4,7 +4,6 @@
 #include <QString> // for plog
 
 #include <Hypodermic/Container.h>
-#include <plog/Log.h>
 
 #include "interface/logic/IScriptController.h"
 
@@ -17,22 +16,24 @@
 #include "model/script/ScriptModel.h"
 #include "model/script/ScriptSortFilterModel.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 
 struct ModelProvider::Impl
 {
-	Hypodermic::Container & container;
+	Hypodermic::Container& container;
 	mutable IDataItem::Ptr data;
-	mutable IModelObserver * observer { nullptr };
+	mutable IModelObserver* observer { nullptr };
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
 
-	explicit Impl(Hypodermic::Container & container)
+	explicit Impl(Hypodermic::Container& container)
 		: container(container)
 	{
 	}
 
 	template <typename T>
-	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver & o) const
+	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver& o) const
 	{
 		data = std::move(d);
 		observer = &o;
@@ -42,7 +43,7 @@ struct ModelProvider::Impl
 	}
 };
 
-ModelProvider::ModelProvider(Hypodermic::Container & container)
+ModelProvider::ModelProvider(Hypodermic::Container& container)
 	: m_impl(container)
 {
 	PLOGV << "ModelProvider created";
@@ -53,7 +54,7 @@ ModelProvider::~ModelProvider()
 	PLOGV << "ModelProvider destroyed";
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver & observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer) const
 {
 	return m_impl->CreateModel<ListModel>(std::move(data), observer);
 }
@@ -70,7 +71,7 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 	return m_impl->container.resolve<ScriptSortFilterModel>();
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver & observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer) const
 {
 	return m_impl->CreateModel<TreeModel>(std::move(data), observer);
 }
@@ -81,7 +82,7 @@ IDataItem::Ptr ModelProvider::GetData() const noexcept
 	return std::move(m_impl->data);
 }
 
-IModelObserver & ModelProvider::GetObserver() const noexcept
+IModelObserver& ModelProvider::GetObserver() const noexcept
 {
 	assert(m_impl->observer);
 	return *m_impl->observer;

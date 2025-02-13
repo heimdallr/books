@@ -1,7 +1,8 @@
 #pragma once
 #include <functional>
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
 class ScopedCall
 {
@@ -9,8 +10,9 @@ public:
 	using Function = std::function<void()>;
 
 	ScopedCall() = default;
-	ScopedCall(const ScopedCall & rhs) = delete;
-	ScopedCall(ScopedCall && rhs) noexcept
+	ScopedCall(const ScopedCall& rhs) = delete;
+
+	ScopedCall(ScopedCall&& rhs) noexcept
 		: m_is_initialized(rhs.m_is_initialized)
 		, m_init(std::move(rhs.m_init))
 		, m_deinit(std::move(rhs.m_deinit))
@@ -36,8 +38,9 @@ public:
 		ScopeLeave();
 	}
 
-	ScopedCall & operator=(const ScopedCall & rhs) = delete;
-	ScopedCall & operator=(ScopedCall && rhs) noexcept
+	ScopedCall& operator=(const ScopedCall& rhs) = delete;
+
+	ScopedCall& operator=(ScopedCall&& rhs) noexcept
 	{
 		ScopeLeave();
 
@@ -67,9 +70,9 @@ private:
 	}
 
 private:
-	bool m_is_initialized{false};
+	bool m_is_initialized { false };
 	Function m_init;
 	Function m_deinit;
 };
 
-}
+} // namespace HomeCompa

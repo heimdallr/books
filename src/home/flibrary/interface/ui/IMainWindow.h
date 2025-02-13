@@ -2,9 +2,10 @@
 
 class QMainWindow;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IMainWindow  // NOLINT(cppcoreguidelines-special-member-functions)
+class IMainWindow // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IMainWindow() = default;

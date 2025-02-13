@@ -2,12 +2,13 @@
 
 #include <plog/Appenders/RollingFileAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
-#include <plog/Log.h>
 
 #include "LogAppender.h"
 #include "QtLoHandler.h"
+#include "log.h"
 
-namespace HomeCompa::Log {
+namespace HomeCompa::Log
+{
 
 struct LoggingInitializer::Impl
 {
@@ -15,14 +16,14 @@ struct LoggingInitializer::Impl
 	LogAppender logAppender;
 	QtLogHandler qtLogHandler;
 
-	explicit Impl(const std::filesystem::path & path)
-		: rollingFileAppender(path.string().data(), 1024*1024*1024, 10)
+	explicit Impl(const std::filesystem::path& path)
+		: rollingFileAppender(path.string().data(), 1024 * 1024 * 1024, 10)
 		, logAppender(&rollingFileAppender)
 	{
 	}
 };
 
-LoggingInitializer::LoggingInitializer(const std::filesystem::path & path)
+LoggingInitializer::LoggingInitializer(const std::filesystem::path& path)
 	: m_impl(path)
 {
 }

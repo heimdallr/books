@@ -1,16 +1,17 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "export/logic.h"
 
 class QAbstractItemModel;
 class QObject;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-QAbstractItemModel * CreateLogModel(QObject * parent = nullptr);
+QAbstractItemModel* CreateLogModel(QObject* parent = nullptr);
 
 class LOGIC_EXPORT LogModelAppender
 {

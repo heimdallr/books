@@ -2,17 +2,19 @@
 
 #include <QDialog>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/ui/dialogs/IScriptDialog.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class IParentWidgetProvider;
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ScriptDialog final
 	: public QDialog
@@ -21,15 +23,14 @@ class ScriptDialog final
 	NON_COPY_MOVABLE(ScriptDialog)
 
 public:
-	ScriptDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
-		, const std::shared_ptr<const class IModelProvider> & modelProvider
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class ScriptComboBoxDelegate> scriptTypeDelegate
-		, std::shared_ptr<class CommandComboBoxDelegate> commandTypeDelegate
-		, std::shared_ptr<class ScriptNameDelegate> scriptNameLineEditDelegate
-		, std::shared_ptr<class CommandDelegate> commandDelegate
-		, std::shared_ptr<class CommandArgDelegate> commandArgLineEditDelegate
-	);
+	ScriptDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	             const std::shared_ptr<const class IModelProvider>& modelProvider,
+	             std::shared_ptr<ISettings> settings,
+	             std::shared_ptr<class ScriptComboBoxDelegate> scriptTypeDelegate,
+	             std::shared_ptr<class CommandComboBoxDelegate> commandTypeDelegate,
+	             std::shared_ptr<class ScriptNameDelegate> scriptNameLineEditDelegate,
+	             std::shared_ptr<class CommandDelegate> commandDelegate,
+	             std::shared_ptr<class CommandArgDelegate> commandArgLineEditDelegate);
 	~ScriptDialog() override;
 
 private: // IScriptDialog

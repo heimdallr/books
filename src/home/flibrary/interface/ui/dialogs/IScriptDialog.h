@@ -1,8 +1,9 @@
 #pragma once
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IScriptDialog  // NOLINT(cppcoreguidelines-special-member-functions)
+class IScriptDialog // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IScriptDialog() = default;

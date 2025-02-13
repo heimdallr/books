@@ -2,14 +2,15 @@
 
 #include <functional>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/IDataItem.h"
 
 class QString;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class DataProvider
 {
@@ -19,9 +20,7 @@ public:
 	using Callback = std::function<void(IDataItem::Ptr)>;
 
 public:
-	DataProvider(std::shared_ptr<class IDatabaseUser> databaseUser
-		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
-	);
+	DataProvider(std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor);
 	~DataProvider();
 
 public:
@@ -42,4 +41,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

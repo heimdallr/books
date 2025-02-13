@@ -10,8 +10,9 @@ class Container;
 class ContainerBuilder;
 }
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
-GUIUTIL_EXPORT void DiGuiUtil(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container);
+GUIUTIL_EXPORT void DiGuiUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container);
 
 }

@@ -2,9 +2,10 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IReaderController  // NOLINT(cppcoreguidelines-special-member-functions)
+class IReaderController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Callback = std::function<void()>;

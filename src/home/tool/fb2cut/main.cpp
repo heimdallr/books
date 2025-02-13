@@ -10,10 +10,8 @@
 #include <QTranslator>
 
 #include <Hypodermic/Hypodermic.h>
-
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
-#include <plog/Log.h>
 #include <plog/Record.h>
 #include <plog/Util.h>
 
@@ -21,33 +19,32 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
-#include "logging/init.h"
-#include "logging/LogAppender.h"
-
 #include "GuiUtil/interface/IUiFactory.h"
-#include "util/files.h"
+#include "logging/LogAppender.h"
+#include "logging/init.h"
 #include "util/ISettings.h"
-#include "util/localization.h"
 #include "util/LogConsoleFormatter.h"
+#include "util/files.h"
+#include "util/localization.h"
 #include "util/xml/Initializer.h"
 #include "util/xml/Validator.h"
 
-#include "zip.h"
-
-#include "di_app.h"
 #include "Fb2Parser.h"
 #include "ImageSettingsWidget.h"
 #include "MainWindow.h"
+#include "di_app.h"
+#include "libimagequant.h"
+#include "log.h"
 #include "settings.h"
+#include "zip.h"
 
 #include "config/version.h"
-
-#include "libimagequant.h"
 
 using namespace HomeCompa;
 using namespace fb2cut;
 
-namespace {
+namespace
+{
 
 constexpr auto APP_ID = "fb2cut";
 constexpr auto MAX_SIZE_OPTION_NAME = "max-size";
@@ -85,7 +82,7 @@ constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 using DataItem = std::pair<QString, QByteArray>;
 using DataItems = std::queue<DataItem>;
 
-void WriteError(const QDir & dir, std::mutex & guard, const QString & name, const QString & ext, const QByteArray & body)
+void WriteError(const QDir& dir, std::mutex& guard, const QString& name, const QString& ext, const QByteArray& body)
 {
 	std::scoped_lock lock(guard);
 
@@ -108,26 +105,26 @@ void WriteError(const QDir & dir, std::mutex & guard, const QString & name, cons
 		PLOGE << QString("%1 written with errors").arg(filePath);
 }
 
-std::pair<QImage, QString> ToImage(QByteArray & body)
+std::pair<QImage, QString> ToImage(QByteArray& body)
 {
 	QBuffer buffer(&body);
 	buffer.open(QBuffer::ReadOnly);
 	QImageReader imageReader(&buffer);
-	std::pair<QImage, QString> result{ imageReader.read(), {} };
+	std::pair<QImage, QString> result { imageReader.read(), {} };
 	if (result.first.isNull())
 		result.second = imageReader.errorString();
 
 	return result;
 }
 
-QString Validate(const Util::XmlValidator & validator, QByteArray & body)
+QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 {
 	QBuffer buffer(&body);
 	buffer.open(QIODevice::ReadOnly);
 	return validator.Validate(buffer);
 }
 
-bool HasAlpha(const QImage & image, const char * data)
+bool HasAlpha(const QImage& image, const char* data)
 {
 	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
 		return false;
@@ -138,18 +135,15 @@ bool HasAlpha(const QImage & image, const char * data)
 	const auto argb = image.convertToFormat(QImage::Format_ARGB32);
 	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
 	{
-		const auto * pixels = reinterpret_cast<const QRgb *>(argb.constScanLine(i));
-		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [] (const QRgb pixel)
-		{
-			return qAlpha(pixel) < UCHAR_MAX;
-		}))
+		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
+		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
 			return true;
 	}
 
 	return true;
 }
 
-QImage ReducePng(const char * imageType, const QString & imageFile, QImage image, int quantity)
+QImage ReducePng(const char* imageType, const QString& imageFile, QImage image, int quantity)
 {
 	if (quantity < 0)
 		quantity = 80;
@@ -218,7 +212,7 @@ class Worker
 	NON_COPY_MOVABLE(Worker)
 
 public:
-	class IClient  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IClient // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IClient() = default;
@@ -226,16 +220,15 @@ public:
 	};
 
 public:
-	Worker(const Settings & settings
-		, std::condition_variable & queueCondition
-		, std::mutex & queueGuard
-		, DataItems & queue
-		, std::mutex & fileSystemGuard
-		, std::atomic_bool & hasError
-		, std::atomic_int & queueSize
-		, std::atomic_int & fileCount
-		, IClient & client
-	)
+	Worker(const Settings& settings,
+	       std::condition_variable& queueCondition,
+	       std::mutex& queueGuard,
+	       DataItems& queue,
+	       std::mutex& fileSystemGuard,
+	       std::atomic_bool& hasError,
+	       std::atomic_int& queueSize,
+	       std::atomic_int& fileCount,
+	       IClient& client)
 		: m_settings { settings }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
@@ -264,10 +257,7 @@ private:
 			QByteArray body;
 			{
 				std::unique_lock queueLock(m_queueGuard);
-				m_queueCondition.wait(queueLock, [&] ()
-				{
-					return !m_queue.empty();
-				});
+				m_queueCondition.wait(queueLock, [&]() { return !m_queue.empty(); });
 
 				auto [f, d] = std::move(m_queue.front());
 				m_queue.pop();
@@ -286,7 +276,7 @@ private:
 		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images));
 	}
 
-	bool ProcessFile(const QString & inputFilePath, QByteArray & inputFileBody)
+	bool ProcessFile(const QString& inputFilePath, QByteArray& inputFileBody)
 	{
 		++m_fileCount;
 		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(m_fileCount).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
@@ -318,7 +308,7 @@ private:
 		return bodyFle.write(bodyOutput) != bodyOutput.size();
 	}
 
-	QByteArray ParseFile(const QString & inputFilePath, QIODevice & input)
+	QByteArray ParseFile(const QString& inputFilePath, QIODevice& input)
 	{
 		const QFileInfo fileInfo(inputFilePath);
 		const auto completeFileName = fileInfo.completeBaseName();
@@ -327,9 +317,9 @@ private:
 		QBuffer output(&bodyOutput);
 		output.open(QIODevice::WriteOnly);
 
-		auto binaryCallback = [&] (const QString & name, const bool isCover, QByteArray body)
+		auto binaryCallback = [&](const QString& name, const bool isCover, QByteArray body)
 		{
-			const auto & settings = isCover ? m_settings.cover : m_settings.image;
+			const auto& settings = isCover ? m_settings.cover : m_settings.image;
 			if (!settings.save)
 				return;
 
@@ -356,7 +346,7 @@ private:
 					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 			}
 
-			auto & storage = isCover ? m_covers : m_images;
+			auto& storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody));
 		};
 
@@ -365,27 +355,25 @@ private:
 		return bodyOutput;
 	}
 
-	QImage ReadImage(QByteArray & body, const char * imageType, const QString & imageFile) const
+	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile) const
 	{
 		struct Signature
 		{
-			const char * extension;
-			const char * signature;
+			const char* extension;
+			const char* signature;
 		};
-		static constexpr Signature signatures[]
-		{
+
+		static constexpr Signature signatures[] {
 			{ "jpg", "\xFF\xD8\xFF\xE0" },
 			{ "png", "\x89\x50\x4E\x47" },
 		};
-		static constexpr Signature unsupportedSignatures[]
-		{
+		static constexpr Signature unsupportedSignatures[] {
 			{ "riff", R"(RIFF)" },
 		};
-		static constexpr Signature knownSignatures[]
-		{
+		static constexpr Signature knownSignatures[] {
 			{ "html", R"(<html)" },
-			{ "xml", R"(<?xml)" },
-			{ "svg", R"(<svg)" },
+			{  "xml", R"(<?xml)" },
+			{  "svg",  R"(<svg)" },
 		};
 
 		auto [image, errorString] = ToImage(body);
@@ -398,13 +386,13 @@ private:
 			return {};
 		}
 
-		if (const auto it = std::ranges::find_if(signatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
+		if (const auto it = std::ranges::find_if(signatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
 			return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
 
-		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
+		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
 			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
 
-		if (const auto it = std::ranges::find_if(knownSignatures, [&] (const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
+		if (const auto it = std::ranges::find_if(knownSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
 			return AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
@@ -413,7 +401,7 @@ private:
 		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
 	}
 
-	QImage AddError(const char * imageType, const QString & file, const QByteArray & body, const QString & errorText, const QString & ext = {}, const bool tryToFix = true) const
+	QImage AddError(const char* imageType, const QString& file, const QByteArray& body, const QString& errorText, const QString& ext = {}, const bool tryToFix = true) const
 	{
 		if (tryToFix)
 			if (auto fixed = TryToFix(imageType, file, body); !fixed.isNull())
@@ -425,7 +413,7 @@ private:
 		return {};
 	}
 
-	QImage TryToFix(const char * imageType, const QString & imageFile, const QByteArray & body) const
+	QImage TryToFix(const char* imageType, const QString& imageFile, const QByteArray& body) const
 	{
 		if (m_settings.ffmpeg.isEmpty())
 			return {};
@@ -436,26 +424,19 @@ private:
 		const auto ffmpegFileName = QFileInfo(m_settings.ffmpeg).fileName();
 
 		QByteArray fixed;
-		QObject::connect(&process, &QProcess::started, [&]
-		{
-			PLOGI << QString("ffmpeg launched for %1 %2\n%3 %4").arg(imageType, imageFile, ffmpegFileName, args.join(" "));
-		});
-		QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
-		{
-			if (code == 0)
-				PLOGI << QString("%1 %2 is probably fixed").arg(imageType, imageFile);
-			else
-				PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
-			eventLoop.exit(code);
-		});
-		QObject::connect(&process, &QProcess::readyReadStandardError, [&]
-		{
-			PLOGW << "\n" << process.readAllStandardError();
-		});
-		QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
-		{
-			fixed.append(process.readAllStandardOutput());
-		});
+		QObject::connect(&process, &QProcess::started, [&] { PLOGI << QString("ffmpeg launched for %1 %2\n%3 %4").arg(imageType, imageFile, ffmpegFileName, args.join(" ")); });
+		QObject::connect(&process,
+		                 &QProcess::finished,
+		                 [&](const int code, const QProcess::ExitStatus)
+		                 {
+							 if (code == 0)
+								 PLOGI << QString("%1 %2 is probably fixed").arg(imageType, imageFile);
+							 else
+								 PLOGW << QString("Cannot fix %1 %2, ffmpeg finished with %3").arg(imageType, imageFile).arg(code);
+							 eventLoop.exit(code);
+						 });
+		QObject::connect(&process, &QProcess::readyReadStandardError, [&] { PLOGW << "\n" << process.readAllStandardError(); });
+		QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] { fixed.append(process.readAllStandardOutput()); });
 
 		process.start(m_settings.ffmpeg, args, QIODevice::ReadWrite);
 		process.write(body);
@@ -474,27 +455,27 @@ private:
 	}
 
 private:
-	const Settings & m_settings;
+	const Settings& m_settings;
 
-	std::condition_variable & m_queueCondition;
-	std::mutex & m_queueGuard;
-	DataItems & m_queue;
-	std::mutex & m_fileSystemGuard;
+	std::condition_variable& m_queueCondition;
+	std::mutex& m_queueGuard;
+	DataItems& m_queue;
+	std::mutex& m_fileSystemGuard;
 
-	std::atomic_bool & m_hasError;
-	std::atomic_int & m_queueSize, & m_fileCount;
+	std::atomic_bool& m_hasError;
+	std::atomic_int &m_queueSize, &m_fileCount;
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
 	const Util::XmlValidator m_validator;
 
-	IClient & m_client;
+	IClient& m_client;
 
 	std::thread m_thread;
 };
 
-QString GetImagesFolder(const QDir & dir, const QString & type)
+QString GetImagesFolder(const QDir& dir, const QString& type)
 {
 	const QFileInfo fileInfo(dir.path());
 	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
@@ -503,28 +484,16 @@ QString GetImagesFolder(const QDir & dir, const QString & type)
 class FileProcessor : public Worker::IClient
 {
 public:
-	FileProcessor(const Settings & settings, std::condition_variable & queueCondition, std::mutex & queueGuard, const int poolSize, std::atomic_int & fileCount)
+	FileProcessor(const Settings& settings, std::condition_variable& queueCondition, std::mutex& queueGuard, const int poolSize, std::atomic_int& fileCount)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_dstDir { settings.dstDir }
-		, m_saveCovers{ settings.cover.save }
+		, m_saveCovers { settings.cover.save }
 		, m_saveImages { settings.image.save }
 		, m_maxThreadCount { settings.maxThreadCount }
 	{
 		for (int i = 0; i < poolSize; ++i)
-			m_workers.push_back(std::make_unique<Worker>
-				(
-					  settings
-					, m_queueCondition
-					, m_queueGuard
-					, m_queue
-					, m_fileSystemGuard
-					, m_hasError
-					, m_queueSize
-					, fileCount
-					, *this
-				)
-			);
+			m_workers.push_back(std::make_unique<Worker>(settings, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
 	}
 
 public:
@@ -553,27 +522,28 @@ public:
 		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 	}
 
-	void ArchiveImages(const bool saveFlag, const char * type, std::vector<DataItem> & images) const
+	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const
 	{
 		if (!saveFlag || images.empty())
 			return;
 
 		PLOGI << "archive " << images.size() << " images: " << GetImagesFolder(m_dstDir, type);
 		std::unordered_map<QString, qsizetype> unique;
-		for (const auto & image : images)
+		for (const auto& image : images)
 		{
-			auto & item = unique[image.first];
+			auto& item = unique[image.first];
 			item = std::max(item, image.second.size());
 		}
 
-		std::erase_if(images, [&] (const auto & image)
-		{
-			const auto it = unique.find(image.first);
-			assert(it != unique.end());
-			return image.second.size() < it->second;
-		});
+		std::erase_if(images,
+		              [&](const auto& image)
+		              {
+						  const auto it = unique.find(image.first);
+						  assert(it != unique.end());
+						  return image.second.size() < it->second;
+					  });
 
-		const auto proj = [] (const auto & item) { return item.first; };
+		const auto proj = [](const auto& item) { return item.first; };
 		std::ranges::sort(images, {}, proj);
 		if (const auto range = std::ranges::unique(images, {}, proj); !range.empty())
 			images.erase(range.begin(), range.end()); //-V539
@@ -597,8 +567,8 @@ private:
 	}
 
 private:
-	std::condition_variable & m_queueCondition;
-	std::mutex & m_queueGuard;
+	std::condition_variable& m_queueCondition;
+	std::mutex& m_queueGuard;
 	std::atomic_bool m_hasError { false };
 	std::queue<std::pair<QString, QByteArray>> m_queue;
 	std::atomic_int m_queueSize { 0 };
@@ -617,7 +587,7 @@ private:
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
 
-bool ArchiveFb2External(const Settings & settings)
+bool ArchiveFb2External(const Settings& settings)
 {
 	if (!settings.saveFb2 || settings.archiver.isEmpty())
 		return false;
@@ -627,7 +597,7 @@ bool ArchiveFb2External(const Settings & settings)
 	QProcess process;
 	QEventLoop eventLoop;
 	auto args = settings.archiverOptions.split(' ', Qt::SkipEmptyParts);
-	for (auto & arg : args)
+	for (auto& arg : args)
 	{
 		arg.replace("%src%", QString("%1/*.fb2").arg(settings.dstDir.path()));
 		arg.replace("%dst%", QString("%1").arg(settings.dstDir.path()));
@@ -635,27 +605,25 @@ bool ArchiveFb2External(const Settings & settings)
 
 	bool hasErrors = false;
 
-	QObject::connect(&process, &QProcess::started, [&]
-	{
-		PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(' ');
-	});
-	QObject::connect(&process, &QProcess::finished, [&] (const int code, const QProcess::ExitStatus)
-	{
-		if (code == 0)
-			PLOGI << QFileInfo(settings.archiver).fileName() << " finished successfully";
-		else
-			PLOGW << QFileInfo(settings.archiver).fileName() << " finished with " << code;
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&]
-	{
-		hasErrors = true;
-		PLOGE << process.readAllStandardError();
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&]
-	{
-		PLOGI << process.readAllStandardOutput();
-	});
+	QObject::connect(&process, &QProcess::started, [&] { PLOGI << "external archiver launched\n" << QFileInfo(settings.archiver).fileName() << " " << args.join(' '); });
+	QObject::connect(&process,
+	                 &QProcess::finished,
+	                 [&](const int code, const QProcess::ExitStatus)
+	                 {
+						 if (code == 0)
+							 PLOGI << QFileInfo(settings.archiver).fileName() << " finished successfully";
+						 else
+							 PLOGW << QFileInfo(settings.archiver).fileName() << " finished with " << code;
+						 eventLoop.exit(code);
+					 });
+	QObject::connect(&process,
+	                 &QProcess::readyReadStandardError,
+	                 [&]
+	                 {
+						 hasErrors = true;
+						 PLOGE << process.readAllStandardError();
+					 });
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] { PLOGI << process.readAllStandardOutput(); });
 
 	process.start(settings.archiver, args, QIODevice::ReadOnly);
 
@@ -663,7 +631,7 @@ bool ArchiveFb2External(const Settings & settings)
 	return hasErrors;
 }
 
-bool ArchiveFb2(const Settings & settings)
+bool ArchiveFb2(const Settings& settings)
 {
 	if (!settings.archiveFb2)
 		return false;
@@ -683,26 +651,28 @@ bool ArchiveFb2(const Settings & settings)
 	if (settings.format == Zip::Format::SevenZip)
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
 
-	const auto result = zip.Write(fileList, [&] (size_t index)
-	{
-		const auto & file = fileList[index++];
-		PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(index).arg(files.size()).arg(index * 100 / files.size());
-		return std::make_unique<QFile>(settings.dstDir.filePath(file));
-	},
-	[&](const size_t index)
-	{
-		const QFileInfo fileInfo(settings.dstDir.filePath(fileList[index]));
-		assert(fileInfo.exists());
-		return static_cast<size_t>(fileInfo.size());
-	});
+	const auto result = zip.Write(
+		fileList,
+		[&](size_t index)
+		{
+			const auto& file = fileList[index++];
+			PLOGV << QString("archive %1 %2 of %3 (%4%)").arg(file).arg(index).arg(files.size()).arg(index * 100 / files.size());
+			return std::make_unique<QFile>(settings.dstDir.filePath(file));
+		},
+		[&](const size_t index)
+		{
+			const QFileInfo fileInfo(settings.dstDir.filePath(fileList[index]));
+			assert(fileInfo.exists());
+			return static_cast<size_t>(fileInfo.size());
+		});
 	if (result)
-		for (const auto & file : fileList)
+		for (const auto& file : fileList)
 			QFile::remove(settings.dstDir.filePath(file));
 
 	return !result;
 }
 
-bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_int & fileCount)
+bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount)
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
@@ -746,10 +716,7 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 			else
 			{
 				std::unique_lock lockStart(queueGuard);
-				queueCondition.wait(lockStart, [&] ()
-				{
-					return fileProcessor.GetQueueSize() < maxThreadCount * 2;
-				});
+				queueCondition.wait(lockStart, [&]() { return fileProcessor.GetQueueSize() < maxThreadCount * 2; });
 			}
 		}
 
@@ -776,13 +743,13 @@ bool ProcessArchiveImpl(const QString & archive, Settings settings, std::atomic_
 	return hasError;
 }
 
-bool ProcessArchive(const QString & file, const Settings & settings, std::atomic_int & fileCount)
+bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount)
 {
 	try
 	{
 		return ProcessArchiveImpl(file, settings, fileCount);
 	}
-	catch (const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGE << QString("%1 processing failed: %2").arg(file).arg(ex.what());
 	}
@@ -794,7 +761,7 @@ bool ProcessArchive(const QString & file, const Settings & settings, std::atomic
 	return true;
 }
 
-QStringList ProcessArchives(Settings & settings)
+QStringList ProcessArchives(Settings& settings)
 {
 	if (!settings.dstDir.exists() && !settings.dstDir.mkpath("."))
 		throw std::ios_base::failure(QString("Cannot create folder %1").arg(settings.dstDir.path()).toStdString());
@@ -806,20 +773,23 @@ QStringList ProcessArchives(Settings & settings)
 			throw std::ios_base::failure(QString("Cannot create folder %1").arg(dir.path()).toStdString());
 
 	QStringList files;
-	for (const auto & wildCard : settings.inputWildcards)
+	for (const auto& wildCard : settings.inputWildcards)
 		files << Util::ResolveWildcard(wildCard);
 
 	PLOGD << "Total file count calculation";
-	settings.totalFileCount = std::accumulate(files.cbegin(), files.cend(), settings.totalFileCount, [] (const auto init, const QString & file)
-	{
-		const Zip zip(file);
-		return init + zip.GetFileNameList().size();
-	});
+	settings.totalFileCount = std::accumulate(files.cbegin(),
+	                                          files.cend(),
+	                                          settings.totalFileCount,
+	                                          [](const auto init, const QString& file)
+	                                          {
+												  const Zip zip(file);
+												  return init + zip.GetFileNameList().size();
+											  });
 	PLOGI << "Total file count: " << settings.totalFileCount;
 
 	std::atomic_int fileCount;
 	QStringList failed;
-	for (auto && file : files)
+	for (auto&& file : files)
 		if (ProcessArchive(file, settings, fileCount))
 			failed << std::move(file);
 
@@ -827,10 +797,10 @@ QStringList ProcessArchives(Settings & settings)
 }
 
 template <typename T>
-bool SetValue(const QCommandLineParser & parser, const char * key, T & value) = delete;
+bool SetValue(const QCommandLineParser& parser, const char* key, T& value) = delete;
 
 template <>
-bool SetValue<int>(const QCommandLineParser & parser, const char * key, int & value)
+bool SetValue<int>(const QCommandLineParser& parser, const char* key, int& value)
 {
 	bool ok = false;
 	if (const auto parsed = parser.value(key).toInt(&ok); ok)
@@ -840,7 +810,7 @@ bool SetValue<int>(const QCommandLineParser & parser, const char * key, int & va
 }
 
 template <>
-bool SetValue<QSize>(const QCommandLineParser & parser, const char * key, QSize & value)
+bool SetValue<QSize>(const QCommandLineParser& parser, const char* key, QSize& value)
 {
 	const auto parsed = parser.value(key).split(',', Qt::SkipEmptyParts);
 	if (parsed.isEmpty())
@@ -882,7 +852,7 @@ struct CommandLineSettings
 	bool gui { true };
 };
 
-CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
+CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 {
 	Settings settings {};
 
@@ -891,31 +861,31 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { "o"                             , FOLDER                           } , "Output folder (required)"                                          , FOLDER},
-		{ { QString(QUALITY[0])             , QUALITY_OPTION_NAME              } , "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
-		{ { QString(THREADS[0])             , MAX_THREAD_COUNT_OPTION_NAME     } , "Maximum number of CPU threads"                                     , QString(THREADS).arg(settings.maxThreadCount) },
-		{ { QString(FORMAT[0])              , FORMAT                           } , "Output fb2 archive format [7z | zip]"                              , QString("%1 [%2]").arg(FORMAT, "7z")},
-		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME             } , "Path to external archiver executable"                              , QString("%1 [embedded zip archiver]").arg(PATH) },
+		{ { "o", FOLDER }, "Output folder (required)", FOLDER },
+		{ { QString(QUALITY[0]), QUALITY_OPTION_NAME }, "Compression quality [0, 100] or -1 for default compression quality", QUALITY },
+		{ { QString(THREADS[0]), MAX_THREAD_COUNT_OPTION_NAME }, "Maximum number of CPU threads", QString(THREADS).arg(settings.maxThreadCount) },
+		{ { QString(FORMAT[0]), FORMAT }, "Output fb2 archive format [7z | zip]", QString("%1 [%2]").arg(FORMAT, "7z") },
+		{ { QString(ARCHIVER_OPTION_NAME[0]), ARCHIVER_OPTION_NAME }, "Path to external archiver executable", QString("%1 [embedded zip archiver]").arg(PATH) },
 
-		{ ARCHIVER_COMMANDLINE_OPTION_NAME                                       , "External archiver command line options", COMMANDLINE },
-		{ COVER_QUALITY_OPTION_NAME                                              , "Covers compression quality"            , QUALITY },
-		{ IMAGE_QUALITY_OPTION_NAME                                              , "Images compression quality"            , QUALITY },
-		{ MAX_SIZE_OPTION_NAME                                                   , "Maximum any images size"               , SIZE },
-		{ MAX_COVER_SIZE_OPTION_NAME                                             , "Maximum cover size"                    , SIZE },
-		{ MAX_IMAGE_SIZE_OPTION_NAME                                             , "Maximum image size"                    , SIZE },
+		{ ARCHIVER_COMMANDLINE_OPTION_NAME, "External archiver command line options", COMMANDLINE },
+		{ COVER_QUALITY_OPTION_NAME, "Covers compression quality", QUALITY },
+		{ IMAGE_QUALITY_OPTION_NAME, "Images compression quality", QUALITY },
+		{ MAX_SIZE_OPTION_NAME, "Maximum any images size", SIZE },
+		{ MAX_COVER_SIZE_OPTION_NAME, "Maximum cover size", SIZE },
+		{ MAX_IMAGE_SIZE_OPTION_NAME, "Maximum image size", SIZE },
 
-		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME                                        , "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
-		{ FFMPEG_OPTION_NAME                                                     , "Path to ffmpeg executable"                                    , PATH },
+		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME, "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
+		{ FFMPEG_OPTION_NAME, "Path to ffmpeg executable", PATH },
 
-		{ {QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME            } , "Convert all images to grayscale"},
-		{ COVER_GRAYSCALE_OPTION_NAME                                            , "Convert covers to grayscale" },
-		{ IMAGE_GRAYSCALE_OPTION_NAME                                            , "Convert images to grayscale" },
+		{ { QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME }, "Convert all images to grayscale" },
+		{ COVER_GRAYSCALE_OPTION_NAME, "Convert covers to grayscale" },
+		{ IMAGE_GRAYSCALE_OPTION_NAME, "Convert images to grayscale" },
 
-		{ NO_ARCHIVE_FB2_OPTION_NAME                                             , "Don't archive fb2" },
-		{ NO_FB2_OPTION_NAME                                                     , "Don't save fb2" },
-		{ NO_IMAGES_OPTION_NAME                                                  , "Don't save image" },
-		{ COVERS_ONLY_OPTION_NAME                                                , "Save covers only" },
-		{ GUI_MODE_OPTION_NAME                                                   , "GUI mode" },
+		{ NO_ARCHIVE_FB2_OPTION_NAME, "Don't archive fb2" },
+		{ NO_FB2_OPTION_NAME, "Don't save fb2" },
+		{ NO_IMAGES_OPTION_NAME, "Don't save image" },
+		{ COVERS_ONLY_OPTION_NAME, "Save covers only" },
+		{ GUI_MODE_OPTION_NAME, "GUI mode" },
 	});
 	parser.process(app);
 
@@ -955,12 +925,12 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication & app)
 	settings.cover.save = settings.image.save = !parser.isSet(NO_IMAGES_OPTION_NAME);
 	settings.image.save = settings.image.save && !parser.isSet(COVERS_ONLY_OPTION_NAME);
 
-	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [] (const auto & fileName) { return QDir::fromNativeSeparators(fileName); });
+	std::ranges::transform(parser.positionalArguments(), std::back_inserter(settings.inputWildcards), [](const auto& fileName) { return QDir::fromNativeSeparators(fileName); });
 
 	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
 }
 
-bool run(int argc, char * argv[])
+bool run(int argc, char* argv[])
 {
 	const QApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
@@ -1004,9 +974,9 @@ bool run(int argc, char * argv[])
 	return true;
 }
 
-}
+} // namespace
 
-int main(const int argc, char * argv[])
+int main(const int argc, char* argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
@@ -1021,7 +991,7 @@ int main(const int argc, char * argv[])
 			PLOGI << QString("%1 successfully finished").arg(APP_ID);
 		return 0;
 	}
-	catch (const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGE << QString("%1 failed: %2").arg(APP_ID).arg(ex.what());
 	}

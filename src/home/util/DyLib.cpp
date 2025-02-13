@@ -1,29 +1,31 @@
+#include "DyLib.h"
+
+#include <Windows.h>
+
 #include <cassert>
 #include <cwctype>
 #include <sstream>
 
-#include <Windows.h>
-
-#include "DyLib.h"
-
 #include "StrUtil.h"
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
-namespace {
+namespace
+{
 
-void * InnerOpen(const std::filesystem::path & moduleName)
+void* InnerOpen(const std::filesystem::path& moduleName)
 {
 	const HMODULE handle = ::LoadLibraryW(moduleName.wstring().data());
-	return reinterpret_cast<void *>(handle);
+	return reinterpret_cast<void*>(handle);
 }
 
-bool InnerClose(void * handle)
+bool InnerClose(void* handle)
 {
 	return (0 != ::FreeLibrary(reinterpret_cast<HMODULE>(handle)));
 }
 
-auto InnerGetProc(void * handle, const std::string & procName)
+auto InnerGetProc(void* handle, const std::string& procName)
 {
 	return ::GetProcAddress(reinterpret_cast<HMODULE>(handle), procName.data());
 }
@@ -37,7 +39,8 @@ std::string InnerGetErrorDescription()
 
 	LPWSTR lpMsg = nullptr;
 	LPVOID lpBuf = &lpMsg;
-	size_t literalCount = ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)lpBuf, 0, NULL);
+	size_t literalCount =
+		::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)lpBuf, 0, NULL);
 	assert(literalCount > 0);
 
 	while (literalCount > 1 && std::iswspace(lpMsg[literalCount - 1]))
@@ -48,7 +51,7 @@ std::string InnerGetErrorDescription()
 	return message;
 }
 
-}
+} // namespace
 
 DyLib::DyLib() = default;
 
@@ -82,7 +85,7 @@ bool DyLib::Open(std::filesystem::path moduleName)
 	if (this->IsOpen())
 		this->Close();
 
-	void * const handle = InnerOpen(moduleName);
+	void* const handle = InnerOpen(moduleName);
 	if (!handle)
 	{
 		const auto innerDescription = InnerGetErrorDescription();
@@ -112,7 +115,7 @@ void DyLib::Close()
 	m_errorDescription = stream.str();
 }
 
-void * DyLib::GetProc(const std::string & procName)
+void* DyLib::GetProc(const std::string& procName)
 {
 	if (!this->IsOpen())
 	{
@@ -134,4 +137,4 @@ void * DyLib::GetProc(const std::string & procName)
 	return nullptr;
 }
 
-}
+} // namespace HomeCompa::Util

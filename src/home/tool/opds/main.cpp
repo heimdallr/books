@@ -3,30 +3,30 @@
 #include <QTranslator>
 
 #include <Hypodermic/Hypodermic.h>
-
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
-#include <plog/Log.h>
 
 #include "interface/IServer.h"
+#include "interface/constants/ProductConstant.h"
 
 #include "logging/init.h"
+#include "util/ISettings.h"
+#include "util/localization.h"
 #include "util/xml/Initializer.h"
 
 #include "di_app.h"
+#include "log.h"
 
 #include "config/version.h"
-#include "interface/constants/ProductConstant.h"
-#include "util/ISettings.h"
-#include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Opds;
 
-namespace {
+namespace
+{
 constexpr auto APP_ID = "opds";
 
-int run(int argc, char * argv[])
+int run(int argc, char* argv[])
 {
 	const QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
@@ -54,9 +54,9 @@ int run(int argc, char * argv[])
 	}
 }
 
-}
+} // namespace
 
-int main(const int argc, char *argv[])
+int main(const int argc, char* argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	PLOGI << QString("%1 started").arg(APP_ID);
@@ -65,11 +65,11 @@ int main(const int argc, char *argv[])
 	{
 		return run(argc, argv);
 	}
-	catch(const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGE << ex.what();
 	}
-	catch(...)
+	catch (...)
 	{
 		PLOGE << "Unknown error";
 	}

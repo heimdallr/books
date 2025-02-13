@@ -4,18 +4,20 @@
 
 struct IInArchive;
 
-namespace HomeCompa::ZipDetails {
+namespace HomeCompa::ZipDetails
+{
 class IFile;
 class ProgressCallback;
 }
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 
 struct FileItem;
 
 namespace File
 {
-std::unique_ptr<IFile> Read(IInArchive & zip, const FileItem& fileItem, ProgressCallback & progress);
+std::unique_ptr<IFile> Read(IInArchive& zip, const FileItem& fileItem, ProgressCallback& progress);
 };
 
 }

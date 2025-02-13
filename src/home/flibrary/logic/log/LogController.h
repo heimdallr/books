@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/ILogController.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class LogController : virtual public ILogController
 {
@@ -16,9 +17,9 @@ public:
 	~LogController() override;
 
 private:
-	QAbstractItemModel * GetModel() const noexcept override;
+	QAbstractItemModel* GetModel() const noexcept override;
 	void Clear() override;
-	std::vector<const char *> GetSeverities() const override;
+	std::vector<const char*> GetSeverities() const override;
 	int GetSeverity() const override;
 	void SetSeverity(int value) override;
 	void ShowCollectionStatistics() const override;
@@ -29,4 +30,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

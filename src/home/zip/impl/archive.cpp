@@ -1,44 +1,44 @@
 #include "archive.h"
 
+#include "win.h"
+#include <InitGuid.h>
+#include <Shlwapi.h>
+
 #include <ranges>
 
 #include <QDir>
 
-#include <Windows.h>
-#include <atlcomcli.h>
-#include <InitGuid.h>
-#include <Shlwapi.h>
 #include <interface/types.h>
-#include <plog/Log.h>
+
+#include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
-
-#include "fnd/ScopedCall.h"
-#include "fnd/FindPair.h"
-
-#include "zip/interface/zip.h"
-#include "zip/interface/file.h"
-#include "zip/interface/format.h"
-#include "zip/interface/error.h"
-
+#include "bit7z/bitcompressionlevel.hpp"
 #include "bit7z/formatdetect.hpp"
 #include "bit7z/guiddef.hpp"
-#include "bit7z/bitcompressionlevel.hpp"
+#include "zip/interface/error.h"
+#include "zip/interface/file.h"
+#include "zip/interface/format.h"
+#include "zip/interface/zip.h"
 
 #include "ArchiveOpenCallback.h"
 #include "FileItem.h"
 #include "InStreamWrapper.h"
-#include "lib.h"
 #include "PropVariant.h"
+#include "lib.h"
+#include "log.h"
 #include "reader.h"
 #include "remover.h"
 #include "writer.h"
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 
-namespace {
+namespace
+{
 
-CComPtr<IStream> CreateStream(const QString & filename)
+CComPtr<IStream> CreateStream(const QString& filename)
 {
 	if (!QFile::exists(filename))
 		return {};
@@ -49,21 +49,21 @@ CComPtr<IStream> CreateStream(const QString & filename)
 	return fileStream;
 }
 
-CComPtr<IStream> CreateStream(const BYTE * pInit, const UINT cbInit)
+CComPtr<IStream> CreateStream(const BYTE* pInit, const UINT cbInit)
 {
 	return SHCreateMemStream(pInit, cbInit);
 }
 
-CComPtr<IInArchive> GetArchiveReader(const Lib & lib, const bit7z::BitInFormat & format)
+CComPtr<IInArchive> GetArchiveReader(const Lib& lib, const bit7z::BitInFormat& format)
 {
 	const auto guid = bit7z::format_guid(format);
 
 	CComPtr<IInArchive> archive;
-	lib.CreateObject(guid, IID_IInArchive, reinterpret_cast<void **>(&archive));
+	lib.CreateObject(guid, IID_IInArchive, reinterpret_cast<void**>(&archive));
 	return archive;
 }
 
-CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> stream, const bit7z::BitInFormat & format)
+CComPtr<IInArchive> CreateInputArchiveImpl(const Lib& lib, CComPtr<IStream> stream, const bit7z::BitInFormat& format)
 {
 	auto archive = GetArchiveReader(lib, format);
 	if (!archive)
@@ -82,20 +82,19 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib & lib, CComPtr<IStream> str
 
 const bit7z::BitInOutFormat& GetInOutFormat(const Format format)
 {
-	static constexpr std::pair<Format, const bit7z::BitInOutFormat&> formats[]
-	{
+	static constexpr std::pair<Format, const bit7z::BitInOutFormat&> formats[] {
 		{ Format::SevenZip, bit7z::BitFormat::SevenZip },
-		{ Format::Zip, bit7z::BitFormat::Zip },
+		{      Format::Zip,      bit7z::BitFormat::Zip },
 	};
 
 	return FindSecond(formats, format);
 }
 
-CComPtr<IOutArchive> CreateOutputArchive(IInArchive * inArchive)
+CComPtr<IOutArchive> CreateOutputArchive(IInArchive* inArchive)
 {
 	assert(inArchive);
 	CComPtr<IOutArchive> archive;
-	if (inArchive->QueryInterface(IID_IOutArchive, reinterpret_cast<void **>(&archive)) == S_OK)
+	if (inArchive->QueryInterface(IID_IOutArchive, reinterpret_cast<void**>(&archive)) == S_OK)
 		return archive;
 	return {};
 }
@@ -111,15 +110,14 @@ CComPtr<IOutArchive> CreateOutputArchive(const Lib& lib, const Format format)
 
 std::wstring GetCompressionMethodName(const CompressionMethod method)
 {
-	constexpr std::pair<CompressionMethod, const wchar_t *> methods[]
-	{
-		{ CompressionMethod::Copy     , L"Copy"},
-		{ CompressionMethod::Ppmd     , L"PPMd"},
-		{ CompressionMethod::Lzma     , L"LZMA"},
-		{ CompressionMethod::Lzma2    , L"LZMA2"},
-		{ CompressionMethod::BZip2    , L"BZip2"},
-		{ CompressionMethod::Deflate  , L"Deflate"},
-		{ CompressionMethod::Deflate64, L"Deflate64"},
+	constexpr std::pair<CompressionMethod, const wchar_t*> methods[] {
+		{      CompressionMethod::Copy,      L"Copy" },
+        {      CompressionMethod::Ppmd,      L"PPMd" },
+        {      CompressionMethod::Lzma,      L"LZMA" },
+        {     CompressionMethod::Lzma2,     L"LZMA2" },
+		{     CompressionMethod::BZip2,     L"BZip2" },
+        {   CompressionMethod::Deflate,   L"Deflate" },
+        { CompressionMethod::Deflate64, L"Deflate64" },
 	};
 
 	return FindSecond(methods, method);
@@ -131,18 +129,18 @@ constexpr auto CompressionMethodNameSevenZip = L"0";
 constexpr auto SolidModeName = L"s";
 constexpr auto ThreadCountName = L"mt";
 
-void SetArchiveProperties(IOutArchive & archive, const bit7z::BitInOutFormat & format, const std::unordered_map<PropertyId, QVariant> & properties)
+void SetArchiveProperties(IOutArchive& archive, const bit7z::BitInOutFormat& format, const std::unordered_map<PropertyId, QVariant>& properties)
 {
 	CComPtr<ISetProperties> setProperties;
-	if (archive.QueryInterface(IID_ISetProperties, reinterpret_cast<void **>(&setProperties)) != S_OK)
+	if (archive.QueryInterface(IID_ISetProperties, reinterpret_cast<void**>(&setProperties)) != S_OK)
 		return;
 
-	const auto getProperty = [&] (const PropertyId id)
+	const auto getProperty = [&](const PropertyId id)
 	{
 		const auto it = properties.find(id);
 		return it != properties.end() ? it->second : QVariant {};
 	};
-	std::vector<const wchar_t *> names;
+	std::vector<const wchar_t*> names;
 	std::vector<CPropVariant> values;
 
 	if (const auto value = getProperty(PropertyId::CompressionLevel); value.isValid() && format.hasFeature(bit7z::FormatFeatures::CompressionLevel))
@@ -175,21 +173,21 @@ void SetArchiveProperties(IOutArchive & archive, const bit7z::BitInOutFormat & f
 
 struct ArchiveWrapper
 {
-	const bit7z::BitInFormat & format;
+	const bit7z::BitInFormat& format;
 	CComPtr<IInArchive> archive;
 
-	ArchiveWrapper(const bit7z::BitInFormat & f = bit7z::BitFormat::Auto)
+	ArchiveWrapper(const bit7z::BitInFormat& f = bit7z::BitFormat::Auto)
 		: format { f }
 	{
 	}
 };
 
-std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib & lib, const QString & filename)
+std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib& lib, const QString& filename)
 {
 	auto stream = CreateStream(filename);
 	if (!stream)
 		return std::make_unique<ArchiveWrapper>();
-	
+
 	if (auto archive = std::make_unique<ArchiveWrapper>(bit7z::detect_format_from_extension(filename.toStdWString())); archive->format != bit7z::BitFormat::Auto)
 		if ((archive->archive = CreateInputArchiveImpl(lib, stream, archive->format)))
 			return archive;
@@ -201,7 +199,7 @@ std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib & lib, const QStrin
 	Error::CannotOpenArchive(filename);
 }
 
-std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib & lib, const BYTE * pInit, const UINT cbInit)
+std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib& lib, const BYTE* pInit, const UINT cbInit)
 {
 	if (!cbInit)
 		return std::make_unique<ArchiveWrapper>();
@@ -283,16 +281,16 @@ private: // IZip
 	{
 		QStringList files;
 		files.reserve(static_cast<int>(m_files.files.size()));
-		std::ranges::transform(m_files.files | std::views::filter([] (const auto & item) { return !item.isDir; }), std::back_inserter(files), [] (const auto & item) { return item.name; });
+		std::ranges::transform(m_files.files | std::views::filter([](const auto& item) { return !item.isDir; }), std::back_inserter(files), [](const auto& item) { return item.name; });
 		return files;
 	}
 
-	std::unique_ptr<IFile> Read(const QString & filename) const override
+	std::unique_ptr<IFile> Read(const QString& filename) const override
 	{
 		return File::Read(*m_archive->archive, m_files.GetFile(filename), *m_progress);
 	}
 
-	bool Write(const std::vector<QString> & /*fileNames*/, const StreamGetter &, const SizeGetter &) override
+	bool Write(const std::vector<QString>& /*fileNames*/, const StreamGetter&, const SizeGetter&) override
 	{
 		assert(false && "Cannot write with reader");
 		return false;
@@ -304,12 +302,12 @@ private: // IZip
 		return false;
 	}
 
-	size_t GetFileSize(const QString & filename) const override
+	size_t GetFileSize(const QString& filename) const override
 	{
 		return m_files.GetFile(filename).size;
 	}
 
-	const QDateTime & GetFileTime(const QString & filename) const override
+	const QDateTime& GetFileTime(const QString& filename) const override
 	{
 		return m_files.GetFile(filename).time;
 	}
@@ -320,8 +318,9 @@ protected:
 	FileStorage m_files;
 	std::shared_ptr<ProgressCallback> m_progress;
 	std::unordered_map<PropertyId, QVariant> m_properties {
-		{ PropertyId::CompressionLevel, QVariant::fromValue(CompressionLevel::Ultra) },
-		{ PropertyId::ThreadsCount    , static_cast<uint32_t>(std::thread::hardware_concurrency()) }, };
+		{ PropertyId::CompressionLevel,               QVariant::fromValue(CompressionLevel::Ultra) },
+		{     PropertyId::ThreadsCount, static_cast<uint32_t>(std::thread::hardware_concurrency()) },
+	};
 };
 
 class ReaderFile : public Reader
@@ -342,7 +341,7 @@ protected:
 class ReaderStream : public Reader
 {
 public:
-	ReaderStream(QIODevice & stream, std::shared_ptr<ProgressCallback> progress)
+	ReaderStream(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
 		: Reader(std::move(progress))
 		, m_bytes { stream.readAll() }
 	{
@@ -359,20 +358,20 @@ class WriterFile final : public ReaderFile
 public:
 	WriterFile(QString filename, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
 		: ReaderFile(std::move(filename), std::move(progress))
-		, m_format{ format }
+		, m_format { format }
 		, m_ioDevice { std::make_unique<QFile>(m_filename) }
 	{
 		assert(m_archive->format != bit7z::BitFormat::Auto || format != Format::Auto);
 		if (!appendMode)
 			m_archive = std::make_unique<ArchiveWrapper>();
 		m_ioDevice->open(!appendMode || m_archive->format == bit7z::BitFormat::Auto ? QIODevice::WriteOnly : QIODevice::ReadWrite);
-		
+
 		m_outArchive = m_archive->archive ? CreateOutputArchive(m_archive->archive) : CreateOutputArchive(m_lib, format);
 		assert(m_outArchive);
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
+	bool Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter) override
 	{
 		if (!m_archive->archive)
 			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
@@ -396,9 +395,9 @@ private:
 class WriterStream final : public ReaderStream
 {
 public:
-	WriterStream(QIODevice & stream, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
+	WriterStream(QIODevice& stream, const Format format, std::shared_ptr<ProgressCallback> progress, const bool appendMode)
 		: ReaderStream(stream, std::move(progress))
-		, m_format{ format }
+		, m_format { format }
 		, m_ioDevice { stream }
 	{
 		assert(m_archive->format != bit7z::BitFormat::Auto || format != Format::Auto);
@@ -412,7 +411,7 @@ public:
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter) override
+	bool Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter) override
 	{
 		if (!m_archive->archive)
 			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
@@ -429,25 +428,25 @@ private: // IZip
 
 private:
 	const Format m_format;
-	QIODevice & m_ioDevice;
+	QIODevice& m_ioDevice;
 	CComPtr<IOutArchive> m_outArchive;
 };
 
-}
+} // namespace
 
-std::unique_ptr<IZip> Archive::CreateReader(const QString & filename, std::shared_ptr<ProgressCallback> progress)
+std::unique_ptr<IZip> Archive::CreateReader(const QString& filename, std::shared_ptr<ProgressCallback> progress)
 {
 	return std::make_unique<ReaderFile>(filename, std::move(progress));
 }
 
-std::unique_ptr<IZip> Archive::CreateWriter(const QString & filename, const Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
+std::unique_ptr<IZip> Archive::CreateWriter(const QString& filename, const Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
 {
 	return std::make_unique<WriterFile>(filename, format, std::move(progress), appendMode);
 }
 
-std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice & stream, Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
+std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice& stream, Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
 {
 	return std::make_unique<WriterStream>(stream, format, std::move(progress), appendMode);
 }
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip

@@ -3,12 +3,13 @@
 #include <QString>
 #include <QStringList>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 class QIODevice;
 
-namespace HomeCompa::Inpx {
+namespace HomeCompa::Inpx
+{
 
 class Fb2Parser
 {
@@ -23,6 +24,7 @@ public:
 			QString last;
 			QString middle;
 		};
+
 		using Authors = std::vector<Author>;
 
 		Authors authors;
@@ -37,7 +39,7 @@ public:
 	};
 
 public:
-	explicit Fb2Parser(QIODevice & stream, const QString & fileName);
+	explicit Fb2Parser(QIODevice& stream, const QString& fileName);
 	~Fb2Parser();
 
 	Data Parse();
@@ -47,4 +49,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Inpx

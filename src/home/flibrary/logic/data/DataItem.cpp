@@ -7,27 +7,28 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace {
+namespace
+{
 
 const QString EMPTY_STRING;
 constexpr BookItem::Mapping FULL { BookItem::ALL };
 
 }
 
-DataItem::DataItem(const size_t columnCount, IDataItem * parent)
+DataItem::DataItem(const size_t columnCount, IDataItem* parent)
 	: m_parent(parent)
 	, m_data(columnCount)
 {
 }
 
-IDataItem * DataItem::GetParent() noexcept
+IDataItem* DataItem::GetParent() noexcept
 {
 	return m_parent;
 }
 
-IDataItem::Ptr & DataItem::AppendChild(Ptr child)
+IDataItem::Ptr& DataItem::AppendChild(Ptr child)
 {
-	auto * typed = child->To<DataItem>();
+	auto* typed = child->To<DataItem>();
 	typed->m_parent = this;
 	typed->m_row = GetChildCount();
 	return m_children.emplace_back(std::move(child));
@@ -40,22 +41,19 @@ void DataItem::RemoveChild(size_t row)
 		row = GetChildCount() - 1;
 
 	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)));
-	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [] (auto & item)
-	{
-		--item->template To<DataItem>()->m_row;
-	});
+	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [](auto& item) { --item->template To<DataItem>()->m_row; });
 }
 
 void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 {
 	m_children = std::move(children);
-	for (const auto & child : m_children)
+	for (const auto& child : m_children)
 		child->To<DataItem>()->m_parent = this;
 }
 
 IDataItem::Ptr DataItem::GetChild(const size_t row) const noexcept
 {
-	return row < GetChildCount() ? m_children[row] : Ptr{};
+	return row < GetChildCount() ? m_children[row] : Ptr {};
 }
 
 size_t DataItem::GetChildCount() const noexcept
@@ -83,28 +81,28 @@ int DataItem::GetColumnCount() const noexcept
 	return static_cast<int>(std::size(m_data));
 }
 
-const QString & DataItem::GetData(const int column) const noexcept
+const QString& DataItem::GetData(const int column) const noexcept
 {
 	return GetRawData(RemapColumn(column));
 }
 
-const QString & DataItem::GetRawData(const int column) const noexcept
+const QString& DataItem::GetRawData(const int column) const noexcept
 {
 	return column >= 0 && column < static_cast<int>(std::size(m_data)) ? m_data[static_cast<size_t>(column)] : EMPTY_STRING;
 }
 
-const QString & DataItem::GetId() const noexcept
+const QString& DataItem::GetId() const noexcept
 {
 	return m_id;
 }
 
-IDataItem & DataItem::SetId(QString id) noexcept
+IDataItem& DataItem::SetId(QString id) noexcept
 {
 	m_id = std::move(id);
 	return *this;
 }
 
-IDataItem & DataItem::SetData(QString value, const int column) noexcept
+IDataItem& DataItem::SetData(QString value, const int column) noexcept
 {
 	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));
 	m_data[static_cast<size_t>(column)] = std::move(value);
@@ -118,18 +116,12 @@ Qt::CheckState DataItem::GetCheckState() const noexcept
 
 	if (m_children.front()->GetCheckState() == Qt::Checked)
 	{
-		return std::ranges::all_of(m_children | std::views::drop(1), [] (const auto & item)
-		{
-			return item->GetCheckState() == Qt::Checked;
-		}) ? Qt::Checked : Qt::PartiallyChecked;
+		return std::ranges::all_of(m_children | std::views::drop(1), [](const auto& item) { return item->GetCheckState() == Qt::Checked; }) ? Qt::Checked : Qt::PartiallyChecked;
 	}
 
 	if (m_children.front()->GetCheckState() == Qt::Unchecked)
 	{
-		return std::ranges::all_of(m_children | std::views::drop(1), [] (const auto & item)
-		{
-			return item->GetCheckState() == Qt::Unchecked;
-		}) ? Qt::Unchecked : Qt::PartiallyChecked;
+		return std::ranges::all_of(m_children | std::views::drop(1), [](const auto& item) { return item->GetCheckState() == Qt::Unchecked; }) ? Qt::Unchecked : Qt::PartiallyChecked;
 	}
 
 	return Qt::PartiallyChecked;
@@ -143,33 +135,33 @@ void DataItem::Reduce()
 {
 }
 
-IDataItem::Ptr DataItem::FindChild(const std::function<bool(const IDataItem &)> & functor) const
+IDataItem::Ptr DataItem::FindChild(const std::function<bool(const IDataItem&)>& functor) const
 {
-	const auto it = std::ranges::find_if(m_children, [&] (const auto & item) { return functor(*item); });
-	return it == m_children.end() ? Ptr{} : *it;
+	const auto it = std::ranges::find_if(m_children, [&](const auto& item) { return functor(*item); });
+	return it == m_children.end() ? Ptr {} : *it;
 }
 
-void DataItem::SortChildren(const std::function<bool(const IDataItem & lhs, const IDataItem & rhs)> & comparer)
+void DataItem::SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer)
 {
-	std::ranges::sort(m_children, [&] (const auto & lhs, const auto & rhs) { return comparer(*lhs, *rhs); });
+	std::ranges::sort(m_children, [&](const auto& lhs, const auto& rhs) { return comparer(*lhs, *rhs); });
 }
 
-DataItem * DataItem::ToDataItem() noexcept
+DataItem* DataItem::ToDataItem() noexcept
 {
 	return this;
 }
 
-NavigationItem::NavigationItem(IDataItem * parent)
+NavigationItem::NavigationItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> NavigationItem::Create(IDataItem * parent)
+std::shared_ptr<IDataItem> NavigationItem::Create(IDataItem* parent)
 {
 	return std::make_shared<NavigationItem>(parent);
 }
 
-NavigationItem * NavigationItem::ToNavigationItem() noexcept
+NavigationItem* NavigationItem::ToNavigationItem() noexcept
 {
 	return this;
 }
@@ -179,17 +171,17 @@ ItemType NavigationItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-GenreItem::GenreItem(IDataItem * parent)
+GenreItem::GenreItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> GenreItem::Create(IDataItem * parent)
+std::shared_ptr<IDataItem> GenreItem::Create(IDataItem* parent)
 {
 	return std::make_shared<GenreItem>(parent);
 }
 
-GenreItem * GenreItem::ToGenreItem() noexcept
+GenreItem* GenreItem::ToGenreItem() noexcept
 {
 	return this;
 }
@@ -199,17 +191,17 @@ ItemType GenreItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-AuthorItem::AuthorItem(IDataItem * parent)
+AuthorItem::AuthorItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> AuthorItem::Create(IDataItem * parent)
+std::shared_ptr<IDataItem> AuthorItem::Create(IDataItem* parent)
 {
 	return std::make_shared<AuthorItem>(parent);
 }
 
-AuthorItem * AuthorItem::ToAuthorItem() noexcept
+AuthorItem* AuthorItem::ToAuthorItem() noexcept
 {
 	return this;
 }
@@ -235,7 +227,7 @@ void AuthorItem::Reduce()
 
 	auto name = last;
 
-	const auto append = [&] (const QString & str)
+	const auto append = [&](const QString& str)
 	{
 		if (str.isEmpty())
 			return;
@@ -254,14 +246,14 @@ ItemType AuthorItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-const BookItem::Mapping * BookItem::mapping = &FULL;
+const BookItem::Mapping* BookItem::mapping = &FULL;
 
-BookItem::BookItem(IDataItem * parent)
+BookItem::BookItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> BookItem::Create(IDataItem * parent)
+std::shared_ptr<IDataItem> BookItem::Create(IDataItem* parent)
 {
 	return std::make_shared<BookItem>(parent);
 }
@@ -286,7 +278,7 @@ int BookItem::GetColumnCount() const noexcept
 	return static_cast<int>(mapping->size);
 }
 
-BookItem * BookItem::ToBookItem() noexcept
+BookItem* BookItem::ToBookItem() noexcept
 {
 	return this;
 }
@@ -306,17 +298,17 @@ ItemType BookItem::GetType() const noexcept
 	return ItemType::Books;
 }
 
-std::shared_ptr<IDataItem> MenuItem::Create(IDataItem * parent)
+std::shared_ptr<IDataItem> MenuItem::Create(IDataItem* parent)
 {
 	return std::make_shared<MenuItem>(parent);
 }
 
-MenuItem::MenuItem(IDataItem * parent)
+MenuItem::MenuItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-MenuItem * MenuItem::ToMenuItem() noexcept
+MenuItem* MenuItem::ToMenuItem() noexcept
 {
 	return this;
 }
@@ -327,10 +319,10 @@ ItemType MenuItem::GetType() const noexcept
 	return ItemType::Unknown;
 }
 
+namespace HomeCompa::Flibrary
+{
 
-namespace HomeCompa::Flibrary {
-
-void AppendTitle(QString & title, const QString & str, const QString & delimiter)
+void AppendTitle(QString& title, const QString& str, const QString& delimiter)
 {
 	if (title.isEmpty())
 	{
@@ -342,7 +334,7 @@ void AppendTitle(QString & title, const QString & str, const QString & delimiter
 		title.append(delimiter).append(str);
 }
 
-QString GetAuthorFull(const IDataItem & author)
+QString GetAuthorFull(const IDataItem& author)
 {
 	auto result = author.GetData(AuthorItem::Column::LastName);
 	AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
@@ -350,4 +342,4 @@ QString GetAuthorFull(const IDataItem & author)
 	return result;
 }
 
-}
+} // namespace HomeCompa::Flibrary

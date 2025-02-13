@@ -8,16 +8,17 @@
 
 #include "interface/constants/ProductConstant.h"
 
-#include "constants/books.h"
 #include "constants/ExportStat.h"
-
+#include "constants/books.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData {
+namespace HomeCompa::Flibrary::UserData
+{
 
-namespace {
+namespace
+{
 
 struct Book
 {
@@ -26,7 +27,7 @@ struct Book
 	QString exportType;
 	QString createdAt;
 
-	explicit Book(const Util::XmlAttributes & attributes)
+	explicit Book(const Util::XmlAttributes& attributes)
 		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
 		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
 		, exportType(attributes.GetAttribute(Constant::UserData::ExportStat::ExportType))
@@ -34,35 +35,33 @@ struct Book
 	{
 	}
 };
+
 using Books = std::vector<Book>;
 
-class ExportStatRestorer final
-	: virtual public IRestorer
+class ExportStatRestorer final : virtual public IRestorer
 {
 private: // IRestorer
-	void AddElement([[maybe_unused]] const QString & name, const Util::XmlAttributes & attributes) override
+	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
 	{
 		assert(name == Constant::ITEM);
 		using namespace Constant::UserData::Books;
 		m_items.emplace_back(attributes);
 	}
 
-	void Restore(DB::IDatabase & db) const override
+	void Restore(DB::IDatabase& db) const override
 	{
 		using namespace Constant::UserData::Books;
-		static constexpr auto commandText =
-			"insert into Export_List_User(BookID, ExportType, CreatedAt) "
-			"select BookID, ?, ? "
-			"from Books "
-			"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?"
-			;
+		static constexpr auto commandText = "insert into Export_List_User(BookID, ExportType, CreatedAt) "
+											"select BookID, ?, ? "
+											"from Books "
+											"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
 
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Export_List_User")->Execute();
 
 		const auto command = transaction->CreateCommand(commandText);
 
-		for (const auto & item : m_items)
+		for (const auto& item : m_items)
 		{
 			command->Bind(0, item.exportType.toInt());
 			command->Bind(1, item.createdAt.toStdString());
@@ -78,11 +77,11 @@ private:
 	Books m_items;
 };
 
-}
+} // namespace
 
 std::unique_ptr<IRestorer> CreateExportStatRestorer4()
 {
 	return std::make_unique<ExportStatRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

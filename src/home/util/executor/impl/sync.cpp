@@ -1,16 +1,17 @@
 #include <memory>
 
-#include <plog/Log.h>
-
-#include "IExecutor.h"
 #include "executor/factory.h"
 
-namespace HomeCompa::Util::ExecutorPrivate::Sync {
+#include "IExecutor.h"
+#include "log.h"
 
-namespace {
+namespace HomeCompa::Util::ExecutorPrivate::Sync
+{
 
-class Executor
-	: virtual public Util::IExecutor
+namespace
+{
+
+class Executor : virtual public Util::IExecutor
 {
 public:
 	explicit Executor(ExecutorInitializer initializer)
@@ -25,7 +26,7 @@ public:
 	}
 
 private: // Util::IExecutor
-	size_t operator()(Task && task, int /*priority*/) override
+	size_t operator()(Task&& task, int /*priority*/) override
 	{
 		m_initializer.beforeExecute();
 		PLOGD << task.name << " started";
@@ -44,11 +45,11 @@ private:
 	const ExecutorInitializer m_initializer;
 };
 
-}
+} // namespace
 
 std::unique_ptr<Util::IExecutor> CreateExecutor(ExecutorInitializer initializer)
 {
 	return std::make_unique<Executor>(std::move(initializer));
 }
 
-}
+} // namespace HomeCompa::Util::ExecutorPrivate::Sync

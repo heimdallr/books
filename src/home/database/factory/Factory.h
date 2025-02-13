@@ -5,17 +5,19 @@
 
 #include "export/databasefactory.h"
 
-namespace HomeCompa::DB {
+namespace HomeCompa::DB
+{
 class IDatabase;
 }
 
-namespace HomeCompa::DB::Factory {
+namespace HomeCompa::DB::Factory
+{
 
 enum class Impl
 {
 	Sqlite,
 };
 
-DATABASEFACTORY_EXPORT std::unique_ptr<IDatabase> Create(Impl impl, const std::string & connection);
-	
+DATABASEFACTORY_EXPORT std::unique_ptr<IDatabase> Create(Impl impl, const std::string& connection);
+
 }

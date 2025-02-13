@@ -1,17 +1,19 @@
 // ReSharper disable once CppUnusedIncludeDirective
-#include <QString> // for plog
-#include <QFile>
-
-#include <plog/Log.h>
-
-#include "util/hash.h"
-#include "util/ISettings.h"
-
 #include "CollectionImpl.h"
 
-namespace HomeCompa::Flibrary {
+#include <QFile>
+#include <QString> // for plog
 
-namespace {
+#include "util/ISettings.h"
+#include "util/hash.h"
+
+#include "log.h"
+
+namespace HomeCompa::Flibrary
+{
+
+namespace
+{
 
 constexpr auto COLLECTIONS = "Collections";
 constexpr auto CURRENT = "current";
@@ -23,7 +25,7 @@ constexpr auto UPDATABLE = "updatable";
 constexpr auto CREATION_MODE = "creationMode";
 constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED = "destructiveOperationsAllowed";
 
-Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
+Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 {
 	auto collection = std::make_unique<CollectionImpl>();
 	if (id.isEmpty())
@@ -35,16 +37,16 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 	SettingsGroup idGroup(settings, id);
 	collection->id = std::move(id);
 
-	if ((collection->name = settings.Get(NAME, QString{})).isEmpty())
+	if ((collection->name = settings.Get(NAME, QString {})).isEmpty())
 		return collection;
 
-	if ((collection->database = settings.Get(DATABASE, QString{})).isEmpty())
+	if ((collection->database = settings.Get(DATABASE, QString {})).isEmpty())
 		return collection;
 
-	if ((collection->folder = settings.Get(FOLDER, QString{})).isEmpty())
+	if ((collection->folder = settings.Get(FOLDER, QString {})).isEmpty())
 		return collection;
 
-	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString{});
+	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString {});
 	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
 	collection->updatable = settings.Get(UPDATABLE, true);
 	collection->destructiveOperationsAllowed = settings.Get(DESTRUCTIVE_OPERATIONS_ALLOWED, false);
@@ -52,7 +54,7 @@ Collection::Ptr DeserializeImpl(const ISettings & settings, QString id)
 	return collection;
 }
 
-}
+} // namespace
 
 CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_, bool updatable_)
 {
@@ -68,13 +70,13 @@ CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_
 		folder.resize(folder.size() - 1);
 }
 
-QString CollectionImpl::GetActive(const ISettings & settings)
+QString CollectionImpl::GetActive(const ISettings& settings)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
-	return settings.Get(CURRENT, QString{});
+	return settings.Get(CURRENT, QString {});
 }
 
-void CollectionImpl::Serialize(const Collection & collection, ISettings & settings)
+void CollectionImpl::Serialize(const Collection& collection, ISettings& settings)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	SettingsGroup idGroup(settings, collection.id);
@@ -88,28 +90,26 @@ void CollectionImpl::Serialize(const Collection & collection, ISettings & settin
 	settings.Set(DESTRUCTIVE_OPERATIONS_ALLOWED, collection.destructiveOperationsAllowed);
 }
 
-Collections CollectionImpl::Deserialize(ISettings & settings)
+Collections CollectionImpl::Deserialize(ISettings& settings)
 {
 	Collections collections;
 	SettingsGroup settingsGroup(settings, COLLECTIONS);
-	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&] (QString groupId)
-	{
-		return DeserializeImpl(settings, std::move(groupId));
-	});
+	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) { return DeserializeImpl(settings, std::move(groupId)); });
 
-	std::erase_if(collections, [&] (const auto & item)
-	{
-		if (QFile::exists(item->database))
-			return false;
+	std::erase_if(collections,
+	              [&](const auto& item)
+	              {
+					  if (QFile::exists(item->database))
+						  return false;
 
-		settings.Remove(item->id);
-		return true;
-	});
+					  settings.Remove(item->id);
+					  return true;
+				  });
 
 	return collections;
 }
 
-void CollectionImpl::SetActive(ISettings & settings, const QString & uid)
+void CollectionImpl::SetActive(ISettings& settings, const QString& uid)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	if (uid.isEmpty())
@@ -123,11 +123,11 @@ void CollectionImpl::SetActive(ISettings & settings, const QString & uid)
 	PLOGI << "Collection " << uid << " is active now";
 }
 
-void CollectionImpl::Remove(ISettings & settings, const QString & uid)
+void CollectionImpl::Remove(ISettings& settings, const QString& uid)
 {
 	SettingsGroup databaseGroup(settings, COLLECTIONS);
 	settings.Remove(uid);
 	PLOGW << "Collection " << uid << " removed";
 }
 
-}
+} // namespace HomeCompa::Flibrary

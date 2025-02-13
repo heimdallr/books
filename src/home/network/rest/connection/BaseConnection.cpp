@@ -5,15 +5,17 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <plog/Log.h>
 
 #include "fnd/observable.h"
 
+#include "log.h"
+
 using namespace HomeCompa::RestAPI;
 
-namespace {
+namespace
+{
 
-std::string GetNextPage(const IConnection::Headers & headers)
+std::string GetNextPage(const IConnection::Headers& headers)
 {
 	const auto it = headers.find("link");
 	if (it == headers.end())
@@ -49,10 +51,10 @@ BaseConnection::BaseConnection(std::string address, Headers headers)
 
 BaseConnection::~BaseConnection() = default;
 
-void BaseConnection::Get(const std::string & request)
+void BaseConnection::Get(const std::string& request)
 {
 	PLOGD << "Request: " << request;
-	for (auto page = m_impl->address + "/" + request; !page.empty(); )
+	for (auto page = m_impl->address + "/" + request; !page.empty();)
 	{
 		const auto headers = GetPage(page);
 		page = GetNextPage(headers);
@@ -62,33 +64,32 @@ void BaseConnection::Get(const std::string & request)
 	m_impl->Perform(&IObserver::HandleReceivedData, m_impl->data.front());
 }
 
-
-const std::string & BaseConnection::Url() const noexcept
+const std::string& BaseConnection::Url() const noexcept
 {
 	return GetAddress();
 }
 
-const IConnection::Headers & BaseConnection::GetHeaders() const noexcept
+const IConnection::Headers& BaseConnection::GetHeaders() const noexcept
 {
 	return m_impl->headers;
 }
 
-void BaseConnection::Register(IObserver * observer)
+void BaseConnection::Register(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void BaseConnection::Unregister(IObserver * observer)
+void BaseConnection::Unregister(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }
 
-const std::string & BaseConnection::GetAddress() const noexcept
+const std::string& BaseConnection::GetAddress() const noexcept
 {
 	return m_impl->address;
 }
 
-void BaseConnection::OnDataReceived(const QJsonDocument & json)
+void BaseConnection::OnDataReceived(const QJsonDocument& json)
 {
 	if (json.isArray())
 		m_impl->data.emplace_back(json.array());

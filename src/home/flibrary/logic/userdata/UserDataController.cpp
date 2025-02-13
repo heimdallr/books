@@ -1,18 +1,18 @@
 #include "UserDataController.h"
 
-#include <plog/Log.h>
-
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "backup.h"
+#include "log.h"
 #include "restore.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 constexpr auto CONTEXT = "UserData";
 constexpr auto SELECT_EXPORT_FILE = QT_TRANSLATE_NOOP("UserData", "Specify a file to export user data");
@@ -25,9 +25,7 @@ TR_DEF
 
 }
 
-UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUser
-	, std::shared_ptr<IUiFactory> uiFactory
-)
+UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
 	: m_databaseUser(std::move(databaseUser))
 	, m_uiFactory(std::move(uiFactory))
 {
@@ -49,21 +47,22 @@ void UserDataController::Restore(Callback callback) const
 	Do(std::move(callback), m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER)), IMPORT_SUCCESS, &UserData::Restore);
 }
 
-void UserDataController::Do(Callback callback, QString fileName, const char * successMessage, const DoFunction f) const
+void UserDataController::Do(Callback callback, QString fileName, const char* successMessage, const DoFunction f) const
 {
 	auto executor = m_databaseUser->Executor();
 	auto db = m_databaseUser->Database();
 	if (fileName.isEmpty())
 		return;
 
-	f(*executor, *db, std::move(fileName), [&, successMessage, executor, db, callback = std::move(callback)] (const QString & error) mutable
-	{
-		error.isEmpty()
-			? m_uiFactory->ShowInfo(Tr(successMessage))
-			: m_uiFactory->ShowError(Tr(error.toStdString().data()));
+	f(*executor,
+	  *db,
+	  std::move(fileName),
+	  [&, successMessage, executor, db, callback = std::move(callback)](const QString& error) mutable
+	  {
+		  error.isEmpty() ? m_uiFactory->ShowInfo(Tr(successMessage)) : m_uiFactory->ShowError(Tr(error.toStdString().data()));
 
-		executor.reset();
-		db.reset();
-		callback();
-	});
+		  executor.reset();
+		  db.reset();
+		  callback();
+	  });
 }

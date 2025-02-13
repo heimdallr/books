@@ -2,7 +2,8 @@
 
 #include "connection/qt/Connection.h"
 
-namespace HomeCompa::RestAPI {
+namespace HomeCompa::RestAPI
+{
 
 std::unique_ptr<IConnection> CreateQtConnection(std::string address, IConnection::Headers headers)
 {

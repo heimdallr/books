@@ -1,4 +1,3 @@
-#include "ui_OpdsDialog.h"
 #include "OpdsDialog.h"
 
 #include <QClipboard>
@@ -6,17 +5,20 @@
 #include <QNetworkInterface>
 #include <QToolTip>
 
-#include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IOpdsController.h"
 
+#include "GuiUtil/GeometryRestorable.h"
+#include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/localization.h"
+
+#include "ui_OpdsDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 constexpr auto CONTEXT = "OpdsDialog";
 constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS server address has been copied to the clipboard");
 TR_DEF
@@ -28,14 +30,11 @@ struct OpdsDialog::Impl final
 	, IOpdsController::IObserver
 {
 	Ui::OpdsDialog ui {};
-	QWidget & self;
+	QWidget& self;
 	std::shared_ptr<ISettings> settings;
 	std::shared_ptr<IOpdsController> opdsController;
 
-	Impl(QDialog & self
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<IOpdsController> opdsController
-	)
+	Impl(QDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, self { self }
@@ -48,24 +47,27 @@ struct OpdsDialog::Impl final
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
 
-		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] {OnPortChanged(); });
+		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] { OnPortChanged(); });
 		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] { this->opdsController->Stop(); });
-		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this]
-		{
-			this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
-			this->opdsController->Start();
-		});
+		connect(ui.btnStart,
+		        &QAbstractButton::clicked,
+		        &self,
+		        [this]
+		        {
+					this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
+					this->opdsController->Start();
+				});
 
-		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this] (const bool checked)
-		{
-			checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
-		});
+		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) { checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup(); });
 
-		connect(ui.actionCopy, &QAction::triggered, &self, [&]
-		{
-			QApplication::clipboard()->setText(ui.lineEditAddress->text());
-			QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
-		});
+		connect(ui.actionCopy,
+		        &QAction::triggered,
+		        &self,
+		        [&]
+		        {
+					QApplication::clipboard()->setText(ui.lineEditAddress->text());
+					QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
+				});
 
 		ui.lineEditAddress->addAction(ui.actionCopy, QLineEdit::TrailingPosition);
 
@@ -80,7 +82,7 @@ struct OpdsDialog::Impl final
 	}
 
 private: // GeometryRestorableObserver
-	void OnFontChanged(const QFont &) override
+	void OnFontChanged(const QFont&) override
 	{
 		self.adjustSize();
 		const auto height = self.sizeHint().height();
@@ -104,7 +106,7 @@ private: // IOpdsController::IObserver
 private:
 	void OnPortChanged()
 	{
-		const QHostAddress& localhost = QHostAddress(QHostAddress::LocalHost);		
+		const QHostAddress& localhost = QHostAddress(QHostAddress::LocalHost);
 		for (const QHostAddress& address : QNetworkInterface::allAddresses())
 		{
 			if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
@@ -119,16 +121,9 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-OpdsDialog::OpdsDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
-	, std::shared_ptr<ISettings> settings
-	, std::shared_ptr<IOpdsController> opdsController
-	, QWidget *parent
-)
+OpdsDialog::OpdsDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController, QWidget* parent)
 	: QDialog(parent ? parent : parentWidgetProvider->GetWidget())
-	, m_impl(*this
-		, std::move(settings)
-		, std::move(opdsController)
-	)
+	, m_impl(*this, std::move(settings), std::move(opdsController))
 {
 }
 

@@ -1,28 +1,27 @@
-#include <atlcomcli.h>
-#include <comdef.h>
-
 #include "writer.h"
 
-#include <plog/Log.h>
+#include "win.h"
+#include <comdef.h>
 
 #include "fnd/unknown_impl.h"
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
 #include "7z-sdk/7z/CPP/7zip/IPassword.h"
-
 #include "bit7z/bitformat.hpp"
-
 #include "zip/interface/ProgressCallback.h"
 
 #include "FileItem.h"
 #include "OutMemStream.h"
 #include "PropVariant.h"
+#include "log.h"
 
 using namespace bit7z;
 
-namespace HomeCompa::ZipDetails::SevenZip {
+namespace HomeCompa::ZipDetails::SevenZip
+{
 
-namespace {
+namespace
+{
 
 class CryptoGetTextPassword final : public ICryptoGetTextPassword2
 {
@@ -64,19 +63,19 @@ class SequentialInStream final : public ISequentialInStream
 	UNKNOWN_IMPL(ISequentialInStream)
 
 public:
-	static CComPtr<ISequentialInStream> Create(QIODevice & stream)
+	static CComPtr<ISequentialInStream> Create(QIODevice& stream)
 	{
 		return new SequentialInStream(stream);
 	}
 
 private:
-	explicit SequentialInStream(QIODevice & inStream)
-		: m_inStream{ inStream }
+	explicit SequentialInStream(QIODevice& inStream)
+		: m_inStream { inStream }
 	{
 	}
 
 private: // ISequentialInStream
-	HRESULT Read(void * data, const UInt32 size, UInt32 * processedSize) noexcept override
+	HRESULT Read(void* data, const UInt32 size, UInt32* processedSize) noexcept override
 	{
 		if (size == 0)
 		{
@@ -85,27 +84,28 @@ private: // ISequentialInStream
 			return S_OK;
 		}
 
-		const auto realSize = m_inStream.read(reinterpret_cast<char *>(data), size);
+		const auto realSize = m_inStream.read(reinterpret_cast<char*>(data), size);
 		if (processedSize)
 			*processedSize = static_cast<UInt32>(realSize);
 
 		return S_OK;
 	}
+
 private:
-	QIODevice & m_inStream;
+	QIODevice& m_inStream;
 };
 
 class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
 	{
 		return new ArchiveUpdateCallback(files, fileNames, streamGetter, sizeGetter, progress);
 	}
 
 private:
-	ArchiveUpdateCallback(FileStorage & files, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
+	ArchiveUpdateCallback(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
 		: m_files { files }
 		, m_fileNames { fileNames }
 		, m_streamGetter { streamGetter }
@@ -115,18 +115,18 @@ private:
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void ** ppvObject) override
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override
 	{
-		if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
-			*ppvObject = reinterpret_cast<IUnknown *>(this);  // NOLINT(clang-diagnostic-reinterpret-base-class)
+			*ppvObject = reinterpret_cast<IUnknown*>(this); // NOLINT(clang-diagnostic-reinterpret-base-class)
 			AddRef();
 			return S_OK;
 		}
 
 		if (iid == IID_IArchiveUpdateCallback)
 		{
-			*ppvObject = static_cast<IArchiveUpdateCallback *>(this);
+			*ppvObject = static_cast<IArchiveUpdateCallback*>(this);
 			AddRef();
 			return S_OK;
 		}
@@ -155,7 +155,7 @@ private: // IProgress
 		return S_OK;
 	}
 
-	HRESULT SetCompleted(const UInt64 * completeValue) noexcept override
+	HRESULT SetCompleted(const UInt64* completeValue) noexcept override
 	{
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
@@ -166,10 +166,7 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(const UInt32 index,
-		Int32 * newData,
-		Int32 * newProperties,
-		UInt32 * indexInArchive) noexcept override
+	HRESULT GetUpdateItemInfo(const UInt32 index, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
 	{
 		if (newData != nullptr)
 			*newData = index >= m_files.files.size() ? 1 : 0; //1 = true, 0 = false;
@@ -181,9 +178,10 @@ private: // IArchiveUpdateCallback
 		return S_OK;
 	}
 
-	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT * value) noexcept override try
+	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT* value) noexcept override
+	try
 	{
-		CPropVariant prop = [&, propId] () -> CPropVariant
+		CPropVariant prop = [&, propId]() -> CPropVariant
 		{
 			switch (propId)
 			{
@@ -210,13 +208,13 @@ private: // IArchiveUpdateCallback
 		prop.bstrVal = nullptr;
 		return S_OK;
 	}
-	catch (const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGE << ex.what();
 		return S_FALSE;
 	}
 
-	HRESULT GetStream(const UInt32 index, ISequentialInStream ** inStream) noexcept override
+	HRESULT GetStream(const UInt32 index, ISequentialInStream** inStream) noexcept override
 	{
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
@@ -248,19 +246,20 @@ private:
 	}
 
 private:
-	FileStorage & m_files;
-	const std::vector<QString> & m_fileNames;
-	const StreamGetter & m_streamGetter;
-	const SizeGetter & m_sizeGetter;
-	ProgressCallback & m_progress;
+	FileStorage& m_files;
+	const std::vector<QString>& m_fileNames;
+	const StreamGetter& m_streamGetter;
+	const SizeGetter& m_sizeGetter;
+	ProgressCallback& m_progress;
 	std::vector<std::unique_ptr<QIODevice>> m_streams;
 };
 
-}
+} // namespace
 
-namespace File {
+namespace File
+{
 
-bool Write(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const std::vector<QString> & fileNames, const StreamGetter & streamGetter, const SizeGetter & sizeGetter, ProgressCallback & progress)
+bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
 {
 	ProgressCallbackStub progressCallbackStub;
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
@@ -272,4 +271,4 @@ bool Write(FileStorage & files, IOutArchive & zip, QIODevice & oStream, const st
 
 }
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip
