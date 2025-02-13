@@ -26,7 +26,7 @@
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
-#include "script/CommaneExecutor.h"
+#include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
 #include "shared/CommandLine.h"
 #include "shared/OpdsController.h"

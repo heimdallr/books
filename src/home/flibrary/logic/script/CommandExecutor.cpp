@@ -1,4 +1,4 @@
-#include "CommaneExecutor.h"
+#include "CommandExecutor.h"
 
 #include <QDir>
 #include <Windows.h>
