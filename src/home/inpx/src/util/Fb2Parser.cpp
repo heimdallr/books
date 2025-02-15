@@ -21,6 +21,10 @@ constexpr auto AUTHOR = "FictionBook/description/title-info/author";
 constexpr auto AUTHOR_FIRST_NAME = "FictionBook/description/title-info/author/first-name";
 constexpr auto AUTHOR_LAST_NAME = "FictionBook/description/title-info/author/last-name";
 constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/middle-name";
+constexpr auto AUTHOR_DOC = "FictionBook/description/document-info/author";
+constexpr auto AUTHOR_FIRST_NAME_DOC = "FictionBook/description/document-info/author/first-name";
+constexpr auto AUTHOR_LAST_NAME_DOC = "FictionBook/description/document-info/author/last-name";
+constexpr auto AUTHOR_MIDDLE_NAME_DOC = "FictionBook/description/document-info/author/middle-name";
 constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
@@ -52,8 +56,9 @@ private: // Util::SaxParser
 		using ParseElementFunction = bool (Impl::*)(const Util::XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{   AUTHOR,   &Impl::OnStartElementAuthor },
-			{ SEQUENCE, &Impl::OnStartElementSequence },
+			{     AUTHOR,    &Impl::OnStartElementAuthor },
+			{ AUTHOR_DOC, &Impl::OnStartElementAuthorDoc },
+			{   SEQUENCE,  &Impl::OnStartElementSequence },
 		};
 
 		return Parse(*this, PARSERS, path, attributes);
@@ -65,6 +70,8 @@ private: // Util::SaxParser
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ DESCRIPTION, &Impl::OnEndElementDescription },
+			{      AUTHOR,      &Impl::OnEndElementAuthor },
+			{  AUTHOR_DOC,      &Impl::OnEndElementAuthor },
 		};
 
 		return Parse(*this, PARSERS, path);
@@ -75,13 +82,16 @@ private: // Util::SaxParser
 		using ParseCharacterFunction = bool (Impl::*)(const QString&);
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
-			{			  GENRE,            &Impl::ParseGenre },
-			{  AUTHOR_FIRST_NAME,  &Impl::ParseAuthorFirstName },
-			{   AUTHOR_LAST_NAME,   &Impl::ParseAuthorLastName },
-			{ AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
-			{         BOOK_TITLE,        &Impl::ParseBookTitle },
-			{			   LANG,             &Impl::ParseLang },
-			{           KEYWORDS,         &Impl::ParseKeywords },
+			{				  GENRE,            &Impl::ParseGenre },
+			{      AUTHOR_FIRST_NAME,  &Impl::ParseAuthorFirstName },
+			{       AUTHOR_LAST_NAME,   &Impl::ParseAuthorLastName },
+			{     AUTHOR_MIDDLE_NAME, &Impl::ParseAuthorMiddleName },
+			{  AUTHOR_FIRST_NAME_DOC,  &Impl::ParseAuthorFirstName },
+			{   AUTHOR_LAST_NAME_DOC,   &Impl::ParseAuthorLastName },
+			{ AUTHOR_MIDDLE_NAME_DOC, &Impl::ParseAuthorMiddleName },
+			{             BOOK_TITLE,        &Impl::ParseBookTitle },
+			{				   LANG,             &Impl::ParseLang },
+			{			   KEYWORDS,         &Impl::ParseKeywords },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -108,8 +118,14 @@ private: // Util::SaxParser
 private:
 	bool OnStartElementAuthor(const Util::XmlAttributes&)
 	{
+		m_insertAuthorMode = true;
 		m_data.authors.emplace_back();
 		return true;
+	}
+
+	bool OnStartElementAuthorDoc(const Util::XmlAttributes& attributes)
+	{
+		return m_data.authors.empty() ? OnStartElementAuthor(attributes) : true;
 	}
 
 	bool OnStartElementSequence(const Util::XmlAttributes& attributes)
@@ -124,6 +140,20 @@ private:
 		return false;
 	}
 
+	bool OnEndElementAuthor()
+	{
+		if (m_insertAuthorMode)
+		{
+			assert(!m_data.authors.empty());
+			const auto& author = m_data.authors.back();
+			if (author.first.isEmpty() && author.last.isEmpty() && author.middle.isEmpty())
+				m_data.authors.pop_back();
+		}
+
+		m_insertAuthorMode = false;
+		return true;
+	}
+
 	bool ParseGenre(const QString& value)
 	{
 		m_data.genres.push_back(value);
@@ -132,19 +162,22 @@ private:
 
 	bool ParseAuthorFirstName(const QString& value)
 	{
-		m_data.authors.back().first = value;
+		if (m_insertAuthorMode)
+			m_data.authors.back().first = value;
 		return true;
 	}
 
 	bool ParseAuthorLastName(const QString& value)
 	{
-		m_data.authors.back().last = value;
+		if (m_insertAuthorMode)
+			m_data.authors.back().last = value;
 		return true;
 	}
 
 	bool ParseAuthorMiddleName(const QString& value)
 	{
-		m_data.authors.back().middle = value;
+		if (m_insertAuthorMode)
+			m_data.authors.back().middle = value;
 		return true;
 	}
 
@@ -169,6 +202,7 @@ private:
 private:
 	const QString& m_fileName;
 	Data m_data {};
+	bool m_insertAuthorMode { false };
 };
 
 Fb2Parser::Fb2Parser(QIODevice& stream, const QString& fileName)
