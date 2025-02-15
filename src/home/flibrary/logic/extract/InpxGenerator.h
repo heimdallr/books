@@ -18,9 +18,9 @@ class InpxGenerator : public IInpxGenerator
 
 public:
 	InpxGenerator(const std::shared_ptr<const class ILogicFactory>& logicFactory,
-	              std::shared_ptr<class ICollectionController> collectionController,
-	              std::shared_ptr<class IBooksExtractorProgressController> progressController,
-	              std::shared_ptr<class IDatabaseUser> databaseUser);
+	              std::shared_ptr<const class ICollectionProvider> collectionProvider,
+	              std::shared_ptr<const class IDatabaseUser> databaseUser,
+	              std::shared_ptr<class IBooksExtractorProgressController> progressController);
 	~InpxGenerator() override;
 
 public:

@@ -14,7 +14,7 @@
 
 #include "interface/constants/ExportStat.h"
 #include "interface/logic/IBookInfoProvider.h"
-#include "interface/logic/ICollectionController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
@@ -107,14 +107,14 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 class InpxGenerator::Impl final
 {
 public:
-	Impl(std::shared_ptr<ICollectionController> collectionController,
-	     std::shared_ptr<IProgressController> progressController,
-	     std::shared_ptr<IDatabaseUser> databaseUser,
-	     const std::shared_ptr<const ILogicFactory>& logicFactory)
-		: m_collectionController(std::move(collectionController))
-		, m_progressController(std::move(progressController))
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<IProgressController> progressController)
+		: m_logicFactory(logicFactory)
+		, m_collectionProvider(std::move(collectionProvider))
 		, m_databaseUser(std::move(databaseUser))
-		, m_logicFactory(logicFactory)
+		, m_progressController(std::move(progressController))
 	{
 	}
 
@@ -126,7 +126,7 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder = std::move(dstFolder);
-		m_archiveFolder = m_collectionController->GetActiveCollection().folder.toStdWString();
+		m_archiveFolder = m_collectionProvider->GetActiveCollection().folder.toStdWString();
 
 		CollectExistingFiles();
 
@@ -247,7 +247,7 @@ private:
 
 		if (!inpxFileExists)
 		{
-			toZip.emplace_back("collection.info", QString("Collection").toUtf8());
+			toZip.emplace_back("collection.info", QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8());
 			toZip.emplace_back("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
 		}
 
@@ -267,10 +267,11 @@ private:
 	}
 
 private:
-	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
+
 	Callback m_callback;
 	size_t m_taskCount { 0 };
 	bool m_hasError { false };
@@ -282,10 +283,10 @@ private:
 };
 
 InpxGenerator::InpxGenerator(const std::shared_ptr<const ILogicFactory>& logicFactory,
-                             std::shared_ptr<ICollectionController> collectionController,
-                             std::shared_ptr<IBooksExtractorProgressController> progressController,
-                             std::shared_ptr<IDatabaseUser> databaseUser)
-	: m_impl(std::move(collectionController), std::move(progressController), std::move(databaseUser), logicFactory)
+                             std::shared_ptr<const ICollectionProvider> collectionProvider,
+                             std::shared_ptr<const IDatabaseUser> databaseUser,
+                             std::shared_ptr<IBooksExtractorProgressController> progressController)
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController))
 {
 	PLOGV << "InpxGenerator created";
 }
