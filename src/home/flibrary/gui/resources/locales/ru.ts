@@ -572,6 +572,10 @@
         <source>Cleaner...</source>
         <translation>Очистка...</translation>
     </message>
+    <message>
+        <source>Generate &amp;index (*.inpx)</source>
+        <translation>Генерировать &amp;индекс (*.inpx)</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

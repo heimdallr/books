@@ -188,16 +188,6 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Save index file</source>
-        <translation>Сохранить индексный файл</translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Index files (*.inpx);;All files (*.*)</source>
-        <translation>Индексные файлы (*.inpx);;Все файлы (*.*)</translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation>Не удалось поставить оценку</translation>
     </message>

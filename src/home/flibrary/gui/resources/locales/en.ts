@@ -576,6 +576,10 @@
         <source>Cleaner...</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Generate &amp;index (*.inpx)</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

@@ -129,6 +129,19 @@
     </message>
 </context>
 <context>
+    <name>Export</name>
+    <message>
+        <location filename="../../constants/Localization.h"/>
+        <source>Save index file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h"/>
+        <source>Index files (*.inpx);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Genre</name>
     <message>
         <location filename="../../constants/GenresLocalization.h"/>
