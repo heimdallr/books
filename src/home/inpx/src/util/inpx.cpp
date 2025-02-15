@@ -59,7 +59,7 @@ bool ParseCheckerDefault(std::wstring_view)
 
 bool ParseCheckerAuthor(const std::wstring_view str)
 {
-	return std::ranges::any_of(str, [](const auto ch) { return std::isalpha(ch); });
+	return !str.empty() && !std::ranges::all_of(str, [](const wchar_t ch) { return ch == L','; });
 }
 
 Dictionary::const_iterator FindDefault(const Dictionary& container, const std::wstring_view value)
