@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IBookInfoProvider.h"
 #include "interface/logic/IDataItem.h"
 
 class QString;
@@ -12,7 +13,7 @@ class QString;
 namespace HomeCompa::Flibrary
 {
 
-class DataProvider
+class DataProvider : public IBookInfoProvider
 {
 	NON_COPY_MOVABLE(DataProvider)
 
@@ -21,7 +22,7 @@ public:
 
 public:
 	DataProvider(std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor);
-	~DataProvider();
+	~DataProvider() override;
 
 public:
 	void SetNavigationId(QString id);
@@ -34,7 +35,8 @@ public:
 	void RequestNavigation(bool force = false) const;
 	void RequestBooks(bool force = false) const;
 
-	BookInfo GetBookInfo(long long id) const;
+private: // IBookInfoProvider
+	BookInfo GetBookInfo(long long id) const override;
 
 private:
 	class Impl;

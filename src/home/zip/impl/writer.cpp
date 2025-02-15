@@ -267,6 +267,13 @@ bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::
 	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, sizeGetter, progress);
 	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + fileNames.size()), std::move(archiveUpdateCallback));
 	progress.OnDone();
+	std::ranges::transform(fileNames,
+	                       std::back_inserter(files.files),
+	                       [&, n = files.files.size(), m = size_t { 0 }](const QString& fileName) mutable
+	                       {
+							   files.index.try_emplace(fileName, n);
+							   return FileItem { static_cast<uint32_t>(n++), fileName, sizeGetter(m++), QDateTime::currentDateTime() };
+						   });
 	return result == S_OK;
 }
 

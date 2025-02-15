@@ -20,4 +20,6 @@ constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
 constexpr auto OPDS_PORT_KEY = "opds/port";
 constexpr auto OPDS_PORT_DEFAULT = 12791;
 
+constexpr auto EXPORT_DIALOG_KEY = "Export";
+
 }

@@ -16,6 +16,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/ui/IUiFactory.h"
@@ -24,7 +25,6 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "extract/BooksExtractor.h"
-#include "extract/InpxCollectionExtractor.h"
 #include "util/ISettings.h"
 
 #include "log.h"
@@ -62,8 +62,6 @@ constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
-constexpr auto SELECT_INPX_FILE = QT_TRANSLATE_NOOP("BookContextMenu", "Save index file");
-constexpr auto SELECT_INPX_FILE_FILTER = QT_TRANSLATE_NOOP("BookContextMenu", "Index files (*.inpx);;All files (*.*)");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
@@ -76,7 +74,6 @@ TR_DEF
 
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
 constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, 0) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
-constexpr auto DIALOG_KEY = "Export";
 
 using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
 
@@ -97,7 +94,8 @@ public:
 
 constexpr std::pair<BooksMenuAction, IContextMenuHandler::Function> MENU_HANDLERS[] {
 	{ BooksMenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
-#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME                                                           },
+#define BOOKS_MENU_ACTION_ITEM(NAME) \
+	{ BooksMenuAction::NAME, &IContextMenuHandler::NAME },
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef BOOKS_MENU_ACTION_ITEM
 };
@@ -424,8 +422,8 @@ private: // IContextMenuHandler
 		               indexList,
 		               std::move(item),
 		               std::move(callback),
-		               &InpxCollectionExtractor::ExtractAsInpxCollection,
-		               [this] { return m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER); });
+		               &IInpxGenerator::ExtractAsInpxCollection,
+		               [this] { return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER); });
 	}
 
 	void SendAsInpxFile(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -435,8 +433,8 @@ private: // IContextMenuHandler
 		               indexList,
 		               std::move(item),
 		               std::move(callback),
-		               &InpxCollectionExtractor::GenerateInpx,
-		               [this] { return m_uiFactory->GetSaveFileName(DIALOG_KEY, SELECT_INPX_FILE, SELECT_INPX_FILE_FILTER); });
+		               &IInpxGenerator::GenerateInpx,
+		               [this] { return m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER)); });
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -459,7 +457,7 @@ private:
 	                    const QList<QModelIndex>& indexList,
 	                    IDataItem::Ptr item,
 	                    Callback callback,
-	                    void (InpxCollectionExtractor::*extractorMethod)(QString, const std::vector<QString>&, const DataProvider&, InpxCollectionExtractor::Callback),
+	                    void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback),
 	                    const std::function<QString()>& nameGenerator) const
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
@@ -471,7 +469,7 @@ private:
 		if (inpxName.isEmpty())
 			return callback(item);
 
-		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxCollectionExtractor();
+		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxGenerator();
 		std::invoke(extractorMethod,
 		            *extractor,
 		            std::move(inpxName),
@@ -501,7 +499,7 @@ private:
 	          QString outputFileNameTemplate,
 	          const bool dstFolderRequired) const
 	{
-		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(DIALOG_KEY, SELECT_SEND_TO_FOLDER) : QString();
+		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 

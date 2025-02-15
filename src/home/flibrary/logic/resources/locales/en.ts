@@ -188,16 +188,6 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Save index file</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Index files (*.inpx);;All files (*.*)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation></translation>
     </message>

@@ -31,7 +31,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<BooksContextMenuProvider> CreateBooksContextMenuProvider() const override;
 	[[nodiscard]] std::shared_ptr<IUserDataController> CreateUserDataController() const override;
 	[[nodiscard]] std::shared_ptr<BooksExtractor> CreateBooksExtractor() const override;
-	[[nodiscard]] std::shared_ptr<InpxCollectionExtractor> CreateInpxCollectionExtractor() const override;
+	[[nodiscard]] std::shared_ptr<IInpxGenerator> CreateInpxGenerator() const override;
 	[[nodiscard]] std::shared_ptr<IUpdateChecker> CreateUpdateChecker() const override;
 	[[nodiscard]] std::shared_ptr<ICollectionCleaner> CreateCollectionCleaner() const override;
 	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
