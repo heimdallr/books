@@ -26,6 +26,7 @@ public:
 public:
 	void ExtractAsInpxCollection(QString folder, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback) override;
 	void GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback) override;
+	void GenerateInpx(QString inpxFileName, Callback callback) override;
 
 private:
 	class Impl;

@@ -312,3 +312,7 @@ void InpxGenerator::GenerateInpx(QString inpxFileName, const std::vector<QString
 
 	m_impl->GenerateInpx(std::move(inpxFileName), std::move(bookInfo), std::move(callback));
 }
+
+void InpxGenerator::GenerateInpx(QString inpxFileName, Callback callback)
+{
+}
