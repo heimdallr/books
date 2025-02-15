@@ -209,12 +209,11 @@ std::set<size_t> ParseItem(const std::wstring_view data,
                            const FindFunctor& find = &FindDefault)
 {
 	std::set<size_t> result;
-	auto it = std::cbegin(data);
+	auto it = std::ranges::find_if(data, [=](const auto ch) { return ch != separator; });
 	while (it != std::cend(data))
-	{
 		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
 			result.emplace(Add<size_t>(value, container, getId, find));
-	}
+
 	return result;
 }
 
