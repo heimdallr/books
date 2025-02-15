@@ -57,6 +57,11 @@ bool ParseCheckerDefault(std::wstring_view)
 	return true;
 }
 
+bool ParseCheckerAuthor(const std::wstring_view str)
+{
+	return std::ranges::any_of(str, [](const auto ch) { return std::isalpha(ch); });
+}
+
 Dictionary::const_iterator FindDefault(const Dictionary& container, const std::wstring_view value)
 {
 	return container.find(value);
@@ -1300,7 +1305,11 @@ private:
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.FILE) + "." + ToMultiByte(buf.EXT);
 
-		std::ranges::transform(ParseItem(buf.AUTHOR, m_data.authors), std::back_inserter(m_data.booksAuthors), [=](size_t idAuthor) { return std::make_pair(id, idAuthor); });
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, LIST_SEPARATOR, &ParseCheckerAuthor);
+		if (authorIds.empty())
+			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
+		assert(!authorIds.empty() && "a book cannot be an orphan");
+		std::ranges::transform(authorIds, std::back_inserter(m_data.booksAuthors), [=](const size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
 		auto idGenres = ParseItem(
 			buf.GENRE,

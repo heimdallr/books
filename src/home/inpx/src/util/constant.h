@@ -24,6 +24,7 @@ constexpr auto INPX_FOLDER = L"inpx_folder";
 constexpr auto MHL_TRIGGERS_ON = L"mhl_triggers_on";
 constexpr auto VERSION_INFO = L"version.info";
 constexpr auto ZIP = L"zip";
+constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
 
 constexpr const char* SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
