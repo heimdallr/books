@@ -57,6 +57,11 @@ bool ParseCheckerDefault(std::wstring_view)
 	return true;
 }
 
+bool ParseCheckerAuthor(const std::wstring_view str)
+{
+	return std::ranges::any_of(str, [](const auto ch) { return std::isalpha(ch); });
+}
+
 Dictionary::const_iterator FindDefault(const Dictionary& container, const std::wstring_view value)
 {
 	return container.find(value);
@@ -73,26 +78,6 @@ public:
 	explicit Ini(Parser::IniMap data)
 		: _data(std::move(data))
 	{
-	}
-
-	explicit Ini(const Path& path)
-	{
-		if (!exists(path))
-			throw std::invalid_argument("Need inpx file as command line argument");
-
-		std::wstring line;
-
-		std::wifstream iniStream(path);
-		while (std::getline(iniStream, line))
-		{
-			if (IsComment(line))
-				continue;
-
-			auto it = std::cbegin(line);
-			const auto key = Next(it, std::cend(line), INI_SEPARATOR);
-			const auto value = Next(it, std::cend(line), INI_SEPARATOR);
-			_data.try_emplace(std::wstring(key), value);
-		}
 	}
 
 	const Path& operator()(const Parser::IniMap::value_type::first_type& key, const Path& defaultValue = {}) const
@@ -209,12 +194,11 @@ std::set<size_t> ParseItem(const std::wstring_view data,
                            const FindFunctor& find = &FindDefault)
 {
 	std::set<size_t> result;
-	auto it = std::cbegin(data);
+	auto it = std::ranges::find_if(data, [=](const auto ch) { return ch != separator; });
 	while (it != std::cend(data))
-	{
 		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
 			result.emplace(Add<size_t>(value, container, getId, find));
-	}
+
 	return result;
 }
 
@@ -225,7 +209,7 @@ std::set<size_t> ParseItem(const std::wstring_view data, Dictionary& container, 
 	return result;
 }
 
-std::set<size_t> ParseKeywords(std::wstring_view keywordsSrc, Dictionary& keywordsLinks, std::unordered_map<QString, std::wstring>& uniqueKeywords)
+std::set<size_t> ParseKeywords(const std::wstring_view keywordsSrc, Dictionary& keywordsLinks, std::unordered_map<QString, std::wstring>& uniqueKeywords)
 {
 	return ParseItem(
 		keywordsSrc,
@@ -331,7 +315,7 @@ using BookBufMapping = std::vector<BookBufFieldGetter>;
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
-BookBuf ParseBook(std::wstring_view folder, std::wstring& line, const BookBufMapping& f)
+BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const BookBufMapping& f)
 {
 	BookBuf buf { .FOLDER = folder };
 
@@ -483,7 +467,7 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 											}
 											else
 											{
-												PLOGE << db->error_code() << ": " << db->error_msg() << std::endl << value;
+												PLOGE << db->error_code() << ": " << db->error_msg() << "\n" << value;
 											}
 
 											return init + static_cast<size_t>(localResult);
@@ -862,6 +846,8 @@ private:
 
 class Parser::Impl final : virtual public IPool
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
 		: m_ini(std::move(ini))
@@ -872,7 +858,7 @@ public:
 		ReadLangMapping();
 	}
 
-	~Impl()
+	~Impl() override
 	{
 		LogErrors();
 	}
@@ -889,11 +875,11 @@ public:
 				  }
 				  catch (const std::exception& ex)
 				  {
-					  m_errors.push_back(ex.what());
+					  m_errors.emplace_back(ex.what());
 				  }
 				  catch (...)
 				  {
-					  m_errors.push_back("Unknown error");
+					  m_errors.emplace_back("Unknown error");
 				  }
 				  const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 				  return [this, genres](size_t)
@@ -914,11 +900,11 @@ public:
 								}
 								catch (const std::exception& ex)
 								{
-									m_errors.push_back(ex.what());
+									m_errors.emplace_back(ex.what());
 								}
 								catch (...)
 								{
-									m_errors.push_back("Unknown error");
+									m_errors.emplace_back("Unknown error");
 								}
 								return 0;
 							}();
@@ -1005,8 +991,9 @@ private:
 		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
 		{
 			const auto lang = langIt.key().toStdWString();
-			assert(langIt.value().isArray());
-			for (const auto& key : langIt.value().toArray())
+			const auto langValues = langIt.value();
+			assert(langValues.isArray());
+			for (const auto key : langValues.toArray())
 				m_langMap.try_emplace(key.toString().toStdWString(), lang);
 		}
 	}
@@ -1301,7 +1288,11 @@ private:
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.FILE) + "." + ToMultiByte(buf.EXT);
 
-		std::ranges::transform(ParseItem(buf.AUTHOR, m_data.authors), std::back_inserter(m_data.booksAuthors), [=](size_t idAuthor) { return std::make_pair(id, idAuthor); });
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, LIST_SEPARATOR, &ParseCheckerAuthor);
+		if (authorIds.empty())
+			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
+		assert(!authorIds.empty() && "a book cannot be an orphan");
+		std::ranges::transform(authorIds, std::back_inserter(m_data.booksAuthors), [=](const size_t idAuthor) { return std::make_pair(id, idAuthor); });
 
 		auto idGenres = ParseItem(
 			buf.GENRE,
