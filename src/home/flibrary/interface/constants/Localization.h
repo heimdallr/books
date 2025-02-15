@@ -43,4 +43,8 @@ constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords:");
 constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
 constexpr auto USER_RATE = QT_TRANSLATE_NOOP("Annotation", "My rate:");
 
+constexpr auto EXPORT = "Export";
+constexpr auto SELECT_INPX_FILE = QT_TRANSLATE_NOOP("Export", "Save index file");
+constexpr auto SELECT_INPX_FILE_FILTER = QT_TRANSLATE_NOOP("Export", "Index files (*.inpx);;All files (*.*)");
+
 } // namespace HomeCompa::Loc
