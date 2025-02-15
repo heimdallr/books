@@ -19,6 +19,7 @@
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/IDatabaseChecker.h"
+#include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IScriptController.h"
@@ -400,7 +401,7 @@ private:
 				});
 
 		connect(m_ui.actionPermanentLanguageFilter, &QAction::triggered, &m_self, [&](const bool checked) { m_settings->Set(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, checked); });
-
+		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [&] { GenerateCollectionInpx(); });
 		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateCollectionCleaner()->exec(); });
 
 		ConnectShowHide(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, SHOW_REMOVED_BOOKS_KEY);
@@ -556,8 +557,16 @@ private:
 		};
 
 		connect(show, &QAction::triggered, &m_self, [=] { showHide(true); });
-
 		connect(hide, &QAction::triggered, &m_self, [=] { showHide(false); });
+	}
+
+	void GenerateCollectionInpx() const
+	{
+		auto inpxGenerator = ILogicFactory::Lock(m_logicFactory)->CreateInpxGenerator();
+		auto& inpxGeneratorRef = *inpxGenerator;
+		if (auto inpxFileName = m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER));
+		    !inpxFileName.isEmpty())
+			inpxGeneratorRef.GenerateInpx(std::move(inpxFileName), [inpxGenerator = std::move(inpxGenerator)](bool) mutable { inpxGenerator.reset(); });
 	}
 
 	static void Reboot()

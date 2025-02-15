@@ -298,6 +298,7 @@
     <addaction name="menuSelectCollection"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
+    <addaction name="actionGenerateIndexInpx"/>
     <addaction name="actionAllowDestructiveOperations"/>
     <addaction name="actionDenyDestructiveOperations"/>
     <addaction name="actionShowCollectionCleaner"/>
@@ -774,6 +775,14 @@
   <action name="actionShowCollectionCleaner">
    <property name="text">
     <string>Cleaner...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenerateIndexInpx">
+   <property name="text">
+    <string>Generate &amp;index (*.inpx)</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
