@@ -1112,7 +1112,7 @@ private:
 		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
 		{
 			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
-			for (const Zip zip(archiveFileInfo.filePath()); const auto& fileName : files)
+			for (const Zip zip(archiveFileInfo.filePath()); const auto& fileName : files | std::views::keys)
 			{
 				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 				ParseFile(folder, zip, QString::fromStdWString(fileName), archiveFileInfo.birthTime());
@@ -1235,20 +1235,26 @@ private:
 				if (archiveFileInfo.exists())
 				{
 					Zip archiveFile(archiveFileInfo.filePath());
-					std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [](const auto& item) { return item.toStdWString(); });
+					std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
 				}
 			}
 
 			const auto fileName = std::wstring(buf.FILE).append(L".").append(buf.EXT);
 			const auto it = fileList.find(fileName);
 			const auto found = it != fileList.end();
-			if (found)
-				fileList.erase(it);
 
 			if (found || !(m_mode & CreateCollectionMode::SkipLostBooks))
-				AddBook(buf);
+			{
+				auto& book = AddBook(buf);
+				book.size = it->second;
+			}
 			else
+			{
 				PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
+			}
+
+			if (found)
+				fileList.erase(it);
 		}
 	}
 
@@ -1283,7 +1289,7 @@ private:
 		AddBook(buf);
 	}
 
-	void AddBook(const BookBuf& buf)
+	Book& AddBook(const BookBuf& buf)
 	{
 		const auto id = GetId();
 		auto file = ToMultiByte(buf.FILE) + "." + ToMultiByte(buf.EXT);
@@ -1344,6 +1350,8 @@ private:
 			book.language = it->second;
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
+
+		return book;
 	}
 
 	void LogErrors() const
@@ -1378,7 +1386,7 @@ private:
 	size_t m_unknownGenreId { 0 };
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
-	std::unordered_map<std::wstring, std::unordered_set<std::wstring, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	std::atomic_bool m_updatable { true };
 
 	std::vector<QString> m_errors;
