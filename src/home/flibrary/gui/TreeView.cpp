@@ -305,10 +305,44 @@ private:
 			m_ui.btnNew->setVisible(true);
 			m_ui.btnNew->disconnect();
 			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
+
+			if (model->rowCount() == 0)
+				QTimer::singleShot(1000, [this] { ShowPushMe(); });
 		}
 
 		if (model->rowCount() == 0)
 			m_controller->SetCurrentId({});
+	}
+
+	void ShowPushMe()
+	{
+		if (!m_ui.btnNew->isVisible())
+			return;
+
+		m_ui.value->setText(QString("%1 %2").arg(QChar(0x2B60)).arg(tr("Push me")));
+		m_ui.value->setCursorPosition(0);
+
+		auto* timer = new QTimer(&m_self);
+		timer->setSingleShot(false);
+		timer->setInterval(std::chrono::milliseconds(200));
+		connect(timer,
+		        &QObject::destroyed,
+		        m_ui.btnNew,
+		        [this]
+		        {
+					m_ui.btnNew->setAutoRaise(true);
+					m_ui.value->setText({});
+				});
+		connect(timer,
+		        &QTimer::timeout,
+		        m_ui.btnNew,
+		        [this, timer, n = 0]() mutable
+		        {
+					m_ui.btnNew->setAutoRaise(n % 2);
+					if (++n == 13)
+						timer->deleteLater();
+				});
+		timer->start();
 	}
 
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
