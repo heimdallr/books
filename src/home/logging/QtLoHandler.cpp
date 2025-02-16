@@ -16,6 +16,7 @@ QString FileName(const QMessageLogContext& ctx)
 
 constexpr const char* IGNORED[] {
 	"DirectWrite: CreateFontFaceFromHDC() failed",
+	"QWindowsWindow::setGeometry: Unable to set geometry",
 };
 
 }
