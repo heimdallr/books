@@ -1217,46 +1217,49 @@ private:
 
 		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
 
-		while (true)
+		for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
+			ProcessInpxString(rootFolder, folder, byteArray);
+	}
+
+	auto& GetFileList(const Path& rootFolder, const std::wstring& folder)
+	{
+		auto& fileList = m_foldersContent[folder];
+		if (!fileList.empty())
+			return fileList;
+
+		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
+		if (!archiveFileInfo.exists())
+			return fileList;
+
+		Zip archiveFile(archiveFileInfo.filePath());
+		std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
+
+		return fileList;
+	}
+
+	void ProcessInpxString(const Path& rootFolder, const std::wstring& folder, const QByteArray& byteArray)
+	{
+		auto line = ToWide(byteArray.constData());
+		const auto buf = ParseBook(folder, line, m_bookBufMapping);
+		if (folder != buf.FOLDER)
+			m_updatable = false;
+
+		auto& fileList = GetFileList(rootFolder, std::wstring(buf.FOLDER));
+		const auto fileName = std::wstring(buf.FILE).append(L".").append(buf.EXT);
+		const auto it = fileList.find(fileName);
+		const auto found = it != fileList.end();
+
+		if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
 		{
-			const auto byteArray = stream.readLine();
-			if (byteArray.isEmpty())
-				break;
+			PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
+			return;
+		}
 
-			auto line = ToWide(byteArray.constData());
-			const auto buf = ParseBook(folder, line, m_bookBufMapping);
-			if (folder != buf.FOLDER)
-				m_updatable = false;
-
-			auto& fileList = m_foldersContent[std::wstring(buf.FOLDER)];
-			if (fileList.empty())
-			{
-				const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / buf.FOLDER));
-				if (archiveFileInfo.exists())
-				{
-					Zip archiveFile(archiveFileInfo.filePath());
-					std::ranges::transform(archiveFile.GetFileNameList(),
-					                       std::inserter(fileList, fileList.end()),
-					                       [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
-				}
-			}
-
-			const auto fileName = std::wstring(buf.FILE).append(L".").append(buf.EXT);
-			const auto it = fileList.find(fileName);
-			const auto found = it != fileList.end();
-
-			if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
-			{
-				PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
-				return;
-			}
-
-			auto& book = AddBook(buf);
-			if (found)
-			{
-				book.size = it->second;
-				fileList.erase(it);
-			}
+		auto& book = AddBook(buf);
+		if (found)
+		{
+			book.size = it->second;
+			fileList.erase(it);
 		}
 	}
 
