@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>259</width>
-    <height>300</height>
+    <height>288</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -60,6 +60,10 @@
       <widget class="QToolButton" name="btnNew">
        <property name="text">
         <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../theme/light/resources/light.qrc">
+         <normaloff>:/icons/plus.svg</normaloff>:/icons/plus.svg</iconset>
        </property>
        <property name="autoRaise">
         <bool>true</bool>
