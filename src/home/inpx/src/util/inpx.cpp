@@ -1254,8 +1254,8 @@ private:
 			auto& book = AddBook(buf);
 			if (found)
 			{
-				fileList.erase(it);
 				book.size = it->second;
+				fileList.erase(it);
 			}
 		}
 	}
