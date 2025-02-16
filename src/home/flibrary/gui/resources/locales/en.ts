@@ -282,6 +282,11 @@
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
+        <source>&lt;p&gt;Personal &lt;a href=&apos;https://rutracker.org/forum/profile.php?mode=viewprofile&amp;u=39220697&apos;&gt;totnin&lt;/a&gt; build&lt;/p&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../UiFactory.cpp"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
