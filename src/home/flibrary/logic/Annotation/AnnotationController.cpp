@@ -179,6 +179,9 @@ public:
 public:
 	void SetCurrentBookId(QString bookId, const bool extractNow)
 	{
+		if (auto parser = m_archiveParser.lock())
+			parser->Stop();
+
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
 			extractNow ? ExtractInfo() : m_extractInfoTimer->start();
@@ -343,6 +346,7 @@ private:
 			progressController->Stop();
 
 		auto parser = ILogicFactory::Lock(m_logicFactory)->CreateArchiveParser();
+		m_archiveParser = parser;
 
 		(*m_executor)({ "Get archive book info",
 		                [this, book = std::move(book), parser = std::move(parser)]() mutable
@@ -466,6 +470,8 @@ private:
 	IDataItem::Ptr m_keywords;
 
 	ExportStatistics m_exportStatistics;
+
+	std::weak_ptr<ArchiveParser> m_archiveParser;
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser)
