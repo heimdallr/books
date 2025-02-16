@@ -49,6 +49,7 @@ public:
 
 	virtual Ptr& AppendChild(Ptr child) = 0;
 	virtual void RemoveChild(size_t row = INVALID_INDEX) = 0;
+	virtual void RemoveAllChildren() = 0;
 	virtual void SetChildren(Items children) noexcept = 0;
 	[[nodiscard]] virtual Ptr GetChild(size_t row) const noexcept = 0;
 	[[nodiscard]] virtual size_t GetChildCount() const noexcept = 0;

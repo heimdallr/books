@@ -204,7 +204,10 @@ public:
 		rootCached = CreateBooksRoot();
 
 		for (const auto& series : m_series | std::views::values)
+		{
+			series->RemoveAllChildren();
 			rootCached->AppendChild(series);
+		}
 
 		for (const auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
