@@ -36,13 +36,14 @@ struct AnalyzedBook
 	bool deleted;
 	QString date;
 	QString title;
+	size_t size;
 	std::set<QString> genres;
 	std::set<long long> authors;
 };
 
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
-constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, %1, %3 
+constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
 	left join Books_User bu on bu.BookID = b.BookID)";
@@ -229,11 +230,12 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 			it->second.deleted = query->Get<int>(4);
 			it->second.date = query->Get<const char*>(5);
 			it->second.title = QString(query->Get<const char*>(6)).toLower();
+			it->second.size = query->Get<long long>(7);
 		}
 
-		if (QString genre = query->Get<const char*>(7); !addDateGenres.contains(genre))
+		if (QString genre = query->Get<const char*>(8); !addDateGenres.contains(genre))
 			it->second.genres.emplace(std::move(genre));
-		it->second.authors.emplace(query->Get<long long>(8));
+		it->second.authors.emplace(query->Get<long long>(9));
 		if (analyzeCanceled)
 			break;
 	}
@@ -292,7 +294,8 @@ struct CollectionCleaner::Impl
 									std::function result { [&](size_t) { observer.AnalyzeFinished({}); } };
 									auto genres = observer.GetGenres();
 									auto languages = observer.GetLanguages();
-									if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted())
+									if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize()
+			                            && !observer.GetMaximumBookSize())
 										return result;
 
 									const auto db = databaseUser->Database();
@@ -311,6 +314,12 @@ struct CollectionCleaner::Impl
 
 									if (observer.NeedDeleteMarkedAsDeleted())
 										addToDelete("marked as deleted", [](const auto& item) { return item.second.deleted; });
+
+									if (auto value = observer.GetMinimumBookSize())
+										addToDelete("smaller then minimum", [value = *value](const auto& item) { return item.second.size < value; });
+
+									if (auto value = observer.GetMaximumBookSize())
+										addToDelete("larger then maximum", [value = *value](const auto& item) { return item.second.size > value; });
 
 									if (!languages.isEmpty())
 										addToDelete("on specified languages",
