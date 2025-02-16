@@ -392,6 +392,11 @@ public:
 		return {};
 	}
 
+	void Stop() const
+	{
+		m_progressController->Stop();
+	}
+
 private:
 	Data ParseFb2(const IDataItem& book) const
 	{
@@ -437,4 +442,9 @@ std::shared_ptr<IProgressController> ArchiveParser::GetProgressController() cons
 ArchiveParser::Data ArchiveParser::Parse(const IDataItem& dataItem) const
 {
 	return m_impl->Parse(dataItem);
+}
+
+void ArchiveParser::Stop() const
+{
+	m_impl->Stop();
 }

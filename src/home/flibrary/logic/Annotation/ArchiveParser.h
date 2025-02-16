@@ -50,6 +50,7 @@ public:
 public:
 	[[nodiscard]] std::shared_ptr<class IProgressController> GetProgressController() const;
 	[[nodiscard]] Data Parse(const IDataItem& dataItem) const;
+	void Stop() const;
 
 private:
 	class Impl;
