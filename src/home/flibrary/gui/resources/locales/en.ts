@@ -243,11 +243,28 @@
         <translation></translation>
     </message>
     <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Removes books that have at least one genre in the set of marked ones</source>
         <translation></translation>
     </message>
     <message>
         <source>Removes books whose genres are all included in the set of marked ones</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source> bytes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books smaller than</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books larger than</source>
         <translation></translation>
     </message>
 </context>
