@@ -44,6 +44,11 @@ void DataItem::RemoveChild(size_t row)
 	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [](auto& item) { --item->template To<DataItem>()->m_row; });
 }
 
+void DataItem::RemoveAllChildren()
+{
+	m_children.clear();
+}
+
 void DataItem::SetChildren(std::vector<Ptr> children) noexcept
 {
 	m_children = std::move(children);
