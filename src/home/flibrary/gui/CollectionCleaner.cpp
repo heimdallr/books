@@ -188,6 +188,16 @@ private: // ICollectionCleaner::IAnalyzeCallback
 		                                            : ICollectionCleaner::CleanGenreMode::None;
 	}
 
+	std::optional<size_t> GetMinimumBookSize() const override
+	{
+		return m_ui.minimumSizeEnabled->isChecked() ? std::optional { m_ui.minimumSize->value() } : std::nullopt;
+	}
+
+	std::optional<size_t> GetMaximumBookSize() const override
+	{
+		return m_ui.maximumSizeEnabled->isChecked() ? std::optional { m_ui.maximumSize->value() } : std::nullopt;
+	}
+
 private:
 	void OnGenresContextMenuRequested() const
 	{

@@ -38,6 +38,8 @@ public:
 		virtual QStringList GetLanguages() const = 0;
 		virtual QStringList GetGenres() const = 0;
 		virtual CleanGenreMode GetCleanGenreMode() const = 0;
+		virtual std::optional<size_t> GetMinimumBookSize() const = 0;
+		virtual std::optional<size_t> GetMaximumBookSize() const = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
