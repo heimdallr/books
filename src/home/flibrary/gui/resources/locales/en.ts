@@ -345,6 +345,14 @@
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::TreeView</name>
+    <message>
+        <location filename="../../TreeView.cpp"/>
+        <source>Push me</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <source>&amp;File</source>
