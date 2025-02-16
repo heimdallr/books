@@ -15,24 +15,130 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QCheckBox" name="removeRemoved">
-     <property name="text">
-      <string>Delete books marked as deleted</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="duplicates">
-     <property name="text">
-      <string>Find and remove duplicate books</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="3">
+      <widget class="QSpinBox" name="maximumSize">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+       </property>
+       <property name="showGroupSeparator" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="suffix">
+        <string> bytes</string>
+       </property>
+       <property name="maximum">
+        <number>2147483647</number>
+       </property>
+       <property name="singleStep">
+        <number>1024000</number>
+       </property>
+       <property name="value">
+        <number>10240000</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="minimumSizeEnabled">
+       <property name="text">
+        <string>Delete books smaller than</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="duplicates">
+       <property name="text">
+        <string>Find and remove duplicate books</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QSpinBox" name="minimumSize">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+       </property>
+       <property name="showGroupSeparator" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="suffix">
+        <string> bytes</string>
+       </property>
+       <property name="maximum">
+        <number>2147483647</number>
+       </property>
+       <property name="singleStep">
+        <number>1024</number>
+       </property>
+       <property name="value">
+        <number>1024</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="removeRemoved">
+       <property name="text">
+        <string>Delete books marked as deleted</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QCheckBox" name="maximumSizeEnabled">
+       <property name="text">
+        <string>Delete books larger than</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QSplitter" name="splitter">
@@ -238,6 +344,20 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>removeRemoved</tabstop>
+  <tabstop>duplicates</tabstop>
+  <tabstop>minimumSizeEnabled</tabstop>
+  <tabstop>minimumSize</tabstop>
+  <tabstop>maximumSizeEnabled</tabstop>
+  <tabstop>maximumSize</tabstop>
+  <tabstop>groupBoxGenres</tabstop>
+  <tabstop>genresMatchFull</tabstop>
+  <tabstop>genresMatchPartial</tabstop>
+  <tabstop>genres</tabstop>
+  <tabstop>groupBoxLanguages</tabstop>
+  <tabstop>languages</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

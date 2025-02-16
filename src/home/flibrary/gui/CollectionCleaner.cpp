@@ -27,6 +27,7 @@ constexpr auto CONTEXT = "CollectionCleaner";
 constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
 constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
 constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
+constexpr auto WRONG_SIZES = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
 
 constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
 constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
@@ -88,11 +89,12 @@ public:
 
 		m_ui.progressBar->setVisible(false);
 
-		Load();
-
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] { OnGenresContextMenuRequested(); });
 		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
 		connect(m_ui.languages, &QAbstractItemView::doubleClicked, m_ui.actionLanguageReadRandomBook, &QAction::trigger);
+
+		connect(m_ui.maximumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.maximumSize, &QWidget::setEnabled);
+		connect(m_ui.minimumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.minimumSize, &QWidget::setEnabled);
 
 		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] { OpenRandomBook(); });
 		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::CheckAll); });
@@ -103,6 +105,11 @@ public:
 		connect(m_ui.actionGenreInvertChecks, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::RevertChecks); });
 		connect(m_ui.buttons, &QDialogButtonBox::rejected, &self, [&] { OnCancelClicked(); });
 		connect(m_ui.buttons, &QDialogButtonBox::accepted, &self, [&] { Analyze(); });
+
+		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
+		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
+
+		Load();
 
 		auto label = new QLabel(Tr(ANALYZING));
 		label->setAlignment(Qt::AlignCenter);
@@ -215,6 +222,10 @@ private:
 
 	void Analyze()
 	{
+		if (m_ui.maximumSizeEnabled->isChecked() && m_ui.minimumSizeEnabled->isChecked() && m_ui.maximumSize->value() <= m_ui.minimumSize->value()
+		    && m_uiFactory->ShowQuestion(WRONG_SIZES, QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+			return;
+
 		m_ui.progressBar->setVisible(true);
 		m_ui.buttons->button(QDialogButtonBox::StandardButton::Ok)->setEnabled(false);
 		m_collectionCleaner->Analyze(*this);
