@@ -260,7 +260,7 @@
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
         <translation></translation>
     </message>
     <message>

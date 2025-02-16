@@ -256,8 +256,8 @@
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
-        <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</translation>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
+        <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>

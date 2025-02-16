@@ -41,7 +41,8 @@ namespace
 {
 constexpr auto CONTEXT = "Dialog";
 constexpr auto ABOUT_TITLE = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto ABOUT_TEXT = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger<p>Version: %1 (%2)<p><a href='%3'>%3</a>");
+constexpr auto ABOUT_TEXT = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger<p>Version: %1 (%2)<p><a href='%3'>%3</a></p>%4");
+constexpr auto PERSONAL_BUILD = QT_TRANSLATE_NOOP("Dialog", "");
 constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
@@ -157,7 +158,7 @@ void UiFactory::ShowAbout() const
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle(Loc::Tr(CONTEXT, ABOUT_TITLE));
 	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), GIT_HASH, "https://github.com/heimdallr/books"));
+	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), GIT_HASH, "https://github.com/heimdallr/books").arg(Loc::Tr(CONTEXT, PERSONAL_BUILD)));
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) { return Loc::Tr(CONTEXT, str); });
