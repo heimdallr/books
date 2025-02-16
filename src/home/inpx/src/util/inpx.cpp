@@ -1235,7 +1235,9 @@ private:
 				if (archiveFileInfo.exists())
 				{
 					Zip archiveFile(archiveFileInfo.filePath());
-					std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
+					std::ranges::transform(archiveFile.GetFileNameList(),
+					                       std::inserter(fileList, fileList.end()),
+					                       [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
 				}
 			}
 
@@ -1243,18 +1245,18 @@ private:
 			const auto it = fileList.find(fileName);
 			const auto found = it != fileList.end();
 
-			if (found || !(m_mode & CreateCollectionMode::SkipLostBooks))
-			{
-				auto& book = AddBook(buf);
-				book.size = it->second;
-			}
-			else
+			if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
 			{
 				PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
+				return;
 			}
 
+			auto& book = AddBook(buf);
 			if (found)
+			{
 				fileList.erase(it);
+				book.size = it->second;
+			}
 		}
 	}
 
