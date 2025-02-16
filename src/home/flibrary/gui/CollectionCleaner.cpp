@@ -39,6 +39,10 @@ constexpr auto LANGUAGE_LIST_KEY = "ui/Cleaner/Languages";
 constexpr auto LANGUAGE_FIELD_WIDTH_KEY = "ui/Cleaner/LanguageFieldWidths";
 constexpr auto LANGUAGE_SORT_INDICATOR_COLUMN = "ui/Cleaner/LanguageSortColumn";
 constexpr auto LANGUAGE_SORT_INDICATOR_ORDER = "ui/Cleaner/LanguageSortOrder";
+constexpr auto MAXIMUM_SIZE = "ui/Cleaner/MaximumSize";
+constexpr auto MAXIMUM_SIZE_ENABLED = "ui/Cleaner/MaximumSizeEnabled";
+constexpr auto MINIMUM_SIZE = "ui/Cleaner/MinimumSize";
+constexpr auto MINIMUM_SIZE_ENABLED = "ui/Cleaner/MinimumSizeEnabled";
 
 TR_DEF
 
@@ -257,6 +261,10 @@ private:
 		m_ui.groupBoxLanguages->setChecked(m_settings->Get(DELETE_BY_LANGUAGE_KEY, m_ui.groupBoxLanguages->isChecked()));
 		m_ui.genres->model()->setData({}, m_settings->Get(GENRE_LIST_KEY, m_ui.genres->model()->data({}, Role::SelectedList)), Role::SelectedList);
 		m_ui.languages->model()->setData({}, m_settings->Get(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList)), Role::SelectedList);
+		m_ui.maximumSize->setValue(m_settings->Get(MAXIMUM_SIZE, m_ui.maximumSize->value()));
+		m_ui.minimumSize->setValue(m_settings->Get(MINIMUM_SIZE, m_ui.minimumSize->value()));
+		m_ui.maximumSizeEnabled->setChecked(m_settings->Get(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked()));
+		m_ui.minimumSizeEnabled->setChecked(m_settings->Get(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked()));
 
 		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
 		{
@@ -279,6 +287,10 @@ private:
 		m_settings->Set(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList));
 		m_settings->Set(LANGUAGE_SORT_INDICATOR_COLUMN, header->sortIndicatorSection());
 		m_settings->Set(LANGUAGE_SORT_INDICATOR_ORDER, header->sortIndicatorOrder());
+		m_settings->Set(MAXIMUM_SIZE, m_ui.maximumSize->value());
+		m_settings->Set(MINIMUM_SIZE, m_ui.minimumSize->value());
+		m_settings->Set(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked());
+		m_settings->Set(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked());
 
 		QVector<int> widths;
 		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
