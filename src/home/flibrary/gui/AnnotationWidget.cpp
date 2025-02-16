@@ -442,7 +442,7 @@ private: // IAnnotationController::IObserver
 				if (percents)
 				{
 					if (!m_progressTimer.isActive())
-						m_ui.info->setText(QString("%1%").arg(percents));
+						m_ui.info->setText(percents == 100 ? QString{} : QString("%1%").arg(percents));
 				}
 				else
 				{
