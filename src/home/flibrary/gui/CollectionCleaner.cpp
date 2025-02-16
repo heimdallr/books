@@ -27,6 +27,7 @@ constexpr auto CONTEXT = "CollectionCleaner";
 constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
 constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
 constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
+constexpr auto WRONG_SIZES = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
 
 constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
 constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
@@ -38,6 +39,10 @@ constexpr auto LANGUAGE_LIST_KEY = "ui/Cleaner/Languages";
 constexpr auto LANGUAGE_FIELD_WIDTH_KEY = "ui/Cleaner/LanguageFieldWidths";
 constexpr auto LANGUAGE_SORT_INDICATOR_COLUMN = "ui/Cleaner/LanguageSortColumn";
 constexpr auto LANGUAGE_SORT_INDICATOR_ORDER = "ui/Cleaner/LanguageSortOrder";
+constexpr auto MAXIMUM_SIZE = "ui/Cleaner/MaximumSize";
+constexpr auto MAXIMUM_SIZE_ENABLED = "ui/Cleaner/MaximumSizeEnabled";
+constexpr auto MINIMUM_SIZE = "ui/Cleaner/MinimumSize";
+constexpr auto MINIMUM_SIZE_ENABLED = "ui/Cleaner/MinimumSizeEnabled";
 
 TR_DEF
 
@@ -88,11 +93,12 @@ public:
 
 		m_ui.progressBar->setVisible(false);
 
-		Load();
-
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] { OnGenresContextMenuRequested(); });
 		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
 		connect(m_ui.languages, &QAbstractItemView::doubleClicked, m_ui.actionLanguageReadRandomBook, &QAction::trigger);
+
+		connect(m_ui.maximumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.maximumSize, &QWidget::setEnabled);
+		connect(m_ui.minimumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.minimumSize, &QWidget::setEnabled);
 
 		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] { OpenRandomBook(); });
 		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::CheckAll); });
@@ -103,6 +109,11 @@ public:
 		connect(m_ui.actionGenreInvertChecks, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::RevertChecks); });
 		connect(m_ui.buttons, &QDialogButtonBox::rejected, &self, [&] { OnCancelClicked(); });
 		connect(m_ui.buttons, &QDialogButtonBox::accepted, &self, [&] { Analyze(); });
+
+		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
+		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
+
+		Load();
 
 		auto label = new QLabel(Tr(ANALYZING));
 		label->setAlignment(Qt::AlignCenter);
@@ -177,6 +188,16 @@ private: // ICollectionCleaner::IAnalyzeCallback
 		                                            : ICollectionCleaner::CleanGenreMode::None;
 	}
 
+	std::optional<size_t> GetMinimumBookSize() const override
+	{
+		return m_ui.minimumSizeEnabled->isChecked() ? std::optional { m_ui.minimumSize->value() } : std::nullopt;
+	}
+
+	std::optional<size_t> GetMaximumBookSize() const override
+	{
+		return m_ui.maximumSizeEnabled->isChecked() ? std::optional { m_ui.maximumSize->value() } : std::nullopt;
+	}
+
 private:
 	void OnGenresContextMenuRequested() const
 	{
@@ -215,6 +236,10 @@ private:
 
 	void Analyze()
 	{
+		if (m_ui.maximumSizeEnabled->isChecked() && m_ui.minimumSizeEnabled->isChecked() && m_ui.maximumSize->value() <= m_ui.minimumSize->value()
+		    && m_uiFactory->ShowQuestion(WRONG_SIZES, QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+			return;
+
 		m_ui.progressBar->setVisible(true);
 		m_ui.buttons->button(QDialogButtonBox::StandardButton::Ok)->setEnabled(false);
 		m_collectionCleaner->Analyze(*this);
@@ -246,6 +271,10 @@ private:
 		m_ui.groupBoxLanguages->setChecked(m_settings->Get(DELETE_BY_LANGUAGE_KEY, m_ui.groupBoxLanguages->isChecked()));
 		m_ui.genres->model()->setData({}, m_settings->Get(GENRE_LIST_KEY, m_ui.genres->model()->data({}, Role::SelectedList)), Role::SelectedList);
 		m_ui.languages->model()->setData({}, m_settings->Get(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList)), Role::SelectedList);
+		m_ui.maximumSize->setValue(m_settings->Get(MAXIMUM_SIZE, m_ui.maximumSize->value()));
+		m_ui.minimumSize->setValue(m_settings->Get(MINIMUM_SIZE, m_ui.minimumSize->value()));
+		m_ui.maximumSizeEnabled->setChecked(m_settings->Get(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked()));
+		m_ui.minimumSizeEnabled->setChecked(m_settings->Get(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked()));
 
 		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
 		{
@@ -268,6 +297,10 @@ private:
 		m_settings->Set(LANGUAGE_LIST_KEY, m_ui.languages->model()->data({}, Role::SelectedList));
 		m_settings->Set(LANGUAGE_SORT_INDICATOR_COLUMN, header->sortIndicatorSection());
 		m_settings->Set(LANGUAGE_SORT_INDICATOR_ORDER, header->sortIndicatorOrder());
+		m_settings->Set(MAXIMUM_SIZE, m_ui.maximumSize->value());
+		m_settings->Set(MINIMUM_SIZE, m_ui.minimumSize->value());
+		m_settings->Set(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked());
+		m_settings->Set(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked());
 
 		QVector<int> widths;
 		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)

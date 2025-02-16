@@ -239,12 +239,29 @@
         <translation>Ждите. Идет анализ коллекции...</translation>
     </message>
     <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
+        <translation>Странные значения для минимального и максимального размеров книг. Вы хотите удалить все книги?</translation>
+    </message>
+    <message>
         <source>Removes books that have at least one genre in the set of marked ones</source>
         <translation>Удаляет книги, имеющие хотя бы один жанр в наборе отмеченных</translation>
     </message>
     <message>
         <source>Removes books whose genres are all included in the set of marked ones</source>
         <translation>Удаляет книги, все жанры которых входят в набор отмеченных</translation>
+    </message>
+    <message>
+        <source> bytes</source>
+        <translation> байт</translation>
+    </message>
+    <message>
+        <source>Delete books smaller than</source>
+        <translation>Удалить книги меньше</translation>
+    </message>
+    <message>
+        <source>Delete books larger than</source>
+        <translation>Удалить книги больше</translation>
     </message>
 </context>
 <context>
