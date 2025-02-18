@@ -789,7 +789,7 @@ private:
 
 	void OnValueChanged()
 	{
-		((*this).*ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second)();
+		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
 	}
 
 	void Find(const QVariant& value, const int role) const
