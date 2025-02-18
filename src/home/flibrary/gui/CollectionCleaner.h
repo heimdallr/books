@@ -34,6 +34,8 @@ public:
 	                  std::shared_ptr<ISettings> settings,
 	                  std::shared_ptr<class IGenreModel> genreModel,
 	                  std::shared_ptr<class ILanguageModel> languageModel,
+	                  std::shared_ptr<class ScrollBarController> scrollBarControllerGenre,
+	                  std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
 	                  QWidget* parent = nullptr);
 	~CollectionCleaner() override;
 

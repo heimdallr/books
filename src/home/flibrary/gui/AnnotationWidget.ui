@@ -32,13 +32,13 @@
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="lineWidth">
       <number>0</number>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="handleWidth">
       <number>0</number>
@@ -54,10 +54,10 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::Box</enum>
+       <enum>QFrame::Shape::Box</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Shadow::Sunken</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -90,28 +90,28 @@
           </size>
          </property>
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+          <enum>QFrame::Shadow::Plain</enum>
          </property>
          <property name="lineWidth">
           <number>0</number>
          </property>
          <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="sizeAdjustPolicy">
-          <enum>QAbstractScrollArea::AdjustToContents</enum>
+          <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
          <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
          </property>
          <widget class="QWidget" name="scrollAreaWidgetContents_2">
           <property name="geometry">
@@ -141,10 +141,10 @@
            <item>
             <widget class="QFrame" name="frame_2">
              <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
+              <enum>QFrame::Shape::NoFrame</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Plain</enum>
+              <enum>QFrame::Shadow::Plain</enum>
              </property>
              <layout class="QVBoxLayout" name="_4">
               <property name="spacing">
@@ -165,7 +165,7 @@
               <item>
                <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
                 <property name="contextMenuPolicy">
-                 <enum>Qt::ActionsContextMenu</enum>
+                 <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
                 </property>
                 <property name="visible">
                  <bool>true</bool>
@@ -174,20 +174,20 @@
                  <string notr="true"/>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::NoTextInteraction</set>
+                 <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                 </property>
                </widget>
               </item>
               <item>
                <spacer name="verticalSpacer">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Orientation::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -207,13 +207,19 @@
        <item>
         <widget class="QScrollArea" name="scrollArea">
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+          <enum>QFrame::Shadow::Plain</enum>
          </property>
          <property name="lineWidth">
           <number>0</number>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -223,7 +229,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>188</width>
+            <width>455</width>
             <height>616</height>
            </rect>
           </property>
@@ -246,10 +252,10 @@
            <item>
             <widget class="QFrame" name="frame">
              <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
+              <enum>QFrame::Shape::NoFrame</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Plain</enum>
+              <enum>QFrame::Shadow::Plain</enum>
              </property>
              <property name="lineWidth">
               <number>0</number>
@@ -276,7 +282,7 @@
                  <string notr="true"/>
                 </property>
                 <property name="textFormat">
-                 <enum>Qt::RichText</enum>
+                 <enum>Qt::TextFormat::RichText</enum>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
@@ -288,14 +294,14 @@
                  <bool>false</bool>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+                 <set>Qt::TextInteractionFlag::LinksAccessibleByKeyboard|Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextBrowserInteraction|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item>
                <spacer name="spacer_3">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Orientation::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -337,13 +343,19 @@
        <item>
         <widget class="QTreeView" name="content">
          <property name="frameShape">
-          <enum>QFrame::Box</enum>
+          <enum>QFrame::Shape::Box</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
+          <enum>QFrame::Shadow::Sunken</enum>
          </property>
          <property name="lineWidth">
           <number>1</number>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
          <property name="animated">
           <bool>true</bool>
@@ -363,7 +375,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionCopyImage">
@@ -377,7 +389,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionSaveAllImages">
@@ -388,7 +400,7 @@
     <string notr="true"/>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionOpenImage">

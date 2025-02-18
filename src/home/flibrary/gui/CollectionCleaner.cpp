@@ -16,6 +16,8 @@
 #include "GuiUtil/interface/IUiFactory.h"
 #include "util/localization.h"
 
+#include "ScrollBarController.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -74,7 +76,9 @@ public:
 	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreModel> genreModel,
-	     std::shared_ptr<ILanguageModel> languageModel)
+	     std::shared_ptr<ILanguageModel> languageModel,
+	     std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
+	     std::shared_ptr<ScrollBarController> scrollBarControllerLanguage)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -84,12 +88,21 @@ public:
 		, m_settings { std::move(settings) }
 		, m_genreModel { std::shared_ptr<IModel> { std::move(genreModel) } }
 		, m_languageModel { std::shared_ptr<IModel> { std::move(languageModel) } }
+		, m_scrollBarControllerGenre { std::move(scrollBarControllerGenre) }
+		, m_scrollBarControllerLanguage { std::move(scrollBarControllerLanguage) }
 	{
 		m_ui.setupUi(&self);
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
+		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
+		m_ui.genres->setMouseTracking(true);
+		m_scrollBarControllerGenre->SetScrollArea(m_ui.genres);
+
 		m_ui.languages->setModel(m_languageModel->GetModel());
 		m_ui.languages->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
+		m_ui.languages->viewport()->installEventFilter(m_scrollBarControllerLanguage.get());
+		m_ui.languages->setMouseTracking(true);
+		m_scrollBarControllerLanguage->SetScrollArea(m_ui.languages);
 
 		m_ui.progressBar->setVisible(false);
 
@@ -317,6 +330,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IModel, std::shared_ptr> m_genreModel;
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
 	bool m_analyzeCanceled { false };
 };
 
@@ -326,9 +341,19 @@ CollectionCleaner::CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiF
                                      std::shared_ptr<ISettings> settings,
                                      std::shared_ptr<IGenreModel> genreModel,
                                      std::shared_ptr<ILanguageModel> languageModel,
+                                     std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
+                                     std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
                                      QWidget* parent)
 	: QDialog(uiFactory->GetParentWidget(parent))
-	, m_impl(*this, std::move(uiFactory), std::move(readerController), std::move(collectionCleaner), std::move(settings), std::move(genreModel), std::move(languageModel))
+	, m_impl(*this,
+             std::move(uiFactory),
+             std::move(readerController),
+             std::move(collectionCleaner),
+             std::move(settings),
+             std::move(genreModel),
+             std::move(languageModel),
+             std::move(scrollBarControllerGenre),
+             std::move(scrollBarControllerLanguage))
 {
 }
 

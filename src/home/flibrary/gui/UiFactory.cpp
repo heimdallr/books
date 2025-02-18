@@ -29,6 +29,7 @@
 
 #include "CollectionCleaner.h"
 #include "ItemViewToolTipper.h"
+#include "ScrollBarController.h"
 #include "TreeView.h"
 #include "log.h"
 

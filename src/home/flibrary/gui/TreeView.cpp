@@ -30,6 +30,7 @@
 
 #include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
+#include "ScrollBarController.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -139,16 +140,19 @@ public:
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
+	     std::shared_ptr<ScrollBarController> scrollBarController,
 	     std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
+		, m_scrollBarController { std::move(scrollBarController) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
+		m_scrollBarController->SetScrollArea(m_ui.treeView);
 	}
 
 	~Impl() override
@@ -479,6 +483,8 @@ private:
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
+		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
+		m_ui.treeView->setMouseTracking(true);
 
 		SetupNewItemButton();
 
@@ -838,6 +844,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	Ui::TreeView m_ui {};
@@ -854,10 +861,11 @@ private:
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
                    std::shared_ptr<IUiFactory> uiFactory,
                    std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
+                   std::shared_ptr<ScrollBarController> scrollBarController,
                    std::shared_ptr<const ICollectionProvider> collectionProvider,
                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(collectionProvider))
+	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider))
 {
 	PLOGV << "TreeView created";
 }

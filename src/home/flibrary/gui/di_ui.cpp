@@ -31,11 +31,13 @@
 #include "util/Settings.h"
 
 #include "AnnotationWidget.h"
+#include "ItemViewToolTipper.h"
 #include "LineOption.h"
 #include "LocaleController.h"
 #include "LogItemDelegate.h"
 #include "MainWindow.h"
 #include "ProgressBar.h"
+#include "ScrollBarController.h"
 #include "UiFactory.h"
 
 // ReSharper restore CppUnusedIncludeDirective

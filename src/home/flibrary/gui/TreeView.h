@@ -25,6 +25,7 @@ public:
 	TreeView(std::shared_ptr<ISettings> settings,
 	         std::shared_ptr<class IUiFactory> uiFactory,
 	         std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper,
+	         std::shared_ptr<class ScrollBarController> scrollBarController,
 	         std::shared_ptr<const class ICollectionProvider> collectionProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;

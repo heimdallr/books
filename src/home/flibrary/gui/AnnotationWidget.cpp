@@ -32,6 +32,8 @@
 #include "util/IExecutor.h"
 #include "util/ISettings.h"
 
+#include "ItemViewToolTipper.h"
+#include "ScrollBarController.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -119,7 +121,10 @@ public:
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IAnnotationController> annotationController,
 	     std::shared_ptr<IUiFactory> uiFactory,
-	     std::shared_ptr<IBooksExtractorProgressController> progressController)
+	     std::shared_ptr<IBooksExtractorProgressController> progressController,
+	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipperContent,
+	     std::shared_ptr<ScrollBarController> scrollBarControllerContent,
+	     std::shared_ptr<ScrollBarController> scrollBarControllerAnnotation)
 		: m_self { self }
 		, m_readerController { std::move(readerController) }
 		, m_settings { std::move(settings) }
@@ -128,12 +133,23 @@ public:
 		, m_logicFactory { logicFactory }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_progressController { std::move(progressController) }
+		, m_itemViewToolTipperContent { std::move(itemViewToolTipperContent) }
+		, m_scrollBarControllerContent { std::move(scrollBarControllerContent) }
+		, m_scrollBarControllerAnnotation { std::move(scrollBarControllerAnnotation) }
 		, m_navigationController { logicFactory->GetTreeViewController(ItemType::Navigation) }
 		, m_currentCollectionId { collectionController->GetActiveCollectionId() }
 	{
 		m_ui.setupUi(&m_self);
 
 		m_ui.mainWidget->installEventFilter(this);
+		m_ui.content->viewport()->installEventFilter(m_itemViewToolTipperContent.get());
+		m_ui.content->viewport()->installEventFilter(m_scrollBarControllerContent.get());
+		m_ui.content->setMouseTracking(true);
+		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
+
+		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get());
+		m_ui.info->setMouseTracking(true);
+		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
 
 		const auto setCustomPalette = [](QWidget& widget)
 		{
@@ -496,6 +512,10 @@ private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipperContent;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerContent;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerAnnotation;
+
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
 	Ui::AnnotationWidget m_ui {};
@@ -521,9 +541,23 @@ AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& 
                                    std::shared_ptr<IAnnotationController> annotationController,
                                    std::shared_ptr<IUiFactory> uiFactory,
                                    std::shared_ptr<IBooksExtractorProgressController> progressController,
+                                   std::shared_ptr<ItemViewToolTipper> itemViewToolTipperContent,
+                                   std::shared_ptr<ScrollBarController> scrollBarControllerContent,
+                                   std::shared_ptr<ScrollBarController> scrollBarControllerAnnotation,
                                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this, modelProvider, logicFactory, collectionController, std::move(readerController), std::move(settings), std::move(annotationController), std::move(uiFactory), std::move(progressController))
+	, m_impl(*this,
+             modelProvider,
+             logicFactory,
+             collectionController,
+             std::move(readerController),
+             std::move(settings),
+             std::move(annotationController),
+             std::move(uiFactory),
+             std::move(progressController),
+             std::move(itemViewToolTipperContent),
+             std::move(scrollBarControllerContent),
+             std::move(scrollBarControllerAnnotation))
 {
 	PLOGV << "AnnotationWidget created";
 }
