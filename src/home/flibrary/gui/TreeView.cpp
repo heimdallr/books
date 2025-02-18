@@ -202,7 +202,9 @@ public:
 		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
-		m_ui.treeView->header()->resizeSection(0, m_ui.treeView->header()->sectionSize(0) + (event->size().width() - event->oldSize().width()));
+		auto& header = *m_ui.treeView->header();
+		if (const auto length = header.length(); std::abs(length - event->oldSize().width()) < 2 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
+			header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + (event->size().width() - length));
 	}
 
 private: // ITreeViewController::IObserver
@@ -654,7 +656,7 @@ private:
 
 		indices.erase(-1);
 
-		auto totalWidth = m_ui.treeView->viewport()->width() - QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+		auto totalWidth = m_ui.treeView->viewport()->width();
 
 		for (int i = header->count() - 1; i > 0; --i)
 		{
