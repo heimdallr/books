@@ -77,5 +77,5 @@ void SetupPunchlineJokeRequester::OnResponse(const size_t id, const int code, co
 
 	const auto jsonObject = doc.object();
 
-	client->Response(QString("<p>- %1</p><p>- %2</p>").arg(jsonObject["setup"].toString(), jsonObject["punchline"].toString()));
+	client->Response(QString("<p>%1 %2</p><p>%1 %3</p>").arg(QChar(0x2014), jsonObject["setup"].toString(), jsonObject["punchline"].toString()));
 }
