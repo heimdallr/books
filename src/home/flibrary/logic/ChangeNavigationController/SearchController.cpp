@@ -139,6 +139,7 @@ struct SearchController::Impl
 			const auto searchStringDialog = uiFactory->CreateComboBoxTextDialog(Tr(INPUT_NEW_SEARCH));
 			for (const auto& [id, text] : CONDITIONS)
 				searchStringDialog->GetComboBox().addItem(Tr(text), id);
+			searchStringDialog->GetComboBox().setCurrentIndex(SearchMode::StartsWith);
 
 			if (searchStringDialog->GetDialog().exec() != QDialog::Accepted)
 				return {};
