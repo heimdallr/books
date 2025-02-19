@@ -65,6 +65,7 @@ public:
 	public:
 		virtual void OnAnnotationRequested() = 0;
 		virtual void OnAnnotationChanged(const IDataProvider& dataProvider) = 0;
+		virtual void OnJokeChanged(const QString& value) = 0;
 		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 

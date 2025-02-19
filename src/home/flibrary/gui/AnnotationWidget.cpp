@@ -450,6 +450,11 @@ private: // IAnnotationController::IObserver
 		OnResize();
 	}
 
+	void OnJokeChanged(const QString& value) override
+	{
+		m_ui.info->setText(value);
+	}
+
 	void OnArchiveParserProgress(const int percents) override
 	{
 		m_forwarder.Forward(
