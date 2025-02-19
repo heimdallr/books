@@ -601,6 +601,10 @@
         <source>Generate &amp;index (*.inpx)</source>
         <translation>Генерировать &amp;индекс (*.inpx)</translation>
     </message>
+    <message>
+        <source>Show &amp;jokes</source>
+        <translation>Показывать &amp;шутки</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

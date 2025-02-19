@@ -11,13 +11,12 @@ using namespace HomeCompa::Network;
 class Downloader::Impl
 {
 public:
-	void Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
+	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
 	{
-		PLOGD << "Download started: " << url;
-
 		const QNetworkRequest request(url);
 		auto* reply = m_manager.get(request);
-		m_replies.try_emplace(reply, std::make_pair(QNetworkReply::NetworkError::NoError, QString {}));
+		const auto id = ++m_id;
+		m_replies.try_emplace(reply, std::make_tuple(id, QNetworkReply::NetworkError::NoError, QString {}));
 
 		QObject::connect(reply,
 		                 &QObject::destroyed,
@@ -26,16 +25,9 @@ public:
 		                 {
 							 const auto it = m_replies.find(obj);
 							 assert(it != m_replies.end());
-							 callback(it->second.first, it->second.second);
-						 });
-
-		QObject::connect(&m_manager,
-		                 &QNetworkAccessManager::finished,
-		                 &m_manager,
-		                 [reply, url]
-		                 {
-							 PLOGD << "Download finished: " << url;
-							 reply->deleteLater();
+							 const auto& [idMessage, code, message] = it->second;
+							 callback(idMessage, code, message);
+							 m_replies.erase(obj);
 						 });
 
 		QObject::connect(reply, &QNetworkReply::readyRead, &m_manager, [&, reply] { io.write(reply->readAll()); });
@@ -50,9 +42,13 @@ public:
 							 PLOGE << QString("(%1) %2").arg(static_cast<int>(code)).arg(error);
 							 const auto it = m_replies.find(reply);
 							 assert(it != m_replies.end());
-							 it->second = std::make_pair(code, std::move(error));
+							 auto& [_, errorCode, errorMessage] = it->second;
+							 errorCode = code;
+							 errorMessage = std::move(error);
 							 reply->deleteLater();
 						 });
+
+		QObject::connect(&m_manager, &QNetworkAccessManager::finished, &m_manager, [](QNetworkReply* reply) { reply->deleteLater(); });
 
 		if (progress)
 		{
@@ -67,11 +63,14 @@ public:
 									 reply->close();
 							 });
 		}
+
+		return id;
 	}
 
 private:
 	QNetworkAccessManager m_manager;
-	std::unordered_map<const QObject*, std::pair<QNetworkReply::NetworkError, QString>> m_replies;
+	std::unordered_map<const QObject*, std::tuple<size_t, QNetworkReply::NetworkError, QString>> m_replies;
+	size_t m_id { 0 };
 };
 
 Downloader::Downloader()
@@ -84,7 +83,7 @@ Downloader::~Downloader()
 	PLOGV << "Downloader destroyed";
 }
 
-void Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
+size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
 {
-	m_impl->Download(url, io, std::move(callback), std::move(progress));
+	return m_impl->Download(url, io, std::move(callback), std::move(progress));
 }

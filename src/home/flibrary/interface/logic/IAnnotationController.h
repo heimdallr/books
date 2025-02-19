@@ -65,6 +65,7 @@ public:
 	public:
 		virtual void OnAnnotationRequested() = 0;
 		virtual void OnAnnotationChanged(const IDataProvider& dataProvider) = 0;
+		virtual void OnJokeChanged(const QString& value) = 0;
 		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 
@@ -74,6 +75,7 @@ public:
 public:
 	virtual void SetCurrentBookId(QString bookId, bool extractNow = false) = 0;
 	virtual QString CreateAnnotation(const IDataProvider& dataProvider) const = 0;
+	virtual void ShowJokes(bool value) = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

@@ -324,6 +324,10 @@ private: // IAnnotationController::IObserver
 		m_f(dataProvider);
 	}
 
+	void OnJokeChanged(const QString&) override
+	{
+	}
+
 	void OnArchiveParserProgress(int /*percents*/) override
 	{
 	}

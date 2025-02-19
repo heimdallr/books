@@ -18,7 +18,7 @@ class NETWORK_EXPORT Downloader
 	NON_COPY_MOVABLE(Downloader)
 
 public:
-	using OnFinish = std::function<void(int code, const QString& message)>;
+	using OnFinish = std::function<void(size_t id, int code, const QString& message)>;
 	using OnProgress = std::function<void(int64_t bytesReceived, int64_t bytesTotal, bool& stopped)>;
 
 public:
@@ -26,7 +26,7 @@ public:
 	~Downloader();
 
 public:
-	void Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress = {});
+	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress = {});
 
 private:
 	class Impl;

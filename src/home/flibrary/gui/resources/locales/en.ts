@@ -605,6 +605,10 @@
         <source>Generate &amp;index (*.inpx)</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Show &amp;jokes</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

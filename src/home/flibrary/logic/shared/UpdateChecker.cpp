@@ -248,7 +248,7 @@ private:
 		downloader->Download(
 			it->browser_download_url,
 			*file,
-			[this, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](const int code, const QString& error) mutable
+			[this, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](size_t, const int code, const QString& error) mutable
 			{
 				file->close();
 				file.reset();
