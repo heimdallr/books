@@ -532,7 +532,7 @@ Try again?</source>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
         <source>begin with</source>
-        <translation>начианются с</translation>
+        <translation>начинаются с</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
