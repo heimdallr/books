@@ -15,6 +15,7 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
@@ -73,6 +74,7 @@ constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto ACTION_PROPERTY_NAME = "value";
 
 class AllowDestructiveOperationsObserver : public QObject
@@ -127,6 +129,7 @@ public:
 	     std::shared_ptr<ICollectionController> collectionController,
 	     std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	     std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
+	     std::shared_ptr<IAnnotationController> annotationController,
 	     std::shared_ptr<AnnotationWidget> annotationWidget,
 	     std::shared_ptr<LocaleController> localeController,
 	     std::shared_ptr<ILogController> logController,
@@ -143,6 +146,7 @@ public:
 		, m_settings(std::move(settings))
 		, m_collectionController(std::move(collectionController))
 		, m_parentWidgetProvider(std::move(parentWidgetProvider))
+		, m_annotationController { std::move(annotationController) }
 		, m_annotationWidget(std::move(annotationWidget))
 		, m_localeController(std::move(localeController))
 		, m_logController(std::move(logController))
@@ -282,6 +286,8 @@ private:
 			m_ui.actionDenyDestructiveOperations->setVisible(false);
 		}
 		m_ui.actionPermanentLanguageFilter->setChecked(m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false));
+		m_ui.actionShowJokes->setChecked(m_settings->Get(SHOW_JOKES_KEY, false));
+		m_annotationController->ShowJokes(m_ui.actionShowJokes->isChecked());
 
 		if (const auto severity = m_settings->Get(LOG_SEVERITY_KEY); severity.isValid())
 			m_logController->SetSeverity(severity.toInt());
@@ -376,6 +382,14 @@ private:
 
 		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] { m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible()); });
+		connect(m_ui.actionShowJokes,
+		        &QAction::triggered,
+		        &m_self,
+		        [this](const bool checked)
+		        {
+					m_annotationController->ShowJokes(checked);
+					m_settings->Set(SHOW_JOKES_KEY, checked);
+				});
 
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
 
@@ -583,6 +597,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
 	PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
@@ -603,6 +618,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<ICollectionController> collectionController,
                        std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker,
                        std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
+                       std::shared_ptr<IAnnotationController> annotationController,
                        std::shared_ptr<AnnotationWidget> annotationWidget,
                        std::shared_ptr<LocaleController> localeController,
                        std::shared_ptr<ILogController> logController,
@@ -620,6 +636,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(collectionController),
              std::move(collectionUpdateChecker),
              std::move(parentWidgetProvider),
+             std::move(annotationController),
              std::move(annotationWidget),
              std::move(localeController),
              std::move(logController),

@@ -327,6 +327,7 @@
       <addaction name="actionHideAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
       <addaction name="actionHideAnnotationContent"/>
+      <addaction name="actionShowJokes"/>
      </widget>
      <widget class="QMenu" name="menuLog">
       <property name="title">
@@ -783,6 +784,17 @@
   <action name="actionGenerateIndexInpx">
    <property name="text">
     <string>Generate &amp;index (*.inpx)</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowJokes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show &amp;jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

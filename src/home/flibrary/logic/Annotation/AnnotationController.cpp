@@ -213,8 +213,13 @@ public:
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
 			extractNow ? ExtractInfo() : m_extractInfoTimer->start();
-		else
+		else if (m_showJokes)
 			RequestJoke();
+	}
+
+	void ShowJokes(const bool value)
+	{
+		m_showJokes = value;
 	}
 
 private: // IDataProvider
@@ -515,6 +520,8 @@ private:
 	ExportStatistics m_exportStatistics;
 
 	std::weak_ptr<ArchiveParser> m_archiveParser;
+
+	bool m_showJokes { false };
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester)
@@ -610,6 +617,11 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	}
 
 	return annotation;
+}
+
+void AnnotationController::ShowJokes(const bool value)
+{
+	m_impl->ShowJokes(value);
 }
 
 void AnnotationController::RegisterObserver(IObserver* observer)
