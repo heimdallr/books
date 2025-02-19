@@ -18,6 +18,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IJokeRequester.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
@@ -159,6 +160,30 @@ struct Table
 	QStringList data;
 };
 
+class JokeRequesterClientImpl : virtual public IJokeRequester::IClient
+{
+public:
+	static std::shared_ptr<IClient> Create(IClient& impl)
+	{
+		return std::make_shared<JokeRequesterClientImpl>(impl);
+	}
+
+public:
+	explicit JokeRequesterClientImpl(IClient& impl)
+		: m_impl(impl)
+	{
+	}
+
+private: // IJokeRequester::IClient
+	void Response(const QString& value) override
+	{
+		m_impl.Response(value);
+	}
+
+private:
+	IClient& m_impl;
+};
+
 } // namespace
 
 ENABLE_BITMASK_OPERATORS(Ready);
@@ -167,12 +192,15 @@ class AnnotationController::Impl final
 	: public Observable<IObserver>
 	, public IDataProvider
 	, IProgressController::IObserver
+	, IJokeRequester::IClient
 {
 public:
-	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
+	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester)
 		: m_logicFactory { logicFactory }
 		, m_databaseUser { std::move(databaseUser) }
+		, m_jokeRequester { std::move(jokeRequester) }
 		, m_executor { logicFactory->GetExecutor() }
+		, m_jokeRequesterClientImpl(JokeRequesterClientImpl::Create(*this))
 	{
 	}
 
@@ -185,6 +213,8 @@ public:
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
 			extractNow ? ExtractInfo() : m_extractInfoTimer->start();
+		else
+			RequestJoke();
 	}
 
 private: // IDataProvider
@@ -308,6 +338,12 @@ private: // IProgressController::IObserver
 	void OnStop() override
 	{
 		Perform(&IAnnotationController::IObserver::OnArchiveParserProgress, 100);
+	}
+
+private: // IJokeRequester::IClient
+	void Response(const QString& value) override
+	{
+		Perform(&IAnnotationController::IObserver::OnJokeChanged, std::cref(value));
 	}
 
 private:
@@ -449,10 +485,17 @@ private:
 		return root;
 	}
 
+	void RequestJoke()
+	{
+		m_jokeRequester->Request(m_jokeRequesterClientImpl);
+	}
+
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	PropagateConstPtr<IJokeRequester, std::shared_ptr> m_jokeRequester;
 	PropagateConstPtr<Util::IExecutor> m_executor;
+	std::shared_ptr<IJokeRequester::IClient> m_jokeRequesterClientImpl;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
 
 	QString m_currentBookId;
@@ -474,8 +517,8 @@ private:
 	std::weak_ptr<ArchiveParser> m_archiveParser;
 };
 
-AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser)
-	: m_impl(logicFactory, std::move(databaseUser))
+AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester)
+	: m_impl(logicFactory, std::move(databaseUser), std::move(jokeRequester))
 {
 	PLOGV << "AnnotationController created";
 }
