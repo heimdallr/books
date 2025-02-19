@@ -28,12 +28,18 @@ public:
 public:
 	struct SearchMode
 	{
+#define SEARCH_MODE_ITEMS_X_MACRO \
+	SEARCH_MODE_ITEM(Contains)    \
+	SEARCH_MODE_ITEM(StartsWith)  \
+	SEARCH_MODE_ITEM(EndsWith)    \
+	SEARCH_MODE_ITEM(Equals)
+
 		enum
 		{
-			Contains,
-			StartsWith,
-			EndsWith,
-			Equals,
+
+#define SEARCH_MODE_ITEM(NAME) NAME,
+			SEARCH_MODE_ITEMS_X_MACRO
+#undef SEARCH_MODE_ITEM
 		};
 	};
 

@@ -41,6 +41,9 @@ constexpr std::pair<int, const char*> CONDITIONS[] {
 	{   SearchController::SearchMode::EndsWith, QT_TRANSLATE_NOOP("SearchController",    "end with") },
 	{     SearchController::SearchMode::Equals, QT_TRANSLATE_NOOP("SearchController", "is equal to") },
 };
+#define SEARCH_MODE_ITEM(NAME) static_assert(SearchController::SearchMode::NAME == CONDITIONS[SearchController::SearchMode::NAME].first);
+SEARCH_MODE_ITEMS_X_MACRO
+#undef SEARCH_MODE_ITEM
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
 constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, Mode, SearchTitle, CreatedAt) values(?, ?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
@@ -139,6 +142,7 @@ struct SearchController::Impl
 			const auto searchStringDialog = uiFactory->CreateComboBoxTextDialog(Tr(INPUT_NEW_SEARCH));
 			for (const auto& [id, text] : CONDITIONS)
 				searchStringDialog->GetComboBox().addItem(Tr(text), id);
+			searchStringDialog->GetComboBox().setCurrentIndex(SearchMode::StartsWith);
 
 			if (searchStringDialog->GetDialog().exec() != QDialog::Accepted)
 				return {};
