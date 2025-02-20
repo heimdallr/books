@@ -538,10 +538,6 @@
         <translation>&amp;Книга</translation>
     </message>
     <message>
-        <source>Book &amp;export tempate</source>
-        <translation>Шаблон &amp;экспорта книг</translation>
-    </message>
-    <message>
         <source>Check for &amp;Updates</source>
         <translation>Проверка &amp;обновлений</translation>
     </message>
@@ -604,6 +600,14 @@
     <message>
         <source>Show &amp;jokes</source>
         <translation>Показывать &amp;шутки</translation>
+    </message>
+    <message>
+        <source>Book &amp;export template</source>
+        <translation>Шаблон &amp;экспорта книг</translation>
+    </message>
+    <message>
+        <source>Book export template</source>
+        <translation>Шаблон экспорта книг</translation>
     </message>
 </context>
 <context>

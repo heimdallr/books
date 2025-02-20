@@ -542,10 +542,6 @@
         <translation></translation>
     </message>
     <message>
-        <source>Book &amp;export tempate</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Check for &amp;Updates</source>
         <translation></translation>
     </message>
@@ -607,6 +603,14 @@
     </message>
     <message>
         <source>Show &amp;jokes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Book &amp;export template</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Book export template</source>
         <translation></translation>
     </message>
 </context>
