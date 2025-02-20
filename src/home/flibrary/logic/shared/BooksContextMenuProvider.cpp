@@ -93,8 +93,7 @@ public:
 };
 
 constexpr std::pair<BooksMenuAction, IContextMenuHandler::Function> MENU_HANDLERS[] {
-	{ BooksMenuAction::AddToGroup, &IContextMenuHandler::AddToGroup },
-#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME                                                                   },
+#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME },
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef BOOKS_MENU_ACTION_ITEM
 };
