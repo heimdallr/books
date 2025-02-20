@@ -1945,7 +1945,7 @@
     <message>
         <location filename="../../logic/IScriptController.h"/>
         <source>%author_last_name%</source>
-        <translation>Фимилия автора</translation>
+        <translation>Фамилия автора</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>
