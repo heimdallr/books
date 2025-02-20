@@ -225,7 +225,7 @@ private: // ILineOption::IObserver
 
 	void OnOptionEditingFinished(const QString& /*value*/) override
 	{
-		m_ui.settingsLineEdit->actions().clear();
+		disconnect(m_settingsLineEditExecuteContextMenuConnection);
 		QTimer::singleShot(0, [&] { m_lineOption->Unregister(this); });
 	}
 
@@ -395,12 +395,22 @@ private:
 
 		connect(m_ui.actionOpds, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateOpdsDialog()->exec(); });
 
-		connect(m_ui.actionExportTempate,
+		connect(m_ui.actionExportTemplate,
 		        &QAction::triggered,
 		        &m_self,
 		        [&]
 		        {
-					IScriptController::SetMacroActions(m_ui.settingsLineEdit);
+					m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit,
+			                                                                 &QWidget::customContextMenuRequested,
+			                                                                 &m_self,
+			                                                                 [this]
+			                                                                 {
+																				 {
+																					 QSignalBlocker blocker(m_ui.settingsLineEdit);
+																					 IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
+																				 }
+																				 emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
+																			 });
 					m_lineOption->Register(this);
 					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 				});
@@ -610,6 +620,8 @@ private:
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
+
+	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,

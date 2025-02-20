@@ -33,7 +33,7 @@
     <item>
      <widget class="QLineEdit" name="settingsLineEdit">
       <property name="contextMenuPolicy">
-       <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
      </widget>
     </item>
@@ -380,7 +380,7 @@
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
     <addaction name="actionOpds"/>
-    <addaction name="actionExportTempate"/>
+    <addaction name="actionExportTemplate"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -673,9 +673,12 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionExportTempate">
+  <action name="actionExportTemplate">
    <property name="text">
-    <string>Book &amp;export tempate</string>
+    <string>Book &amp;export template</string>
+   </property>
+   <property name="toolTip">
+    <string>Book export template</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
