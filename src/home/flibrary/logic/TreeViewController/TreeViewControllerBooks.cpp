@@ -107,9 +107,9 @@ std::vector<const char*> TreeViewControllerBooks::GetModeNames() const
 	return GetModeNamesImpl(MODE_NAMES);
 }
 
-void TreeViewControllerBooks::SetCurrentId(QString id)
+void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
 {
-	m_impl->annotationController->SetCurrentBookId(std::move(id));
+	m_impl->annotationController->SetCurrentBookId(type == ItemType::Books ? std::move(id) : QString {});
 }
 
 void TreeViewControllerBooks::OnModeChanged(const QString& mode)

@@ -287,7 +287,7 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [&](const QModelIndex& index) { m_controller->SetCurrentId(m_currentId = index.data(Role::Id).toString()); });
+		        [&](const QModelIndex& index) { m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString()); });
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
@@ -321,7 +321,7 @@ private:
 
 		m_ui.value->setEnabled(!modelEmpty);
 		if (modelEmpty)
-			m_controller->SetCurrentId({});
+			m_controller->SetCurrentId(ItemType::Unknown, {});
 	}
 
 	void ShowPushMe()

@@ -361,7 +361,7 @@ std::vector<const char*> TreeViewControllerNavigation::GetModeNames() const
 	return GetModeNamesImpl(MODE_DESCRIPTORS);
 }
 
-void TreeViewControllerNavigation::SetCurrentId(QString id)
+void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
 {
 	m_dataProvider->SetNavigationId(std::move(id));
 }

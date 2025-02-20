@@ -48,7 +48,7 @@ public:
 	[[nodiscard]] virtual const char* TrContext() const noexcept = 0;
 	[[nodiscard]] virtual std::vector<const char*> GetModeNames() const = 0;
 	virtual void SetMode(const QString& mode) = 0;
-	virtual void SetCurrentId(QString id) = 0;
+	virtual void SetCurrentId(ItemType type, QString id) = 0;
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
 	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
