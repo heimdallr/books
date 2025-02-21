@@ -142,6 +142,9 @@ struct SearchController::Impl
 
 	void FindOrCreateNewSearch(const Names& names, QString searchString, Callback callback, const int mode)
 	{
+		if (searchString.length() < MINIMUM_SEARCH_LENGTH)
+			return callback(-1);
+
 		if (const auto it = names.find(GetSearchTitle(searchString.toUpper(), mode)); it != names.end())
 			return callback(it->second);
 
