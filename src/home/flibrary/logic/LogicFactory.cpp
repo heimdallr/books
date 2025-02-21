@@ -6,6 +6,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionProvider.h"
@@ -21,7 +22,6 @@
 
 #include "Annotation/ArchiveParser.h"
 #include "ChangeNavigationController/GroupController.h"
-#include "ChangeNavigationController/SearchController.h"
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 #include "data/DataProvider.h"
@@ -102,9 +102,9 @@ std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
 	return m_impl->container.resolve<GroupController>();
 }
 
-std::shared_ptr<SearchController> LogicFactory::CreateSearchController() const
+std::shared_ptr<IBookSearchController> LogicFactory::CreateSearchController() const
 {
-	return m_impl->container.resolve<SearchController>();
+	return m_impl->container.resolve<IBookSearchController>();
 }
 
 std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const

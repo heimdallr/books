@@ -7,12 +7,12 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
-#include "ChangeNavigationController/SearchController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
