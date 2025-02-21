@@ -16,6 +16,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
@@ -258,6 +259,7 @@ private:
 		auto* menuBar = new QWidget(&m_self);
 		auto layout = new QHBoxLayout(menuBar);
 		layout->addWidget(m_self.menuBar());
+		layout->addItem(new QSpacerItem(72, 20, QSizePolicy::Fixed));
 		layout->addWidget(m_ui.lineEditBookTitleToSearch, 100);
 		layout->setContentsMargins(0, 0, 0, 0);
 
@@ -449,6 +451,9 @@ private:
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 		ConnectShowHide<QLineEdit>(m_ui.lineEditBookTitleToSearch, &QWidget::setVisible, m_ui.actionShowSearchBookString, m_ui.actionHideSearchBookString, SHOW_SEARCH_BOOK_KEY);
 
+		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
+		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
+
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
 		{
 			auto* group = new QActionGroup(&m_self);
@@ -501,6 +506,28 @@ private:
 		}
 		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+	}
+
+	void SearchBookByTitle()
+	{
+		if (!m_collectionController->ActiveCollectionExists())
+			return;
+
+		auto searchString = m_ui.lineEditBookTitleToSearch->text();
+		if (searchString.isEmpty())
+			return;
+
+		auto searchController = ILogicFactory::Lock(m_logicFactory)->CreateSearchController();
+		searchController->Search(searchString,
+		                         [this, searchController](const long long id) mutable
+		                         {
+									 if (id <= 0)
+										 return;
+
+									 m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionController->GetActiveCollectionId()).arg(Loc::Search), QString::number(id));
+									 ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation)->SetMode(Loc::Search);
+									 searchController.reset();
+								 });
 	}
 
 	void CreateLogMenu()

@@ -3,6 +3,8 @@
 #include <functional>
 #include <unordered_set>
 
+class QString;
+
 namespace HomeCompa::Flibrary
 {
 
@@ -36,6 +38,7 @@ public:
 public:
 	virtual void CreateNew(Callback callback) = 0;
 	virtual void Remove(Ids ids, Callback callback) const = 0;
+	virtual void Search(QString searchString, Callback callback, int mode = SearchMode::Contains) = 0;
 };
 
 } // namespace HomeCompa::Flibrary
