@@ -609,6 +609,22 @@
         <source>Book export template</source>
         <translation>Шаблон экспорта книг</translation>
     </message>
+    <message>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation>Для поиска книги по названию, введите часть названия здесь и нажмите Enter</translation>
+    </message>
+    <message>
+        <source>Search book by title</source>
+        <translation>Поиск книги по названию</translation>
+    </message>
+    <message>
+        <source>Show &amp;book search by title bar</source>
+        <translation>Показать строку поиска &amp;книги по названию</translation>
+    </message>
+    <message>
+        <source>Hide &amp;book search by title bar</source>
+        <translation>Скрыть строку поиска &amp;книги по названию</translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>

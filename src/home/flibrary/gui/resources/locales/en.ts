@@ -613,6 +613,22 @@
         <source>Book export template</source>
         <translation></translation>
     </message>
+    <message>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search book by title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show &amp;book search by title bar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Hide &amp;book search by title bar</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
