@@ -520,7 +520,7 @@ private:
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
-		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)] { callback(item); });
+		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)](long long) { callback(item); });
 	}
 
 	GroupController::Ids GetSelected(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const

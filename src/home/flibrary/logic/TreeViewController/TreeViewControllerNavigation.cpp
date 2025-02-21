@@ -7,12 +7,12 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
-#include "ChangeNavigationController/SearchController.h"
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -218,7 +218,7 @@ private: // IContextMenuHandler
 	void OnCreateNavigationItem(ControllerCreator<T> creator) const
 	{
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->CreateNew([=]() mutable { controller.reset(); });
+		controller->CreateNew([=](long long) mutable { controller.reset(); });
 	}
 
 	template <typename T>
@@ -234,7 +234,7 @@ private: // IContextMenuHandler
 			return;
 
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->Remove(std::move(ids), [=]() mutable { controller.reset(); });
+		controller->Remove(std::move(ids), [=](long long) mutable { controller.reset(); });
 	}
 
 	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&) const override

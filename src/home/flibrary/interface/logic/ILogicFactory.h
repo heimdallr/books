@@ -60,7 +60,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser> CreateArchiveParser() const = 0;
 	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer = {}) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class GroupController> CreateGroupController() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class SearchController> CreateSearchController() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IBookSearchController> CreateSearchController() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IUserDataController> CreateUserDataController() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;

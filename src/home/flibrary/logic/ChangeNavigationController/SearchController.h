@@ -1,10 +1,9 @@
 #pragma once
 
-#include <functional>
-#include <unordered_set>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
+
+#include "interface/logic/IBookSearchController.h"
 
 class QString;
 
@@ -16,32 +15,9 @@ class ISettings;
 namespace HomeCompa::Flibrary
 {
 
-class SearchController
+class SearchController final : virtual public IBookSearchController
 {
 	NON_COPY_MOVABLE(SearchController)
-
-public:
-	using Callback = std::function<void()>;
-	using Id = long long;
-	using Ids = std::unordered_set<Id>;
-
-public:
-	struct SearchMode
-	{
-#define SEARCH_MODE_ITEMS_X_MACRO \
-	SEARCH_MODE_ITEM(Contains)    \
-	SEARCH_MODE_ITEM(StartsWith)  \
-	SEARCH_MODE_ITEM(EndsWith)    \
-	SEARCH_MODE_ITEM(Equals)
-
-		enum
-		{
-
-#define SEARCH_MODE_ITEM(NAME) NAME,
-			SEARCH_MODE_ITEMS_X_MACRO
-#undef SEARCH_MODE_ITEM
-		};
-	};
 
 public:
 	SearchController(std::shared_ptr<ISettings> settings,
@@ -49,11 +25,12 @@ public:
 	                 std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor,
 	                 std::shared_ptr<class IUiFactory> uiFactory,
 	                 const std::shared_ptr<class ICollectionController>& collectionController);
-	~SearchController();
+	~SearchController() override;
 
-public:
-	void CreateNew(Callback callback);
-	void Remove(Ids ids, Callback callback) const;
+private: // IBookSearchController
+	void CreateNew(Callback callback) override;
+	void Remove(Ids ids, Callback callback) const override;
+	void Search(QString searchString, Callback callback, int mode = SearchMode::Contains) override;
 
 private:
 	struct Impl;

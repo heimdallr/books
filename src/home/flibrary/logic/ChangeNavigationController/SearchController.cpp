@@ -50,7 +50,7 @@ constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, Mode, Sea
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
-using Names = std::unordered_set<QString>;
+using Names = std::unordered_map<QString, long long>;
 
 QString GetSearchTitle(const QString& value, int mode)
 {
@@ -105,7 +105,7 @@ struct SearchController::Impl
 		                                           {
 													   Names names;
 													   for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-														   names.emplace(root->GetChild(i)->GetData().toUpper());
+														   names.try_emplace(root->GetChild(i)->GetData().toUpper(), root->GetChild(i)->GetId().toLongLong());
 													   callback(names);
 												   });
 	}
@@ -114,8 +114,13 @@ struct SearchController::Impl
 	{
 		auto [searchMode, searchString] = GetNewSearchText(names);
 		if (searchString.isEmpty())
-			return;
+			return callback(-1);
 
+		CreateNewSearch(std::move(callback), std::move(searchString), searchMode);
+	}
+
+	void CreateNewSearch(Callback callback, QString searchString, const int searchMode)
+	{
 		databaseUser->Execute({ "Create search string",
 		                        [&, searchMode, searchString = std::move(searchString), callback = std::move(callback)]() mutable
 		                        {
@@ -127,12 +132,20 @@ struct SearchController::Impl
 									return [this, id, searchString = std::move(searchString), callback = std::move(callback)](size_t)
 									{
 										if (id)
-											settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(currentCollectionId).arg("Search"), QString::number(id));
+											settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(currentCollectionId).arg(Loc::Search), QString::number(id));
 										else
 											uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
-										callback();
+										callback(id);
 									};
 								} });
+	}
+
+	void FindOrCreateNewSearch(const Names& names, QString searchString, Callback callback, const int mode)
+	{
+		if (const auto it = names.find(GetSearchTitle(searchString.toUpper(), mode)); it != names.end())
+			return callback(it->second);
+
+		CreateNewSearch(std::move(callback), std::move(searchString), mode);
 	}
 
 	std::pair<int, QString> GetNewSearchText(const Names& names) const
@@ -228,7 +241,13 @@ void SearchController::Remove(Ids ids, Callback callback) const
 											if (!ok)
 												m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
 
-											callback();
+											callback(-1);
 										};
 									} });
+}
+
+void SearchController::Search(QString searchString, Callback callback, int mode)
+{
+	m_impl->GetAllSearches([&, searchString = std::move(searchString), callback = std::move(callback)](const Names& names) mutable
+	                       { m_impl->FindOrCreateNewSearch(names, std::move(searchString), std::move(callback), mode); });
 }

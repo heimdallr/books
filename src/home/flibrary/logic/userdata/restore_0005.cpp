@@ -7,8 +7,8 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IBookSearchController.h"
 
-#include "ChangeNavigationController/SearchController.h"
 #include "constants/books.h"
 #include "constants/searches.h"
 #include "util/xml/XmlAttributes.h"
@@ -40,9 +40,9 @@ QString CreateSearchTitle(QString title, int mode)
 {
 	mode = ~mode;
 
-	if (mode & SearchController::SearchMode::EndsWith && title.endsWith('~'))
+	if (mode & IBookSearchController::SearchMode::EndsWith && title.endsWith('~'))
 		title.resize(title.length() - 1);
-	if (mode & SearchController::SearchMode::StartsWith && title.startsWith('~'))
+	if (mode & IBookSearchController::SearchMode::StartsWith && title.startsWith('~'))
 		title.remove(0, 1);
 
 	return title;

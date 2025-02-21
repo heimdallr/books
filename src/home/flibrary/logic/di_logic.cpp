@@ -8,6 +8,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "Annotation/AnnotationController.h"
+#include "ChangeNavigationController/SearchController.h"
 #include "Collection/CollectionCleaner.h"
 #include "Collection/CollectionController.h"
 #include "Collection/CollectionProvider.h"
@@ -72,6 +73,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
 	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<ScriptController>().as<IScriptController>();
+	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
 	builder.registerType<SetupPunchlineJokeRequester>().as<IJokeRequester>().singleInstance();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
