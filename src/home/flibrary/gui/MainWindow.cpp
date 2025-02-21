@@ -75,6 +75,7 @@ constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButto
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
+constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto ACTION_PROPERTY_NAME = "value";
 
 class AllowDestructiveOperationsObserver : public QObject
@@ -254,6 +255,16 @@ private:
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
 
+		auto* menuBar = new QWidget(&m_self);
+		auto layout = new QHBoxLayout(menuBar);
+		layout->addWidget(m_self.menuBar());
+		layout->addWidget(m_ui.lineEditBookTitleToSearch, 100);
+		layout->setContentsMargins(0, 0, 0, 0);
+
+		m_self.setMenuWidget(menuBar);
+
+		m_ui.lineEditBookTitleToSearch->addAction(m_ui.actionSearchBookByTitle, QLineEdit::LeadingPosition);
+
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(),
@@ -268,6 +279,7 @@ private:
 		                       m_ui.actionHideAnnotationCoverButtons,
 		                       m_settings->Get(SHOW_ANNOTATION_COVER_BUTTONS_KEY, true));
 		OnObjectVisibleChanged<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, m_settings->Get(SHOW_STATUS_BAR_KEY, true));
+		OnObjectVisibleChanged<QLineEdit>(m_ui.lineEditBookTitleToSearch, &QWidget::setVisible, m_ui.actionShowSearchBookString, m_ui.actionHideSearchBookString, m_settings->Get(SHOW_SEARCH_BOOK_KEY, true));
 		if (m_collectionController->ActiveCollectionExists())
 		{
 			OnObjectVisibleChanged(this,
@@ -435,6 +447,7 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY);
 		ConnectShowHide(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
+		ConnectShowHide<QLineEdit>(m_ui.lineEditBookTitleToSearch, &QWidget::setVisible, m_ui.actionShowSearchBookString, m_ui.actionHideSearchBookString, SHOW_SEARCH_BOOK_KEY);
 
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
 		{
