@@ -256,14 +256,6 @@ private:
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
 
-		auto* menuBar = new QWidget(&m_self);
-		auto layout = new QHBoxLayout(menuBar);
-		layout->addWidget(m_self.menuBar());
-		layout->addItem(new QSpacerItem(72, 20, QSizePolicy::Fixed));
-		layout->addWidget(m_ui.lineEditBookTitleToSearch, 100);
-		layout->setContentsMargins(0, 0, 0, 0);
-
-		m_self.setMenuWidget(menuBar);
 
 		m_ui.lineEditBookTitleToSearch->addAction(m_ui.actionSearchBookByTitle, QLineEdit::LeadingPosition);
 
@@ -308,6 +300,19 @@ private:
 
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
+
+		ReplaceMenuBar();
+	}
+
+	void ReplaceMenuBar() const
+	{
+		auto* menuBar = new QWidget(&m_self);
+		auto layout = new QHBoxLayout(menuBar);
+		layout->addWidget(m_self.menuBar());
+		layout->addItem(new QSpacerItem(72, 20, QSizePolicy::Fixed));
+		layout->addWidget(m_ui.lineEditBookTitleToSearch, 100);
+		layout->setContentsMargins(0, 0, 0, 0);
+		m_self.setMenuWidget(menuBar);
 	}
 
 	void AllowDestructiveOperation(const bool value)
