@@ -16,7 +16,7 @@ class GroupController
 	NON_COPY_MOVABLE(GroupController)
 
 public:
-	using Callback = std::function<void()>;
+	using Callback = std::function<void(long long)>;
 	using Id = long long;
 	using Ids = std::unordered_set<Id>;
 

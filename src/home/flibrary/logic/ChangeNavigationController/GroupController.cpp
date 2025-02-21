@@ -92,15 +92,16 @@ struct GroupController::Impl
 		                        {
 									const auto db = databaseUser->Database();
 									const auto transaction = db->CreateTransaction();
-									auto ok = CreateNewGroupImpl(*transaction, name) > 0;
+									auto id = CreateNewGroupImpl(*transaction, name);
+									auto ok = id > 0;
 									ok = transaction->Commit() && ok;
 
-									return [this, callback = std::move(callback), ok](size_t)
+									return [this, id, callback = std::move(callback), ok](size_t)
 									{
 										if (!ok)
 											uiFactory->ShowError(Tr(CANNOT_CREATE_GROUP));
 
-										callback();
+										callback(id);
 									};
 								} });
 	}
@@ -114,16 +115,17 @@ struct GroupController::Impl
 									const auto transaction = db->CreateTransaction();
 
 									auto errorMessage = std::make_shared<QString>();
-									std::function result = [this, callback = std::move(callback), errorMessage](size_t)
+
+									if (id < 0)
+										id = CreateNewGroupImpl(*transaction, name);
+
+									std::function result = [this, id, callback = std::move(callback), errorMessage](size_t)
 									{
 										if (!errorMessage->isEmpty())
 											uiFactory->ShowError(*errorMessage);
 
-										callback();
+										callback(id);
 									};
-
-									if (id < 0)
-										id = CreateNewGroupImpl(*transaction, name);
 
 									if (id == 0)
 									{
@@ -226,7 +228,7 @@ void GroupController::Remove(Ids ids, Callback callback) const
 											if (!ok)
 												m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_GROUPS));
 
-											callback();
+											callback(-1);
 										};
 									} });
 }
@@ -241,7 +243,7 @@ void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
 		{
 			auto name = m_impl->GetNewGroupName(names);
 			if (name.isEmpty())
-				return callback();
+				return callback(id);
 
 			m_impl->AddToGroup(id, std::move(ids), std::move(name), std::move(callback));
 		});
@@ -272,12 +274,12 @@ void GroupController::RemoveFromGroup(Id id, Ids ids, Callback callback) const
 																  });
 										ok = transaction->Commit() && ok;
 
-										return [this, callback = std::move(callback), ok](size_t)
+										return [this, id, callback = std::move(callback), ok](size_t)
 										{
 											if (!ok)
 												m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
 
-											callback();
+											callback(id);
 										};
 									} });
 }

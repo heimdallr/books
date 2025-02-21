@@ -9,7 +9,7 @@ namespace HomeCompa::Flibrary
 class IBookSearchController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Callback = std::function<void()>;
+	using Callback = std::function<void (long long)>;
 	using Id = long long;
 	using Ids = std::unordered_set<Id>;
 

@@ -130,7 +130,7 @@ struct SearchController::Impl
 											settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(currentCollectionId).arg("Search"), QString::number(id));
 										else
 											uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
-										callback();
+										callback(id);
 									};
 								} });
 	}
@@ -228,7 +228,7 @@ void SearchController::Remove(Ids ids, Callback callback) const
 											if (!ok)
 												m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
 
-											callback();
+											callback(-1);
 										};
 									} });
 }
