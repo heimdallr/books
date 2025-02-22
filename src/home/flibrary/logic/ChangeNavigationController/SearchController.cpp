@@ -14,7 +14,6 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
-#include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
 #include "util/ISettings.h"
 
