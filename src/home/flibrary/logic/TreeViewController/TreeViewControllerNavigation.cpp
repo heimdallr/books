@@ -298,6 +298,7 @@ private: // ITableSubscriptionHandler
 	void On_Books_Changed() override
 	{
 		OnTableChanged(NavigationMode::Genres);
+		OnTableChanged(NavigationMode::Archives);
 		self.RequestBooks(true);
 	}
 
