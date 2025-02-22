@@ -32,6 +32,7 @@ public:
 
 signals:
 	void NavigationModeNameChanged(QString navigationModeName) const;
+	void ValueGeometryChanged(const QRect& geometry) const;
 
 public:
 	void SetNavigationModeName(QString navigationModeName);

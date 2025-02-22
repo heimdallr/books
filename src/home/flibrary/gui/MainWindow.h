@@ -20,6 +20,7 @@ class MainWindow final
 	: public QMainWindow
 	, virtual public IMainWindow
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(MainWindow)
 
 public:
@@ -43,6 +44,9 @@ public:
 
 private: // IMainWindow
 	void Show() override;
+
+private slots:
+	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 
 private:
 	class Impl;

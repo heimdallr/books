@@ -18,14 +18,17 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "GuiUtil/util.h"
 #include "util/ColorUtil.h"
 #include "util/ISettings.h"
+#include "util/ObjectsConnector.h"
 #include "util/localization.h"
 
 #include "ItemViewToolTipper.h"
@@ -119,6 +122,30 @@ private:
 	}
 };
 
+class ValueEventFilter final : public QObject
+{
+public:
+	ValueEventFilter(const TreeView& view, const QWidget& widget, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_view { view }
+		, m_widget { widget }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* /*watched*/, QEvent* event) override
+	{
+		if (event->type() == QEvent::Resize)
+			emit m_view.ValueGeometryChanged(Util::GetGlobalGeometry(m_widget));
+
+		return false;
+	}
+
+private:
+	const TreeView& m_view;
+	const QWidget& m_widget;
+};
+
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
 {
 	f(index);
@@ -203,7 +230,12 @@ public:
 		m_ui.cbValueMode->setMinimumSize(size, size);
 		m_ui.cbValueMode->setMaximumSize(size, size);
 
-		if (m_controller->GetItemType() != ItemType::Books || m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
+		if (m_controller->GetItemType() != ItemType::Books)
+			return;
+
+		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
+
+		if (m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
 		const auto diff = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
@@ -502,6 +534,9 @@ private:
 			treeViewHeader.setStretchLastSection(false);
 			treeViewHeader.setContextMenuPolicy(Qt::CustomContextMenu);
 			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint& pos) { CreateHeaderContextMenu(pos); });
+
+			m_ui.value->installEventFilter(new ValueEventFilter(m_self, *m_ui.value, m_ui.value));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SERACH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
@@ -761,7 +796,7 @@ private:
 		languageTranslated.reserve(languages.size());
 		std::ranges::transform(std::move(languages),
 		                       std::back_inserter(languageTranslated),
-		                       [translations = std::unordered_map<QString, const char*> { std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](auto&& language)
+		                       [translations = std::unordered_map<QString, const char*> { std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](QString& language)
 		                       {
 								   const auto it = translations.find(language);
 								   auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;

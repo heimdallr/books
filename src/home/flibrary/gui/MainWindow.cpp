@@ -13,6 +13,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
@@ -34,9 +35,11 @@
 
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "GuiUtil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
+#include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
 
 #include "AnnotationWidget.h"
@@ -95,7 +98,7 @@ private: // QObject
 		if (event->type() != QEvent::ActionChanged)
 			return QObject::eventFilter(watched, event);
 
-		const auto* actionChanged = static_cast<QActionEvent*>(event);
+		const auto* actionChanged = static_cast<QActionEvent*>(event); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 		if (actionChanged->action()->isEnabled())
 			m_uiFactory->ShowInfo(Tr(DENY_DESTRUCTIVE_OPERATIONS_MESSAGE));
 		else if (std::ranges::any_of(ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS,
@@ -191,6 +194,17 @@ public:
 		m_collectionController->UnregisterObserver(this);
 	}
 
+	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
+	{
+		const auto rect = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
+		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
+		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
+		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
+		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
+		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
+		m_searchBooksByTitleLayout->invalidate();
+	}
+
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -206,11 +220,8 @@ private: // ICollectionsObserver
 private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
-		if (!m_ui.statusBar->isVisible())
-			return;
-
-		QString message = record.getMessage();
-		m_forwarder.Forward([&, message = std::move(message)] { m_ui.statusBar->showMessage(message, 2000); });
+		if (m_ui.statusBar->isVisible())
+			m_forwarder.Forward([&, message = QString(record.getMessage())] { m_ui.statusBar->showMessage(message, 2000); });
 	}
 
 private: // ILineOption::IObserver
@@ -255,7 +266,6 @@ private:
 
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
-
 
 		m_ui.lineEditBookTitleToSearch->addAction(m_ui.actionSearchBookByTitle, QLineEdit::LeadingPosition);
 
@@ -304,14 +314,16 @@ private:
 		ReplaceMenuBar();
 	}
 
-	void ReplaceMenuBar() const
+	void ReplaceMenuBar()
 	{
 		auto* menuBar = new QWidget(&m_self);
-		auto layout = new QHBoxLayout(menuBar);
-		layout->addWidget(m_self.menuBar());
-		layout->addItem(new QSpacerItem(72, 20, QSizePolicy::Fixed));
-		layout->addWidget(m_ui.lineEditBookTitleToSearch, 100);
-		layout->setContentsMargins(0, 0, 0, 0);
+		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
+		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+		m_searchBooksByTitleLayout->addWidget(m_self.menuBar());
+		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
+		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
+		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
+		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
 		m_self.setMenuWidget(menuBar);
 	}
 
@@ -667,6 +679,8 @@ private:
 	const Log::LogAppender m_logAppender { this };
 
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
+	QSpacerItem* m_searchBooksByTitleLeft;
+	QLayout* m_searchBooksByTitleLayout;
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -703,6 +717,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(lineOption),
              std::move(databaseChecker))
 {
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SERACH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)));
 	PLOGV << "MainWindow created";
 }
 
@@ -714,4 +729,9 @@ MainWindow::~MainWindow()
 void MainWindow::Show()
 {
 	show();
+}
+
+void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
+{
+	m_impl->OnBooksSearchFilterValueGeometryChanged(geometry);
 }
