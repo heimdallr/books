@@ -182,3 +182,6 @@ CREATE TABLE Export_List_User (
     CreatedAt  DATETIME NOT NULL
 );
 --@@
+
+CREATE VIRTUAL TABLE Books_Search USING fts5(Title, content=Books, content_rowid=BookID)
+--@@

@@ -37,6 +37,7 @@ void AddUserTables(DB::ITransaction& transaction)
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)")->Execute();
 	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)")->Execute();
+	transaction.CreateCommand("CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)")->Execute();
 }
 
 bool AddUserTableField(DB::ITransaction& transaction, const QString& table, const QString& column, const QString& definition, const std::vector<std::string_view>& commands = {})
@@ -100,6 +101,14 @@ void OnBooksFolderIDAdded(DB::ITransaction& transaction)
 			command->Execute();
 		}
 	}
+}
+
+void FillBooksSearch(DB::ITransaction& transaction)
+{
+	const auto query = transaction.CreateQuery("select count (42) from Books_Search_idx");
+	query->Execute();
+	if (query->Get<int>(0) == 0)
+		transaction.CreateCommand("insert into Books_Search(Books_Search) values('rebuild')")->Execute();
 }
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string& databaseName, const bool readOnly)
@@ -166,6 +175,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string& databaseNam
 		                  { "CREATE INDEX IX_Searches_User_SearchTitle ON Searches_User(SearchTitle COLLATE NOCASE)",
 		                    "UPDATE Searches_User SET SearchTitle = MHL_UPPER(Title)",
 		                    "UPDATE Searches_User SET Title = '~'||Title||'~'" });
+
+        FillBooksSearch(*transaction);
 
 		transaction->Commit();
 		return db;
