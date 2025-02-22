@@ -8,19 +8,25 @@ template <typename T>
 QString ToQString(const T& str) = delete;
 
 template <>
-QString ToQString<std::string>(const std::string& str)
+inline QString ToQString<std::string>(const std::string& str)
 {
 	return QString::fromStdString(str);
 }
 
 template <>
-QString ToQString<std::wstring>(const std::wstring& str)
+inline QString ToQString<std::wstring>(const std::wstring& str)
 {
 	return QString::fromStdWString(str);
 }
 
 template <>
-QString ToQString<std::filesystem::path>(const std::filesystem::path& str)
+inline QString ToQString<std::pair<std::wstring, std::wstring>>(const std::pair<std::wstring, std::wstring>& str)
+{
+	return QString("%1/%2").arg(QString::fromStdWString(str.first), QString::fromStdWString(str.second));
+}
+
+template <>
+inline QString ToQString<std::filesystem::path>(const std::filesystem::path& str)
 {
 	return QString::fromStdWString(str);
 }
@@ -167,12 +173,13 @@ using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
 using Links = std::vector<std::pair<size_t, size_t>>;
-using Folders = std::map<std::wstring, size_t, CaseInsensitiveComparer<>>;
+using Folders = std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary&, std::wstring_view)>;
 using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter = std::function<std::vector<std::wstring>(std::wstring_view)>;
+using InpxFolders = std::map<std::pair<std::wstring, std::wstring>, std::string, CaseInsensitiveComparer<>>;
 
 struct Data
 {
@@ -180,7 +187,8 @@ struct Data
 	Dictionary authors, series, keywords;
 	Genres genres;
 	Links booksAuthors, booksGenres, booksKeywords;
-	Folders folders;
+	Folders bookFolders;
+	InpxFolders inpxFolders;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)

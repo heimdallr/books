@@ -10,6 +10,12 @@
 
 #include "export/inpxlib.h"
 
+namespace HomeCompa::DB
+{
+class IDatabase;
+class ITransaction;
+}
+
 namespace HomeCompa::Inpx
 {
 
@@ -21,6 +27,13 @@ enum class CreateCollectionMode
 	SkipLostBooks = 1 << 2,
 };
 
+enum class CheckForUpdateResult
+{
+	NoUpdates,
+	NewInpFound,
+	OldDataUpdateFound,
+};
+
 struct UpdateResult
 {
 	size_t folders;
@@ -29,7 +42,6 @@ struct UpdateResult
 	size_t books;
 	size_t keywords;
 	size_t genres;
-	bool updatable;
 	bool error { false };
 };
 
@@ -48,6 +60,8 @@ public:
 public:
 	void CreateNewCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
+	static void FillInpx(const std::filesystem::path& collectionFolder, DB::ITransaction& transaction);
+	static CheckForUpdateResult CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
 
 private:
 	class Impl;
