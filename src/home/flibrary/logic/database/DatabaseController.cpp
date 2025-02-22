@@ -229,7 +229,7 @@ public:
 
 		if (m_db)
 		{
-			m_forwarder.Forward([&, db = m_db] { const_cast<Impl*>(this)->Perform(&DatabaseController::IObserver::AfterDatabaseCreated, std::ref(*db)); });
+			m_forwarder.Forward([&, db = m_db] { const_cast<Impl*>(this)->Perform(&IObserver::AfterDatabaseCreated, std::ref(*db)); });
 		}
 
 		return m_db;
@@ -240,7 +240,7 @@ private: // ICollectionsObserver
 	{
 		m_databaseFileName = m_collectionProvider->ActiveCollectionExists() ? m_collectionProvider->GetActiveCollection().database : QString {};
 		if (m_db)
-			Perform(&DatabaseController::IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
+			Perform(&IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
 	}
