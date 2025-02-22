@@ -117,11 +117,8 @@ void FixSearches_User(DB::ITransaction& transaction)
 		return;
 
 	static constexpr const char* commands[] {
-		"CREATE TABLE Searches_User_temp_table AS SELECT * FROM Searches_User",
 		"DROP TABLE Searches_User",
 		"CREATE TABLE Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME)",
-		"INSERT INTO Searches_User(SearchID, Title, CreatedAt) SELECT SearchID, Title, CreatedAt FROM Searches_User_temp_table",
-		"DROP TABLE Searches_User_temp_table",
 	};
 
 	for (const auto* command : commands)
