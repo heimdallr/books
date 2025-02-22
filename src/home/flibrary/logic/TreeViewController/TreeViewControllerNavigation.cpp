@@ -163,15 +163,20 @@ struct ModeDescriptor
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
-	{  Loc::Authors,																					 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                    },
-	{   Loc::Series,																										  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{   Loc::Genres,																					{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
-	{ Loc::Keywords,																										{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{ Loc::Archives,																										{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
+	{  Loc::Authors,																				 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                    },
+	{   Loc::Series,																									  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
+	{   Loc::Genres,																				{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{ Loc::Keywords,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
+	{ Loc::Archives,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{   Loc::Groups,
-     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered }    },
+     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
 	{   Loc::Search,
-     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Search, &MenuRequesterSearches, &IContextMenuHandler::OnCreateNewSearchTriggered, &IContextMenuHandler::OnRemoveSearchTriggered } },
+     { ViewMode::List,
+     &IModelProvider::CreateSearchListModel,
+     NavigationMode::Search,
+     &MenuRequesterSearches,
+     &IContextMenuHandler::OnCreateNewSearchTriggered,
+     &IContextMenuHandler::OnRemoveSearchTriggered }																																				  },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));

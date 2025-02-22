@@ -16,7 +16,8 @@ public:
 
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, class IModelObserver& observer) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, class IModelObserver& observer) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateScriptModel() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateScriptCommandModel() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr GetData() const noexcept = 0;

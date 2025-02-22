@@ -43,11 +43,18 @@ constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
 using Names = std::unordered_map<QString, long long>;
 
+QString GetSearchString(const QString& str)
+{
+	auto splitted = str.split(' ', Qt::SkipEmptyParts);
+	std::ranges::transform(splitted, splitted.begin(), [](const QString& item) { return item + "*"; });
+	return splitted.join(' ');
+}
+
 long long CreateNewSearchImpl(DB::ITransaction& transaction, const QString& name)
 {
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
-	command->Bind(0, name.toStdString());
+	command->Bind(0, GetSearchString(name).toStdString());
 	if (!command->Execute())
 		return 0;
 
@@ -128,7 +135,7 @@ struct SearchController::Impl
 		if (searchString.length() < MINIMUM_SEARCH_LENGTH)
 			return callback(-1);
 
-		if (const auto it = names.find(searchString.toUpper()); it != names.end())
+		if (const auto it = names.find(GetSearchString(searchString).toUpper()); it != names.end())
 			return callback(it->second);
 
 		CreateNewSearch(std::move(callback), std::move(searchString));
