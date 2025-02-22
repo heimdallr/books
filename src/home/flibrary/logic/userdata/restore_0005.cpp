@@ -24,7 +24,6 @@ namespace
 struct Created
 {
 	QString title;
-	int mode { 0 };
 	QString createdAt;
 };
 
@@ -36,18 +35,6 @@ void Bind(DB::ICommand& command, const size_t index, const QString& value)
 		command.Bind(index, value.toStdString());
 }
 
-QString CreateSearchTitle(QString title, int mode)
-{
-	mode = ~mode;
-
-	if (mode & IBookSearchController::SearchMode::EndsWith && title.endsWith('~'))
-		title.resize(title.length() - 1);
-	if (mode & IBookSearchController::SearchMode::StartsWith && title.startsWith('~'))
-		title.remove(0, 1);
-
-	return title;
-}
-
 class SearchesRestorer final : virtual public IRestorer
 {
 private: // IRestorer
@@ -56,7 +43,6 @@ private: // IRestorer
 		assert(name == Constant::ITEM);
 		auto& item = m_items.emplace_back();
 		item.title = attributes.GetAttribute(Constant::TITLE);
-		item.mode = attributes.GetAttribute(Constant::UserData::Searches::Mode).toInt();
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
 	}
 
@@ -66,12 +52,10 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
 		const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
-		for (const auto& [title, mode, createdAt] : m_items)
+		for (const auto& [title, createdAt] : m_items)
 		{
 			createSearchCommand->Bind(0, title.toStdString());
-			createSearchCommand->Bind(1, mode);
-			createSearchCommand->Bind(2, CreateSearchTitle(title, mode).toUpper().toStdString());
-			Bind(*createSearchCommand, 3, createdAt);
+			Bind(*createSearchCommand, 1, createdAt);
 			createSearchCommand->Execute();
 		}
 

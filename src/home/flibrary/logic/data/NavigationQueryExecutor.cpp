@@ -39,8 +39,7 @@ constexpr auto WHERE_SERIES = "where b.SeriesID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
-constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id and b.SearchTitle like case su.mode when 0 then '%'||su.SearchTitle||'%' when 1 then su.SearchTitle||'%' when 2 then "
-							   "'%'||su.SearchTitle when 3 then su.SearchTitle end";
+constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH su.Title";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;

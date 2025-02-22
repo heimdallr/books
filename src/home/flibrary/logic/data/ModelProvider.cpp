@@ -20,6 +20,39 @@
 
 using namespace HomeCompa::Flibrary;
 
+namespace
+{
+
+class BooksSearchProxyModel final : public QIdentityProxyModel
+{
+public:
+	explicit BooksSearchProxyModel(std::shared_ptr<QAbstractItemModel> source, QObject* parent = nullptr)
+		: QIdentityProxyModel(parent)
+		, m_source { std::move(source) }
+	{
+		QIdentityProxyModel::setSourceModel(m_source.get());
+	}
+
+private: // QAbstractItemModel
+	QVariant data(const QModelIndex& index, const int role) const override
+	{
+		if (role != Qt::DisplayRole)
+			return QIdentityProxyModel::data(index, role);
+
+		auto list = QIdentityProxyModel::data(index, role).toString().split(' ', Qt::SkipEmptyParts);
+		for (auto& item : list)
+			if (item.endsWith('*'))
+				item.chop(1);
+
+		return list.join(' ');
+	}
+
+private:
+	std::shared_ptr<QAbstractItemModel> m_source;
+};
+
+} // namespace
+
 struct ModelProvider::Impl
 {
 	Hypodermic::Container& container;
@@ -57,6 +90,12 @@ ModelProvider::~ModelProvider()
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer) const
 {
 	return m_impl->CreateModel<ListModel>(std::move(data), observer);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer) const
+{
+	auto model = CreateListModel(std::move(data), observer);
+	return std::make_shared<BooksSearchProxyModel>(std::move(model));
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptModel() const

@@ -438,7 +438,7 @@ void Analyze(const Path& dbFileName)
 }
 
 template <typename Container, typename Functor>
-size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f)
+size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
 	const auto rowsTotal = std::size(container);
 	if (rowsTotal == 0)
@@ -476,6 +476,10 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 	log();
 	if (rowsTotal != rowsInserted)
 		PLOGE << rowsTotal - rowsInserted << " rows lost";
+
+	if (!queryAfter.empty())
+		sqlite3pp::command(db, queryAfter.data()).execute();
+
 	{
 		Util::Timer tc(L"commit");
 		tr.commit();
@@ -566,35 +570,37 @@ size_t Store(const Path& dbFileName, const Data& data)
 							"FolderID , FileName  , InsideNo , Ext     , "
 							"BookSize , IsDeleted, SearchTitle"
 							") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
-	result += StoreRange(dbFileName,
-	                     "Books",
-	                     queryText,
-	                     data.books,
-	                     [](sqlite3pp::command& cmd, const Book& book)
-	                     {
-							 const auto libId = ToMultiByte(book.libId);
-							 const auto title = ToMultiByte(book.title);
-							 const auto date = ToMultiByte(book.date);
-							 const auto language = ToMultiByte(book.language);
-							 const auto fileName = ToMultiByte(book.fileName);
-							 const auto format = ToMultiByte(book.format);
-							 cmd.bind(1, book.id);
-							 cmd.bind(2, libId, sqlite3pp::nocopy);
-							 cmd.bind(3, title, sqlite3pp::nocopy);
-							 book.seriesId == -1 ? cmd.bind(4, sqlite3pp::null_type()) : cmd.bind(4, book.seriesId);
-							 book.seriesNum == -1 ? cmd.bind(5, sqlite3pp::null_type()) : cmd.bind(5, book.seriesNum);
-							 cmd.bind(6, date, sqlite3pp::nocopy);
-							 cmd.bind(7, book.rate);
-							 cmd.bind(8, language, sqlite3pp::nocopy);
-							 cmd.bind(9, book.folder);
-							 cmd.bind(10, fileName, sqlite3pp::nocopy);
-							 cmd.bind(11, book.insideNo);
-							 cmd.bind(12, format, sqlite3pp::nocopy);
-							 cmd.bind(13, book.size);
-							 cmd.bind(14, book.isDeleted ? 1 : 0);
-							 cmd.bind(15, title, sqlite3pp::nocopy);
-							 return cmd.execute();
-						 });
+	result += StoreRange(
+		dbFileName,
+		"Books",
+		queryText,
+		data.books,
+		[](sqlite3pp::command& cmd, const Book& book)
+		{
+			const auto libId = ToMultiByte(book.libId);
+			const auto title = ToMultiByte(book.title);
+			const auto date = ToMultiByte(book.date);
+			const auto language = ToMultiByte(book.language);
+			const auto fileName = ToMultiByte(book.fileName);
+			const auto format = ToMultiByte(book.format);
+			cmd.bind(1, book.id);
+			cmd.bind(2, libId, sqlite3pp::nocopy);
+			cmd.bind(3, title, sqlite3pp::nocopy);
+			book.seriesId == -1 ? cmd.bind(4, sqlite3pp::null_type()) : cmd.bind(4, book.seriesId);
+			book.seriesNum == -1 ? cmd.bind(5, sqlite3pp::null_type()) : cmd.bind(5, book.seriesNum);
+			cmd.bind(6, date, sqlite3pp::nocopy);
+			cmd.bind(7, book.rate);
+			cmd.bind(8, language, sqlite3pp::nocopy);
+			cmd.bind(9, book.folder);
+			cmd.bind(10, fileName, sqlite3pp::nocopy);
+			cmd.bind(11, book.insideNo);
+			cmd.bind(12, format, sqlite3pp::nocopy);
+			cmd.bind(13, book.size);
+			cmd.bind(14, book.isDeleted ? 1 : 0);
+			cmd.bind(15, title, sqlite3pp::nocopy);
+			return cmd.execute();
+		},
+		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')");
 
 	result += StoreRange(dbFileName,
 	                     "Author_List",

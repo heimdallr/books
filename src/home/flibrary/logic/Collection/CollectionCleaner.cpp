@@ -96,6 +96,7 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 		{      "Authors",       "delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
 		{ "Keyword_List",            "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
 		{     "Keywords", "delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
+		{ "Books_Search",															 "insert into Books_Search(Books_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands),
 	                       std::cend(commands),

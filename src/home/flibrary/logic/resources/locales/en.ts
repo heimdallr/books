@@ -489,7 +489,12 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Find books whose titles</source>
+        <source>Search books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>Search query</source>
         <translation></translation>
     </message>
     <message>
@@ -523,26 +528,6 @@ Try again?</source>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
         <source>Search query &quot;%1&quot; already exists.
 Try again?</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>contain</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>begin with</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>end with</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>is equal to</source>
         <translation></translation>
     </message>
 </context>

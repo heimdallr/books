@@ -30,7 +30,7 @@ public:
 private: // IBookSearchController
 	void CreateNew(Callback callback) override;
 	void Remove(Ids ids, Callback callback) const override;
-	void Search(QString searchString, Callback callback, int mode = SearchMode::Contains) override;
+	void Search(QString searchString, Callback callback) override;
 
 private:
 	struct Impl;
