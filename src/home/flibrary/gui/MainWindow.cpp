@@ -64,6 +64,7 @@ constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow"
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -82,7 +83,7 @@ constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto ACTION_PROPERTY_NAME = "value";
 
-class AllowDestructiveOperationsObserver : public QObject
+class AllowDestructiveOperationsObserver final : public QObject
 {
 public:
 	AllowDestructiveOperationsObserver(std::function<void()> function, std::shared_ptr<const IUiFactory> uiFactory, QObject* parent = nullptr)
@@ -113,6 +114,31 @@ private: // QObject
 private:
 	const std::function<void()> m_function;
 	const std::shared_ptr<const IUiFactory> m_uiFactory;
+};
+
+class LineEditPlaceholderTextController final : public QObject
+{
+public:
+	LineEditPlaceholderTextController(QLineEdit& lineEdit, const char* placeholderText)
+		: QObject(&lineEdit)
+		, m_lineEdit { lineEdit }
+		, m_placeholderText { placeholderText }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* /*watched*/, QEvent* event) override
+	{
+		if (event->type() == QEvent::Enter)
+			return m_lineEdit.setPlaceholderText(Tr(m_placeholderText)), false;
+		if (event->type() == QEvent::Leave)
+			return m_lineEdit.setPlaceholderText({}), false;
+		return false;
+	}
+
+private:
+	QLineEdit& m_lineEdit;
+	const char* const m_placeholderText;
 };
 
 } // namespace
@@ -316,6 +342,7 @@ private:
 
 	void ReplaceMenuBar()
 	{
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(*m_ui.lineEditBookTitleToSearch, SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
 		auto* menuBar = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
