@@ -17,7 +17,7 @@ namespace HomeCompa::Flibrary
 struct CollectionImpl : Collection
 {
 	CollectionImpl() = default;
-	CollectionImpl(QString name, QString database, QString folder, bool updatable);
+	CollectionImpl(QString name, QString database, QString folder);
 
 	static void Serialize(const Collection& collection, ISettings& settings);
 	static Collections Deserialize(ISettings& settings);

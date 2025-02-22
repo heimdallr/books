@@ -132,7 +132,7 @@ public:
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode, false);
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
 				break;
 
 			default:
@@ -180,7 +180,7 @@ public:
 		Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 	}
 
-	void OnInpxUpdateFound(const Collection& updatedCollection)
+	void OnInpxUpdateChecked(const Collection& updatedCollection, Inpx::CheckForUpdateResult /*result*/)
 	{
 		switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
 		{
@@ -272,15 +272,15 @@ private:
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), mode, updateResult.updatable);
+				Add(std::move(name), std::move(db), std::move(folder), mode);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
-	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode, const bool updatable)
+	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
 	{
-		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), updatable);
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
 		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		auto& collections = m_collectionProvider->GetCollections();
@@ -416,9 +416,9 @@ void CollectionController::SetActiveCollection(const QString& id)
 	m_impl->SetActiveCollection(id);
 }
 
-void CollectionController::OnInpxUpdateFound(const Collection& updatedCollection)
+void CollectionController::OnInpxUpdateChecked(const Collection& updatedCollection, Inpx::CheckForUpdateResult result)
 {
-	m_impl->OnInpxUpdateFound(updatedCollection);
+	m_impl->OnInpxUpdateChecked(updatedCollection, result);
 }
 
 void CollectionController::AllowDestructiveOperation(const bool value)
