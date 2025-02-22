@@ -492,8 +492,13 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Find books whose titles</source>
-        <translation>Найти книги, названия которых</translation>
+        <source>Search books</source>
+        <translation>Поиск книг</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>Search query</source>
+        <translation>Поисковый запрос</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
@@ -523,26 +528,6 @@ Try again?</source>
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>contain</source>
-        <translation>содержат</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>begin with</source>
-        <translation>начинаются с</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>end with</source>
-        <translation>оканчиваются на</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>is equal to</source>
-        <translation>равны</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
