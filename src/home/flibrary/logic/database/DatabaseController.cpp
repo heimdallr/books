@@ -26,21 +26,24 @@ namespace
 
 void AddUserTables(DB::ITransaction& transaction)
 {
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))")->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
-	transaction
-		.CreateCommand("CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON "
-	                   "DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))")
-		->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)")->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)")->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)")->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)")->Execute();
-	transaction.CreateCommand("CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)")->Execute();
-	transaction.CreateCommand("CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)")->Execute();
+	static constexpr const char* commands[] {
+		"CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
+		"CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE "
+		"CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
+		"CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
+	};
+
+	for (const auto* command : commands)
+		transaction.CreateCommand(command)->Execute();
 }
 
-bool AddUserTableField(DB::ITransaction& transaction, const QString& table, const QString& column, const QString& definition, const std::vector<std::string_view>& commands = {})
+bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {
 	std::set<std::string> booksUserFields;
 	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
@@ -49,7 +52,12 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
 		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
-	if (booksUserFields.contains(column.toStdString()))
+	return booksUserFields.contains(column.toStdString());
+}
+
+bool AddUserTableField(DB::ITransaction& transaction, const QString& table, const QString& column, const QString& definition, const std::vector<std::string_view>& commands = {})
+{
+	if (FieldExists(transaction, table, column))
 		return false;
 
 	transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
@@ -101,6 +109,23 @@ void OnBooksFolderIDAdded(DB::ITransaction& transaction)
 			command->Execute();
 		}
 	}
+}
+
+void FixSearches_User(DB::ITransaction& transaction)
+{
+	if (!FieldExists(transaction, "Searches_User", "Mode"))
+		return;
+
+	static constexpr const char* commands[] {
+		"CREATE TABLE Searches_User_temp_table AS SELECT * FROM Searches_User",
+		"DROP TABLE Searches_User",
+		"CREATE TABLE Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME)",
+		"INSERT INTO Searches_User(SearchID, Title, CreatedAt) SELECT SearchID, Title, CreatedAt FROM Searches_User_temp_table",
+		"DROP TABLE Searches_User_temp_table",
+	};
+
+	for (const auto* command : commands)
+		transaction.CreateCommand(command)->Execute();
 }
 
 void FillBooksSearch(DB::ITransaction& transaction)
@@ -167,16 +192,9 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string& databaseNam
 		                        "CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID)",
 		                        "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }))
 			OnBooksFolderIDAdded(*transaction);
-		AddUserTableField(*transaction, "Searches_User", "Mode", "INTEGER NOT NULL DEFAULT (0)");
-		AddUserTableField(*transaction,
-		                  "Searches_User",
-		                  "SearchTitle",
-		                  "VARCHAR (150) COLLATE NOCASE",
-		                  { "CREATE INDEX IX_Searches_User_SearchTitle ON Searches_User(SearchTitle COLLATE NOCASE)",
-		                    "UPDATE Searches_User SET SearchTitle = MHL_UPPER(Title)",
-		                    "UPDATE Searches_User SET Title = '~'||Title||'~'" });
 
-        FillBooksSearch(*transaction);
+		FixSearches_User(*transaction);
+		FillBooksSearch(*transaction);
 
 		transaction->Commit();
 		return db;

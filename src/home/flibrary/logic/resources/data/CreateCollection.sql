@@ -157,9 +157,7 @@ CREATE TABLE Groups_List_User (
 CREATE TABLE Searches_User (
     SearchID    INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
     Title       VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
-    CreatedAt   DATETIME,
-    Mode        INTEGER       NOT NULL DEFAULT (0),
-    SearchTitle VARCHAR (150) COLLATE NOCASE
+    CreatedAt   DATETIME
 );
 --@@
 
