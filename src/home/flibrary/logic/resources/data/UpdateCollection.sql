@@ -64,5 +64,8 @@ CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE);
 CREATE INDEX IX_ExportListUser_BookID ON Export_List_User (BookID);
 --@@
 
+CREATE UNIQUE INDEX UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE);
+--@@
+
 ANALYZE;
 --@@
