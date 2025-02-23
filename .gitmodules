@@ -12,4 +12,4 @@
 	url = ../sqlite3.git
 [submodule "src/ext/qss"]
 	path = src/ext/qss
-	url = git@github.com:heimdallr/QSS.git
+	url = ../QSS.git
