@@ -37,7 +37,7 @@ constexpr auto ERROR = QT_TRANSLATE_NOOP("CollectionController", "The collection
 constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
-constexpr auto COLLECTION_UPDATE_RESULT_GENRES = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td>%1</td></tr>");
+constexpr auto COLLECTION_UPDATE_RESULT_GENRES = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td align='right'>%1</td></tr>");
 constexpr auto COLLECTION_NEED_RECREATE =
 	QT_TRANSLATE_NOOP("CollectionController", "<p><p>Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don't forget to save user data</p></p>");
 constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:<p>

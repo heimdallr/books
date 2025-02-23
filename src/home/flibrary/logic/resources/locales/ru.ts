@@ -270,8 +270,8 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation>&lt;tr&gt;&lt;td&gt;Жанры:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
+        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation>&lt;tr&gt;&lt;td&gt;Жанры:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
