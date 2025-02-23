@@ -522,7 +522,7 @@ private:
 					if (qss.isEmpty())
 						return;
 
-		        	m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, qss);
+					m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, qss);
 					RebootDialog();
 				});
 
@@ -594,14 +594,23 @@ private:
 
 	void CreateExternalStylesMenu()
 	{
+		auto* group = new QActionGroup(&m_self);
+		group->setExclusive(true);
+
+		const auto currentStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY);
 		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss", QDir::Files))
 		{
-			m_ui.menuExternal->addAction(entry.completeBaseName(),
-			                             [this, fileName = entry.filePath()]
-			                             {
-											 m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
-											 RebootDialog();
-										 });
+			const auto fileName = entry.filePath();
+			auto* action = m_ui.menuExternal->addAction(entry.completeBaseName(),
+			                                            [this, fileName]
+			                                            {
+															m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
+															RebootDialog();
+														});
+			group->addAction(action);
+			action->setCheckable(true);
+			if (fileName == currentStyle)
+				action->setChecked(true);
 		}
 
 		m_ui.menuExternal->addSeparator();
