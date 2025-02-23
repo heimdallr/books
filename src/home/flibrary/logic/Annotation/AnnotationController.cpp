@@ -379,6 +379,7 @@ private:
 		if (QFileInfo(book->GetRawData(BookItem::Column::FileName)).suffix().compare("fb2", Qt::CaseInsensitive))
 		{
 			m_book = std::move(book);
+			m_archiveData = {};
 			m_ready |= Ready::Archive;
 			return;
 		}
