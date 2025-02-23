@@ -38,15 +38,17 @@ constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "L
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
 constexpr auto COLLECTION_UPDATE_RESULT_GENRES = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td>%1</td></tr>");
-constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:
+constexpr auto COLLECTION_NEED_RECREATE =
+	QT_TRANSLATE_NOOP("CollectionController", "<p><p>Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don't forget to save user data</p></p>");
+constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:<p>
 <table>
-<tr><td>Archives:</td><td>%3</td></tr>
-<tr><td>Authors: </td><td>%4</td></tr>
-<tr><td>Series:  </td><td>%5</td></tr>
-<tr><td>Books:   </td><td>%6</td></tr>
-<tr><td>Keywords:</td><td>%7</td></tr>
+<tr><td>Archives:</td><td align='right'>%3</td></tr>
+<tr><td>Authors:</td><td align='right'>%4</td></tr>
+<tr><td>Series:</td><td align='right'>%5</td></tr>
+<tr><td>Books:</td><td align='right'>%6</td></tr>
+<tr><td>Keywords:</td><td align='right'>%7</td></tr>
 %8
-</table>)");
+</table>%9)");
 
 TR_DEF
 
@@ -180,7 +182,7 @@ public:
 		Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 	}
 
-	void OnInpxUpdateChecked(const Collection& updatedCollection, Inpx::CheckForUpdateResult /*result*/)
+	void OnInpxUpdateChecked(const Collection& updatedCollection, const Inpx::CheckForUpdateResult result)
 	{
 		switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
 		{
@@ -188,7 +190,7 @@ public:
 				break;
 
 			case QMessageBox::Yes:
-				return UpdateCollection(updatedCollection);
+				return UpdateCollection(updatedCollection, result == Inpx::CheckForUpdateResult::OldDataUpdateFound);
 
 			case QMessageBox::Discard:
 				return CollectionImpl::Serialize(updatedCollection, *m_settings);
@@ -288,23 +290,25 @@ private:
 		SetActiveCollection(collections.back()->id);
 	}
 
-	void UpdateCollection(const Collection& updatedCollection)
+	void UpdateCollection(const Collection& updatedCollection, const bool needRecreate)
 	{
 		const auto& collection = GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto& parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(collection.database, collection.folder, true);
-		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable
+		auto callback = [this, needRecreate, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED, needRecreate);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(GetIniMap(collection.database, collection.folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
+		if (needRecreate)
+			PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
 	}
 
-	void ShowUpdateResult(const Inpx::UpdateResult& updateResult, const QString& name, const char* action)
+	void ShowUpdateResult(const Inpx::UpdateResult& updateResult, const QString& name, const char* action, const bool needRecreate = false)
 	{
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
@@ -320,7 +324,8 @@ private:
 		                          .arg(updateResult.series)
 		                          .arg(updateResult.books)
 		                          .arg(updateResult.keywords)
-		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : ""));
+		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
+		                          .arg(needRecreate ? Tr(COLLECTION_NEED_RECREATE) : ""));
 		QCoreApplication::exit(Constant::RESTART_APP);
 	}
 
