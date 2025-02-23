@@ -5,6 +5,11 @@
 
 #include "interface/ui/ITreeViewDelegate.h"
 
+namespace HomeCompa
+{
+class ISettings;
+}
+
 class QAbstractScrollArea;
 class QString;
 class QVariant;
@@ -20,7 +25,7 @@ public:
 	using TextDelegate = QString (*)(const QVariant& value);
 
 public:
-	explicit TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory>& uiFactory);
+	TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings);
 	~TreeViewDelegateBooks() override;
 
 private: // QStyledItemDelegate

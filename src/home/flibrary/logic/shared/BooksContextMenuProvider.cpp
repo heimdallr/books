@@ -139,11 +139,11 @@ void CreateGroupMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabas
 	Add(add, Tr(GROUPS_ADD_TO_NEW), BooksMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
-void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db)
+void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
 	const auto parent = Add(root, Tr(MY_RATE));
 	for (int rate = 1; rate <= 5; ++rate)
-		Add(parent, QString(rate, QChar(0x2B50)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+		Add(parent, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
@@ -223,6 +223,7 @@ public:
 		                           type = index.data(Role::Type).value<ItemType>(),
 		                           removed = index.data(Role::IsRemoved).toBool(),
 		                           options,
+		                           starSymbol = m_starSymbol,
 		                           callback = std::move(callback),
 		                           db = m_databaseUser->Database(),
 		                           scripts = std::move(scripts)]() mutable
@@ -238,7 +239,7 @@ public:
 									  if (type == ItemType::Books)
 									  {
 										  CreateGroupMenu(result, id, *db);
-										  CreateMyRateMenu(result, id, *db);
+										  CreateMyRateMenu(result, id, *db, starSymbol);
 									  }
 
 									  CreateCheckMenu(result);
@@ -572,6 +573,7 @@ private:
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
+	const int m_starSymbol { m_settings->Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
 };
 
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)

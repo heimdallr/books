@@ -22,4 +22,7 @@ constexpr auto OPDS_PORT_DEFAULT = 12791;
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 
-}
+constexpr auto STAR_SYMBOL_KEY = "ui/star";
+constexpr auto STAR_SYMBOL_DEFAULT = 0x2B50;
+
+} // namespace HomeCompa::Flibrary::Constant::Settings
