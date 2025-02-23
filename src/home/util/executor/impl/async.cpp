@@ -2,25 +2,28 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <QTimer>
 
-#include <plog/Log.h>
+#include <QTimer>
 
 #include "fnd/NonCopyMovable.h"
 
-#include "IExecutor.h"
-#include "FunctorExecutionForwarder.h"
 #include "executor/factory.h"
 
-namespace HomeCompa::Util::ExecutorPrivate::Async {
+#include "FunctorExecutionForwarder.h"
+#include "IExecutor.h"
+#include "log.h"
 
-namespace {
+namespace HomeCompa::Util::ExecutorPrivate::Async
+{
 
-class IPool  // NOLINT(cppcoreguidelines-special-member-functions)
+namespace
+{
+
+class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IPool() = default;
-	virtual void Work(std::promise<void> & initializePromise, std::promise<void> & startPromise) = 0;
+	virtual void Work(std::promise<void>& initializePromise, std::promise<void>& startPromise) = 0;
 };
 
 class Thread
@@ -28,7 +31,7 @@ class Thread
 	NON_COPY_MOVABLE(Thread)
 
 public:
-	explicit Thread(IPool & pool)
+	explicit Thread(IPool& pool)
 		: m_thread(&IPool::Work, std::ref(pool), std::ref(m_initializePromise), std::ref(m_startPromise))
 	{
 		m_initializePromise.get_future().get();
@@ -60,11 +63,13 @@ public:
 	{
 		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
 		const auto maxThreadCount = std::min(std::max(cpuCount - 2, 1), m_initializer.maxThreadCount);
-		std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&] ()
-		{
-			auto thread = std::make_unique<Thread>(*this);
-			return thread;
-		});
+		std::generate_n(std::back_inserter(m_threads),
+		                maxThreadCount,
+		                [&]()
+		                {
+							auto thread = std::make_unique<Thread>(*this);
+							return thread;
+						});
 
 		PLOGD << std::format("{} thread(s) executor created", std::size(m_threads));
 	}
@@ -78,7 +83,7 @@ public:
 	}
 
 private: // Util::IExecutor
-	size_t operator()(Task && task, const int priority) override
+	size_t operator()(Task&& task, const int priority) override
 	{
 		const auto id = task.id;
 		{
@@ -99,7 +104,7 @@ private: // Util::IExecutor
 	}
 
 private:
-	void Work(std::promise<void> & initializePromise, std::promise<void> & startPromise) override
+	void Work(std::promise<void>& initializePromise, std::promise<void>& startPromise) override
 	{
 		initializePromise.set_value();
 		m_initializer.onCreate();
@@ -109,24 +114,25 @@ private:
 		{
 			{
 				std::unique_lock lockStart(m_startMutex);
-				m_startCondition.wait(lockStart, [this] ()
-				{
-					if (!m_running)
-						return true;
+				m_startCondition.wait(lockStart,
+				                      [this]()
+				                      {
+										  if (!m_running)
+											  return true;
 
-					std::lock_guard lockTasks(m_tasksGuard);
-					return !m_tasks.empty();
-				});
+										  std::lock_guard lockTasks(m_tasksGuard);
+										  return !m_tasks.empty();
+									  });
 			}
 
 			if (!m_running)
 				continue;
 
-			auto task = [this] ()
+			auto task = [this]()
 			{
 				std::lock_guard lock(m_tasksGuard);
 				if (m_tasks.empty())
-					return Task{};
+					return Task {};
 
 				const auto it = m_tasks.begin();
 				auto returnedTask = std::move(it->second);
@@ -141,12 +147,9 @@ private:
 				auto taskResult = task.task();
 				PLOGD << task.name << " finished";
 
-				m_forwarder->Forward([id = task.id, taskResult = std::move(taskResult)]
-				{
-					taskResult(id);
-				});
+				m_forwarder->Forward([id = task.id, taskResult = std::move(taskResult)] { taskResult(id); });
 			}
-			catch(...)
+			catch (...)
 			{
 				PLOGE << task.name << " failed";
 			}
@@ -163,16 +166,16 @@ private:
 	std::condition_variable m_startCondition;
 	std::mutex m_tasksGuard;
 	std::map<int, Task> m_tasks;
-	FunctorExecutionForwarder * m_forwarder;
+	FunctorExecutionForwarder* m_forwarder;
 	int m_priority { 1024 };
 	std::vector<std::unique_ptr<Thread>> m_threads;
 };
 
-}
+} // namespace
 
 std::unique_ptr<IExecutor> CreateExecutor(ExecutorInitializer initializer)
 {
 	return std::make_unique<Executor>(std::move(initializer));
 }
 
-}
+} // namespace HomeCompa::Util::ExecutorPrivate::Async

@@ -3,19 +3,21 @@
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
 
-#include <plog/Log.h>
-
-#include "data/DataItem.h"
 #include "interface/constants/Localization.h"
 #include "interface/logic/IDatabaseController.h"
+
+#include "data/DataItem.h"
 #include "util/executor/factory.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
-class IApplicationCursorController  // NOLINT(cppcoreguidelines-special-member-functions)
+class IApplicationCursorController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IApplicationCursorController() = default;
@@ -29,7 +31,10 @@ public:
 	{
 		return std::make_unique<ApplicationCursorControllerStub>();
 	}
-	void Set(bool) override { }
+
+	void Set(bool) override
+	{
+	}
 };
 
 class ApplicationCursorController : public IApplicationCursorController
@@ -39,6 +44,7 @@ public:
 	{
 		return std::make_unique<ApplicationCursorController>();
 	}
+
 public:
 	void Set(const bool value) override
 	{
@@ -57,35 +63,26 @@ private:
 
 std::unique_ptr<IApplicationCursorController> APPLICATION_CURSOR_CONTROLLER { ApplicationCursorControllerStub::create() };
 
-}
+} // namespace
 
 struct DatabaseUser::Impl
 {
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	std::shared_ptr<Util::IExecutor> executor;
 
-	Impl(const ILogicFactory & logicFactory
-		, std::shared_ptr<IDatabaseController> databaseController
-	)
+	Impl(const ILogicFactory& logicFactory, std::shared_ptr<IDatabaseController> databaseController)
 		: databaseController(std::move(databaseController))
 		, executor(CreateExecutor(logicFactory))
 	{
 	}
 
-	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory & logicFactory) const
+	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactory) const
 	{
-		return logicFactory.GetExecutor({1
-			, [] { }
-			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(true); }
-			, [this] { APPLICATION_CURSOR_CONTROLLER->Set(false); }
-			, [] { }
-		});
+		return logicFactory.GetExecutor({ 1, [] {}, [this] { APPLICATION_CURSOR_CONTROLLER->Set(true); }, [this] { APPLICATION_CURSOR_CONTROLLER->Set(false); }, [] {} });
 	}
 };
 
-DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory> & logicFactory
-	, std::shared_ptr<IDatabaseController> databaseController
-)
+DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseController> databaseController)
 	: m_impl(*logicFactory, std::move(databaseController))
 {
 	PLOGV << "DatabaseUser created";
@@ -96,7 +93,7 @@ DatabaseUser::~DatabaseUser()
 	PLOGV << "DatabaseUser destroyed";
 }
 
-size_t DatabaseUser::Execute(Util::IExecutor::Task && task, const int priority) const
+size_t DatabaseUser::Execute(Util::IExecutor::Task&& task, const int priority) const
 {
 	return (*m_impl->executor)(std::move(task), priority);
 }

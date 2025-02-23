@@ -5,18 +5,19 @@
 #include <QCoreApplication>
 
 #include "fnd/NonCopyMovable.h"
-#include "zip/interface/error.h"
 
+#include "zip/interface/error.h"
 
 namespace HomeCompa::ZipDetails::SevenZip
 {
 
-namespace {
+namespace
+{
 
 constexpr auto LIBRARY_NAME = L"7z.dll";
 constexpr auto ENTRY_POINT = "CreateObject";
 
-using ObjectCreator = UINT32(WINAPI *)(const GUID * clsID, const GUID * interfaceID, void ** outObject);
+using ObjectCreator = UINT32(WINAPI*)(const GUID* clsID, const GUID* interfaceID, void** outObject);
 
 struct Dll
 {
@@ -28,6 +29,7 @@ struct Dll
 		if (!handle)
 			Error::CannotLoadLibrary(QString::fromStdWString(LIBRARY_NAME));
 	}
+
 	~Dll()
 	{
 		FreeLibrary(handle);
@@ -40,7 +42,7 @@ struct EntryPoint
 {
 	ObjectCreator handle;
 
-	explicit EntryPoint(const Dll & dll)
+	explicit EntryPoint(const Dll& dll)
 		: handle(reinterpret_cast<ObjectCreator>(GetProcAddress(dll.handle, ENTRY_POINT)))
 	{
 		if (!handle)
@@ -48,7 +50,7 @@ struct EntryPoint
 	}
 };
 
-}
+} // namespace
 
 struct Lib::Impl
 {
@@ -60,10 +62,10 @@ Lib::Lib() = default;
 
 Lib::~Lib() = default;
 
-bool Lib::CreateObject(const GUID& clsID, const GUID& interfaceID, void** outObject ) const //-V835
+bool Lib::CreateObject(const GUID& clsID, const GUID& interfaceID, void** outObject) const //-V835
 {
 	assert(m_impl->func.handle);
 	return SUCCEEDED(m_impl->func.handle(&clsID, &interfaceID, outObject));
 }
 
-}
+} // namespace HomeCompa::ZipDetails::SevenZip

@@ -1,4 +1,5 @@
 #include "ui_ImageSettingsWidget.h"
+
 #include "ImageSettingsWidget.h"
 
 #include "util/ISettings.h"
@@ -7,7 +8,8 @@
 
 using namespace HomeCompa::fb2cut;
 
-namespace {
+namespace
+{
 
 constexpr ImageSettings DEFAULT_SETTINGS;
 constexpr auto QUALITY = "quality";
@@ -17,30 +19,37 @@ constexpr auto GRAYSCALE = "grayscale";
 constexpr auto SKIP = "skip";
 constexpr auto LOCK_SIZE = "lockSize";
 
-QString GetKey(const QString & section, const QString & key)
+QString GetKey(const QString& section, const QString& key)
 {
 	return QString("ui/fb2cut/%1/%2").arg(section, key);
 }
 
 }
 
-ImageSettingsWidget::ImageSettingsWidget(std::shared_ptr<ISettings> settingsManager, QWidget *parent)
+ImageSettingsWidget::ImageSettingsWidget(std::shared_ptr<ISettings> settingsManager, QWidget* parent)
 	: QGroupBox(parent)
 	, m_settingsManager(std::move(settingsManager))
 {
 	m_ui->setupUi(this);
 
-	connect(m_ui->btnFixSize, &QAbstractButton::toggled, this, [this] (const bool checked)
-	{
-		m_ui->height->setEnabled(!checked);
-		if (checked)
-			m_ui->height->setValue(m_ui->width->value());
-	});
+	connect(m_ui->btnFixSize,
+	        &QAbstractButton::toggled,
+	        this,
+	        [this](const bool checked)
+	        {
+				m_ui->height->setEnabled(!checked);
+				if (checked)
+					m_ui->height->setValue(m_ui->width->value());
+			});
 
-	connect(m_ui->width, &QSpinBox::valueChanged, this, [this] (const int value)
-	{
-		if (m_ui->btnFixSize->isChecked())m_ui->height->setValue(value);
-	});
+	connect(m_ui->width,
+	        &QSpinBox::valueChanged,
+	        this,
+	        [this](const int value)
+	        {
+				if (m_ui->btnFixSize->isChecked())
+					m_ui->height->setValue(value);
+			});
 
 	connect(m_ui->quality, &QSpinBox::valueChanged, this, &ImageSettingsWidget::Changed);
 	connect(m_ui->width, &QSpinBox::valueChanged, this, &ImageSettingsWidget::Changed);
@@ -51,7 +60,7 @@ ImageSettingsWidget::ImageSettingsWidget(std::shared_ptr<ISettings> settingsMana
 
 ImageSettingsWidget::~ImageSettingsWidget() = default;
 
-void ImageSettingsWidget::SetCommonSettings(const ImageSettingsWidget & commonImageSettingsWidget)
+void ImageSettingsWidget::SetCommonSettings(const ImageSettingsWidget& commonImageSettingsWidget)
 {
 	m_commonImageSettingsWidget = &commonImageSettingsWidget;
 	connect(m_commonImageSettingsWidget, &ImageSettingsWidget::Changed, this, &ImageSettingsWidget::CopyFromCommon);
@@ -71,7 +80,7 @@ void ImageSettingsWidget::CopyFromCommon()
 	m_ui->skip->setChecked(m_commonImageSettingsWidget->m_ui->skip->isChecked());
 }
 
-void ImageSettingsWidget::SetImageSettings(ImageSettings & settings)
+void ImageSettingsWidget::SetImageSettings(ImageSettings& settings)
 {
 	m_settings = &settings;
 

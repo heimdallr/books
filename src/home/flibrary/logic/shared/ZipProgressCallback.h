@@ -1,19 +1,20 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 #include "fnd/observer.h"
 
 #include "zip.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class ZipProgressCallback final : public Zip::ProgressCallback
 {
 	NON_COPY_MOVABLE(ZipProgressCallback)
 
 public:
-	explicit ZipProgressCallback(const std::shared_ptr<const class ILogicFactory> & logicFactory);
+	explicit ZipProgressCallback(const std::shared_ptr<const class ILogicFactory>& logicFactory);
 	~ZipProgressCallback() override;
 
 public:
@@ -24,7 +25,7 @@ private: // ProgressCallback
 	void OnIncrement(int64_t bytes) override;
 	void OnSetCompleted(int64_t bytes) override;
 	void OnDone() override;
-	void OnFileDone(const QString & filePath) override;
+	void OnFileDone(const QString& filePath) override;
 	bool OnCheckBreak() override;
 
 private:
@@ -32,4 +33,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -1,8 +1,9 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant::UserData::Groups {
+namespace HomeCompa::Flibrary::Constant::UserData::Groups
+{
 
-constexpr auto RootNode  = "Groups";
+constexpr auto RootNode = "Groups";
 constexpr auto GroupNode = "Group";
 
 constexpr auto CreateNewGroupCommandText = "insert into Groups_User(Title, CreatedAt) values(?, ?)";

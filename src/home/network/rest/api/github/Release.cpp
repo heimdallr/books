@@ -8,31 +8,31 @@
 
 using namespace HomeCompa::RestAPI::Github;
 
-namespace {
+namespace
+{
 
 template <typename T>
-T deserialize(const QJsonObject & data, const QString & key)
+T deserialize(const QJsonObject& data, const QString& key)
 {
 	return data[key].toVariant().value<T>();
 }
 
 }
 
-Assets Asset::ParseAssets(const QJsonValue & data)
+Assets Asset::ParseAssets(const QJsonValue& data)
 {
 	assert(data.isArray());
 	Assets assets;
 	for (const auto dataValue : data.toArray())
 	{
 		const auto dataObj = dataValue.toObject();
-		assets.emplace_back
-		(
+		assets.emplace_back(
 #define ITEM(NAME) deserialize<decltype(NAME)>(dataObj, #NAME)
-			  ITEM(id)
-			, ITEM(name)
-			, ITEM(size)
-			, ITEM(download_count)
-			, ITEM(browser_download_url)
+			ITEM(id),
+			ITEM(name),
+			ITEM(size),
+			ITEM(download_count),
+			ITEM(browser_download_url)
 #undef ITEM
 		);
 	}
@@ -40,13 +40,13 @@ Assets Asset::ParseAssets(const QJsonValue & data)
 	return assets;
 }
 
-void Release::ParseGetLatestRelease(IClient & client, const QJsonValue & data)
+void Release::ParseGetLatestRelease(IClient& client, const QJsonValue& data)
 {
 	const Release release(data);
 	client.HandleLatestRelease(release);
 }
 
-Release::Release(const QJsonValue & data)
+Release::Release(const QJsonValue& data)
 #define ITEM(NAME) NAME(deserialize<decltype(NAME)>(data.toObject(), #NAME))
 	: ITEM(id)
 	, ITEM(name)

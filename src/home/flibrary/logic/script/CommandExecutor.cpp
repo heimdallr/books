@@ -1,13 +1,15 @@
-#include "CommaneExecutor.h"
+#include "CommandExecutor.h"
+
+#include <Windows.h>
 
 #include <QDir>
-#include <Windows.h>
 
 using namespace HomeCompa::Flibrary;
 
-namespace {
+namespace
+{
 
-bool Execute(const std::wstring & file, const std::wstring & parameters)
+bool Execute(const std::wstring& file, const std::wstring& parameters)
 {
 	SHELLEXECUTEINFO lpExecInfo {};
 	lpExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -29,16 +31,16 @@ bool Execute(const std::wstring & file, const std::wstring & parameters)
 	return true;
 }
 
-}
+} // namespace
 
-bool CommandExecutor::ExecuteSystem(const IScriptController::Command & command) const
+bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::System);
 	const auto cmdLine = QString("/D /C %1 %2").arg(command.command, command.args).toStdWString();
 	return Execute(L"cmd.exe", cmdLine);
 }
 
-bool CommandExecutor::ExecuteLaunchApp(const IScriptController::Command & command) const
+bool CommandExecutor::ExecuteLaunchApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchApp);
 	const auto file = QDir::toNativeSeparators(command.command).toStdWString();

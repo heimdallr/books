@@ -1,11 +1,13 @@
-#include <QString>
-
 #include "AppVersion.h"
 
+#include <QString>
+
 #include "build.h"
+
 #include "config/version.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 QString GetApplicationVersion()
 {

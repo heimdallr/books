@@ -2,16 +2,17 @@
 
 #include <QIODevice>
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
 class QStdStreamBuf : public std::streambuf
 {
 public:
-	explicit QStdStreamBuf(QIODevice & dev);
+	explicit QStdStreamBuf(QIODevice& dev);
 
 protected: // std::streambuf
-	std::streamsize xsgetn(std::streambuf::char_type * str, std::streamsize n) override;
-	std::streamsize xsputn(const std::streambuf::char_type * str, std::streamsize n) override;
+	std::streamsize xsgetn(std::streambuf::char_type* str, std::streamsize n) override;
+	std::streamsize xsputn(const std::streambuf::char_type* str, std::streamsize n) override;
 	std::streambuf::pos_type seekoff(std::streambuf::off_type off, std::ios_base::seekdir dir, std::ios_base::openmode __mode) override;
 	std::streambuf::pos_type seekpos(std::streambuf::pos_type off, std::ios_base::openmode /*__mode*/) override;
 	std::streambuf::int_type underflow() override;
@@ -19,17 +20,17 @@ protected: // std::streambuf
 private:
 	static constexpr std::streamsize BUFFER_SIZE = 1024;
 	std::streambuf::char_type m_inbuf[BUFFER_SIZE];
-	QIODevice & m_dev;
+	QIODevice& m_dev;
 };
 
-QStdStreamBuf::QStdStreamBuf(QIODevice & dev)
+QStdStreamBuf::QStdStreamBuf(QIODevice& dev)
 	: m_dev { dev }
 {
 	// Initialize get pointer.  This should be zero so that underflow is called upon first read.
 	this->setg(nullptr, nullptr, nullptr);
 }
 
-std::streamsize QStdStreamBuf::xsgetn(std::streambuf::char_type * str, const std::streamsize n)
+std::streamsize QStdStreamBuf::xsgetn(std::streambuf::char_type* str, const std::streamsize n)
 {
 	[[maybe_unused]] const auto isOpen = m_dev.isOpen();
 	[[maybe_unused]] const auto pos = m_dev.pos();
@@ -37,7 +38,7 @@ std::streamsize QStdStreamBuf::xsgetn(std::streambuf::char_type * str, const std
 	return m_dev.read(str, n);
 }
 
-std::streamsize QStdStreamBuf::xsputn(const std::streambuf::char_type * str, const std::streamsize n)
+std::streamsize QStdStreamBuf::xsputn(const std::streambuf::char_type* str, const std::streamsize n)
 {
 	return m_dev.write(str, n);
 }
@@ -59,6 +60,7 @@ std::streambuf::pos_type QStdStreamBuf::seekoff(std::streambuf::off_type off, co
 	const auto result = seekpos(off, mode);
 	return result;
 }
+
 std::streambuf::pos_type QStdStreamBuf::seekpos(const std::streambuf::pos_type off, std::ios_base::openmode /*__mode*/)
 {
 	return std::streambuf::pos_type(m_dev.seek(off) ? m_dev.pos() : std::streambuf::off_type(-1));
@@ -84,7 +86,7 @@ std::streambuf::int_type QStdStreamBuf::underflow()
 class QStdIStreamBuf : public QStdStreamBuf
 {
 public:
-	QStdIStreamBuf(QIODevice & dev)
+	QStdIStreamBuf(QIODevice& dev)
 		: QStdStreamBuf(dev)
 	{
 	}
@@ -93,7 +95,7 @@ public:
 class QStdOStreamBuf : public QStdStreamBuf
 {
 public:
-	QStdOStreamBuf(QIODevice & dev)
+	QStdOStreamBuf(QIODevice& dev)
 		: QStdStreamBuf(dev)
 	{
 	}
@@ -110,7 +112,7 @@ QStdIStream::~QStdIStream()
 	rdbuf(nullptr);
 }
 
-std::unique_ptr<std::istream> QStdIStream::create(QIODevice & dev)
+std::unique_ptr<std::istream> QStdIStream::create(QIODevice& dev)
 {
 	auto buf = std::make_unique<QStdIStreamBuf>(dev);
 	return std::unique_ptr<std::istream>(new QStdIStream(std::move(buf)));
@@ -127,10 +129,10 @@ QStdOStream::~QStdOStream()
 	rdbuf(nullptr);
 }
 
-std::unique_ptr<std::ostream> QStdOStream::create(QIODevice & dev)
+std::unique_ptr<std::ostream> QStdOStream::create(QIODevice& dev)
 {
 	auto buf = std::make_unique<QStdOStreamBuf>(dev);
 	return std::unique_ptr<std::ostream>(new QStdOStream(std::move(buf)));
 }
 
-}
+} // namespace HomeCompa

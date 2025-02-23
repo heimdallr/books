@@ -4,8 +4,9 @@
 
 #include "export/Util.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
-UTIL_EXPORT void SetKeyboardLayout(const std::string & locale);
+UTIL_EXPORT void SetKeyboardLayout(const std::string& locale);
 
 }

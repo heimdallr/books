@@ -1,17 +1,20 @@
 #include "ui_MainWindow.h"
+
 #include "MainWindow.h"
 
 #include "fnd/FindPair.h"
+
 #include "GuiUtil/interface/IUiFactory.h"
-#include "util/files.h"
 #include "util/ISettings.h"
+#include "util/files.h"
 
 #include "ImageSettingsWidget.h"
 #include "settings.h"
 
 using namespace HomeCompa::fb2cut;
 
-namespace {
+namespace
+{
 
 constexpr auto KEY_INPUT_FILES = "ui/fb2cut/inputFiles";
 constexpr auto KEY_DST_FOLDER = "ui/fb2cut/outputFolder";
@@ -26,14 +29,12 @@ constexpr auto KEY_MAX_THREAD_COUNT = "ui/fb2cut/maxThreadCount";
 
 }
 
-MainWindow::MainWindow(
-	  std::shared_ptr<ISettings> settingsManager
-	, std::shared_ptr<const Util::IUiFactory> uiFactory
-	, std::shared_ptr<ImageSettingsWidget> common
-	, std::shared_ptr<ImageSettingsWidget> covers
-	, std::shared_ptr<ImageSettingsWidget> images
-	, QWidget *parent
-)
+MainWindow::MainWindow(std::shared_ptr<ISettings> settingsManager,
+                       std::shared_ptr<const Util::IUiFactory> uiFactory,
+                       std::shared_ptr<ImageSettingsWidget> common,
+                       std::shared_ptr<ImageSettingsWidget> covers,
+                       std::shared_ptr<ImageSettingsWidget> images,
+                       QWidget* parent)
 	: QMainWindow(parent)
 	, GeometryRestorable(*this, settingsManager, "fb2cut/MainWindow")
 	, GeometryRestorableObserver(static_cast<QWidget&>(*this))
@@ -75,7 +76,7 @@ MainWindow::MainWindow(
 	connect(m_ui->editDstFolder, &QLineEdit::textChanged, this, &MainWindow::OnDstFolderChanged);
 	connect(m_ui->editExternalArchiver, &QLineEdit::textChanged, this, &MainWindow::OnExternalArchiverChanged);
 	connect(m_ui->editFfmpeg, &QLineEdit::textChanged, this, &MainWindow::OnFfmpegChanged);
-	connect(m_ui->saveFb2, &QAbstractButton::toggled, this, [this] (const bool checked) { m_ui->format->setEnabled(checked && m_ui->archiveFb2->isChecked()); });
+	connect(m_ui->saveFb2, &QAbstractButton::toggled, this, [this](const bool checked) { m_ui->format->setEnabled(checked && m_ui->archiveFb2->isChecked()); });
 
 	const Settings defaultSettings;
 
@@ -94,7 +95,7 @@ MainWindow::MainWindow(
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::SetSettings(Settings * settings)
+void MainWindow::SetSettings(Settings* settings)
 {
 	m_settings = settings;
 
@@ -146,11 +147,7 @@ void MainWindow::SetSettings(Settings * settings)
 
 void MainWindow::CheckEnabled()
 {
-	const bool startDisabled = false
-		|| m_ui->actionInputFilesNotFound->isVisible()
-		|| m_ui->actionDstFolderNotExists->isVisible()
-		|| m_ui->actionFfmpegNotFound->isVisible()
-		;
+	const bool startDisabled = false || m_ui->actionInputFilesNotFound->isVisible() || m_ui->actionDstFolderNotExists->isVisible() || m_ui->actionFfmpegNotFound->isVisible();
 
 	m_ui->btnStart->setEnabled(!startDisabled);
 }
@@ -246,17 +243,16 @@ void MainWindow::OnFfmpegChanged()
 	CheckEnabled();
 }
 
-QString MainWindow::GetExecutableFileName(const QString & key, const QString & title) const
+QString MainWindow::GetExecutableFileName(const QString& key, const QString& title) const
 {
 	return m_uiFactory->GetOpenFileName(key, title, tr("Executables (*.exe);;All files (*.*)"));
 }
 
 void MainWindow::Set7zDefaultSettings()
 {
-	static constexpr std::pair<Zip::Format, const char *> args[]
-	{
+	static constexpr std::pair<Zip::Format, const char*> args[] {
 		{ Zip::Format::SevenZip, "a %dst%.7z -mx9 -sdel -m0=ppmd -ms=off -bt -mmt%1 %src%" },
-		{ Zip::Format::Zip     , "a %dst%.zip -mx9 -sdel -mmt%1 %src%" },
+		{      Zip::Format::Zip,                     "a %dst%.zip -mx9 -sdel -mmt%1 %src%" },
 	};
 
 	m_ui->editArchiverCommandLine->setText(QString(FindSecond(args, Zip::FormatFromString(m_ui->format->currentText()))).arg(m_ui->maxThreadCount->value()));

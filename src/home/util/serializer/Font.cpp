@@ -4,9 +4,11 @@
 
 #include "ISettings.h"
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
-namespace {
+namespace
+{
 constexpr auto FAMILY = "family";
 constexpr auto POINT_SIZE_F = "pointSizeF";
 constexpr auto PIXEL_SIZE = "pixelSize";
@@ -24,7 +26,7 @@ constexpr auto STRETCH = "stretch";
 constexpr auto STYLE_STRATEGY = "styleStrategy";
 }
 
-void Serialize(const QFont & font, ISettings & settings)
+void Serialize(const QFont& font, ISettings& settings)
 {
 	settings.Set(FAMILY, font.family());
 	settings.Set(POINT_SIZE_F, font.pointSizeF());
@@ -44,7 +46,7 @@ void Serialize(const QFont & font, ISettings & settings)
 	settings.Set(STYLE_STRATEGY, font.styleStrategy());
 }
 
-void Deserialize(QFont & font, const ISettings & settings)
+void Deserialize(QFont& font, const ISettings& settings)
 {
 	font.setFamily(settings.Get(FAMILY, font.family()));
 	font.setPointSizeF(settings.Get(POINT_SIZE_F, font.pointSizeF()));
@@ -63,4 +65,4 @@ void Deserialize(QFont & font, const ISettings & settings)
 	font.setStyleStrategy(settings.Get(STYLE_STRATEGY, font.styleStrategy()));
 }
 
-}
+} // namespace HomeCompa::Util

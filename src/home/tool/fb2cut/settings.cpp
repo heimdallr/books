@@ -4,20 +4,19 @@
 
 #include "zip.h"
 
-std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::ImageSettings & settings)
+std::ostream& operator<<(std::ostream& stream, const HomeCompa::fb2cut::ImageSettings& settings)
 {
-	return stream
-		<< std::endl << "max size: " << settings.maxSize.width() << "x" << settings.maxSize.height()
-		<< std::endl << "compression quality: " << settings.quality
-		<< std::endl << "grayscale: " << (settings.grayscale ? "on" : "off")
-		;
+	return stream << std::endl
+	              << "max size: " << settings.maxSize.width() << "x" << settings.maxSize.height() << std::endl
+	              << "compression quality: " << settings.quality << std::endl
+	              << "grayscale: " << (settings.grayscale ? "on" : "off");
 }
 
-std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::Settings & settings)
+std::ostream& operator<<(std::ostream& stream, const HomeCompa::fb2cut::Settings& settings)
 {
 	if (settings.cover.save)
 		stream << std::endl << "covers settings: " << settings.cover;
-	else 
+	else
 		stream << std::endl << "covers skipped";
 
 	if (settings.image.save)
@@ -35,8 +34,5 @@ std::ostream & operator<<(std::ostream & stream, const HomeCompa::fb2cut::Settin
 	if (!settings.ffmpeg.isEmpty())
 		stream << std::endl << "ffmpeg: " << settings.ffmpeg.toStdString();
 
-	return stream
-		<< std::endl << "max thread count: " << settings.maxThreadCount
-		<< std::endl << "min image file size: " << settings.minImageFileSize
-		;
+	return stream << std::endl << "max thread count: " << settings.maxThreadCount << std::endl << "min image file size: " << settings.minImageFileSize;
 }

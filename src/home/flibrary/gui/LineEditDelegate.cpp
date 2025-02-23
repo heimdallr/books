@@ -4,24 +4,24 @@
 
 using namespace HomeCompa::Flibrary;
 
-LineEditDelegate::LineEditDelegate(QObject * parent)
+LineEditDelegate::LineEditDelegate(QObject* parent)
 	: QStyledItemDelegate(parent)
 {
 }
 
-QWidget * LineEditDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex &) const
+QWidget* LineEditDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex&) const
 {
 	return new QLineEdit(parent);
 }
 
-void LineEditDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+void LineEditDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-	auto * lineEdit = qobject_cast<QLineEdit *>(editor);
+	auto* lineEdit = qobject_cast<QLineEdit*>(editor);
 	lineEdit->setText(index.data().toString());
 }
 
-void LineEditDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const
+void LineEditDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
-	const auto * lineEdit = qobject_cast<QLineEdit *>(editor);
+	const auto* lineEdit = qobject_cast<QLineEdit*>(editor);
 	model->setData(index, lineEdit->text());
 }

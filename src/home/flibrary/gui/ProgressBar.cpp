@@ -1,29 +1,24 @@
 #include "ui_ProgressBar.h"
-#include "ProgressBar.h"
 
-#include <plog/Log.h>
+#include "ProgressBar.h"
 
 #include "interface/logic/IProgressController.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 
-class ProgressBar::Impl final
-	: IProgressController::IObserver
+class ProgressBar::Impl final : IProgressController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(ProgressBar & self
-		, std::shared_ptr<IProgressController> progressController
-	)
+	explicit Impl(ProgressBar& self, std::shared_ptr<IProgressController> progressController)
 		: m_self(self)
 		, m_progressController(std::move(progressController))
 	{
 		m_ui.setupUi(&m_self);
-		connect(m_ui.button, &QAbstractButton::clicked, &m_self, [&]
-		{
-			m_progressController->Stop();
-		});
+		connect(m_ui.button, &QAbstractButton::clicked, &m_self, [&] { m_progressController->Stop(); });
 		m_progressController->RegisterObserver(this);
 
 		OnStartedChanged();
@@ -58,15 +53,13 @@ private: // IProgressController::IObserver
 	}
 
 private:
-	ProgressBar & m_self;
+	ProgressBar& m_self;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Ui::ProgressBar m_ui {};
 	int m_loggedValue { 0 };
 };
 
-ProgressBar::ProgressBar(std::shared_ptr<IBooksExtractorProgressController> progressController
-	, QWidget * parent
-)
+ProgressBar::ProgressBar(std::shared_ptr<IBooksExtractorProgressController> progressController, QWidget* parent)
 	: QWidget(parent)
 	, m_impl(*this, std::move(progressController))
 {

@@ -4,6 +4,9 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP TABLE IF EXISTS Inpx;
+--@@
+
 DROP TABLE IF EXISTS Books_User;
 --@@
 
@@ -157,9 +160,7 @@ CREATE TABLE Groups_List_User (
 CREATE TABLE Searches_User (
     SearchID    INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
     Title       VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
-    CreatedAt   DATETIME,
-    Mode        INTEGER       NOT NULL DEFAULT (0),
-    SearchTitle VARCHAR (150) COLLATE NOCASE
+    CreatedAt   DATETIME
 );
 --@@
 
@@ -181,4 +182,14 @@ CREATE TABLE Export_List_User (
     ExportType INTEGER  NOT NULL,
     CreatedAt  DATETIME NOT NULL
 );
+--@@
+
+CREATE TABLE Inpx (
+    Folder VARCHAR (200) NOT NULL,
+    File   VARCHAR (200) NOT NULL,
+    Hash   VARCHAR (50)  NOT NULL
+);
+--@@
+
+CREATE VIRTUAL TABLE Books_Search USING fts5(Title, content=Books, content_rowid=BookID)
 --@@

@@ -1,4 +1,5 @@
 include_directories(${CMAKE_CURRENT_LIST_DIR})
+include_directories(${CMAKE_CURRENT_LIST_DIR}/common)
 set(COMPANY_NAME "HomeCompa")
 
 file(READ ${CMAKE_CURRENT_LIST_DIR}/flibrary/version/build.h BUILD_NUMBER)

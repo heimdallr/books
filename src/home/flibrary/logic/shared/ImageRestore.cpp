@@ -4,19 +4,19 @@
 #include <QDir>
 #include <QFileInfo>
 
-#include <plog/Log.h>
-
+#include "common/Constant.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
-#include "common/Constant.h"
 
+#include "log.h"
 #include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 using Covers = std::unordered_map<QString, QByteArray>;
 
@@ -25,17 +25,15 @@ constexpr auto ID = "id";
 constexpr auto CONTENT_TYPE = "content-type";
 constexpr auto JPEG = "image/jpeg";
 constexpr auto PNG = "image/png";
-constexpr std::pair<const char*, const char*> SIGNATURES[]
-{
+constexpr std::pair<const char*, const char*> SIGNATURES[] {
 	{ "\xFF\xD8\xFF\xE0", JPEG },
-	{ "\x89\x50\x4E\x47", PNG },
+	{ "\x89\x50\x4E\x47",  PNG },
 };
 
-class SaxPrinter final
-	: public Util::SaxParser
+class SaxPrinter final : public Util::SaxParser
 {
 public:
-	SaxPrinter(QIODevice & input, QIODevice & output, Covers covers)
+	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers)
 		: SaxParser { input }
 		, m_writer { output }
 		, m_covers { std::move(covers) }
@@ -49,12 +47,12 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnProcessingInstruction(const QString & target, const QString & data) override
+	bool OnProcessingInstruction(const QString& target, const QString& data) override
 	{
 		return m_writer.WriteProcessingInstruction(target, data), true;
 	}
 
-	bool OnStartElement(const QString & name, const QString & /*path*/, const Util::XmlAttributes & attributes) override
+	bool OnStartElement(const QString& name, const QString& /*path*/, const Util::XmlAttributes& attributes) override
 	{
 		m_writer.WriteStartElement(name, attributes);
 
@@ -64,7 +62,7 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QString &, const QString & path) override
+	bool OnEndElement(const QString&, const QString& path) override
 	{
 		if (path == "FictionBook")
 			WriteImages();
@@ -72,31 +70,31 @@ private: // Util::SaxParser
 		return m_writer.WriteEndElement(), true;
 	}
 
-	bool OnCharacters(const QString & /*path*/, const QString & value) override
+	bool OnCharacters(const QString& /*path*/, const QString& value) override
 	{
 		return m_writer.WriteCharacters(value), true;
 	}
 
-	bool OnWarning(const QString & text) override
+	bool OnWarning(const QString& text) override
 	{
 		PLOGW << text;
 		return true;
 	}
 
-	bool OnError(const QString & text) override
+	bool OnError(const QString& text) override
 	{
 		m_hasError = true;
 		PLOGE << text;
 		return false;
 	}
 
-	bool OnFatalError(const QString & text) override
+	bool OnFatalError(const QString& text) override
 	{
 		return OnError(text);
 	}
 
 private:
-	void WriteImage(const QString & imageFileName)
+	void WriteImage(const QString& imageFileName)
 	{
 		const auto data = [&]
 		{
@@ -108,7 +106,7 @@ private:
 				m_covers.erase(it);
 				return result;
 			}
-			catch (const std::exception & ex)
+			catch (const std::exception& ex)
 			{
 				PLOGE << ex.what();
 			}
@@ -127,17 +125,11 @@ private:
 
 	void WriteImages()
 	{
-		for (const auto & [name, body] : m_covers)
+		for (const auto& [name, body] : m_covers)
 		{
-			const auto it = std::ranges::find_if(SIGNATURES, [&] (const auto & item) { return body.startsWith(item.first); });
-			const auto * contentType = it != std::end(SIGNATURES) ? it->second : JPEG;
-			m_writer
-				.WriteStartElement(BINARY)
-				.WriteAttribute(ID, name)
-				.WriteAttribute(CONTENT_TYPE, contentType)
-				.WriteCharacters(QString::fromUtf8(body.toBase64()))
-				.WriteEndElement()
-				;
+			const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return body.startsWith(item.first); });
+			const auto* contentType = it != std::end(SIGNATURES) ? it->second : JPEG;
+			m_writer.WriteStartElement(BINARY).WriteAttribute(ID, name).WriteAttribute(CONTENT_TYPE, contentType).WriteCharacters(QString::fromUtf8(body.toBase64())).WriteEndElement();
 		}
 
 		m_covers.clear();
@@ -149,7 +141,7 @@ private:
 	bool m_hasError { false };
 };
 
-QByteArray RestoreImagesImpl(QIODevice & stream, Covers covers)
+QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 {
 	QByteArray byteArray;
 	QBuffer buffer(&byteArray);
@@ -158,14 +150,16 @@ QByteArray RestoreImagesImpl(QIODevice & stream, Covers covers)
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
 }
 
-QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const QString & fileName)
+QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName)
 {
 	Covers covers;
-	ExtractBookImages(folder, fileName, [&covers] (auto name, auto body)
-	{
-		covers.try_emplace(std::move(name), std::move(body));
-		return false;
-	});
+	ExtractBookImages(folder,
+	                  fileName,
+	                  [&covers](auto name, auto body)
+	                  {
+						  covers.try_emplace(std::move(name), std::move(body));
+						  return false;
+					  });
 	if (covers.empty())
 		return stream.readAll();
 
@@ -176,7 +170,7 @@ QByteArray RestoreImagesImpl(QIODevice & stream, const QString & folder, const Q
 	return stream.readAll();
 }
 
-bool ParseCovers(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback, bool & stop)
+bool ParseCovers(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, bool& stop)
 {
 	if (!QFile::exists(folder))
 		return false;
@@ -192,7 +186,7 @@ bool ParseCovers(const QString & folder, const QString & fileName, const Extract
 	return true;
 }
 
-void ParseImages(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback)
+void ParseImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback)
 {
 	if (!QFile::exists(folder))
 		return;
@@ -200,13 +194,10 @@ void ParseImages(const QString & folder, const QString & fileName, const Extract
 	const Zip zip(folder);
 	auto fileList = zip.GetFileNameList();
 	const auto filePrefix = QString("%1/").arg(QFileInfo(fileName).completeBaseName());
-	if (const auto [begin, end] = std::ranges::remove_if(fileList, [&] (const auto & item)
-	{
-		return !item.startsWith(filePrefix) /*|| item == filePrefix*/;
-	}); begin != end)
+	if (const auto [begin, end] = std::ranges::remove_if(fileList, [&](const auto& item) { return !item.startsWith(filePrefix) /*|| item == filePrefix*/; }); begin != end)
 		fileList.erase(begin, end);
 
-	for (const auto & file : fileList)
+	for (const auto& file : fileList)
 	{
 		auto body = zip.Read(file)->GetStream().readAll();
 		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
@@ -214,46 +205,50 @@ void ParseImages(const QString & folder, const QString & fileName, const Extract
 	}
 }
 
-}
+} // namespace
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-QByteArray RestoreImages(QIODevice & input, const QString & folder, const QString & fileName)
+QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName)
 {
 	return RestoreImagesImpl(input, folder, fileName);
 }
 
-bool ExtractBookImages(const QString & folder, const QString & fileName, const ExtractBookImagesCallback & callback)
+bool ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback)
 {
-	static constexpr const char * EXTENSIONS[] { "zip", "7z" };
+	static constexpr const char* EXTENSIONS[] { "zip", "7z" };
 
 	const QFileInfo fileInfo(folder);
 
 	bool stop = false;
-	const auto result = std::accumulate(std::cbegin(EXTENSIONS), std::cend(EXTENSIONS), false, [&] (const bool init, const char * ext)
-	{
-		try
-		{
-			return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
-		}
-		catch(const std::exception & ex)
-		{
-			PLOGE << ex.what();
-		}
-		catch(...)
-		{
-			PLOGE << "unknown error";
-		}
-		return init;
-	});
+	const auto result = std::accumulate(std::cbegin(EXTENSIONS),
+	                                    std::cend(EXTENSIONS),
+	                                    false,
+	                                    [&](const bool init, const char* ext)
+	                                    {
+											try
+											{
+												return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+											}
+											catch (const std::exception& ex)
+											{
+												PLOGE << ex.what();
+											}
+											catch (...)
+											{
+												PLOGE << "unknown error";
+											}
+											return init;
+										});
 
-	for (const auto * ext : EXTENSIONS)
+	for (const auto* ext : EXTENSIONS)
 	{
 		try
 		{
 			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
 		}
-		catch (const std::exception & ex)
+		catch (const std::exception& ex)
 		{
 			PLOGE << ex.what();
 		}
@@ -266,4 +261,4 @@ bool ExtractBookImages(const QString & folder, const QString & fileName, const E
 	return result;
 }
 
-}
+} // namespace HomeCompa::Flibrary

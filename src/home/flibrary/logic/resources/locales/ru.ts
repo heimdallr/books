@@ -188,16 +188,6 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Save index file</source>
-        <translation>Сохранить индексный файл</translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Index files (*.inpx);;All files (*.*)</source>
-        <translation>Индексные файлы (*.inpx);;Все файлы (*.*)</translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation>Не удалось поставить оценку</translation>
     </message>
@@ -280,29 +270,34 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation>&lt;tr&gt;&lt;td&gt;Жанры:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
+        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <translation>&lt;tr&gt;&lt;td&gt;Жанры:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&quot;%1&quot; collection %2. Added:
+        <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;p&gt;Внимание! Обнаружено изменение предыдущих данных, рекомендуем пересоздать коллекцию снова. Не забудьте сохранить пользовательские данные&lt;/p&gt;&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
+        <source>&quot;%1&quot; collection %2. Added:&lt;p&gt;
 &lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Authors: &lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Series:  &lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Books:   &lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Authors:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Series:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Books:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
-&lt;/table&gt;</source>
-        <translation>Коллекция &quot;%1&quot; %2. Добавлено:
+&lt;/table&gt;%9</source>
+        <translation>Коллекция &quot;%1&quot; %2. Добавлено:&lt;p&gt;
 &lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Архивы:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Авторы:&lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Серии:&lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Книги:&lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Ключевые слова:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Архивы:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Авторы:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Серии:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Книги:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Ключевые слова:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
-&lt;/table&gt;</translation>
+&lt;/table&gt;%9</translation>
     </message>
 </context>
 <context>
@@ -502,8 +497,13 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Find books whose titles</source>
-        <translation>Найти книги, названия которых</translation>
+        <source>Search books</source>
+        <translation>Поиск книг</translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>Search query</source>
+        <translation>Поисковый запрос</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
@@ -533,26 +533,6 @@ Try again?</source>
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>contain</source>
-        <translation>содержат</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>begin with</source>
-        <translation>начианются с</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>end with</source>
-        <translation>оканчиваются на</translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>is equal to</source>
-        <translation>равны</translation>
     </message>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>

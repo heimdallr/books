@@ -2,9 +2,10 @@
 
 #include <QString>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class ICollectionCleaner  // NOLINT(cppcoreguidelines-special-member-functions)
+class ICollectionCleaner // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	static constexpr auto CONTEXT = "CollectionCleaner";
@@ -16,6 +17,7 @@ public:
 		QString folder;
 		QString file;
 	};
+
 	using Books = std::vector<Book>;
 
 	enum class CleanGenreMode
@@ -25,7 +27,7 @@ public:
 		Partial,
 	};
 
-	class IAnalyzeObserver  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IAnalyzeObserver // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IAnalyzeObserver() = default;
@@ -36,6 +38,8 @@ public:
 		virtual QStringList GetLanguages() const = 0;
 		virtual QStringList GetGenres() const = 0;
 		virtual CleanGenreMode GetCleanGenreMode() const = 0;
+		virtual std::optional<size_t> GetMinimumBookSize() const = 0;
+		virtual std::optional<size_t> GetMaximumBookSize() const = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
@@ -47,4 +51,4 @@ public:
 	virtual void AnalyzeCancel() const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

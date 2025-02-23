@@ -5,15 +5,18 @@
 #include <QUuid>
 
 #include <Hypodermic/Container.h>
-#include <plog/Log.h>
 
-#include "fnd/algorithm.h"
 #include "fnd/FindPair.h"
+#include "fnd/algorithm.h"
+
 #include "util/ISettings.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
-namespace {
+namespace
+{
 
 constexpr auto SCRIPTS = "Scripts";
 constexpr auto SCRIPT_KEY_TEMPLATE = "%1/%2";
@@ -27,7 +30,7 @@ constexpr auto ARGUMENTS = "Arguments";
 
 struct CommandDescriptionComparer
 {
-	bool operator()(const IScriptController::CommandDescription & lhs, const IScriptController::CommandDescription & rhs) const
+	bool operator()(const IScriptController::CommandDescription& lhs, const IScriptController::CommandDescription& rhs) const
 	{
 		return comparer(lhs.type, rhs.type);
 	}
@@ -39,21 +42,15 @@ private:
 template <typename T>
 auto GetModeFilter(const IScriptController::Mode mode)
 {
-	return std::views::filter([=] (const T & item)
-	{
-		return item.mode == mode;
-	});
+	return std::views::filter([=](const T& item) { return item.mode == mode; });
 }
 
-auto GetScriptUidFilter(const QString & uid)
+auto GetScriptUidFilter(const QString& uid)
 {
-	return std::views::filter([&] (const IScriptController::Command & item)
-	{
-		return item.scriptUid == uid;
-	});
+	return std::views::filter([&](const IScriptController::Command& item) { return item.scriptUid == uid; });
 }
 
-}
+} // namespace
 
 struct ScriptController::Impl
 {
@@ -62,22 +59,20 @@ struct ScriptController::Impl
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	std::weak_ptr<const ICommandExecutor> commandExecutor;
 
-	Impl(std::shared_ptr<ISettings> settings
-		, const std::shared_ptr<const ICommandExecutor> & commandExecutor
-	)
+	Impl(std::shared_ptr<ISettings> settings, const std::shared_ptr<const ICommandExecutor>& commandExecutor)
 		: settings(std::move(settings))
 		, commandExecutor(commandExecutor)
 	{
 		Init();
 	}
 
-	Script & GetScript(const int n)
+	Script& GetScript(const int n)
 	{
 		assert(n >= 0 && n < static_cast<int>(scripts.size()));
 		return scripts[static_cast<size_t>(n)];
 	}
 
-	Command & GetCommand(const int n)
+	Command& GetCommand(const int n)
 	{
 		assert(n >= 0 && n < static_cast<int>(commands.size()));
 		return commands[static_cast<size_t>(n)];
@@ -87,39 +82,45 @@ private:
 	void Init()
 	{
 		const SettingsGroup scriptsGuard(*settings, SCRIPTS);
-		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&] (const QString & uid)
-		{
-			const SettingsGroup scriptGuard(*settings, uid);
-			Script script { {uid, settings->Get(NUMBER).toInt() }
-				, settings->Get(NAME).toString()
-				, FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer{})
-			};
-			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid] (const QString & commandUid)
-			{
-				const SettingsGroup commandGuard(*settings, commandUid);
-				return Command { {commandUid, settings->Get(NUMBER).toInt() }
-					, uid, settings->Get(COMMAND).toString()
-					, settings->Get(ARGUMENTS).toString()
-					, FindFirst(s_commandTypes, CommandDescription{settings->Get(TYPE).toString().toStdString().data()}, CommandDescriptionComparer{})
-				};
-			});
-			return script;
-		});
+		std::ranges::transform(settings->GetGroups(),
+		                       std::back_inserter(scripts),
+		                       [&](const QString& uid)
+		                       {
+								   const SettingsGroup scriptGuard(*settings, uid);
+								   Script script {
+									   { uid, settings->Get(NUMBER).toInt() },
+									   settings->Get(NAME).toString(),
+									   FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
+                                       )
+								   };
+								   std::ranges::transform(settings->GetGroups(),
+			                                              std::back_inserter(commands),
+			                                              [this, &uid](const QString& commandUid)
+			                                              {
+															  const SettingsGroup commandGuard(*settings, commandUid);
+															  return Command {
+																  { commandUid, settings->Get(NUMBER).toInt() },
+																  uid,
+																  settings->Get(COMMAND).toString(),
+																  settings->Get(ARGUMENTS).toString(),
+																  FindFirst(s_commandTypes, CommandDescription { settings->Get(TYPE).toString().toStdString().data() },
+                                                                  CommandDescriptionComparer {}
+                                                                  )
+															  };
+														  });
+								   return script;
+							   });
 
-		const auto undefined = [] (const Script & item) { return item.type == Script::Type::Undefined; };
-		for (const auto & script : scripts | std::views::filter(undefined))
+		const auto undefined = [](const Script& item) { return item.type == Script::Type::Undefined; };
+		for (const auto& script : scripts | std::views::filter(undefined))
 			settings->Remove(script.uid);
 		if (const auto [begin, end] = std::ranges::remove_if(scripts, undefined); begin != end)
 			scripts.erase(begin, end);
 	}
 };
 
-ScriptController::ScriptController(std::shared_ptr<ISettings> settings
-	, const std::shared_ptr<const ICommandExecutor> & commandExecutor
-)
-	: m_impl(std::move(settings)
-		, commandExecutor
-	)
+ScriptController::ScriptController(std::shared_ptr<ISettings> settings, const std::shared_ptr<const ICommandExecutor>& commandExecutor)
+	: m_impl(std::move(settings), commandExecutor)
 {
 	PLOGV << "ScriptController created";
 }
@@ -129,21 +130,27 @@ ScriptController::~ScriptController()
 	PLOGV << "ScriptController destroyed";
 }
 
-const IScriptController::Scripts & ScriptController::GetScripts() const noexcept
+const IScriptController::Scripts& ScriptController::GetScripts() const noexcept
 {
 	return m_impl->scripts;
 }
 
 bool ScriptController::InsertScripts(const int row, const int count)
 {
-	const auto it = std::ranges::max_element(m_impl->scripts, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
+	const auto it = std::ranges::max_element(m_impl->scripts, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
 
 	Scripts scripts;
 	scripts.reserve(static_cast<size_t>(count));
-	std::generate_n(std::back_inserter(scripts), count, [n = it == m_impl->scripts.end() ? 0 : it->number] () mutable
-	{
-		return Script { { QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated }, {}, Script::Type::ExportToDevice };
-	});
+	std::generate_n(std::back_inserter(scripts),
+	                count,
+	                [n = it == m_impl->scripts.end() ? 0 : it->number]() mutable
+	                {
+						return Script {
+							{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
+							{},
+							Script::Type::ExportToDevice
+						};
+					});
 	m_impl->scripts.insert(std::next(m_impl->scripts.begin(), row), std::make_move_iterator(scripts.begin()), std::make_move_iterator(scripts.end()));
 	return true;
 }
@@ -159,44 +166,52 @@ bool ScriptController::RemoveScripts(const int row, const int count)
 
 bool ScriptController::SetScriptType(const int n, const Script::Type value)
 {
-	auto & item = m_impl->GetScript(n);
+	auto& item = m_impl->GetScript(n);
 	return Util::Set(item.type, value, item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetScriptName(const int n, QString value)
 {
-	auto & item = m_impl->GetScript(n);
+	auto& item = m_impl->GetScript(n);
 	return Util::Set(item.name, std::move(value), item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetScriptNumber(const int n, const int value)
 {
-	auto & item = m_impl->GetScript(n);
+	auto& item = m_impl->GetScript(n);
 	return Util::Set(item.number, value, item, &Base::SetUpdated);
 }
 
-const IScriptController::Commands & ScriptController::GetCommands() const noexcept
+const IScriptController::Commands& ScriptController::GetCommands() const noexcept
 {
 	return m_impl->commands;
 }
 
-IScriptController::Commands ScriptController::GetCommands(const QString & scriptUid) const
+IScriptController::Commands ScriptController::GetCommands(const QString& scriptUid) const
 {
 	Commands commands;
 	std::ranges::copy(m_impl->commands | GetScriptUidFilter(scriptUid), std::back_inserter(commands));
 	return commands;
 }
 
-bool ScriptController::InsertCommand(const QString & uid, const int row, const int count)
+bool ScriptController::InsertCommand(const QString& uid, const int row, const int count)
 {
 	auto filtered = m_impl->commands | GetScriptUidFilter(uid);
-	const auto it = std::ranges::max_element(filtered, [] (const auto & lhs, const auto & rhs) { return lhs.number < rhs.number; });
+	const auto it = std::ranges::max_element(filtered, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
 	Commands commands;
 	commands.reserve(static_cast<size_t>(count));
-	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number] () mutable
-	{
-		return Command { { QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated }, uid, {}, {}, Command::Type::LaunchApp };
-	});
+	std::generate_n(std::back_inserter(commands),
+	                count,
+	                [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable
+	                {
+						return Command {
+							{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
+							uid,
+							{},
+							{},
+							Command::Type::LaunchApp
+						};
+					});
 	m_impl->commands.insert(std::next(m_impl->commands.begin(), row), std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));
 	return true;
 }
@@ -212,39 +227,39 @@ bool ScriptController::RemoveCommand(const int row, const int count)
 
 bool ScriptController::SetCommandType(const int n, const Command::Type value)
 {
-	auto & item = m_impl->GetCommand(n);
+	auto& item = m_impl->GetCommand(n);
 	return Util::Set(item.type, value, item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetCommandCommand(const int n, QString value)
 {
-	auto & item = m_impl->GetCommand(n);
+	auto& item = m_impl->GetCommand(n);
 	return Util::Set(item.command, std::move(value), item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetCommandArgs(const int n, QString value)
 {
-	auto & item = m_impl->GetCommand(n);
+	auto& item = m_impl->GetCommand(n);
 	return Util::Set(item.args, std::move(value), item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetCommandNumber(const int n, const int value)
 {
-	auto & item = m_impl->GetCommand(n);
+	auto& item = m_impl->GetCommand(n);
 	return Util::Set(item.number, value, item, &Base::SetUpdated);
 }
 
-bool ScriptController::Execute(const Command & command) const
+bool ScriptController::Execute(const Command& command) const
 {
-	const auto & [type, executor] = FindSecond(s_commandTypes, command.type);
+	const auto& [type, executor] = FindSecond(s_commandTypes, command.type);
 	PLOGD << type << ": " << command.command << " " << command.args;
 	return std::invoke(executor, ICommandExecutor::Lock(m_impl->commandExecutor), std::cref(command));
 }
 
 void ScriptController::Save()
 {
-	auto & settings = *m_impl->settings;
-	for (auto & script : m_impl->scripts | GetModeFilter<Script>(Mode::Updated))
+	auto& settings = *m_impl->settings;
+	for (auto& script : m_impl->scripts | GetModeFilter<Script>(Mode::Updated))
 	{
 		const auto scriptValueKeyTemplate = QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(script.uid).arg("%1");
 		settings.Set(scriptValueKeyTemplate.arg(NAME), script.name);
@@ -253,10 +268,10 @@ void ScriptController::Save()
 		script.mode = Mode::None;
 	}
 
-	for (auto & script : m_impl->scripts | GetModeFilter<Script>(Mode::Removed))
+	for (auto& script : m_impl->scripts | GetModeFilter<Script>(Mode::Removed))
 		m_impl->settings->Remove(QString(SCRIPT_KEY_TEMPLATE).arg(SCRIPTS).arg(script.uid));
 
-	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Updated))
+	for (auto& command : m_impl->commands | GetModeFilter<Command>(Mode::Updated))
 	{
 		const auto commandValueKeyTemplate = QString(COMMAND_VALUE_KEY_TEMPLATE).arg(command.scriptUid).arg(command.uid).arg("%1");
 		settings.Set(commandValueKeyTemplate.arg(COMMAND), command.command);
@@ -266,11 +281,11 @@ void ScriptController::Save()
 		command.mode = Mode::None;
 	}
 
-	for (auto & command : m_impl->commands | GetModeFilter<Command>(Mode::Removed))
+	for (auto& command : m_impl->commands | GetModeFilter<Command>(Mode::Removed))
 		settings.Remove(QString(SCRIPT_VALUE_KEY_TEMPLATE).arg(command.scriptUid).arg(command.uid));
 }
 
-ScriptControllerProvider::ScriptControllerProvider(Hypodermic::Container & container)
+ScriptControllerProvider::ScriptControllerProvider(Hypodermic::Container& container)
 	: m_container(container)
 {
 }

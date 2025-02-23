@@ -10,14 +10,28 @@
 
 #include "export/inpxlib.h"
 
-namespace HomeCompa::Inpx {
+namespace HomeCompa::DB
+{
+class IDatabase;
+class ITransaction;
+}
+
+namespace HomeCompa::Inpx
+{
 
 enum class CreateCollectionMode
 {
-	None                 = 0,
-	AddUnIndexedFiles    = 1 << 0,
+	None = 0,
+	AddUnIndexedFiles = 1 << 0,
 	ScanUnIndexedFolders = 1 << 1,
-	SkipLostBooks        = 1 << 2,
+	SkipLostBooks = 1 << 2,
+};
+
+enum class CheckForUpdateResult
+{
+	NoUpdates,
+	NewInpFound,
+	OldDataUpdateFound,
 };
 
 struct UpdateResult
@@ -28,8 +42,7 @@ struct UpdateResult
 	size_t books;
 	size_t keywords;
 	size_t genres;
-	bool updatable;
-	bool error{ false };
+	bool error { false };
 };
 
 class INPXLIB_EXPORT Parser
@@ -37,7 +50,7 @@ class INPXLIB_EXPORT Parser
 	NON_COPY_MOVABLE(Parser)
 
 public:
-	using Callback = std::function<void(const UpdateResult &)>;
+	using Callback = std::function<void(const UpdateResult&)>;
 	using IniMap = std::map<std::wstring, std::filesystem::path>;
 
 public:
@@ -47,12 +60,14 @@ public:
 public:
 	void CreateNewCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
+	static void FillInpx(const std::filesystem::path& collectionFolder, DB::ITransaction& transaction);
+	static CheckForUpdateResult CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
 
 private:
 	class Impl;
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Inpx
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Inpx::CreateCollectionMode);

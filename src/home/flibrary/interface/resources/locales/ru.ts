@@ -129,6 +129,19 @@
     </message>
 </context>
 <context>
+    <name>Export</name>
+    <message>
+        <location filename="../../constants/Localization.h"/>
+        <source>Save index file</source>
+        <translation>Сохранить индексный файл</translation>
+    </message>
+    <message>
+        <location filename="../../constants/Localization.h"/>
+        <source>Index files (*.inpx);;All files (*.*)</source>
+        <translation>Индексные файлы (*.inpx);;Все файлы (*.*)</translation>
+    </message>
+</context>
+<context>
     <name>Genre</name>
     <message>
         <location filename="../../constants/GenresLocalization.h"/>
@@ -1932,7 +1945,7 @@
     <message>
         <location filename="../../logic/IScriptController.h"/>
         <source>%author_last_name%</source>
-        <translation>Фимилия автора</translation>
+        <translation>Фамилия автора</translation>
     </message>
     <message>
         <location filename="../../logic/IScriptController.h"/>

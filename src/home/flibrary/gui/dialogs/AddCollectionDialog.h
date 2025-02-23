@@ -2,17 +2,19 @@
 
 #include <QDialog>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class IParentWidgetProvider;
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class AddCollectionDialog final
 	: public QDialog
@@ -21,12 +23,11 @@ class AddCollectionDialog final
 	NON_COPY_MOVABLE(AddCollectionDialog)
 
 public:
-    AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider> & parentWidgetProvider
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class ICollectionController> collectionController
-		, std::shared_ptr<class IUiFactory> uiFactory
-	);
-    ~AddCollectionDialog() override;
+	AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	                    std::shared_ptr<ISettings> settings,
+	                    std::shared_ptr<class ICollectionController> collectionController,
+	                    std::shared_ptr<class IUiFactory> uiFactory);
+	~AddCollectionDialog() override;
 
 private: // IAddCollectionDialog
 	[[nodiscard]] int Exec() override;
@@ -42,4 +43,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

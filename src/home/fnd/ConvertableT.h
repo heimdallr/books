@@ -1,21 +1,22 @@
 #pragma once
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
-template<typename T>
+template <typename T>
 class ConvertibleT
 {
 public:
-	template<typename U>
-	U * To() noexcept
+	template <typename U>
+	U* To() noexcept
 	{
-		return static_cast<T *>(this);
+		return static_cast<T*>(this);
 	}
 
-	template<typename U>
-	const U * To() const noexcept
+	template <typename U>
+	const U* To() const noexcept
 	{
-		return static_cast<const T *>(this);
+		return static_cast<const T*>(this);
 	}
 };
 

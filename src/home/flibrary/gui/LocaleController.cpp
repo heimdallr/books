@@ -4,8 +4,6 @@
 #include <QMenu>
 #include <QTranslator>
 
-#include <plog/Log.h>
-
 #include "interface/constants/Localization.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -13,9 +11,13 @@
 #include "util/KeyboardLayout.h"
 #include "util/SortString.h"
 
-namespace HomeCompa::Flibrary {
+#include "log.h"
 
-namespace {
+namespace HomeCompa::Flibrary
+{
+
+namespace
+{
 constexpr auto LOCALE = "ui/locale";
 constexpr auto CONTEXT = "LocaleController";
 }
@@ -23,10 +25,7 @@ constexpr auto CONTEXT = "LocaleController";
 class LocaleController::Impl
 {
 public:
-	explicit Impl(LocaleController & self
-		, std::shared_ptr<ISettings> settings
-		, std::shared_ptr<IUiFactory> uiFactory
-	)
+	explicit Impl(LocaleController& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory)
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
@@ -35,17 +34,14 @@ public:
 		m_actionGroup.setExclusive(true);
 	}
 
-	void Setup(QMenu & menu)
+	void Setup(QMenu& menu)
 	{
 		const auto currentLocale = Loc::GetLocale(*m_settings);
 		Util::QStringWrapper::SetLocale(currentLocale);
 		SetKeyboardLayout(currentLocale.toStdString());
-		for (const auto * locale : Loc::LOCALES)
+		for (const auto* locale : Loc::LOCALES)
 		{
-			auto * action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale]
-			{
-				SetLocale(locale);
-			});
+			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
 			m_actionGroup.addAction(action);
 			action->setCheckable(true);
 			action->setChecked(currentLocale == locale);
@@ -53,7 +49,7 @@ public:
 	}
 
 private:
-	void SetLocale(const QString & locale)
+	void SetLocale(const QString& locale)
 	{
 		m_settings->Set(LOCALE, locale);
 
@@ -62,17 +58,14 @@ private:
 	}
 
 private:
-	LocaleController & m_self;
+	LocaleController& m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
 	std::vector<PropagateConstPtr<QTranslator>> m_translators;
 	QActionGroup m_actionGroup { nullptr };
 };
 
-LocaleController::LocaleController(std::shared_ptr<ISettings> settings
-	, std::shared_ptr<IUiFactory> uiFactory
-	, QObject * parent
-)
+LocaleController::LocaleController(std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, QObject* parent)
 	: QObject(parent)
 	, m_impl(*this, std::move(settings), std::move(uiFactory))
 {
@@ -84,9 +77,9 @@ LocaleController::~LocaleController()
 	PLOGV << "LocaleController destroyed";
 }
 
-void LocaleController::Setup(QMenu & menu)
+void LocaleController::Setup(QMenu& menu)
 {
 	m_impl->Setup(menu);
 }
 
-}
+} // namespace HomeCompa::Flibrary

@@ -3,16 +3,10 @@
 #include <QTemporaryDir>
 
 #include <Hypodermic/Hypodermic.h>
-#include <plog/Log.h>
-
-#include "util/executor/factory.h"
-#include "util/ISettings.h"
-
-#include "data/DataProvider.h"
-#include "data/ModelProvider.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionProvider.h"
@@ -27,38 +21,39 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "Annotation/ArchiveParser.h"
-
+#include "ChangeNavigationController/GroupController.h"
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
-
-#include "ChangeNavigationController/GroupController.h"
-#include "ChangeNavigationController/SearchController.h"
-
+#include "data/DataProvider.h"
+#include "data/ModelProvider.h"
 #include "extract/BooksExtractor.h"
-#include "extract/InpxCollectionExtractor.h"
-
+#include "extract/InpxGenerator.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/ISettings.h"
+#include "util/executor/factory.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 struct LogicFactory::Impl final
 {
-	Hypodermic::Container & container;
+	Hypodermic::Container& container;
 	std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
 	std::vector<std::shared_ptr<QTemporaryDir>> temporaryDirs;
 
 	std::mutex progressControllerGuard;
 	std::shared_ptr<IProgressController> progressController;
 
-	explicit Impl(Hypodermic::Container & container)
+	explicit Impl(Hypodermic::Container& container)
 		: container(container)
 	{
 	}
 };
 
-LogicFactory::LogicFactory(Hypodermic::Container & container)
+LogicFactory::LogicFactory(Hypodermic::Container& container)
 	: m_impl { std::make_unique<Impl>(container) }
 {
 	PLOGV << "LogicFactory created";
@@ -71,7 +66,7 @@ LogicFactory::~LogicFactory()
 
 std::shared_ptr<ITreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const
 {
-	auto & controller = m_impl->controllers[static_cast<size_t>(type)];
+	auto& controller = m_impl->controllers[static_cast<size_t>(type)];
 	if (!controller)
 	{
 		switch (type)
@@ -107,9 +102,9 @@ std::shared_ptr<GroupController> LogicFactory::CreateGroupController() const
 	return m_impl->container.resolve<GroupController>();
 }
 
-std::shared_ptr<SearchController> LogicFactory::CreateSearchController() const
+std::shared_ptr<IBookSearchController> LogicFactory::CreateSearchController() const
 {
-	return m_impl->container.resolve<SearchController>();
+	return m_impl->container.resolve<IBookSearchController>();
 }
 
 std::shared_ptr<BooksContextMenuProvider> LogicFactory::CreateBooksContextMenuProvider() const
@@ -127,9 +122,9 @@ std::shared_ptr<BooksExtractor> LogicFactory::CreateBooksExtractor() const
 	return m_impl->container.resolve<BooksExtractor>();
 }
 
-std::shared_ptr<InpxCollectionExtractor> LogicFactory::CreateInpxCollectionExtractor() const
+std::shared_ptr<IInpxGenerator> LogicFactory::CreateInpxGenerator() const
 {
-	return m_impl->container.resolve<InpxCollectionExtractor>();
+	return m_impl->container.resolve<InpxGenerator>();
 }
 
 std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const

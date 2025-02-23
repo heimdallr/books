@@ -242,6 +242,31 @@
         <source>Wait. Collection analysis in progress...</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Removes books that have at least one genre in the set of marked ones</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Removes books whose genres are all included in the set of marked ones</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source> bytes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books smaller than</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete books larger than</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -252,7 +277,7 @@
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
         <translation></translation>
     </message>
     <message>
@@ -316,6 +341,14 @@
     <message>
         <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>Cannot create database folder %1</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::TreeView</name>
+    <message>
+        <location filename="../../TreeView.cpp"/>
+        <source>Push me</source>
         <translation></translation>
     </message>
 </context>
@@ -509,10 +542,6 @@
         <translation></translation>
     </message>
     <message>
-        <source>Book &amp;export tempate</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Check for &amp;Updates</source>
         <translation></translation>
     </message>
@@ -566,6 +595,39 @@
     </message>
     <message>
         <source>Cleaner...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Generate &amp;index (*.inpx)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show &amp;jokes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Book &amp;export template</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Book export template</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search book by title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show &amp;book search by title bar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Hide &amp;book search by title bar</source>
         <translation></translation>
     </message>
 </context>

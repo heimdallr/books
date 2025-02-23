@@ -1,9 +1,9 @@
 #include "ZipProgressCallback.h"
 
-#include <plog/Log.h>
-
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -31,11 +31,12 @@ struct ZipProgressCallback::Impl
 	}
 };
 
-ZipProgressCallback::ZipProgressCallback(const std::shared_ptr<const ILogicFactory> & logicFactory)
+ZipProgressCallback::ZipProgressCallback(const std::shared_ptr<const ILogicFactory>& logicFactory)
 	: m_impl(logicFactory->GetProgressController())
 {
 	PLOGV << "ZipProgressCallback created";
 }
+
 ZipProgressCallback::~ZipProgressCallback()
 {
 	PLOGV << "ZipProgressCallback destroyed";
@@ -79,7 +80,7 @@ void ZipProgressCallback::OnDone()
 	m_impl->percents = 100;
 }
 
-void ZipProgressCallback::OnFileDone(const QString & /*filePath*/)
+void ZipProgressCallback::OnFileDone(const QString& /*filePath*/)
 {
 }
 

@@ -1,16 +1,18 @@
-#include <plog/Appenders/IAppender.h>
-#include <plog/Appenders/DynamicAppender.h>
-#include <plog/Init.h>
-
 #include "LogAppender.h"
 
-namespace HomeCompa::Log {
+#include <plog/Appenders/DynamicAppender.h>
+#include <plog/Appenders/IAppender.h>
+#include <plog/Init.h>
 
-namespace {
+namespace HomeCompa::Log
+{
+
+namespace
+{
 std::unique_ptr<plog::DynamicAppender> g_dynamicAppender;
 }
 
-LogAppender::LogAppender(plog::IAppender * appender)
+LogAppender::LogAppender(plog::IAppender* appender)
 	: m_appender(appender)
 {
 	if (!g_dynamicAppender)
@@ -27,4 +29,4 @@ LogAppender::~LogAppender()
 	g_dynamicAppender->removeAppender(m_appender);
 }
 
-}
+} // namespace HomeCompa::Log

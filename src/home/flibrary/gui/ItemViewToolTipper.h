@@ -2,32 +2,16 @@
 
 #include <QObject>
 
-#include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
-
-namespace HomeCompa {
-class ISettings;
-}
-
-namespace HomeCompa::Flibrary {
-
-class ItemViewToolTipper final
-	: public QObject
+namespace HomeCompa::Flibrary
 {
-	NON_COPY_MOVABLE(ItemViewToolTipper)
 
+class ItemViewToolTipper final : public QObject
+{
 public:
-	explicit ItemViewToolTipper(std::shared_ptr<ISettings> settings
-		, QObject * parent = nullptr
-	);
-	~ItemViewToolTipper() override;
+	explicit ItemViewToolTipper(QObject* parent = nullptr);
 
 private: // QObject
-	bool eventFilter(QObject * obj, QEvent * event) override;
-
-private:
-	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
+	bool eventFilter(QObject* obj, QEvent* event) override;
 };
 
 }

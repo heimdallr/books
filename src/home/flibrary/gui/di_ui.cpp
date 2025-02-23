@@ -19,8 +19,6 @@
 #include "interface/logic/IScriptController.h"
 
 #include "GuiUtil/interface/IParentWidgetProvider.h"
-#include "util/Settings.h"
-
 #include "delegate/OpenFileDialogDelegateEditor.h"
 #include "delegate/StorableComboboxDelegateEditor.h"
 #include "dialogs/AddCollectionDialog.h"
@@ -30,19 +28,24 @@
 #include "dialogs/script/CommandDelegate.h"
 #include "dialogs/script/ScriptDialog.h"
 #include "dialogs/script/ScriptNameDelegate.h"
+#include "util/Settings.h"
 
 #include "AnnotationWidget.h"
+#include "ItemViewToolTipper.h"
 #include "LineOption.h"
 #include "LocaleController.h"
 #include "LogItemDelegate.h"
 #include "MainWindow.h"
 #include "ProgressBar.h"
+#include "ScrollBarController.h"
 #include "UiFactory.h"
+
 // ReSharper restore CppUnusedIncludeDirective
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypodermic::Container> & container)
+void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
 	builder.registerType<AddCollectionDialog>().as<IAddCollectionDialog>();
 	builder.registerType<ComboBoxTextDialog>().as<IComboBoxTextDialog>();
@@ -50,10 +53,7 @@ void DiUi(Hypodermic::ContainerBuilder & builder, const std::shared_ptr<Hypoderm
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 
-	builder.registerInstanceFactory([&] (Hypodermic::ComponentContext &)
-	{
-		return std::make_shared<UiFactory>(*container);
-	}).as<IUiFactory>().singleInstance();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<UiFactory>(*container); }).as<IUiFactory>().singleInstance();
 }
 
 }

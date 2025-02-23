@@ -1,6 +1,6 @@
-#include <atlcomcli.h>
-
 #include "InStreamWrapper.h"
+
+#include "win.h"
 
 using namespace HomeCompa::ZipDetails::SevenZip;
 
@@ -14,32 +14,32 @@ InStreamWrapper::InStreamWrapper(CComPtr<IStream> baseStream)
 {
 }
 
-HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** ppvObject) //-V835
+HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void** ppvObject) //-V835
 {
-	if (iid == __uuidof(IUnknown))  // NOLINT(clang-diagnostic-language-extension-token)
+	if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 	{
-		*ppvObject = reinterpret_cast<IUnknown *>(this);
+		*ppvObject = reinterpret_cast<IUnknown*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_ISequentialInStream)
 	{
-		*ppvObject = static_cast<ISequentialInStream *>(this);
+		*ppvObject = static_cast<ISequentialInStream*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_IInStream)
 	{
-		*ppvObject = static_cast<IInStream *>(this);
+		*ppvObject = static_cast<IInStream*>(this);
 		AddRef();
 		return S_OK;
 	}
 
 	if (iid == IID_IStreamGetSize)
 	{
-		*ppvObject = static_cast<IStreamGetSize *>(this);
+		*ppvObject = static_cast<IStreamGetSize*>(this);
 		AddRef();
 		return S_OK;
 	}
@@ -47,7 +47,7 @@ HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void ** pp
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP InStreamWrapper::Read(void * data, const UInt32 size, UInt32 * processedSize)
+STDMETHODIMP InStreamWrapper::Read(void* data, const UInt32 size, UInt32* processedSize)
 {
 	ULONG read = 0;
 	const HRESULT hr = m_baseStream->Read(data, size, &read);
@@ -57,7 +57,7 @@ STDMETHODIMP InStreamWrapper::Read(void * data, const UInt32 size, UInt32 * proc
 	return SUCCEEDED(hr) ? S_OK : hr;
 }
 
-STDMETHODIMP InStreamWrapper::Seek(const Int64 offset, const UInt32 seekOrigin, UInt64 * newPosition)
+STDMETHODIMP InStreamWrapper::Seek(const Int64 offset, const UInt32 seekOrigin, UInt64* newPosition)
 {
 	LARGE_INTEGER move;
 	ULARGE_INTEGER newPos;
@@ -70,7 +70,7 @@ STDMETHODIMP InStreamWrapper::Seek(const Int64 offset, const UInt32 seekOrigin, 
 	return hr;
 }
 
-STDMETHODIMP InStreamWrapper::GetSize(UInt64 * size)
+STDMETHODIMP InStreamWrapper::GetSize(UInt64* size)
 {
 	STATSTG statInfo;
 	const HRESULT hr = m_baseStream->Stat(&statInfo, STATFLAG_NONAME);

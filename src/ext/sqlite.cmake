@@ -3,6 +3,7 @@ AddTarget(sqlite	static_lib
 	PROJECT_GROUP Util/SQL
 	COMPILE_DEFINITIONS
 		SQLITE_THREADSAFE=0
+		SQLITE_ENABLE_FTS5
 	COMPILER_OPTIONS
 		/wd4996 #'XXX': was declared deprecated
 		/wd4232 # address of dllimport 'XXX' is not static, identity not guaranteed

@@ -238,6 +238,31 @@
         <source>Wait. Collection analysis in progress...</source>
         <translation>Ждите. Идет анализ коллекции...</translation>
     </message>
+    <message>
+        <location filename="../../CollectionCleaner.cpp"/>
+        <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
+        <translation>Странные значения для минимального и максимального размеров книг. Вы хотите удалить все книги?</translation>
+    </message>
+    <message>
+        <source>Removes books that have at least one genre in the set of marked ones</source>
+        <translation>Удаляет книги, имеющие хотя бы один жанр в наборе отмеченных</translation>
+    </message>
+    <message>
+        <source>Removes books whose genres are all included in the set of marked ones</source>
+        <translation>Удаляет книги, все жанры которых входят в набор отмеченных</translation>
+    </message>
+    <message>
+        <source> bytes</source>
+        <translation> байт</translation>
+    </message>
+    <message>
+        <source>Delete books smaller than</source>
+        <translation>Удалить книги меньше</translation>
+    </message>
+    <message>
+        <source>Delete books larger than</source>
+        <translation>Удалить книги больше</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -248,8 +273,8 @@
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</source>
-        <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;</translation>
+        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
+        <translation>Ещё один каталогизатор книг электронной библиотеки&lt;p&gt;Версия: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
     </message>
     <message>
         <location filename="../../UiFactory.cpp"/>
@@ -313,6 +338,14 @@
         <location filename="../../dialogs/AddCollectionDialog.cpp"/>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::TreeView</name>
+    <message>
+        <location filename="../../TreeView.cpp"/>
+        <source>Push me</source>
+        <translation>Нажми меня</translation>
     </message>
 </context>
 <context>
@@ -505,10 +538,6 @@
         <translation>&amp;Книга</translation>
     </message>
     <message>
-        <source>Book &amp;export tempate</source>
-        <translation>Шаблон &amp;экспорта книг</translation>
-    </message>
-    <message>
         <source>Check for &amp;Updates</source>
         <translation>Проверка &amp;обновлений</translation>
     </message>
@@ -546,11 +575,11 @@
     </message>
     <message>
         <source>Hide cover &amp;buttons</source>
-        <translation>Показывать &amp;кнопки на обложке</translation>
+        <translation>Скрывать &amp;кнопки на обложке</translation>
     </message>
     <message>
         <source>Show cover &amp;buttons</source>
-        <translation>Скрывать &amp;кнопки на обложке</translation>
+        <translation>Показывать &amp;кнопки на обложке</translation>
     </message>
     <message>
         <source>Allow destructive operations</source>
@@ -563,6 +592,39 @@
     <message>
         <source>Cleaner...</source>
         <translation>Очистка...</translation>
+    </message>
+    <message>
+        <source>Generate &amp;index (*.inpx)</source>
+        <translation>Генерировать &amp;индекс (*.inpx)</translation>
+    </message>
+    <message>
+        <source>Show &amp;jokes</source>
+        <translation>Показывать &amp;шутки</translation>
+    </message>
+    <message>
+        <source>Book &amp;export template</source>
+        <translation>Шаблон &amp;экспорта книг</translation>
+    </message>
+    <message>
+        <source>Book export template</source>
+        <translation>Шаблон экспорта книг</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation>Для поиска книги по названию, введите здесь часть названия и нажмите Enter</translation>
+    </message>
+    <message>
+        <source>Search book by title</source>
+        <translation>Поиск книги по названию</translation>
+    </message>
+    <message>
+        <source>Show &amp;book search by title bar</source>
+        <translation>Показать строку поиска &amp;книги по названию</translation>
+    </message>
+    <message>
+        <source>Hide &amp;book search by title bar</source>
+        <translation>Скрыть строку поиска &amp;книги по названию</translation>
     </message>
 </context>
 <context>

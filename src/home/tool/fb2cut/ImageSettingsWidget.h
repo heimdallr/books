@@ -2,18 +2,21 @@
 
 #include <QGroupBox>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
-namespace Ui {
+namespace Ui
+{
 class ImageSettingsWidget;
 }
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::fb2cut {
+namespace HomeCompa::fb2cut
+{
 
 struct ImageSettings;
 
@@ -26,12 +29,12 @@ signals:
 	void Changed() const;
 
 public:
-	explicit ImageSettingsWidget(std::shared_ptr<ISettings> settingsManager, QWidget * parent = nullptr);
+	explicit ImageSettingsWidget(std::shared_ptr<ISettings> settingsManager, QWidget* parent = nullptr);
 	~ImageSettingsWidget() override;
 
 public:
-	void SetCommonSettings(const ImageSettingsWidget & commonImageSettingsWidget);
-	void SetImageSettings(ImageSettings & settings);
+	void SetCommonSettings(const ImageSettingsWidget& commonImageSettingsWidget);
+	void SetImageSettings(ImageSettings& settings);
 	void ApplySettings();
 
 private:
@@ -40,8 +43,8 @@ private:
 private:
 	PropagateConstPtr<Ui::ImageSettingsWidget> m_ui;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settingsManager;
-	const ImageSettingsWidget * m_commonImageSettingsWidget { nullptr };
-	ImageSettings * m_settings { nullptr };
+	const ImageSettingsWidget* m_commonImageSettingsWidget { nullptr };
+	ImageSettings* m_settings { nullptr };
 };
 
-}
+} // namespace HomeCompa::fb2cut

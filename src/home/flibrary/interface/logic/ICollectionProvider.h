@@ -2,14 +2,15 @@
 
 #include <filesystem>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include <QString>
-#include <set>
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 struct Collection
 {
@@ -19,11 +20,11 @@ struct Collection
 	QString folder;
 	QString discardedUpdate;
 	int createCollectionMode;
-	bool updatable{ true };
-	bool destructiveOperationsAllowed{ false };
+	bool destructiveOperationsAllowed { false };
 
 	using Ptr = std::unique_ptr<Collection>;
 };
+
 using Collections = std::vector<Collection::Ptr>;
 
 class ICollectionsObserver : public Observer
@@ -39,23 +40,28 @@ public:
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
 	[[nodiscard]] virtual bool IsCollectionNameExists(const QString& name) const = 0;
-	[[nodiscard]] virtual QString GetCollectionDatabaseName(const QString & databaseFileName) const = 0;
-	[[nodiscard]] virtual std::set<QString> GetInpxFiles(const QString & archiveFolder) const = 0;
-	[[nodiscard]] virtual bool IsCollectionFolderHasInpx(const QString & archiveFolder) const = 0;
+	[[nodiscard]] virtual QString GetCollectionDatabaseName(const QString& databaseFileName) const = 0;
+	[[nodiscard]] virtual std::set<QString> GetInpxFiles(const QString& archiveFolder) const = 0;
+	[[nodiscard]] virtual bool IsCollectionFolderHasInpx(const QString& archiveFolder) const = 0;
 
-	[[nodiscard]] virtual Collections & GetCollections() noexcept = 0;
-	[[nodiscard]] virtual const Collections & GetCollections() const noexcept = 0;
-	[[nodiscard]] virtual Collection & GetActiveCollection() noexcept = 0;
-	[[nodiscard]] virtual const Collection & GetActiveCollection() const noexcept = 0;
+	[[nodiscard]] virtual Collections& GetCollections() noexcept = 0;
+	[[nodiscard]] virtual const Collections& GetCollections() const noexcept = 0;
+	[[nodiscard]] virtual Collection& GetActiveCollection() noexcept = 0;
+	[[nodiscard]] virtual const Collection& GetActiveCollection() const noexcept = 0;
 	[[nodiscard]] virtual bool ActiveCollectionExists() const noexcept = 0;
 	[[nodiscard]] virtual QString GetActiveCollectionId() const noexcept = 0;
 
-	virtual void RegisterObserver(ICollectionsObserver * observer) = 0;
-	virtual void UnregisterObserver(ICollectionsObserver * observer) = 0;
+	virtual void RegisterObserver(ICollectionsObserver* observer) = 0;
+	virtual void UnregisterObserver(ICollectionsObserver* observer) = 0;
 
 private:
-	void OnActiveCollectionChanged() override {}
-	void OnNewCollectionCreating(bool) override {}
+	void OnActiveCollectionChanged() override
+	{
+	}
+
+	void OnNewCollectionCreating(bool) override
+	{
+	}
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -32,8 +32,21 @@
     </property>
     <item>
      <widget class="QLineEdit" name="settingsLineEdit">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="contextMenuPolicy">
-       <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineEditBookTitleToSearch">
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -298,6 +311,7 @@
     <addaction name="menuSelectCollection"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
+    <addaction name="actionGenerateIndexInpx"/>
     <addaction name="actionAllowDestructiveOperations"/>
     <addaction name="actionDenyDestructiveOperations"/>
     <addaction name="actionShowCollectionCleaner"/>
@@ -326,6 +340,7 @@
       <addaction name="actionHideAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
       <addaction name="actionHideAnnotationContent"/>
+      <addaction name="actionShowJokes"/>
      </widget>
      <widget class="QMenu" name="menuLog">
       <property name="title">
@@ -354,6 +369,8 @@
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionHideStatusBar"/>
+     <addaction name="actionShowSearchBookString"/>
+     <addaction name="actionHideSearchBookString"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
@@ -378,7 +395,7 @@
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
     <addaction name="actionOpds"/>
-    <addaction name="actionExportTempate"/>
+    <addaction name="actionExportTemplate"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -671,9 +688,12 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionExportTempate">
+  <action name="actionExportTemplate">
    <property name="text">
-    <string>Book &amp;export tempate</string>
+    <string>Book &amp;export template</string>
+   </property>
+   <property name="toolTip">
+    <string>Book export template</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -774,6 +794,56 @@
   <action name="actionShowCollectionCleaner">
    <property name="text">
     <string>Cleaner...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenerateIndexInpx">
+   <property name="text">
+    <string>Generate &amp;index (*.inpx)</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowJokes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show &amp;jokes</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchBookByTitle">
+   <property name="icon">
+    <iconset resource="../theme/light/resources/light.qrc">
+     <normaloff>:/icons/Find.svg</normaloff>:/icons/Find.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Search book by title</string>
+   </property>
+   <property name="toolTip">
+    <string>Search book by title</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowSearchBookString">
+   <property name="text">
+    <string>Show &amp;book search by title bar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionHideSearchBookString">
+   <property name="text">
+    <string>Hide &amp;book search by title bar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

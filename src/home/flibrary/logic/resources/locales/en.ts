@@ -188,16 +188,6 @@
     </message>
     <message>
         <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Save index file</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
-        <source>Index files (*.inpx);;All files (*.*)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation></translation>
     </message>
@@ -279,29 +269,26 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
+        <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&quot;%1&quot; collection %2. Added:
+        <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
+        <source>&quot;%1&quot; collection %2. Added:&lt;p&gt;
 &lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Authors: &lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Series:  &lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Books:   &lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Authors:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Series:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Books:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
-&lt;/table&gt;</source>
-        <translation>&quot;%1&quot; collection %2. Added:
-&lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Authors:&lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Series:&lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Books:&lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
-%8
-&lt;/table&gt;</translation>
+&lt;/table&gt;%9</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -499,7 +486,12 @@ Try again?</source>
     <name>SearchController</name>
     <message>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>Find books whose titles</source>
+        <source>Search books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
+        <source>Search query</source>
         <translation></translation>
     </message>
     <message>
@@ -533,26 +525,6 @@ Try again?</source>
         <location filename="../../ChangeNavigationController/SearchController.cpp"/>
         <source>Search query &quot;%1&quot; already exists.
 Try again?</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>contain</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>begin with</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>end with</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../ChangeNavigationController/SearchController.cpp"/>
-        <source>is equal to</source>
         <translation></translation>
     </message>
 </context>

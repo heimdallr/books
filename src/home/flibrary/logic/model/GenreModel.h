@@ -1,11 +1,12 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/IModel.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class GenreModel final : public IGenreModel
 {

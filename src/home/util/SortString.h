@@ -4,11 +4,12 @@
 
 class QString;
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
 struct UTIL_EXPORT QStringWrapper
 {
-	const QString & data;
+	const QString& data;
 
 	bool operator<(const QStringWrapper& rhs) const;
 	static void SetLocale(const QString& locale);

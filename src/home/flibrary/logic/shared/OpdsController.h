@@ -1,14 +1,14 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/IOpdsController.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class OpdsController final
-	: public IOpdsController
+class OpdsController final : public IOpdsController
 {
 	NON_COPY_MOVABLE(OpdsController)
 
@@ -26,12 +26,12 @@ private: // IOpdsController
 	void AddToStartup() const override;
 	void RemoveFromStartup() const override;
 
-	void RegisterObserver(IObserver * observer) override;
-	void UnregisterObserver(IObserver * observer) override;
+	void RegisterObserver(IObserver* observer) override;
+	void UnregisterObserver(IObserver* observer) override;
 
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

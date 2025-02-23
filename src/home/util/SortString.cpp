@@ -4,46 +4,46 @@
 
 using namespace HomeCompa::Util;
 
-namespace {
-
-constexpr int CATEGORIES[]
+namespace
 {
-0,	//		Mark_NonSpacing,          //   Mn
-0,	//		Mark_SpacingCombining,    //   Mc
-0,	//		Mark_Enclosing,           //   Me
-//
-2,	//		Number_DecimalDigit,      //   Nd
-0,	//		Number_Letter,            //   Nl
-0,	//		Number_Other,             //   No
-//
-0,	//		Separator_Space,          //   Zs
-0,	//		Separator_Line,           //   Zl
-0,	//		Separator_Paragraph,      //   Zp
-//
-8,	//		Other_Control,            //   Cc
-8,	//		Other_Format,             //   Cf
-8,	//		Other_Surrogate,          //   Cs
-8,	//		Other_PrivateUse,         //   Co
-8,	//		Other_NotAssigned,        //   Cn
-//
-0,	//		Letter_Uppercase,         //   Lu
-0,	//		Letter_Lowercase,         //   Ll
-0,	//		Letter_Titlecase,         //   Lt
-0,	//		Letter_Modifier,          //   Lm
-0,	//		Letter_Other,             //   Lo
-//
-6,	//		Punctuation_Connector,    //   Pc
-6,	//		Punctuation_Dash,         //   Pd
-6,	//		Punctuation_Open,         //   Ps
-6,	//		Punctuation_Close,        //   Pe
-6,	//		Punctuation_InitialQuote, //   Pi
-6,	//		Punctuation_FinalQuote,   //   Pf
-6,	//		Punctuation_Other,        //   Po
-//
-4,	//		Symbol_Math,              //   Sm
-4,	//		Symbol_Currency,          //   Sc
-4,	//		Symbol_Modifier,          //   Sk
-4,	//		Symbol_Other              //   So
+
+constexpr int CATEGORIES[] {
+	0, //		Mark_NonSpacing,          //   Mn
+	0, //		Mark_SpacingCombining,    //   Mc
+	0, //		Mark_Enclosing,           //   Me
+	//
+	2, //		Number_DecimalDigit,      //   Nd
+	0, //		Number_Letter,            //   Nl
+	0, //		Number_Other,             //   No
+	//
+	0, //		Separator_Space,          //   Zs
+	0, //		Separator_Line,           //   Zl
+	0, //		Separator_Paragraph,      //   Zp
+	//
+	8, //		Other_Control,            //   Cc
+	8, //		Other_Format,             //   Cf
+	8, //		Other_Surrogate,          //   Cs
+	8, //		Other_PrivateUse,         //   Co
+	8, //		Other_NotAssigned,        //   Cn
+	//
+	0, //		Letter_Uppercase,         //   Lu
+	0, //		Letter_Lowercase,         //   Ll
+	0, //		Letter_Titlecase,         //   Lt
+	0, //		Letter_Modifier,          //   Lm
+	0, //		Letter_Other,             //   Lo
+	//
+	6, //		Punctuation_Connector,    //   Pc
+	6, //		Punctuation_Dash,         //   Pd
+	6, //		Punctuation_Open,         //   Ps
+	6, //		Punctuation_Close,        //   Pe
+	6, //		Punctuation_InitialQuote, //   Pi
+	6, //		Punctuation_FinalQuote,   //   Pf
+	6, //		Punctuation_Other,        //   Po
+	//
+	4, //		Symbol_Math,              //   Sm
+	4, //		Symbol_Currency,          //   Sc
+	4, //		Symbol_Modifier,          //   Sk
+	4, //		Symbol_Other              //   So
 };
 
 int FixCategoryDefault(uchar)
@@ -56,7 +56,7 @@ int FixCategoryRu(const uchar ch)
 	return ch == 4 ? 0 : 1;
 }
 
-using FixCategoryGetter = int(*)(uchar);
+using FixCategoryGetter = int (*)(uchar);
 FixCategoryGetter FIX_CATEGORY_GETTER = &FixCategoryDefault;
 
 int Category(const QChar c) noexcept
@@ -68,7 +68,7 @@ int Category(const QChar c) noexcept
 	return FIX_CATEGORY_GETTER(c.row());
 }
 
-}
+} // namespace
 
 bool QStringWrapper::operator<(const QStringWrapper& rhs) const
 {

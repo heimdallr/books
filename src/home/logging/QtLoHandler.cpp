@@ -4,18 +4,19 @@
 
 #include <QFileInfo>
 
-#include <plog/Log.h>
+#include "log.h"
 
-namespace {
+namespace
+{
 
 QString FileName(const QMessageLogContext& ctx)
 {
 	return ctx.file ? QFileInfo(ctx.file).fileName() : "undefined";
 }
 
-constexpr const char* IGNORED[]
-{
+constexpr const char* IGNORED[] {
 	"DirectWrite: CreateFontFaceFromHDC() failed",
+	"QWindowsWindow::setGeometry: Unable to set geometry",
 };
 
 }
@@ -67,7 +68,7 @@ void QtLogHandler::Handle(const QtMsgType type, const QMessageLogContext& ctx, c
 		case QtFatalMsg:
 			PLOGF << context << message;
 			break;
-		default:  // NOLINT(clang-diagnostic-covered-switch-default)
+		default: // NOLINT(clang-diagnostic-covered-switch-default)
 			assert(false);
 	}
 }

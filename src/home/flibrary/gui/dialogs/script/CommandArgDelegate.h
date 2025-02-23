@@ -4,16 +4,16 @@
 
 #include "LineEditDelegate.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class CommandArgDelegate final
-	: public LineEditDelegate
+class CommandArgDelegate final : public LineEditDelegate
 {
 public:
-	explicit CommandArgDelegate(QObject * parent = nullptr);
+	explicit CommandArgDelegate(QObject* parent = nullptr);
 
 private: // QStyledItemDelegate
-	QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 };
 
 }

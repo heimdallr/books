@@ -7,15 +7,17 @@
 #include <QSettings>
 #include <QTimer>
 
-#include <plog/Log.h>
-
 #include "fnd/observable.h"
+
 #include "interface/constants/ProductConstant.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 constexpr auto STARTUP_KEY = "CurrentVersion/Run/FLibrary OPDS server";
 
@@ -36,26 +38,32 @@ struct OpdsController::Impl : Observable<IObserver>
 	QLocalSocket socket;
 	QTimer timer;
 
-	Impl(const IOpdsController & /*controller*/)
+	Impl(const IOpdsController& /*controller*/)
 	{
-		QObject::connect(&socket, &QLocalSocket::connected, [&]
-		{
-			PLOGD << "OPDS connected";
-			Perform(&IObserver::OnRunningChanged);
-			timer.stop();
-		});
+		QObject::connect(&socket,
+		                 &QLocalSocket::connected,
+		                 [&]
+		                 {
+							 PLOGD << "OPDS connected";
+							 Perform(&IObserver::OnRunningChanged);
+							 timer.stop();
+						 });
 
-		QObject::connect(&socket, &QLocalSocket::disconnected, [&]
-		{
-			PLOGD << "OPDS disconnected";
-			Perform(&IObserver::OnRunningChanged);
-		});
+		QObject::connect(&socket,
+		                 &QLocalSocket::disconnected,
+		                 [&]
+		                 {
+							 PLOGD << "OPDS disconnected";
+							 Perform(&IObserver::OnRunningChanged);
+						 });
 
-		QObject::connect(&socket, &QLocalSocket::errorOccurred, [&]
-		{
-			PLOGD << "OPDS error occurred: " << socket.errorString();
-			Perform(&IObserver::OnRunningChanged);
-		});
+		QObject::connect(&socket,
+		                 &QLocalSocket::errorOccurred,
+		                 [&]
+		                 {
+							 PLOGD << "OPDS error occurred: " << socket.errorString();
+							 Perform(&IObserver::OnRunningChanged);
+						 });
 
 		timer.setInterval(std::chrono::seconds(1));
 		timer.setSingleShot(false);
@@ -100,19 +108,19 @@ void OpdsController::Restart()
 	if (!IsRunning())
 		return;
 
-	auto & socket = m_impl->socket;
+	auto& socket = m_impl->socket;
 	socket.write(Constant::OPDS_SERVER_COMMAND_RESTART);
 	socket.flush();
 	socket.waitForBytesWritten();
 	PLOGD << "OPDS " << Constant::OPDS_SERVER_COMMAND_RESTART << " sent";
 }
 
-void OpdsController::RegisterObserver(IObserver * observer)
+void OpdsController::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void OpdsController::UnregisterObserver(IObserver * observer)
+void OpdsController::UnregisterObserver(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }

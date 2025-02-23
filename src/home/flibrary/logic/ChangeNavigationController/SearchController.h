@@ -1,56 +1,40 @@
 #pragma once
 
-#include <functional>
-#include <unordered_set>
-
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
+
+#include "interface/logic/IBookSearchController.h"
 
 class QString;
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 class ISettings;
 }
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class SearchController
+class SearchController final : virtual public IBookSearchController
 {
 	NON_COPY_MOVABLE(SearchController)
 
 public:
-	using Callback = std::function<void()>;
-	using Id = long long;
-	using Ids = std::unordered_set<Id>;
+	SearchController(std::shared_ptr<ISettings> settings,
+	                 std::shared_ptr<class IDatabaseUser> databaseUser,
+	                 std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor,
+	                 std::shared_ptr<class IUiFactory> uiFactory,
+	                 const std::shared_ptr<class ICollectionController>& collectionController);
+	~SearchController() override;
 
-public:
-	struct SearchMode
-	{
-		enum
-		{
-			Contains,
-			StartsWith,
-			EndsWith,
-			Equals,
-		};
-	};
-
-public:
-	SearchController(std::shared_ptr<ISettings> settings
-		, std::shared_ptr<class IDatabaseUser> databaseUser
-		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
-		, std::shared_ptr<class IUiFactory> uiFactory
-		, const std::shared_ptr<class ICollectionController> & collectionController
-	);
-	~SearchController();
-
-public:
-	void CreateNew(Callback callback);
-	void Remove(Ids ids, Callback callback) const;
+private: // IBookSearchController
+	void CreateNew(Callback callback) override;
+	void Remove(Ids ids, Callback callback) const override;
+	void Search(QString searchString, Callback callback) override;
 
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

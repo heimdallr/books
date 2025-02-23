@@ -2,9 +2,10 @@
 
 #include <QCryptographicHash>
 
-namespace HomeCompa::Util {
+namespace HomeCompa::Util
+{
 
-QString md5(const QByteArray & data)
+QString md5(const QByteArray& data)
 {
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 	hash.addData(data);

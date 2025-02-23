@@ -3,27 +3,25 @@
 #include <functional>
 #include <unordered_set>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 class QString;
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class GroupController
 {
 	NON_COPY_MOVABLE(GroupController)
 
 public:
-	using Callback = std::function<void()>;
+	using Callback = std::function<void(long long)>;
 	using Id = long long;
 	using Ids = std::unordered_set<Id>;
 
 public:
-	GroupController(std::shared_ptr<class IDatabaseUser> databaseUser
-		, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor
-		, std::shared_ptr<class IUiFactory> uiFactory
-	);
+	GroupController(std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<class IUiFactory> uiFactory);
 	~GroupController();
 
 public:
@@ -37,4 +35,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

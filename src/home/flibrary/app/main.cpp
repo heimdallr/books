@@ -6,7 +6,6 @@
 #include <QStyleHints>
 
 #include <Hypodermic/Hypodermic.h>
-#include <plog/Log.h>
 
 #include "fnd/FindPair.h"
 
@@ -19,15 +18,14 @@
 #include "interface/ui/IMainWindow.h"
 
 #include "logging/init.h"
-
 #include "logic/model/LogModel.h"
-
-#include "di_app.h"
-
 #include "util/DyLib.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
+
+#include "di_app.h"
+#include "log.h"
 
 #include "config/git_hash.h"
 #include "config/version.h"
@@ -35,11 +33,12 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
 
-void SetStyle(QApplication & app)
+void SetStyle(QApplication& app)
 {
 	QFile file(STYLE_FILE_NAME);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -52,7 +51,7 @@ void SetStyle(QApplication & app)
 	app.setStyleSheet(ts.readAll());
 }
 
-std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
+std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings)
 {
 	{
 		auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
@@ -63,11 +62,10 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
 	}
 
 	{
-		constexpr std::pair<const char *, Qt::ColorScheme> schemes[]
-		{
+		constexpr std::pair<const char*, Qt::ColorScheme> schemes[] {
 			{ "System", Qt::ColorScheme::Unknown },
-			{ "Light" , Qt::ColorScheme::Light },
-			{ "Dark"  , Qt::ColorScheme::Dark },
+			{  "Light",   Qt::ColorScheme::Light },
+			{   "Dark",    Qt::ColorScheme::Dark },
 		};
 
 		const auto colorSchemeName = settings.Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
@@ -84,9 +82,9 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings & settings)
 	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "theme_dark" : "theme_light");
 }
 
-}
+} // namespace
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
 	LogModelAppender logModelAppender;
@@ -133,7 +131,7 @@ int main(int argc, char * argv[])
 			PLOGI << "App restarted";
 		}
 	}
-	catch (const std::exception & ex)
+	catch (const std::exception& ex)
 	{
 		PLOGF << "App failed with " << ex.what();
 	}

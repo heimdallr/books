@@ -2,9 +2,10 @@
 
 #include <functional>
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
-class IUpdateChecker  // NOLINT(cppcoreguidelines-special-member-functions)
+class IUpdateChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	using Callback = std::function<void()>;

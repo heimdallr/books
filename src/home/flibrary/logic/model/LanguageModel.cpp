@@ -9,13 +9,16 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+
 #include "interface/logic/IDatabaseUser.h"
+
 #include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace {
+namespace
+{
 
 using Role = ILanguageModel::Role;
 
@@ -29,47 +32,46 @@ class ModelImpl : public QAbstractTableModel
 	{
 		QString language;
 		int count;
-		bool checked{ false };
+		bool checked { false };
 	};
+
 	using Items = std::vector<Item>;
 
 public:
 	explicit ModelImpl(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create language list", [&, databaseUser = std::move(databaseUser)]() mutable
-		{
-			const auto db = databaseUser->Database();
-			const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
-			Items items;
-			for (query->Execute(); !query->Eof(); query->Next())
-				items.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
+		databaseUserRef.Execute({ "Create language list",
+		                          [&, databaseUser = std::move(databaseUser)]() mutable
+		                          {
+									  const auto db = databaseUser->Database();
+									  const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
+									  Items items;
+									  for (query->Execute(); !query->Eof(); query->Next())
+										  items.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
 
-			return [this, items = std::move(items)](size_t) mutable
-			{
-				beginResetModel();
-				m_items = std::move(items);
-				std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
-				for (auto& item : m_items)
-					item.checked = languagesIndexed.contains(item.language);
-				endResetModel();
-			};
-		} });
+									  return [this, items = std::move(items)](size_t) mutable
+									  {
+										  beginResetModel();
+										  m_items = std::move(items);
+										  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+										  for (auto& item : m_items)
+											  item.checked = languagesIndexed.contains(item.language);
+										  endResetModel();
+									  };
+								  } });
 	}
 
 private: // QAbstractItemModel
 	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override
 	{
-		static constexpr const char* headers[]
-		{
+		static constexpr const char* headers[] {
 			QT_TRANSLATE_NOOP("LanguageModel", "Code"),
 			QT_TRANSLATE_NOOP("LanguageModel", "Count"),
 			QT_TRANSLATE_NOOP("LanguageModel", "Language"),
 		};
 
-		return orientation == Qt::Orientation::Horizontal && role == Qt::DisplayRole
-			? Tr(headers[section])
-			: QVariant{};
+		return orientation == Qt::Orientation::Horizontal && role == Qt::DisplayRole ? Tr(headers[section]) : QVariant {};
 	}
 
 	int rowCount(const QModelIndex& parent) const override
@@ -96,27 +98,27 @@ private: // QAbstractItemModel
 
 		switch (role)
 		{
-		case Qt::DisplayRole:
-			switch (index.column())
-			{
-			case 0:
-				return item.language;
-			case 1:
-				return item.count;
-			case 2:
-				if (const auto it = m_translations.find(item.language); it != m_translations.end())
-					return Loc::Tr(LANGUAGES_CONTEXT, it->second);
-				return {};
+			case Qt::DisplayRole:
+				switch (index.column())
+				{
+					case 0:
+						return item.language;
+					case 1:
+						return item.count;
+					case 2:
+						if (const auto it = m_translations.find(item.language); it != m_translations.end())
+							return Loc::Tr(LANGUAGES_CONTEXT, it->second);
+						return {};
+					default:
+						assert(false && "unexpected column");
+						return {};
+				}
+
+			case Qt::CheckStateRole:
+				return index.column() != 0 ? QVariant {} : item.checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
+
 			default:
-				assert(false && "unexpected column");
-				return {};
-			}
-
-		case Qt::CheckStateRole:
-			return index.column() != 0 ? QVariant{} : item.checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
-
-		default:
-			break;
+				break;
 		}
 
 		return {};
@@ -134,16 +136,16 @@ private: // QAbstractItemModel
 
 		switch (role)
 		{
-		case Role::CheckAll:
-			return SetChecks([](const auto&) {return true; });
-		case Role::UncheckAll:
-			return SetChecks([](const auto&) {return false; });
-		case Role::RevertChecks:
-			return SetChecks([](const auto& item) {return !item.checked; });
+			case Role::CheckAll:
+				return SetChecks([](const auto&) { return true; });
+			case Role::UncheckAll:
+				return SetChecks([](const auto&) { return false; });
+			case Role::RevertChecks:
+				return SetChecks([](const auto& item) { return !item.checked; });
 			case Role::SelectedList:
-			return Util::Set(m_checked, value.toStringList());
-		default:
-			break;
+				return Util::Set(m_checked, value.toStringList());
+			default:
+				break;
 		}
 
 		return assert(false && "unexpected role"), false;
@@ -159,12 +161,13 @@ private:
 	bool SetChecks(const std::function<bool(const Item&)>& f)
 	{
 		std::vector<int> indices;
-		std::ranges::for_each(m_items, [&, n = 0](Item& item) mutable
-			{
-				if (Util::Set(item.checked, f(item)))
-					indices.emplace_back(n);
-				++n;
-			});
+		std::ranges::for_each(m_items,
+		                      [&, n = 0](Item& item) mutable
+		                      {
+								  if (Util::Set(item.checked, f(item)))
+									  indices.emplace_back(n);
+								  ++n;
+							  });
 
 		for (const auto [begin, end] : Util::CreateRanges(indices))
 			emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
@@ -174,17 +177,17 @@ private:
 
 private:
 	Items m_items;
-	const std::unordered_map<QString, const char*> m_translations {std::cbegin(LANGUAGES), std::cend(LANGUAGES)};
+	const std::unordered_map<QString, const char*> m_translations { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
 	QStringList m_checked;
 };
 
-}
+} // namespace
 
 class LanguageModel::Model final : public QSortFilterProxyModel
 {
 public:
 	explicit Model(std::shared_ptr<const IDatabaseUser> databaseUser)
-		: m_source{ std::unique_ptr<QAbstractItemModel>{std::make_unique<ModelImpl>(std::move(databaseUser))} }
+		: m_source { std::unique_ptr<QAbstractItemModel> { std::make_unique<ModelImpl>(std::move(databaseUser)) } }
 	{
 		QSortFilterProxyModel::setSourceModel(m_source.get());
 	}

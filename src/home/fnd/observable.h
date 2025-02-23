@@ -6,20 +6,20 @@
 
 #include "private/ObserverHelpers.h"
 
-namespace HomeCompa {
+namespace HomeCompa
+{
 
-template<typename T>
-class Observable
-	: public ObserverHelper::IObservable
+template <typename T>
+class Observable : public ObserverHelper::IObservable
 {
 public:
 	~Observable() override
 	{
-		for (auto * observer : m_observers)
+		for (auto* observer : m_observers)
 			observer->UnregisterObservableHelper(this);
 	}
 
-	void Register(T * observer)
+	void Register(T* observer)
 	{
 		observer->RegisterObservableHelper(this);
 		[[maybe_unused]] auto inserted = m_observers.emplace(observer).second;
@@ -27,7 +27,7 @@ public:
 		assert(inserted);
 	}
 
-	void Unregister(T * observer)
+	void Unregister(T* observer)
 	{
 		observer->UnregisterObservableHelper(this);
 		[[maybe_unused]] const auto result = Remove(observer);
@@ -35,20 +35,20 @@ public:
 	}
 
 	template <typename F, typename... ARGS>
-	void Perform(F function, ARGS &&... args)
+	void Perform(F function, ARGS&&... args)
 	{
-		for (auto * const observer : m_observers)
+		for (auto* const observer : m_observers)
 			std::invoke(function, observer, std::forward<ARGS>(args)...);
 	}
 
 private: // ObserverHelper::Observable
-	void HandleObserverDestructed(Observer * observer) override
+	void HandleObserverDestructed(Observer* observer) override
 	{
 		Remove(observer);
 	}
 
 private:
-	bool Remove(Observer * observer)
+	bool Remove(Observer* observer)
 	{
 		const auto it = m_observersMap.find(observer);
 		if (it == m_observersMap.end())
@@ -61,8 +61,8 @@ private:
 	}
 
 private:
-	std::unordered_set<T *> m_observers;
-	std::unordered_map<Observer *, T *> m_observersMap;
+	std::unordered_set<T*> m_observers;
+	std::unordered_map<Observer*, T*> m_observersMap;
 };
 
-}
+} // namespace HomeCompa

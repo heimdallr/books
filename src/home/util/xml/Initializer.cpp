@@ -2,7 +2,6 @@
 
 #include <xercesc/util/PlatformUtils.hpp>
 
-
 using namespace HomeCompa;
 using namespace Util;
 namespace xercesc = xercesc_3_2;
@@ -23,7 +22,8 @@ public:
 	}
 };
 
-namespace {
+namespace
+{
 std::shared_ptr<XMLPlatformInitializer::Impl> g_initializer;
 }
 

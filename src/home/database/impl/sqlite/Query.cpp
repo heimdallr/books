@@ -1,25 +1,25 @@
 #include <cassert>
 #include <mutex>
 
-#include "sqlite3ppext.h"
-
 #include "Database.h"
 #include "IQuery.h"
+#include "sqlite3ppext.h"
 
-namespace HomeCompa::DB::Impl::Sqlite {
+namespace HomeCompa::DB::Impl::Sqlite
+{
 
-namespace {
+namespace
+{
 
 int Index(const size_t index)
 {
 	return static_cast<int>(index);
 }
 
-class Query
-	: virtual public DB::IQuery
+class Query : virtual public DB::IQuery
 {
 public:
-	Query(std::mutex & mutex, sqlite3pp::database & db, const std::string_view query)
+	Query(std::mutex& mutex, sqlite3pp::database& db, const std::string_view query)
 		: m_lock(mutex)
 		, m_query(db, LogStatement(query).data())
 	{
@@ -74,9 +74,9 @@ private: // Query
 		return Get<std::string>(index);
 	}
 
-	const char * GetRawString(const size_t index) const override
+	const char* GetRawString(const size_t index) const override
 	{
-		return Get<const char *>(index);
+		return Get<const char*>(index);
 	}
 
 	int Bind(const size_t index) override
@@ -130,7 +130,7 @@ private: // Query
 	}
 
 private:
-	template<typename T>
+	template <typename T>
 	T Get(const size_t index) const
 	{
 		return (*m_it).get<T>(Index(index));
@@ -142,11 +142,11 @@ private:
 	sqlite3pp::query::iterator m_it;
 };
 
-}
+} // namespace
 
-std::unique_ptr<DB::IQuery> CreateQueryImpl(std::mutex & mutex, sqlite3pp::database & db, std::string_view query)
+std::unique_ptr<DB::IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query)
 {
 	return std::make_unique<Query>(mutex, db, query);
 }
 
-}
+} // namespace HomeCompa::DB::Impl::Sqlite

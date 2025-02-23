@@ -2,12 +2,13 @@
 
 #include "util/localization.h"
 
-namespace HomeCompa::Loc {
+namespace HomeCompa::Loc
+{
 
 constexpr auto AUTHOR_NOT_SPECIFIED = QT_TRANSLATE_NOOP("Error", "Author not specified");
 constexpr auto BOOKS_EXTRACT_ERROR = QT_TRANSLATE_NOOP("Error", "Retrieving books had errors");
 
-#if(false)
+#if (false)
 
 QT_TRANSLATE_NOOP("Book", "Author")
 QT_TRANSLATE_NOOP("Book", "Title")
@@ -42,4 +43,8 @@ constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords:");
 constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
 constexpr auto USER_RATE = QT_TRANSLATE_NOOP("Annotation", "My rate:");
 
-}
+constexpr auto EXPORT = "Export";
+constexpr auto SELECT_INPX_FILE = QT_TRANSLATE_NOOP("Export", "Save index file");
+constexpr auto SELECT_INPX_FILE_FILTER = QT_TRANSLATE_NOOP("Export", "Index files (*.inpx);;All files (*.*)");
+
+} // namespace HomeCompa::Loc

@@ -2,15 +2,16 @@
 
 #include <QSortFilterProxyModel>
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
-namespace HomeCompa::Flibrary {
+namespace HomeCompa::Flibrary
+{
 
 class AbstractSortFilterProxyModel : public QSortFilterProxyModel
 {
 protected:
-	explicit AbstractSortFilterProxyModel(QObject * parent = nullptr);
+	explicit AbstractSortFilterProxyModel(QObject* parent = nullptr);
 };
 
 class SortFilterProxyModel final : public AbstractSortFilterProxyModel
@@ -18,8 +19,7 @@ class SortFilterProxyModel final : public AbstractSortFilterProxyModel
 	NON_COPY_MOVABLE(SortFilterProxyModel)
 
 public:
-	explicit SortFilterProxyModel(const std::shared_ptr<class IModelProvider> & modelProvider
-		, QObject * parent = nullptr);
+	explicit SortFilterProxyModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent = nullptr);
 	~SortFilterProxyModel() override;
 
 private: // QAbstractItemModel
@@ -32,13 +32,13 @@ private: // QSortFilterProxyModel
 	bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
 
 private:
-	bool FilterAcceptsText(const QModelIndex & index) const;
-	bool FilterAcceptsLanguage(const QModelIndex & index) const;
-	bool FilterAcceptsRemoved(const QModelIndex & index) const;
+	bool FilterAcceptsText(const QModelIndex& index) const;
+	bool FilterAcceptsLanguage(const QModelIndex& index) const;
+	bool FilterAcceptsRemoved(const QModelIndex& index) const;
 
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary
