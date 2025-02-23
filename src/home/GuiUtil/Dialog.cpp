@@ -1,8 +1,8 @@
 #include "Dialog.h"
 
 #include <QInputDialog>
+#include <QTimer>
 
-#include "interface/IParentWidgetProvider.h"
 #include "interface/constants/Localization.h"
 
 #include "log.h"
@@ -10,8 +10,14 @@
 using namespace HomeCompa;
 using namespace Util;
 
-Dialog::Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider)
-	: m_parentProvider(std::move(parentProvider))
+namespace
+{
+constexpr auto INPUT_DIALOG_GEOMETRY_KEY = "ui/InputDialog/Geometry";
+}
+
+Dialog::Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings)
+	: m_parentProvider { std::move(parentProvider) }
+	, m_settings { std::move(settings) }
 {
 	PLOGV << "Dialog created";
 }
@@ -36,10 +42,10 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
 }
 
-#define STANDARD_DIALOG_ITEM(NAME)                                                    \
-	NAME##Dialog::NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider) \
-		: Dialog(std::move(parentProvider))                                           \
-	{                                                                                 \
+#define STANDARD_DIALOG_ITEM(NAME)                                                                                         \
+	NAME##Dialog::NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings) \
+		: Dialog(std::move(parentProvider), std::move(settings))                                                           \
+	{                                                                                                                      \
 	}
 STANDARD_DIALOG_ITEMS_X_MACRO
 #undef STANDARD_DIALOG_ITEM
@@ -94,5 +100,12 @@ QString InputTextDialog::GetText(const QString& title, const QString& label, con
 	inputDialog.setLabelText(label);
 	inputDialog.setTextEchoMode(mode);
 	inputDialog.setTextValue(text);
+	QObject::connect(&inputDialog, &QDialog::finished, &inputDialog, [&] { m_settings->Set(INPUT_DIALOG_GEOMETRY_KEY, inputDialog.geometry()); });
+	QTimer::singleShot(0,
+	                   [&]
+	                   {
+						   if (auto geometry = m_settings->Get(INPUT_DIALOG_GEOMETRY_KEY); geometry.isValid())
+							   inputDialog.setGeometry(geometry.toRect());
+					   });
 	return inputDialog.exec() == QDialog::Accepted ? inputDialog.textValue() : QString {};
 }

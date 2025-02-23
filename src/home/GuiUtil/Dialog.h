@@ -4,6 +4,9 @@
 #include "fnd/memory.h"
 
 #include "interface/IDialog.h"
+#include "interface/IParentWidgetProvider.h"
+
+#include "util/ISettings.h"
 
 class QWidget;
 
@@ -20,7 +23,7 @@ class Dialog : virtual public IDialog
 	NON_COPY_MOVABLE(Dialog)
 
 protected:
-	explicit Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider);
+	Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings);
 	~Dialog() override;
 
 protected:
@@ -32,6 +35,7 @@ protected:
 
 protected:
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentProvider;
+	std::shared_ptr<ISettings> m_settings;
 };
 
 #define STANDARD_DIALOG_ITEM(NAME)                                                                                                                                    \
@@ -40,7 +44,7 @@ protected:
 		, public I##NAME##Dialog                                                                                                                                      \
 	{                                                                                                                                                                 \
 	public:                                                                                                                                                           \
-		explicit NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider);                                                                                 \
+		NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings);                                                     \
                                                                                                                                                                       \
 	private:                                                                                                                                                          \
 		QMessageBox::StandardButton Show(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override; \
