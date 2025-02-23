@@ -461,6 +461,16 @@
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
+        <source>Select style sheet file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Qt style sheet files (*.%1);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation></translation>
     </message>
@@ -628,6 +638,18 @@
     </message>
     <message>
         <source>Hide &amp;book search by title bar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>External</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Load...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Reset</source>
         <translation></translation>
     </message>
 </context>

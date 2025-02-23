@@ -64,6 +64,8 @@ constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow"
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select style sheet file");
+constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt style sheet files (*.%1);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
@@ -82,6 +84,7 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto ACTION_PROPERTY_NAME = "value";
+constexpr auto QSS = "qss";
 
 class AllowDestructiveOperationsObserver final : public QObject
 {
@@ -501,7 +504,33 @@ private:
 
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
+		connect(m_ui.actionResetExternalTheme,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY);
+					RebootDialog();
+				});
 
+		connect(m_ui.actionExternalThemeLoad,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					const auto qss = m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS));
+					if (qss.isEmpty())
+						return;
+
+					m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, qss);
+					RebootDialog();
+				});
+
+		CreateStylesMenu();
+	}
+
+	void CreateStylesMenu()
+	{
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
 		{
 			auto* group = new QActionGroup(&m_self);
@@ -528,8 +557,7 @@ private:
 			{
 				m_settings->Set(key, theme);
 				set();
-				if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-					Reboot();
+				RebootDialog();
 			};
 
 			for (auto* action : actions)
@@ -554,6 +582,40 @@ private:
 		}
 		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+
+		CreateExternalStylesMenu();
+	}
+
+	void RebootDialog() const
+	{
+		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+			Reboot();
+	}
+
+	void CreateExternalStylesMenu()
+	{
+		auto* group = new QActionGroup(&m_self);
+		group->setExclusive(true);
+
+		const auto currentStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY);
+		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss", QDir::Files))
+		{
+			const auto fileName = entry.filePath();
+			auto* action = m_ui.menuExternal->addAction(entry.completeBaseName(),
+			                                            [this, fileName]
+			                                            {
+															m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
+															RebootDialog();
+														});
+			group->addAction(action);
+			action->setCheckable(true);
+			if (fileName == currentStyle)
+				action->setChecked(true);
+		}
+
+		m_ui.menuExternal->addSeparator();
+		m_ui.menuExternal->addAction(m_ui.actionExternalThemeLoad);
+		m_ui.menuExternal->addAction(m_ui.actionResetExternalTheme);
 	}
 
 	void SearchBookByTitle()

@@ -457,6 +457,16 @@
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
+        <source>Select style sheet file</source>
+        <translation>Укажите файл со стилями</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Qt style sheet files (*.%1);;All files (*.*)</source>
+        <translation>Файлы Qt-стилей (*.%1);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
     </message>
@@ -625,6 +635,18 @@
     <message>
         <source>Hide &amp;book search by title bar</source>
         <translation>Скрыть строку поиска &amp;книги по названию</translation>
+    </message>
+    <message>
+        <source>External</source>
+        <translation>Внешняя</translation>
+    </message>
+    <message>
+        <source>Load...</source>
+        <translation>Открыть...</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Отменить</translation>
     </message>
 </context>
 <context>

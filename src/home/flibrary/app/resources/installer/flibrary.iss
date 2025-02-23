@@ -53,6 +53,7 @@ Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignorevers
 Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}build\Release\bin\qss\*.qss" ; DestDir: "{app}\qss"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

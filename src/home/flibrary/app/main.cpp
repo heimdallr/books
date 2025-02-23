@@ -38,17 +38,26 @@ namespace
 
 constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
 
-void SetStyle(QApplication& app)
+QString ReadStyleSheet(const QString& fileName)
 {
-	QFile file(STYLE_FILE_NAME);
+	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		PLOGE << "Cannot open " << STYLE_FILE_NAME;
-		return;
+		PLOGE << "Cannot open " << fileName;
+		return {};
 	}
 
 	QTextStream ts(&file);
-	app.setStyleSheet(ts.readAll());
+	return ts.readAll();
+}
+
+void SetStyle(QApplication& app, const ISettings& settings)
+{
+	QString styleSheet;
+	if (const auto qss = settings.Get(Constant::Settings::EXTERNAL_THEME_KEY); qss.isValid())
+		styleSheet.append(ReadStyleSheet(qss.toString()));
+	styleSheet.append(ReadStyleSheet(STYLE_FILE_NAME));
+	app.setStyleSheet(styleSheet);
 }
 
 std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings)
@@ -95,18 +104,17 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-
-		QApplication app(argc, argv);
-		QCoreApplication::setApplicationName(PRODUCT_ID);
-		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
-		Util::XMLPlatformInitializer xmlPlatformInitializer;
-
-		PLOGD << "QApplication created";
-		SetStyle(app);
-
 		while (true)
 		{
+			QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
+			QApplication app(argc, argv);
+			QCoreApplication::setApplicationName(PRODUCT_ID);
+			QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+			Util::XMLPlatformInitializer xmlPlatformInitializer;
+
+			PLOGD << "QApplication created";
+
 			std::shared_ptr<Hypodermic::Container> container;
 			{
 				Hypodermic::ContainerBuilder builder;
@@ -114,7 +122,10 @@ int main(int argc, char* argv[])
 			}
 			PLOGD << "DI-container created";
 
-			const auto themeLib = SetTheme(*container->resolve<ISettings>());
+			const auto settings = container->resolve<ISettings>();
+			SetStyle(app, *settings);
+			const auto themeLib = SetTheme(*settings);
+
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);
