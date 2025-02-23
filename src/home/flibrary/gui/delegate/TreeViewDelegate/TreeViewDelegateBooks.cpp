@@ -13,7 +13,10 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/ui/IUiFactory.h"
+
+#include "util/ISettings.h"
 
 #include "Measure.h"
 #include "log.h"
@@ -55,9 +58,10 @@ class TreeViewDelegateBooks::Impl final
 	, public Observable<ITreeViewDelegate::IObserver>
 {
 public:
-	explicit Impl(const IUiFactory& uiFactory)
+	Impl(const IUiFactory& uiFactory, const ISettings& settings)
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
+		, m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -106,17 +110,18 @@ private:
 			{ BookItem::Column::UserRate, Role::UserRate },
 		};
 		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
-		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(0x2B50));
+		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
 
 private:
 	QTreeView& m_view;
 	mutable TextDelegate m_textDelegate;
+	const int m_starSymbol;
 };
 
-TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory)
-	: m_impl(*uiFactory)
+TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)
+	: m_impl(*uiFactory, *settings)
 {
 	PLOGV << "TreeViewDelegateBooks created";
 }
