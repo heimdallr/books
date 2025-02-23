@@ -575,11 +575,11 @@
     </message>
     <message>
         <source>Hide cover &amp;buttons</source>
-        <translation>Показывать &amp;кнопки на обложке</translation>
+        <translation>Скрывать &amp;кнопки на обложке</translation>
     </message>
     <message>
         <source>Show cover &amp;buttons</source>
-        <translation>Скрывать &amp;кнопки на обложке</translation>
+        <translation>Показывать &amp;кнопки на обложке</translation>
     </message>
     <message>
         <source>Allow destructive operations</source>
