@@ -45,6 +45,9 @@
     </item>
     <item>
      <widget class="QLineEdit" name="lineEditBookTitleToSearch">
+      <property name="placeholderText">
+       <string>To search books by title, enter part of the title here and press enter</string>
+      </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
       </property>
@@ -387,8 +390,14 @@
       <addaction name="actionColorSchemeLight"/>
       <addaction name="actionColorSchemeDark"/>
      </widget>
+     <widget class="QMenu" name="menuExternal">
+      <property name="title">
+       <string>External</string>
+      </property>
+     </widget>
      <addaction name="menuColorScheme"/>
      <addaction name="separator"/>
+     <addaction name="menuExternal"/>
     </widget>
     <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
@@ -844,6 +853,24 @@
   <action name="actionHideSearchBookString">
    <property name="text">
     <string>Hide &amp;book search by title bar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLoadQss">
+   <property name="text">
+    <string>Load...</string>
+   </property>
+  </action>
+  <action name="actionExternalThemeLoad">
+   <property name="text">
+    <string>Load...</string>
+   </property>
+  </action>
+  <action name="actionResetExternalTheme">
+   <property name="text">
+    <string>Reset</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

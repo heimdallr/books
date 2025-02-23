@@ -501,7 +501,20 @@ private:
 
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
+		connect(m_ui.actionResetExternalTheme,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY);
+					RebootDialog();
+				});
 
+		CreateStylesMenu();
+	}
+
+	void CreateStylesMenu()
+	{
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
 		{
 			auto* group = new QActionGroup(&m_self);
@@ -528,8 +541,7 @@ private:
 			{
 				m_settings->Set(key, theme);
 				set();
-				if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-					Reboot();
+				RebootDialog();
 			};
 
 			for (auto* action : actions)
@@ -554,6 +566,31 @@ private:
 		}
 		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+
+		CreateExternalStylesMenu();
+	}
+
+	void RebootDialog() const
+	{
+		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+			Reboot();
+	}
+
+	void CreateExternalStylesMenu()
+	{
+		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss", QDir::Files))
+		{
+			m_ui.menuExternal->addAction(entry.completeBaseName(),
+			                             [this, fileName = entry.filePath()]
+			                             {
+											 m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
+											 RebootDialog();
+										 });
+		}
+
+		m_ui.menuExternal->addSeparator();
+		m_ui.menuExternal->addAction(m_ui.actionExternalThemeLoad);
+		m_ui.menuExternal->addAction(m_ui.actionResetExternalTheme);
 	}
 
 	void SearchBookByTitle()

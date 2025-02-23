@@ -12,6 +12,7 @@ constexpr auto EXPORT_TEMPLATE_KEY = "ui/Export/OutputTemplate";
 constexpr auto KEEP_RECENT_LANG_FILTER_KEY = "ui/keepLanguage";
 constexpr auto THEME_KEY = "ui/theme";
 constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
+constexpr auto EXTERNAL_THEME_KEY = "ui/externalTheme";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
 constexpr auto APP_STYLE_DEFAULT = "windowsvista";
