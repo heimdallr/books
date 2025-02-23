@@ -10,6 +10,3 @@
 [submodule "src/ext/sqlite/sqlite"]
 	path = src/ext/sqlite/sqlite
 	url = ../sqlite3.git
-[submodule "src/ext/qss"]
-	path = src/ext/qss
-	url = ../QSS.git
