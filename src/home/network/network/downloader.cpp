@@ -11,6 +11,12 @@ using namespace HomeCompa::Network;
 class Downloader::Impl
 {
 public:
+	Impl()
+	{
+		QObject::connect(&m_manager, &QNetworkAccessManager::finished, &m_manager, [](QNetworkReply* reply) { reply->deleteLater(); });
+	}
+
+public:
 	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
 	{
 		const QNetworkRequest request(url);
@@ -48,10 +54,7 @@ public:
 							 reply->deleteLater();
 						 });
 
-		QObject::connect(&m_manager, &QNetworkAccessManager::finished, &m_manager, [](QNetworkReply* reply) { reply->deleteLater(); });
-
 		if (progress)
-		{
 			QObject::connect(reply,
 			                 &QNetworkReply::downloadProgress,
 			                 &m_manager,
@@ -62,15 +65,14 @@ public:
 								 if (stopped)
 									 reply->close();
 							 });
-		}
 
 		return id;
 	}
 
 private:
-	QNetworkAccessManager m_manager;
-	std::unordered_map<const QObject*, std::tuple<size_t, QNetworkReply::NetworkError, QString>> m_replies;
 	size_t m_id { 0 };
+	std::unordered_map<const QObject*, std::tuple<size_t, QNetworkReply::NetworkError, QString>> m_replies;
+	QNetworkAccessManager m_manager;
 };
 
 Downloader::Downloader()

@@ -32,8 +32,8 @@ struct Item
 
 struct SetupPunchlineJokeRequester::Impl
 {
-	Network::Downloader downloader;
 	std::unordered_map<size_t, std::unique_ptr<Item>> requests;
+	Network::Downloader downloader;
 };
 
 SetupPunchlineJokeRequester::SetupPunchlineJokeRequester() = default;

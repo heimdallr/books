@@ -4,6 +4,9 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP TABLE IF EXISTS Inpx;
+--@@
+
 DROP TABLE IF EXISTS Books_User;
 --@@
 
@@ -178,6 +181,13 @@ CREATE TABLE Export_List_User (
     BookID     INTEGER  NOT NULL,
     ExportType INTEGER  NOT NULL,
     CreatedAt  DATETIME NOT NULL
+);
+--@@
+
+CREATE TABLE Inpx (
+    Folder VARCHAR (200) NOT NULL,
+    File   VARCHAR (200) NOT NULL,
+    Hash   VARCHAR (50)  NOT NULL
 );
 --@@
 

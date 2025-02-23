@@ -1,8 +1,12 @@
 #include "DatabaseController.h"
 
+#include <QCryptographicHash>
+
 #include <mutex>
 #include <ranges>
 #include <set>
+
+#include <QFileInfo>
 
 #include "fnd/observable.h"
 
@@ -14,9 +18,12 @@
 
 #include "database/factory/Factory.h"
 #include "inpx/src/util/constant.h"
+#include "inpx/src/util/inpx.h"
+#include "inpx/src/util/types.h"
 #include "util/FunctorExecutionForwarder.h"
 
 #include "log.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -26,18 +33,21 @@ namespace
 
 void AddUserTables(DB::ITransaction& transaction)
 {
+	// clang-format off
 	static constexpr const char* commands[] {
 		"CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
 		"CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
-		"CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE "
-		"CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
+		"CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
 		"CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
 		"CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
 		"CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)",
 		"CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)",
 		"CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)",
+		"CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 	};
+	// clang-format on
 
 	for (const auto* command : commands)
 		transaction.CreateCommand(command)->Execute();
@@ -133,8 +143,20 @@ void FillBooksSearch(DB::ITransaction& transaction)
 		transaction.CreateCommand("insert into Books_Search(Books_Search) values('rebuild')")->Execute();
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string& databaseName, const bool readOnly)
+void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& transaction)
 {
+	const auto query = transaction.CreateQuery("select count (42) from Inpx");
+	query->Execute();
+	if (query->Get<int>(0) == 0)
+		Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
+}
+
+std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& collectionProvider, const bool readOnly)
+{
+	if (!collectionProvider.ActiveCollectionExists())
+		return {};
+
+	const auto databaseName = collectionProvider.GetActiveCollection().database.toStdString();
 	if (databaseName.empty())
 		return {};
 
@@ -193,6 +215,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const std::string& databaseNam
 		FixSearches_User(*transaction);
 		FillBooksSearch(*transaction);
 
+		FillInpx(collectionProvider, *transaction);
+
 		transaction->Commit();
 		return db;
 	}
@@ -239,7 +263,7 @@ public:
 		if (m_db)
 			return m_db;
 
-		auto db = CreateDatabaseImpl(m_databaseFileName.toStdString(), readOnly);
+		auto db = CreateDatabaseImpl(*m_collectionProvider, readOnly);
 		m_db = std::move(db);
 
 		if (m_db)
@@ -253,7 +277,6 @@ public:
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
-		m_databaseFileName = m_collectionProvider->ActiveCollectionExists() ? m_collectionProvider->GetActiveCollection().database : QString {};
 		if (m_db)
 			Perform(&IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 		std::lock_guard lock(m_dbGuard);
@@ -267,7 +290,6 @@ private: // ICollectionsObserver
 private:
 	mutable std::mutex m_dbGuard;
 	mutable std::shared_ptr<DB::IDatabase> m_db;
-	QString m_databaseFileName;
 	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	Util::FunctorExecutionForwarder m_forwarder;
 };

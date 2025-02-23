@@ -10,6 +10,8 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseUser.h"
 
+#include "inpx/src/util/inpx.h"
+
 #include "log.h"
 #include "zip.h"
 
@@ -36,54 +38,6 @@ QString GetFileHash(const std::set<QString>& fileNames)
 	}
 
 	return hash.result().toHex();
-}
-
-QStringList& PrepareFolders(QStringList& folders)
-{
-	std::ranges::transform(folders, folders.begin(), [](const auto& item) { return QFileInfo(item).completeBaseName().toLower(); });
-	std::ranges::sort(folders);
-	return folders;
-}
-
-QStringList GetDbFolders(DB::IDatabase& db)
-{
-	QStringList folders;
-	const auto query = db.CreateQuery("select FolderTitle from Folders");
-	for (query->Execute(); !query->Eof(); query->Next())
-		folders << query->Get<const char*>(0);
-
-	return PrepareFolders(folders);
-}
-
-QStringList GetInpxFolders(const ICollectionController& collectionController, Collection& updatedCollection)
-{
-	if (!collectionController.ActiveCollectionExists())
-		return {};
-
-	const auto& collection = collectionController.GetActiveCollection();
-
-	updatedCollection = collection;
-	const auto inpxFileNames = collectionController.GetInpxFiles(collection.folder);
-	if (inpxFileNames.empty())
-		return {};
-
-	if (updatedCollection.discardedUpdate = GetFileHash(inpxFileNames); updatedCollection.discardedUpdate == collection.discardedUpdate)
-		return {};
-
-	QStringList folders;
-
-	for (const auto& inpxFileName : inpxFileNames)
-	{
-		assert(QFile::exists(inpxFileName));
-
-		const Zip zip(inpxFileName);
-		folders << zip.GetFileNameList();
-	}
-
-	if (auto [begin, end] = std::ranges::remove_if(folders, [](const auto& item) { return QFileInfo(item).suffix().toLower() != "inp"; }); begin != end)
-		folders.erase(begin, end);
-
-	return PrepareFolders(folders);
 }
 
 } // namespace
@@ -113,38 +67,38 @@ CollectionUpdateChecker::~CollectionUpdateChecker()
 
 void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 {
-	if (!(m_impl->collectionController->ActiveCollectionExists() && m_impl->collectionController->GetActiveCollection().updatable))
+	if (!m_impl->collectionController->ActiveCollectionExists())
 		return callback(false);
 
 	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute({ "Check for collection index updated",
 	                                [&, db = std::move(db), callback = std::move(callback)]() mutable
 	                                {
-										Collection updatedCollection;
-										QStringList addedFolders;
-										auto getResult = [&]()
-										{
-											return [collectionController = m_impl->collectionController,
-			                                        updatedCollection = std::move(updatedCollection),
-			                                        addedFolders = std::move(addedFolders),
-			                                        callback = std::move(callback)](size_t) mutable
-											{
-												if (addedFolders.isEmpty())
-													return callback(false);
+										std::function<void(size_t)> result;
 
-												collectionController->OnInpxUpdateFound(updatedCollection);
-												callback(true);
-											};
+										const auto& collection = m_impl->collectionController->GetActiveCollection();
+										const auto collectionFolder = collection.folder;
+										const auto inpxFiles = m_impl->collectionController->GetInpxFiles(collectionFolder);
+
+										Collection updatedCollection = collection;
+										if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
+										{
+											result = [callback = std::move(callback)](size_t) { callback(false); };
+											return result;
+										}
+
+										const auto checkResult = Inpx::Parser::CheckForUpdate(collectionFolder.toStdWString(), *db);
+										result =
+											[checkResult, collectionController = m_impl->collectionController, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable
+										{
+											if (checkResult == Inpx::CheckForUpdateResult::NoUpdates)
+												return callback(false);
+
+											collectionController->OnInpxUpdateChecked(updatedCollection, checkResult);
+											callback(true);
 										};
 
-										const auto inpxFolders = GetInpxFolders(*m_impl->collectionController, updatedCollection);
-										if (inpxFolders.isEmpty())
-											return getResult();
-
-										const auto dbFolders = GetDbFolders(*db);
-										std::ranges::set_difference(inpxFolders, dbFolders, std::back_inserter(addedFolders));
-
-										return getResult();
+										return result;
 									} },
 	                              100);
 }

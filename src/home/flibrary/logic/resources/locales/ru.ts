@@ -275,24 +275,29 @@
     </message>
     <message>
         <location filename="../../Collection/CollectionController.cpp"/>
-        <source>&quot;%1&quot; collection %2. Added:
+        <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;p&gt;Внимание! Обнаружено изменение предыдущих данных, рекомендуем пересоздать коллекцию снова. Не забудьте сохранить пользовательские данные&lt;/p&gt;&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../Collection/CollectionController.cpp"/>
+        <source>&quot;%1&quot; collection %2. Added:&lt;p&gt;
 &lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Authors: &lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Series:  &lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Books:   &lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Archives:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Authors:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Series:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Books:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
-&lt;/table&gt;</source>
-        <translation>Коллекция &quot;%1&quot; %2. Добавлено:
+&lt;/table&gt;%9</source>
+        <translation>Коллекция &quot;%1&quot; %2. Добавлено:&lt;p&gt;
 &lt;table&gt;
-&lt;tr&gt;&lt;td&gt;Архивы:&lt;/td&gt;&lt;td&gt;%3&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Авторы:&lt;/td&gt;&lt;td&gt;%4&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Серии:&lt;/td&gt;&lt;td&gt;%5&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Книги:&lt;/td&gt;&lt;td&gt;%6&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;Ключевые слова:&lt;/td&gt;&lt;td&gt;%7&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Архивы:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Авторы:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Серии:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Книги:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Ключевые слова:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
-&lt;/table&gt;</translation>
+&lt;/table&gt;%9</translation>
     </message>
 </context>
 <context>
