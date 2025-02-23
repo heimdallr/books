@@ -64,6 +64,8 @@ constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow"
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select style sheet file");
+constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt style sheet files (*.%1);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
@@ -82,6 +84,7 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto ACTION_PROPERTY_NAME = "value";
+constexpr auto QSS = "qss";
 
 class AllowDestructiveOperationsObserver final : public QObject
 {
@@ -507,6 +510,19 @@ private:
 		        [this]
 		        {
 					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY);
+					RebootDialog();
+				});
+
+		connect(m_ui.actionExternalThemeLoad,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					const auto qss = m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS));
+					if (qss.isEmpty())
+						return;
+
+		        	m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, qss);
 					RebootDialog();
 				});
 
