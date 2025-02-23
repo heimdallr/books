@@ -42,6 +42,9 @@ public:
 	           QWidget* parent = nullptr);
 	~MainWindow() override;
 
+signals:
+	void BookTitleToSearchVisibleChanged() const;
+
 private: // IMainWindow
 	void Show() override;
 

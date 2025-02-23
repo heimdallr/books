@@ -222,6 +222,11 @@ public:
 										 });
 	}
 
+	void OnBookTitleToSearchVisibleChanged() const
+	{
+		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
+	}
+
 	void ResizeEvent(const QResizeEvent* event)
 	{
 		auto size = m_ui.cbMode->height();
@@ -536,7 +541,9 @@ private:
 			connect(&treeViewHeader, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint& pos) { CreateHeaderContextMenu(pos); });
 
 			m_ui.value->installEventFilter(new ValueEventFilter(m_self, *m_ui.value, m_ui.value));
-			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SERACH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
+
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
+			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 		}
 
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
@@ -929,6 +936,11 @@ QAbstractItemView* TreeView::GetView() const
 void TreeView::FillMenu(QMenu& menu)
 {
 	m_impl->FillContextMenu(menu);
+}
+
+void TreeView::OnBookTitleToSearchVisibleChanged() const
+{
+	m_impl->OnBookTitleToSearchVisibleChanged();
 }
 
 void TreeView::resizeEvent(QResizeEvent* event)

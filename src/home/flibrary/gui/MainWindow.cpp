@@ -119,24 +119,28 @@ private:
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
-	LineEditPlaceholderTextController(QLineEdit& lineEdit, const char* placeholderText)
+	LineEditPlaceholderTextController(MainWindow& mainWindow, QLineEdit& lineEdit, const char* placeholderText)
 		: QObject(&lineEdit)
+		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
 		, m_placeholderText { placeholderText }
 	{
 	}
 
 private: // QObject
-	bool eventFilter(QObject* /*watched*/, QEvent* event) override
+	bool eventFilter(QObject* watched, QEvent* event) override
 	{
 		if (event->type() == QEvent::Enter)
-			return m_lineEdit.setPlaceholderText(Tr(m_placeholderText)), false;
-		if (event->type() == QEvent::Leave)
-			return m_lineEdit.setPlaceholderText({}), false;
-		return false;
+			m_lineEdit.setPlaceholderText(Tr(m_placeholderText));
+		else if (event->type() == QEvent::Leave)
+			m_lineEdit.setPlaceholderText({});
+		else if (event->type() == QEvent::Show)
+			emit m_mainWindow.BookTitleToSearchVisibleChanged();
+		return QObject::eventFilter(watched, event);
 	}
 
 private:
+	MainWindow& m_mainWindow;
 	QLineEdit& m_lineEdit;
 	const char* const m_placeholderText;
 };
@@ -342,7 +346,7 @@ private:
 
 	void ReplaceMenuBar()
 	{
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(*m_ui.lineEditBookTitleToSearch, SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
 		auto* menuBar = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -744,7 +748,8 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(lineOption),
              std::move(databaseChecker))
 {
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SERACH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)));
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
 	PLOGV << "MainWindow created";
 }
 

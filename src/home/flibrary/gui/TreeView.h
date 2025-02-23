@@ -40,6 +40,9 @@ public:
 	QAbstractItemView* GetView() const;
 	void FillMenu(QMenu& menu);
 
+private slots:
+	void OnBookTitleToSearchVisibleChanged() const;
+
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;
 
