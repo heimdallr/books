@@ -37,8 +37,6 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
-
 QString ReadStyleSheet(const QString& fileName)
 {
 	QFile file(fileName);
@@ -80,7 +78,7 @@ std::unique_ptr<Util::DyLib> SetStyle(QApplication& app, const ISettings& settin
 			}
 		}
 	}
-	styleSheet.append(ReadStyleSheet(STYLE_FILE_NAME));
+	styleSheet.append(ReadStyleSheet(Constant::STYLE_FILE_NAME));
 	app.setStyleSheet(styleSheet);
 
 	return result;

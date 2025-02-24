@@ -4,6 +4,7 @@
 
 #include <QActionEvent>
 #include <QActionGroup>
+#include <QDirIterator>
 #include <QGuiApplication>
 #include <QPainter>
 #include <QStyleFactory>
@@ -37,6 +38,7 @@
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "GuiUtil/util.h"
 #include "logging/LogAppender.h"
+#include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/ObjectsConnector.h"
@@ -611,11 +613,19 @@ private:
 
 		if (QFileInfo(fileName).suffix().toLower() == "dll")
 		{
-			if (const auto qss = m_uiFactory->GetText(Tr(EXTERNAL_STYLESHEET), Tr(EXTERNAL_STYLESHEET_FILE_NAME)); !qss.isEmpty())
+			Util::DyLib lib(fileName.toStdString());
+			QStringList list;
+			QDirIterator it(":/", QStringList() << "*.qss", QDir::Files, QDirIterator::Subdirectories);
+			while (it.hasNext())
+				list << it.next();
+			erase_if(list, [](const QString& item) { return item == Constant::STYLE_FILE_NAME; });
+
+			if (const auto qss = m_uiFactory->GetText(Tr(EXTERNAL_STYLESHEET), Tr(EXTERNAL_STYLESHEET_FILE_NAME), list.isEmpty() ? QString {} : list.front(), list); !qss.isEmpty())
 				m_settings->Set(Constant::Settings::EXTERNAL_THEME_QSS_KEY, qss);
 			else
 				return;
 		}
+
 		m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
 		RebootDialog();
 	}
