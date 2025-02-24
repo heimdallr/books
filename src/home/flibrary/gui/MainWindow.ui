@@ -383,6 +383,9 @@
       <string>&amp;Theme</string>
      </property>
      <widget class="QMenu" name="menuColorScheme">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="title">
        <string>&amp;Color scheme</string>
       </property>
@@ -858,6 +861,9 @@
    </property>
   </action>
   <action name="actionExternalThemeLoad">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Load...</string>
    </property>
