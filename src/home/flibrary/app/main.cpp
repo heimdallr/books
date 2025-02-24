@@ -91,8 +91,8 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings, const bool isCu
 	constexpr auto iconsLight = "icons_light";
 	constexpr auto iconsDark = "icons_dark";
 	constexpr std::pair<const char*, Scheme> schemes[] {
-		{ "System",						unknown },
-		{  "Light",   { Qt::ColorScheme::Light, iconsLight } },
+		{ "System",								unknown },
+		{  "Light", { Qt::ColorScheme::Light, iconsLight } },
 		{   "Dark",   { Qt::ColorScheme::Dark, iconsDark } },
 	};
 
@@ -126,7 +126,7 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings, const bool isCu
 		const auto windowLightness = palette.color(QPalette::Window).lightness();
 		iconSet = textLightness > windowLightness ? iconsDark : iconsLight;
 	}
-	
+
 	return std::make_unique<Util::DyLib>(iconSet);
 }
 
