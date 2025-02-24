@@ -74,6 +74,7 @@ constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButto
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto ACTION_PROPERTY_NAME = "value";
+constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
 
 class AllowDestructiveOperationsObserver : public QObject
 {
@@ -177,7 +178,8 @@ public:
 				collectionUpdateCheckerRef.CheckForUpdate([collectionUpdateChecker = std::move(collectionUpdateChecker)](bool) mutable { collectionUpdateChecker.reset(); });
 			});
 
-		CheckForUpdates(false);
+        if (m_checkForUpdateOnStartEnabled)
+			CheckForUpdates(false);
 	}
 
 	~Impl() override
@@ -250,6 +252,11 @@ private:
 		m_ui.settingsLineEdit->setVisible(false);
 		m_lineOption->SetLineEdit(m_ui.settingsLineEdit);
 
+        OnObjectVisibleChanged(this,
+		                       &Impl::SetCheckForUpdateOnStartEnabled,
+		                       m_ui.actionEnableCheckForUpdateOnStart,
+		                       m_ui.actionDisableCheckForUpdateOnStart,
+		                       m_settings->Get(CHECK_FOR_UPDATE_ON_START_KEY, m_checkForUpdateOnStartEnabled));
 		OnObjectVisibleChanged(m_booksWidget.get(), &TreeView::ShowRemoved, m_ui.actionShowRemoved, m_ui.actionHideRemoved, m_settings->Get(SHOW_REMOVED_BOOKS_KEY, true));
 		OnObjectVisibleChanged(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.menuAnnotation->menuAction(), m_settings->Get(SHOW_ANNOTATION_KEY, true));
 		OnObjectVisibleChanged(m_annotationWidget.get(),
@@ -410,6 +417,7 @@ private:
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCover, m_ui.actionShowAnnotationCover, m_ui.actionHideAnnotationCover, SHOW_ANNOTATION_COVER_KEY);
 		ConnectShowHide(m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons, m_ui.actionShowAnnotationCoverButtons, m_ui.actionHideAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY);
 		ConnectShowHide(this, &Impl::AllowDestructiveOperation, m_ui.actionAllowDestructiveOperations, m_ui.actionDenyDestructiveOperations);
+		ConnectShowHide(this, &Impl::SetCheckForUpdateOnStartEnabled, m_ui.actionEnableCheckForUpdateOnStart, m_ui.actionDisableCheckForUpdateOnStart, CHECK_FOR_UPDATE_ON_START_KEY);
 		ConnectShowHide<QStatusBar>(m_ui.statusBar, &QWidget::setVisible, m_ui.actionShowStatusBar, m_ui.actionHideStatusBar, SHOW_STATUS_BAR_KEY);
 
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
@@ -569,6 +577,11 @@ private:
 			inpxGeneratorRef.GenerateInpx(std::move(inpxFileName), [inpxGenerator = std::move(inpxGenerator)](bool) mutable { inpxGenerator.reset(); });
 	}
 
+    void SetCheckForUpdateOnStartEnabled(const bool value) noexcept
+	{
+		m_checkForUpdateOnStartEnabled = value;
+	}
+
 	static void Reboot()
 	{
 		QTimer::singleShot(0, [] { QCoreApplication::exit(Constant::RESTART_APP); });
@@ -595,6 +608,8 @@ private:
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
+
+	bool m_checkForUpdateOnStartEnabled { false };
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
