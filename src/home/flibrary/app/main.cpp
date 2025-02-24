@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QPalette>
 #include <QStandardPaths>
 #include <QStyleFactory>
@@ -36,8 +37,6 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
-
 QString ReadStyleSheet(const QString& fileName)
 {
 	QFile file(fileName);
@@ -51,40 +50,68 @@ QString ReadStyleSheet(const QString& fileName)
 	return ts.readAll();
 }
 
-void SetStyle(QApplication& app, const ISettings& settings)
+std::unique_ptr<Util::DyLib> SetStyle(QApplication& app, const ISettings& settings, bool& isCustomStyle)
 {
+	std::unique_ptr<Util::DyLib> result;
 	QString styleSheet;
-	if (const auto qss = settings.Get(Constant::Settings::EXTERNAL_THEME_KEY); qss.isValid())
-		styleSheet.append(ReadStyleSheet(qss.toString()));
-	styleSheet.append(ReadStyleSheet(STYLE_FILE_NAME));
+
+	const auto setStyle = [&](const QString& fileName)
+	{
+		styleSheet.append(ReadStyleSheet(fileName));
+		isCustomStyle = true;
+	};
+
+	if (const auto qssVar = settings.Get(Constant::Settings::EXTERNAL_THEME_KEY); qssVar.isValid())
+	{
+		const auto qss = qssVar.toString();
+		const auto qssExt = QFileInfo(qss).suffix().toLower();
+		if (qssExt == "qss")
+		{
+			setStyle(qss);
+		}
+		else if (qssExt == "dll")
+		{
+			if (const auto qssFile = settings.Get(Constant::Settings::EXTERNAL_THEME_QSS_KEY); qssFile.isValid())
+			{
+				if ((result = std::make_unique<Util::DyLib>(qss.toStdString())))
+					setStyle(qssFile.toString());
+			}
+		}
+	}
+	styleSheet.append(ReadStyleSheet(Constant::STYLE_FILE_NAME));
 	app.setStyleSheet(styleSheet);
+
+	return result;
 }
 
-std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings)
+std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings, const bool isCustomStyle)
 {
+	if (!isCustomStyle)
 	{
-		auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
-		if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
-			style = Constant::Settings::APP_STYLE_DEFAULT;
+		{
+			auto style = settings.Get(Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+			if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
+				style = Constant::Settings::APP_STYLE_DEFAULT;
 
-		QApplication::setStyle(style);
-	}
+			QApplication::setStyle(style);
+		}
 
-	{
-		constexpr std::pair<const char*, Qt::ColorScheme> schemes[] {
-			{ "System", Qt::ColorScheme::Unknown },
-			{  "Light",   Qt::ColorScheme::Light },
-			{   "Dark",    Qt::ColorScheme::Dark },
-		};
+		{
+			constexpr std::pair<const char*, Qt::ColorScheme> schemes[] {
+				{ "System", Qt::ColorScheme::Unknown },
+				{  "Light",   Qt::ColorScheme::Light },
+				{   "Dark",    Qt::ColorScheme::Dark },
+			};
 
-		const auto colorSchemeName = settings.Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
-		const auto scheme = FindSecond(schemes, colorSchemeName.toStdString().data(), Qt::ColorScheme::Unknown, PszComparer {});
-		QGuiApplication::styleHints()->setColorScheme(scheme);
+			const auto colorSchemeName = settings.Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+			const auto scheme = FindSecond(schemes, colorSchemeName.toStdString().data(), Qt::ColorScheme::Unknown, PszComparer {});
+			QGuiApplication::styleHints()->setColorScheme(scheme);
 
-		if (scheme == Qt::ColorScheme::Unknown)
-			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
-		else
-			QGuiApplication::styleHints()->disconnect();
+			if (scheme == Qt::ColorScheme::Unknown)
+				QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+			else
+				QGuiApplication::styleHints()->disconnect();
+		}
 	}
 
 	const auto palette = QGuiApplication::palette();
@@ -123,8 +150,9 @@ int main(int argc, char* argv[])
 			PLOGD << "DI-container created";
 
 			const auto settings = container->resolve<ISettings>();
-			SetStyle(app, *settings);
-			const auto themeLib = SetTheme(*settings);
+			bool isCustomStyle = false;
+			const auto styleLib = SetStyle(app, *settings, isCustomStyle);
+			const auto themeLib = SetTheme(*settings, isCustomStyle);
 
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();

@@ -197,9 +197,9 @@ void UiFactory::ShowError(const QString& text) const
 	m_impl->container.resolve<Util::IUiFactory>()->ShowError(text);
 }
 
-QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QLineEdit::EchoMode mode) const
+QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, mode);
+	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
 }
 
 std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const

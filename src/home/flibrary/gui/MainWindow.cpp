@@ -4,6 +4,7 @@
 
 #include <QActionEvent>
 #include <QActionGroup>
+#include <QDirIterator>
 #include <QGuiApplication>
 #include <QPainter>
 #include <QStyleFactory>
@@ -37,6 +38,7 @@
 #include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "GuiUtil/util.h"
 #include "logging/LogAppender.h"
+#include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ISettings.h"
 #include "util/ObjectsConnector.h"
@@ -64,9 +66,11 @@ constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow"
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
-constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select style sheet file");
-constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt style sheet files (*.%1);;All files (*.*)");
+constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet file");
+constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
+constexpr auto EXTERNAL_STYLESHEET = QT_TRANSLATE_NOOP("MainWindow", "Select external stylesheet");
+constexpr auto EXTERNAL_STYLESHEET_FILE_NAME = QT_TRANSLATE_NOOP("MainWindow", "Stylesheet file name (*.qss)");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -500,28 +504,22 @@ private:
 		        &m_self,
 		        [this]
 		        {
+					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_QSS_KEY);
 					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY);
 					RebootDialog();
 				});
 
-		connect(m_ui.actionExternalThemeLoad,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					const auto qss = m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS));
-					if (qss.isEmpty())
-						return;
-
-					m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, qss);
-					RebootDialog();
-				});
+		connect(m_ui.actionExternalThemeLoad, &QAction::triggered, &m_self, [this] { SetExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 
 		CreateStylesMenu();
+		CreateExternalStylesMenu();
 	}
 
 	void CreateStylesMenu()
 	{
+		if (const auto currentExternalStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY); currentExternalStyle.isValid())
+			return;
+
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
 		{
 			auto* group = new QActionGroup(&m_self);
@@ -572,9 +570,9 @@ private:
 			action->setCheckable(true);
 		}
 		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
-		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
 
-		CreateExternalStylesMenu();
+		m_ui.menuColorScheme->setEnabled(true);
+		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
 	}
 
 	void RebootDialog() const
@@ -589,15 +587,10 @@ private:
 		group->setExclusive(true);
 
 		const auto currentStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY);
-		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss", QDir::Files))
+		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
 		{
 			const auto fileName = entry.filePath();
-			auto* action = m_ui.menuExternal->addAction(entry.completeBaseName(),
-			                                            [this, fileName]
-			                                            {
-															m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
-															RebootDialog();
-														});
+			auto* action = m_ui.menuExternal->addAction(entry.completeBaseName(), [this, fileName] { SetExternalStyle(fileName); });
 			group->addAction(action);
 			action->setCheckable(true);
 			if (fileName == currentStyle)
@@ -607,6 +600,34 @@ private:
 		m_ui.menuExternal->addSeparator();
 		m_ui.menuExternal->addAction(m_ui.actionExternalThemeLoad);
 		m_ui.menuExternal->addAction(m_ui.actionResetExternalTheme);
+
+		group->addAction(m_ui.actionExternalThemeLoad);
+		if (currentStyle.isValid() && !group->checkedAction())
+			m_ui.actionExternalThemeLoad->setChecked(true);
+	}
+
+	void SetExternalStyle(const QString& fileName)
+	{
+		if (fileName.isEmpty())
+			return;
+
+		if (QFileInfo(fileName).suffix().toLower() == "dll")
+		{
+			Util::DyLib lib(fileName.toStdString());
+			QStringList list;
+			QDirIterator it(":/", QStringList() << "*.qss", QDir::Files, QDirIterator::Subdirectories);
+			while (it.hasNext())
+				list << it.next();
+			erase_if(list, [](const QString& item) { return item == Constant::STYLE_FILE_NAME; });
+
+			if (const auto qss = m_uiFactory->GetText(Tr(EXTERNAL_STYLESHEET), Tr(EXTERNAL_STYLESHEET_FILE_NAME), list.isEmpty() ? QString {} : list.front(), list); !qss.isEmpty())
+				m_settings->Set(Constant::Settings::EXTERNAL_THEME_QSS_KEY, qss);
+			else
+				return;
+		}
+
+		m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
+		RebootDialog();
 	}
 
 	void SearchBookByTitle()
