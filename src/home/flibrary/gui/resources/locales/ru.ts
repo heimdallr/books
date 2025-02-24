@@ -457,13 +457,23 @@
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
-        <source>Select style sheet file</source>
-        <translation>Укажите файл со стилями</translation>
+        <source>Select stylesheet file</source>
+        <translation>Выберите файл со стилями</translation>
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
-        <source>Qt style sheet files (*.%1);;All files (*.*)</source>
-        <translation>Файлы Qt-стилей (*.%1);;Все файлы (*.*)</translation>
+        <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
+        <translation>Файлы стилей Qt (*.%1 *.dll);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Select external stylesheet</source>
+        <translation>Выбор внешнего фала стилей</translation>
+    </message>
+    <message>
+        <location filename="../../MainWindow.cpp"/>
+        <source>Stylesheet file name (*.qss)</source>
+        <translation>Файл стилей (*.qss)</translation>
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
@@ -542,10 +552,6 @@
     <message>
         <source>&amp;Scripts...</source>
         <translation>&amp;Скрипты...</translation>
-    </message>
-    <message>
-        <source>&amp;Book</source>
-        <translation>&amp;Книга</translation>
     </message>
     <message>
         <source>Check for &amp;Updates</source>
