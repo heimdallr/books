@@ -3,12 +3,6 @@ QLabel#lblError { color: #FF0000; }
 QLineEdit[errorTag="true"] { border: 1px solid #FF0000; }
 QLineEdit[errorTag="false"] { border: 1px solid #000000; }
 
-QHeaderView::section {
-  background-color: palette(base);
-  text-align: center;
-  border: 1px solid palette(dark);
-}
-
 QSplitter::handle:horizontal { width: 0px; }
 
 QSplitter::handle:vertical { height: 0px; }
