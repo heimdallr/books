@@ -64,7 +64,7 @@ QT_TRANSLATE_NOOP("Annotation", "Inpx")
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
 
-constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::ARCHIVE, Loc::GROUPS, nullptr };
+constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::ARCHIVE, Loc::GROUPS, Loc::AllBooks, nullptr };
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
 
 TR_DEF

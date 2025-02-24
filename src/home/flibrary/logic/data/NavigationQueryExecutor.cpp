@@ -33,6 +33,7 @@ constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.Pa
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
+constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID  = :id";
@@ -64,6 +65,11 @@ IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const size_t* index)
 	item->SetData(CreateAuthorTitle(query, index));
 
 	return item;
+}
+
+int BindStub(DB::IQuery& /*query*/, const QString& /*id*/)
+{
+	return 0;
 }
 
 int BindInt(DB::IQuery& query, const QString& id)
@@ -208,6 +214,9 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 	{   NavigationMode::Search,
      { &RequestNavigationSimpleList,
      { SEARCH_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SEARCHES, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }  },
+	{ NavigationMode::AllBooks,
+     { &RequestNavigationSimpleList,
+     { ALL_BOOK_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, nullptr, &BindStub, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }     },
 };
 
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(QUERIES));
@@ -221,7 +230,7 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
     {         "Books", NavigationMode::Archives },
     { "Searches_User",   NavigationMode::Search },
 };
-static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(TABLES));
+static_assert(static_cast<size_t>(NavigationMode::Last) - 1 == std::size(TABLES));
 
 } // namespace
 
