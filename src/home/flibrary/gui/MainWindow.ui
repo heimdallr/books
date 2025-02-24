@@ -389,9 +389,6 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionCheckForUpdates"/>
-    <addaction name="actionEnableCheckForUpdateOnStart"/>
-    <addaction name="actionDisableCheckForUpdateOnStart"/>
-    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuBook">
@@ -786,22 +783,6 @@
   <action name="actionGenerateIndexInpx">
    <property name="text">
     <string>Generate &amp;index (*.inpx)</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionEnableCheckForUpdateOnStart">
-   <property name="text">
-    <string>Enable check for update on &amp;start</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionDisableCheckForUpdateOnStart">
-   <property name="text">
-    <string>Disable check for update on &amp;start</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

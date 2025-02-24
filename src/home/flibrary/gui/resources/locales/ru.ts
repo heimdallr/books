@@ -548,7 +548,7 @@
     </message>
     <message>
         <source>Check for &amp;Updates</source>
-        <translation>&amp;Проверка обновлений</translation>
+        <translation>Проверка &amp;обновлений</translation>
     </message>
     <message>
         <source>&amp;Permanent language filter</source>
@@ -605,14 +605,6 @@
     <message>
         <source>Generate &amp;index (*.inpx)</source>
         <translation>Генерировать &amp;индекс (*.inpx)</translation>
-    </message>
-    <message>
-        <source>Enable check for update on &amp;start</source>
-        <translation>Включить проверку обновлений на &amp;старте</translation>
-    </message>
-    <message>
-        <source>Disable check for update on &amp;start</source>
-        <translation>Выключить проверку обновлений на &amp;старте</translation>
     </message>
 </context>
 <context>
