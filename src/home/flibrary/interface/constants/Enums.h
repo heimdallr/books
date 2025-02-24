@@ -13,6 +13,7 @@ enum class NavigationMode
 	Archives,
 	Groups,
 	Search,
+	AllBooks,
 	Last
 };
 

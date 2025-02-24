@@ -254,6 +254,8 @@ private: // ITreeViewController::IObserver
 	{
 		m_ui.value->setText({});
 		m_ui.cbMode->setCurrentIndex(index);
+
+		QTimer::singleShot(0, [this, visible = m_controller->GetItemType() == ItemType::Books || index != static_cast<int>(NavigationMode::AllBooks)] { m_self.parentWidget()->setVisible(visible); });
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override

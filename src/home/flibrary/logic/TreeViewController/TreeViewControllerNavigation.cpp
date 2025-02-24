@@ -177,6 +177,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
      &IContextMenuHandler::OnRemoveSearchTriggered }																																				  },
+	{ Loc::AllBooks,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));

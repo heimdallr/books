@@ -1889,6 +1889,11 @@
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
+    <message>
+        <location filename="../../constants/Localization.h"/>
+        <source>All books</source>
+        <translation>Все книги</translation>
+    </message>
 </context>
 <context>
     <name>ScriptController</name>
