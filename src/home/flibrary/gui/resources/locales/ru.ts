@@ -555,7 +555,7 @@
     </message>
     <message>
         <source>Check for &amp;Updates</source>
-        <translation>Проверка &amp;обновлений</translation>
+        <translation>&amp;Проверка обновлений</translation>
     </message>
     <message>
         <source>&amp;Permanent language filter</source>
@@ -645,6 +645,14 @@
     <message>
         <source>Load...</source>
         <translation>Открыть...</translation>
+    </message>
+    <message>
+        <source>Enable check for update on &amp;start</source>
+        <translation>Включить проверку обновлений на &amp;старте</translation>
+    </message>
+    <message>
+        <source>Disable check for update on &amp;start</source>
+        <translation>Выключить проверку обновлений на &amp;старте</translation>
     </message>
 </context>
 <context>
