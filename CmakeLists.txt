@@ -48,7 +48,6 @@ add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
 
 include("src/ext/sqlite.cmake")
 include("src/ext/MyHomeLib.cmake")
-include("src/ext/qss.cmake")
 
 include("src/home/home.cmake")
 
