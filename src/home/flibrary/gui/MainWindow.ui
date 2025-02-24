@@ -416,14 +416,8 @@
     <addaction name="actionCheckForUpdates"/>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuBook">
-    <property name="title">
-     <string>&amp;Book</string>
-    </property>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCollection"/>
-   <addaction name="menuBook"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>

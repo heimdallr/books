@@ -480,15 +480,6 @@ private:
 					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 				});
 
-		connect(m_ui.menuBook,
-		        &QMenu::aboutToShow,
-		        &m_self,
-		        [&]
-		        {
-					m_ui.menuBook->clear();
-					m_booksWidget->FillMenu(*m_ui.menuBook);
-				});
-
 		connect(m_ui.actionPermanentLanguageFilter, &QAction::triggered, &m_self, [&](const bool checked) { m_settings->Set(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, checked); });
 		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [&] { GenerateCollectionInpx(); });
 		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateCollectionCleaner()->exec(); });
