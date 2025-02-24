@@ -1,5 +1,5 @@
-AddTarget(theme_dark	shared_lib
-	PROJECT_GROUP App/Theme
+AddTarget(icons_light	shared_lib
+	PROJECT_GROUP App/Icons
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES

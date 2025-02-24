@@ -571,7 +571,7 @@ private:
 		m_ui.menuTheme->addSeparator();
 
 		std::vector<QAction*> externalStyles;
-		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
+		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/themes").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
 		{
 			const auto fileName = entry.filePath();
 			auto* action = externalStyles.emplace_back(m_ui.menuTheme->addAction(entry.completeBaseName()));

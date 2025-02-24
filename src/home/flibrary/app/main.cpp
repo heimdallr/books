@@ -115,7 +115,7 @@ std::unique_ptr<Util::DyLib> SetTheme(const ISettings& settings, const bool isCu
 	}
 
 	const auto palette = QGuiApplication::palette();
-	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "theme_dark" : "theme_light");
+	return std::make_unique<Util::DyLib>(palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? "icons_dark" : "icons_light");
 }
 
 } // namespace
