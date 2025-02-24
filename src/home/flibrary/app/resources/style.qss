@@ -1,7 +1,3 @@
-QScrollArea QFrame {
-	background-color: palette(base);
-}
-
 QLabel#lblError { color: #FF0000; }
 
 QLineEdit[errorTag="true"] { border: 1px solid #FF0000; }

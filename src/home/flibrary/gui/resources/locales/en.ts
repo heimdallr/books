@@ -647,15 +647,7 @@
         <translation></translation>
     </message>
     <message>
-        <source>External</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Load...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Reset</source>
         <translation></translation>
     </message>
 </context>

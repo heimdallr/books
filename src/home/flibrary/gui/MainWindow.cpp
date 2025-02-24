@@ -499,51 +499,44 @@ private:
 
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
-		connect(m_ui.actionResetExternalTheme,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_QSS_KEY);
-					m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY);
-					RebootDialog();
-				});
 
 		connect(m_ui.actionExternalThemeLoad, &QAction::triggered, &m_self, [this] { SetExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 
 		CreateStylesMenu();
-		CreateExternalStylesMenu();
 	}
 
 	void CreateStylesMenu()
 	{
-		if (const auto currentExternalStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY); currentExternalStyle.isValid())
-			return;
-
-		const auto addActionGroup = [this](const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue)
+		const auto setAction = [](QAction* action, const bool checked)
 		{
-			auto* group = new QActionGroup(&m_self);
-			group->setExclusive(true);
+			action->setChecked(checked);
+			action->setEnabled(!checked);
+		};
 
-			auto set = [this, actions, key, defaultValue]
+		const auto addActionGroup = [this, setAction]<typename T>(const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue, T&& f, QActionGroup* group = nullptr) -> QActionGroup*
+		{
+			if (!group)
 			{
-				const auto setAction = [](QAction* action, const bool checked)
-				{
-					action->setChecked(checked);
-					action->setEnabled(!checked);
-				};
-				if (const auto it =
-				        std::ranges::find_if(actions, [defaultValue](const QAction* action) { return action->property(ACTION_PROPERTY_NAME).toString().compare(defaultValue, Qt::CaseInsensitive) == 0; });
-				    it != actions.end())
-					setAction(*it, true);
+				group = new QActionGroup(&m_self);
+				group->setExclusive(true);
+			}
 
-				const auto currentTheme = m_settings->Get(key, defaultValue);
-				for (auto* action : actions)
-					setAction(action, currentTheme.compare(action->property(ACTION_PROPERTY_NAME).toString(), Qt::CaseInsensitive) == 0);
+			auto set = [this, setAction, group, key, defaultValue]
+			{
+				auto groupActions = group->actions();
+
+				auto currentTheme = m_settings->Get(key, defaultValue);
+				if (const auto it =
+				        std::ranges::find_if(groupActions, [&](const QAction* action) { return action->property(ACTION_PROPERTY_NAME).toString().compare(currentTheme, Qt::CaseInsensitive) == 0; });
+				    it != groupActions.end())
+					setAction(*it, true);
 			};
 
-			const auto change = [this, set, key](const QString& theme)
+			const auto change = [this, set, key, f = std::forward<T>(f)](const QString& theme)
 			{
+				if (!f(theme))
+					return;
+
 				m_settings->Set(key, theme);
 				set();
 				RebootDialog();
@@ -556,54 +549,59 @@ private:
 			}
 
 			set();
+
+			return group;
 		};
 
-		std::vector<QAction*> styles;
+		std::vector<QAction*> pluginStyles;
 		for (const auto& key : QStyleFactory::keys())
 		{
 			const auto* style = QStyleFactory::create(key);
 			if (!style)
 				continue;
 
-			auto* action = styles.emplace_back(m_ui.menuTheme->addAction(style->name()));
+			auto* action = pluginStyles.emplace_back(m_ui.menuTheme->addAction(style->name()));
 			action->setProperty(ACTION_PROPERTY_NAME, key);
 			action->setCheckable(true);
 		}
-		addActionGroup(styles, Constant::Settings::THEME_KEY, Constant::Settings::APP_STYLE_DEFAULT);
+		auto* group = addActionGroup(pluginStyles,
+		                             Constant::Settings::THEME_KEY,
+		                             Constant::Settings::APP_STYLE_DEFAULT,
+		                             [this](const QString&) { return m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY), true; });
+		m_ui.menuTheme->addSeparator();
+
+		std::vector<QAction*> externalStyles;
+		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
+		{
+			const auto fileName = entry.filePath();
+			auto* action = externalStyles.emplace_back(m_ui.menuTheme->addAction(entry.completeBaseName()));
+			action->setProperty(ACTION_PROPERTY_NAME, fileName);
+			action->setCheckable(true);
+		}
+		addActionGroup(externalStyles, Constant::Settings::EXTERNAL_THEME_KEY, {}, [this](const QString& fileName) { return SetExternalStyle(fileName), false; }, group);
+		m_ui.menuTheme->addSeparator();
+		m_ui.menuTheme->addAction(m_ui.actionExternalThemeLoad);
+		group->addAction(m_ui.actionExternalThemeLoad);
+		if (const auto currentExternalTheme = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY); currentExternalTheme.isValid())
+		{
+			if (auto* action = group->checkedAction(); action && action->property(ACTION_PROPERTY_NAME) != currentExternalTheme)
+			{
+				setAction(action, false);
+				m_ui.actionExternalThemeLoad->setChecked(true);
+			}
+		}
 
 		m_ui.menuColorScheme->setEnabled(true);
-		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark },
+		               Constant::Settings::COLOR_SCHEME_KEY,
+		               Constant::Settings::APP_COLOR_SCHEME_DEFAULT,
+		               [](const QString&) { return true; });
 	}
 
 	void RebootDialog() const
 	{
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 			Reboot();
-	}
-
-	void CreateExternalStylesMenu()
-	{
-		auto* group = new QActionGroup(&m_self);
-		group->setExclusive(true);
-
-		const auto currentStyle = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY);
-		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/qss").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
-		{
-			const auto fileName = entry.filePath();
-			auto* action = m_ui.menuExternal->addAction(entry.completeBaseName(), [this, fileName] { SetExternalStyle(fileName); });
-			group->addAction(action);
-			action->setCheckable(true);
-			if (fileName == currentStyle)
-				action->setChecked(true);
-		}
-
-		m_ui.menuExternal->addSeparator();
-		m_ui.menuExternal->addAction(m_ui.actionExternalThemeLoad);
-		m_ui.menuExternal->addAction(m_ui.actionResetExternalTheme);
-
-		group->addAction(m_ui.actionExternalThemeLoad);
-		if (currentStyle.isValid() && !group->checkedAction())
-			m_ui.actionExternalThemeLoad->setChecked(true);
 	}
 
 	void SetExternalStyle(const QString& fileName)

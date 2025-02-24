@@ -393,14 +393,8 @@
       <addaction name="actionColorSchemeLight"/>
       <addaction name="actionColorSchemeDark"/>
      </widget>
-     <widget class="QMenu" name="menuExternal">
-      <property name="title">
-       <string>External</string>
-      </property>
-     </widget>
      <addaction name="menuColorScheme"/>
      <addaction name="separator"/>
-     <addaction name="menuExternal"/>
     </widget>
     <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
@@ -866,14 +860,6 @@
    </property>
    <property name="text">
     <string>Load...</string>
-   </property>
-  </action>
-  <action name="actionResetExternalTheme">
-   <property name="text">
-    <string>Reset</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>

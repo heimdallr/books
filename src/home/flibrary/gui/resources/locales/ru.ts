@@ -643,16 +643,8 @@
         <translation>Скрыть строку поиска &amp;книги по названию</translation>
     </message>
     <message>
-        <source>External</source>
-        <translation>Внешняя</translation>
-    </message>
-    <message>
         <source>Load...</source>
         <translation>Открыть...</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>Отменить</translation>
     </message>
 </context>
 <context>
