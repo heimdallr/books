@@ -650,6 +650,14 @@
         <source>Load...</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Enable check for update on &amp;start</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Disable check for update on &amp;start</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Measure</name>
