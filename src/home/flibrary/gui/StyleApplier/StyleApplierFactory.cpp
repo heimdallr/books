@@ -60,7 +60,7 @@ std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateStyleApplier(const ISt
 
 std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateThemeApplier() const
 {
-	const auto currentType = m_impl->settings->Get(Constant::Settings::THEME_TYPE_KEY, Constant::Settings::THEME_KEY_DEFAULT);
+	const auto currentType = m_impl->settings->Get(IStyleApplier::THEME_TYPE_KEY, IStyleApplier::THEME_KEY_DEFAULT);
 	const auto type = IStyleApplier::TypeFromString(currentType.toStdString().data());
 	return CreateStyleApplier(type);
 }

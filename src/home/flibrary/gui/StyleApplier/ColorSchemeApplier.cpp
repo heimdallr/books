@@ -7,7 +7,6 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/constants/SettingsConstant.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -24,12 +23,12 @@ IStyleApplier::Type ColorSchemeApplier::GetType() const noexcept
 
 void ColorSchemeApplier::Apply(const QString& name, const QString& /*data*/)
 {
-	m_settings->Set(Constant::Settings::COLOR_SCHEME_KEY, name);
+	m_settings->Set(COLOR_SCHEME_KEY, name);
 }
 
 std::pair<QString, QString> ColorSchemeApplier::GetChecked() const
 {
-	return std::make_pair(m_settings->Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT), QString {});
+	return std::make_pair(m_settings->Get(COLOR_SCHEME_KEY, APP_COLOR_SCHEME_DEFAULT), QString {});
 }
 
 std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
@@ -44,10 +43,10 @@ std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 		{   "Dark",   { Qt::ColorScheme::Dark, iconsDark } },
 	};
 
-	const auto colorSchemeName = m_settings->Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT);
+	const auto colorSchemeName = m_settings->Get(COLOR_SCHEME_KEY, APP_COLOR_SCHEME_DEFAULT);
 	auto [scheme, iconSet] = FindSecond(schemes, colorSchemeName.toStdString().data(), unknown, PszComparer {});
 
-	if (m_settings->Get(Constant::Settings::THEME_TYPE_KEY, Constant::Settings::THEME_KEY_DEFAULT) == TypeToString(Type::PluginStyle))
+	if (m_settings->Get(THEME_TYPE_KEY, THEME_KEY_DEFAULT) == TypeToString(Type::PluginStyle))
 	{
 		QGuiApplication::styleHints()->setColorScheme(scheme);
 

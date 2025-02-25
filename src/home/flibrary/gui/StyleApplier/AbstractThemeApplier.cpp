@@ -2,8 +2,6 @@
 
 #include <QFile>
 
-#include "interface/constants/SettingsConstant.h"
-
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -15,17 +13,16 @@ AbstractThemeApplier::AbstractThemeApplier(std::shared_ptr<ISettings> settings)
 
 void AbstractThemeApplier::Apply(const QString& name, const QString& file)
 {
-	m_settings->Set(Constant::Settings::THEME_TYPE_KEY, TypeToString(GetType()));
-	m_settings->Set(Constant::Settings::THEME_NAME_KEY, name);
-	m_settings->Set(Constant::Settings::THEME_FILE_KEY, file);
+	m_settings->Set(THEME_TYPE_KEY, TypeToString(GetType()));
+	m_settings->Set(THEME_NAME_KEY, name);
+	m_settings->Set(THEME_FILE_KEY, file);
 }
 
 std::pair<QString, QString> AbstractThemeApplier::GetChecked() const
 {
-	const auto currentType = m_settings->Get(Constant::Settings::THEME_TYPE_KEY, Constant::Settings::THEME_KEY_DEFAULT);
+	const auto currentType = m_settings->Get(THEME_TYPE_KEY, THEME_KEY_DEFAULT);
 	const auto thisType = TypeToString(GetType());
-	return currentType == thisType ? std::make_pair(m_settings->Get(Constant::Settings::THEME_NAME_KEY, Constant::Settings::THEME_NAME_DEFAULT), m_settings->Get(Constant::Settings::THEME_FILE_KEY).toString())
-	                               : std::pair<QString, QString> {};
+	return currentType == thisType ? std::make_pair(m_settings->Get(THEME_NAME_KEY, THEME_NAME_DEFAULT), m_settings->Get(THEME_FILE_KEY).toString()) : std::pair<QString, QString> {};
 }
 
 QString AbstractThemeApplier::ReadStyleSheet(const QString& fileName)

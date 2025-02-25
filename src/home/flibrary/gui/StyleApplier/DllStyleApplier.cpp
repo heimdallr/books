@@ -2,9 +2,6 @@
 
 #include <QApplication>
 
-#include "interface/constants/ProductConstant.h"
-#include "interface/constants/SettingsConstant.h"
-
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -20,14 +17,14 @@ IStyleApplier::Type DllStyleApplier::GetType() const noexcept
 
 std::unique_ptr<Util::DyLib> DllStyleApplier::Set(QApplication& app) const
 {
-	const auto fileName = m_settings->Get(Constant::Settings::THEME_FILE_KEY).toString();
+	const auto fileName = m_settings->Get(THEME_FILE_KEY).toString();
 	auto result = std::make_unique<Util::DyLib>(fileName.toStdString());
 	if (!result->IsOpen())
 		return result;
 
-	const auto qssName = m_settings->Get(Constant::Settings::THEME_NAME_KEY).toString();
+	const auto qssName = m_settings->Get(THEME_NAME_KEY).toString();
 	auto stylesheet = ReadStyleSheet(qssName);
-	stylesheet.append(ReadStyleSheet(Constant::STYLE_FILE_NAME));
+	stylesheet.append(ReadStyleSheet(STYLE_FILE_NAME));
 	app.setStyleSheet(stylesheet);
 
 	return result;

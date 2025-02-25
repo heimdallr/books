@@ -15,6 +15,16 @@ namespace HomeCompa::Flibrary
 class IStyleApplier // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	static constexpr auto THEME_NAME_KEY = "ui/Theme/name";
+	static constexpr auto THEME_TYPE_KEY = "ui/Theme/type";
+	static constexpr auto THEME_FILE_KEY = "ui/Theme/file";
+	static constexpr auto THEME_NAME_DEFAULT = "windowsvista";
+	static constexpr auto THEME_KEY_DEFAULT = "PluginStyle";
+	static constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
+	static constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
+	static constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
+
+public:
 #define STYLE_APPLIER_TYPE_ITEMS_X_MACRO \
 	STYLE_APPLIER_TYPE_ITEM(ColorScheme) \
 	STYLE_APPLIER_TYPE_ITEM(PluginStyle) \

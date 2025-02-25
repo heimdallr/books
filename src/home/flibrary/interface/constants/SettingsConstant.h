@@ -13,16 +13,6 @@ constexpr auto KEEP_RECENT_LANG_FILTER_KEY = "ui/keepLanguage";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
 
-constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
-constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
-
-constexpr auto THEME_FILES_KEY = "ui/Theme/files";
-constexpr auto THEME_NAME_KEY = "ui/Theme/name";
-constexpr auto THEME_TYPE_KEY = "ui/Theme/type";
-constexpr auto THEME_FILE_KEY = "ui/Theme/file";
-constexpr auto THEME_NAME_DEFAULT = "windowsvista";
-constexpr auto THEME_KEY_DEFAULT = "PluginStyle";
-
 constexpr auto OPDS_PORT_KEY = "opds/port";
 constexpr auto OPDS_PORT_DEFAULT = 12791;
 
