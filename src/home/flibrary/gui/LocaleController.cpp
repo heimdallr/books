@@ -19,7 +19,7 @@ namespace HomeCompa::Flibrary
 namespace
 {
 constexpr auto LOCALE = "ui/locale";
-constexpr auto CONTEXT = "LocaleController";
+constexpr auto SET_KEYBOARD_LAYOUT_ON_START = "ui/setKeyboardLayoutOnStart";
 }
 
 class LocaleController::Impl
@@ -38,7 +38,9 @@ public:
 	{
 		const auto currentLocale = Loc::GetLocale(*m_settings);
 		Util::QStringWrapper::SetLocale(currentLocale);
-		SetKeyboardLayout(currentLocale.toStdString());
+		if (m_settings->Get(SET_KEYBOARD_LAYOUT_ON_START, true))
+			SetKeyboardLayout(currentLocale.toStdString());
+
 		for (const auto* locale : Loc::LOCALES)
 		{
 			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
