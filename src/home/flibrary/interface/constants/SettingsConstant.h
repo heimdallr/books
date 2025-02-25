@@ -10,14 +10,18 @@ constexpr auto FONT_SIZE_FAMILY = "ui/Font/family";
 constexpr auto RECENT_NAVIGATION_ID_KEY = "Collections/%1/Navigation/%2/LastId";
 constexpr auto EXPORT_TEMPLATE_KEY = "ui/Export/OutputTemplate";
 constexpr auto KEEP_RECENT_LANG_FILTER_KEY = "ui/keepLanguage";
-constexpr auto THEME_KEY = "ui/theme";
-constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
-constexpr auto EXTERNAL_THEME_KEY = "ui/externalTheme";
-constexpr auto EXTERNAL_THEME_QSS_KEY = "ui/externalThemeQss";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
-constexpr auto APP_STYLE_DEFAULT = "windowsvista";
+
+constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
 constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
+
+constexpr auto THEME_FILES_KEY = "ui/Theme/files";
+constexpr auto THEME_NAME_KEY = "ui/Theme/name";
+constexpr auto THEME_TYPE_KEY = "ui/Theme/type";
+constexpr auto THEME_FILE_KEY = "ui/Theme/file";
+constexpr auto THEME_NAME_DEFAULT = "windowsvista";
+constexpr auto THEME_KEY_DEFAULT = "PluginStyle";
 
 constexpr auto OPDS_PORT_KEY = "opds/port";
 constexpr auto OPDS_PORT_DEFAULT = 12791;

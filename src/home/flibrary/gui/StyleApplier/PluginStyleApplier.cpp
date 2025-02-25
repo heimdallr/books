@@ -1,11 +1,16 @@
 #include "PluginStyleApplier.h"
 
+#include <QApplication>
+#include <QStyleFactory>
+
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 PluginStyleApplier::PluginStyleApplier(std::shared_ptr<ISettings> settings)
-	: AbstractStyleApplier(std::move(settings))
+	: AbstractThemeApplier(std::move(settings))
 {
 }
 
@@ -14,12 +19,15 @@ IStyleApplier::Type PluginStyleApplier::GetType() const noexcept
 	return Type::PluginStyle;
 }
 
-void PluginStyleApplier::Apply(const QString& name, const QVariant& /*data*/)
+std::unique_ptr<Util::DyLib> PluginStyleApplier::Set(QApplication& app) const
 {
-	m_settings->Set(Constant::Settings::COLOR_SCHEME_KEY, name);
-}
+	auto style = m_settings->Get(Constant::Settings::THEME_NAME_KEY, Constant::Settings::THEME_NAME_DEFAULT);
+	if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
+		style = Constant::Settings::THEME_NAME_DEFAULT;
+	
+	QApplication::setStyle(style);
 
-std::pair<QString, QVariant> PluginStyleApplier::GetChecked() const
-{
-	return std::make_pair(m_settings->Get(Constant::Settings::COLOR_SCHEME_KEY, Constant::Settings::APP_COLOR_SCHEME_DEFAULT), QVariant {});
+	app.setStyleSheet(ReadStyleSheet(Constant::STYLE_FILE_NAME));
+
+	return {};
 }

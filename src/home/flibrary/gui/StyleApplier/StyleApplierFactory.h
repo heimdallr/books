@@ -5,6 +5,8 @@
 
 #include "interface/ui/IStyleApplierFactory.h"
 
+#include "util/ISettings.h"
+
 namespace Hypodermic
 {
 class Container;
@@ -18,11 +20,12 @@ class StyleApplierFactory : virtual public IStyleApplierFactory
 	NON_COPY_MOVABLE(StyleApplierFactory)
 
 public:
-	explicit StyleApplierFactory(Hypodermic::Container& container);
+	StyleApplierFactory(Hypodermic::Container& container, std::shared_ptr<ISettings> settings);
 	~StyleApplierFactory() override;
 
 private: // IStyleApplierFactory
 	std::shared_ptr<IStyleApplier> CreateStyleApplier(IStyleApplier::Type type) const override;
+	std::shared_ptr<IStyleApplier> CreateThemeApplier() const override;
 	void CheckAction(const std::vector<QAction*>& actions) const override;
 
 private:

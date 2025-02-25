@@ -3,7 +3,11 @@
 #include <utility>
 
 #include <QString>
-#include <QVariant>
+
+#include "export/flint.h"
+#include "util/DyLib.h"
+
+class QApplication;
 
 namespace HomeCompa::Flibrary
 {
@@ -11,19 +15,29 @@ namespace HomeCompa::Flibrary
 class IStyleApplier // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+#define STYLE_APPLIER_TYPE_ITEMS_X_MACRO \
+	STYLE_APPLIER_TYPE_ITEM(ColorScheme) \
+	STYLE_APPLIER_TYPE_ITEM(PluginStyle) \
+	STYLE_APPLIER_TYPE_ITEM(QssStyle)    \
+	STYLE_APPLIER_TYPE_ITEM(DllStyle)
+
 	enum class Type
 	{
-		ColorScheme,
-		PluginStyle,
-		QssStyle,
-		DllStyle,
+#define STYLE_APPLIER_TYPE_ITEM(NAME) NAME,
+		STYLE_APPLIER_TYPE_ITEMS_X_MACRO
+#undef STYLE_APPLIER_TYPE_ITEM
 	};
+
+public:
+	FLINT_EXPORT static Type TypeFromString(const char* name);
+	FLINT_EXPORT static QString TypeToString(Type type);
 
 public:
 	virtual ~IStyleApplier() = default;
 	virtual Type GetType() const noexcept = 0;
-	virtual void Apply(const QString& name, const QVariant& data) = 0;
-	virtual std::pair<QString, QVariant> GetChecked() const = 0;
+	virtual void Apply(const QString& name, const QString& file) = 0;
+	virtual std::pair<QString, QString> GetChecked() const = 0;
+	virtual std::unique_ptr<Util::DyLib> Set(QApplication& app) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

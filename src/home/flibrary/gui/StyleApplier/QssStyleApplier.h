@@ -5,10 +5,10 @@
 namespace HomeCompa::Flibrary
 {
 
-class PluginStyleApplier : public AbstractThemeApplier
+class QssStyleApplier : public AbstractThemeApplier
 {
 public:
-	explicit PluginStyleApplier(std::shared_ptr<ISettings> settings);
+	explicit QssStyleApplier(std::shared_ptr<ISettings> settings);
 
 private:
 	Type GetType() const noexcept override;

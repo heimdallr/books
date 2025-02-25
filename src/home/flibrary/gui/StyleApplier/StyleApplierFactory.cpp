@@ -4,17 +4,23 @@
 
 #include <Hypodermic/Hypodermic.h>
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "ColorSchemeApplier.h"
+#include "DllStyleApplier.h"
 #include "PluginStyleApplier.h"
+#include "QssStyleApplier.h"
 
 using namespace HomeCompa::Flibrary;
 
 struct StyleApplierFactory::Impl
 {
 	Hypodermic::Container& container;
+	std::shared_ptr<ISettings> settings;
 
-	explicit Impl(Hypodermic::Container& container)
-		: container(container)
+	Impl(Hypodermic::Container& container, std::shared_ptr<ISettings> settings)
+		: container { container }
+		, settings { std::move(settings) }
 	{
 	}
 
@@ -28,8 +34,9 @@ struct StyleApplierFactory::Impl
 	{
 		using ApplierCreator = std::shared_ptr<IStyleApplier> (Impl::*)() const;
 		static constexpr ApplierCreator creators[] {
-			&Impl::CreateApplierImpl<ColorSchemeApplier>,
-			&Impl::CreateApplierImpl<PluginStyleApplier>,
+#define STYLE_APPLIER_TYPE_ITEM(NAME) &Impl::CreateApplierImpl<NAME##Applier>,
+			STYLE_APPLIER_TYPE_ITEMS_X_MACRO
+#undef STYLE_APPLIER_TYPE_ITEM
 		};
 
 		assert(static_cast<size_t>(type) < std::size(creators));
@@ -39,8 +46,8 @@ struct StyleApplierFactory::Impl
 	}
 };
 
-StyleApplierFactory::StyleApplierFactory(Hypodermic::Container& container)
-	: m_impl(container)
+StyleApplierFactory::StyleApplierFactory(Hypodermic::Container& container, std::shared_ptr<ISettings> settings)
+	: m_impl(container, std::move(settings))
 {
 }
 
@@ -49,6 +56,13 @@ StyleApplierFactory::~StyleApplierFactory() = default;
 std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateStyleApplier(const IStyleApplier::Type type) const
 {
 	return m_impl->CreateApplier(type);
+}
+
+std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateThemeApplier() const
+{
+	const auto currentType = m_impl->settings->Get(Constant::Settings::THEME_TYPE_KEY, Constant::Settings::THEME_KEY_DEFAULT);
+	const auto type = IStyleApplier::TypeFromString(currentType.toStdString().data());
+	return CreateStyleApplier(type);
 }
 
 void StyleApplierFactory::CheckAction(const std::vector<QAction*>& actions) const
@@ -62,7 +76,7 @@ void StyleApplierFactory::CheckAction(const std::vector<QAction*>& actions) cons
 		std::ranges::for_each(actionsToCheck, [](auto* action) { action->setEnabled(true); });
 		auto [name, data] = CreateStyleApplier(type)->GetChecked();
 		const auto it =
-			std::ranges::find_if(actionsToCheck, [&](const QAction* action) { return action->property(ACTION_PROPERTY_NAME).toString() == name && action->property(ACTION_PROPERTY_DATA) == data; });
+			std::ranges::find_if(actionsToCheck, [&](const QAction* action) { return action->property(ACTION_PROPERTY_NAME).toString() == name && action->property(ACTION_PROPERTY_DATA).toString() == data; });
 		if (it == actionsToCheck.end())
 			continue;
 

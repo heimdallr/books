@@ -16,8 +16,6 @@ protected:
 
 protected:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-
-protected:
 };
 
 }
