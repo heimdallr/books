@@ -383,9 +383,6 @@
       <string>&amp;Theme</string>
      </property>
      <widget class="QMenu" name="menuColorScheme">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
       <property name="title">
        <string>&amp;Color scheme</string>
       </property>
@@ -731,6 +728,9 @@
    <property name="value" stdset="0">
     <string notr="true">System</string>
    </property>
+   <property name="type" stdset="0">
+    <number>0</number>
+   </property>
   </action>
   <action name="actionColorSchemeLight">
    <property name="checkable">
@@ -742,6 +742,9 @@
    <property name="value" stdset="0">
     <string notr="true">Light</string>
    </property>
+   <property name="type" stdset="0">
+    <number>0</number>
+   </property>
   </action>
   <action name="actionColorSchemeDark">
    <property name="checkable">
@@ -752,6 +755,9 @@
    </property>
    <property name="value" stdset="0">
     <string notr="true">Dark</string>
+   </property>
+   <property name="type" stdset="0">
+    <number>0</number>
    </property>
   </action>
   <action name="actionOpds">
@@ -852,17 +858,9 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionLoadQss">
+  <action name="actionAddThemes">
    <property name="text">
-    <string>Load...</string>
-   </property>
-  </action>
-  <action name="actionExternalThemeLoad">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Load...</string>
+    <string>Add themes...</string>
    </property>
   </action>
   <action name="actionEnableCheckForUpdateOnStart">
