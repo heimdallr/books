@@ -21,7 +21,7 @@ std::unique_ptr<Util::DyLib> PluginStyleApplier::Set(QApplication& app) const
 	auto style = m_settings->Get(THEME_NAME_KEY, THEME_NAME_DEFAULT);
 	if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))
 		style = THEME_NAME_DEFAULT;
-	
+
 	QApplication::setStyle(style);
 
 	app.setStyleSheet(ReadStyleSheet(STYLE_FILE_NAME));

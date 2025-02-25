@@ -206,7 +206,7 @@ constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 };
 
 #define STYLE_APPLIER_TYPE_ITEM(NAME) static_assert(IStyleApplier::Type::NAME == TYPES[static_cast<size_t>(IStyleApplier::Type::NAME)].first);
-		STYLE_APPLIER_TYPE_ITEMS_X_MACRO
+STYLE_APPLIER_TYPE_ITEMS_X_MACRO
 #undef STYLE_APPLIER_TYPE_ITEM
 }
 

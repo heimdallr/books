@@ -4,8 +4,9 @@
 
 #include <QString>
 
-#include "export/flint.h"
 #include "util/DyLib.h"
+
+#include "export/flint.h"
 
 class QApplication;
 

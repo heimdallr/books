@@ -532,6 +532,19 @@ private:
 		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 	}
 
+	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
+	{
+		for (auto* groupAction : group.actions())
+			groupAction->setEnabled(true);
+
+		action.setEnabled(false);
+
+		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplierFactory::ACTION_PROPERTY_TYPE).toInt()));
+		applier->Apply(action.property(IStyleApplierFactory::ACTION_PROPERTY_NAME).toString(), action.property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString());
+		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+			Reboot();
+	}
+
 	void AddStyleActionsToGroup(const std::vector<QAction*>& actions, QActionGroup* group)
 	{
 		for (auto* action : actions)
@@ -563,25 +576,6 @@ private:
 
 		m_ui.menuTheme->addSeparator();
 		m_ui.menuTheme->addAction(m_ui.actionAddThemes);
-	}
-
-	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
-	{
-		for (auto* groupAction : group.actions())
-			groupAction->setEnabled(true);
-
-		action.setEnabled(false);
-
-		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplierFactory::ACTION_PROPERTY_TYPE).toInt()));
-		applier->Apply(action.property(IStyleApplierFactory::ACTION_PROPERTY_NAME).toString(), action.property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString());
-		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-			Reboot();
-	}
-
-	void RebootDialog() const
-	{
-		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-			Reboot();
 	}
 
 	std::vector<QAction*> AddExternalStyle(const QString& fileName) const
