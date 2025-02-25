@@ -623,6 +623,12 @@ private:
 		}
 
 		Util::DyLib lib(fileInfo.filePath().toStdString());
+		if (!lib.IsOpen())
+		{
+			PLOGE << lib.GetErrorDescription();
+			return {};
+		}
+
 		auto libList = GetQssList();
 		erase_if(libList, [&](const auto& item) { return currentList.contains(item); });
 		return addLibList(libList);
