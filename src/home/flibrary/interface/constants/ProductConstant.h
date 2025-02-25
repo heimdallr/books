@@ -25,6 +25,4 @@ constexpr auto OPDS_SERVER_COMMAND_STOP = "stop";
 
 constexpr auto BOOK = "Book:";
 
-constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
-
 }

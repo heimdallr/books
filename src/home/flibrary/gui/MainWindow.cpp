@@ -31,6 +31,7 @@
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/ILineOption.h"
+#include "interface/ui/IStyleApplierFactory.h"
 #include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
@@ -69,8 +70,6 @@ constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWin
 constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet file");
 constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
-constexpr auto EXTERNAL_STYLESHEET = QT_TRANSLATE_NOOP("MainWindow", "Select external stylesheet");
-constexpr auto EXTERNAL_STYLESHEET_FILE_NAME = QT_TRANSLATE_NOOP("MainWindow", "Stylesheet file name (*.qss)");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -88,8 +87,8 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
-constexpr auto ACTION_PROPERTY_NAME = "value";
 constexpr auto QSS = "qss";
+constexpr auto THEME_FILES_KEY = "ui/Theme/files";
 
 class AllowDestructiveOperationsObserver final : public QObject
 {
@@ -153,6 +152,25 @@ private:
 	const char* const m_placeholderText;
 };
 
+QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
+{
+	auto* action = menu.addAction(actionName);
+	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_NAME, name);
+	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_TYPE, static_cast<int>(type));
+	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, file);
+	action->setCheckable(true);
+	return action;
+}
+
+std::set<QString> GetQssList()
+{
+	std::set<QString> list;
+	QDirIterator it(":/", QStringList() << "*.qss", QDir::Files, QDirIterator::Subdirectories);
+	while (it.hasNext())
+		list.emplace(it.next());
+	return list;
+}
+
 } // namespace
 
 class MainWindow::Impl final
@@ -167,6 +185,7 @@ class MainWindow::Impl final
 public:
 	Impl(MainWindow& self,
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
 	     std::shared_ptr<const IUiFactory> uiFactory,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ICollectionController> collectionController,
@@ -183,24 +202,26 @@ public:
 	     std::shared_ptr<IDatabaseChecker> databaseChecker)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
-		, m_self(self)
-		, m_logicFactory(logicFactory)
-		, m_uiFactory(std::move(uiFactory))
-		, m_settings(std::move(settings))
-		, m_collectionController(std::move(collectionController))
-		, m_parentWidgetProvider(std::move(parentWidgetProvider))
+		, m_self { self }
+		, m_logicFactory { logicFactory }
+		, m_styleApplierFactory { std::move(styleApplierFactory) }
+		, m_uiFactory { std::move(uiFactory) }
+		, m_settings { std::move(settings) }
+		, m_collectionController { std::move(collectionController) }
+		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
 		, m_annotationController { std::move(annotationController) }
-		, m_annotationWidget(std::move(annotationWidget))
-		, m_localeController(std::move(localeController))
-		, m_logController(std::move(logController))
-		, m_progressBar(std::move(progressBar))
-		, m_logItemDelegate(std::move(logItemDelegate))
-		, m_lineOption(std::move(lineOption))
-		, m_booksWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Books))
-		, m_navigationWidget(m_uiFactory->CreateTreeViewWidget(ItemType::Navigation))
+		, m_annotationWidget { std::move(annotationWidget) }
+		, m_localeController { std::move(localeController) }
+		, m_logController { std::move(logController) }
+		, m_progressBar { std::move(progressBar) }
+		, m_logItemDelegate { std::move(logItemDelegate) }
+		, m_lineOption { std::move(lineOption) }
+		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
+		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
 		Setup();
 		ConnectActions();
+		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		Init();
@@ -508,132 +529,127 @@ private:
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
 
-		connect(m_ui.actionExternalThemeLoad, &QAction::triggered, &m_self, [this] { SetExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
-
-		CreateStylesMenu();
+		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 	}
 
-	void CreateStylesMenu()
+	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
 	{
-		const auto setAction = [](QAction* action, const bool checked)
-		{
-			action->setChecked(checked);
-			action->setEnabled(!checked);
-		};
+		for (auto* groupAction : group.actions())
+			groupAction->setEnabled(true);
 
-		const auto addActionGroup = [this, setAction]<typename T>(const std::vector<QAction*>& actions, const QString& key, const QString& defaultValue, T&& f, QActionGroup* group = nullptr) -> QActionGroup*
-		{
-			if (!group)
-			{
-				group = new QActionGroup(&m_self);
-				group->setExclusive(true);
-			}
+		action.setEnabled(false);
 
-			auto set = [this, setAction, group, key, defaultValue]
-			{
-				auto groupActions = group->actions();
-
-				auto currentTheme = m_settings->Get(key, defaultValue);
-				if (const auto it =
-				        std::ranges::find_if(groupActions, [&](const QAction* action) { return action->property(ACTION_PROPERTY_NAME).toString().compare(currentTheme, Qt::CaseInsensitive) == 0; });
-				    it != groupActions.end())
-					setAction(*it, true);
-			};
-
-			const auto change = [this, set, key, f = std::forward<T>(f)](const QString& theme)
-			{
-				if (!f(theme))
-					return;
-
-				m_settings->Set(key, theme);
-				set();
-				RebootDialog();
-			};
-
-			for (auto* action : actions)
-			{
-				connect(action, &QAction::triggered, &m_self, [=] { change(action->property(ACTION_PROPERTY_NAME).toString()); });
-				group->addAction(action);
-			}
-
-			set();
-
-			return group;
-		};
-
-		std::vector<QAction*> pluginStyles;
-		for (const auto& key : QStyleFactory::keys())
-		{
-			const auto* style = QStyleFactory::create(key);
-			if (!style)
-				continue;
-
-			auto* action = pluginStyles.emplace_back(m_ui.menuTheme->addAction(style->name()));
-			action->setProperty(ACTION_PROPERTY_NAME, key);
-			action->setCheckable(true);
-		}
-		auto* group = addActionGroup(pluginStyles,
-		                             Constant::Settings::THEME_KEY,
-		                             Constant::Settings::APP_STYLE_DEFAULT,
-		                             [this](const QString&) { return m_settings->Remove(Constant::Settings::EXTERNAL_THEME_KEY), true; });
-		m_ui.menuTheme->addSeparator();
-
-		std::vector<QAction*> externalStyles;
-		for (const auto& entry : QDir(QApplication::applicationDirPath() + "/themes").entryInfoList(QStringList() << "*.qss" << "*.dll", QDir::Files))
-		{
-			const auto fileName = entry.filePath();
-			auto* action = externalStyles.emplace_back(m_ui.menuTheme->addAction(entry.completeBaseName()));
-			action->setProperty(ACTION_PROPERTY_NAME, fileName);
-			action->setCheckable(true);
-		}
-		addActionGroup(externalStyles, Constant::Settings::EXTERNAL_THEME_KEY, {}, [this](const QString& fileName) { return SetExternalStyle(fileName), false; }, group);
-		m_ui.menuTheme->addSeparator();
-		m_ui.menuTheme->addAction(m_ui.actionExternalThemeLoad);
-		group->addAction(m_ui.actionExternalThemeLoad);
-		if (const auto currentExternalTheme = m_settings->Get(Constant::Settings::EXTERNAL_THEME_KEY); currentExternalTheme.isValid())
-		{
-			if (auto* action = group->checkedAction(); action && action->property(ACTION_PROPERTY_NAME) != currentExternalTheme)
-			{
-				setAction(action, false);
-				m_ui.actionExternalThemeLoad->setChecked(true);
-			}
-		}
-
-		m_ui.menuColorScheme->setEnabled(true);
-		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark },
-		               Constant::Settings::COLOR_SCHEME_KEY,
-		               Constant::Settings::APP_COLOR_SCHEME_DEFAULT,
-		               [](const QString&) { return true; });
-	}
-
-	void RebootDialog() const
-	{
+		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplierFactory::ACTION_PROPERTY_TYPE).toInt()));
+		applier->Apply(action.property(IStyleApplierFactory::ACTION_PROPERTY_NAME).toString(), action.property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString());
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 			Reboot();
 	}
 
-	void SetExternalStyle(const QString& fileName)
+	void AddStyleActionsToGroup(const std::vector<QAction*>& actions, QActionGroup* group)
+	{
+		for (auto* action : actions)
+		{
+			group->addAction(action);
+			connect(action, &QAction::triggered, &m_self, [this, action, group] { ApplyStyleAction(*action, *group); });
+		}
+	}
+
+	void CreateStylesMenu()
+	{
+		const auto addActionGroup = [this](const std::vector<QAction*>& actions, QActionGroup* group)
+		{
+			AddStyleActionsToGroup(actions, group);
+			m_styleApplierFactory->CheckAction(actions);
+		};
+		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, new QActionGroup(&m_self));
+
+		std::vector<QAction*> styles;
+		for (const auto& key : QStyleFactory::keys())
+			if (const auto* style = QStyleFactory::create(key))
+				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, style->name(), key));
+
+		m_ui.menuTheme->addSeparator();
+
+		for (const auto& fileName : m_settings->Get(THEME_FILES_KEY).toStringList())
+			std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
+		addActionGroup(styles, m_stylesActionGroup);
+
+		m_ui.menuTheme->addSeparator();
+		m_ui.menuTheme->addAction(m_ui.actionAddThemes);
+	}
+
+	std::vector<QAction*> AddExternalStyle(const QString& fileName) const
+	{
+		assert(!fileName.isEmpty());
+
+		const QFileInfo fileInfo(fileName);
+		if (!fileInfo.exists())
+			return {};
+
+		const auto ext = fileInfo.suffix().toLower();
+		if (ext == "qss")
+			return { CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::QssStyle, fileInfo.completeBaseName(), fileInfo.completeBaseName(), fileName) };
+
+		if (ext == "dll")
+			return AddEternalStyleDll(fileInfo);
+
+		return {};
+	}
+
+	std::vector<QAction*> AddEternalStyleDll(const QFileInfo& fileInfo) const
+	{
+		const auto addLibList = [&](const std::set<QString>& libList) -> std::vector<QAction*>
+		{
+			if (libList.empty())
+				return {};
+
+			auto* menu = m_ui.menuTheme->addMenu(fileInfo.completeBaseName());
+			menu->setFont(m_self.font());
+
+			std::vector<QAction*> result;
+			result.reserve(libList.size());
+			std::ranges::transform(libList, std::back_inserter(result), [&](const auto& qss) { return CreateStyleAction(*menu, IStyleApplier::Type::DllStyle, qss.mid(2), qss, fileInfo.filePath()); });
+
+			return result;
+		};
+
+		const auto currentList = GetQssList();
+
+		if (auto applier = m_styleApplierFactory->CreateThemeApplier(); applier->GetType() == IStyleApplier::Type::DllStyle && applier->GetChecked().second == fileInfo.filePath())
+		{
+			auto libList = currentList;
+			libList.erase(IStyleApplier::STYLE_FILE_NAME);
+			return addLibList(libList);
+		}
+
+		Util::DyLib lib(fileInfo.filePath().toStdString());
+		if (!lib.IsOpen())
+		{
+			PLOGE << lib.GetErrorDescription();
+			return {};
+		}
+
+		auto libList = GetQssList();
+		erase_if(libList, [&](const auto& item) { return currentList.contains(item); });
+		return addLibList(libList);
+	}
+
+	void OpenExternalStyle(const QString& fileName)
 	{
 		if (fileName.isEmpty())
 			return;
 
-		if (QFileInfo(fileName).suffix().toLower() == "dll")
-		{
-			Util::DyLib lib(fileName.toStdString());
-			QStringList list;
-			QDirIterator it(":/", QStringList() << "*.qss", QDir::Files, QDirIterator::Subdirectories);
-			while (it.hasNext())
-				list << it.next();
-			erase_if(list, [](const QString& item) { return item == Constant::STYLE_FILE_NAME; });
+		auto list = m_settings->Get(THEME_FILES_KEY).toStringList();
+		if (list.contains(fileName, Qt::CaseInsensitive))
+			return;
 
-			if (const auto qss = m_uiFactory->GetText(Tr(EXTERNAL_STYLESHEET), Tr(EXTERNAL_STYLESHEET_FILE_NAME), list.isEmpty() ? QString {} : list.front(), list); !qss.isEmpty())
-				m_settings->Set(Constant::Settings::EXTERNAL_THEME_QSS_KEY, qss);
-			else
-				return;
-		}
+		auto actions = AddExternalStyle(fileName);
+		if (actions.empty())
+			return;
 
-		m_settings->Set(Constant::Settings::EXTERNAL_THEME_KEY, fileName);
-		RebootDialog();
+		AddStyleActionsToGroup(actions, m_stylesActionGroup);
+		list << fileName;
+		m_settings->Set(THEME_FILES_KEY, list);
 	}
 
 	void SearchBookByTitle()
@@ -776,6 +792,7 @@ private:
 	Ui::MainWindow m_ui {};
 	QTimer m_delayStarter;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const IStyleApplierFactory> m_styleApplierFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
@@ -799,9 +816,12 @@ private:
 	QLayout* m_searchBooksByTitleLayout;
 
 	bool m_checkForUpdateOnStartEnabled { true };
+
+	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
+                       std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
                        std::shared_ptr<IUiFactory> uiFactory,
                        std::shared_ptr<ISettings> settings,
                        std::shared_ptr<ICollectionController> collectionController,
@@ -820,6 +840,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	: QMainWindow(parent)
 	, m_impl(*this,
              logicFactory,
+             std::move(styleApplierFactory),
              std::move(uiFactory),
              std::move(settings),
              std::move(collectionController),

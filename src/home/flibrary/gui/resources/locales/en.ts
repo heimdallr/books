@@ -471,16 +471,6 @@
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
-        <source>Select external stylesheet</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.cpp"/>
-        <source>Stylesheet file name (*.qss)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation></translation>
     </message>
@@ -647,15 +637,15 @@
         <translation></translation>
     </message>
     <message>
-        <source>Load...</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Enable check for update on &amp;start</source>
         <translation></translation>
     </message>
     <message>
         <source>Disable check for update on &amp;start</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Add themes...</source>
         <translation></translation>
     </message>
 </context>

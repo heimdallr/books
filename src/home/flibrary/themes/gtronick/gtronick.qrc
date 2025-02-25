@@ -1,0 +1,14 @@
+<RCC>
+	<qresource prefix="gtronick">
+		<file>AMOLED.qss</file>
+		<file>Aqua.qss</file>
+		<file>ConsoleStyle.qss</file>
+		<file>ElegantDark.qss</file>
+		<file>MacOS.qss</file>
+		<file>ManjaroMix.qss</file>
+		<file>MaterialDark.qss</file>
+		<file>MetroUI.qss</file>
+		<file>NeonButtons.qss</file>
+		<file>Ubuntu.qss</file>
+	</qresource>
+</RCC>

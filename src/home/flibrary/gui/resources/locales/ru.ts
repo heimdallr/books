@@ -467,16 +467,6 @@
     </message>
     <message>
         <location filename="../../MainWindow.cpp"/>
-        <source>Select external stylesheet</source>
-        <translation>Выбор внешнего фала стилей</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.cpp"/>
-        <source>Stylesheet file name (*.qss)</source>
-        <translation>Файл стилей (*.qss)</translation>
-    </message>
-    <message>
-        <location filename="../../MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
     </message>
@@ -643,16 +633,16 @@
         <translation>Скрыть строку поиска &amp;книги по названию</translation>
     </message>
     <message>
-        <source>Load...</source>
-        <translation>Открыть...</translation>
-    </message>
-    <message>
         <source>Enable check for update on &amp;start</source>
         <translation>Включить проверку обновлений на &amp;старте</translation>
     </message>
     <message>
         <source>Disable check for update on &amp;start</source>
         <translation>Выключить проверку обновлений на &amp;старте</translation>
+    </message>
+    <message>
+        <source>Add themes...</source>
+        <translation>Добавить темы...</translation>
     </message>
 </context>
 <context>

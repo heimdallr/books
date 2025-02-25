@@ -19,6 +19,7 @@
 #include "interface/logic/IScriptController.h"
 
 #include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "StyleApplier/StyleApplierFactory.h"
 #include "delegate/OpenFileDialogDelegateEditor.h"
 #include "delegate/StorableComboboxDelegateEditor.h"
 #include "dialogs/AddCollectionDialog.h"
@@ -53,6 +54,7 @@ void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermi
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return std::make_shared<StyleApplierFactory>(*container, ctx.resolve<ISettings>()); }).as<IStyleApplierFactory>().singleInstance();
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<UiFactory>(*container); }).as<IUiFactory>().singleInstance();
 }
 
