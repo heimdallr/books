@@ -64,7 +64,6 @@ constexpr const char* COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/ImageOptim/libimagequant'>libimagequant</a> &copy; 2009-2018 Kornel Lesiński <a href='https://github.com/ImageOptim/libimagequant?tab=License-1-ov-file'>GNU "
 	"GPL-v3</a></td></tr>",
 	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
-	"<tr><td><a href='https://github.com/heimdallr/QSS'>GTRONICK/QSS</a> &copy; Copyright (c) 2018 Jaime Quiroga <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"</table>"
 };
 
