@@ -14,6 +14,8 @@
 
 #include "log.h"
 
+#include "config/version.h"
+
 using namespace HomeCompa;
 using namespace fb2cut;
 
@@ -28,6 +30,9 @@ constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto BINARY = "FictionBook/binary";
 constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
+constexpr auto DESCRIPTION = "FictionBook/description";
+constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
+constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
 
 }
 
@@ -45,6 +50,7 @@ public:
 	Data GetData()
 	{
 		Parse();
+		assert(m_hasProgramUsed);
 
 		auto data = std::move(m_data);
 		m_data = {};
@@ -103,6 +109,18 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
+		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
+		{
+			m_writer.WriteStartElement("program-used").WriteCharacters(QString("fb2cut %2").arg(PRODUCT_VERSION)).WriteEndElement();
+			m_hasProgramUsed = true;
+		}
+
+		if (path == DESCRIPTION && !m_hasProgramUsed)
+		{
+			m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("fb2cut %2").arg(PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
+			m_hasProgramUsed = true;
+		}
+
 		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
 			return true;
 
@@ -121,6 +139,13 @@ private: // Util::SaxParser
 			{       LANG,      &Impl::ParseLang },
 			{     BINARY,    &Impl::ParseBinary },
 		};
+
+		if (path.compare(PROGRAM_USED, Qt::CaseInsensitive) == 0)
+		{
+			m_writer.WriteCharacters(QString("%1, fb2cut %2").arg(value, PRODUCT_VERSION));
+			m_hasProgramUsed = true;
+			return true;
+		}
 
 		if (path.compare(BINARY, Qt::CaseInsensitive))
 			m_writer.WriteCharacters(value);
@@ -188,6 +213,7 @@ private:
 	QString m_coverpage;
 	Data m_data {};
 	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
+	bool m_hasProgramUsed { false };
 };
 
 Fb2Parser::Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback)
