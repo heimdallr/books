@@ -12,6 +12,8 @@
 #include "log.h"
 #include "zip.h"
 
+#include "config/version.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -25,6 +27,12 @@ constexpr auto ID = "id";
 constexpr auto CONTENT_TYPE = "content-type";
 constexpr auto JPEG = "image/jpeg";
 constexpr auto PNG = "image/png";
+
+constexpr auto FICTION_BOOK = "FictionBook";
+constexpr auto DESCRIPTION = "FictionBook/description";
+constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
+constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
+
 constexpr std::pair<const char*, const char*> SIGNATURES[] {
 	{ "\xFF\xD8\xFF\xE0", JPEG },
 	{ "\x89\x50\x4E\x47",  PNG },
@@ -39,6 +47,7 @@ public:
 		, m_covers { std::move(covers) }
 	{
 		Parse();
+		assert(m_hasProgramUsed);
 	}
 
 	bool HasError() const noexcept
@@ -64,15 +73,31 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
-		if (path == "FictionBook")
+		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
+		{
+			m_writer.WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement();
+			m_hasProgramUsed = true;
+		}
+
+		if (path == DESCRIPTION && !m_hasProgramUsed)
+		{
+			m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
+			m_hasProgramUsed = true;
+		}
+
+		if (path == FICTION_BOOK)
 			WriteImages();
 
 		return m_writer.WriteEndElement(), true;
 	}
 
-	bool OnCharacters(const QString& /*path*/, const QString& value) override
+	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		return m_writer.WriteCharacters(value), true;
+		if (path != PROGRAM_USED)
+			return m_writer.WriteCharacters(value), true;
+
+		m_hasProgramUsed = true;
+		return m_writer.WriteCharacters(QString("%1, %2 %3").arg(value, PRODUCT_ID, PRODUCT_VERSION)), true;
 	}
 
 	bool OnWarning(const QString& text) override
@@ -139,6 +164,7 @@ private:
 	Util::XmlWriter m_writer;
 	Covers m_covers;
 	bool m_hasError { false };
+	bool m_hasProgramUsed { false };
 };
 
 QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
