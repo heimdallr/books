@@ -283,7 +283,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 		const Zip unzip(path + "/" + archive);
 		const auto stream = unzip.Read(fileName);
-		buffer.write(Flibrary::RestoreImages(stream->GetStream(), archive, fileName));
+		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
 }
