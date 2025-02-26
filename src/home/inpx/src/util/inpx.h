@@ -27,13 +27,6 @@ enum class CreateCollectionMode
 	SkipLostBooks = 1 << 2,
 };
 
-enum class CheckForUpdateResult
-{
-	NoUpdates,
-	NewInpFound,
-	OldDataUpdateFound,
-};
-
 struct UpdateResult
 {
 	size_t folders;
@@ -42,6 +35,7 @@ struct UpdateResult
 	size_t books;
 	size_t keywords;
 	size_t genres;
+	bool oldDataUpdateFound { false };
 	bool error { false };
 };
 
@@ -61,7 +55,7 @@ public:
 	void CreateNewCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	static void FillInpx(const std::filesystem::path& collectionFolder, DB::ITransaction& transaction);
-	static CheckForUpdateResult CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
+	static bool CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
 
 private:
 	class Impl;

@@ -182,7 +182,7 @@ public:
 		Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 	}
 
-	void OnInpxUpdateChecked(const Collection& updatedCollection, const Inpx::CheckForUpdateResult result)
+	void OnInpxUpdateChecked(const Collection& updatedCollection)
 	{
 		switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
 		{
@@ -190,7 +190,7 @@ public:
 				break;
 
 			case QMessageBox::Yes:
-				return UpdateCollection(updatedCollection, result == Inpx::CheckForUpdateResult::OldDataUpdateFound);
+				return UpdateCollection(updatedCollection);
 
 			case QMessageBox::Discard:
 				return CollectionImpl::Serialize(updatedCollection, *m_settings);
@@ -290,25 +290,25 @@ private:
 		SetActiveCollection(collections.back()->id);
 	}
 
-	void UpdateCollection(const Collection& updatedCollection, const bool needRecreate)
+	void UpdateCollection(const Collection& updatedCollection)
 	{
 		const auto& collection = GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto& parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(collection.database, collection.folder, true);
-		auto callback = [this, needRecreate, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable
+		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable
 		{
+			if (updateResult.oldDataUpdateFound)
+				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED, needRecreate);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(GetIniMap(collection.database, collection.folder, true).second, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
-		if (needRecreate)
-			PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
 	}
 
-	void ShowUpdateResult(const Inpx::UpdateResult& updateResult, const QString& name, const char* action, const bool needRecreate = false)
+	void ShowUpdateResult(const Inpx::UpdateResult& updateResult, const QString& name, const char* action)
 	{
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
@@ -325,7 +325,7 @@ private:
 		                          .arg(updateResult.books)
 		                          .arg(updateResult.keywords)
 		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
-		                          .arg(needRecreate ? Tr(COLLECTION_NEED_RECREATE) : ""));
+		                          .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
 		QCoreApplication::exit(Constant::RESTART_APP);
 	}
 
@@ -421,9 +421,9 @@ void CollectionController::SetActiveCollection(const QString& id)
 	m_impl->SetActiveCollection(id);
 }
 
-void CollectionController::OnInpxUpdateChecked(const Collection& updatedCollection, Inpx::CheckForUpdateResult result)
+void CollectionController::OnInpxUpdateChecked(const Collection& updatedCollection)
 {
-	m_impl->OnInpxUpdateChecked(updatedCollection, result);
+	m_impl->OnInpxUpdateChecked(updatedCollection);
 }
 
 void CollectionController::AllowDestructiveOperation(const bool value)
