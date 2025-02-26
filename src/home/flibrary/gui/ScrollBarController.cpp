@@ -17,7 +17,7 @@ ScrollBarController::ScrollBarController(QObject* parent)
 {
 }
 
-void ScrollBarController::SetScrollArea(class QAbstractScrollArea* area)
+void ScrollBarController::SetScrollArea(QAbstractScrollArea* area)
 {
 	m_area = area;
 }
@@ -58,36 +58,44 @@ QTimer* ScrollBarController::CreateTimer(void (ScrollBarController::*f)() const)
 
 void ScrollBarController::OnTimeoutV() const
 {
-	const auto& viewport = *m_area->viewport();
+	if (!m_area)
+		return;
+
+	auto& area = *m_area;
+	const auto& viewport = *area.viewport();
 	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 	const auto pos = QCursor::pos();
 
 	auto rect = viewport.geometry();
-	rect.setX(rect.width() - threshold - (m_area->verticalScrollBar()->isVisible() ? 0 : threshold));
+	rect.setX(rect.width() - threshold - (area.verticalScrollBar()->isVisible() ? 0 : threshold));
 	rect.setWidth(5 * threshold / 2);
 	const auto topLeft = viewport.mapToGlobal(rect.topLeft());
 	const auto bottomRight = viewport.mapToGlobal(rect.bottomRight());
 	if (QRect(topLeft, bottomRight).contains(pos))
-		return m_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+		return area.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-	m_area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	area.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_timerV->stop();
 }
 
 void ScrollBarController::OnTimeoutH() const
 {
-	const auto& viewport = *m_area->viewport();
+	if (!m_area)
+		return;
+
+	auto& area = *m_area;
+	const auto& viewport = *area.viewport();
 	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 	const auto pos = QCursor::pos();
 
 	auto rect = viewport.geometry();
-	rect.setY(rect.height() - threshold - (m_area->horizontalScrollBar()->isVisible() ? 0 : threshold));
+	rect.setY(rect.height() - threshold - (area.horizontalScrollBar()->isVisible() ? 0 : threshold));
 	rect.setHeight(5 * threshold / 2);
 	const auto topLeft = viewport.mapToGlobal(rect.topLeft());
 	const auto bottomRight = viewport.mapToGlobal(rect.bottomRight());
 	if (QRect(topLeft, bottomRight).contains(pos))
-		return m_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+		return area.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-	m_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	area.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_timerH->stop();
 }
