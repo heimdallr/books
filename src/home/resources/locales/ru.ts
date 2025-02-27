@@ -2682,6 +2682,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>uk</source>
+        <translation>&amp;Українська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Amharic</source>
         <translation>Амхарский</translation>
     </message>
