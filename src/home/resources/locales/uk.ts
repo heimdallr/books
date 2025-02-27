@@ -252,15 +252,15 @@
     <name>AnnotationWidget</name>
     <message>
         <source>&amp;Save image as...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Зберегти зображення як...</translation>
     </message>
     <message>
         <source>&amp;Copy image</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Копіювати зображення</translation>
     </message>
     <message>
         <source>&amp;Open image</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Відкрити зображення</translation>
     </message>
 </context>
 <context>
@@ -268,62 +268,62 @@
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Author</source>
-        <translation type="unfinished"></translation>
+        <translation>Автор</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series</source>
-        <translation type="unfinished"></translation>
+        <translation>Серія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>SeqNumber</source>
-        <translation type="unfinished"></translation>
+        <translation>№</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Розмір</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Genre</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанр</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>FileName</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>LibRate</source>
-        <translation type="unfinished"></translation>
+        <translation>Рейтинг</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>UserRate</source>
-        <translation type="unfinished"></translation>
+        <translation>Мій рейтинг</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>UpdateDate</source>
-        <translation type="unfinished"></translation>
+        <translation>Оновлено</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Lang</source>
-        <translation type="unfinished"></translation>
+        <translation>Мова</translation>
     </message>
 </context>
 <context>
@@ -3497,7 +3497,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Серія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
