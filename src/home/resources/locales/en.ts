@@ -500,10 +500,6 @@
 <context>
     <name>CollectionCleaner</name>
     <message>
-        <source>Find and remove duplicates</source>
-        <translation type="vanished">Найти и удалить дубликаты книг</translation>
-    </message>
-    <message>
         <source>Match full</source>
         <translation></translation>
     </message>
