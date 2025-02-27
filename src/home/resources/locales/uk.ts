@@ -2688,352 +2688,352 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Amharic</source>
-        <translation type="unfinished"></translation>
+        <translation>Амхарська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Arabic</source>
-        <translation type="unfinished"></translation>
+        <translation>Арабська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Azerbaijani</source>
-        <translation type="unfinished"></translation>
+        <translation>Азербайджанська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Bashkir</source>
-        <translation type="unfinished"></translation>
+        <translation>Башкирська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Belarusian</source>
-        <translation type="unfinished"></translation>
+        <translation>Білоруська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Bulgarian</source>
-        <translation type="unfinished"></translation>
+        <translation>Болгарська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Bengali</source>
-        <translation type="unfinished"></translation>
+        <translation>Бенгальська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Catalan</source>
-        <translation type="unfinished"></translation>
+        <translation>Каталонська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Czech</source>
-        <translation type="unfinished"></translation>
+        <translation>Чеська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Church Slavonic</source>
-        <translation type="unfinished"></translation>
+        <translation>Церковнослов&apos;янська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Chuvash</source>
-        <translation type="unfinished"></translation>
+        <translation>Чуваська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Danish</source>
-        <translation type="unfinished"></translation>
+        <translation>Датська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>German</source>
-        <translation type="unfinished"></translation>
+        <translation>Німецька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Greek</source>
-        <translation type="unfinished"></translation>
+        <translation>Грецька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>English</source>
-        <translation type="unfinished"></translation>
+        <translation>Англійська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Esperanto</source>
-        <translation type="unfinished"></translation>
+        <translation>Есперанто</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Spanish</source>
-        <translation type="unfinished"></translation>
+        <translation>Іспанська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Estonian</source>
-        <translation type="unfinished"></translation>
+        <translation>Естонська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Finnish</source>
-        <translation type="unfinished"></translation>
+        <translation>Фінська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>French</source>
-        <translation type="unfinished"></translation>
+        <translation>Французька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Irish</source>
-        <translation type="unfinished"></translation>
+        <translation>Ірландська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Gujarati</source>
-        <translation type="unfinished"></translation>
+        <translation>Гуджараті</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Hebrew</source>
-        <translation type="unfinished"></translation>
+        <translation>Іврит</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Hindi</source>
-        <translation type="unfinished"></translation>
+        <translation>Хінді</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Croatian</source>
-        <translation type="unfinished"></translation>
+        <translation>Хорватська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Hungarian</source>
-        <translation type="unfinished"></translation>
+        <translation>Угорська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Armenian</source>
-        <translation type="unfinished"></translation>
+        <translation>Вірменська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Indonesian</source>
-        <translation type="unfinished"></translation>
+        <translation>Індонезійська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Lombard</source>
-        <translation type="unfinished"></translation>
+        <translation>Ломбардська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Icelandic</source>
-        <translation type="unfinished"></translation>
+        <translation>Ісландська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Italian</source>
-        <translation type="unfinished"></translation>
+        <translation>Італійська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Japan</source>
-        <translation type="unfinished"></translation>
+        <translation>Японська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Chechen</source>
-        <translation type="unfinished"></translation>
+        <translation>Чеченська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kazakh</source>
-        <translation type="unfinished"></translation>
+        <translation>Казахська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kannada</source>
-        <translation type="unfinished"></translation>
+        <translation>Каннада</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Korean</source>
-        <translation type="unfinished"></translation>
+        <translation>Корейська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kashmiri</source>
-        <translation type="unfinished"></translation>
+        <translation>Кашмірська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kurdish</source>
-        <translation type="unfinished"></translation>
+        <translation>Курдська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kyrgyz</source>
-        <translation type="unfinished"></translation>
+        <translation>Киргизька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Latin</source>
-        <translation type="unfinished"></translation>
+        <translation>Латинська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Lithuanian</source>
-        <translation type="unfinished"></translation>
+        <translation>Литовська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Latvian</source>
-        <translation type="unfinished"></translation>
+        <translation>Латиська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Macedonian</source>
-        <translation type="unfinished"></translation>
+        <translation>Македонська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Malayalam</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Marathi</source>
-        <translation type="unfinished"></translation>
+        <translation>Маратхі</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Burmese</source>
-        <translation type="unfinished"></translation>
+        <translation>Бірманська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Dutch</source>
-        <translation type="unfinished"></translation>
+        <translation>Нідерландська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Norwegian</source>
-        <translation type="unfinished"></translation>
+        <translation>Норвезька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Polish</source>
-        <translation type="unfinished"></translation>
+        <translation>Польська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Pashto</source>
-        <translation type="unfinished"></translation>
+        <translation>Пушту</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Portuguese</source>
-        <translation type="unfinished"></translation>
+        <translation>Португальська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Romanian</source>
-        <translation type="unfinished"></translation>
+        <translation>Румунська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Russian</source>
-        <translation type="unfinished"></translation>
+        <translation>Російська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Yakut</source>
-        <translation type="unfinished"></translation>
+        <translation>Якутська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Sindhi</source>
-        <translation type="unfinished"></translation>
+        <translation>Сіндхі</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Slovak</source>
-        <translation type="unfinished"></translation>
+        <translation>Словацька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Serbian</source>
-        <translation type="unfinished"></translation>
+        <translation>Сербська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Swedish</source>
-        <translation type="unfinished"></translation>
+        <translation>Шведська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Tamil</source>
-        <translation type="unfinished"></translation>
+        <translation>Тамільська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Telugu</source>
-        <translation type="unfinished"></translation>
+        <translation>Телугу</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Tajik</source>
-        <translation type="unfinished"></translation>
+        <translation>Таджицька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Turkish</source>
-        <translation type="unfinished"></translation>
+        <translation>Турецька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Tatar</source>
-        <translation type="unfinished"></translation>
+        <translation>Татарська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Uigur</source>
-        <translation type="unfinished"></translation>
+        <translation>Уйгурська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Ukrainian</source>
-        <translation type="unfinished"></translation>
+        <translation>Українська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Undefined</source>
-        <translation type="unfinished"></translation>
+        <translation>Мова не вказана</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Urdu</source>
-        <translation type="unfinished"></translation>
+        <translation>Урду</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Uzbek</source>
-        <translation type="unfinished"></translation>
+        <translation>Узбецька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Vietnamese</source>
-        <translation type="unfinished"></translation>
+        <translation>В&apos;єтнамська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Chinese (Simplified)</source>
-        <translation type="unfinished"></translation>
+        <translation>Китайська (спрощена)</translation>
     </message>
 </context>
 <context>
