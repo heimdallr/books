@@ -44,6 +44,7 @@ UsePreviousUserInfo=no
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE_en.txt
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"; LicenseFile: {#RootDir}LICENSE_ru.txt
+Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"; LicenseFile: {#RootDir}LICENSE_uk.txt
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
