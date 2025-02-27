@@ -307,7 +307,7 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 
-		m_self.setWindowTitle(PRODUCT_ID);
+		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
 
 		m_parentWidgetProvider->SetWidget(&m_self);
 
@@ -374,7 +374,7 @@ private:
 			m_logController->SetSeverity(severity.toInt());
 
 		if (m_collectionController->ActiveCollectionExists())
-			m_self.setWindowTitle(QString("%1 - %2").arg(PRODUCT_ID).arg(m_collectionController->GetActiveCollection().name));
+			m_self.setWindowTitle(QString("%1 %2 - %3").arg(PRODUCT_ID, PRODUCT_VERSION, m_collectionController->GetActiveCollection().name));
 
 		ReplaceMenuBar();
 	}
