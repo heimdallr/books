@@ -598,52 +598,53 @@
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>The existing database file will be overwritten. Continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Існуючий файл бази даних буде перезаписано.
+Продовжити?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>Are you sure you want to delete the collection?</source>
-        <translation type="unfinished"></translation>
+        <translation>Впевнені, що хочете видалити колекцію?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>Delete collection database as well?</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити та базу даних колекції?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>No write access to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Немає доступу до запису в %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>The collection was not %1 due to errors. See log.</source>
-        <translation type="unfinished"></translation>
+        <translation>Колекція не була %1 через помилки. Подробиці у журналі.</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation type="unfinished"></translation>
+        <translation>Схоже, колекція оновила. Застосувати зміни?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>created</source>
-        <translation type="unfinished"></translation>
+        <translation>створена</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>updated</source>
-        <translation type="unfinished"></translation>
+        <translation>оновлена</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;tr&gt;&lt;td&gt;Жанры:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;&lt;p&gt;Увага! Виявлено зміну попередніх даних, рекомендуємо знову перетворити колекцію. Не забудьте зберегти дані користувача&lt;/p&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
@@ -656,7 +657,15 @@
 &lt;tr&gt;&lt;td&gt;Keywords:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
 %8
 &lt;/table&gt;%9</source>
-        <translation type="unfinished"></translation>
+        <translation>Колекція %1 %2. Додано:&lt;p&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;td&gt;Архіви:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%3&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Автори:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%4&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Серії:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Книги:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Ключові слова:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%7&lt;/td&gt;&lt;/tr&gt;
+%8
+&lt;/table&gt;%9</translation>
     </message>
 </context>
 <context>
@@ -664,27 +673,27 @@
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Authors:</source>
-        <translation type="unfinished">Автори:</translation>
+        <translation>Автори:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Series:</source>
-        <translation type="unfinished">Серія:</translation>
+        <translation>Серія:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Keywords:</source>
-        <translation type="unfinished">Ключові слова:</translation>
+        <translation>Ключові слова:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Books:</source>
-        <translation type="unfinished"></translation>
+        <translation>Книги:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Deleted books:</source>
-        <translation type="unfinished"></translation>
+        <translation>Вилучено книг:</translation>
     </message>
 </context>
 <context>
@@ -692,12 +701,12 @@
     <message>
         <location filename="../../flibrary/logic/shared/CommandLine.cpp"/>
         <source>Input file</source>
-        <translation type="unfinished"></translation>
+        <translation>Вхідний файл</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/CommandLine.cpp"/>
         <source>%1: e-book cataloger</source>
-        <translation type="unfinished"></translation>
+        <translation>%1: каталогізатор електронних книг</translation>
     </message>
 </context>
 <context>
@@ -705,28 +714,29 @@
     <message>
         <location filename="../../util/localization.h"/>
         <source>Error!</source>
-        <translation type="unfinished"></translation>
+        <translation>Помилка!</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Question</source>
-        <translation type="unfinished"></translation>
+        <translation>Питання</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Warning!</source>
-        <translation type="unfinished"></translation>
+        <translation>Увага!</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
-        <translation type="unfinished"></translation>
+        <translation>Для застосування змін необхідно перезапустити програму.
+Перезапустити зараз?</translation>
     </message>
 </context>
 <context>
@@ -734,17 +744,17 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>About FLibrary</source>
-        <translation type="unfinished"></translation>
+        <translation>Про FLibrary</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
-        <translation type="unfinished"></translation>
+        <translation>Ще один каталогізатор книг електронної бібліотеки&lt;p&gt;Версія: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненти / Бібліотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
 </context>
 <context>
@@ -752,112 +762,112 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Name cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я не може бути порожнім</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Same named collection has already been added</source>
-        <translation type="unfinished"></translation>
+        <translation>Колекція з таким ім&apos;ям вже додана</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Database file name cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я файлу бази даних не може бути порожнім</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>This collection has already been added: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ця колекція вже додана під ім&apos;ям %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Database file not found</source>
-        <translation type="unfinished"></translation>
+        <translation>База даних не знайдена</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Bad database file extension (.inpx)</source>
-        <translation type="unfinished"></translation>
+        <translation>Погане розширення файлу бази даних (.inpx)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder name cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлях до архівів не може бути порожнім</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder not found</source>
-        <translation type="unfinished"></translation>
+        <translation>Папку з архівами не знайдено</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Archive folder cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка з архівами не може бути порожньою</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Index file (*.inpx) not found</source>
-        <translation type="unfinished"></translation>
+        <translation>Індексний файл (*.inpx) не знайдено</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Cannot create database folder %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо створити папку %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Author not specified</source>
-        <translation type="unfinished"></translation>
+        <translation>Автор не вказано</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Retrieving books had errors</source>
-        <translation type="unfinished"></translation>
+        <translation>Книжки витягнуті з помилками</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot open file &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо відкрити файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot open archive &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо відкрити архів %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot find file &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося знайти в архіві файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot extract file &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося витягти з архіву файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot create file &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо створити файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося додати до архіву файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot load %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо завантажити %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося отримати адресу функції %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot  create object</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося створити об&apos;єкт</translation>
     </message>
 </context>
 <context>
