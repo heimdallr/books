@@ -18,6 +18,7 @@ namespace HomeCompa::Flibrary
 namespace
 {
 constexpr auto LOCALE = "ui/locale";
+constexpr auto NAME = "name";
 }
 
 class LocaleController::Impl
@@ -40,15 +41,20 @@ public:
 		for (const auto* locale : Loc::LOCALES)
 		{
 			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
+			action->setProperty(NAME, QString(locale));
 			m_actionGroup.addAction(action);
 			action->setCheckable(true);
 			action->setChecked(currentLocale == locale);
+			action->setEnabled(currentLocale != locale);
 		}
 	}
 
 private:
 	void SetLocale(const QString& locale)
 	{
+		for (auto* action : m_actionGroup.actions())
+			action->setEnabled(action->property(NAME).toString() != locale);
+
 		m_settings->Set(LOCALE, locale);
 
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
