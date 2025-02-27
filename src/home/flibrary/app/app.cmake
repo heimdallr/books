@@ -42,3 +42,11 @@ AddTarget(${PROJECT_NAME}	app
 		Qt6::QSvgPlugin
 		Qt6::QSchannelBackendPlugin
 )
+
+file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
+
+GenerateTranslations(
+	NAME ${PROJECT_NAME}
+	PATH "${CMAKE_CURRENT_LIST_DIR}/../../"
+	FILES ${qt_ts}
+)
