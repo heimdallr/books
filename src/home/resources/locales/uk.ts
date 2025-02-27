@@ -3561,44 +3561,44 @@ Try again?</source>
     <name>OpdsDialog</name>
     <message>
         <source>OPDS Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер OPDS</translation>
     </message>
     <message>
         <source>Port</source>
-        <translation type="unfinished"></translation>
+        <translation>Порт</translation>
     </message>
     <message>
         <source>Autostart</source>
-        <translation type="unfinished"></translation>
+        <translation>Автозапуск</translation>
     </message>
     <message>
         <source>Start automatically</source>
-        <translation type="unfinished"></translation>
+        <translation>Запускати автоматично</translation>
     </message>
     <message>
         <source>Address</source>
-        <translation type="unfinished"></translation>
+        <translation>Адреса</translation>
     </message>
     <message>
         <source>Start</source>
-        <translation type="unfinished">Старт</translation>
+        <translation>Пуск</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>Стоп</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Закрити</translation>
     </message>
     <message>
         <source>Copy address to clipboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Копіювати адресу в буфер обміну</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>OPDS server address has been copied to the clipboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Адреса сервера OPDS скопійована в буфер обміну</translation>
     </message>
 </context>
 <context>
@@ -3606,19 +3606,19 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/delegate/OpenFileDialogDelegateEditor.cpp"/>
         <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Програми (*.exe);;Скрипти (*.bat *.cmd);;Всі файли (*.*)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/delegate/OpenFileDialogDelegateEditor.cpp"/>
         <source>Select Application</source>
-        <translation type="unfinished"></translation>
+        <translation>Виберіть програму</translation>
     </message>
 </context>
 <context>
     <name>ProgressBar</name>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Скасувати</translation>
+        <translation>Скасувати</translation>
     </message>
 </context>
 <context>
@@ -3626,27 +3626,27 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
         <source>Select %1 reader</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть читалку для %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
         <source>Applications (*.exe)</source>
-        <translation type="unfinished"></translation>
+        <translation>Програми (*.exe)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
         <source>Use the default reader?</source>
-        <translation type="unfinished"></translation>
+        <translation>Використовувати системну читалку?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
         <source>Cannot start default reader. Will you specify the application manually?</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося запустити системну читалку. Спробуєте вказати програму для читання книг вручну?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
         <source>&apos;%1&apos; not found. Will you specify another application?</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл &apos;%1&apos; не знайдено. Спробуєте вказати іншу програму?</translation>
     </message>
 </context>
 <context>
@@ -3654,17 +3654,17 @@ Try again?</source>
     <message>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Number of: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Кількість: %1</translation>
     </message>
     <message>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Book</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Books</source>
-        <translation type="unfinished"></translation>
+        <translation>Усі книги розділу</translation>
     </message>
 </context>
 <context>
@@ -3672,17 +3672,17 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/model/script/ScriptCommandModel.cpp"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/model/script/ScriptCommandModel.cpp"/>
         <source>Command</source>
-        <translation type="unfinished"></translation>
+        <translation>Команда</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/model/script/ScriptCommandModel.cpp"/>
         <source>Arguments</source>
-        <translation type="unfinished"></translation>
+        <translation>Аргументи</translation>
     </message>
 </context>
 <context>
@@ -3690,142 +3690,142 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>ExportToDevice</source>
-        <translation type="unfinished"></translation>
+        <translation>Експорт</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation type="unfinished"></translation>
+        <translation>Запуск програми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>System</source>
-        <translation type="unfinished"></translation>
+        <translation>Системна команда</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%source_file%</source>
-        <translation type="unfinished"></translation>
+        <translation>Повний шлях до розпакованого файлу у тимчасовій папці</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%user_destination_folder%</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка призначення з діалогу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%title%</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва книги</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_name%</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я файлу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_ext%</source>
-        <translation type="unfinished"></translation>
+        <translation>Розширення файлу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%base_file_name%</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я файлу без розширення</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author%</source>
-        <translation type="unfinished"></translation>
+        <translation>Прізвище Ім&apos;я По батькові автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_last_fm%</source>
-        <translation type="unfinished"></translation>
+        <translation>Прізвище І.О. автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_last_name%</source>
-        <translation type="unfinished"></translation>
+        <translation>Прізвище автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_first_name%</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_middle_name%</source>
-        <translation type="unfinished"></translation>
+        <translation>По-батькові автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_f%</source>
-        <translation type="unfinished"></translation>
+        <translation>І. автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_m%</source>
-        <translation type="unfinished"></translation>
+        <translation>О. автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%series%</source>
-        <translation type="unfinished"></translation>
+        <translation>Серія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%seq_number%</source>
-        <translation type="unfinished"></translation>
+        <translation>Порядковий номер у серії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_size%</source>
-        <translation type="unfinished"></translation>
+        <translation>Розмір файлу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%db_id%</source>
-        <translation type="unfinished"></translation>
+        <translation>Ідентифікатор книги з бази даних</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%uid%</source>
-        <translation type="unfinished"></translation>
+        <translation>Унікальний ідентифікатор (GUID)</translation>
     </message>
 </context>
 <context>
     <name>ScriptDialog</name>
     <message>
         <source>Scripts</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрипти</translation>
     </message>
     <message>
         <source>Add script</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати скрипт</translation>
     </message>
     <message>
         <source>Remove script</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити скрипт</translation>
     </message>
     <message>
         <source>Script commands</source>
-        <translation type="unfinished"></translation>
+        <translation>Команди скрипту</translation>
     </message>
     <message>
         <source>Add command</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати команду</translation>
     </message>
     <message>
         <source>Remove command</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити команду</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Зберегти</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Скасувати</translation>
+        <translation>Скасувати</translation>
     </message>
 </context>
 <context>
@@ -3833,12 +3833,12 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/model/script/ScriptModel.cpp"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/model/script/ScriptModel.cpp"/>
         <source>Name</source>
-        <translation type="unfinished">Найменування</translation>
+        <translation>Ім&apos;я</translation>
     </message>
 </context>
 <context>
@@ -3846,45 +3846,48 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Search books</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук книг</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Search query</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошуковий запит</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Are you sure you want to delete the search results (%1)?</source>
-        <translation type="unfinished"></translation>
+        <translation>Ви впевнені, що хочете видалити пошукові запити (%1)?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Cannot create search query (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо створити пошуковий запит %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Cannot remove search query</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо видалити пошуковий запит</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Search query is too short. At least %1 characters required.
 Try again?</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошуковий запит надто короткий. Необхідний мінімум символів - %1
+Спробуєте ще раз?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Search query too long.
 Try again?</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошуковий запит надто довгий.
+Спробуєте ще раз?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/SearchController.cpp"/>
         <source>Search query &quot;%1&quot; already exists.
 Try again?</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошуковий запит &quot;%1&quot; вже є.
+Спробуєте ще раз?</translation>
     </message>
 </context>
 <context>
@@ -3892,12 +3895,12 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
         <source>Filter</source>
-        <translation type="unfinished"></translation>
+        <translation>Фільтр</translation>
     </message>
 </context>
 <context>
@@ -3905,62 +3908,62 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Download</source>
-        <translation type="unfinished"></translation>
+        <translation>Завантажити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Visit download page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти на сторінку нової версії</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Skip this version</source>
-        <translation type="unfinished"></translation>
+        <translation>Пропустити цю версію</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Cancel</source>
-        <translation type="unfinished">Скасувати</translation>
+        <translation>Скасувати</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>%1 released!</source>
-        <translation type="unfinished"></translation>
+        <translation>Нова версія: %1!</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Select folder for app installer</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть папку для скачування інсталятора</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Run the installer?</source>
-        <translation type="unfinished"></translation>
+        <translation>Запустити інсталятор?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Update check failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Помилка перевірки оновлень</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Current version %1 is actual</source>
-        <translation type="unfinished"></translation>
+        <translation>Ваша версія %1 актуальна</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Last version %1, your version %2. Did a miracle happen?</source>
-        <translation type="unfinished"></translation>
+        <translation>Остання версія %1, ваша версія %2. Сталося диво?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
-        <translation type="unfinished"></translation>
+        <translation>Нова версія успішно завантажена. Відкрити папку з архівом?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Something strange, the installer file is missing. Visit download page?</source>
-        <translation type="unfinished"></translation>
+        <translation>Щось дивне, інсталятор не знайдено. Перейти до сторінки нової версії?</translation>
     </message>
 </context>
 <context>
@@ -3968,67 +3971,67 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/backup.cpp"/>
         <source>Cannot write to &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
+        <translation>Помилка запису в %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Cannot read from %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено вузол версії %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Invalid root node name, must be %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Неправильне ім&apos;я кореневого вузла має бути %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Cannot find version node, must be %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено вузол версії %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Cannot find version attribute, must be %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено атрибута вузла версії %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>%1: must be integer</source>
-        <translation type="unfinished"></translation>
+        <translation>Номер версії %1 має бути цілим значенням</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Version %1 must be greater than 0 and less than %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Версія файлу %1 повинна бути більше 0 і менше %2</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Cannot find user data node, must be %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено вузол даних користувача %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Specify a file to export user data</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть файл експорту даних користувача</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Select a file to import user data</source>
-        <translation type="unfinished"></translation>
+        <translation>Виберіть файл імпорту даних користувача</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Flibrary export files (*.flibk)</source>
-        <translation type="unfinished"></translation>
+        <translation>Файли експорту FLibrary (*.flibk)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>User data successfully recovered</source>
-        <translation type="unfinished"></translation>
+        <translation>Дані користувача відновлено</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>User data successfully saved</source>
-        <translation type="unfinished"></translation>
+        <translation>Ці дані збережені</translation>
     </message>
 </context>
 </TS>

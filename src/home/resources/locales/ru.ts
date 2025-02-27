@@ -3963,7 +3963,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/shared/UpdateChecker.cpp"/>
         <source>Something strange, the installer file is missing. Visit download page?</source>
-        <translation>Что-то странное, инсталлятора не найден. Перейти на страницу новой версии?</translation>
+        <translation>Что-то странное, инсталлятор не найден. Перейти на страницу новой версии?</translation>
     </message>
 </context>
 <context>
@@ -3976,7 +3976,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Cannot read from %1</source>
-        <translation>Jib,rf xntybz bp %1</translation>
+        <translation>Не найден узел версии %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
@@ -4021,7 +4021,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Flibrary export files (*.flibk)</source>
-        <translation>Файлы экспорта Flibrary (*.flibk)</translation>
+        <translation>Файлы экспорта FLibrary (*.flibk)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>

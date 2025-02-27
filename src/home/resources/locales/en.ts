@@ -3880,7 +3880,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
         <source>Find</source>
-        <translation></translation>
+        <translation>Search</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
@@ -4006,7 +4006,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Flibrary export files (*.flibk)</source>
-        <translation></translation>
+        <translation>FLibrary export files (*.flibk)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
