@@ -888,1672 +888,1672 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>detective_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Детективи та Трилери</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Любовні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adventure_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Пригоди</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>children_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяче</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Поезія, Драматургія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Старовинне</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>science_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Наука, Освіта</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antiscience_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Антинаука, Мракобісся</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>computers_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Комп&apos;ютери та Інтернет</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>reference_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Довідкова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonfiction_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Документальна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Релігія та духовність</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумор</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Домоводство (Будинок та сім&apos;я)</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>busines_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Ділова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>notes_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Ноти та партитури</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tech_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Техніка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>periodic_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Періодика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>epic_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Фольклор</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Військове</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>art_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Мистецтво</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>foreign_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Іноземна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other_all_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>date_added_code_root</source>
-        <translation type="unfinished"></translation>
+        <translation>За датою додавання</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unknown_root</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанри не з довідника</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf</source>
-        <translation type="unfinished"></translation>
+        <translation>Наукова Фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Альтернативна історія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_action</source>
-        <translation type="unfinished"></translation>
+        <translation>Бойова фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_epic</source>
-        <translation type="unfinished"></translation>
+        <translation>Епічна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_heroic</source>
-        <translation type="unfinished"></translation>
+        <translation>Героїчна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_detective</source>
-        <translation type="unfinished"></translation>
+        <translation>Детективна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_cyberpunk</source>
-        <translation type="unfinished"></translation>
+        <translation>Кіберпанк</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_space</source>
-        <translation type="unfinished"></translation>
+        <translation>Космічна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_social</source>
-        <translation type="unfinished"></translation>
+        <translation>Соціально-психологічна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_horror</source>
-        <translation type="unfinished"></translation>
+        <translation>Жахи та Містика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_humor</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумористична фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_postapocalyptic</source>
-        <translation type="unfinished"></translation>
+        <translation>Постапокаліпсис</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nsf</source>
-        <translation type="unfinished"></translation>
+        <translation>Ненаукова фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_etc</source>
-        <translation type="unfinished"></translation>
+        <translation>Фантастика: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_irony</source>
-        <translation type="unfinished"></translation>
+        <translation>Іронічна фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_mystic</source>
-        <translation type="unfinished"></translation>
+        <translation>Містика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_space_opera</source>
-        <translation type="unfinished"></translation>
+        <translation>Космоопера</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_stimpank</source>
-        <translation type="unfinished"></translation>
+        <translation>Стімпанк</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_litrpg</source>
-        <translation type="unfinished"></translation>
+        <translation>РПГ</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>hronoopera</source>
-        <translation type="unfinished"></translation>
+        <translation>Хроноопера</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>popadancy</source>
-        <translation type="unfinished"></translation>
+        <translation>Попадани</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>gothic_novel</source>
-        <translation type="unfinished"></translation>
+        <translation>Готичний роман</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_fantasy</source>
-        <translation type="unfinished"></translation>
+        <translation>Фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_alt_hist</source>
-        <translation type="unfinished"></translation>
+        <translation>Альтернативна історія, фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fairy_fantasy</source>
-        <translation type="unfinished"></translation>
+        <translation>Казкове фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_fantasy_city</source>
-        <translation type="unfinished"></translation>
+        <translation>Міське фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_fantasy_irony</source>
-        <translation type="unfinished"></translation>
+        <translation>Іронічне фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>historical_fantasy</source>
-        <translation type="unfinished"></translation>
+        <translation>Історичне фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sf_technofantasy</source>
-        <translation type="unfinished"></translation>
+        <translation>Технофентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>russian_fantasy</source>
-        <translation type="unfinished"></translation>
+        <translation>Російське фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>detective</source>
-        <translation type="unfinished"></translation>
+        <translation>Детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_classic</source>
-        <translation type="unfinished"></translation>
+        <translation>Класичний детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_police</source>
-        <translation type="unfinished"></translation>
+        <translation>Поліцейський детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_action</source>
-        <translation type="unfinished"></translation>
+        <translation>Бойовик</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_irony</source>
-        <translation type="unfinished"></translation>
+        <translation>Іронічний детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історичний детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_espionage</source>
-        <translation type="unfinished"></translation>
+        <translation>Шпигунський детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_crime</source>
-        <translation type="unfinished"></translation>
+        <translation>Кримінальний детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_political</source>
-        <translation type="unfinished"></translation>
+        <translation>Політичний детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_maniac</source>
-        <translation type="unfinished"></translation>
+        <translation>Маньяки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_hard</source>
-        <translation type="unfinished"></translation>
+        <translation>Крутий детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller</source>
-        <translation type="unfinished"></translation>
+        <translation>Трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_mystery</source>
-        <translation type="unfinished"></translation>
+        <translation>Містичний трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_su</source>
-        <translation type="unfinished"></translation>
+        <translation>Радянський детектив</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_detective</source>
-        <translation type="unfinished"></translation>
+        <translation>Гостросюжетні любовні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_det</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитячі гостросюжетні</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_legal</source>
-        <translation type="unfinished"></translation>
+        <translation>Юридичний трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_medical</source>
-        <translation type="unfinished"></translation>
+        <translation>Медичний трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_psychology</source>
-        <translation type="unfinished"></translation>
+        <translation>Психологічний трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_techno</source>
-        <translation type="unfinished"></translation>
+        <translation>Техно трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_cozy</source>
-        <translation type="unfinished"></translation>
+        <translation>Жіночий детективний роман</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>det_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Детектив: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose</source>
-        <translation type="unfinished"></translation>
+        <translation>Проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_su_classics</source>
-        <translation type="unfinished"></translation>
+        <translation>Радянська класична проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_classic</source>
-        <translation type="unfinished"></translation>
+        <translation>Класична проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історична проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_contemporary</source>
-        <translation type="unfinished"></translation>
+        <translation>Сучасна проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_counter</source>
-        <translation type="unfinished"></translation>
+        <translation>Контркультура</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_rus_classic</source>
-        <translation type="unfinished"></translation>
+        <translation>Російська класична проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_military</source>
-        <translation type="unfinished"></translation>
+        <translation>Про війну</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>aphorisms</source>
-        <translation type="unfinished"></translation>
+        <translation>Афоризми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>essay</source>
-        <translation type="unfinished"></translation>
+        <translation>Есе</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>story</source>
-        <translation type="unfinished"></translation>
+        <translation>Новела</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>great_story</source>
-        <translation type="unfinished"></translation>
+        <translation>Повість</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>short_story</source>
-        <translation type="unfinished"></translation>
+        <translation>Розповідь</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>roman</source>
-        <translation type="unfinished"></translation>
+        <translation>Роман</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonf_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Документалістика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>extravaganza</source>
-        <translation type="unfinished"></translation>
+        <translation>Феєрія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>epistolary_fiction</source>
-        <translation type="unfinished"></translation>
+        <translation>Епістолярна проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_epic</source>
-        <translation type="unfinished"></translation>
+        <translation>Епопея</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_magic</source>
-        <translation type="unfinished"></translation>
+        <translation>Магічний реалізм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>dissident</source>
-        <translation type="unfinished"></translation>
+        <translation>Антирадянська література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sagas</source>
-        <translation type="unfinished"></translation>
+        <translation>Сімейний роман/Сімейна сага</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_sentimental</source>
-        <translation type="unfinished"></translation>
+        <translation>Сентиментальна проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>modern_tale</source>
-        <translation type="unfinished"></translation>
+        <translation>Сучасна казка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_neformatny</source>
-        <translation type="unfinished"></translation>
+        <translation>Неформат</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_abs</source>
-        <translation type="unfinished"></translation>
+        <translation>Абс</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_game</source>
-        <translation type="unfinished"></translation>
+        <translation>Ігри</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comics</source>
-        <translation type="unfinished"></translation>
+        <translation>Комікси</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tale_chivalry</source>
-        <translation type="unfinished"></translation>
+        <translation>Про лицарів</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>prose_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Проза: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love</source>
-        <translation type="unfinished"></translation>
+        <translation>Про кохання</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_contemporary</source>
-        <translation type="unfinished"></translation>
+        <translation>Сучасні любовні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історичні любовні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_short</source>
-        <translation type="unfinished"></translation>
+        <translation>Короткі любовні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_erotica</source>
-        <translation type="unfinished"></translation>
+        <translation>Еротика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_sf</source>
-        <translation type="unfinished"></translation>
+        <translation>Любовно-фантастичні романи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_hard</source>
-        <translation type="unfinished"></translation>
+        <translation>Порно</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>love_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Про кохання: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adventure</source>
-        <translation type="unfinished"></translation>
+        <translation>Пригоди</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_western</source>
-        <translation type="unfinished"></translation>
+        <translation>Вестерн</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історичні пригоди</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_indian</source>
-        <translation type="unfinished"></translation>
+        <translation>Пригоди, індіанці</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_maritime</source>
-        <translation type="unfinished"></translation>
+        <translation>Морські пригоди</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_geo</source>
-        <translation type="unfinished"></translation>
+        <translation>Подорожі та географія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_animal</source>
-        <translation type="unfinished"></translation>
+        <translation>Природа та тварини</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_modern</source>
-        <translation type="unfinished"></translation>
+        <translation>Сучасне</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_story</source>
-        <translation type="unfinished"></translation>
+        <translation>Історії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>children</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяча література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_tale</source>
-        <translation type="unfinished"></translation>
+        <translation>Казка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_verse</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитячі вірші</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_prose</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяча проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_sf</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяча фантастика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_adv</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитячі пригоди</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_education</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяча освітня література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>ya</source>
-        <translation type="unfinished"></translation>
+        <translation>Підліткова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_classical</source>
-        <translation type="unfinished"></translation>
+        <translation>Класична література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_tale_rus</source>
-        <translation type="unfinished"></translation>
+        <translation>Російські казки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry</source>
-        <translation type="unfinished"></translation>
+        <translation>Поезія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>dramaturgy</source>
-        <translation type="unfinished"></translation>
+        <translation>Драматургія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fable</source>
-        <translation type="unfinished"></translation>
+        <translation>Байки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>vers_libre</source>
-        <translation type="unfinished"></translation>
+        <translation>Верлібри</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>visual_poetry</source>
-        <translation type="unfinished"></translation>
+        <translation>Візуальна поезія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>lyrics</source>
-        <translation type="unfinished"></translation>
+        <translation>Лірика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>palindromes</source>
-        <translation type="unfinished"></translation>
+        <translation>Паліндроми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>song_poetry</source>
-        <translation type="unfinished"></translation>
+        <translation>Пісенна поезія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>experimental_poetry</source>
-        <translation type="unfinished"></translation>
+        <translation>Експериментальна поезія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>epic_poetry</source>
-        <translation type="unfinished"></translation>
+        <translation>Епічна поезія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>in_verse</source>
-        <translation type="unfinished"></translation>
+        <translation>У віршах</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>drama</source>
-        <translation type="unfinished"></translation>
+        <translation>Драма</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>drama_antique</source>
-        <translation type="unfinished"></translation>
+        <translation>Класична драма</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>screenplays</source>
-        <translation type="unfinished"></translation>
+        <translation>Кіносценарії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comedy</source>
-        <translation type="unfinished"></translation>
+        <translation>Комедія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>mystery</source>
-        <translation type="unfinished"></translation>
+        <translation>Містерія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>scenarios</source>
-        <translation type="unfinished"></translation>
+        <translation>Сценарії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tragedy</source>
-        <translation type="unfinished"></translation>
+        <translation>Трагедія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>vaudeville</source>
-        <translation type="unfinished"></translation>
+        <translation>Водевіль</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poem</source>
-        <translation type="unfinished"></translation>
+        <translation>Поеми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_classical</source>
-        <translation type="unfinished"></translation>
+        <translation>Класика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_east</source>
-        <translation type="unfinished"></translation>
+        <translation>Схід</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_modern</source>
-        <translation type="unfinished"></translation>
+        <translation>Сучасна</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_rus_classical</source>
-        <translation type="unfinished"></translation>
+        <translation>Російська класика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_rus_modern</source>
-        <translation type="unfinished"></translation>
+        <translation>Російська сучасна</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Поезія: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique</source>
-        <translation type="unfinished"></translation>
+        <translation>Старовинна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_ant</source>
-        <translation type="unfinished"></translation>
+        <translation>Антична література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_european</source>
-        <translation type="unfinished"></translation>
+        <translation>Європейська старовинна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_russian</source>
-        <translation type="unfinished"></translation>
+        <translation>Давньоруська література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_east</source>
-        <translation type="unfinished"></translation>
+        <translation>Давньосхідна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_myths</source>
-        <translation type="unfinished"></translation>
+        <translation>Міфи. Легенди. Епос</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antique_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Старовинна література: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>science</source>
-        <translation type="unfinished"></translation>
+        <translation>Наукова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_psychology</source>
-        <translation type="unfinished"></translation>
+        <translation>Психологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>psy_theraphy</source>
-        <translation type="unfinished"></translation>
+        <translation>Психотерапія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_culture</source>
-        <translation type="unfinished"></translation>
+        <translation>Культурологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_religion</source>
-        <translation type="unfinished"></translation>
+        <translation>Релігієзнавство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_philosophy</source>
-        <translation type="unfinished"></translation>
+        <translation>Філософія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_politics</source>
-        <translation type="unfinished"></translation>
+        <translation>Політика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_business</source>
-        <translation type="unfinished"></translation>
+        <translation>Ділова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_juris</source>
-        <translation type="unfinished"></translation>
+        <translation>Юриспруденція</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_linguistic</source>
-        <translation type="unfinished"></translation>
+        <translation>Мовазнавство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_medicine</source>
-        <translation type="unfinished"></translation>
+        <translation>Медицина</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_phys</source>
-        <translation type="unfinished"></translation>
+        <translation>Фізика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_math</source>
-        <translation type="unfinished"></translation>
+        <translation>Математика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_chem</source>
-        <translation type="unfinished"></translation>
+        <translation>Хімія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_biology</source>
-        <translation type="unfinished"></translation>
+        <translation>Біологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_tech</source>
-        <translation type="unfinished"></translation>
+        <translation>Технічні науки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_biophys</source>
-        <translation type="unfinished"></translation>
+        <translation>Біофізика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_biochem</source>
-        <translation type="unfinished"></translation>
+        <translation>Біохімія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_state</source>
-        <translation type="unfinished"></translation>
+        <translation>Держава та право</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_orgchem</source>
-        <translation type="unfinished"></translation>
+        <translation>Органічна хімія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_anachem</source>
-        <translation type="unfinished"></translation>
+        <translation>Аналітична хімія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_physchem</source>
-        <translation type="unfinished"></translation>
+        <translation>Фізична хімія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_geo</source>
-        <translation type="unfinished"></translation>
+        <translation>Геологія та географія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_cosmos</source>
-        <translation type="unfinished"></translation>
+        <translation>Астрономія та Космос</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_philology</source>
-        <translation type="unfinished"></translation>
+        <translation>Філологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_pedagogy</source>
-        <translation type="unfinished"></translation>
+        <translation>Педагогіка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_social_studies</source>
-        <translation type="unfinished"></translation>
+        <translation>Суспільствознавство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_ecology</source>
-        <translation type="unfinished"></translation>
+        <translation>Екологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_veterinary</source>
-        <translation type="unfinished"></translation>
+        <translation>Ветеринарія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_zoo</source>
-        <translation type="unfinished"></translation>
+        <translation>Зоологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_botany</source>
-        <translation type="unfinished"></translation>
+        <translation>Ботаніка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_economy</source>
-        <translation type="unfinished"></translation>
+        <translation>Економіка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_oriental</source>
-        <translation type="unfinished"></translation>
+        <translation>Схвалення</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_textbook</source>
-        <translation type="unfinished"></translation>
+        <translation>Підручники</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_crib</source>
-        <translation type="unfinished"></translation>
+        <translation>Шпаргалки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_abstract</source>
-        <translation type="unfinished"></translation>
+        <translation>Реферати</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>foreign_language</source>
-        <translation type="unfinished"></translation>
+        <translation>Іноземні мови</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_theories</source>
-        <translation type="unfinished"></translation>
+        <translation>Теорії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tbg_school</source>
-        <translation type="unfinished"></translation>
+        <translation>Школа</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tbg_higher</source>
-        <translation type="unfinished"></translation>
+        <translation>Вища освіта</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tbg_secondary</source>
-        <translation type="unfinished"></translation>
+        <translation>Додаткова освіта</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tbg_computers</source>
-        <translation type="unfinished"></translation>
+        <translation>Про комп&apos;ютери</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>psy_sex_and_family</source>
-        <translation type="unfinished"></translation>
+        <translation>Секс та сімейна психологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>psy_childs</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитяча психологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Наукова література: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>computers</source>
-        <translation type="unfinished"></translation>
+        <translation>Околокомп&apos;ютерна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_www</source>
-        <translation type="unfinished"></translation>
+        <translation>Інтернет</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_programming</source>
-        <translation type="unfinished"></translation>
+        <translation>Програмування</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_soft</source>
-        <translation type="unfinished"></translation>
+        <translation>Програми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_db</source>
-        <translation type="unfinished"></translation>
+        <translation>Бази даних</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_osnet</source>
-        <translation type="unfinished"></translation>
+        <translation>ОС та Мережі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_dsp</source>
-        <translation type="unfinished"></translation>
+        <translation>Цифрова обробка сигналів</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_hard</source>
-        <translation type="unfinished"></translation>
+        <translation>Залізо</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>comp_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Комп&apos;ютери: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>reference</source>
-        <translation type="unfinished"></translation>
+        <translation>Довідкова література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>ref_encyc</source>
-        <translation type="unfinished"></translation>
+        <translation>Енциклопедії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>ref_dict</source>
-        <translation type="unfinished"></translation>
+        <translation>Словники</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>ref_ref</source>
-        <translation type="unfinished"></translation>
+        <translation>Довідники</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>ref_guide</source>
-        <translation type="unfinished"></translation>
+        <translation>Керівництва</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>geo_guides</source>
-        <translation type="unfinished"></translation>
+        <translation>Путівники</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonfiction</source>
-        <translation type="unfinished"></translation>
+        <translation>Документальна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>travel_notes</source>
-        <translation type="unfinished"></translation>
+        <translation>Дорожні нотатки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonf_biography</source>
-        <translation type="unfinished"></translation>
+        <translation>Біографії та Мемуари</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonf_publicism</source>
-        <translation type="unfinished"></translation>
+        <translation>Публіцистика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonf_criticism</source>
-        <translation type="unfinished"></translation>
+        <translation>Критика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>design</source>
-        <translation type="unfinished"></translation>
+        <translation>Мистецтво та Дизайн</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>music</source>
-        <translation type="unfinished"></translation>
+        <translation>Музика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>cine</source>
-        <translation type="unfinished"></translation>
+        <translation>Кіно</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>theatre</source>
-        <translation type="unfinished"></translation>
+        <translation>Театр</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>nonf_military</source>
-        <translation type="unfinished"></translation>
+        <translation>Військова документалістика та аналітика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_popular</source>
-        <translation type="unfinished"></translation>
+        <translation>Научпоп</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion</source>
-        <translation type="unfinished"></translation>
+        <translation>Релігія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_esoterics</source>
-        <translation type="unfinished"></translation>
+        <translation>Езотерика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_self</source>
-        <translation type="unfinished"></translation>
+        <translation>Самовдосконалення</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_rel</source>
-        <translation type="unfinished"></translation>
+        <translation>Релігійна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_budda</source>
-        <translation type="unfinished"></translation>
+        <translation>Буддизм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_christianity</source>
-        <translation type="unfinished"></translation>
+        <translation>Християнство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_orthodoxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Православ&apos;я</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_catholicism</source>
-        <translation type="unfinished"></translation>
+        <translation>Католицизм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_judaism</source>
-        <translation type="unfinished"></translation>
+        <translation>Юдаїзм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_paganism</source>
-        <translation type="unfinished"></translation>
+        <translation>Язичництво</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_islam</source>
-        <translation type="unfinished"></translation>
+        <translation>Іслам</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_protestantism</source>
-        <translation type="unfinished"></translation>
+        <translation>Протестантизм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_hinduism</source>
-        <translation type="unfinished"></translation>
+        <translation>Індуїзм</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Релігія: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_medicine_alternative</source>
-        <translation type="unfinished"></translation>
+        <translation>Альтернативна медицина</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>astrology</source>
-        <translation type="unfinished"></translation>
+        <translation>Астрологія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>palmistry</source>
-        <translation type="unfinished"></translation>
+        <translation>Хіромантія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумор</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_prose</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумористична проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_verse</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумористичні вірші</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_satire</source>
-        <translation type="unfinished"></translation>
+        <translation>Сатира</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Гумор: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home</source>
-        <translation type="unfinished"></translation>
+        <translation>Домоводство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_cooking</source>
-        <translation type="unfinished"></translation>
+        <translation>Кулінарія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_pets</source>
-        <translation type="unfinished"></translation>
+        <translation>Домашні тварини</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_crafts</source>
-        <translation type="unfinished"></translation>
+        <translation>Хобі та ремесла</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_entertain</source>
-        <translation type="unfinished"></translation>
+        <translation>Розваги</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_collecting</source>
-        <translation type="unfinished"></translation>
+        <translation>Колекціонування</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_health</source>
-        <translation type="unfinished"></translation>
+        <translation>Здоров&apos;я</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_garden</source>
-        <translation type="unfinished"></translation>
+        <translation>Сад та город</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_diy</source>
-        <translation type="unfinished"></translation>
+        <translation>Зроби сам</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_sport</source>
-        <translation type="unfinished"></translation>
+        <translation>Спорт</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_sex</source>
-        <translation type="unfinished"></translation>
+        <translation>Еротика, Секс</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>family</source>
-        <translation type="unfinished"></translation>
+        <translation>Інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>busines</source>
-        <translation type="unfinished"></translation>
+        <translation>Різне</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>accounting</source>
-        <translation type="unfinished"></translation>
+        <translation>Бухоблік, оподаткування, аудит</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>banking</source>
-        <translation type="unfinished"></translation>
+        <translation>Банківська справа</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>global_economy</source>
-        <translation type="unfinished"></translation>
+        <translation>Зовнішньоекономічна діяльність</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>paper_work</source>
-        <translation type="unfinished"></translation>
+        <translation>Діловодство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>org_behavior</source>
-        <translation type="unfinished"></translation>
+        <translation>Корпоративна культура</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>personal_finance</source>
-        <translation type="unfinished"></translation>
+        <translation>Особисті фінанси</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>small_business</source>
-        <translation type="unfinished"></translation>
+        <translation>Малий бізнес</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>marketing</source>
-        <translation type="unfinished"></translation>
+        <translation>Маркетинг, PR, реклама</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>real_estate</source>
-        <translation type="unfinished"></translation>
+        <translation>Нерухомість</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>popular_business</source>
-        <translation type="unfinished"></translation>
+        <translation>Про бізнес популярно</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>industries</source>
-        <translation type="unfinished"></translation>
+        <translation>Галузеві видання</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>job_hunting</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук роботи, кар&apos;єра</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>economics_ref</source>
-        <translation type="unfinished"></translation>
+        <translation>Довідники</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>management</source>
-        <translation type="unfinished"></translation>
+        <translation>Управління, підбір персоналу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>stock</source>
-        <translation type="unfinished"></translation>
+        <translation>Цінні папери, інвестиції</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>economics</source>
-        <translation type="unfinished"></translation>
+        <translation>Економіка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>trade</source>
-        <translation type="unfinished"></translation>
+        <translation>Торгівля</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>notes</source>
-        <translation type="unfinished"></translation>
+        <translation>Партитури</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tech</source>
-        <translation type="unfinished"></translation>
+        <translation>Техніка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_metal</source>
-        <translation type="unfinished"></translation>
+        <translation>Металургія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_radio</source>
-        <translation type="unfinished"></translation>
+        <translation>Радіоелектроніка</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_build</source>
-        <translation type="unfinished"></translation>
+        <translation>Будівництво та співпромат</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_transport</source>
-        <translation type="unfinished"></translation>
+        <translation>Транспорт та авіація</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation type="unfinished"></translation>
+        <translation>Автомобільне</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>equ_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Історія техніки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>tech_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Техніка: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>periodic</source>
-        <translation type="unfinished"></translation>
+        <translation>Журнали</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>humor_anecdote</source>
-        <translation type="unfinished"></translation>
+        <translation>Анекдоти</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>epic</source>
-        <translation type="unfinished"></translation>
+        <translation>Буліни</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>child_folklore</source>
-        <translation type="unfinished"></translation>
+        <translation>Дитячий фольклор</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>riddles</source>
-        <translation type="unfinished"></translation>
+        <translation>Загадки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>folk_songs</source>
-        <translation type="unfinished"></translation>
+        <translation>Народні пісні</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>folk_tale</source>
-        <translation type="unfinished"></translation>
+        <translation>Народні казки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>proverbs</source>
-        <translation type="unfinished"></translation>
+        <translation>Прислів&apos;я, приказки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>folklore</source>
-        <translation type="unfinished"></translation>
+        <translation>Фольклор: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>limerick</source>
-        <translation type="unfinished"></translation>
+        <translation>Частинки, примовки, потішки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military_history</source>
-        <translation type="unfinished"></translation>
+        <translation>Військова історія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military_arts</source>
-        <translation type="unfinished"></translation>
+        <translation>Бойові мистецтва</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military_special</source>
-        <translation type="unfinished"></translation>
+        <translation>Особливе</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military_weapon</source>
-        <translation type="unfinished"></translation>
+        <translation>Зброя</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>military</source>
-        <translation type="unfinished"></translation>
+        <translation>Військова справа: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>art_criticism</source>
-        <translation type="unfinished"></translation>
+        <translation>Критика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>art_world_culture</source>
-        <translation type="unfinished"></translation>
+        <translation>Світова культура</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>painting</source>
-        <translation type="unfinished"></translation>
+        <translation>Образотворче мистецтво</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>architecture_book</source>
-        <translation type="unfinished"></translation>
+        <translation>Архітектура</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>culture_all</source>
-        <translation type="unfinished"></translation>
+        <translation>Культура: інше</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>foreign_antique</source>
-        <translation type="unfinished"></translation>
+        <translation>Класика</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>foreign_children</source>
-        <translation type="unfinished"></translation>
+        <translation>Для дітей</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>foreign_prose</source>
-        <translation type="unfinished"></translation>
+        <translation>Проза</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>literature_18</source>
-        <translation type="unfinished"></translation>
+        <translation>18-е століття</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>literature_19</source>
-        <translation type="unfinished"></translation>
+        <translation>19-е століття</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>literature_20</source>
-        <translation type="unfinished"></translation>
+        <translation>20-е століття</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>network_literature</source>
-        <translation type="unfinished"></translation>
+        <translation>Мережева література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>diafilm</source>
-        <translation type="unfinished"></translation>
+        <translation>Діафільми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fanfiction</source>
-        <translation type="unfinished"></translation>
+        <translation>Фанфік</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unfinished</source>
-        <translation type="unfinished"></translation>
+        <translation>Недописане</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unordered</source>
-        <translation type="unfinished"></translation>
+        <translation>Невідсортований</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other</source>
-        <translation type="unfinished"></translation>
+        <translation>Інше</translation>
     </message>
 </context>
 <context>
