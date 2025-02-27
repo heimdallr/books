@@ -8,7 +8,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
-#include "util/KeyboardLayout.h"
 #include "util/SortString.h"
 
 #include "log.h"
@@ -19,7 +18,6 @@ namespace HomeCompa::Flibrary
 namespace
 {
 constexpr auto LOCALE = "ui/locale";
-constexpr auto SET_KEYBOARD_LAYOUT_ON_START = "ui/setKeyboardLayoutOnStart";
 }
 
 class LocaleController::Impl
@@ -38,8 +36,6 @@ public:
 	{
 		const auto currentLocale = Loc::GetLocale(*m_settings);
 		Util::QStringWrapper::SetLocale(currentLocale);
-		if (m_settings->Get(SET_KEYBOARD_LAYOUT_ON_START, true))
-			SetKeyboardLayout(currentLocale.toStdString());
 
 		for (const auto* locale : Loc::LOCALES)
 		{
