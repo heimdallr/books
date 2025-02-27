@@ -51,7 +51,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/light/resources/light.qrc">
+        <iconset resource="../../icons/light/resources/light.qrc">
          <normaloff>:/icons/database.svg</normaloff>:/icons/database.svg</iconset>
        </property>
        <property name="iconSize">
@@ -105,7 +105,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/light/resources/light.qrc">
+        <iconset resource="../../icons/light/resources/light.qrc">
          <normaloff>:/icons/open-folder.svg</normaloff>:/icons/open-folder.svg</iconset>
        </property>
        <property name="autoRaise">
@@ -125,7 +125,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../../theme/light/resources/light.qrc">
+        <iconset resource="../../icons/light/resources/light.qrc">
          <normaloff>:/icons/set-default.svg</normaloff>:/icons/set-default.svg</iconset>
        </property>
        <property name="autoRaise">
@@ -228,8 +228,7 @@
   <tabstop>editArchive</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources/gui.qrc"/>
-  <include location="../../theme/light/resources/light.qrc"/>
+  <include location="../../icons/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

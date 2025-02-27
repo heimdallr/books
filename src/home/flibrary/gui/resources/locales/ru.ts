@@ -618,7 +618,7 @@
     <message>
         <location filename="../../MainWindow.cpp"/>
         <source>To search books by title, enter part of the title here and press enter</source>
-        <translation>Для поиска книги по названию, введите здесь часть названия и нажмите Enter</translation>
+        <translation>Для поиска книги по названию введите здесь часть названия и нажмите Enter</translation>
     </message>
     <message>
         <source>Search book by title</source>
