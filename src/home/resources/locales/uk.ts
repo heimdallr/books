@@ -489,108 +489,108 @@
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerBooks.cpp"/>
         <source>List</source>
-        <translation type="unfinished"></translation>
+        <translation>Список</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerBooks.cpp"/>
         <source>Tree</source>
-        <translation type="unfinished"></translation>
+        <translation>Дерево</translation>
     </message>
 </context>
 <context>
     <name>CollectionCleaner</name>
     <message>
         <source>Collection Cleaner</source>
-        <translation type="unfinished"></translation>
+        <translation>Очищення колекції</translation>
     </message>
     <message>
         <source> bytes</source>
-        <translation type="unfinished"></translation>
+        <translation> байт</translation>
     </message>
     <message>
         <source>Delete books smaller than</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити книги менше ніж</translation>
     </message>
     <message>
         <source>Find and remove duplicate books</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти та видалити дублікати книг</translation>
     </message>
     <message>
         <source>Delete books marked as deleted</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити книги, позначені як видалені</translation>
     </message>
     <message>
         <source>Delete books larger than</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити книги більше ніж</translation>
     </message>
     <message>
         <source>Delete books by genre</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити книги вказаних жанрів</translation>
     </message>
     <message>
         <source>Removes books whose genres are all included in the set of marked ones</source>
-        <translation type="unfinished"></translation>
+        <translation>Видаляє книги, всі жанри яких входять до набору зазначених</translation>
     </message>
     <message>
         <source>Match full</source>
-        <translation type="unfinished"></translation>
+        <translation>Повний збіг</translation>
     </message>
     <message>
         <source>Removes books that have at least one genre in the set of marked ones</source>
-        <translation type="unfinished"></translation>
+        <translation>Видаляє книги, що мають хоча б один жанр у наборі зазначених</translation>
     </message>
     <message>
         <source>Match partial</source>
-        <translation type="unfinished"></translation>
+        <translation>Частковий збіг</translation>
     </message>
     <message>
         <source>Delete books by language</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити книги вказаними мовами</translation>
     </message>
     <message>
         <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
     </message>
     <message>
         <source>Read random book</source>
-        <translation type="unfinished"></translation>
+        <translation>Читати випадкову книгу</translation>
     </message>
     <message>
         <source>Check all</source>
-        <translation type="unfinished"></translation>
+        <translation>Виділити все</translation>
     </message>
     <message>
         <source>Uncheck all</source>
-        <translation type="unfinished"></translation>
+        <translation>Зняти виділення</translation>
     </message>
     <message>
         <source>Invert checks</source>
-        <translation type="unfinished"></translation>
+        <translation>Інвертувати виділення</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>No books were found in the collection according to the specified criteria</source>
-        <translation type="unfinished"></translation>
+        <translation>За вказаними критеріями в колекції не знайдено жодної книги</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
-        <translation type="unfinished"></translation>
+        <translation>У колекції знайдено %1 книг, які відповідають вашим критеріям. Ви впевнені, що хочете видалити їх?</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>Wait. Collection analysis in progress...</source>
-        <translation type="unfinished"></translation>
+        <translation>Чекайте. Триває аналіз колекції...</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
-        <translation type="unfinished"></translation>
+        <translation>Дивні значення для мінімального та максимального розмірів книг. Ви хочете видалити всі книги?</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалено книг: %1</translation>
     </message>
 </context>
 <context>
@@ -3413,7 +3413,7 @@ Try again?</source>
     </message>
     <message>
         <source> bytes</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"> байт</translation>
     </message>
     <message>
         <source>Common</source>
