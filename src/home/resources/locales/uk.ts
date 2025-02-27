@@ -875,12 +875,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Save index file</source>
-        <translation type="unfinished"></translation>
+        <translation>Зберегти індексний файл</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Index files (*.inpx);;All files (*.*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Індексні файли (*.inpx);;Всі файли (*.*)</translation>
     </message>
 </context>
 <context>
@@ -2561,54 +2561,56 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Input new group name</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть ім&apos;я нової групи</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Group name</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я групи</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>New group</source>
-        <translation type="unfinished"></translation>
+        <translation>Нова група</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Are you sure you want to delete the groups (%1)?</source>
-        <translation type="unfinished"></translation>
+        <translation>Ви впевнені, що хочете видалити групи (%1)?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Group name too long.
 Try again?</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я надто довге.
+Спробуєте ще раз?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Group %1 already exists.
 Try again?</source>
-        <translation type="unfinished"></translation>
+        <translation>Група %1 вже є.
+Спробуєте ще раз?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot create group</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося створити групу</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove groups</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося вилучити групу</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot add book to group</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося додати книгу до групи</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove books from group</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося видалити книгу з групи</translation>
     </message>
 </context>
 <context>
@@ -2616,7 +2618,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>
         <source>Push me</source>
-        <translation type="unfinished"></translation>
+        <translation>Натисни мене</translation>
     </message>
 </context>
 <context>
@@ -2624,46 +2626,46 @@ Try again?</source>
     <message>
         <location filename="../../tool/fb2cut/MainWindow.cpp"/>
         <source>Select input archive</source>
-        <translation type="unfinished"></translation>
+        <translation>Виберіть архів</translation>
     </message>
     <message>
         <location filename="../../tool/fb2cut/MainWindow.cpp"/>
         <source>Select output folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть папку призначення</translation>
     </message>
     <message>
         <location filename="../../tool/fb2cut/MainWindow.cpp"/>
         <source>Select external archiver executable</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть архіватор</translation>
     </message>
     <message>
         <location filename="../../tool/fb2cut/MainWindow.cpp"/>
         <source>Select ffmpeg executable</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть ffmpeg</translation>
     </message>
     <message>
         <location filename="../../tool/fb2cut/MainWindow.cpp"/>
         <source>Executables (*.exe);;All files (*.*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Виконувані файли (*.exe);; Усі файли (*.*)</translation>
     </message>
 </context>
 <context>
     <name>ImageSettingsWidget</name>
     <message>
         <source>Compression quality</source>
-        <translation type="unfinished"></translation>
+        <translation>Якість стиснення</translation>
     </message>
     <message>
         <source>Grayscale</source>
-        <translation type="unfinished"></translation>
+        <translation>Чорно-біле</translation>
     </message>
     <message>
         <source>Maximum size</source>
-        <translation type="unfinished"></translation>
+        <translation>Максимальний розмір</translation>
     </message>
     <message>
         <source>Skip</source>
-        <translation type="unfinished"></translation>
+        <translation>Пропустити</translation>
     </message>
 </context>
 <context>
@@ -3039,17 +3041,17 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/model/LanguageModel.cpp"/>
         <source>Code</source>
-        <translation type="unfinished"></translation>
+        <translation>Код</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/model/LanguageModel.cpp"/>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Кількість</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/model/LanguageModel.cpp"/>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Мова</translation>
     </message>
 </context>
 <context>
@@ -3057,37 +3059,37 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>NONE</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховати всі записи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>FATAL</source>
-        <translation type="unfinished"></translation>
+        <translation>Фатальні помилки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>ERROR</source>
-        <translation type="unfinished"></translation>
+        <translation>Помилки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>WARN</source>
-        <translation type="unfinished"></translation>
+        <translation>Попередження</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>INFO</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>DEBUG</source>
-        <translation type="unfinished"></translation>
+        <translation>Налагодження</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/PLogSeverityLocalization.h"/>
         <source>VERB</source>
-        <translation type="unfinished"></translation>
+        <translation>Детальна інформація</translation>
     </message>
 </context>
 <context>
@@ -3095,383 +3097,383 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>To search books by title, enter part of the title here and press enter</source>
-        <translation type="unfinished"></translation>
+        <translation>Для пошуку книги за назвою введіть тут частину назви та натисніть Enter</translation>
     </message>
     <message>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Файл</translation>
     </message>
     <message>
         <source>&amp;User data</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Користувальницькі дані</translation>
     </message>
     <message>
         <source>&amp;Collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Ко&amp;лекція</translation>
     </message>
     <message>
         <source>Select &amp;collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Вибрати &amp;колекцію</translation>
     </message>
     <message>
         <source>&amp;Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Налаштування</translation>
     </message>
     <message>
         <source>&amp;Language</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Мова</translation>
     </message>
     <message>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Вигляд</translation>
     </message>
     <message>
         <source>&amp;Annotation</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Анотація</translation>
     </message>
     <message>
         <source>&amp;Log</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Журнал</translation>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Рівень деталізації жунралу</translation>
     </message>
     <message>
         <source>&amp;Font</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Шрифт</translation>
     </message>
     <message>
         <source>&amp;Theme</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Тема</translation>
     </message>
     <message>
         <source>&amp;Color scheme</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Колірна схема</translation>
     </message>
     <message>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Допомога</translation>
     </message>
     <message>
         <source>Size &amp;Up</source>
-        <translation type="unfinished"></translation>
+        <translation>З&amp;більшити розмір</translation>
     </message>
     <message>
         <source>Size &amp;Down</source>
-        <translation type="unfinished"></translation>
+        <translation>З&amp;меншити розмір</translation>
     </message>
     <message>
         <source>E&amp;xit</source>
-        <translation type="unfinished"></translation>
+        <translation>В&amp;ихід</translation>
     </message>
     <message>
         <source>Add &amp;new collection...</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати &amp;нову колекцію...</translation>
     </message>
     <message>
         <source>&amp;Remove collection</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Видалити колекцію</translation>
     </message>
     <message>
         <source>&amp;About...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Про програму...</translation>
     </message>
     <message>
         <source>&amp;Hide removed books</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Приховувати видалені книги</translation>
     </message>
     <message>
         <source>&amp;Show log</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Показати журнал</translation>
     </message>
     <message>
         <source>&amp;Clear log</source>
-        <translation type="unfinished"></translation>
+        <translation>О&amp;чистити журнал</translation>
     </message>
     <message>
         <source>Show collection s&amp;tatistics</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати с&amp;татистику колекції</translation>
     </message>
     <message>
         <source>Font &amp;settings...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Налаштування шрифтів...</translation>
     </message>
     <message>
         <source>E&amp;xport</source>
-        <translation type="unfinished">&amp;Експорт</translation>
+        <translation>&amp;Експорт (збереження)</translation>
     </message>
     <message>
         <source>I&amp;mport</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Імпорт (відновлення)</translation>
     </message>
     <message>
         <source>&amp;Show removed books</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Показувати видалені книги</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Відновити вихідні значення</translation>
     </message>
     <message>
         <source>&amp;Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>При&amp;ховати</translation>
     </message>
     <message>
         <source>Show &amp;annotation</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати &amp;анотацію</translation>
     </message>
     <message>
         <source>Show &amp;content</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати &amp;зміст</translation>
     </message>
     <message>
         <source>Hide &amp;content</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховувати &amp;зміст</translation>
     </message>
     <message>
         <source>Show s&amp;tatus line</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати рядок з&amp;татуса</translation>
     </message>
     <message>
         <source>Hide s&amp;tatus line</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховати рядок с&amp;татуса</translation>
     </message>
     <message>
         <source>Show co&amp;ver</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати &amp;обкладинку</translation>
     </message>
     <message>
         <source>Hide co&amp;ver</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховувати &amp;обкладинку</translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Коліри повідомлень</translation>
     </message>
     <message>
         <source>&amp;Scripts...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Скрипти...</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
-        <translation type="unfinished"></translation>
+        <translation>Шаблон &amp;експорту книг</translation>
     </message>
     <message>
         <source>Book export template</source>
-        <translation type="unfinished"></translation>
+        <translation>Шаблон експорту книг</translation>
     </message>
     <message>
         <source>Check for &amp;Updates</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Перевірка оновлень</translation>
     </message>
     <message>
         <source>&amp;Permanent language filter</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Постійний мовний фільтр</translation>
     </message>
     <message>
         <source>&amp;System</source>
-        <translation type="unfinished"></translation>
+        <translation>Системн&amp;а</translation>
     </message>
     <message>
         <source>&amp;Light</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Світла</translation>
     </message>
     <message>
         <source>&amp;Dark</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Темна</translation>
     </message>
     <message>
         <source>&amp;OPDS Server...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Сервер OPDS...</translation>
     </message>
     <message>
         <source>OPDS server management</source>
-        <translation type="unfinished"></translation>
+        <translation>Керування сервером OPDS</translation>
     </message>
     <message>
         <source>Hide cover &amp;buttons</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховувати &amp;кнопки на обкладинці</translation>
     </message>
     <message>
         <source>Show cover &amp;buttons</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати &amp;кнопки на обкладинці</translation>
     </message>
     <message>
         <source>Allow destructive operations</source>
-        <translation type="unfinished"></translation>
+        <translation>Дозволити деструктивні операції</translation>
     </message>
     <message>
         <source>Deny destructive operations</source>
-        <translation type="unfinished"></translation>
+        <translation>Заборонити деструктивні операції</translation>
     </message>
     <message>
         <source>Cleaner...</source>
-        <translation type="unfinished"></translation>
+        <translation>Очищення...</translation>
     </message>
     <message>
         <source>Generate &amp;index (*.inpx)</source>
-        <translation type="unfinished"></translation>
+        <translation>Генерувати &amp;індекс (*.inpx)</translation>
     </message>
     <message>
         <source>Show &amp;jokes</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати &amp;жарти</translation>
     </message>
     <message>
         <source>Search book by title</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук книги за назвою</translation>
     </message>
     <message>
         <source>Show &amp;book search by title bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати рядок пошуку &amp;книги за назвою</translation>
     </message>
     <message>
         <source>Hide &amp;book search by title bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Приховати строк пошуку &amp;книги за назвою</translation>
     </message>
     <message>
         <source>Add themes...</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати теми...</translation>
     </message>
     <message>
         <source>Enable check for update on &amp;start</source>
-        <translation type="unfinished"></translation>
+        <translation>Включити перевірку оновлень на &amp;старті</translation>
     </message>
     <message>
         <source>Disable check for update on &amp;start</source>
-        <translation type="unfinished"></translation>
+        <translation>Вимкнути перевірку оновлень на &amp;старті</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Select font</source>
-        <translation type="unfinished"></translation>
+        <translation>Виберіть шрифт</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Are you sure you want to return to default settings?</source>
-        <translation type="unfinished"></translation>
+        <translation>Ви впевнені, що хочете повернутися до стандартних налаштувань?</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл бази даних &quot;%1&quot; пошкоджено</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>The right decision!</source>
-        <translation type="unfinished"></translation>
+        <translation>Правильне рішення!</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Well, you only have yourself to blame!</source>
-        <translation type="unfinished"></translation>
+        <translation>Що ж, нарікайте тепер на себе!</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Select stylesheet file</source>
-        <translation type="unfinished"></translation>
+        <translation>Виберіть файл зі стилями</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Файли стилів Qt (*.%1 *.dll);;Всі файли (*.*)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
-        <translation type="unfinished"></translation>
+        <translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Are you really sure?</source>
-        <translation type="unfinished"></translation>
+        <translation>Чи точно впевнені?</translation>
     </message>
 </context>
 <context>
     <name>MainWindowClass</name>
     <message>
         <source>fb2cut - fb2 libraries zip archive repacker</source>
-        <translation type="unfinished"></translation>
+        <translation>fb2cut - перепакувальник zip-архівів fb2-бібліотек</translation>
     </message>
     <message>
         <source>Input archive file or wildcard</source>
-        <translation type="unfinished"></translation>
+        <translation>Вхідний архів чи маска файлів</translation>
     </message>
     <message>
         <source>Files found: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайдено файли: %1</translation>
     </message>
     <message>
         <source>Destination folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка призначення</translation>
     </message>
     <message>
         <source>Save fb2</source>
-        <translation type="unfinished"></translation>
+        <translation>Зберігати Fb2</translation>
     </message>
     <message>
         <source>Archive fb2</source>
-        <translation type="unfinished"></translation>
+        <translation>Архів Fb2</translation>
     </message>
     <message>
         <source>Image settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Налаштування зображень</translation>
     </message>
     <message>
         <source>Min image file size</source>
-        <translation type="unfinished"></translation>
+        <translation>Мінімальний розмір файлу зображення</translation>
     </message>
     <message>
         <source> bytes</source>
-        <translation type="unfinished"> байт</translation>
+        <translation> байт</translation>
     </message>
     <message>
         <source>Common</source>
-        <translation type="unfinished"></translation>
+        <translation>Загальні налаштування</translation>
     </message>
     <message>
         <source>Covers</source>
-        <translation type="unfinished"></translation>
+        <translation>Обкладинки</translation>
     </message>
     <message>
         <source>Images</source>
-        <translation type="unfinished"></translation>
+        <translation>Зображення</translation>
     </message>
     <message>
         <source>FFmpeg (ffmpeg.exe) executable path</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлях до FFmpeg</translation>
     </message>
     <message>
         <source>For advanced users (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Для просунутих користувачів (опціонально)</translation>
     </message>
     <message>
         <source>External archiver (7z.exe) executable path</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлях до зовнішнього архіватора (7z.exe)</translation>
     </message>
     <message>
         <source>Custom archiver command line (*experts only)</source>
-        <translation type="unfinished"></translation>
+        <translation>Опції зовнішнього архіватора (* для досвідчених користувачів)</translation>
     </message>
     <message>
         <source>Max CPU thread count</source>
-        <translation type="unfinished"></translation>
+        <translation>Максимальна кількість потоків процесора</translation>
     </message>
     <message>
         <source>Start</source>
-        <translation type="unfinished"></translation>
+        <translation>Старт</translation>
     </message>
     <message>
         <source>No input archives found</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено вхідних файлів</translation>
     </message>
     <message>
         <source>Destination folder not exists</source>
-        <translation type="unfinished"></translation>
+        <translation>Папки призначення не існує</translation>
     </message>
     <message>
         <source>FFmpeg executable not found</source>
-        <translation type="unfinished"></translation>
+        <translation>FFmpeg не знайдено</translation>
     </message>
 </context>
 <context>
@@ -3479,22 +3481,22 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/Measure.cpp"/>
         <source>%1 Gb</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Гб</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/Measure.cpp"/>
         <source>%1 Mb</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Мб</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/Measure.cpp"/>
         <source>%1 Kb</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Кб</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/Measure.cpp"/>
         <source>%1 b</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 б</translation>
     </message>
 </context>
 <context>
@@ -3502,57 +3504,57 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Authors</source>
-        <translation type="unfinished"></translation>
+        <translation>Автори</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series</source>
-        <translation type="unfinished">Серія</translation>
+        <translation>Серії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Genres</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанри</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключові слова</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Archives</source>
-        <translation type="unfinished"></translation>
+        <translation>Архіви</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Groups</source>
-        <translation type="unfinished"></translation>
+        <translation>Групи</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>All books</source>
-        <translation type="unfinished"></translation>
+        <translation>Усі книги</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Remove</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new group...</source>
-        <translation type="unfinished"></translation>
+        <translation>Створити нову групу...</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
-        <translation type="unfinished"></translation>
+        <translation>Новий пошук...</translation>
     </message>
 </context>
 <context>
@@ -3579,7 +3581,7 @@ Try again?</source>
     </message>
     <message>
         <source>Start</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Старт</translation>
     </message>
     <message>
         <source>Stop</source>
