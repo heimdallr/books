@@ -48,7 +48,7 @@
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation></translation>
+        <translation>FLibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
@@ -2670,6 +2670,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>uk</source>
+        <translation>&amp;Українська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Amharic</source>
         <translation></translation>
     </message>
@@ -3875,7 +3880,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
         <source>Find</source>
-        <translation></translation>
+        <translation>Search</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/ModeComboBox.h"/>
@@ -4001,7 +4006,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>Flibrary export files (*.flibk)</source>
-        <translation></translation>
+        <translation>FLibrary export files (*.flibk)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>

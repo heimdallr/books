@@ -32,6 +32,7 @@ namespace HomeCompa::Loc
 constexpr const char* LOCALES[] {
 	QT_TRANSLATE_NOOP("Language", "en"),
 	QT_TRANSLATE_NOOP("Language", "ru"),
+	QT_TRANSLATE_NOOP("Language", "uk"),
 };
 
 constexpr auto ERROR = QT_TRANSLATE_NOOP("Common", "Error!");
