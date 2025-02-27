@@ -331,157 +331,157 @@
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Read</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Читати</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>E&amp;xport</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Експорт</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>As &amp;zip archive</source>
-        <translation type="unfinished"></translation>
+        <translation>У &amp;zip-архіві</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>As &amp;original format</source>
-        <translation type="unfinished"></translation>
+        <translation>В &amp;оригінальному форматі</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>As &amp;inpx collection</source>
-        <translation type="unfinished"></translation>
+        <translation>Як &amp;inpx-колекцію</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Generate inde&amp;x file (*.inpx)</source>
-        <translation type="unfinished"></translation>
+        <translation>Створити інде&amp;кс (*.inpx)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Groups</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Групи</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Add to</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Додати до</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;New group...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Нова група...</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Remove from</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Видалити з</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;All</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Усі</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;My rate</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Мій рейтинг</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Remove my rate</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Видалити мою оцінку</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Check</source>
-        <translation type="unfinished"></translation>
+        <translation>Поз&amp;начка</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Check all</source>
-        <translation type="unfinished"></translation>
+        <translation>Відзначити &amp;все</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Uncheck all</source>
-        <translation type="unfinished"></translation>
+        <translation>Зн&amp;яти позначки</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Invert</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Інвертувати позначку</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Tree</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Дерево</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>C&amp;ollapse</source>
-        <translation type="unfinished"></translation>
+        <translation>З&amp;вернути</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>E&amp;xpand</source>
-        <translation type="unfinished"></translation>
+        <translation>Ро&amp;згорнути</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Collapse all</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Згорнути все</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Expand all</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Розгорнути все</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>R&amp;emove</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Видалити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Undo deletion</source>
-        <translation type="unfinished"></translation>
+        <translation>Скасувати &amp;видалення</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>&amp;Delete permanently</source>
-        <translation type="unfinished"></translation>
+        <translation>Видалит&amp;и назавжди</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Select destination folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Вкажіть папку</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
-        <translation type="unfinished"></translation>
+        <translation>Не вдалося оцінити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Books %1 failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Неможливо %1 книгу</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>removing</source>
-        <translation type="unfinished"></translation>
+        <translation>видалити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>restoring</source>
-        <translation type="unfinished"></translation>
+        <translation>відновити</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>Результат цієї операції не можна скасувати. Впевнені, що хочете видалити ці книги назавжди?</translation>
     </message>
 </context>
 <context>
@@ -3189,7 +3189,7 @@ Try again?</source>
     </message>
     <message>
         <source>E&amp;xport</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&amp;Експорт</translation>
     </message>
     <message>
         <source>I&amp;mport</source>
