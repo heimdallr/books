@@ -81,5 +81,5 @@ bool QStringWrapper::operator<(const QStringWrapper& rhs) const
 
 void QStringWrapper::SetLocale(const QString& locale)
 {
-	FIX_CATEGORY_GETTER = locale == "ru" ? &FixCategoryRu : &FixCategoryDefault;
+	FIX_CATEGORY_GETTER = locale == "en" ? &FixCategoryDefault : &FixCategoryRu;
 }
