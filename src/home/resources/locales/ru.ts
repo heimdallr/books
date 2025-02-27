@@ -48,7 +48,7 @@
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Базы данных Flibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <translation>Базы данных FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
@@ -66,7 +66,7 @@
     </message>
     <message>
         <source>Open folder dialog</source>
-        <translation>Открыть диалог выбоа папки</translation>
+        <translation>Открыть диалог выбора папки</translation>
     </message>
     <message>
         <source>Retrieve collection name from index file</source>

@@ -48,7 +48,7 @@
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation></translation>
+        <translation>FLibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
