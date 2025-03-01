@@ -161,6 +161,16 @@ QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString& key
 	return result;
 }
 
+QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	auto settings = m_impl->container.resolve<ISettings>();
+	RecentDir recentDir(std::move(settings), key);
+	auto result = QFileDialog::getOpenFileNames(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir.GetDir(dir), filter, nullptr, options);
+	if (!result.isEmpty())
+		recentDir.SetDir(result.front());
+	return result;
+}
+
 QString UiFactory::GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
 	return GetFileSystemObj(m_impl->container.resolve<ISettings>(),
