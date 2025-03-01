@@ -3189,7 +3189,7 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>Select stylesheet file</source>
+        <source>Select stylesheet files</source>
         <translation></translation>
     </message>
     <message>

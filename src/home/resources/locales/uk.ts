@@ -3370,8 +3370,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>Select stylesheet file</source>
-        <translation>Виберіть файл зі стилями</translation>
+        <source>Select stylesheet files</source>
+        <translation>Виберіть файли зі стилями</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>

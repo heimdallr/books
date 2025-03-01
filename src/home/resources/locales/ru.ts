@@ -3201,8 +3201,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>Select stylesheet file</source>
-        <translation>Выберите файл со стилями</translation>
+        <source>Select stylesheet files</source>
+        <translation>Выберите файлы со стилями</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
