@@ -529,7 +529,7 @@ private:
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
 
-		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileName(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
+		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileNames(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 	}
 
 	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
@@ -634,21 +634,23 @@ private:
 		return addLibList(libList);
 	}
 
-	void OpenExternalStyle(const QString& fileName)
+	void OpenExternalStyle(const QStringList& fileNames)
 	{
-		if (fileName.isEmpty())
-			return;
-
 		auto list = m_settings->Get(THEME_FILES_KEY).toStringList();
-		if (list.contains(fileName, Qt::CaseInsensitive))
-			return;
 
-		auto actions = AddExternalStyle(fileName);
-		if (actions.empty())
-			return;
+		for (const auto& fileName : fileNames)
+		{
+			if (list.contains(fileName, Qt::CaseInsensitive))
+				continue;
 
-		AddStyleActionsToGroup(actions, m_stylesActionGroup);
-		list << fileName;
+			auto actions = AddExternalStyle(fileName);
+			if (actions.empty())
+				continue;
+
+			AddStyleActionsToGroup(actions, m_stylesActionGroup);
+			list << fileName;
+		}
+
 		m_settings->Set(THEME_FILES_KEY, list);
 	}
 
