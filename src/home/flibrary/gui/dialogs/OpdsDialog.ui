@@ -116,7 +116,8 @@
   </layout>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::EditCopy"/>
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/copy.svg</normaloff>:/icons/copy.svg</iconset>
    </property>
    <property name="toolTip">
     <string>Copy address to clipboard</string>
@@ -132,7 +133,9 @@
   <tabstop>btnStop</tabstop>
   <tabstop>btnClose</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../icons/light/resources/light.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>btnClose</sender>

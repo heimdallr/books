@@ -1,5 +1,6 @@
 <RCC>
 	<qresource prefix="icons">
+		<file alias="copy.svg">icons/copy.svg</file>
 		<file alias="open-folder.svg">icons/open-folder.svg</file>
 		<file alias="set-default.svg">icons/set-default.svg</file>
 		<file alias="down.svg">icons/down.svg</file>
