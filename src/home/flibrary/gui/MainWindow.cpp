@@ -64,6 +64,7 @@ constexpr auto MAIN_WINDOW = "MainWindow";
 constexpr auto CONTEXT = MAIN_WINDOW;
 constexpr auto FONT_DIALOG_TITLE = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto CONFIRM_REMOVE_ALL_THEMES = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
 constexpr auto DATABASE_BROKEN = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
 constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
@@ -545,6 +546,7 @@ private:
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
 
 		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileNames(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
+		connect(m_ui.actionDeleteAllThemes, &QAction::triggered, &m_self, [this] { DeleteCustomThemes(); });
 	}
 
 	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
@@ -615,6 +617,7 @@ private:
 
 		m_ui.menuTheme->addSeparator();
 		m_ui.menuTheme->addAction(m_ui.actionAddThemes);
+		m_ui.menuTheme->addAction(m_ui.actionDeleteAllThemes);
 	}
 
 	std::vector<QAction*> AddExternalStyle(const QString& fileName)
@@ -695,6 +698,27 @@ private:
 		}
 
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
+	}
+
+	void DeleteCustomThemes()
+	{
+		if (m_uiFactory->ShowQuestion(Tr(CONFIRM_REMOVE_ALL_THEMES), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) != QMessageBox::Yes)
+			return;
+
+		for (auto* action : m_ui.menuTheme->actions())
+		{
+			const auto file = action->property(IStyleApplier::THEME_FILE_KEY).toString();
+			if (!file.isEmpty())
+				m_ui.menuTheme->removeAction(action);
+		}
+
+		m_settings->Remove(IStyleApplier::THEME_FILES_KEY);
+
+		if (m_styleApplierFactory->CreateThemeApplier()->GetType() == IStyleApplier::Type::PluginStyle)
+			return;
+
+		m_styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::PluginStyle)->Apply(IStyleApplier::THEME_NAME_DEFAULT, {});
+		RebootDialog();
 	}
 
 	void SearchBookByTitle()

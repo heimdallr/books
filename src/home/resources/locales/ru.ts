@@ -3186,6 +3186,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Are you sure you want to delete all themes?</source>
+        <translation>Уверены, что хотите удалить все темы?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation>Файл базы данных &quot;%1&quot; повреждён</translation>
     </message>
@@ -3387,6 +3392,10 @@ Try again?</source>
     <message>
         <source>Add themes...</source>
         <translation>Добавить темы...</translation>
+    </message>
+    <message>
+        <source>Delete all themes</source>
+        <translation>Удалить все темы</translation>
     </message>
 </context>
 <context>

@@ -3174,6 +3174,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Are you sure you want to delete all themes?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Database file &quot;%1&quot; is probably corrupted</source>
         <translation></translation>
     </message>
@@ -3374,6 +3379,10 @@ Try again?</source>
     </message>
     <message>
         <source>Add themes...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete all themes</source>
         <translation></translation>
     </message>
 </context>
