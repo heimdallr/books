@@ -88,7 +88,6 @@ constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
 constexpr auto QSS = "qss";
-constexpr auto THEME_FILES_KEY = "ui/Theme/files";
 
 class AllowDestructiveOperationsObserver final : public QObject
 {
@@ -154,7 +153,7 @@ private:
 
 QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
 {
-	auto* action = menu.addAction(actionName);
+	auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
 	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_NAME, name);
 	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_TYPE, static_cast<int>(type));
 	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, file);
@@ -570,8 +569,13 @@ private:
 
 		m_ui.menuTheme->addSeparator();
 
-		for (const auto& fileName : m_settings->Get(THEME_FILES_KEY).toStringList())
-			std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
+		if (const auto externalThemesVar = m_settings->Get(IStyleApplier::THEME_FILES_KEY); externalThemesVar.isValid())
+		{
+			auto externalThemes = externalThemesVar.toStringList();
+			std::ranges::sort(externalThemes);
+			for (const auto& fileName : externalThemes)
+				std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
+		}
 		addActionGroup(styles, m_stylesActionGroup);
 
 		m_ui.menuTheme->addSeparator();
@@ -588,7 +592,7 @@ private:
 
 		const auto ext = fileInfo.suffix().toLower();
 		if (ext == "qss")
-			return { CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::QssStyle, fileInfo.completeBaseName(), fileInfo.completeBaseName(), fileName) };
+			return { CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::QssStyle, fileName, fileInfo.completeBaseName(), fileName) };
 
 		if (ext == "dll")
 			return AddEternalStyleDll(fileInfo);
@@ -608,7 +612,7 @@ private:
 
 			std::vector<QAction*> result;
 			result.reserve(libList.size());
-			std::ranges::transform(libList, std::back_inserter(result), [&](const auto& qss) { return CreateStyleAction(*menu, IStyleApplier::Type::DllStyle, qss.mid(2), qss, fileInfo.filePath()); });
+			std::ranges::transform(libList, std::back_inserter(result), [&](const auto& qss) { return CreateStyleAction(*menu, IStyleApplier::Type::DllStyle, qss, qss, fileInfo.filePath()); });
 
 			return result;
 		};
@@ -636,7 +640,7 @@ private:
 
 	void OpenExternalStyle(const QStringList& fileNames)
 	{
-		auto list = m_settings->Get(THEME_FILES_KEY).toStringList();
+		auto list = m_settings->Get(IStyleApplier::THEME_FILES_KEY).toStringList();
 
 		for (const auto& fileName : fileNames)
 		{
@@ -651,7 +655,7 @@ private:
 			list << fileName;
 		}
 
-		m_settings->Set(THEME_FILES_KEY, list);
+		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
 	}
 
 	void SearchBookByTitle()

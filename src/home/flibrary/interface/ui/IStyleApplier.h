@@ -16,9 +16,17 @@ namespace HomeCompa::Flibrary
 class IStyleApplier // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+#ifndef NDEBUG
+	static constexpr auto THEME_NAME_KEY = "ui/ThemeD/name";
+	static constexpr auto THEME_TYPE_KEY = "ui/ThemeD/type";
+	static constexpr auto THEME_FILE_KEY = "ui/ThemeD/file";
+	static constexpr auto THEME_FILES_KEY = "ui/ThemeD/files";
+#else
 	static constexpr auto THEME_NAME_KEY = "ui/Theme/name";
 	static constexpr auto THEME_TYPE_KEY = "ui/Theme/type";
 	static constexpr auto THEME_FILE_KEY = "ui/Theme/file";
+	static constexpr auto THEME_FILES_KEY = "ui/Theme/files";
+#endif
 	static constexpr auto THEME_NAME_DEFAULT = "windowsvista";
 	static constexpr auto THEME_KEY_DEFAULT = "PluginStyle";
 	static constexpr auto COLOR_SCHEME_KEY = "ui/colorScheme";
