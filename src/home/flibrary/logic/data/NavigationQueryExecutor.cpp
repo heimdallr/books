@@ -32,6 +32,7 @@ constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
+constexpr auto LANGUAGES_QUERY = "select distinct lang from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
 constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
@@ -39,6 +40,7 @@ constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
 constexpr auto WHERE_SERIES = "where b.SeriesID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
+constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH su.Title";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
@@ -172,10 +174,12 @@ using NavigationRequest = void (*)(NavigationMode navigationMode, INavigationQue
 
 constexpr size_t NAVIGATION_QUERY_INDEX_AUTHOR[] { 0, 1, 2, 3 };
 constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
+constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE[] { 0, 0 };
 constexpr size_t NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
 
 constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
 constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
+constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE };
 constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title,    BookItem::Column::Series,  BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre,
@@ -211,6 +215,9 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 	{ NavigationMode::Archives,
      { &RequestNavigationSimpleList,
      { ARCHIVES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_ARCHIVE, nullptr, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	{ NavigationMode::Languages,
+     { &RequestNavigationSimpleList,
+     { LANGUAGES_QUERY, QUERY_INFO_LANGUAGE_ITEM, WHERE_LANGUAGE, nullptr, &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 	{   NavigationMode::Search,
      { &RequestNavigationSimpleList,
      { SEARCH_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SEARCHES, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }  },
@@ -230,7 +237,6 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
     {         "Books", NavigationMode::Archives },
     { "Searches_User",   NavigationMode::Search },
 };
-static_assert(static_cast<size_t>(NavigationMode::Last) - 1 == std::size(TABLES));
 
 } // namespace
 

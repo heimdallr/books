@@ -11,6 +11,7 @@ enum class NavigationMode
 	Genres,
 	Keywords,
 	Archives,
+	Languages,
 	Groups,
 	Search,
 	AllBooks,
