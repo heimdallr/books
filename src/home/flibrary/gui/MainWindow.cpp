@@ -266,8 +266,7 @@ public:
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
 
 		auto actions = m_ui.menuTheme->actions();
-		if (const auto it = std::ranges::find(actions, m_lastStyleFileHovered, [](const QAction* action) { return action->property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString(); });
-		    it != actions.end())
+		if (const auto it = std::ranges::find(actions, m_lastStyleFileHovered, [](const QAction* action) { return action->property(IStyleApplier::THEME_FILE_KEY).toString(); }); it != actions.end())
 		{
 			m_ui.menuTheme->removeAction(*it);
 			if (auto* menu = (*it)->menu<>())
@@ -278,7 +277,6 @@ public:
 			return;
 
 		m_styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::PluginStyle)->Apply(IStyleApplier::THEME_NAME_DEFAULT, {});
-
 		RebootDialog();
 	}
 
@@ -556,8 +554,8 @@ private:
 
 		action.setEnabled(false);
 
-		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplierFactory::ACTION_PROPERTY_TYPE).toInt()));
-		applier->Apply(action.property(IStyleApplierFactory::ACTION_PROPERTY_NAME).toString(), action.property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString());
+		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplier::THEME_TYPE_KEY).toInt()));
+		applier->Apply(action.property(IStyleApplier::THEME_NAME_KEY).toString(), action.property(IStyleApplier::THEME_FILE_KEY).toString());
 		RebootDialog();
 	}
 
@@ -580,9 +578,9 @@ private:
 	{
 		auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
 
-		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_NAME, name);
-		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_TYPE, static_cast<int>(type));
-		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, file);
+		action->setProperty(IStyleApplier::THEME_NAME_KEY, name);
+		action->setProperty(IStyleApplier::THEME_TYPE_KEY, static_cast<int>(type));
+		action->setProperty(IStyleApplier::THEME_FILE_KEY, file);
 		action->setCheckable(true);
 
 		connect(action, &QAction::hovered, &m_self, [this, file] { m_lastStyleFileHovered = file; });
@@ -648,7 +646,7 @@ private:
 			menu->setFont(m_self.font());
 
 			auto* action = menu->menuAction();
-			action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, fileInfo.filePath());
+			action->setProperty(IStyleApplier::THEME_FILE_KEY, fileInfo.filePath());
 			connect(action, &QAction::hovered, &m_self, [this, file = fileInfo.filePath()] { m_lastStyleFileHovered = file; });
 
 			std::vector<QAction*> result;
