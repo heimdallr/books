@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1113</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -280,7 +280,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1113</width>
      <height>22</height>
     </rect>
    </property>
@@ -367,6 +367,21 @@
       <addaction name="actionFontSizeUp"/>
       <addaction name="actionFontSizeDown"/>
      </widget>
+     <widget class="QMenu" name="menuTheme">
+      <property name="title">
+       <string>&amp;Theme</string>
+      </property>
+      <widget class="QMenu" name="menuColorScheme">
+       <property name="title">
+        <string>&amp;Color scheme</string>
+       </property>
+       <addaction name="actionColorSchemeSystem"/>
+       <addaction name="actionColorSchemeLight"/>
+       <addaction name="actionColorSchemeDark"/>
+      </widget>
+      <addaction name="menuColorScheme"/>
+      <addaction name="separator"/>
+     </widget>
      <addaction name="actionShowRemoved"/>
      <addaction name="actionHideRemoved"/>
      <addaction name="actionShowAnnotation"/>
@@ -377,23 +392,8 @@
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
+     <addaction name="menuTheme"/>
     </widget>
-    <widget class="QMenu" name="menuTheme">
-     <property name="title">
-      <string>&amp;Theme</string>
-     </property>
-     <widget class="QMenu" name="menuColorScheme">
-      <property name="title">
-       <string>&amp;Color scheme</string>
-      </property>
-      <addaction name="actionColorSchemeSystem"/>
-      <addaction name="actionColorSchemeLight"/>
-      <addaction name="actionColorSchemeDark"/>
-     </widget>
-     <addaction name="menuColorScheme"/>
-     <addaction name="separator"/>
-    </widget>
-    <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
