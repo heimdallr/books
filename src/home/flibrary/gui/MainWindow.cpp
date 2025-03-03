@@ -151,16 +151,6 @@ private:
 	const char* const m_placeholderText;
 };
 
-QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
-{
-	auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
-	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_NAME, name);
-	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_TYPE, static_cast<int>(type));
-	action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, file);
-	action->setCheckable(true);
-	return action;
-}
-
 std::set<QString> GetQssList()
 {
 	std::set<QString> list;
@@ -262,6 +252,34 @@ public:
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
 		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
+	}
+
+	void RemoveCustomStyleFile()
+	{
+		if (m_lastStyleFileHovered.isEmpty())
+			return;
+
+		auto list = m_settings->Get(IStyleApplier::THEME_FILES_KEY).toStringList();
+		if (!erase_if(list, [this](const auto& item) { return item == m_lastStyleFileHovered; }))
+			return;
+
+		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
+
+		auto actions = m_ui.menuTheme->actions();
+		if (const auto it = std::ranges::find(actions, m_lastStyleFileHovered, [](const QAction* action) { return action->property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString(); });
+		    it != actions.end())
+		{
+			m_ui.menuTheme->removeAction(*it);
+			if (auto* menu = (*it)->menu<>())
+				menu->close();
+		}
+
+		if (m_styleApplierFactory->CreateThemeApplier()->GetChecked().second != m_lastStyleFileHovered)
+			return;
+
+		m_styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::PluginStyle)->Apply(IStyleApplier::THEME_NAME_DEFAULT, {});
+
+		RebootDialog();
 	}
 
 private: // ICollectionsObserver
@@ -540,6 +558,11 @@ private:
 
 		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplierFactory::ACTION_PROPERTY_TYPE).toInt()));
 		applier->Apply(action.property(IStyleApplierFactory::ACTION_PROPERTY_NAME).toString(), action.property(IStyleApplierFactory::ACTION_PROPERTY_DATA).toString());
+		RebootDialog();
+	}
+
+	void RebootDialog() const
+	{
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 			Reboot();
 	}
@@ -551,6 +574,20 @@ private:
 			group->addAction(action);
 			connect(action, &QAction::triggered, &m_self, [this, action, group] { ApplyStyleAction(*action, *group); });
 		}
+	}
+
+	QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
+	{
+		auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
+
+		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_NAME, name);
+		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_TYPE, static_cast<int>(type));
+		action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, file);
+		action->setCheckable(true);
+
+		connect(action, &QAction::hovered, &m_self, [this, file] { m_lastStyleFileHovered = file; });
+
+		return action;
 	}
 
 	void CreateStylesMenu()
@@ -582,7 +619,7 @@ private:
 		m_ui.menuTheme->addAction(m_ui.actionAddThemes);
 	}
 
-	std::vector<QAction*> AddExternalStyle(const QString& fileName) const
+	std::vector<QAction*> AddExternalStyle(const QString& fileName)
 	{
 		assert(!fileName.isEmpty());
 
@@ -600,7 +637,7 @@ private:
 		return {};
 	}
 
-	std::vector<QAction*> AddEternalStyleDll(const QFileInfo& fileInfo) const
+	std::vector<QAction*> AddEternalStyleDll(const QFileInfo& fileInfo)
 	{
 		const auto addLibList = [&](const std::set<QString>& libList) -> std::vector<QAction*>
 		{
@@ -609,6 +646,10 @@ private:
 
 			auto* menu = m_ui.menuTheme->addMenu(fileInfo.completeBaseName());
 			menu->setFont(m_self.font());
+
+			auto* action = menu->menuAction();
+			action->setProperty(IStyleApplierFactory::ACTION_PROPERTY_DATA, fileInfo.filePath());
+			connect(action, &QAction::hovered, &m_self, [this, file = fileInfo.filePath()] { m_lastStyleFileHovered = file; });
 
 			std::vector<QAction*> result;
 			result.reserve(libList.size());
@@ -824,6 +865,7 @@ private:
 	bool m_checkForUpdateOnStartEnabled { true };
 
 	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
+	QString m_lastStyleFileHovered;
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -875,6 +917,14 @@ MainWindow::~MainWindow()
 void MainWindow::Show()
 {
 	show();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_Delete)
+		m_impl->RemoveCustomStyleFile();
+
+	QMainWindow::keyPressEvent(event);
 }
 
 void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)

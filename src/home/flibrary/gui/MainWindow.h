@@ -49,6 +49,9 @@ signals:
 private: // IMainWindow
 	void Show() override;
 
+private: // QWidget
+	void keyPressEvent(QKeyEvent* event) override;
+
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 

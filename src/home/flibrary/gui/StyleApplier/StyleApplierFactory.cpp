@@ -4,8 +4,6 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-#include "interface/constants/SettingsConstant.h"
-
 #include "ColorSchemeApplier.h"
 #include "DllStyleApplier.h"
 #include "PluginStyleApplier.h"
