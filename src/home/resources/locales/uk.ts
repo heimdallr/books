@@ -3537,6 +3537,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Languages</source>
+        <translation>Мови</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Groups</source>
         <translation>Групи</translation>
     </message>
