@@ -157,12 +157,12 @@ public:
 		{
 			auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
 			std::get<1>(book) =
-				UpdateDictionary<long long>(m_series, *query, QueryInfo(&DatabaseUtil::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES), [](const IDataItem& item) { return item.GetId() != "-1"; });
-			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo(&DatabaseUtil::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR)));
+				UpdateDictionary<long long>(m_series, *query, QueryInfo { &DatabaseUtil::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES }, [](const IDataItem& item) { return item.GetId() != "-1"; });
+			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, *query, QueryInfo { &DatabaseUtil::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR }));
 			Add(std::get<3>(book),
 			    UpdateDictionary<QString, const char*>(m_genres,
 			                                           *query,
-			                                           QueryInfo(&DatabaseUtil::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE),
+			                                           QueryInfo { &DatabaseUtil::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE },
 			                                           [](const IDataItem& item) { return !(item.GetData().isEmpty() || item.GetData()[0].isDigit()); }));
 
 			if (!std::get<0>(book))
