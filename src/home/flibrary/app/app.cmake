@@ -6,7 +6,6 @@ CreateWinRC(app
     	APP_VERSION       ${PRODUCT_VERSION}
 )
 
-file(COPY ${Qt6Translations_DIR}/qtbase_ru.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	file(WRITE "${CMAKE_BINARY_DIR}/config/installer_mode" "msi")
 	install(FILES "${CMAKE_BINARY_DIR}/config/installer_mode" DESTINATION .)
@@ -48,6 +47,10 @@ AddTarget(${PROJECT_NAME}	app
 )
 
 file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
+foreach(ts ${qt_ts})
+	get_filename_component(ts ${ts} NAME_WE)
+	file(COPY ${Qt6Translations_DIR}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
+endforeach()
 
 GenerateTranslations(
 	NAME ${PROJECT_NAME}
