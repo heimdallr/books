@@ -74,7 +74,8 @@ void StyleApplierFactory::CheckAction(const std::vector<QAction*>& actions) cons
 		std::ranges::for_each(actionsToCheck, [](auto* action) { action->setEnabled(true); });
 		auto [name, data] = CreateStyleApplier(type)->GetChecked();
 		const auto it = std::ranges::find_if(actionsToCheck,
-		                         [&](const QAction* action) { return action->property(IStyleApplier::THEME_NAME_KEY).toString() == name && action->property(IStyleApplier::THEME_FILE_KEY).toString() == data; });
+		                                     [&](const QAction* action)
+		                                     { return action->property(IStyleApplier::THEME_NAME_KEY).toString() == name && action->property(IStyleApplier::THEME_FILE_KEY).toString() == data; });
 		if (it == actionsToCheck.end())
 			continue;
 
