@@ -31,6 +31,7 @@ public:
 		QString annotation;
 		QString epigraph;
 		QString epigraphAuthor;
+		QString language, sourceLanguage;
 		std::vector<QString> keywords;
 		IAnnotationController::IDataProvider::Covers covers;
 		std::optional<size_t> coverIndex;

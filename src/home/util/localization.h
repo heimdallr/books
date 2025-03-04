@@ -73,6 +73,7 @@ namespace HomeCompa
 {
 
 constexpr auto LANGUAGES_CONTEXT = "Language";
+constexpr auto UNDEFINED = "Undefined";
 constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "am", QT_TRANSLATE_NOOP("Language", "Amharic") },
 	{ "ar", QT_TRANSLATE_NOOP("Language", "Arabic") },
