@@ -42,6 +42,7 @@ constexpr auto GENRES = QT_TRANSLATE_NOOP("Annotation", "Genres:");
 constexpr auto ARCHIVE = QT_TRANSLATE_NOOP("Annotation", "Archives:");
 constexpr auto GROUPS = QT_TRANSLATE_NOOP("Annotation", "Groups:");
 constexpr auto KEYWORDS = QT_TRANSLATE_NOOP("Annotation", "Keywords:");
+constexpr auto LANGUAGE = QT_TRANSLATE_NOOP("Annotation", "Languages:");
 constexpr auto RATE = QT_TRANSLATE_NOOP("Annotation", "Rate:");
 constexpr auto USER_RATE = QT_TRANSLATE_NOOP("Annotation", "My rate:");
 

@@ -2,14 +2,13 @@
 
 #include <ranges>
 
-#include <QBuffer>
-#include <QDateTime>
 #include <QFileInfo>
 #include <QPixmap>
 #include <QTimer>
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/observable.h"
+#include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -45,6 +44,8 @@ constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
+constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
+constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
 
 TR_DEF
 
@@ -160,6 +161,40 @@ struct Table
 	QStringList data;
 };
 
+QString TranslateLang(const QString& code)
+{
+	const auto* language = FindSecond(LANGUAGES, code.toStdString().data(), UNDEFINED, PszComparer {});
+	return Loc::Tr(LANGUAGES_CONTEXT, language);
+}
+
+Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider)
+{
+	const auto& book = dataProvider.GetBook();
+	const auto& folder = book.GetRawData(BookItem::Column::Folder);
+	const auto& keywords = dataProvider.GetKeywords();
+	const auto& lang = book.GetRawData(BookItem::Column::Lang);
+	const auto& fbLang = dataProvider.GetLanguage();
+	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
+
+	auto langStr = Url(Loc::LANGUAGE, lang, TranslateLang(lang));
+	if (!fbLang.isEmpty() && fbLang != lang)
+		langStr.append(Tr(OR).arg(Url(Loc::LANGUAGE, fbLang, TranslateLang(fbLang))));
+	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
+		langStr.append(Tr(TRANSLATION_FROM).arg(Url(Loc::LANGUAGE, fbSourceLang, TranslateLang(fbSourceLang))));
+
+	Table table;
+	table.Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
+		.Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
+		.Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
+		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
+		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
+		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
+		.Add(Loc::LANGUAGE, langStr)
+		;
+
+	return table;
+}
+
 class JokeRequesterClientImpl : virtual public IJokeRequester::IClient
 {
 public:
@@ -271,6 +306,16 @@ private: // IDataProvider
 	[[nodiscard]] const QString& GetEpigraphAuthor() const noexcept override
 	{
 		return m_archiveData.epigraphAuthor;
+	}
+
+	[[nodiscard]] const QString& GetLanguage() const noexcept override
+	{
+		return m_archiveData.language;
+	}
+
+	[[nodiscard]] const QString& GetSourceLanguage() const noexcept override
+	{
+		return m_archiveData.sourceLanguage;
 	}
 
 	[[nodiscard]] const std::vector<QString>& GetFb2Keywords() const noexcept override
@@ -554,17 +599,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	if (keywords.GetChildCount() == 0)
 		Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
-	const auto& folder = book.GetRawData(BookItem::Column::Folder);
-
-	Add(annotation,
-	    Table()
-	        .Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
-	        .Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
-	        .Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
-	        .Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
-	        .Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
-	        .Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
-	        .ToString());
+	Add(annotation, CreateUrlTable(dataProvider).ToString());
 
 	if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
 	{

@@ -306,6 +306,7 @@ private: // ITableSubscriptionHandler
 	{
 		OnTableChanged(NavigationMode::Genres);
 		OnTableChanged(NavigationMode::Archives);
+		OnTableChanged(NavigationMode::Languages);
 		self.RequestBooks(true);
 	}
 
