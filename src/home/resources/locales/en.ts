@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Languages:</source>
+        <translation>Language:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Rate:</source>
         <translation></translation>
     </message>
@@ -245,6 +250,16 @@
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Export statistics:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source> or %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>, translated from %1</source>
         <translation></translation>
     </message>
 </context>

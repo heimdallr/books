@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Languages:</source>
+        <translation>Язык:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Rate:</source>
         <translation>Рейтинг:</translation>
     </message>
@@ -246,6 +251,16 @@
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Export statistics:</source>
         <translation>Статистика экспорта:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source> or %1</source>
+        <translation> или %1</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>, translated from %1</source>
+        <translation>, язык оригинала %1</translation>
     </message>
 </context>
 <context>
