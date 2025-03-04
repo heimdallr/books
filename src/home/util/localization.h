@@ -120,7 +120,7 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "ml", QT_TRANSLATE_NOOP("Language", "Malayalam") },
 	{ "mr", QT_TRANSLATE_NOOP("Language", "Marathi") },
 	{ "my", QT_TRANSLATE_NOOP("Language", "Burmese") },
-	{ "ne", "ne" },
+	{ "ne", QT_TRANSLATE_NOOP("Language", "Neo") },
 	{ "nl", QT_TRANSLATE_NOOP("Language", "Dutch") },
 	{ "no", QT_TRANSLATE_NOOP("Language", "Norwegian") },
 	{ "pl", QT_TRANSLATE_NOOP("Language", "Polish") },
