@@ -47,10 +47,12 @@ AddTarget(${PROJECT_NAME}	app
 )
 
 file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
-foreach(ts ${qt_ts})
-	get_filename_component(ts ${ts} NAME_WE)
-	file(COPY ${Qt6Translations_DIR}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
-endforeach()
+if (${QT_MAJOR_VERSION} STREQUAL 6)
+	foreach(ts ${qt_ts})
+		get_filename_component(ts ${ts} NAME_WE)
+		file(COPY ${Qt6Translations_DIR}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
+	endforeach()
+endif()
 
 GenerateTranslations(
 	NAME ${PROJECT_NAME}
