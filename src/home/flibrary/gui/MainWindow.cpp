@@ -300,7 +300,8 @@ private:
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
 
-		m_localeController->Setup(*m_ui.menuLanguage);
+		if (m_localeController->Setup(*m_ui.menuLanguage); m_ui.menuLanguage->actions().size() < 2)
+			delete m_ui.menuLanguage;
 
 		m_ui.logView->setModel(m_logController->GetModel());
 		m_ui.logView->setItemDelegate(m_logItemDelegate.get());
