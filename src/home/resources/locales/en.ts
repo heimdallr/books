@@ -2905,6 +2905,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Neo</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Dutch</source>
         <translation></translation>
     </message>
