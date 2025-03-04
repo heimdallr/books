@@ -3139,16 +3139,8 @@ Try again?</source>
         <translation>Ко&amp;ллекция</translation>
     </message>
     <message>
-        <source>&amp;Hide removed books</source>
-        <translation>&amp;Скрывать удалённые книги</translation>
-    </message>
-    <message>
         <source>&amp;Log</source>
         <translation>&amp;Журнал</translation>
-    </message>
-    <message>
-        <source>&amp;Show log</source>
-        <translation>&amp;Показать журнал</translation>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
@@ -3233,10 +3225,6 @@ Try again?</source>
         <translation>&amp;Импорт (восстановление)</translation>
     </message>
     <message>
-        <source>&amp;Show removed books</source>
-        <translation>&amp;Показывать удалённые книги</translation>
-    </message>
-    <message>
         <source>&amp;Language</source>
         <translation>&amp;Язык</translation>
     </message>
@@ -3257,34 +3245,6 @@ Try again?</source>
         <translation>Скр&amp;ыть</translation>
     </message>
     <message>
-        <source>Show &amp;content</source>
-        <translation>Показывать &amp;содержание</translation>
-    </message>
-    <message>
-        <source>Hide &amp;content</source>
-        <translation>Скрывать &amp;содержание</translation>
-    </message>
-    <message>
-        <source>Show &amp;annotation</source>
-        <translation>Показать &amp;аннотацию</translation>
-    </message>
-    <message>
-        <source>Show s&amp;tatus line</source>
-        <translation>Показать строку с&amp;татуса</translation>
-    </message>
-    <message>
-        <source>Hide s&amp;tatus line</source>
-        <translation>Скрыть строку с&amp;татуса</translation>
-    </message>
-    <message>
-        <source>Show co&amp;ver</source>
-        <translation>Показывать &amp;обложку</translation>
-    </message>
-    <message>
-        <source>Hide co&amp;ver</source>
-        <translation>Скрывать &amp;обложку</translation>
-    </message>
-    <message>
         <source>&amp;Test colors</source>
         <translation>&amp;Цвета сообщений</translation>
     </message>
@@ -3294,7 +3254,7 @@ Try again?</source>
     </message>
     <message>
         <source>Check for &amp;Updates</source>
-        <translation>&amp;Проверка обновлений</translation>
+        <translation>&amp;Проверить обновления</translation>
     </message>
     <message>
         <source>&amp;Permanent language filter</source>
@@ -3329,20 +3289,8 @@ Try again?</source>
         <translation>Управление сервером OPDS</translation>
     </message>
     <message>
-        <source>Hide cover &amp;buttons</source>
-        <translation>Скрывать &amp;кнопки на обложке</translation>
-    </message>
-    <message>
-        <source>Show cover &amp;buttons</source>
-        <translation>Показывать &amp;кнопки на обложке</translation>
-    </message>
-    <message>
         <source>Allow destructive operations</source>
         <translation>Разрешить деструктивные операции</translation>
-    </message>
-    <message>
-        <source>Deny destructive operations</source>
-        <translation>Запретить деструктивные операции</translation>
     </message>
     <message>
         <source>Cleaner...</source>
@@ -3351,10 +3299,6 @@ Try again?</source>
     <message>
         <source>Generate &amp;index (*.inpx)</source>
         <translation>Генерировать &amp;индекс (*.inpx)</translation>
-    </message>
-    <message>
-        <source>Show &amp;jokes</source>
-        <translation>Показывать &amp;шутки</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
@@ -3374,28 +3318,48 @@ Try again?</source>
         <translation>Поиск книги по названию</translation>
     </message>
     <message>
-        <source>Show &amp;book search by title bar</source>
-        <translation>Показать строку поиска &amp;книги по названию</translation>
-    </message>
-    <message>
-        <source>Hide &amp;book search by title bar</source>
-        <translation>Скрыть строку поиска &amp;книги по названию</translation>
-    </message>
-    <message>
-        <source>Enable check for update on &amp;start</source>
-        <translation>Включить проверку обновлений на &amp;старте</translation>
-    </message>
-    <message>
-        <source>Disable check for update on &amp;start</source>
-        <translation>Выключить проверку обновлений на &amp;старте</translation>
-    </message>
-    <message>
         <source>Add themes...</source>
         <translation>Добавить темы...</translation>
     </message>
     <message>
         <source>Delete all themes</source>
         <translation>Удалить все темы</translation>
+    </message>
+    <message>
+        <source>Check for updates on &amp;startup</source>
+        <translation>Проверять обновление на &amp;старте</translation>
+    </message>
+    <message>
+        <source>Sho&amp;w</source>
+        <translation>Пока&amp;зать</translation>
+    </message>
+    <message>
+        <source>&amp;Removed books</source>
+        <translation>У&amp;далённые книги</translation>
+    </message>
+    <message>
+        <source>&amp;Content</source>
+        <translation>Содержан&amp;ие</translation>
+    </message>
+    <message>
+        <source>S&amp;tatus line</source>
+        <translation>Строка &amp;статуса</translation>
+    </message>
+    <message>
+        <source>Co&amp;ver and illustrations</source>
+        <translation>&amp;Обложки и иллюстрации</translation>
+    </message>
+    <message>
+        <source>Cover navigation &amp;buttons</source>
+        <translation>&amp;Кнопки навигации на обложке</translation>
+    </message>
+    <message>
+        <source>&amp;Jokes</source>
+        <translation>&amp;Шутки</translation>
+    </message>
+    <message>
+        <source>Search &amp;bar by title</source>
+        <translation>Панель поиска по &amp;названию</translation>
     </message>
 </context>
 <context>

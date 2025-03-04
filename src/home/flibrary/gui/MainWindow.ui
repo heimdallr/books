@@ -483,7 +483,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Show log</string>
+    <string>Sho&amp;w</string>
    </property>
    <property name="shortcut">
     <string notr="true">Esc</string>
@@ -552,7 +552,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Show removed books</string>
+    <string>&amp;Removed books</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -585,7 +585,7 @@
   </action>
   <action name="actionShowAnnotation">
    <property name="text">
-    <string>Show &amp;annotation</string>
+    <string>&amp;Annotation</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -605,7 +605,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;content</string>
+    <string>&amp;Content</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -622,7 +622,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show s&amp;tatus line</string>
+    <string>S&amp;tatus line</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -639,7 +639,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show co&amp;ver</string>
+    <string>Co&amp;ver and illustrations</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -752,7 +752,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show cover &amp;buttons</string>
+    <string>Cover navigation &amp;buttons</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -793,7 +793,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;jokes</string>
+    <string>&amp;Jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -822,7 +822,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;book search by title bar</string>
+    <string>Search &amp;bar by title</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -841,7 +841,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable check for update on &amp;start</string>
+    <string>Check for updates on &amp;startup</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
