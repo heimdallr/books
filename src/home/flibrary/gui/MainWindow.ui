@@ -316,7 +316,6 @@
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
     <addaction name="actionAllowDestructiveOperations"/>
-    <addaction name="actionDenyDestructiveOperations"/>
     <addaction name="actionShowCollectionCleaner"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
@@ -336,14 +335,12 @@
       <property name="title">
        <string>&amp;Annotation</string>
       </property>
-      <addaction name="actionHideAnnotation"/>
       <addaction name="actionShowAnnotationCover"/>
-      <addaction name="actionHideAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
-      <addaction name="actionHideAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
-      <addaction name="actionHideAnnotationContent"/>
       <addaction name="actionShowJokes"/>
+      <addaction name="separator"/>
+      <addaction name="actionHideAnnotation"/>
      </widget>
      <widget class="QMenu" name="menuLog">
       <property name="title">
@@ -383,12 +380,9 @@
       <addaction name="separator"/>
      </widget>
      <addaction name="actionShowRemoved"/>
-     <addaction name="actionHideRemoved"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
-     <addaction name="actionHideStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
-     <addaction name="actionHideSearchBookString"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
@@ -409,7 +403,6 @@
     </property>
     <addaction name="actionCheckForUpdates"/>
     <addaction name="actionEnableCheckForUpdateOnStart"/>
-    <addaction name="actionDisableCheckForUpdateOnStart"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -485,23 +478,12 @@
     <string notr="true"/>
    </property>
   </action>
-  <action name="actionHideRemoved">
-   <property name="text">
-    <string>&amp;Hide removed books</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionShowLog">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Show log</string>
+    <string>Sho&amp;w</string>
    </property>
    <property name="shortcut">
     <string notr="true">Esc</string>
@@ -566,8 +548,11 @@
    </property>
   </action>
   <action name="actionShowRemoved">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>&amp;Show removed books</string>
+    <string>&amp;Removed books</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -600,29 +585,27 @@
   </action>
   <action name="actionShowAnnotation">
    <property name="text">
-    <string>Show &amp;annotation</string>
+    <string>&amp;Annotation</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowAnnotationContent">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show &amp;content</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionHideAnnotationContent">
-   <property name="text">
-    <string>Hide &amp;content</string>
+    <string>&amp;Content</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -632,19 +615,14 @@
    </property>
   </action>
   <action name="actionShowStatusBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show s&amp;tatus line</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionHideStatusBar">
-   <property name="text">
-    <string>Hide s&amp;tatus line</string>
+    <string>S&amp;tatus line</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -654,16 +632,14 @@
    </property>
   </action>
   <action name="actionShowAnnotationCover">
-   <property name="text">
-    <string>Show co&amp;ver</string>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+   <property name="checked">
+    <bool>true</bool>
    </property>
-  </action>
-  <action name="actionHideAnnotationCover">
    <property name="text">
-    <string>Hide co&amp;ver</string>
+    <string>Co&amp;ver and illustrations</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -768,23 +744,24 @@
     <string>OPDS server management</string>
    </property>
   </action>
-  <action name="actionHideAnnotationCoverButtons">
-   <property name="text">
-    <string>Hide cover &amp;buttons</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionShowAnnotationCoverButtons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show cover &amp;buttons</string>
+    <string>Cover navigation &amp;buttons</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionAllowDestructiveOperations">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Allow destructive operations</string>
    </property>
@@ -792,15 +769,10 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionDenyDestructiveOperations">
-   <property name="text">
-    <string>Deny destructive operations</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionShowCollectionCleaner">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Cleaner...</string>
    </property>
@@ -821,7 +793,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;jokes</string>
+    <string>&amp;Jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -843,16 +815,14 @@
    </property>
   </action>
   <action name="actionShowSearchBookString">
-   <property name="text">
-    <string>Show &amp;book search by title bar</string>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+   <property name="checked">
+    <bool>true</bool>
    </property>
-  </action>
-  <action name="actionHideSearchBookString">
    <property name="text">
-    <string>Hide &amp;book search by title bar</string>
+    <string>Search &amp;bar by title</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -864,16 +834,14 @@
    </property>
   </action>
   <action name="actionEnableCheckForUpdateOnStart">
-   <property name="text">
-    <string>Enable check for update on &amp;start</string>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+   <property name="checked">
+    <bool>true</bool>
    </property>
-  </action>
-  <action name="actionDisableCheckForUpdateOnStart">
    <property name="text">
-    <string>Disable check for update on &amp;start</string>
+    <string>Check for updates on &amp;startup</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

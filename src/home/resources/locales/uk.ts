@@ -3180,14 +3180,6 @@ Try again?</source>
         <translation>&amp;Про програму...</translation>
     </message>
     <message>
-        <source>&amp;Hide removed books</source>
-        <translation>&amp;Приховувати видалені книги</translation>
-    </message>
-    <message>
-        <source>&amp;Show log</source>
-        <translation>&amp;Показати журнал</translation>
-    </message>
-    <message>
         <source>&amp;Clear log</source>
         <translation>О&amp;чистити журнал</translation>
     </message>
@@ -3208,44 +3200,12 @@ Try again?</source>
         <translation>&amp;Імпорт (відновлення)</translation>
     </message>
     <message>
-        <source>&amp;Show removed books</source>
-        <translation>&amp;Показувати видалені книги</translation>
-    </message>
-    <message>
         <source>&amp;Restore default values</source>
         <translation>&amp;Відновити вихідні значення</translation>
     </message>
     <message>
         <source>&amp;Hide</source>
         <translation>При&amp;ховати</translation>
-    </message>
-    <message>
-        <source>Show &amp;annotation</source>
-        <translation>Показати &amp;анотацію</translation>
-    </message>
-    <message>
-        <source>Show &amp;content</source>
-        <translation>Показувати &amp;зміст</translation>
-    </message>
-    <message>
-        <source>Hide &amp;content</source>
-        <translation>Приховувати &amp;зміст</translation>
-    </message>
-    <message>
-        <source>Show s&amp;tatus line</source>
-        <translation>Показати рядок з&amp;татуса</translation>
-    </message>
-    <message>
-        <source>Hide s&amp;tatus line</source>
-        <translation>Приховати рядок с&amp;татуса</translation>
-    </message>
-    <message>
-        <source>Show co&amp;ver</source>
-        <translation>Показувати &amp;обкладинку</translation>
-    </message>
-    <message>
-        <source>Hide co&amp;ver</source>
-        <translation>Приховувати &amp;обкладинку</translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
@@ -3265,7 +3225,7 @@ Try again?</source>
     </message>
     <message>
         <source>Check for &amp;Updates</source>
-        <translation>&amp;Перевірка оновлень</translation>
+        <translation>&amp;Перевірити оновлення</translation>
     </message>
     <message>
         <source>&amp;Permanent language filter</source>
@@ -3292,20 +3252,8 @@ Try again?</source>
         <translation>Керування сервером OPDS</translation>
     </message>
     <message>
-        <source>Hide cover &amp;buttons</source>
-        <translation>Приховувати &amp;кнопки на обкладинці</translation>
-    </message>
-    <message>
-        <source>Show cover &amp;buttons</source>
-        <translation>Показувати &amp;кнопки на обкладинці</translation>
-    </message>
-    <message>
         <source>Allow destructive operations</source>
         <translation>Дозволити деструктивні операції</translation>
-    </message>
-    <message>
-        <source>Deny destructive operations</source>
-        <translation>Заборонити деструктивні операції</translation>
     </message>
     <message>
         <source>Cleaner...</source>
@@ -3316,32 +3264,12 @@ Try again?</source>
         <translation>Генерувати &amp;індекс (*.inpx)</translation>
     </message>
     <message>
-        <source>Show &amp;jokes</source>
-        <translation>Показувати &amp;жарти</translation>
-    </message>
-    <message>
         <source>Search book by title</source>
         <translation>Пошук книги за назвою</translation>
     </message>
     <message>
-        <source>Show &amp;book search by title bar</source>
-        <translation>Показати рядок пошуку &amp;книги за назвою</translation>
-    </message>
-    <message>
-        <source>Hide &amp;book search by title bar</source>
-        <translation>Приховати строк пошуку &amp;книги за назвою</translation>
-    </message>
-    <message>
         <source>Add themes...</source>
         <translation>Додати теми...</translation>
-    </message>
-    <message>
-        <source>Enable check for update on &amp;start</source>
-        <translation>Включити перевірку оновлень на &amp;старті</translation>
-    </message>
-    <message>
-        <source>Disable check for update on &amp;start</source>
-        <translation>Вимкнути перевірку оновлень на &amp;старті</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
@@ -3396,6 +3324,42 @@ Try again?</source>
     <message>
         <source>Delete all themes</source>
         <translation>Видалити всі теми</translation>
+    </message>
+    <message>
+        <source>Check for updates on &amp;startup</source>
+        <translation>Перевіряти оновлення на &amp;старті</translation>
+    </message>
+    <message>
+        <source>Sho&amp;w</source>
+        <translation>Пока&amp;зати</translation>
+    </message>
+    <message>
+        <source>&amp;Removed books</source>
+        <translation>Ві&amp;ддалені книги</translation>
+    </message>
+    <message>
+        <source>&amp;Content</source>
+        <translation>Зм&amp;іст</translation>
+    </message>
+    <message>
+        <source>S&amp;tatus line</source>
+        <translation>Рядок &amp;статусу</translation>
+    </message>
+    <message>
+        <source>Co&amp;ver and illustrations</source>
+        <translation>&amp;Обкладинки та ілюстрації</translation>
+    </message>
+    <message>
+        <source>Cover navigation &amp;buttons</source>
+        <translation>&amp;Кнопки навігації на обкладинці</translation>
+    </message>
+    <message>
+        <source>&amp;Jokes</source>
+        <translation>&amp;Жарти</translation>
+    </message>
+    <message>
+        <source>Search &amp;bar by title</source>
+        <translation>Панель пошуку за &amp;назвою</translation>
     </message>
 </context>
 <context>
