@@ -31,6 +31,19 @@ using namespace Flibrary;
 namespace
 {
 
+void DropTriggers(DB::ITransaction& transaction)
+{
+	std::vector<std::string> triggerNames;
+	{
+		const auto triggerNamesQuery = transaction.CreateQuery("select name from sqlite_master where type = 'trigger'");
+		for (triggerNamesQuery->Execute(); !triggerNamesQuery->Eof(); triggerNamesQuery->Next())
+			triggerNames.emplace_back(triggerNamesQuery->Get<const char*>(0));
+	}
+
+	for (const auto& triggerName : triggerNames)
+		transaction.CreateCommand(std::format("drop trigger if exists {}", triggerName))->Execute();
+}
+
 void AddUserTables(DB::ITransaction& transaction)
 {
 	// clang-format off
@@ -177,6 +190,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 	try
 	{
 		const auto transaction = db->CreateTransaction();
+		DropTriggers(*transaction);
 		AddUserTables(*transaction);
 		AddUserTableField(*transaction, "Books_User", "UserRate", "INTEGER");
 		AddUserTableField(*transaction, "Books_User", "CreatedAt", "DATETIME");
@@ -187,22 +201,22 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 		                  "Authors",
 		                  "SearchName",
 		                  "VARCHAR (128) COLLATE NOCASE",
-		                  { "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)", "UPDATE Authors SET SearchName = MHL_UPPER(LastName)" });
+		                  { "UPDATE Authors SET SearchName = MHL_UPPER(LastName)", "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)" });
 		AddUserTableField(*transaction,
 		                  "Books",
 		                  "SearchTitle",
 		                  "VARCHAR (150) COLLATE NOCASE",
-		                  { "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)", "UPDATE Books SET SearchTitle = MHL_UPPER(Title)" });
+		                  { "UPDATE Books SET SearchTitle = MHL_UPPER(Title)", "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)" });
 		AddUserTableField(*transaction,
 		                  "Keywords",
 		                  "SearchTitle",
 		                  "VARCHAR (150) COLLATE NOCASE",
-		                  { "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)", "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)" });
+		                  { "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)", "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)" });
 		AddUserTableField(*transaction,
 		                  "Series",
 		                  "SearchTitle",
 		                  "VARCHAR (80) COLLATE NOCASE",
-		                  { "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)", "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)" });
+		                  { "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)", "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)" });
 		if (AddUserTableField(*transaction,
 		                      "Books",
 		                      "FolderID",
