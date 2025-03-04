@@ -19,6 +19,13 @@ namespace
 {
 constexpr auto LOCALE = "ui/locale";
 constexpr auto NAME = "name";
+
+std::vector<PropagateConstPtr<QTranslator>> LoadTranslators(const ISettings& settings)
+{
+	const auto locales = Loc::GetLocales();
+	return locales.size() == 1 ? Loc::LoadLocales(locales.front()) : Loc::LoadLocales(settings);
+}
+
 }
 
 class LocaleController::Impl
@@ -28,17 +35,23 @@ public:
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
-		, m_translators(Loc::LoadLocales(*m_settings))
+		, m_translators(LoadTranslators(*m_settings))
 	{
 		m_actionGroup.setExclusive(true);
 	}
 
 	void Setup(QMenu& menu)
 	{
+		const auto locales = Loc::GetLocales();
+		if (locales.empty())
+			return;
+
+		if (locales.size() == 1)
+			return Util::QStringWrapper::SetLocale(locales.front());
+
 		const auto currentLocale = Loc::GetLocale(*m_settings);
 		Util::QStringWrapper::SetLocale(currentLocale);
-
-		for (const auto* locale : Loc::LOCALES)
+		for (const auto* locale : locales)
 		{
 			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
 			action->setProperty(NAME, QString(locale));

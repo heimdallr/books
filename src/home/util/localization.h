@@ -45,6 +45,7 @@ UTIL_EXPORT QString Tr(const char* context, const char* str);
 UTIL_EXPORT std::vector<const char*> GetLocales();
 UTIL_EXPORT QString GetLocale(const ISettings& settings);
 UTIL_EXPORT std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const ISettings& settings);
+UTIL_EXPORT std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const QString& locale);
 
 inline QString Error()
 {

@@ -45,10 +45,15 @@ QString GetLocale(const ISettings& settings)
 
 std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const ISettings& settings)
 {
+	return LoadLocales(GetLocale(settings));
+}
+
+std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const QString& locale)
+{
 	std::vector<PropagateConstPtr<QTranslator>> translators;
 	const QDir dir = QCoreApplication::applicationDirPath() + "/locales";
 
-	for (const auto& file : dir.entryList(QStringList() << QString("*_%1.qm").arg(GetLocale(settings)), QDir::Files))
+	for (const auto& file : dir.entryList(QStringList() << QString("*_%1.qm").arg(locale), QDir::Files))
 	{
 		const auto fileName = dir.absoluteFilePath(file);
 		auto& translator = translators.emplace_back();
