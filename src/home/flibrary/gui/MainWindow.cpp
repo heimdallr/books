@@ -784,21 +784,26 @@ private:
 	}
 
 	template <typename T>
-	static void OnObjectVisibleChanged(T* obj, void (T::*f)(bool), QAction* show, QAction* hide, const bool value)
-	{
-		((*obj).*f)(value);
-		hide->setVisible(value);
-		show->setVisible(!value);
-	}
-
-	template <typename T>
 	void ConnectShowHide(T* obj, void (T::*f)(bool), QAction* show, QAction* hide, const char* key = nullptr)
 	{
-		const auto showHide = [=, &settings = *m_settings](const bool value)
+		auto apply = [=](const bool value)
+		{
+			std::invoke(f, obj, value);
+			hide->setVisible(value);
+			show->setVisible(!value);
+		};
+
+		if (key)
+		{
+			const auto value = m_settings->Get(key).toBool();
+			apply(value);
+		}
+
+		const auto showHide = [&settings = *m_settings, key, apply = std::move(apply)](const bool value)
 		{
 			if (key)
 				settings.Set(key, value);
-			Impl::OnObjectVisibleChanged<T>(obj, f, show, hide, value);
+			apply(value);
 		};
 
 		connect(show, &QAction::triggered, &m_self, [=] { showHide(true); });
