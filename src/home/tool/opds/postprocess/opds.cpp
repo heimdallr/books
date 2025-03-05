@@ -1,11 +1,12 @@
-#include <QByteArray>
+#include <QIODevice>
 
 namespace HomeCompa::Opds
 {
 
-QByteArray PostProcess_opds(QByteArray src)
+QByteArray PostProcess_opds(QIODevice& stream)
 {
-	return src;
+	auto result = stream.readAll();
+	return result;
 }
 
 }

@@ -35,7 +35,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QByteArray src);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 }
@@ -46,7 +46,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(QByteArray)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(QIODevice&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -803,7 +803,8 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, cons
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return {};
 
-	QBuffer buffer;
+	QByteArray bytes;
+	QBuffer buffer(&bytes);
 	try
 	{
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
@@ -821,11 +822,19 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, cons
 		PLOGE << "Unknown error";
 		return {};
 	}
+	buffer.close();
 
 #ifndef NDEBUG
-	PLOGV << buffer.buffer();
+	PLOGV << bytes;
 #endif
 
+	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	return std::invoke(postprocessor, buffer.buffer());
+	auto result = std::invoke(postprocessor, buffer);
+
+#ifndef NDEBUG
+	PLOGV << result;
+#endif
+
+	return result;
 }
