@@ -730,77 +730,12 @@ private:
 	mutable std::unordered_map<QString, QByteArray> m_covers;
 };
 
-Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
-                     std::shared_ptr<Flibrary::IDatabaseController> databaseController,
-                     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
+namespace
 {
-	PLOGV << "Requester created";
-}
-
-Requester::~Requester()
+template <typename Obj, typename NavigationGetter, typename... ARGS>
+QByteArray GetImpl(Obj& obj, NavigationGetter getter, const QString& root, const QString& self, const ARGS&... args)
 {
-	PLOGV << "Requester destroyed";
-}
-
-QByteArray Requester::GetRoot(const QString& root, const QString& self) const
-{
-	return GetImpl(&Impl::WriteRoot, root, self);
-}
-
-QByteArray Requester::GetBookInfo(const QString& root, const QString& self, const QString& bookId) const
-{
-	return GetImpl(&Impl::WriteBook, root, self, bookId);
-}
-
-QByteArray Requester::GetCover(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
-{
-	return m_impl->GetCoverThumbnail(bookId);
-}
-
-QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const
-{
-	return GetCover(root, self, bookId);
-}
-
-QByteArray Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
-{
-	return m_impl->GetBook(bookId);
-}
-
-QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
-{
-	return m_impl->GetBookZip(bookId);
-}
-
-#define OPDS_ROOT_ITEM(NAME)                                                                                          \
-	QByteArray Requester::Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const \
-	{                                                                                                                 \
-		return GetImpl(&Impl::Write##NAME##Navigation, root, self, value);                                            \
-	}
-OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
-
-#define OPDS_ROOT_ITEM(NAME)                                                                                                                    \
-	QByteArray Requester::Get##NAME##Authors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const \
-	{                                                                                                                                           \
-		return GetImpl(&Impl::Write##NAME##Authors, root, self, navigationId, value);                                                           \
-	}
-OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
-
-#define OPDS_ROOT_ITEM(NAME)                                                                                                                                                 \
-	QByteArray Requester::Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const \
-	{                                                                                                                                                                        \
-		return GetImpl(&Impl::Write##NAME##AuthorBooks, root, self, navigationId, authorId, value);                                                                          \
-	}
-OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
-
-template <typename NavigationGetter, typename... ARGS>
-QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, const QString& self, const ARGS&... args) const
-{
-	if (!m_impl->collectionProvider->ActiveCollectionExists())
+	if (!obj.collectionProvider->ActiveCollectionExists())
 		return {};
 
 	QByteArray bytes;
@@ -808,7 +743,7 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, cons
 	try
 	{
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		const auto node = std::invoke(getter, *m_impl, root, self, std::cref(args)...);
+		const auto node = std::invoke(getter, std::cref(obj), std::cref(root), std::cref(self), std::cref(args)...);
 		Util::XmlWriter writer(buffer);
 		writer << node;
 	}
@@ -838,3 +773,72 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, cons
 
 	return result;
 }
+
+} // namespace
+
+Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
+                     std::shared_ptr<Flibrary::IDatabaseController> databaseController,
+                     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
+	: m_impl(std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
+{
+	PLOGV << "Requester created";
+}
+
+Requester::~Requester()
+{
+	PLOGV << "Requester destroyed";
+}
+
+QByteArray Requester::GetRoot(const QString& root, const QString& self) const
+{
+	return GetImpl(*m_impl, &Impl::WriteRoot, root, self);
+}
+
+QByteArray Requester::GetBookInfo(const QString& root, const QString& self, const QString& bookId) const
+{
+	return GetImpl(*m_impl, &Impl::WriteBook, root, self, bookId);
+}
+
+QByteArray Requester::GetCover(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+{
+	return m_impl->GetCoverThumbnail(bookId);
+}
+
+QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const
+{
+	return GetCover(root, self, bookId);
+}
+
+QByteArray Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+{
+	return m_impl->GetBook(bookId);
+}
+
+QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+{
+	return m_impl->GetBookZip(bookId);
+}
+
+#define OPDS_ROOT_ITEM(NAME)                                                                                          \
+	QByteArray Requester::Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const \
+	{                                                                                                                 \
+		return GetImpl(*m_impl, &Impl::Write##NAME##Navigation, root, self, value);                                   \
+	}
+OPDS_ROOT_ITEMS_X_MACRO
+#undef OPDS_ROOT_ITEM
+
+#define OPDS_ROOT_ITEM(NAME)                                                                                                                    \
+	QByteArray Requester::Get##NAME##Authors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const \
+	{                                                                                                                                           \
+		return GetImpl(*m_impl, &Impl::Write##NAME##Authors, root, self, navigationId, value);                                                  \
+	}
+OPDS_ROOT_ITEMS_X_MACRO
+#undef OPDS_ROOT_ITEM
+
+#define OPDS_ROOT_ITEM(NAME)                                                                                                                                                 \
+	QByteArray Requester::Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const \
+	{                                                                                                                                                                        \
+		return GetImpl(*m_impl, &Impl::Write##NAME##AuthorBooks, root, self, navigationId, authorId, value);                                                                 \
+	}
+OPDS_ROOT_ITEMS_X_MACRO
+#undef OPDS_ROOT_ITEM

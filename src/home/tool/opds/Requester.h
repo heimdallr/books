@@ -48,10 +48,6 @@ private: // IRequester
 #undef OPDS_ROOT_ITEM
 
 private:
-	template <typename NavigationGetter, typename... ARGS>
-	QByteArray GetImpl(NavigationGetter getter, const QString& root, const QString& self, const ARGS&... args) const;
-
-private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
