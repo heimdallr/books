@@ -7,8 +7,8 @@
 #include <QTimer>
 
 #include "fnd/EnumBitmask.h"
-#include "fnd/observable.h"
 #include "fnd/FindPair.h"
+#include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -189,8 +189,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider)
 		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
-		.Add(Loc::LANGUAGE, langStr)
-		;
+		.Add(Loc::LANGUAGE, langStr);
 
 	return table;
 }
