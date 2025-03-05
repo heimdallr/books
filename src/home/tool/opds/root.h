@@ -7,4 +7,13 @@ namespace HomeCompa::Opds
 	OPDS_REQUEST_ROOT_ITEM(opds)        \
 	OPDS_REQUEST_ROOT_ITEM(web)
 
+enum class ContentType
+{
+	Root,
+	BookInfo,
+	Navigation,
+	Authors,
+	Books,
+};
+
 }

@@ -35,7 +35,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 }
@@ -46,7 +46,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(QIODevice&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -407,7 +407,7 @@ struct Requester::Impl
 
 	Node WriteBook(const QString& root, const QString& self, const QString& bookId) const
 	{
-		auto head = GetHead(BOOK, Tr(BOOK), root, self);
+		Node head;
 
 		QEventLoop eventLoop;
 
@@ -417,6 +417,9 @@ struct Requester::Impl
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 
 				const auto& book = dataProvider.GetBook();
+
+				head = GetHead(BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
+
 				auto annotation = annotationController->CreateAnnotation(dataProvider);
 				const auto addRate = [&](const char* name, const int column)
 				{
@@ -733,7 +736,7 @@ private:
 namespace
 {
 template <typename Obj, typename NavigationGetter, typename... ARGS>
-QByteArray GetImpl(Obj& obj, NavigationGetter getter, const QString& root, const QString& self, const ARGS&... args)
+QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentType, const QString& root, const QString& self, const ARGS&... args)
 {
 	if (!obj.collectionProvider->ActiveCollectionExists())
 		return {};
@@ -765,7 +768,7 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const QString& root, const
 
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = std::invoke(postprocessor, buffer);
+	auto result = std::invoke(postprocessor, buffer, contentType);
 
 #ifndef NDEBUG
 	PLOGV << result;
@@ -791,12 +794,12 @@ Requester::~Requester()
 
 QByteArray Requester::GetRoot(const QString& root, const QString& self) const
 {
-	return GetImpl(*m_impl, &Impl::WriteRoot, root, self);
+	return GetImpl(*m_impl, &Impl::WriteRoot, ContentType::Root, root, self);
 }
 
 QByteArray Requester::GetBookInfo(const QString& root, const QString& self, const QString& bookId) const
 {
-	return GetImpl(*m_impl, &Impl::WriteBook, root, self, bookId);
+	return GetImpl(*m_impl, &Impl::WriteBook, ContentType::BookInfo, root, self, bookId);
 }
 
 QByteArray Requester::GetCover(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
@@ -822,7 +825,7 @@ QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \
 	QByteArray Requester::Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const \
 	{                                                                                                                 \
-		return GetImpl(*m_impl, &Impl::Write##NAME##Navigation, root, self, value);                                   \
+		return GetImpl(*m_impl, &Impl::Write##NAME##Navigation, ContentType::Navigation, root, self, value);          \
 	}
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
@@ -830,7 +833,7 @@ OPDS_ROOT_ITEMS_X_MACRO
 #define OPDS_ROOT_ITEM(NAME)                                                                                                                    \
 	QByteArray Requester::Get##NAME##Authors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const \
 	{                                                                                                                                           \
-		return GetImpl(*m_impl, &Impl::Write##NAME##Authors, root, self, navigationId, value);                                                  \
+		return GetImpl(*m_impl, &Impl::Write##NAME##Authors, ContentType::Authors, root, self, navigationId, value);                            \
 	}
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
@@ -838,7 +841,7 @@ OPDS_ROOT_ITEMS_X_MACRO
 #define OPDS_ROOT_ITEM(NAME)                                                                                                                                                 \
 	QByteArray Requester::Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const \
 	{                                                                                                                                                                        \
-		return GetImpl(*m_impl, &Impl::Write##NAME##AuthorBooks, root, self, navigationId, authorId, value);                                                                 \
+		return GetImpl(*m_impl, &Impl::Write##NAME##AuthorBooks, ContentType::Books, root, self, navigationId, authorId, value);                                             \
 	}
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
