@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QTimer>
 
+#include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -29,13 +30,27 @@
 #include "util/xml/XmlWriter.h"
 
 #include "log.h"
+#include "root.h"
 #include "zip.h"
+
+namespace HomeCompa::Opds
+{
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QByteArray src);
+OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+}
 
 using namespace HomeCompa;
 using namespace Opds;
 
 namespace
 {
+
+constexpr std::pair<const char*, QByteArray (*)(QByteArray)> POSTPROCESSORS[] {
+#define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
+	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+};
 
 constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %3, 1), count(42) "
 										  "from Books b "
@@ -441,11 +456,12 @@ struct Requester::Impl
 					QString {
                 },
 					Node::Attributes { { "href", QString("%1/%2/data/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } });
-				entry.children.emplace_back(
-					"link",
-					QString {
+				entry.children.emplace_back("link",
+			                                QString {
                 },
-					Node::Attributes { { "href", QString("%1/%2/zip/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } });
+			                                Node::Attributes { { "href", QString("%1/%2/zip/%3").arg(root, BOOK, book.GetId()) },
+			                                                   { "rel", "http://opds-spec.org/acquisition" },
+			                                                   { "type", QString("application/%1+zip").arg(format) } });
 				entry.children.emplace_back("link",
 			                                QString {
                 },
@@ -810,5 +826,6 @@ QByteArray Requester::GetImpl(NavigationGetter getter, const QString& root, cons
 	PLOGV << buffer.buffer();
 #endif
 
-	return buffer.buffer();
+	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
+	return std::invoke(postprocessor, buffer.buffer());
 }

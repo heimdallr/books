@@ -13,6 +13,7 @@
 #include "util/ISettings.h"
 
 #include "log.h"
+#include "root.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -97,7 +98,11 @@ private:
 											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
 										});
 
-		for (const auto& root : { "/opds", "/web" })
+		for (const auto& root : {
+#define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
+				 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+			 })
 			InitHttp(root);
 	}
 
