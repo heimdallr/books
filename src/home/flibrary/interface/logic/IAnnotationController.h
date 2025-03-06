@@ -76,6 +76,7 @@ public:
 	public:
 		virtual ~IStrategy() = default;
 		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str) const = 0;
+		virtual QString GenerateStars(int rate) const = 0;
 	};
 
 public:

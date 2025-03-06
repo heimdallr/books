@@ -4,6 +4,11 @@
 
 #include "root.h"
 
+namespace HomeCompa
+{
+class ISettings;
+}
+
 namespace HomeCompa::Opds
 {
 
@@ -19,6 +24,11 @@ private: // IAnnotationController::IUrlGenerator
 	{
 		return str;
 	}
+
+	QString GenerateStars(const int rate) const override
+	{
+		return rate > 0 && rate <= 5 ? QString::number(rate) : QString{};
+	}
 };
 
 }
@@ -29,7 +39,7 @@ QByteArray PostProcess_opds(QIODevice& stream, ContentType)
 	return result;
 }
 
-std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_opds()
+std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_opds(const ISettings&)
 {
 	return std::make_unique<AnnotationControllerStrategy>();
 }

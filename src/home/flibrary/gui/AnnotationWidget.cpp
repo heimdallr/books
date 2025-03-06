@@ -416,16 +416,6 @@ private: // IAnnotationController::IObserver
 	{
 		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
 
-		const auto addRate = [&](const char* name, const int column)
-		{
-			const auto& book = dataProvider.GetBook();
-			const auto rate = book.GetRawData(column).toInt();
-			if (rate > 0 && rate <= 5)
-				annotation.replace(QString("@%1@").arg(name), QString(rate, QChar(m_starSymbol)));
-		};
-		addRate(Loc::RATE, BookItem::Column::LibRate);
-		addRate(Loc::USER_RATE, BookItem::Column::UserRate);
-
 		m_ui.info->setText(annotation);
 		m_covers = dataProvider.GetCovers();
 		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
@@ -476,6 +466,11 @@ private: // IAnnotationController::IUrlGenerator
 	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
 	{
 		return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+	}
+
+	QString GenerateStars(const int rate) const override
+	{
+		return QString { rate, QChar(m_starSymbol) };
 	}
 
 private:

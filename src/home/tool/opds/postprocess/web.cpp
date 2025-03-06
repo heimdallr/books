@@ -6,8 +6,10 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 
+#include "util/ISettings.h"
 #include "util/localization.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
@@ -48,6 +50,12 @@ constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
 
 class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {
+public:
+	AnnotationControllerStrategy(const ISettings& settings)
+		: m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+	{
+	}
+
 private: // IAnnotationController::IUrlGenerator
 	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
 	{
@@ -60,6 +68,14 @@ private: // IAnnotationController::IUrlGenerator
 
 		return str.isEmpty() ? QString {} : QString("<a href=/web/%1/%2>%3</a>").arg(typeMapped, id, str);
 	}
+
+	QString GenerateStars(const int rate) const override
+	{
+		return QString { rate, m_starSymbol };
+	}
+
+private:
+	const QChar m_starSymbol;
 };
 
 class AbstractParser : public SaxParser
@@ -376,9 +392,9 @@ QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType)
 	return parser->GetResult();
 }
 
-std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_web()
+std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_web(const ISettings& settings)
 {
-	return std::make_unique<AnnotationControllerStrategy>();
+	return std::make_unique<AnnotationControllerStrategy>(settings);
 }
 
 } // namespace HomeCompa::Opds

@@ -39,7 +39,7 @@ namespace HomeCompa::Opds
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_##NAME();
+#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_##NAME(const ISettings&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -57,7 +57,7 @@ constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPR
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IStrategy> (*)()> URL_GENERATORS[] {
+constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IStrategy> (*)(const ISettings&)> URL_GENERATORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateAnnotationControllerStrategy_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -367,14 +367,17 @@ private:
 
 struct Requester::Impl
 {
+	std::shared_ptr<const ISettings> settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
 	std::shared_ptr<Flibrary::IAnnotationController> annotationController;
 
-	Impl(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	Impl(std::shared_ptr<const ISettings> settings,
+	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-		: collectionProvider { std::move(collectionProvider) }
+		: settings { std::move(settings) }
+		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
 		, annotationController { std::move(annotationController) }
 	{
@@ -432,7 +435,7 @@ struct Requester::Impl
 				head = GetHead(BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
 				const auto urlGeneratorCreator = FindSecond(URL_GENERATORS, root.toStdString().data(), PszComparer {});
-				const auto urlGenerator = urlGeneratorCreator();
+				const auto urlGenerator = urlGeneratorCreator(*settings);
 				auto annotation = annotationController->CreateAnnotation(dataProvider, *urlGenerator);
 				const auto addRate = [&](const char* name, const int column)
 				{
@@ -740,6 +743,7 @@ private:
 	}
 
 private:
+	std::shared_ptr<const ISettings> m_settings;
 	Util::FunctorExecutionForwarder m_forwarder;
 	mutable QTimer m_coversTimer;
 	mutable std::mutex m_coversGuard;
@@ -792,10 +796,11 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 
 } // namespace
 
-Requester::Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
+Requester::Requester(std::shared_ptr<const ISettings> settings,
+                     std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
                      std::shared_ptr<Flibrary::IDatabaseController> databaseController,
                      std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
 {
 	PLOGV << "Requester created";
 }

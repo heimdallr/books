@@ -604,19 +604,12 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	}
 
 	{
-		const auto addRate = [&](Table& info, const char* name, const int column)
-		{
-			const auto rate = book.GetRawData(column).toInt();
-			if (rate > 0 && rate <= 5)
-				info.Add(name, QString("@%1@").arg(name));
-		};
-
 		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
 			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
 		info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
-		addRate(info, Loc::RATE, BookItem::Column::LibRate);
-		addRate(info, Loc::USER_RATE, BookItem::Column::UserRate);
+		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
+		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 
 		if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 		{

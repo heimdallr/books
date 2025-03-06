@@ -5,6 +5,8 @@
 
 #include "interface/IRequester.h"
 
+#include "util/ISettings.h"
+
 class QIODevice;
 
 namespace HomeCompa::Flibrary
@@ -22,7 +24,8 @@ class Requester : virtual public IRequester
 	NON_COPY_MOVABLE(Requester)
 
 public:
-	Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
+	Requester(std::shared_ptr<const ISettings> settings,
+	          std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
 	          std::shared_ptr<Flibrary::IDatabaseController> databaseController,
 	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
 	~Requester() override;
