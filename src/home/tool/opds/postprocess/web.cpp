@@ -35,6 +35,8 @@ constexpr auto ENTRY = "feed/entry";
 constexpr auto ENTRY_TITLE = "feed/entry/title";
 constexpr auto ENTRY_LINK = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
+constexpr auto AUTHOR_NAME = "feed/entry/author/name";
+constexpr auto AUTHOR_LINK = "feed/entry/author/uri";
 
 using namespace Util;
 using namespace Flibrary;
@@ -129,7 +131,7 @@ protected:
 			m_stream << m_homeLink;
 
 		if (!m_mainTitle.isEmpty())
-			m_stream << m_mainTitle;
+			m_stream << QString("<h1>%1</h1><hr/>").arg(m_mainTitle);
 
 		m_homeLink.clear();
 		m_mainTitle.clear();
@@ -148,7 +150,7 @@ protected:
 
 	bool ParseFeedTitle(const QString& value)
 	{
-		m_mainTitle = QString("<h1>%1</h1><hr/>").arg(value);
+		m_mainTitle = value;
 		return true;
 	}
 
@@ -320,35 +322,24 @@ private: // SaxParser
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{    FEED_TITLE,    &ParserBookInfo::ParseFeedTitle },
-			{   ENTRY_TITLE,   &ParserBookInfo::ParseEntryTitle },
-			{ ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
+            {   ENTRY_TITLE,   &ParserBookInfo::ParseEntryTitle },
+            { ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
+			{   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
+            {   AUTHOR_LINK,   &ParserBookInfo::ParseAuthorLink },
 		};
 
 		return Parse(*this, PARSERS, path, value);
 	}
 
 private:
-	bool OnEndElementFeed() override
+	bool OnStartElementEntry(const XmlAttributes&) override
 	{
-		{
-			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
-			if (!m_coverLink.isEmpty())
-				m_stream << QString(R"(<td><img src="%1" width="240"></td>)").arg(m_coverLink);
+		if (!m_homeLink.isEmpty())
+			m_stream << m_homeLink;
 
-			const auto href = [this](const QString& url, const QString& message, const QString& ext)
-			{
-				if (!url.isEmpty())
-					m_stream << QString(R"(<br><a href="%1" download="%2.%3">%4</a></br>)").arg(url, (m_title.isEmpty() ? "file" : m_title), ext, message);
-			};
-
-			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
-			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2), "fb2");
-			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), "zip");
-		}
-
-		m_stream << m_content << "\n";
-
-		return AbstractParser::OnEndElementFeed();
+		m_title.clear();
+		m_content.clear();
+		return true;
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
@@ -372,7 +363,50 @@ private:
 		return true;
 	}
 
+	bool OnEndElementFeed() override
+	{
+		if (!m_authorName.isEmpty() && !m_authorLink.isEmpty())
+			m_stream << QString(R"(<h2><a href = "%1">%2</a></h2>)").arg(m_authorLink, m_authorName);
+
+		if (!m_mainTitle.isEmpty())
+			m_stream << QString("<h1>%1</h1><hr/>").arg(m_mainTitle);
+
+		{
+			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
+			if (!m_coverLink.isEmpty())
+				m_stream << QString(R"(<td><img src="%1" width="240"></td>)").arg(m_coverLink);
+
+			const auto href = [this](const QString& url, const QString& message, const QString& ext)
+			{
+				if (!url.isEmpty())
+					m_stream << QString(R"(<br><a href="%1" download="%2.%3">%4</a></br>)").arg(url, (m_title.isEmpty() ? "file" : m_title), ext, message);
+			};
+
+			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
+			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2), "fb2");
+			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), "zip");
+		}
+
+		m_stream << m_content << "\n";
+
+		return AbstractParser::OnEndElementFeed();
+	}
+
+	bool ParseAuthorName(const QString& value)
+	{
+		m_authorName = value;
+		return true;
+	}
+
+	bool ParseAuthorLink(const QString& value)
+	{
+		m_authorLink = value;
+		return true;
+	}
+
 private:
+	QString m_authorName;
+	QString m_authorLink;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
 	QString m_coverLink;
