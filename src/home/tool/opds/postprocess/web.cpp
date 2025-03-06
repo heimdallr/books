@@ -2,6 +2,7 @@
 #include <QTextStream>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
@@ -21,6 +22,8 @@ namespace
 
 constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
+constexpr auto DOWNLOAD_FB2 = QT_TRANSLATE_NOOP("opds", "Download fb2");
+constexpr auto DOWNLOAD_ZIP = QT_TRANSLATE_NOOP("opds", "Download zip");
 TR_DEF
 
 constexpr auto FEED = "feed";
@@ -311,16 +314,52 @@ private: // SaxParser
 private:
 	bool OnEndElementFeed() override
 	{
+		{
+			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
+			if (!m_coverLink.isEmpty())
+				m_stream << QString(R"(<td><img src="%1" width="240"></td>)").arg(m_coverLink);
+
+			const auto href = [this](const QString& url, const QString& message, const QString& ext)
+			{
+				if (!url.isEmpty())
+					m_stream << QString(R"(<br><a href="%1" download="%2.%3">%4</a></br>)").arg(url, (m_title.isEmpty() ? "file" : m_title), ext, message);
+			};
+
+			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
+			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2), "fb2");
+			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), "zip");
+		}
+
 		m_stream << m_content << "\n";
+
 		return AbstractParser::OnEndElementFeed();
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		if (attributes.GetAttribute("rel") == "http://opds-spec.org/image")
-			m_stream << QString(R"(<img src="%1" width="240">)").arg(attributes.GetAttribute("href"));
+		const auto rel = attributes.GetAttribute("rel");
+		auto href = attributes.GetAttribute("href");
+
+		if (rel == "http://opds-spec.org/image")
+			return m_coverLink = std::move(href), true;
+
+		if (rel == "http://opds-spec.org/acquisition")
+		{
+			const auto type = attributes.GetAttribute("type");
+			if (type == "application/fb2")
+				m_downloadLinkFb2 = std::move(href);
+			else if (type == "application/fb2+zip")
+				m_downloadLinkZip = std::move(href);
+			return true;
+		}
+
 		return true;
 	}
+
+private:
+	QString m_downloadLinkFb2;
+	QString m_downloadLinkZip;
+	QString m_coverLink;
 };
 
 constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(QIODevice&)> PARSER_CREATORS[] {
