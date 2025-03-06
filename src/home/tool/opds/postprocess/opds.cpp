@@ -34,4 +34,4 @@ std::unique_ptr<IAnnotationController::IUrlGenerator> CreateUrlGenerator_opds()
 	return std::make_unique<UrlGenerator>();
 }
 
-}
+} // namespace HomeCompa::Opds

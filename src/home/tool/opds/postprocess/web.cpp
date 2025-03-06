@@ -155,7 +155,7 @@ protected:
 	QString m_mainTitle;
 };
 
-class Parser final : public AbstractParser
+class ParserNavigation final : public AbstractParser
 {
 	struct CreateGuard
 	{
@@ -164,11 +164,11 @@ class Parser final : public AbstractParser
 public:
 	static std::unique_ptr<AbstractParser> Create(QIODevice& stream)
 	{
-		return std::make_unique<Parser>(stream, CreateGuard {});
+		return std::make_unique<ParserNavigation>(stream, CreateGuard {});
 	}
 
 public:
-	Parser(QIODevice& stream, CreateGuard)
+	ParserNavigation(QIODevice& stream, CreateGuard)
 		: AbstractParser(stream)
 	{
 	}
@@ -176,13 +176,13 @@ public:
 private: // SaxParser
 	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
-		using ParseElementFunction = bool (Parser::*)(const XmlAttributes&);
+		using ParseElementFunction = bool (ParserNavigation::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{       FEED,      &Parser::OnStartElementFeed },
-			{      ENTRY,     &Parser::OnStartElementEntry },
-			{  FEED_LINK,  &Parser::OnStartElementFeedLink },
-			{ ENTRY_LINK, &Parser::OnStartElementEntryLink },
+			{       FEED,      &ParserNavigation::OnStartElementFeed },
+			{      ENTRY,     &ParserNavigation::OnStartElementEntry },
+			{  FEED_LINK,  &ParserNavigation::OnStartElementFeedLink },
+			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
 
 		return Parse(*this, PARSERS, path, attributes);
@@ -190,11 +190,11 @@ private: // SaxParser
 
 	bool OnEndElement(const QString& /*name*/, const QString& path) override
 	{
-		using ParseElementFunction = bool (Parser::*)();
+		using ParseElementFunction = bool (ParserNavigation::*)();
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{  FEED,  &Parser::OnEndElementFeed },
-			{ ENTRY, &Parser::OnEndElementEntry },
+			{  FEED,  &ParserNavigation::OnEndElementFeed },
+			{ ENTRY, &ParserNavigation::OnEndElementEntry },
 		};
 
 		return Parse(*this, PARSERS, path);
@@ -202,12 +202,12 @@ private: // SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		using ParseCharacterFunction = bool (Parser::*)(const QString&);
+		using ParseCharacterFunction = bool (ParserNavigation::*)(const QString&);
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
-			{   ENTRY_TITLE,   &Parser::ParseEntryTitle },
-			{ ENTRY_CONTENT, &Parser::ParseEntryContent },
-			{    FEED_TITLE,    &Parser::ParseFeedTitle },
+			{   ENTRY_TITLE,   &ParserNavigation::ParseEntryTitle },
+			{ ENTRY_CONTENT, &ParserNavigation::ParseEntryContent },
+			{    FEED_TITLE,    &ParserNavigation::ParseFeedTitle },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -331,7 +331,7 @@ constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(QIODevice&)
 
 QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType)
 {
-	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &Parser::Create);
+	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
 	const auto parser = std::invoke(parserCreator, std::ref(stream));
 	parser->Parse();
 	return parser->GetResult();

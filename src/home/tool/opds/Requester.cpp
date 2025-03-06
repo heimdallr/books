@@ -57,7 +57,7 @@ constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPR
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator>(*)()> URL_GENERATORS[] {
+constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator> (*)()> URL_GENERATORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateUrlGenerator_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM

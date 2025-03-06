@@ -71,7 +71,7 @@ public:
 		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 
-	class IUrlGenerator  // NOLINT(cppcoreguidelines-special-member-functions)
+	class IUrlGenerator // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
 		virtual ~IUrlGenerator() = default;
