@@ -738,10 +738,10 @@
   </action>
   <action name="actionOpds">
    <property name="text">
-    <string>&amp;OPDS Server...</string>
+    <string>&amp;Http Server...</string>
    </property>
    <property name="toolTip">
-    <string>OPDS server management</string>
+    <string>Http server management</string>
    </property>
   </action>
   <action name="actionShowAnnotationCoverButtons">

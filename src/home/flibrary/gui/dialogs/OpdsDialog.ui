@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
-    <height>125</height>
+    <width>599</width>
+    <height>170</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>OPDS Server</string>
+   <string>Http Server</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -62,12 +62,26 @@
      <item row="2" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Address</string>
+        <string>Web Address</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="lineEditAddress">
+      <widget class="QLineEdit" name="lineEditWebAddress">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>OPDS Address</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="lineEditOpdsAddress">
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -114,13 +128,25 @@
     </layout>
    </item>
   </layout>
-  <action name="actionCopy">
+  <action name="actionCopyWeb">
    <property name="icon">
     <iconset resource="../../icons/light/resources/light.qrc">
      <normaloff>:/icons/copy.svg</normaloff>:/icons/copy.svg</iconset>
    </property>
    <property name="toolTip">
     <string>Copy address to clipboard</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCopyOpds">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/copy.svg</normaloff>:/icons/copy.svg</iconset>
+   </property>
+   <property name="text">
+    <string>CopyOpds</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
