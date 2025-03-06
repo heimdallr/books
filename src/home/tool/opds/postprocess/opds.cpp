@@ -27,7 +27,7 @@ private: // IAnnotationController::IUrlGenerator
 
 	QString GenerateStars(const int rate) const override
 	{
-		return rate > 0 && rate <= 5 ? QString::number(rate) : QString{};
+		return rate > 0 && rate <= 5 ? QString::number(rate) : QString {};
 	}
 };
 
