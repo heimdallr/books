@@ -3,6 +3,10 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
+#include "interface/logic/IAnnotationController.h"
+
 #include "util/localization.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
@@ -28,6 +32,32 @@ constexpr auto ENTRY_LINK = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
 
 using namespace Util;
+using namespace Flibrary;
+
+constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
+	{  Loc::AUTHORS,  Loc::Authors },
+    {   Loc::SERIES,   Loc::Series },
+    {   Loc::GENRES,   Loc::Genres },
+    { Loc::KEYWORDS, Loc::Keywords },
+    {  Loc::ARCHIVE, Loc::Archives },
+    {   Loc::GROUPS,   Loc::Groups },
+};
+
+class UrlGenerator final : public IAnnotationController::IUrlGenerator
+{
+private: // IAnnotationController::IUrlGenerator
+	QString Generate(const char* type, const QString& id, const QString& str) const override
+	{
+		if (str.isEmpty() || PszComparer {}(type, Constant::BOOK))
+			return {};
+
+		const auto* typeMapped = FindSecond(CUSTOM_URL_SCHEMA, type, nullptr, PszComparer {});
+		if (!typeMapped)
+			return str;
+
+		return str.isEmpty() ? QString {} : QString("<a href=/web/%1/%2>%3</a>").arg(typeMapped, id, str);
+	}
+};
 
 class AbstractParser : public SaxParser
 {
@@ -245,9 +275,9 @@ private: // SaxParser
 		using ParseElementFunction = bool (ParserBookInfo::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{      FEED,     &ParserBookInfo::OnStartElementFeed },
-			{     ENTRY,    &ParserBookInfo::OnStartElementEntry },
-			{ FEED_LINK, &ParserBookInfo::OnStartElementFeedLink },
+			{       FEED,      &ParserBookInfo::OnStartElementFeed },
+			{      ENTRY,     &ParserBookInfo::OnStartElementEntry },
+			{  FEED_LINK,  &ParserBookInfo::OnStartElementFeedLink },
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
 
@@ -305,6 +335,11 @@ QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType)
 	const auto parser = std::invoke(parserCreator, std::ref(stream));
 	parser->Parse();
 	return parser->GetResult();
+}
+
+std::unique_ptr<IAnnotationController::IUrlGenerator> CreateUrlGenerator_web()
+{
+	return std::make_unique<UrlGenerator>();
 }
 
 } // namespace HomeCompa::Opds

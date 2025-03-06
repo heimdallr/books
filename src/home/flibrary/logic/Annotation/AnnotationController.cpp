@@ -84,11 +84,6 @@ T Round(const T value, const int digits)
 	return static_cast<T>(static_cast<int64_t>(value / factor + 0.5) * factor + 0.5);
 }
 
-QString Url(const char* type, const QString& id, const QString& str)
-{
-	return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
-}
-
 QString GetTitle(const IDataItem& item)
 {
 	return item.GetData(DataItem::Column::Title);
@@ -121,13 +116,13 @@ QString Join(const std::vector<QString>& strings, const QString& delimiter = ", 
 	return result;
 }
 
-QString Urls(const char* type, const IDataItem& parent, const TitleGetter tileGetter = &GetTitle)
+QString Urls(const IAnnotationController::IUrlGenerator& urlGenerator, const char* type, const IDataItem& parent, const TitleGetter tileGetter = &GetTitle)
 {
 	std::vector<QString> urls;
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
 		const auto item = parent.GetChild(i);
-		urls.emplace_back(Url(type, item->GetId(), tileGetter(*item)));
+		urls.emplace_back(urlGenerator.Generate(type, item->GetId(), tileGetter(*item)));
 	}
 
 	return Join(urls);
@@ -167,7 +162,7 @@ QString TranslateLang(const QString& code)
 	return Loc::Tr(LANGUAGES_CONTEXT, language);
 }
 
-Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider)
+Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, const IAnnotationController::IUrlGenerator& urlGenerator)
 {
 	const auto& book = dataProvider.GetBook();
 	const auto& folder = book.GetRawData(BookItem::Column::Folder);
@@ -176,19 +171,19 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider)
 	const auto& fbLang = dataProvider.GetLanguage();
 	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
 
-	auto langStr = Url(Loc::LANGUAGE, lang, TranslateLang(lang));
+	auto langStr = urlGenerator.Generate(Loc::LANGUAGE, lang, TranslateLang(lang));
 	if (!fbLang.isEmpty() && fbLang != lang)
-		langStr.append(Tr(OR).arg(Url(Loc::LANGUAGE, fbLang, TranslateLang(fbLang))));
+		langStr.append(Tr(OR).arg(urlGenerator.Generate(Loc::LANGUAGE, fbLang, TranslateLang(fbLang))));
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
-		langStr.append(Tr(TRANSLATION_FROM).arg(Url(Loc::LANGUAGE, fbSourceLang, TranslateLang(fbSourceLang))));
+		langStr.append(Tr(TRANSLATION_FROM).arg(urlGenerator.Generate(Loc::LANGUAGE, fbSourceLang, TranslateLang(fbSourceLang))));
 
 	Table table;
-	table.Add(Loc::AUTHORS, Urls(Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
-		.Add(Loc::SERIES, Url(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
-		.Add(Loc::GENRES, Urls(Loc::GENRES, dataProvider.GetGenres()))
-		.Add(Loc::ARCHIVE, Url(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
-		.Add(Loc::GROUPS, Urls(Loc::GROUPS, dataProvider.GetGroups()))
-		.Add(Loc::KEYWORDS, Urls(Loc::KEYWORDS, keywords))
+	table.Add(Loc::AUTHORS, Urls(urlGenerator, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
+		.Add(Loc::SERIES, urlGenerator.Generate(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
+		.Add(Loc::GENRES, Urls(urlGenerator, Loc::GENRES, dataProvider.GetGenres()))
+		.Add(Loc::ARCHIVE, urlGenerator.Generate(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
+		.Add(Loc::GROUPS, Urls(urlGenerator, Loc::GROUPS, dataProvider.GetGroups()))
+		.Add(Loc::KEYWORDS, Urls(urlGenerator, Loc::KEYWORDS, keywords))
 		.Add(Loc::LANGUAGE, langStr);
 
 	return table;
@@ -585,11 +580,11 @@ void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNo
 	m_impl->SetCurrentBookId(std::move(bookId), extractNow);
 }
 
-QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider) const
+QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider, const IUrlGenerator& urlGenerator) const
 {
 	const auto& book = dataProvider.GetBook();
 	QString annotation;
-	Add(annotation, Url(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
+	Add(annotation, urlGenerator.Generate(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
 	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
 	Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
 	Add(annotation, dataProvider.GetAnnotation());
@@ -598,7 +593,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	if (keywords.GetChildCount() == 0)
 		Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
-	Add(annotation, CreateUrlTable(dataProvider).ToString());
+	Add(annotation, CreateUrlTable(dataProvider, urlGenerator).ToString());
 
 	if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
 	{

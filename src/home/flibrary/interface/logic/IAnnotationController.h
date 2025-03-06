@@ -71,12 +71,19 @@ public:
 		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 
+	class IUrlGenerator  // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IUrlGenerator() = default;
+		virtual QString Generate(const char* type, const QString& id, const QString& str) const = 0;
+	};
+
 public:
 	virtual ~IAnnotationController() = default;
 
 public:
 	virtual void SetCurrentBookId(QString bookId, bool extractNow = false) = 0;
-	virtual QString CreateAnnotation(const IDataProvider& dataProvider) const = 0;
+	virtual QString CreateAnnotation(const IDataProvider& dataProvider, const IUrlGenerator& urlGenerator) const = 0;
 	virtual void ShowJokes(bool value) = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;

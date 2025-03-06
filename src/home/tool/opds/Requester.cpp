@@ -38,6 +38,11 @@ namespace HomeCompa::Opds
 #define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
+
+#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator> CreateUrlGenerator_##NAME();
+OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+
 }
 
 using namespace HomeCompa;
@@ -48,6 +53,12 @@ namespace
 
 constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
+	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+};
+
+constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator>(*)()> URL_GENERATORS[] {
+#define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateUrlGenerator_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 };
@@ -420,7 +431,9 @@ struct Requester::Impl
 
 				head = GetHead(BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
-				auto annotation = annotationController->CreateAnnotation(dataProvider);
+				const auto urlGeneratorCreator = FindSecond(URL_GENERATORS, root.toStdString().data(), PszComparer {});
+				const auto urlGenerator = urlGeneratorCreator();
+				auto annotation = annotationController->CreateAnnotation(dataProvider, *urlGenerator);
 				const auto addRate = [&](const char* name, const int column)
 				{
 					const auto rate = book.GetRawData(column).toInt();

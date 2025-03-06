@@ -107,6 +107,7 @@ struct CoverButtonType
 class AnnotationWidget::Impl final
 	: QObject
 	, IAnnotationController::IObserver
+	, IAnnotationController::IUrlGenerator
 	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -413,7 +414,7 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
 	{
-		auto annotation = m_annotationController->CreateAnnotation(dataProvider);
+		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
 
 		const auto addRate = [&](const char* name, const int column)
 		{
@@ -469,6 +470,12 @@ private: // IAnnotationController::IObserver
 					m_progressTimer.start();
 				}
 			});
+	}
+
+private: // IAnnotationController::IUrlGenerator
+	QString Generate(const char* type, const QString& id, const QString& str) const override
+	{
+		return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 private:
