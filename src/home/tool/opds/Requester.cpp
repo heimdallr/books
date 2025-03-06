@@ -39,7 +39,7 @@ namespace HomeCompa::Opds
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator> CreateUrlGenerator_##NAME();
+#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_##NAME();
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -57,8 +57,8 @@ constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPR
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IUrlGenerator> (*)()> URL_GENERATORS[] {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateUrlGenerator_##NAME },
+constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IStrategy> (*)()> URL_GENERATORS[] {
+#define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateAnnotationControllerStrategy_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 };

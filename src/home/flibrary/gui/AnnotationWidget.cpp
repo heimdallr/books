@@ -107,7 +107,7 @@ struct CoverButtonType
 class AnnotationWidget::Impl final
 	: QObject
 	, IAnnotationController::IObserver
-	, IAnnotationController::IUrlGenerator
+	, IAnnotationController::IStrategy
 	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -473,7 +473,7 @@ private: // IAnnotationController::IObserver
 	}
 
 private: // IAnnotationController::IUrlGenerator
-	QString Generate(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
 	{
 		return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}

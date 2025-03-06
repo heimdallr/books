@@ -12,10 +12,10 @@ using namespace Flibrary;
 namespace
 {
 
-class UrlGenerator final : public IAnnotationController::IUrlGenerator
+class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {
 private: // IAnnotationController::IUrlGenerator
-	QString Generate(const char* /*type*/, const QString& /*id*/, const QString& str) const override
+	QString GenerateUrl(const char* /*type*/, const QString& /*id*/, const QString& str) const override
 	{
 		return str;
 	}
@@ -29,9 +29,9 @@ QByteArray PostProcess_opds(QIODevice& stream, ContentType)
 	return result;
 }
 
-std::unique_ptr<IAnnotationController::IUrlGenerator> CreateUrlGenerator_opds()
+std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_opds()
 {
-	return std::make_unique<UrlGenerator>();
+	return std::make_unique<AnnotationControllerStrategy>();
 }
 
 } // namespace HomeCompa::Opds

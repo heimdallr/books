@@ -46,10 +46,10 @@ constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
     {   Loc::GROUPS,   Loc::Groups },
 };
 
-class UrlGenerator final : public IAnnotationController::IUrlGenerator
+class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {
 private: // IAnnotationController::IUrlGenerator
-	QString Generate(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
 	{
 		if (str.isEmpty() || PszComparer {}(type, Constant::BOOK))
 			return {};
@@ -376,9 +376,9 @@ QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType)
 	return parser->GetResult();
 }
 
-std::unique_ptr<IAnnotationController::IUrlGenerator> CreateUrlGenerator_web()
+std::unique_ptr<IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_web()
 {
-	return std::make_unique<UrlGenerator>();
+	return std::make_unique<AnnotationControllerStrategy>();
 }
 
 } // namespace HomeCompa::Opds
