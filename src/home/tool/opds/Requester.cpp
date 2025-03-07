@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -113,6 +114,15 @@ constexpr auto ENTRY = "entry";
 
 TR_DEF
 
+constexpr std::pair<const char*, std::tuple<const char*, const char*>> HEAD_QUERIES[] = {
+	{  Loc::Authors, { "select LastName || ' ' || FirstName || ' ' || middleName from Authors where AuthorID = ?", nullptr } },
+	{   Loc::Genres,								   { "select FB2Code from Genres where GenreCode = ?", Flibrary::GENRE } },
+	{   Loc::Series,										{ "select SeriesTitle from Series where SeriesID = ?", nullptr } },
+	{ Loc::Keywords,									{ "select KeywordTitle from Keywords where KeywordID = ?", nullptr } },
+	{ Loc::Archives,									   { "select FolderTitle from Folders where FolderID = ?", nullptr } },
+	{   Loc::Groups,										  { "select Title from Groups_User where GroupID = ?", nullptr } },
+};
+
 struct Node
 {
 	using Attributes = std::unordered_map<QString, QString>;
@@ -143,8 +153,30 @@ Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 	return writer;
 }
 
-Node GetHead(QString id, QString title, QString root, QString self)
+QString ParseTitle(DB::IDatabase& db, const QString& type, const QString& id)
 {
+	const auto it = std::ranges::find(HEAD_QUERIES, type, [](const auto& item) { return item.first; });
+	if (it == std::end(HEAD_QUERIES))
+		return {};
+
+	const auto& [queryText, context] = it->second;
+
+	const auto query = db.CreateQuery(queryText);
+	query->Bind(0, id.toStdString());
+	query->Execute();
+	assert(!query->Eof());
+	return context ? Loc::Tr(context, query->Get<const char*>(0)) : query->Get<const char*>(0);
+}
+
+QString ParseTitle(DB::IDatabase& db, QString title)
+{
+	const auto splitted = title.split('/', Qt::SkipEmptyParts);
+	return IsOneOf(splitted.size(), 2, 3) ? ParseTitle(db, splitted.front(), splitted.back()) : splitted.size() == 5 ? ParseTitle(db, splitted[1], splitted.back()) : std::move(title);
+}
+
+Node GetHead(DB::IDatabase& db, QString id, QString title, QString root, QString self)
+{
+	title = ParseTitle(db, std::move(title));
 	auto standardNodes = GetStandardNodes(std::move(id), std::move(title));
 	standardNodes.emplace_back("link",
 	                           QString {
@@ -256,7 +288,7 @@ Node WriteNavigationStartsWith(DB::IDatabase& db,
                                const QString& itemQuery,
                                const EntryWriter entryWriter)
 {
-	auto head = GetHead(navigationType, Loc::Tr(Loc::NAVIGATION, navigationType), root, self);
+	auto head = GetHead(db, navigationType, Loc::Tr(Loc::NAVIGATION, navigationType), root, self);
 	auto& children = head.children;
 
 	std::vector<std::pair<QString, int>> dictionary {
@@ -394,7 +426,8 @@ struct Requester::Impl
 
 	Node WriteRoot(const QString& root, const QString& self) const
 	{
-		auto head = GetHead("root", collectionProvider->GetActiveCollection().name, root, self);
+		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, "root", collectionProvider->GetActiveCollection().name, root, self);
 
 		const auto dbStatQueryTextItems = QStringList
 		{
@@ -407,7 +440,6 @@ struct Requester::Impl
 		auto dbStatQueryText = dbStatQueryTextItems.join(" union all ");
 		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders").replace("count(42) from Groups", "count(42) from Groups_User");
 
-		const auto db = databaseController->GetDatabase(true);
 		const auto query = db->CreateQuery(dbStatQueryText.toStdString());
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
@@ -430,9 +462,10 @@ struct Requester::Impl
 			{
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 
+				const auto db = databaseController->GetDatabase(true);
 				const auto& book = dataProvider.GetBook();
 
-				head = GetHead(BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
+				head = GetHead(*db, BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
 				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
 				const auto strategy = strategyCreator(*settings);
@@ -590,7 +623,8 @@ struct Requester::Impl
 
 	Node WriteGenresNavigation(const QString& root, const QString& self, const QString& value) const
 	{
-		auto head = GetHead(Loc::Genres, Loc::Tr(Loc::NAVIGATION, Loc::Genres), root, self);
+		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, Loc::Genres, value.isEmpty() ? Loc::Tr(Loc::NAVIGATION, Loc::Genres) : QString("%1/%2").arg(Loc::Genres, value), root, self);
 		WriteGenresNavigationImpl(root, head.children, value);
 		return head;
 	}
@@ -604,9 +638,9 @@ struct Requester::Impl
 
 	Node WriteArchivesNavigation(const QString& root, const QString& self, const QString& /*value*/) const
 	{
-		auto head = GetHead(Loc::Archives, Loc::Tr(Loc::NAVIGATION, Loc::Archives), root, self);
-
 		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, Loc::Archives, Loc::Tr(Loc::NAVIGATION, Loc::Archives), root, self);
+
 		const auto query = db->CreateQuery("select f.FolderID, f.FolderTitle, count(42) from Folders f join Books b on b.FolderID = f.FolderID group by f.FolderID");
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
@@ -619,9 +653,9 @@ struct Requester::Impl
 
 	Node WriteGroupsNavigation(const QString& root, const QString& self, const QString& /*value*/) const
 	{
-		auto head = GetHead(Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups), root, self);
-
 		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups), root, self);
+
 		const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
