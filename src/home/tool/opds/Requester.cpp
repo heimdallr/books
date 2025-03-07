@@ -57,7 +57,7 @@ constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPR
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IStrategy> (*)(const ISettings&)> URL_GENERATORS[] {
+constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController::IStrategy> (*)(const ISettings&)> ANNOTATION_CONTROLLER_STRATEGY_CREATORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &CreateAnnotationControllerStrategy_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -434,17 +434,9 @@ struct Requester::Impl
 
 				head = GetHead(BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
-				const auto urlGeneratorCreator = FindSecond(URL_GENERATORS, root.toStdString().data(), PszComparer {});
-				const auto urlGenerator = urlGeneratorCreator(*settings);
-				auto annotation = annotationController->CreateAnnotation(dataProvider, *urlGenerator);
-				const auto addRate = [&](const char* name, const int column)
-				{
-					const auto rate = book.GetRawData(column).toInt();
-					if (rate > 0 && rate <= 5)
-						annotation.replace(QString("@%1@").arg(name), QString::number(rate));
-				};
-				addRate(Loc::RATE, Flibrary::BookItem::Column::LibRate);
-				addRate(Loc::USER_RATE, Flibrary::BookItem::Column::UserRate);
+				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
+				const auto strategy = strategyCreator(*settings);
+				auto annotation = annotationController->CreateAnnotation(dataProvider, *strategy);
 
 				auto& entry = WriteEntry(root, head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, annotation, false);
 				for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
