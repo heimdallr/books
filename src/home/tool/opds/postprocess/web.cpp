@@ -1,3 +1,5 @@
+#include <ranges>
+
 #include <QBuffer>
 #include <QTextStream>
 
@@ -365,8 +367,14 @@ private:
 
 	bool OnEndElementFeed() override
 	{
-		if (!m_authorName.isEmpty() && !m_authorLink.isEmpty())
-			m_stream << QString(R"(<h2><a href = "%1">%2</a></h2>)").arg(m_authorLink, m_authorName);
+		{
+			QStringList authors;
+			std::ranges::transform(m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }),
+			                       std::back_inserter(authors),
+			                       [](const auto& item) { return QString(R"(<a href = "%1">%2</a>)").arg(item.second, item.first); });
+			if (!authors.isEmpty())
+				m_stream << QString(R"(<h2>%1</h2>)").arg(authors.join("&ensp;"));
+		}
 
 		if (!m_mainTitle.isEmpty())
 			m_stream << QString("<h1>%1</h1><hr/>").arg(m_mainTitle);
@@ -394,19 +402,19 @@ private:
 
 	bool ParseAuthorName(const QString& value)
 	{
-		m_authorName = value;
+		m_authors.emplace_back(value, QString {});
 		return true;
 	}
 
 	bool ParseAuthorLink(const QString& value)
 	{
-		m_authorLink = value;
+		assert(!m_authors.empty() && m_authors.back().second.isEmpty());
+		m_authors.back().second = value;
 		return true;
 	}
 
 private:
-	QString m_authorName;
-	QString m_authorLink;
+	std::vector<std::pair<QString, QString>> m_authors;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
 	QString m_coverLink;
