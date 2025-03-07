@@ -143,7 +143,7 @@ struct Table
 	Table& Add(const char* name, const QString& value)
 	{
 		if (!value.isEmpty())
-			data << QString(R"(<tr><td>%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
+			data << QString(R"(<tr><td style="vertical-align: top;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
 
 		return *this;
 	}
@@ -597,9 +597,12 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 
 	if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
 	{
-		Table table;
+		QStringList translatorList;
+		translatorList.reserve(static_cast<int>(translators->GetChildCount()));
 		for (size_t i = 0, sz = translators->GetChildCount(); i < sz; ++i)
-			table.Add(i == 0 ? TRANSLATORS : "", GetAuthorFull(*translators->GetChild(i)));
+			translatorList << GetAuthorFull(*translators->GetChild(i));
+		Table table;
+		table.Add(TRANSLATORS, translatorList.join(", "));
 		Add(annotation, table.ToString());
 	}
 
