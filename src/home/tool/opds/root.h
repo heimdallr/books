@@ -14,6 +14,7 @@ enum class ContentType
 	Navigation,
 	Authors,
 	Books,
+	BookText,
 };
 
 }

@@ -1,6 +1,7 @@
 #include <ranges>
 
 #include <QBuffer>
+#include <QRegularExpression>
 #include <QTextStream>
 
 #include "fnd/FindPair.h"
@@ -28,12 +29,14 @@ constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
 constexpr auto DOWNLOAD_FB2 = QT_TRANSLATE_NOOP("opds", "Download fb2");
 constexpr auto DOWNLOAD_ZIP = QT_TRANSLATE_NOOP("opds", "Download zip");
+constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
 TR_DEF
 
 constexpr auto FEED = "feed";
 constexpr auto FEED_TITLE = "feed/title";
 constexpr auto FEED_LINK = "feed/link";
 constexpr auto ENTRY = "feed/entry";
+constexpr auto ENTRY_ID = "feed/entry/id";
 constexpr auto ENTRY_TITLE = "feed/entry/title";
 constexpr auto ENTRY_LINK = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
@@ -51,6 +54,11 @@ constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
     {  Loc::ARCHIVE, Loc::Archives },
     {   Loc::GROUPS,   Loc::Groups },
 };
+
+QString ReduceSections(QString path)
+{
+	return path.replace(QRegularExpression("section(/section)+"), "section");
+}
 
 class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {
@@ -85,7 +93,7 @@ private:
 class AbstractParser : public SaxParser
 {
 public:
-	QByteArray GetResult() const
+	virtual QByteArray GetResult() const
 	{
 		return m_output.buffer();
 	}
@@ -111,6 +119,19 @@ private: // SaxParser
 	bool OnFatalError(const QString& /*text*/) override
 	{
 		return true;
+	}
+
+protected:
+	QBuffer m_output;
+	QTextStream m_stream { &m_output };
+};
+
+class ParserOpds : public AbstractParser
+{
+protected:
+	explicit ParserOpds(QIODevice& stream)
+		: AbstractParser(stream)
+	{
 	}
 
 protected:
@@ -150,6 +171,12 @@ protected:
 		return true;
 	}
 
+	bool ParseEntryId(const QString& value)
+	{
+		m_id = value;
+		return true;
+	}
+
 	bool ParseFeedTitle(const QString& value)
 	{
 		m_mainTitle = value;
@@ -169,8 +196,7 @@ protected:
 	}
 
 protected:
-	QBuffer m_output;
-	QTextStream m_stream { &m_output };
+	QString m_id;
 	QString m_title;
 	QString m_content;
 
@@ -178,21 +204,21 @@ protected:
 	QString m_mainTitle;
 };
 
-class ParserNavigation final : public AbstractParser
+class ParserNavigation final : public ParserOpds
 {
 	struct CreateGuard
 	{
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream)
+	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList&)
 	{
 		return std::make_unique<ParserNavigation>(stream, CreateGuard {});
 	}
 
 public:
 	ParserNavigation(QIODevice& stream, CreateGuard)
-		: AbstractParser(stream)
+		: ParserOpds(stream)
 	{
 	}
 
@@ -228,6 +254,7 @@ private: // SaxParser
 		using ParseCharacterFunction = bool (ParserNavigation::*)(const QString&);
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
+			{      ENTRY_ID,      &ParserNavigation::ParseEntryId },
 			{   ENTRY_TITLE,   &ParserNavigation::ParseEntryTitle },
 			{ ENTRY_CONTENT, &ParserNavigation::ParseEntryContent },
 			{    FEED_TITLE,    &ParserNavigation::ParseFeedTitle },
@@ -239,7 +266,7 @@ private: // SaxParser
 private:
 	bool OnStartElementFeed(const XmlAttributes& attributes) override
 	{
-		AbstractParser::OnStartElementFeed(attributes);
+		ParserOpds::OnStartElementFeed(attributes);
 		m_stream << "<table>\n";
 		return true;
 	}
@@ -247,7 +274,7 @@ private:
 	bool OnStartElementEntry(const XmlAttributes& attributes) override
 	{
 		m_link.clear();
-		return AbstractParser::OnStartElementEntry(attributes);
+		return ParserOpds::OnStartElementEntry(attributes);
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
@@ -259,7 +286,7 @@ private:
 	bool OnEndElementFeed() override
 	{
 		m_stream << "</table>\n";
-		return AbstractParser::OnEndElementFeed();
+		return ParserOpds::OnEndElementFeed();
 	}
 
 	bool OnEndElementEntry()
@@ -274,21 +301,21 @@ private:
 	QString m_link;
 };
 
-class ParserBookInfo final : public AbstractParser
+class ParserBookInfo final : public ParserOpds
 {
 	struct CreateGuard
 	{
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream)
+	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList&)
 	{
 		return std::make_unique<ParserBookInfo>(stream, CreateGuard {});
 	}
 
 public:
 	ParserBookInfo(QIODevice& stream, CreateGuard)
-		: AbstractParser(stream)
+		: ParserOpds(stream)
 	{
 	}
 
@@ -324,9 +351,10 @@ private: // SaxParser
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{    FEED_TITLE,    &ParserBookInfo::ParseFeedTitle },
+            {      ENTRY_ID,      &ParserBookInfo::ParseEntryId },
             {   ENTRY_TITLE,   &ParserBookInfo::ParseEntryTitle },
-            { ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
-			{   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
+			{ ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
+            {   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
             {   AUTHOR_LINK,   &ParserBookInfo::ParseAuthorLink },
 		};
 
@@ -382,7 +410,7 @@ private:
 		{
 			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
 			if (!m_coverLink.isEmpty())
-				m_stream << QString(R"(<td><img src="%1" width="240"></td>)").arg(m_coverLink);
+				m_stream << QString(R"(<td><img src="%1" width="480"/></td>)").arg(m_coverLink);
 
 			const auto href = [this](const QString& url, const QString& message, const QString& ext)
 			{
@@ -391,13 +419,14 @@ private:
 			};
 
 			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
+			m_stream << QString(R"(<br><a href="/web/read/%1">%2</a></br>)").arg(m_id, Tr(READ));
 			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2), "fb2");
 			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), "zip");
 		}
 
 		m_stream << m_content << "\n";
 
-		return AbstractParser::OnEndElementFeed();
+		return ParserOpds::OnEndElementFeed();
 	}
 
 	bool ParseAuthorName(const QString& value)
@@ -420,16 +449,379 @@ private:
 	QString m_coverLink;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(QIODevice&)> PARSER_CREATORS[] {
+class ParserFb2 final : public AbstractParser
+{
+	struct CreateGuard
+	{
+	};
+
+	struct Link
+	{
+		QString href;
+		QString type;
+	};
+
+	struct Binary
+	{
+		QString id;
+		QString type;
+		QString body;
+	};
+
+	static constexpr auto FICTION_BOOK = "FictionBook";
+	static constexpr auto AUTHOR = "FictionBook/description/title-info/author";
+	static constexpr auto AUTHOR_FIRST_NAME = "FictionBook/description/title-info/author/first-name";
+	static constexpr auto AUTHOR_LAST_NAME = "FictionBook/description/title-info/author/last-name";
+	static constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/middle-name";
+	static constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
+	static constexpr auto BODY = "FictionBook/body";
+	static constexpr auto BODY_TITLE = "FictionBook/body/title";
+	static constexpr auto BODY_TITLE_P = "FictionBook/body/title/p";
+	static constexpr auto BODY_TITLE_P_STRONG = "FictionBook/body/title/p/strong";
+	static constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
+	static constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
+	static constexpr auto EPIGRAPH_TEXT_AUTHOR = "FictionBook/body/epigraph/text-author";
+	static constexpr auto SECTION = "FictionBook/body/section";
+	static constexpr auto SECTION_TITLE = "FictionBook/body/section/title";
+	static constexpr auto SECTION_TITLE_P = "FictionBook/body/section/title/p";
+	static constexpr auto SECTION_EPIGRAPH = "FictionBook/body/section/epigraph";
+	static constexpr auto SECTION_EPIGRAPH_P = "FictionBook/body/section/epigraph/p";
+	static constexpr auto SECTION_EPIGRAPH_TEXT_AUTHOR = "FictionBook/body/section/epigraph/text-author";
+	static constexpr auto BINARY = "FictionBook/binary";
+
+	static constexpr auto EMPTY_LINE = "empty-line";
+	static constexpr auto A = "a";
+	static constexpr auto POEM = "poem";
+	static constexpr auto STANZA = "stanza";
+	static constexpr auto P = "p";
+	static constexpr auto V = "v";
+	static constexpr auto NOTE = "note";
+	static constexpr auto NOTES = "notes";
+	static constexpr auto EMPHASIS = "emphasis";
+	static constexpr auto IMAGE = "image";
+
+public:
+	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
+	{
+		assert(!parameters.isEmpty());
+		return std::make_unique<ParserFb2>(stream, parameters.front(), CreateGuard {});
+	}
+
+public:
+	ParserFb2(QIODevice& stream, QString bookId, CreateGuard)
+		: AbstractParser(stream)
+		, m_bookId { std::move(bookId) }
+	{
+	}
+
+private: // SaxParser
+	bool OnStartElement(const QString& name, const QString& pathSrc, const XmlAttributes& attributes) override
+	{
+		if (name == P && m_body)
+			return (m_stream << "<p>"), true;
+
+		if (name == EMPTY_LINE || name == STANZA)
+			return (m_stream << "<br/>"), true;
+
+		if (name == A)
+			return (m_link = std::make_unique<Link>(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)), attributes.GetAttribute("type"))), true;
+
+		if (name == POEM)
+			return (m_poem = true), true;
+
+		if (name == EMPHASIS)
+			return (m_stream << "<i>"), true;
+
+		if (name == IMAGE && m_body)
+			return (m_stream << QString(R"(<img src="#%1"/>)").arg(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)).mid(1))), true;
+
+		if (name == V && m_poem)
+			return (m_stream << R"(<div class="poem">)"), true;
+
+		const auto path = ReduceSections(pathSrc);
+
+		using ParseElementFunction = bool (ParserFb2::*)(const XmlAttributes&);
+		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		static constexpr ParseElementItem PARSERS[] {
+			{ FICTION_BOOK, &ParserFb2::OnStartElementFictionBook },
+            {       AUTHOR,      &ParserFb2::OnStartElementAuthor },
+            {         BODY,        &ParserFb2::OnStartElementBody },
+			{      SECTION,     &ParserFb2::OnStartElementSection },
+            {       BINARY,      &ParserFb2::OnStartElementBinary },
+		};
+
+		return Parse(*this, PARSERS, path, attributes);
+	}
+
+	bool OnEndElement(const QString& name, const QString& pathSrc) override
+	{
+		if (name == P && m_body)
+			return (m_stream << "</p>"), true;
+
+		if (name == A)
+			return m_link.reset(), true;
+
+		if (name == POEM)
+			return (m_stream << "<br/>\n"), (m_poem = false), true;
+
+		if (name == EMPHASIS)
+			return (m_stream << "</i>"), true;
+
+		if (name == V && m_poem)
+			return (m_stream << "</div>\n"), true;
+
+		const auto path = ReduceSections(pathSrc);
+		using ParseElementFunction = bool (ParserFb2::*)();
+		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		static constexpr ParseElementItem PARSERS[] {
+			{  FICTION_BOOK,  &ParserFb2::OnEndElementFictionBook },
+			{        AUTHOR,       &ParserFb2::OnEndElementAuthor },
+			{          BODY,         &ParserFb2::OnEndElementBody },
+			{ SECTION_TITLE, &ParserFb2::OnEndElementSectionTitle },
+		};
+
+		return Parse(*this, PARSERS, path);
+	}
+
+	bool OnCharacters(const QString& pathSrc, const QString& value) override
+	{
+		const auto path = ReduceSections(pathSrc);
+		using ParseCharacterFunction = bool (ParserFb2::*)(const QString&);
+		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		static constexpr ParseCharacterItem PARSERS[] {
+			{            AUTHOR_FIRST_NAME,    &ParserFb2::ParseAuthorFirstName },
+			{           AUTHOR_MIDDLE_NAME,   &ParserFb2::ParseAuthorMiddleName },
+			{             AUTHOR_LAST_NAME,     &ParserFb2::ParseAuthorLastName },
+			{				   BOOK_TITLE,          &ParserFb2::ParseBookTitle },
+			{				   BODY_TITLE,          &ParserFb2::ParseBookTitle },
+			{				 BODY_TITLE_P,          &ParserFb2::ParseBookTitle },
+			{          BODY_TITLE_P_STRONG,          &ParserFb2::ParseBookTitle },
+			{					 EPIGRAPH,           &ParserFb2::ParseEpigraph },
+			{				   EPIGRAPH_P,           &ParserFb2::ParseEpigraph },
+			{             SECTION_EPIGRAPH,           &ParserFb2::ParseEpigraph },
+			{           SECTION_EPIGRAPH_P,           &ParserFb2::ParseEpigraph },
+			{         EPIGRAPH_TEXT_AUTHOR, &ParserFb2::ParseEpigraphTextAuthor },
+			{ SECTION_EPIGRAPH_TEXT_AUTHOR, &ParserFb2::ParseEpigraphTextAuthor },
+			{				SECTION_TITLE,       &ParserFb2::ParseSectionTitle },
+			{			  SECTION_TITLE_P,       &ParserFb2::ParseSectionTitle },
+			{					   BINARY,             &ParserFb2::ParseBinary },
+		};
+
+		const auto result = Parse(*this, PARSERS, path, value);
+		if (m_processed || !m_body)
+			return result;
+
+		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, value);
+	}
+
+private: // AbstractParser
+	QByteArray GetResult() const override
+	{
+		auto result = m_output.buffer();
+
+		for (const auto& [id, type, body] : m_binary)
+			result.replace(QString(R"(<img src="#%1"/>)").arg(id).toUtf8(), QString(R"(<img src="data:%1;base64, %2"/>)").arg(type, body).toUtf8());
+
+		return result;
+	}
+
+private:
+	bool OnStartElementFictionBook(const XmlAttributes& attributes)
+	{
+		m_stream << QString(R"(<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			p { 
+				max-width: 720px;
+			}
+			.epigraph {
+				margin-left: 360px;
+				max-width: 360px; 
+				font-style: italic;
+				text-align: end;
+			}
+			.epigraph_text_author {
+				text-align: end;
+			}
+			.poem {
+				max-width: 720px;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+	<a href="/web">%1</a>
+	<hr>
+)")
+						.arg(Tr(HOME));
+		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			if (attributes.GetValue(i) == "http://www.w3.org/1999/xlink")
+			{
+				m_linkNs = attributes.GetName(i).mid(6);
+				break;
+			}
+		return true;
+	}
+
+	bool OnStartElementAuthor(const XmlAttributes&)
+	{
+		m_author.clear();
+		m_author << "" << "" << "";
+		return true;
+	}
+
+	bool OnStartElementBody(const XmlAttributes& attributes)
+	{
+		m_body = true;
+		m_bodyName = attributes.GetAttribute("name");
+		return true;
+	}
+
+	bool OnStartElementSection(const XmlAttributes& attributes)
+	{
+		m_sectionId = attributes.GetAttribute("id");
+		return true;
+	}
+
+	bool OnStartElementBinary(const XmlAttributes& attributes)
+	{
+		m_binary.emplace_back(attributes.GetAttribute("id"), attributes.GetAttribute("content-type"));
+		return true;
+	}
+
+	bool OnEndElementFictionBook()
+	{
+		m_stream << "</body>\n</html>\n";
+		m_output.close();
+		return true;
+	}
+
+	bool OnEndElementAuthor()
+	{
+		m_stream << QString("<h2>%1</h2>\n").arg(m_author.join(' ').split(' ', Qt::SkipEmptyParts).join(' '));
+		return true;
+	}
+
+	bool OnEndElementBody()
+	{
+		m_body = false;
+		m_bodyName.clear();
+		m_titleOnceFlag = false;
+		return true;
+	}
+
+	bool OnEndElementSectionTitle()
+	{
+		if (m_bodyName.isEmpty())
+			return true;
+
+		if (m_bodyName == NOTES)
+		{
+			m_stream << QString(R"(<a id="%1">%2</a>)").arg(m_sectionId, m_sectionTitle);
+			return true;
+		}
+
+		return true;
+	}
+
+	bool ParseAuthorFirstName(const QString& value)
+	{
+		m_author[0] = value;
+		return true;
+	}
+
+	bool ParseAuthorMiddleName(const QString& value)
+	{
+		m_author[1] = value;
+		return true;
+	}
+
+	bool ParseAuthorLastName(const QString& value)
+	{
+		m_author[2] = value;
+		return true;
+	}
+
+	bool ParseBookTitle(const QString& value)
+	{
+		if (m_titleOnceFlag)
+			return true;
+
+		m_titleOnceFlag = true;
+		m_stream << QString("<h%2>%1</h%2>\n").arg(value).arg(m_bodyName.isEmpty() ? 1 : 3);
+		return true;
+	}
+
+	bool ParseEpigraph(const QString& value)
+	{
+		m_stream << QString(R"(<p class="epigraph">%1</p>)"
+		                    "\n")
+						.arg(value);
+		return true;
+	}
+
+	bool ParseEpigraphTextAuthor(const QString& value)
+	{
+		m_stream << QString(R"(<p class="epigraph_text_author">%1</p>)"
+		                    "\n")
+						.arg(value);
+		return true;
+	}
+
+	bool ParseSectionTitle(const QString& value)
+	{
+		m_sectionTitle = value;
+		if (m_bodyName.isEmpty())
+			return (m_stream << QString("<h3>%1</h3>\n").arg(value)), true;
+
+		return true;
+	}
+
+	bool ParseBinary(const QString& value)
+	{
+		m_binary.back().body = value;
+		return true;
+	}
+
+	bool ProcessUnparsedCharacters(const QString& /*path*/, const QString& value)
+	{
+		if (m_link)
+		{
+			const auto linkGuard = m_link->type == NOTE ? std::make_unique<ScopedCall>([&] { m_stream << "<sup>"; }, [&] { m_stream << "</sup>"; }) : std::unique_ptr<ScopedCall> {};
+			m_stream << QString(R"(<a href="%1">%2</a>)").arg(m_link->href, value);
+			return true;
+		}
+
+		m_stream << value;
+		return true;
+	}
+
+private:
+	const QString m_bookId;
+	bool m_titleOnceFlag { false };
+	QStringList m_author;
+	bool m_body { false };
+	QString m_bodyName;
+	QString m_sectionId;
+	QString m_sectionTitle;
+	QString m_linkNs;
+	std::unique_ptr<Link> m_link;
+	bool m_poem { false };
+	std::vector<Binary> m_binary;
+};
+
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(QIODevice&, const QStringList&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
+	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType)
+QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType, const QStringList& parameters)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser = std::invoke(parserCreator, std::ref(stream));
+	const auto parser = parserCreator(stream, parameters);
 	parser->Parse();
 	return parser->GetResult();
 }

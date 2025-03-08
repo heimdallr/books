@@ -36,8 +36,9 @@ constexpr auto AUTHOR_LIST = "%1/%2/%3";
 constexpr auto NAVIGATION_AUTHOR_STARTS = "%1/%2/%3/starts/%4";
 constexpr auto NAVIGATION_AUTHOR = "%1/%2/%3/%4";
 constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "%1/%2/Authors/Books/%3/%4/starts/%5";
+constexpr auto READ = "%1/read/%2";
 
-void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& root, QString value)
+void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& root, QString value = {})
 {
 	if (key == QHttpHeaders::WellKnownHeader::ContentType && root == "/web")
 		value = "text/html; charset=utf-8";
@@ -143,6 +144,18 @@ private:
 							   {
 								   QHttpServerResponse response(m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/fb2");
+								   return response;
+							   });
+					   });
+
+		m_server.route(QString(READ).arg(root, ARG),
+		               [this, root](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, root, value]
+							   {
+								   QHttpServerResponse response(m_requester->GetBookText(root, value));
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root);
 								   return response;
 							   });
 					   });

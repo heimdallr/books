@@ -36,7 +36,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType, const QStringList&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -52,7 +52,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -465,7 +465,7 @@ struct Requester::Impl
 				const auto db = databaseController->GetDatabase(true);
 				const auto& book = dataProvider.GetBook();
 
-				head = GetHead(*db, BOOK, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
+				head = GetHead(*db, bookId, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
 				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
 				const auto strategy = strategyCreator(*settings);
@@ -549,7 +549,8 @@ struct Requester::Impl
 			{
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					result = covers.front().bytes;
+					if (const auto coverIndex = dataProvider.GetCoverIndex())
+						result = covers[*coverIndex].bytes;
 			});
 
 		annotationController->RegisterObserver(&observer);
@@ -584,6 +585,11 @@ struct Requester::Impl
 	{
 		auto [fileName, data] = GetBookImpl(bookId);
 		return Compress(std::move(data), fileName);
+	}
+
+	QByteArray GetBookText(const QString& bookId) const
+	{
+		return GetBookImpl(bookId).second;
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -778,6 +784,21 @@ private:
 
 namespace
 {
+
+QByteArray PostProcess(const ContentType contentType, const QString& root, QByteArray& src, const QStringList& parameters = {})
+{
+	QBuffer buffer(&src);
+	buffer.open(QIODevice::ReadOnly);
+	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
+	auto result = postprocessor(buffer, contentType, parameters);
+
+#ifndef NDEBUG
+	PLOGV << result;
+#endif
+
+	return result;
+}
+
 template <typename Obj, typename NavigationGetter, typename... ARGS>
 QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentType, const QString& root, const QString& self, const ARGS&... args)
 {
@@ -809,15 +830,7 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	PLOGV << bytes;
 #endif
 
-	buffer.open(QIODevice::ReadOnly);
-	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = std::invoke(postprocessor, buffer, contentType);
-
-#ifndef NDEBUG
-	PLOGV << result;
-#endif
-
-	return result;
+	return PostProcess(contentType, root, bytes);
 }
 
 } // namespace
@@ -864,6 +877,12 @@ QByteArray Requester::GetBook(const QString& /*root*/, const QString& /*self*/, 
 QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
 {
 	return m_impl->GetBookZip(bookId);
+}
+
+QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
+{
+	auto result = m_impl->GetBookText(bookId);
+	return PostProcess(ContentType::BookText, root, result, { bookId });
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \

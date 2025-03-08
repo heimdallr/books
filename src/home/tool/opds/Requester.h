@@ -37,6 +37,7 @@ private: // IRequester
 	QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const override;
 	QByteArray GetBook(const QString& root, const QString& self, const QString& bookId) const override;
 	QByteArray GetBookZip(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
