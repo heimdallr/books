@@ -1,5 +1,7 @@
 #include "DatabaseUtil.h"
 
+#include <QHash>
+
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/GenresLocalization.h"
@@ -51,6 +53,22 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index)
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
 	item->SetData(translated != fbCode ? translated : query.Get<const char*>(index[1]));
+
+	return item;
+}
+
+IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index)
+{
+	static const std::unordered_map<QString, const char*> languages { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
+
+	auto item = IDataItem::Ptr(NavigationItem::Create());
+
+	item->SetId(query.Get<const char*>(index[0]));
+
+	QString language = query.Get<const char*>(index[1]);
+	const auto it = languages.find(language);
+
+	item->SetData(it != languages.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : std::move(language));
 
 	return item;
 }

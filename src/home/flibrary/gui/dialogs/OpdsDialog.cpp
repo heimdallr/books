@@ -3,7 +3,6 @@
 #include "OpdsDialog.h"
 
 #include <QClipboard>
-#include <QHostAddress>
 #include <QNetworkInterface>
 #include <QToolTip>
 
@@ -20,7 +19,7 @@ using namespace Flibrary;
 namespace
 {
 constexpr auto CONTEXT = "OpdsDialog";
-constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS server address has been copied to the clipboard");
+constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 TR_DEF
 }
 
@@ -60,16 +59,20 @@ struct OpdsDialog::Impl final
 
 		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) { checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup(); });
 
-		connect(ui.actionCopy,
-		        &QAction::triggered,
-		        &self,
-		        [&]
-		        {
-					QApplication::clipboard()->setText(ui.lineEditAddress->text());
-					QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
-				});
-
-		ui.lineEditAddress->addAction(ui.actionCopy, QLineEdit::TrailingPosition);
+		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit)
+		{
+			connect(action,
+			        &QAction::triggered,
+			        &self,
+			        [=]
+			        {
+						QApplication::clipboard()->setText(lineEdit->text());
+						QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
+					});
+			lineEdit->addAction(action, QLineEdit::TrailingPosition);
+		};
+		actionSetup(ui.actionCopyOpds, ui.lineEditOpdsAddress);
+		actionSetup(ui.actionCopyWeb, ui.lineEditWebAddress);
 
 		OnPortChanged();
 		OnRunningChanged();
@@ -98,20 +101,22 @@ private: // IOpdsController::IObserver
 	{
 		const auto isRunning = opdsController->IsRunning();
 		ui.spinBoxPort->setEnabled(!isRunning);
-		ui.lineEditAddress->setEnabled(isRunning);
+		ui.lineEditOpdsAddress->setEnabled(isRunning);
+		ui.lineEditWebAddress->setEnabled(isRunning);
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
 	}
 
 private:
-	void OnPortChanged()
+	void OnPortChanged() const
 	{
 		const QHostAddress& localhost = QHostAddress(QHostAddress::LocalHost);
 		for (const QHostAddress& address : QNetworkInterface::allAddresses())
 		{
 			if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
 			{
-				ui.lineEditAddress->setText(QString("http://%1:%2/opds").arg(address.toString()).arg(ui.spinBoxPort->value()));
+				ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(address.toString()).arg(ui.spinBoxPort->value()));
+				ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(address.toString()).arg(ui.spinBoxPort->value()));
 				return;
 			}
 		}

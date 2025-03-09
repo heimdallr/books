@@ -1,6 +1,6 @@
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-include("${CMAKE_CURRENT_LIST_DIR}/theme/theme.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/icons/icons.cmake")
 
 set(MODULES
 	gui

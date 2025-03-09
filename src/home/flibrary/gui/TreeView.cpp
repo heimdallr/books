@@ -64,23 +64,20 @@ public:
 private: // QHeaderView
 	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
+		{
+			const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+			QHeaderView::paintSection(painter, rect, logicalIndex);
+		}
 		if (!model())
-			return QHeaderView::paintSection(painter, rect, logicalIndex);
+			return;
 
-		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
-
-		const auto palette = QApplication::palette();
-
-		painter->setPen(QPen(palette.color(QPalette::Dark), 2));
-		painter->fillRect(rect, palette.color(QPalette::Base));
-		painter->drawRect(rect);
-
-		if (!PaintIcon(painter, rect, logicalIndex))
-			PaintText(painter, rect, logicalIndex);
+		PaintIcon(painter, rect, logicalIndex);
 
 		if (logicalIndex != sortIndicatorSection())
 			return;
 
+		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
+		const auto palette = QApplication::palette();
 		painter->setPen(palette.color(QPalette::Text));
 		painter->setBrush(palette.color(QPalette::Text));
 
@@ -112,13 +109,6 @@ private:
 		painter->drawPixmap(rect.topLeft() + QPoint { center.width(), center.height() }, icon.pixmap(size));
 
 		return true;
-	}
-
-	void PaintText(QPainter* painter, const QRect& rect, const int logicalIndex) const
-	{
-		const auto text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-		painter->setPen(QApplication::palette().color(QPalette::Text));
-		painter->drawText(rect, Qt::AlignCenter, text);
 	}
 };
 
@@ -254,6 +244,8 @@ private: // ITreeViewController::IObserver
 	{
 		m_ui.value->setText({});
 		m_ui.cbMode->setCurrentIndex(index);
+
+		QTimer::singleShot(0, [this, visible = m_controller->GetItemType() == ItemType::Books || index != static_cast<int>(NavigationMode::AllBooks)] { m_self.parentWidget()->setVisible(visible); });
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override

@@ -141,10 +141,10 @@ void UiFactory::ShowError(const QString& text) const
 	(void)dialog->Show(text);
 }
 
-QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QLineEdit::EchoMode mode) const
+QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
 {
 	const auto dialog = m_impl->container.resolve<IInputTextDialog>();
-	return dialog->GetText(title, label, text, mode);
+	return dialog->GetText(title, label, text, comboBoxItems, mode);
 }
 
 std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
@@ -158,6 +158,16 @@ QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString& key
 	RecentDir recentDir(std::move(settings), key);
 	auto result = f(recentDir.GetDir(dir));
 	recentDir.SetDir(result);
+	return result;
+}
+
+QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	auto settings = m_impl->container.resolve<ISettings>();
+	RecentDir recentDir(std::move(settings), key);
+	auto result = QFileDialog::getOpenFileNames(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir.GetDir(dir), filter, nullptr, options);
+	if (!result.isEmpty())
+		recentDir.SetDir(result.front());
 	return result;
 }
 

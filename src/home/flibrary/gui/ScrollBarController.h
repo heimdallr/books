@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QPointer>
 
 class QAbstractScrollArea;
 class QTimer;
@@ -25,7 +26,7 @@ private:
 private:
 	QTimer* m_timerV;
 	QTimer* m_timerH;
-	QAbstractScrollArea* m_area { nullptr };
+	QPointer<QAbstractScrollArea> m_area;
 };
 
 }

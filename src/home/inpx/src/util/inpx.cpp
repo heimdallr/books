@@ -672,7 +672,7 @@ auto GetInpxFilesInFolder(const Path& inpxFolder)
 			   });
 }
 
-InpxFolders GetInpxFolder(const Path& inpxFolder)
+InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 {
 	InpxFolders folders;
 	for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(inpxFolder))
@@ -684,30 +684,19 @@ InpxFolders GetInpxFolder(const Path& inpxFolder)
 			if (QFileInfo(fileName).suffix() != "inp")
 				continue;
 
-			const auto bytes = zip.Read(fileName)->GetStream().readAll();
-			QCryptographicHash hash(QCryptographicHash::Md5);
-			hash.addData(bytes);
+			auto hash = needHashes ? [&]
+			{
+				const auto bytes = zip.Read(fileName)->GetStream().readAll();
+				QCryptographicHash engine(QCryptographicHash::Md5);
+				engine.addData(bytes);
+				return QString::fromUtf8(engine.result().toHex()).toUpper().toStdString();
+			}()
+			                       : std::string {};
 
-			folders.try_emplace(std::make_pair(inpxFileName.filename().wstring(), fileName.toStdWString()), QString::fromUtf8(hash.result().toHex()).toUpper().toStdString());
+			folders.try_emplace(std::make_pair(inpxFileName.filename().wstring(), fileName.toStdWString()), std::move(hash));
 		}
 	}
 	return folders;
-}
-
-auto GetNewInpxFolders(const Ini& ini, Data& data)
-{
-	InpxFolders diff;
-	const auto inpxFolders = GetInpxFolder(ini(INPX_FOLDER));
-
-	std::unordered_map<std::wstring, std::vector<std::wstring>> result;
-
-	const auto proj = [](const auto& item) { return item.first; };
-	std::ranges::set_difference(inpxFolders, data.inpxFolders, std::inserter(diff, diff.end()), {}, proj, proj);
-
-	for (const auto& [folder, file] : diff | std::views::keys)
-		result[folder].emplace_back(file);
-
-	return result;
 }
 
 template <typename T>
@@ -889,52 +878,54 @@ public:
 
 	void Process()
 	{
-		(*m_executor)({ "Create collection",
-		                [&]
-		                {
-							try
-							{
-								ProcessImpl();
-							}
-							catch (const std::exception& ex)
-							{
-								m_errors.emplace_back(ex.what());
-							}
-							catch (...)
-							{
-								m_errors.emplace_back("Unknown error");
-							}
-							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-							return [this, genres](size_t)
-							{ m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, !m_errors.empty() }); };
-						} });
+		(*m_executor)(
+			{ "Create collection",
+		      [&]
+		      {
+				  try
+				  {
+					  ProcessImpl();
+				  }
+				  catch (const std::exception& ex)
+				  {
+					  m_errors.emplace_back(ex.what());
+				  }
+				  catch (...)
+				  {
+					  m_errors.emplace_back("Unknown error");
+				  }
+				  const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+				  return [this, genres](size_t)
+				  { m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, !m_errors.empty() }); };
+			  } });
 	}
 
 	void UpdateDatabase()
 	{
-		(*m_executor)({ "Update collection",
-		                [&]
-		                {
-							const auto foldersCount = [this]() -> size_t
-							{
-								try
-								{
-									return UpdateDatabaseImpl();
-								}
-								catch (const std::exception& ex)
-								{
-									m_errors.emplace_back(ex.what());
-								}
-								catch (...)
-								{
-									m_errors.emplace_back("Unknown error");
-								}
-								return 0;
-							}();
-							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-							return [this, foldersCount, genres](size_t)
-							{ m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, !m_errors.empty() }); };
-						} });
+		(*m_executor)(
+			{ "Update collection",
+		      [&]
+		      {
+				  const auto foldersCount = [this]() -> size_t
+				  {
+					  try
+					  {
+						  return UpdateDatabaseImpl();
+					  }
+					  catch (const std::exception& ex)
+					  {
+						  m_errors.emplace_back(ex.what());
+					  }
+					  catch (...)
+					  {
+						  m_errors.emplace_back("Unknown error");
+					  }
+					  return 0;
+				  }();
+				  const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+				  return [this, foldersCount, genres](size_t)
+				  { m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound, !m_errors.empty() }); };
+			  } });
 	}
 
 private: // IPool
@@ -1044,6 +1035,31 @@ private:
 		m_unknownGenreId = it->second;
 	}
 
+	auto GetNewInpxFolders()
+	{
+		InpxFolders diff;
+		const auto inpxFolders = GetInpxFolder(m_ini(INPX_FOLDER), true);
+
+		std::unordered_map<std::wstring, std::vector<std::wstring>> result;
+
+		const auto proj = [](const auto& item) { return item.first; };
+		std::ranges::set_difference(inpxFolders, m_data.inpxFolders, std::inserter(diff, diff.end()), {}, proj, proj);
+
+		auto inpxCaches = inpxFolders | std::views::values;
+		std::set<std::string> inpxCachesSorted { std::cbegin(inpxCaches), std::cend(inpxCaches) };
+
+		auto dbCaches = m_data.inpxFolders | std::views::values;
+		std::set<std::string> dbCachesSorted { std::cbegin(dbCaches), std::cend(dbCaches) };
+
+		if (!std::ranges::includes(inpxCachesSorted, dbCachesSorted))
+			m_oldDataUpdateFound = true;
+
+		for (const auto& [folder, file] : diff | std::views::keys)
+			result[folder].emplace_back(file);
+
+		return result;
+	}
+
 	size_t UpdateDatabaseImpl()
 	{
 		const auto& dbFileName = m_ini(DB_PATH);
@@ -1058,7 +1074,7 @@ private:
 		SetUnknownGenreId();
 
 		size_t result = 0;
-		const auto newInpxFolders = GetNewInpxFolders(m_ini, m_data);
+		const auto newInpxFolders = GetNewInpxFolders();
 		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
 			const auto& inpxFileName = inpxFileNameEntry.path();
@@ -1419,6 +1435,7 @@ private:
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	bool m_oldDataUpdateFound { false };
 
 	std::vector<QString> m_errors;
 
@@ -1474,7 +1491,7 @@ void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transactio
 {
 	try
 	{
-		const auto folders = GetInpxFolder(collectionFolder);
+		const auto folders = GetInpxFolder(collectionFolder, true);
 
 		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
 		for (const auto& [first, second] : folders)
@@ -1497,11 +1514,11 @@ void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transactio
 	}
 }
 
-CheckForUpdateResult Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
+bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
 {
 	try
 	{
-		const auto inpxFolders = GetInpxFolder(collectionFolder);
+		const auto inpxFolders = GetInpxFolder(collectionFolder, false);
 
 		InpxFolders dbFolders;
 		const auto query = database.CreateQuery("select Folder, File, Hash from Inpx");
@@ -1511,16 +1528,7 @@ CheckForUpdateResult Parser::CheckForUpdate(const Path& collectionFolder, DB::ID
 		InpxFolders diff;
 		const auto proj = [](const auto& item) { return item.first; };
 		std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
-		if (diff.empty())
-			return CheckForUpdateResult::NoUpdates;
-
-		auto inpxCaches = inpxFolders | std::views::values;
-		std::set<std::string> inpxCachesSorted { std::cbegin(inpxCaches), std::cend(inpxCaches) };
-
-		auto dbCaches = dbFolders | std::views::values;
-		std::set<std::string> dbCachesSorted { std::cbegin(dbCaches), std::cend(dbCaches) };
-
-		return std::ranges::includes(inpxCachesSorted, dbCachesSorted) ? CheckForUpdateResult::NewInpFound : CheckForUpdateResult::OldDataUpdateFound;
+		return !diff.empty();
 	}
 	catch (const std::exception& ex)
 	{
@@ -1531,5 +1539,5 @@ CheckForUpdateResult Parser::CheckForUpdate(const Path& collectionFolder, DB::ID
 		PLOGE << "unknown error";
 	}
 
-	return CheckForUpdateResult::NoUpdates;
+	return false;
 }

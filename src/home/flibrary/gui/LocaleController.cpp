@@ -8,7 +8,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
-#include "util/KeyboardLayout.h"
 #include "util/SortString.h"
 
 #include "log.h"
@@ -19,7 +18,14 @@ namespace HomeCompa::Flibrary
 namespace
 {
 constexpr auto LOCALE = "ui/locale";
-constexpr auto CONTEXT = "LocaleController";
+constexpr auto NAME = "name";
+
+std::vector<PropagateConstPtr<QTranslator>> LoadTranslators(const ISettings& settings)
+{
+	const auto locales = Loc::GetLocales();
+	return locales.size() == 1 ? Loc::LoadLocales(locales.front()) : Loc::LoadLocales(settings);
+}
+
 }
 
 class LocaleController::Impl
@@ -29,28 +35,39 @@ public:
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
-		, m_translators(Loc::LoadLocales(*m_settings))
+		, m_translators(LoadTranslators(*m_settings))
 	{
 		m_actionGroup.setExclusive(true);
 	}
 
 	void Setup(QMenu& menu)
 	{
+		const auto locales = Loc::GetLocales();
+		if (locales.empty())
+			return;
+
+		if (locales.size() == 1)
+			return Util::QStringWrapper::SetLocale(locales.front());
+
 		const auto currentLocale = Loc::GetLocale(*m_settings);
 		Util::QStringWrapper::SetLocale(currentLocale);
-		SetKeyboardLayout(currentLocale.toStdString());
-		for (const auto* locale : Loc::LOCALES)
+		for (const auto* locale : locales)
 		{
 			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
+			action->setProperty(NAME, QString(locale));
 			m_actionGroup.addAction(action);
 			action->setCheckable(true);
 			action->setChecked(currentLocale == locale);
+			action->setEnabled(currentLocale != locale);
 		}
 	}
 
 private:
 	void SetLocale(const QString& locale)
 	{
+		for (auto* action : m_actionGroup.actions())
+			action->setEnabled(action->property(NAME).toString() != locale);
+
 		m_settings->Set(LOCALE, locale);
 
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)

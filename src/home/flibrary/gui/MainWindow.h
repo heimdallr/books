@@ -25,6 +25,7 @@ class MainWindow final
 
 public:
 	MainWindow(const std::shared_ptr<const class ILogicFactory>& logicFactory,
+	           std::shared_ptr<const class IStyleApplierFactory> styleApplierFactory,
 	           std::shared_ptr<class IUiFactory> uiFactory,
 	           std::shared_ptr<ISettings> settings,
 	           std::shared_ptr<class ICollectionController> collectionController,
@@ -48,6 +49,9 @@ signals:
 private: // IMainWindow
 	void Show() override;
 
+private: // QWidget
+	void keyPressEvent(QKeyEvent* event) override;
+
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 
@@ -56,4 +60,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

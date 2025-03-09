@@ -6,21 +6,24 @@ CreateWinRC(app
     	APP_VERSION       ${PRODUCT_VERSION}
 )
 
-file(COPY ${Qt6Translations_DIR}/qtbase_ru.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	file(WRITE "${CMAKE_BINARY_DIR}/config/installer_mode" "msi")
 	install(FILES "${CMAKE_BINARY_DIR}/config/installer_mode" DESTINATION .)
 endif()
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/imageformats DESTINATION .)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/locales DESTINATION .)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/platforms DESTINATION .)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/styles DESTINATION .)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/tls DESTINATION .)
+file(COPY "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE_en.txt" DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(RENAME "${CMAKE_BINARY_DIR}/bin/LICENSE_en.txt" "${CMAKE_BINARY_DIR}/bin/LICENSE.txt")
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/imageformats DESTINATION .)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/styles DESTINATION .)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/tls DESTINATION .)
+install(FILES ${CMAKE_BINARY_DIR}/bin/LICENSE.txt DESTINATION .)
 
 AddTarget(${PROJECT_NAME}	app
 	PROJECT_GROUP App
-	WIN_RC ${CMAKE_CURRENT_BINARY_DIR}/resources/app.rc
+	WIN_RC ${CMAKE_BINARY_DIR}/resources/app.rc
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
@@ -41,4 +44,18 @@ AddTarget(${PROJECT_NAME}	app
 		Qt6::QJpegPlugin
 		Qt6::QSvgPlugin
 		Qt6::QSchannelBackendPlugin
+)
+
+file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
+if (${QT_MAJOR_VERSION} STREQUAL 6)
+	foreach(ts ${qt_ts})
+		get_filename_component(ts ${ts} NAME_WE)
+		file(COPY ${Qt6Translations_DIR}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
+	endforeach()
+endif()
+
+GenerateTranslations(
+	NAME ${PROJECT_NAME}
+	PATH "${CMAKE_CURRENT_LIST_DIR}/../../"
+	FILES ${qt_ts}
 )

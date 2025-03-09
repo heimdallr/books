@@ -196,14 +196,19 @@ void UiFactory::ShowError(const QString& text) const
 	m_impl->container.resolve<Util::IUiFactory>()->ShowError(text);
 }
 
-QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QLineEdit::EchoMode mode) const
+QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, mode);
+	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
 }
 
 std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
+}
+
+QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileNames(key, title, filter, dir, options);
 }
 
 QString UiFactory::GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const

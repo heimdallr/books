@@ -163,20 +163,22 @@ struct ModeDescriptor
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
-	{  Loc::Authors,																				 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                    },
-	{   Loc::Series,																									  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{   Loc::Genres,																				{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
-	{ Loc::Keywords,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{ Loc::Archives,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{   Loc::Groups,
+	{   Loc::Authors,																			   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                     },
+	{    Loc::Series,																									 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
+	{    Loc::Genres,																			   { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{  Loc::Keywords,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
+	{  Loc::Archives,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
+	{ Loc::Languages,																								  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages } },
+	{    Loc::Groups,
      { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
-	{   Loc::Search,
+	{    Loc::Search,
      { ViewMode::List,
      &IModelProvider::CreateSearchListModel,
      NavigationMode::Search,
      &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
      &IContextMenuHandler::OnRemoveSearchTriggered }																																				  },
+	{  Loc::AllBooks,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -304,6 +306,7 @@ private: // ITableSubscriptionHandler
 	{
 		OnTableChanged(NavigationMode::Genres);
 		OnTableChanged(NavigationMode::Archives);
+		OnTableChanged(NavigationMode::Languages);
 		self.RequestBooks(true);
 	}
 

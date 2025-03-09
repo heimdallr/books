@@ -18,7 +18,7 @@ public:
 
 private: // IAnnotationController
 	void SetCurrentBookId(QString bookId, bool extractNow) override;
-	QString CreateAnnotation(const IDataProvider& dataProvider) const override;
+	QString CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const override;
 	void ShowJokes(bool value) override;
 
 	void RegisterObserver(IObserver* observer) override;

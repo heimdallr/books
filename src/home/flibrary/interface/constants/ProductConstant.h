@@ -24,4 +24,5 @@ constexpr auto OPDS_SERVER_COMMAND_RESTART = "restart";
 constexpr auto OPDS_SERVER_COMMAND_STOP = "stop";
 
 constexpr auto BOOK = "Book:";
+
 }

@@ -10,3 +10,6 @@ AddTarget(zip	shared_lib
 	LINK_TARGETS
 		logging
 )
+
+file(COPY ${7z_ROOT}/bin/7z.dll DESTINATION ${CMAKE_BINARY_DIR}/bin)
+install(FILES ${7z_ROOT}/bin/7z.dll DESTINATION .)

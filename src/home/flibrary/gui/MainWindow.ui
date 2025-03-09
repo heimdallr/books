@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1113</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,6 +45,9 @@
     </item>
     <item>
      <widget class="QLineEdit" name="lineEditBookTitleToSearch">
+      <property name="placeholderText">
+       <string>To search books by title, enter part of the title here and press enter</string>
+      </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
       </property>
@@ -277,7 +280,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1113</width>
      <height>22</height>
     </rect>
    </property>
@@ -313,7 +316,6 @@
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
     <addaction name="actionAllowDestructiveOperations"/>
-    <addaction name="actionDenyDestructiveOperations"/>
     <addaction name="actionShowCollectionCleaner"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
@@ -333,14 +335,12 @@
       <property name="title">
        <string>&amp;Annotation</string>
       </property>
-      <addaction name="actionHideAnnotation"/>
       <addaction name="actionShowAnnotationCover"/>
-      <addaction name="actionHideAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
-      <addaction name="actionHideAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
-      <addaction name="actionHideAnnotationContent"/>
       <addaction name="actionShowJokes"/>
+      <addaction name="separator"/>
+      <addaction name="actionHideAnnotation"/>
      </widget>
      <widget class="QMenu" name="menuLog">
       <property name="title">
@@ -364,33 +364,30 @@
       <addaction name="actionFontSizeUp"/>
       <addaction name="actionFontSizeDown"/>
      </widget>
+     <widget class="QMenu" name="menuTheme">
+      <property name="title">
+       <string>&amp;Theme</string>
+      </property>
+      <widget class="QMenu" name="menuColorScheme">
+       <property name="title">
+        <string>&amp;Color scheme</string>
+       </property>
+       <addaction name="actionColorSchemeSystem"/>
+       <addaction name="actionColorSchemeLight"/>
+       <addaction name="actionColorSchemeDark"/>
+      </widget>
+      <addaction name="menuColorScheme"/>
+      <addaction name="separator"/>
+     </widget>
      <addaction name="actionShowRemoved"/>
-     <addaction name="actionHideRemoved"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
-     <addaction name="actionHideStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
-     <addaction name="actionHideSearchBookString"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>
+     <addaction name="menuTheme"/>
     </widget>
-    <widget class="QMenu" name="menuTheme">
-     <property name="title">
-      <string>&amp;Theme</string>
-     </property>
-     <widget class="QMenu" name="menuColorScheme">
-      <property name="title">
-       <string>&amp;Color scheme</string>
-      </property>
-      <addaction name="actionColorSchemeSystem"/>
-      <addaction name="actionColorSchemeLight"/>
-      <addaction name="actionColorSchemeDark"/>
-     </widget>
-     <addaction name="menuColorScheme"/>
-     <addaction name="separator"/>
-    </widget>
-    <addaction name="menuTheme"/>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="actionScripts"/>
@@ -405,16 +402,12 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionCheckForUpdates"/>
+    <addaction name="actionEnableCheckForUpdateOnStart"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
-   </widget>
-   <widget class="QMenu" name="menuBook">
-    <property name="title">
-     <string>&amp;Book</string>
-    </property>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCollection"/>
-   <addaction name="menuBook"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -485,23 +478,12 @@
     <string notr="true"/>
    </property>
   </action>
-  <action name="actionHideRemoved">
-   <property name="text">
-    <string>&amp;Hide removed books</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionShowLog">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Show log</string>
+    <string>Sho&amp;w</string>
    </property>
    <property name="shortcut">
     <string notr="true">Esc</string>
@@ -566,8 +548,11 @@
    </property>
   </action>
   <action name="actionShowRemoved">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>&amp;Show removed books</string>
+    <string>&amp;Removed books</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -600,29 +585,27 @@
   </action>
   <action name="actionShowAnnotation">
    <property name="text">
-    <string>Show &amp;annotation</string>
+    <string>&amp;Annotation</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionShowAnnotationContent">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show &amp;content</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionHideAnnotationContent">
-   <property name="text">
-    <string>Hide &amp;content</string>
+    <string>&amp;Content</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -632,19 +615,14 @@
    </property>
   </action>
   <action name="actionShowStatusBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show s&amp;tatus line</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionHideStatusBar">
-   <property name="text">
-    <string>Hide s&amp;tatus line</string>
+    <string>S&amp;tatus line</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -654,16 +632,14 @@
    </property>
   </action>
   <action name="actionShowAnnotationCover">
-   <property name="text">
-    <string>Show co&amp;ver</string>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+   <property name="checked">
+    <bool>true</bool>
    </property>
-  </action>
-  <action name="actionHideAnnotationCover">
    <property name="text">
-    <string>Hide co&amp;ver</string>
+    <string>Co&amp;ver and illustrations</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -728,6 +704,9 @@
    <property name="value" stdset="0">
     <string notr="true">System</string>
    </property>
+   <property name="type" stdset="0">
+    <number>0</number>
+   </property>
   </action>
   <action name="actionColorSchemeLight">
    <property name="checkable">
@@ -738,6 +717,9 @@
    </property>
    <property name="value" stdset="0">
     <string notr="true">Light</string>
+   </property>
+   <property name="type" stdset="0">
+    <number>0</number>
    </property>
   </action>
   <action name="actionColorSchemeDark">
@@ -750,32 +732,36 @@
    <property name="value" stdset="0">
     <string notr="true">Dark</string>
    </property>
+   <property name="type" stdset="0">
+    <number>0</number>
+   </property>
   </action>
   <action name="actionOpds">
    <property name="text">
-    <string>&amp;OPDS Server...</string>
+    <string>&amp;Http Server...</string>
    </property>
    <property name="toolTip">
-    <string>OPDS server management</string>
-   </property>
-  </action>
-  <action name="actionHideAnnotationCoverButtons">
-   <property name="text">
-    <string>Hide cover &amp;buttons</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <string>Http server management</string>
    </property>
   </action>
   <action name="actionShowAnnotationCoverButtons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show cover &amp;buttons</string>
+    <string>Cover navigation &amp;buttons</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionAllowDestructiveOperations">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Allow destructive operations</string>
    </property>
@@ -783,15 +769,10 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionDenyDestructiveOperations">
-   <property name="text">
-    <string>Deny destructive operations</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionShowCollectionCleaner">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Cleaner...</string>
    </property>
@@ -812,7 +793,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;jokes</string>
+    <string>&amp;Jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -820,7 +801,7 @@
   </action>
   <action name="actionSearchBookByTitle">
    <property name="icon">
-    <iconset resource="../theme/light/resources/light.qrc">
+    <iconset resource="../icons/light/resources/light.qrc">
      <normaloff>:/icons/Find.svg</normaloff>:/icons/Find.svg</iconset>
    </property>
    <property name="text">
@@ -834,16 +815,41 @@
    </property>
   </action>
   <action name="actionShowSearchBookString">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Show &amp;book search by title bar</string>
+    <string>Search &amp;bar by title</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionHideSearchBookString">
+  <action name="actionAddThemes">
    <property name="text">
-    <string>Hide &amp;book search by title bar</string>
+    <string>Add themes...</string>
+   </property>
+  </action>
+  <action name="actionEnableCheckForUpdateOnStart">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Check for updates on &amp;startup</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDeleteAllThemes">
+   <property name="text">
+    <string>Delete all themes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -852,7 +858,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../theme/light/resources/light.qrc"/>
+  <include location="../icons/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

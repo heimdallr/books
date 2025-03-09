@@ -6,9 +6,12 @@
 #include <QRegularExpression>
 #include <QUuid>
 
+#include "fnd/FindPair.h"
+
 #include "constants/ModelRole.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
+#include "ui/IStyleApplier.h"
 #include "util/localization.h"
 
 namespace HomeCompa::Flibrary
@@ -192,6 +195,29 @@ void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedB
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorMiddleName, authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorF, authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorM, authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString {});
+}
+
+namespace
+{
+constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
+#define STYLE_APPLIER_TYPE_ITEM(NAME) { IStyleApplier::Type::NAME, #NAME },
+	STYLE_APPLIER_TYPE_ITEMS_X_MACRO
+#undef STYLE_APPLIER_TYPE_ITEM
+};
+
+#define STYLE_APPLIER_TYPE_ITEM(NAME) static_assert(IStyleApplier::Type::NAME == TYPES[static_cast<size_t>(IStyleApplier::Type::NAME)].first);
+STYLE_APPLIER_TYPE_ITEMS_X_MACRO
+#undef STYLE_APPLIER_TYPE_ITEM
+}
+
+IStyleApplier::Type IStyleApplier::TypeFromString(const char* name)
+{
+	return FindFirst(TYPES, name, PszComparer {});
+}
+
+QString IStyleApplier::TypeToString(const Type type)
+{
+	return TYPES[static_cast<size_t>(type)].second;
 }
 
 } // namespace HomeCompa::Flibrary

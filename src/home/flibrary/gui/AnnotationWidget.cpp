@@ -64,8 +64,7 @@ QT_TRANSLATE_NOOP("Annotation", "Inpx")
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
 
-constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::ARCHIVE, Loc::GROUPS, nullptr };
-static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(CUSTOM_URL_SCHEMA));
+constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::ARCHIVE, Loc::LANGUAGE, Loc::GROUPS, nullptr };
 
 TR_DEF
 
@@ -108,6 +107,7 @@ struct CoverButtonType
 class AnnotationWidget::Impl final
 	: QObject
 	, IAnnotationController::IObserver
+	, IAnnotationController::IStrategy
 	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
@@ -414,17 +414,7 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
 	{
-		auto annotation = m_annotationController->CreateAnnotation(dataProvider);
-
-		const auto addRate = [&](const char* name, const int column)
-		{
-			const auto& book = dataProvider.GetBook();
-			const auto rate = book.GetRawData(column).toInt();
-			if (rate > 0 && rate <= 5)
-				annotation.replace(QString("@%1@").arg(name), QString(rate, QChar(m_starSymbol)));
-		};
-		addRate(Loc::RATE, BookItem::Column::LibRate);
-		addRate(Loc::USER_RATE, BookItem::Column::UserRate);
+		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
 
 		m_ui.info->setText(annotation);
 		m_covers = dataProvider.GetCovers();
@@ -470,6 +460,17 @@ private: // IAnnotationController::IObserver
 					m_progressTimer.start();
 				}
 			});
+	}
+
+private: // IAnnotationController::IUrlGenerator
+	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
+	{
+		return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+	}
+
+	QString GenerateStars(const int rate) const override
+	{
+		return QString { rate, QChar(m_starSymbol) };
 	}
 
 private:

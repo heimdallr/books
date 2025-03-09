@@ -5,7 +5,6 @@
 #include <QFileInfo>
 
 #include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
 
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseUser.h"
@@ -91,10 +90,10 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 										result =
 											[checkResult, collectionController = m_impl->collectionController, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable
 										{
-											if (checkResult == Inpx::CheckForUpdateResult::NoUpdates)
+											if (!checkResult)
 												return callback(false);
 
-											collectionController->OnInpxUpdateChecked(updatedCollection, checkResult);
+											collectionController->OnInpxUpdateChecked(updatedCollection);
 											callback(true);
 										};
 

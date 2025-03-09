@@ -17,5 +17,5 @@ AddTarget(gui	shared_lib
 		ver
 		zip
 	DEPENDENCIES
-		${THEMES}
+		${ICONS}
 )

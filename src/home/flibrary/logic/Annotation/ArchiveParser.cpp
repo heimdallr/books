@@ -43,6 +43,8 @@ constexpr auto ANNOTATION_P = "FictionBook/description/title-info/annotation/p";
 constexpr auto ANNOTATION_HREF = "FictionBook/description/title-info/annotation/a";
 constexpr auto ANNOTATION_HREF_P = "FictionBook/description/title-info/annotation/p/a";
 constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
+constexpr auto LANG = "FictionBook/description/title-info/lang";
+constexpr auto LANG_SRC = "FictionBook/description/title-info/src-lang";
 constexpr auto BINARY = "FictionBook/binary";
 constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
 constexpr auto SECTION = "section";
@@ -155,6 +157,8 @@ private: // Util::SaxParser
 			{        ANNOTATION_HREF,       &XmlParser::ParseAnnotationHref },
 			{      ANNOTATION_HREF_P,       &XmlParser::ParseAnnotationHref },
 			{			   KEYWORDS,             &XmlParser::ParseKeywords },
+			{				   LANG,                 &XmlParser::ParseLang },
+			{			   LANG_SRC,              &XmlParser::ParseSrcLang },
 			{				 BINARY,               &XmlParser::ParseBinary },
 			{          SECTION_TITLE,         &XmlParser::ParseSectionTitle },
 			{        SECTION_TITLE_P,         &XmlParser::ParseSectionTitle },
@@ -261,6 +265,18 @@ private:
 	bool ParseKeywords(const QString& value)
 	{
 		std::ranges::copy(value.split(",", Qt::SkipEmptyParts), std::back_inserter(m_data.keywords));
+		return true;
+	}
+
+	bool ParseLang(const QString& value)
+	{
+		m_data.language = value;
+		return true;
+	}
+
+	bool ParseSrcLang(const QString& value)
+	{
+		m_data.sourceLanguage = value;
 		return true;
 	}
 

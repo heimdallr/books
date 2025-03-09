@@ -39,6 +39,7 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 	msgBox.setText(text);
 	msgBox.setStandardButtons(buttons);
 	msgBox.setDefaultButton(defaultButton);
+
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
 }
 
@@ -50,10 +51,10 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 STANDARD_DIALOG_ITEMS_X_MACRO
 #undef STANDARD_DIALOG_ITEM
 
-#define NO_GET_TEXT(NAME)                                                                                                                          \
-	QString NAME##Dialog::GetText(const QString& /*title*/, const QString& /*label*/, const QString& /*text*/, QLineEdit::EchoMode /*mode*/) const \
-	{                                                                                                                                              \
-		throw std::runtime_error("not implemented");                                                                                               \
+#define NO_GET_TEXT(NAME)                                                                                                                                                                \
+	QString NAME##Dialog::GetText(const QString& /*title*/, const QString& /*label*/, const QString& /*text*/, const QStringList& /*comboBoxItems*/, QLineEdit::EchoMode /*mode*/) const \
+	{                                                                                                                                                                                    \
+		throw std::runtime_error("not implemented");                                                                                                                                     \
 	}
 NO_GET_TEXT(Error)
 NO_GET_TEXT(Info)
@@ -91,7 +92,7 @@ QMessageBox::StandardButton ErrorDialog::Show(const QString& text, const QMessag
 	return Dialog::Show(QMessageBox::Critical, Loc::Error(), text, buttons, defaultButton);
 }
 
-QString InputTextDialog::GetText(const QString& title, const QString& label, const QString& text, const QLineEdit::EchoMode mode) const
+QString InputTextDialog::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
 {
 	auto* parent = m_parentProvider->GetWidget();
 	QInputDialog inputDialog(parent);
@@ -100,6 +101,10 @@ QString InputTextDialog::GetText(const QString& title, const QString& label, con
 	inputDialog.setLabelText(label);
 	inputDialog.setTextEchoMode(mode);
 	inputDialog.setTextValue(text);
+
+	if (!comboBoxItems.isEmpty())
+		inputDialog.setComboBoxItems(comboBoxItems);
+
 	QObject::connect(&inputDialog, &QDialog::finished, &inputDialog, [&] { m_settings->Set(INPUT_DIALOG_GEOMETRY_KEY, inputDialog.geometry()); });
 	QTimer::singleShot(0,
 	                   [&]
