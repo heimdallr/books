@@ -5,6 +5,8 @@
 
 #include "interface/IRequester.h"
 
+#include "util/ISettings.h"
+
 class QIODevice;
 
 namespace HomeCompa::Flibrary
@@ -22,34 +24,32 @@ class Requester : virtual public IRequester
 	NON_COPY_MOVABLE(Requester)
 
 public:
-	Requester(std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
+	Requester(std::shared_ptr<const ISettings> settings,
+	          std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
 	          std::shared_ptr<Flibrary::IDatabaseController> databaseController,
 	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
 	~Requester() override;
 
 private: // IRequester
-	QByteArray GetRoot(const QString& self) const override;
-	QByteArray GetBookInfo(const QString& self, const QString& bookId) const override;
-	QByteArray GetCover(const QString& self, const QString& bookId) const override;
-	QByteArray GetCoverThumbnail(const QString& self, const QString& bookId) const override;
-	QByteArray GetBook(const QString& self, const QString& bookId) const override;
-	QByteArray GetBookZip(const QString& self, const QString& bookId) const override;
+	QByteArray GetRoot(const QString& root, const QString& self) const override;
+	QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetCover(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetBook(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetBookZip(const QString& root, const QString& self, const QString& bookId) const override;
+	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
 
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString& self, const QString& value) const override;
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
 
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Authors(const QString& self, const QString& navigationId, const QString& value) const override;
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Authors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
 
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const override;
+#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
-
-private:
-	template <typename NavigationGetter, typename... ARGS>
-	QByteArray GetImpl(NavigationGetter getter, const QString& self, const ARGS&... args) const;
 
 private:
 	struct Impl;

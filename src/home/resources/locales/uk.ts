@@ -3264,14 +3264,6 @@ Try again?</source>
         <translation>&amp;Темна</translation>
     </message>
     <message>
-        <source>&amp;OPDS Server...</source>
-        <translation>&amp;Сервер OPDS...</translation>
-    </message>
-    <message>
-        <source>OPDS server management</source>
-        <translation>Керування сервером OPDS</translation>
-    </message>
-    <message>
         <source>Allow destructive operations</source>
         <translation>Дозволити деструктивні операції</translation>
     </message>
@@ -3380,6 +3372,14 @@ Try again?</source>
     <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель пошуку за &amp;назвою</translation>
+    </message>
+    <message>
+        <source>&amp;Http Server...</source>
+        <translation>&amp;Http сервер...</translation>
+    </message>
+    <message>
+        <source>Http server management</source>
+        <translation>Керування сервером Http</translation>
     </message>
 </context>
 <context>
@@ -3558,10 +3558,6 @@ Try again?</source>
 <context>
     <name>OpdsDialog</name>
     <message>
-        <source>OPDS Server</source>
-        <translation>Сервер OPDS</translation>
-    </message>
-    <message>
         <source>Port</source>
         <translation>Порт</translation>
     </message>
@@ -3572,10 +3568,6 @@ Try again?</source>
     <message>
         <source>Start automatically</source>
         <translation>Запускати автоматично</translation>
-    </message>
-    <message>
-        <source>Address</source>
-        <translation>Адреса</translation>
     </message>
     <message>
         <source>Start</source>
@@ -3594,9 +3586,21 @@ Try again?</source>
         <translation>Копіювати адресу в буфер обміну</translation>
     </message>
     <message>
+        <source>Http Server</source>
+        <translation>Http сервер</translation>
+    </message>
+    <message>
+        <source>Web Address</source>
+        <translation>Веб-адреса</translation>
+    </message>
+    <message>
+        <source>OPDS Address</source>
+        <translation>Адреса OPDS</translation>
+    </message>
+    <message>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
-        <source>OPDS server address has been copied to the clipboard</source>
-        <translation>Адреса сервера OPDS скопійована в буфер обміну</translation>
+        <source>Address has been copied to the clipboard</source>
+        <translation>Адресу скопійовано в буфер обміну</translation>
     </message>
 </context>
 <context>
@@ -4030,6 +4034,29 @@ Try again?</source>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>User data successfully saved</source>
         <translation>Ці дані збережені</translation>
+    </message>
+</context>
+<context>
+    <name>opds</name>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Home</source>
+        <translation>Додому</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Download fb2</source>
+        <translation>Завантажити fb2</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Download zip</source>
+        <translation>Завантажити zip</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Read</source>
+        <translation>Читати</translation>
     </message>
 </context>
 </TS>

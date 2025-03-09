@@ -79,6 +79,8 @@ public:
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
+
+protected:
 	bool m_processed { true };
 };
 
