@@ -2702,6 +2702,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Adyghe</source>
+        <translation>Адыгейский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Amharic</source>
         <translation>Амхарский</translation>
     </message>
@@ -3054,6 +3059,101 @@ Try again?</source>
         <location filename="../../util/localization.h"/>
         <source>Chinese (Simplified)</source>
         <translation>Китайский (упрощённый)</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bambara</source>
+        <translation>Бамбара</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tibetan</source>
+        <translation>Тибетский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Brawie</source>
+        <translation>Брауи</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bosnian</source>
+        <translation>Боснийский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Crimean Tatar</source>
+        <translation>Крымскотатарский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Maldivian</source>
+        <translation>Мальдивский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Evenki</source>
+        <translation>Эвенкийский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Farsi</source>
+        <translation>Фарси</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kabardian</source>
+        <translation>Кабардинский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Karachay-Balkar</source>
+        <translation>Карачаево-Балкарский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Komi</source>
+        <translation>Коми</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Avar</source>
+        <translation>Аварский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ossetian</source>
+        <translation>Осетинский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rusinian</source>
+        <translation>Русинский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Slovenian</source>
+        <translation>Словенский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Swahili</source>
+        <translation>Суахили</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Thai</source>
+        <translation>Тайский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Turkmen</source>
+        <translation>Туркменский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Yiddish</source>
+        <translation>Идиш</translation>
     </message>
 </context>
 <context>

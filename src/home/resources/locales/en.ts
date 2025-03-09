@@ -2690,6 +2690,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Adyghe</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Amharic</source>
         <translation></translation>
     </message>
@@ -3041,6 +3046,101 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Chinese (Simplified)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bambara</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tibetan</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Brawie</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bosnian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Crimean Tatar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Maldivian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Evenki</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Farsi</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kabardian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Karachay-Balkar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Komi</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Avar</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ossetian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rusinian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Slovenian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Swahili</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Thai</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Turkmen</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Yiddish</source>
         <translation></translation>
     </message>
 </context>
