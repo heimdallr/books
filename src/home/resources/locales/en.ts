@@ -3289,14 +3289,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;OPDS Server...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>OPDS server management</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Allow destructive operations</source>
         <translation></translation>
     </message>
@@ -3367,6 +3359,14 @@ Try again?</source>
     </message>
     <message>
         <source>Search &amp;bar by title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Http Server...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Http server management</source>
         <translation></translation>
     </message>
 </context>
@@ -3546,10 +3546,6 @@ Try again?</source>
 <context>
     <name>OpdsDialog</name>
     <message>
-        <source>OPDS Server</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Port</source>
         <translation></translation>
     </message>
@@ -3574,16 +3570,24 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Address</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Copy address to clipboard</source>
         <translation></translation>
     </message>
     <message>
+        <source>Http Server</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Web Address</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>OPDS Address</source>
+        <translation></translation>
+    </message>
+    <message>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
-        <source>OPDS server address has been copied to the clipboard</source>
+        <source>Address has been copied to the clipboard</source>
         <translation></translation>
     </message>
 </context>
@@ -4014,6 +4018,29 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/UserDataController.cpp"/>
         <source>User data successfully saved</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>opds</name>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Home</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Download fb2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Download zip</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Read</source>
         <translation></translation>
     </message>
 </context>

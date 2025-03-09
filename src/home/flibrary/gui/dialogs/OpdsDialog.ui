@@ -145,9 +145,6 @@
     <iconset resource="../../icons/light/resources/light.qrc">
      <normaloff>:/icons/copy.svg</normaloff>:/icons/copy.svg</iconset>
    </property>
-   <property name="text">
-    <string>CopyOpds</string>
-   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
