@@ -34,7 +34,6 @@ TR_DEF
 
 constexpr auto FEED = "feed";
 constexpr auto FEED_TITLE = "feed/title";
-constexpr auto FEED_LINK = "feed/link";
 constexpr auto ENTRY = "feed/entry";
 constexpr auto ENTRY_ID = "feed/entry/id";
 constexpr auto ENTRY_TITLE = "feed/entry/title";
@@ -42,6 +41,24 @@ constexpr auto ENTRY_LINK = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
 constexpr auto AUTHOR_NAME = "feed/entry/author/name";
 constexpr auto AUTHOR_LINK = "feed/entry/author/uri";
+
+constexpr auto HTTP_HEAD = R"(<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			p { 
+				max-width: %2px;
+			}
+			%5
+		</style>
+	</head>
+	<body>
+	<a href="%3">%4</a>
+	%1
+	<hr/>
+)";
+
+constexpr auto MAX_WIDTH = 720;
 
 using namespace Util;
 using namespace Flibrary;
@@ -99,10 +116,16 @@ public:
 	}
 
 protected:
-	explicit AbstractParser(QIODevice& stream)
+	AbstractParser(QIODevice& stream, QString root)
 		: SaxParser(stream)
+		, m_root { std::move(root) }
 	{
 		m_output.open(QIODevice::WriteOnly);
+	}
+
+void WriteHttpHead(const QString& head, const QString& style = {})
+	{
+		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style);
 	}
 
 private: // SaxParser
@@ -122,6 +145,7 @@ private: // SaxParser
 	}
 
 protected:
+	const QString m_root;
 	QBuffer m_output;
 	QTextStream m_stream { &m_output };
 };
@@ -129,8 +153,8 @@ protected:
 class ParserOpds : public AbstractParser
 {
 protected:
-	explicit ParserOpds(QIODevice& stream)
-		: AbstractParser(stream)
+	ParserOpds(QIODevice& stream, QString root)
+		: AbstractParser(stream, std::move(root))
 	{
 	}
 
@@ -141,24 +165,12 @@ protected:
 		return true;
 	}
 
-	bool OnStartElementFeedLink(const XmlAttributes& attributes)
-	{
-		if (attributes.GetAttribute("rel") == "start")
-			m_homeLink = QString(R"(<br><a href="%1">%2</a></br>)").arg(attributes.GetAttribute("href"), Tr(HOME));
-		return true;
-	}
-
 	virtual bool OnStartElementEntry(const XmlAttributes&)
 	{
-		if (!m_homeLink.isEmpty())
-			m_stream << m_homeLink;
-
 		if (!m_mainTitle.isEmpty())
-			m_stream << QString("<h1>%1</h1><hr/>").arg(m_mainTitle);
+			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
 
-		m_homeLink.clear();
 		m_mainTitle.clear();
-
 		m_title.clear();
 		m_content.clear();
 		return true;
@@ -200,7 +212,6 @@ protected:
 	QString m_title;
 	QString m_content;
 
-	QString m_homeLink;
 	QString m_mainTitle;
 };
 
@@ -211,14 +222,15 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList&)
+	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
 	{
-		return std::make_unique<ParserNavigation>(stream, CreateGuard {});
+		assert(!parameters.isEmpty());
+		return std::make_unique<ParserNavigation>(stream, parameters.front(), CreateGuard {});
 	}
 
 public:
-	ParserNavigation(QIODevice& stream, CreateGuard)
-		: ParserOpds(stream)
+	ParserNavigation(QIODevice& stream, QString root, CreateGuard)
+		: ParserOpds(stream, std::move(root))
 	{
 	}
 
@@ -230,7 +242,6 @@ private: // SaxParser
 		static constexpr ParseElementItem PARSERS[] {
 			{       FEED,      &ParserNavigation::OnStartElementFeed },
 			{      ENTRY,     &ParserNavigation::OnStartElementEntry },
-			{  FEED_LINK,  &ParserNavigation::OnStartElementFeedLink },
 			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
 
@@ -308,14 +319,15 @@ class ParserBookInfo final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList&)
+	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
 	{
-		return std::make_unique<ParserBookInfo>(stream, CreateGuard {});
+		assert(!parameters.isEmpty());
+		return std::make_unique<ParserBookInfo>(stream, parameters.front(), CreateGuard {});
 	}
 
 public:
-	ParserBookInfo(QIODevice& stream, CreateGuard)
-		: ParserOpds(stream)
+	ParserBookInfo(QIODevice& stream, QString root, CreateGuard)
+		: ParserOpds(stream, std::move(root))
 	{
 	}
 
@@ -327,7 +339,6 @@ private: // SaxParser
 		static constexpr ParseElementItem PARSERS[] {
 			{       FEED,      &ParserBookInfo::OnStartElementFeed },
 			{      ENTRY,     &ParserBookInfo::OnStartElementEntry },
-			{  FEED_LINK,  &ParserBookInfo::OnStartElementFeedLink },
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
 
@@ -364,9 +375,6 @@ private: // SaxParser
 private:
 	bool OnStartElementEntry(const XmlAttributes&) override
 	{
-		if (!m_homeLink.isEmpty())
-			m_stream << m_homeLink;
-
 		m_title.clear();
 		m_content.clear();
 		return true;
@@ -395,17 +403,20 @@ private:
 
 	bool OnEndElementFeed() override
 	{
+		QStringList head;
 		{
 			QStringList authors;
 			std::ranges::transform(m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }),
 			                       std::back_inserter(authors),
 			                       [](const auto& item) { return QString(R"(<a href = "%1">%2</a>)").arg(item.second, item.first); });
 			if (!authors.isEmpty())
-				m_stream << QString(R"(<h2>%1</h2>)").arg(authors.join("&ensp;"));
+				head << QString(R"(<h2>%1</h2>)").arg(authors.join("&ensp;"));
 		}
 
 		if (!m_mainTitle.isEmpty())
-			m_stream << QString("<h1>%1</h1><hr/>").arg(m_mainTitle);
+			head << QString("<h1>%1</h1>\n").arg(m_mainTitle);
+
+		WriteHttpHead(head.join("\n"));
 
 		{
 			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
@@ -503,13 +514,13 @@ class ParserFb2 final : public AbstractParser
 public:
 	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
 	{
-		assert(!parameters.isEmpty());
-		return std::make_unique<ParserFb2>(stream, parameters.front(), CreateGuard {});
+		assert(parameters.size() > 1);
+		return std::make_unique<ParserFb2>(stream, parameters[0], parameters[1], CreateGuard {});
 	}
 
 public:
-	ParserFb2(QIODevice& stream, QString bookId, CreateGuard)
-		: AbstractParser(stream)
+	ParserFb2(QIODevice& stream, QString root, QString bookId, CreateGuard)
+		: AbstractParser(stream, std::move(root))
 		, m_bookId { std::move(bookId) }
 	{
 	}
@@ -593,9 +604,9 @@ private: // SaxParser
 			{           AUTHOR_MIDDLE_NAME,   &ParserFb2::ParseAuthorMiddleName },
 			{             AUTHOR_LAST_NAME,     &ParserFb2::ParseAuthorLastName },
 			{				   BOOK_TITLE,          &ParserFb2::ParseBookTitle },
-			{				   BODY_TITLE,          &ParserFb2::ParseBookTitle },
-			{				 BODY_TITLE_P,          &ParserFb2::ParseBookTitle },
-			{          BODY_TITLE_P_STRONG,          &ParserFb2::ParseBookTitle },
+			{				   BODY_TITLE,          &ParserFb2::ParseBodyTitle },
+			{				 BODY_TITLE_P,          &ParserFb2::ParseBodyTitle },
+			{          BODY_TITLE_P_STRONG,          &ParserFb2::ParseBodyTitle },
 			{					 EPIGRAPH,           &ParserFb2::ParseEpigraph },
 			{				   EPIGRAPH_P,           &ParserFb2::ParseEpigraph },
 			{             SECTION_EPIGRAPH,           &ParserFb2::ParseEpigraph },
@@ -628,33 +639,6 @@ private: // AbstractParser
 private:
 	bool OnStartElementFictionBook(const XmlAttributes& attributes)
 	{
-		m_stream << QString(R"(<!DOCTYPE html>
-<html>
-	<head>
-		<style>
-			p { 
-				max-width: 720px;
-			}
-			.epigraph {
-				margin-left: 360px;
-				max-width: 360px; 
-				font-style: italic;
-				text-align: end;
-			}
-			.epigraph_text_author {
-				text-align: end;
-			}
-			.poem {
-				max-width: 720px;
-				text-align: center;
-			}
-		</style>
-	</head>
-	<body>
-	<a href="/web">%1</a>
-	<hr>
-)")
-						.arg(Tr(HOME));
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 			if (attributes.GetValue(i) == "http://www.w3.org/1999/xlink")
 			{
@@ -675,6 +659,27 @@ private:
 	{
 		m_body = true;
 		m_bodyName = attributes.GetAttribute("name");
+		if (!m_bodyName.isEmpty())
+			return true;
+
+		constexpr auto style = R"(
+			.epigraph {
+				margin-left: %2px;
+				max-width: %2px; 
+				font-style: italic;
+				text-align: end;
+			}
+			.epigraph_text_author {
+				text-align: end;
+			}
+			.poem {
+				max-width: %1px;
+				text-align: center;
+			}
+)";
+
+		const auto head = QString("<h2>%1</h2>\n<h1>%2</h1>\n").arg(m_authors.join(", "), m_bookTitle);
+		WriteHttpHead(head, QString(style).arg(MAX_WIDTH).arg(MAX_WIDTH / 2));
 		return true;
 	}
 
@@ -699,7 +704,7 @@ private:
 
 	bool OnEndElementAuthor()
 	{
-		m_stream << QString("<h2>%1</h2>\n").arg(m_author.join(' ').split(' ', Qt::SkipEmptyParts).join(' '));
+		m_authors << m_author.join(' ').split(' ', Qt::SkipEmptyParts).join(' ');
 		return true;
 	}
 
@@ -707,7 +712,6 @@ private:
 	{
 		m_body = false;
 		m_bodyName.clear();
-		m_titleOnceFlag = false;
 		return true;
 	}
 
@@ -745,11 +749,16 @@ private:
 
 	bool ParseBookTitle(const QString& value)
 	{
-		if (m_titleOnceFlag)
-			return true;
+		m_bookTitle = value;
+		return true;
+	}
 
-		m_titleOnceFlag = true;
-		m_stream << QString("<h%2>%1</h%2>\n").arg(value).arg(m_bodyName.isEmpty() ? 1 : 3);
+	bool ParseBodyTitle(const QString& value)
+	{
+		if (!m_bodyName.isEmpty())
+			m_stream << QString("<h3>%1</h3>\n").arg(value);
+		else if (m_bookTitle.isEmpty())
+			m_bookTitle = value;
 		return true;
 	}
 
@@ -799,10 +808,11 @@ private:
 
 private:
 	const QString m_bookId;
-	bool m_titleOnceFlag { false };
 	QStringList m_author;
+	QStringList m_authors;
 	bool m_body { false };
 	QString m_bodyName;
+	QString m_bookTitle;
 	QString m_sectionId;
 	QString m_sectionTitle;
 	QString m_linkNs;

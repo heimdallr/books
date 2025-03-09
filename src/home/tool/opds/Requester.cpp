@@ -785,7 +785,7 @@ private:
 namespace
 {
 
-QByteArray PostProcess(const ContentType contentType, const QString& root, QByteArray& src, const QStringList& parameters = {})
+QByteArray PostProcess(const ContentType contentType, const QString& root, QByteArray& src, const QStringList& parameters)
 {
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
@@ -830,7 +830,7 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	PLOGV << bytes;
 #endif
 
-	return PostProcess(contentType, root, bytes);
+	return PostProcess(contentType, root, bytes, { root });
 }
 
 } // namespace
@@ -882,7 +882,7 @@ QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
 {
 	auto result = m_impl->GetBookText(bookId);
-	return PostProcess(ContentType::BookText, root, result, { bookId });
+	return PostProcess(ContentType::BookText, root, result, { root, bookId });
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \
