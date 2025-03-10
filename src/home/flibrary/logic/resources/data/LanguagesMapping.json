@@ -4,5 +4,8 @@
 	"uk": [ "ukr" ],
 	"un": [ "", "und" ],
 	"eo": [ "io" ],
-	"hy": [ "hye" ]
+	"hy": [ "hye" ],
+	"am": [ "amh" ],
+	"ka": [ "ce" ],
+	"de": [ "ge" ]
 }
