@@ -31,6 +31,7 @@
 
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
+#include "util/localization.h"
 #include "util/timer.h"
 
 #include "Fb2Parser.h"
@@ -1010,6 +1011,9 @@ private:
 			for (const auto key : langValues.toArray())
 				m_langMap.try_emplace(key.toString().toStdWString(), lang);
 		}
+
+		std::ranges::transform(LANGUAGES | std::views::keys, std::inserter(m_langs, m_langs.end()), [](const auto* item) { return ToWide(item); });
+		assert(std::size(m_langs) == std::size(LANGUAGES));
 	}
 
 	void ProcessImpl()
@@ -1394,8 +1398,22 @@ private:
 		                                       To<size_t>(buf.SIZE),
 		                                       To<bool>(buf.DEL, false));
 
-		if (const auto it = m_langMap.find(book.language); it != m_langMap.end())
-			book.language = it->second;
+		if (book.language.empty())
+		{
+			book.language = L"un";
+		}
+		else if (!m_langs.contains(book.language))
+		{
+			if (const auto it = m_langMap.find(book.language); it != m_langMap.end())
+			{
+				book.language = it->second;
+			}
+			else
+			{
+				PLOGW << "Unexpected lang: " << book.language;
+				book.language = L"un";
+			}
+		}
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 
@@ -1433,6 +1451,7 @@ private:
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
+	std::unordered_set<std::wstring> m_langs;
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool m_oldDataUpdateFound { false };
