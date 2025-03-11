@@ -77,6 +77,7 @@ constexpr auto UNDEFINED = "Undefined";
 constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{  "aa", QT_TRANSLATE_NOOP("Language",                        "Afar") },
 	{  "ab", QT_TRANSLATE_NOOP("Language",                   "Abkhazian") },
+	{  "ad", QT_TRANSLATE_NOOP("Language",                      "Adygei") },
 	{  "ae", QT_TRANSLATE_NOOP("Language",                     "Avestan") },
 	{  "af", QT_TRANSLATE_NOOP("Language",                   "Afrikaans") },
 	{  "ak", QT_TRANSLATE_NOOP("Language",                        "Akan") },
@@ -262,7 +263,6 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "ace", QT_TRANSLATE_NOOP("Language",                    "Achinese") },
 	{ "ach", QT_TRANSLATE_NOOP("Language",                       "Acoli") },
 	{ "ada", QT_TRANSLATE_NOOP("Language",                     "Adangme") },
-	{ "ady", QT_TRANSLATE_NOOP("Language",                      "Adygei") },
 	{ "afh", QT_TRANSLATE_NOOP("Language",                    "Afrihili") },
 	{ "ain", QT_TRANSLATE_NOOP("Language",                        "Ainu") },
 	{ "akk", QT_TRANSLATE_NOOP("Language",                    "Akkadian") },
@@ -493,6 +493,9 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "zza", QT_TRANSLATE_NOOP("Language",                      "Zazaki") },
 	{ "zen", QT_TRANSLATE_NOOP("Language",                      "Zenaga") },
 	{ "zun", QT_TRANSLATE_NOOP("Language",                        "Zuni") },
+	{ "rue", QT_TRANSLATE_NOOP("Language",                    "Rusinian") },
+	{ "brh", QT_TRANSLATE_NOOP("Language",                      "Brauhi") },
+	{ "evn", QT_TRANSLATE_NOOP("Language",                      "Evenki") },
 };
 
 }
