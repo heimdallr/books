@@ -344,6 +344,9 @@ private:
 	void AllowDestructiveOperation(const bool value)
 	{
 		PLOGV << "";
+		if (!m_collectionController->ActiveCollectionExists())
+			return;
+
 		if (!value)
 		{
 			m_collectionController->AllowDestructiveOperation(value);
