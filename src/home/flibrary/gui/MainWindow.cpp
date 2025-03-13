@@ -286,6 +286,7 @@ private: // ILineOption::IObserver
 private:
 	void Setup()
 	{
+		PLOGV << "";
 		m_ui.setupUi(&m_self);
 
 		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
@@ -327,6 +328,7 @@ private:
 
 	void ReplaceMenuBar()
 	{
+		PLOGV << "";
 		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
 		auto* menuBar = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
@@ -341,6 +343,10 @@ private:
 
 	void AllowDestructiveOperation(const bool value)
 	{
+		PLOGV << "";
+		if (!m_collectionController->ActiveCollectionExists())
+			return;
+
 		if (!value)
 		{
 			m_collectionController->AllowDestructiveOperation(value);
@@ -369,6 +375,7 @@ private:
 
 	void ConnectActionsFile()
 	{
+		PLOGV << "";
 		const auto userDataOperation = [this](const auto& operation)
 		{
 			auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
@@ -381,6 +388,7 @@ private:
 
 	void ConnectActionsCollection()
 	{
+		PLOGV << "";
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection({}); });
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [&] { m_collectionController->RemoveCollection(); });
 		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [&] { GenerateCollectionInpx(); });
@@ -390,6 +398,7 @@ private:
 
 	void ConnectActionsSettingsAnnotation()
 	{
+		PLOGV << "";
 		ConnectSettings(m_ui.actionShowAnnotationCover, SHOW_ANNOTATION_COVER_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCover);
 		ConnectSettings(m_ui.actionShowAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowContent);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
@@ -399,6 +408,7 @@ private:
 
 	void ConnectActionsSettingsFont()
 	{
+		PLOGV << "";
 		const auto incrementFontSize = [&](const int value)
 		{
 			const auto fontSize = m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT);
@@ -421,6 +431,7 @@ private:
 
 	void ConnectActionsSettingsLog()
 	{
+		PLOGV << "";
 		connect(m_ui.logView, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint& pos) { m_ui.menuLog->exec(m_ui.logView->viewport()->mapToGlobal(pos)); });
 		connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&](const bool checked) { m_ui.stackedWidget->setCurrentIndex(checked ? 1 : 0); });
 		connect(m_ui.actionClearLog, &QAction::triggered, &m_self, [&] { m_logController->Clear(); });
@@ -437,12 +448,14 @@ private:
 
 	void ConnectActionsSettingsTheme()
 	{
+		PLOGV << "";
 		connect(m_ui.actionAddThemes, &QAction::triggered, &m_self, [this] { OpenExternalStyle(m_uiFactory->GetOpenFileNames(QSS, Tr(SELECT_QSS_FILE), Tr(QSS_FILE_FILTER).arg(QSS))); });
 		connect(m_ui.actionDeleteAllThemes, &QAction::triggered, &m_self, [this] { DeleteCustomThemes(); });
 	}
 
 	void ConnectActionsSettingsView()
 	{
+		PLOGV << "";
 		ConnectSettings(m_ui.actionShowRemoved, SHOW_REMOVED_BOOKS_KEY, m_booksWidget.get(), &TreeView::ShowRemoved);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
@@ -466,6 +479,7 @@ private:
 
 	void ConnectActionsSettings()
 	{
+		PLOGV << "";
 		ConnectActionsSettingsView();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
@@ -496,6 +510,7 @@ private:
 
 	void ConnectActionsHelp()
 	{
+		PLOGV << "";
 		connect(m_ui.actionCheckForUpdates, &QAction::triggered, &m_self, [&] { CheckForUpdates(true); });
 		connect(m_ui.actionAbout, &QAction::triggered, &m_self, [&] { m_uiFactory->ShowAbout(); });
 		ConnectSettings(m_ui.actionEnableCheckForUpdateOnStart, CHECK_FOR_UPDATE_ON_START_KEY, this, &Impl::SetCheckForUpdateOnStartEnabled);
@@ -503,6 +518,7 @@ private:
 
 	void ConnectActions()
 	{
+		PLOGV << "";
 		ConnectActionsFile();
 		ConnectActionsCollection();
 		ConnectActionsSettings();
@@ -565,6 +581,7 @@ private:
 
 	void ApplyStyleAction(QAction& action, const QActionGroup& group) const
 	{
+		PLOGV << "";
 		for (auto* groupAction : group.actions())
 			groupAction->setEnabled(true);
 
@@ -606,6 +623,7 @@ private:
 
 	void CreateStylesMenu()
 	{
+		PLOGV << "";
 		const auto addActionGroup = [this](const std::vector<QAction*>& actions, QActionGroup* group)
 		{
 			AddStyleActionsToGroup(actions, group);
@@ -759,6 +777,7 @@ private:
 
 	void CreateLogMenu()
 	{
+		PLOGV << "";
 		auto* group = new QActionGroup(&m_self);
 		const auto currentSeverity = m_logController->GetSeverity();
 		std::ranges::for_each(m_logController->GetSeverities(),
@@ -782,6 +801,7 @@ private:
 
 	void CreateCollectionsMenu()
 	{
+		PLOGV << "";
 		m_collectionController->RegisterObserver(this);
 
 		m_ui.menuSelectCollection->clear();
@@ -818,6 +838,7 @@ private:
 
 	void StartDelayed(std::function<void()> f)
 	{
+		PLOGV << "";
 		connect(&m_delayStarter,
 		        &QTimer::timeout,
 		        &m_self,

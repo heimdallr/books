@@ -2,12 +2,20 @@
 
 #include <QApplication>
 
+#include "log.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
 QssStyleApplier::QssStyleApplier(std::shared_ptr<ISettings> settings)
 	: AbstractThemeApplier(std::move(settings))
 {
+	PLOGV << "QssStyleApplier created";
+}
+
+QssStyleApplier::~QssStyleApplier()
+{
+	PLOGV << "QssStyleApplier destroyed";
 }
 
 IStyleApplier::Type QssStyleApplier::GetType() const noexcept
