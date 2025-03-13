@@ -10,6 +10,12 @@ using namespace Flibrary;
 DllStyleApplier::DllStyleApplier(std::shared_ptr<ISettings> settings)
 	: AbstractThemeApplier(std::move(settings))
 {
+	PLOGV << "DllStyleApplier created";
+}
+
+DllStyleApplier::~DllStyleApplier()
+{
+	PLOGV << "DllStyleApplier destroyed";
 }
 
 IStyleApplier::Type DllStyleApplier::GetType() const noexcept

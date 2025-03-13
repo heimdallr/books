@@ -3,12 +3,20 @@
 #include <QApplication>
 #include <QStyleFactory>
 
+#include "log.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
 PluginStyleApplier::PluginStyleApplier(std::shared_ptr<ISettings> settings)
 	: AbstractThemeApplier(std::move(settings))
 {
+	PLOGV << "PluginStyleApplier created";
+}
+
+PluginStyleApplier::~PluginStyleApplier()
+{
+	PLOGV << "PluginStyleApplier destroyed";
 }
 
 IStyleApplier::Type PluginStyleApplier::GetType() const noexcept

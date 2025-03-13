@@ -60,7 +60,12 @@ void BaseConnection::Get(const std::string& request)
 		page = GetNextPage(headers);
 	}
 
-	assert(m_impl->data.size() == 1 && "@todo unite data");
+	if (m_impl->data.empty())
+	{
+		PLOGE << "No data on " << request;
+		return;
+	}
+
 	m_impl->Perform(&IObserver::HandleReceivedData, m_impl->data.front());
 }
 

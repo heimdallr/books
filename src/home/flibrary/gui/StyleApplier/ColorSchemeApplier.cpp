@@ -8,12 +8,20 @@
 
 #include "interface/constants/ProductConstant.h"
 
+#include "log.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
 ColorSchemeApplier::ColorSchemeApplier(std::shared_ptr<ISettings> settings)
 	: AbstractStyleApplier(std::move(settings))
 {
+	PLOGV << "ColorSchemeApplier created";
+}
+
+ColorSchemeApplier ::~ColorSchemeApplier()
+{
+	PLOGV << "ColorSchemeApplier destroyed";
 }
 
 IStyleApplier::Type ColorSchemeApplier::GetType() const noexcept

@@ -1,14 +1,18 @@
 #pragma once
 
+#include "fnd/NonCopyMovable.h"
 #include "AbstractThemeApplier.h"
 
 namespace HomeCompa::Flibrary
 {
 
-class PluginStyleApplier : public AbstractThemeApplier
+class PluginStyleApplier final : public AbstractThemeApplier
 {
+	NON_COPY_MOVABLE(PluginStyleApplier)
+
 public:
 	explicit PluginStyleApplier(std::shared_ptr<ISettings> settings);
+	~PluginStyleApplier() override;
 
 private:
 	Type GetType() const noexcept override;
