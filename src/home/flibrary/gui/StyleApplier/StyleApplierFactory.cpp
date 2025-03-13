@@ -8,6 +8,7 @@
 #include "DllStyleApplier.h"
 #include "PluginStyleApplier.h"
 #include "QssStyleApplier.h"
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -47,9 +48,13 @@ struct StyleApplierFactory::Impl
 StyleApplierFactory::StyleApplierFactory(Hypodermic::Container& container, std::shared_ptr<ISettings> settings)
 	: m_impl(container, std::move(settings))
 {
+	PLOGV << "StyleApplierFactory created";
 }
 
-StyleApplierFactory::~StyleApplierFactory() = default;
+StyleApplierFactory::~StyleApplierFactory()
+{
+	PLOGV << "StyleApplierFactory destroyed";
+}
 
 std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateStyleApplier(const IStyleApplier::Type type) const
 {

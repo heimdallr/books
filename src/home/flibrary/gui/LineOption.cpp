@@ -7,6 +7,8 @@
 
 #include "util/ISettings.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 
 struct LineOption::Impl : Observable<IObserver>
@@ -25,12 +27,15 @@ struct LineOption::Impl : Observable<IObserver>
 LineOption::LineOption(std::shared_ptr<ISettings> settings)
 	: m_impl(std::move(settings))
 {
+	PLOGV << "LineOption created";
 }
 
 LineOption::~LineOption()
 {
 	for (auto& connection : m_impl->connections)
 		QObject::disconnect(connection);
+
+	PLOGV << "LineOption destroyed";
 }
 
 void LineOption::SetLineEdit(QLineEdit* lineEdit) noexcept
