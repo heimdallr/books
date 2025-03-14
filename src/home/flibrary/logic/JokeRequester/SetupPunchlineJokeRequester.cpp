@@ -76,6 +76,13 @@ void SetupPunchlineJokeRequester::OnResponse(const size_t id, const int code, co
 	}
 
 	const auto jsonObject = doc.object();
+	const auto setup = jsonObject["setup"];
+	const auto punchline = jsonObject["punchline"];
+	if (!setup.isString() || !punchline.isString())
+	{
+		PLOGE << "unexpected response: " << QString::fromUtf8(it->second->data);
+		return;
+	}
 
-	client->Response(QString("<p>%1 %2</p><p>%1 %3</p>").arg(QChar(0x2014), jsonObject["setup"].toString(), jsonObject["punchline"].toString()));
+	client->Response(QString("<p>%1 %2</p><p>%1 %3</p>").arg(QChar(0x2014), setup.toString(), jsonObject["punchline"].toString()));
 }
