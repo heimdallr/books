@@ -144,11 +144,9 @@ public:
 		m_ui.mainWidget->installEventFilter(this);
 		m_ui.content->viewport()->installEventFilter(m_itemViewToolTipperContent.get());
 		m_ui.content->viewport()->installEventFilter(m_scrollBarControllerContent.get());
-		m_ui.content->setMouseTracking(true);
 		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
 
 		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get());
-		m_ui.info->setMouseTracking(true);
 		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
 
 		const auto setCustomPalette = [](QWidget& widget)
