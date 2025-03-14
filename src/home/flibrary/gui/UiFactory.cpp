@@ -43,7 +43,7 @@ namespace
 constexpr auto CONTEXT = "Dialog";
 constexpr auto ABOUT_TITLE = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
 constexpr auto ABOUT_TEXT = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger<p>Version: %1 (%2)<p><a href='%3'>%3</a></p>%4");
-constexpr auto PERSONAL_BUILD = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='https://github.com/hqamen'>hqamen</a> build</p>");
+constexpr auto PERSONAL_BUILD = QT_TRANSLATE_NOOP("Dialog", "");
 constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
