@@ -768,6 +768,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>&lt;p&gt;Personal &lt;a href=&apos;https://github.com/hqamen&apos;&gt;hqamen&lt;/a&gt; build&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Персональная сборка &lt;a href=&apos;https://github.com/hqamen&apos;&gt;hqamen&lt;/a&gt;&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненты / Библиотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
