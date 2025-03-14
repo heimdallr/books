@@ -514,7 +514,6 @@ private:
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
-		m_ui.treeView->setMouseTracking(true);
 
 		SetupNewItemButton();
 

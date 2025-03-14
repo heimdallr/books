@@ -8,22 +8,34 @@
 #include <QStyle>
 #include <QTimer>
 
+#include "interface/constants/SettingsConstant.h"
+
 using namespace HomeCompa::Flibrary;
 
-ScrollBarController::ScrollBarController(QObject* parent)
+ScrollBarController::ScrollBarController(const std::shared_ptr<const ISettings>& settings, QObject* parent)
 	: QObject(parent)
-	, m_timerV { CreateTimer(&ScrollBarController::OnTimeoutV) }
-	, m_timerH { CreateTimer(&ScrollBarController::OnTimeoutH) }
+	, m_timerV { CreateTimer(*settings, &ScrollBarController::OnTimeoutV) }
+	, m_timerH { CreateTimer(*settings, &ScrollBarController::OnTimeoutH) }
 {
 }
 
 void ScrollBarController::SetScrollArea(QAbstractScrollArea* area)
 {
 	m_area = area;
+	m_area->setMouseTracking(m_timerV);
+
+	if (m_timerV)
+		return;
+
+	m_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	m_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 }
 
 bool ScrollBarController::eventFilter(QObject* /*obj*/, QEvent* event)
 {
+	if (!m_timerV)
+		return false;
+
 	if (event->type() == QEvent::Enter)
 	{
 		m_timerV->stop();
@@ -42,13 +54,17 @@ bool ScrollBarController::eventFilter(QObject* /*obj*/, QEvent* event)
 	{
 		OnTimeoutV();
 		OnTimeoutH();
+		return false;
 	}
 
 	return false;
 }
 
-QTimer* ScrollBarController::CreateTimer(void (ScrollBarController::*f)() const)
+QTimer* ScrollBarController::CreateTimer(const ISettings& settings, void (ScrollBarController::*f)() const)
 {
+	if (!settings.Get(Constant::Settings::HIDE_SCROLLBARS_KEY, true))
+		return nullptr;
+
 	auto* timer = new QTimer(this);
 	timer->setSingleShot(false);
 	timer->setInterval(std::chrono::milliseconds(200));
