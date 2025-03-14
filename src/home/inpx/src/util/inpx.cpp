@@ -1410,7 +1410,7 @@ private:
 			}
 			else
 			{
-				PLOGW << "Unexpected lang: " << book.language;
+				PLOGW << "Unexpected lang: " << book.language << " for " << std::wstring(buf.FOLDER) << "/" << book.fileName << book.format << ": " << book.title;
 				book.language = L"un";
 			}
 		}
