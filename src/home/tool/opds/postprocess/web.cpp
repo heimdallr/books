@@ -123,7 +123,7 @@ protected:
 		m_output.open(QIODevice::WriteOnly);
 	}
 
-void WriteHttpHead(const QString& head, const QString& style = {})
+	void WriteHttpHead(const QString& head, const QString& style = {})
 	{
 		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style);
 	}

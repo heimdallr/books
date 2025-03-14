@@ -1,7 +1,6 @@
 #include "DatabaseChecker.h"
 
 #include "DatabaseUser.h"
-
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
