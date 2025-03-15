@@ -5,9 +5,7 @@
 #include <QTranslator>
 
 #include "interface/constants/Localization.h"
-#include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
 #include "util/SortString.h"
 
 #include "log.h"

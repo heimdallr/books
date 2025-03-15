@@ -8,16 +8,10 @@
 #include "fnd/algorithm.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IParentWidgetProvider.h"
 
-#include "ComboBoxDelegate.h"
-#include "CommandArgDelegate.h"
-#include "CommandDelegate.h"
-#include "ScriptNameDelegate.h"
 #include "log.h"
 
 using namespace HomeCompa;

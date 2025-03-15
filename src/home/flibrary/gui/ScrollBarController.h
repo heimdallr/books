@@ -21,7 +21,7 @@ private: // QObject
 	bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-	QTimer* CreateTimer(const ISettings&settings, void (ScrollBarController::*)() const);
+	QTimer* CreateTimer(const ISettings& settings, void (ScrollBarController::*)() const);
 	void OnTimeoutV() const;
 	void OnTimeoutH() const;
 

@@ -2,6 +2,8 @@
 
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/IModelProvider.h"
+
 #include "BaseModel.h"
 
 namespace HomeCompa::Flibrary
@@ -10,7 +12,7 @@ namespace HomeCompa::Flibrary
 class AbstractTreeModel : public BaseModel
 {
 protected:
-	explicit AbstractTreeModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent);
+	explicit AbstractTreeModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent);
 };
 
 class TreeModel final : public AbstractTreeModel

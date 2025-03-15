@@ -5,12 +5,11 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-class QMenu;
+#include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "util/ISettings.h"
+
+class QMenu;
 
 namespace HomeCompa::Flibrary
 {
@@ -26,7 +25,7 @@ signals:
 	void LocaleChanged() const;
 
 public:
-	LocaleController(std::shared_ptr<ISettings> settings, std::shared_ptr<class IUiFactory> uiFactory, QObject* parent = nullptr);
+	LocaleController(std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, QObject* parent = nullptr);
 	~LocaleController() override;
 
 public:

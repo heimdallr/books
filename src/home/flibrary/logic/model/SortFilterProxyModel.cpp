@@ -2,7 +2,6 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IModelProvider.h"
 
 #include "util/SortString.h"
 

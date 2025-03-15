@@ -8,9 +8,6 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IBookSearchController.h"
-#include "interface/logic/IDatabaseController.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
@@ -195,16 +192,22 @@ struct TreeViewControllerNavigation::Impl final
 	TreeViewControllerNavigation& self;
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
+	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
-	Impl(TreeViewControllerNavigation& self, const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IUiFactory> uiFactory, std::shared_ptr<IDatabaseController> databaseController)
-		: self(self)
-		, logicFactory(logicFactory)
-		, uiFactory(std::move(uiFactory))
-		, databaseController(std::move(databaseController))
+	Impl(TreeViewControllerNavigation& self,
+	     const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<INavigationInfoProvider> dataProvider,
+	     std::shared_ptr<IUiFactory> uiFactory,
+	     std::shared_ptr<IDatabaseController> databaseController)
+		: self { self }
+		, logicFactory { logicFactory }
+		, dataProvider { std::move(dataProvider) }
+		, uiFactory { std::move(uiFactory) }
+		, databaseController { std::move(databaseController) }
 	{
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
@@ -328,17 +331,17 @@ private:
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
-                                                           std::shared_ptr<DataProvider> dataProvider,
                                                            const std::shared_ptr<const IModelProvider>& modelProvider,
                                                            const std::shared_ptr<const ILogicFactory>& logicFactory,
+                                                           std::shared_ptr<INavigationInfoProvider> dataProvider,
                                                            std::shared_ptr<IUiFactory> uiFactory,
                                                            std::shared_ptr<IDatabaseController> databaseController)
-	: AbstractTreeViewController(CONTEXT, std::move(settings), std::move(dataProvider), modelProvider)
-	, m_impl(*this, logicFactory, std::move(uiFactory), std::move(databaseController))
+	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
+	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(databaseController))
 {
 	Setup();
 
-	m_dataProvider->SetNavigationRequestCallback(
+	m_impl->dataProvider->SetNavigationRequestCallback(
 		[&](IDataItem::Ptr data)
 		{
 			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
@@ -357,12 +360,12 @@ TreeViewControllerNavigation::~TreeViewControllerNavigation()
 
 void TreeViewControllerNavigation::RequestNavigation(const bool force) const
 {
-	m_dataProvider->RequestNavigation(force);
+	m_impl->dataProvider->RequestNavigation(force);
 }
 
 void TreeViewControllerNavigation::RequestBooks(const bool force) const
 {
-	m_dataProvider->RequestBooks(force);
+	m_impl->dataProvider->RequestBooks(force);
 }
 
 std::vector<const char*> TreeViewControllerNavigation::GetModeNames() const
@@ -372,19 +375,19 @@ std::vector<const char*> TreeViewControllerNavigation::GetModeNames() const
 
 void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
 {
-	m_dataProvider->SetNavigationId(std::move(id));
+	m_impl->dataProvider->SetNavigationId(std::move(id));
 }
 
 void TreeViewControllerNavigation::OnModeChanged(const QString& mode)
 {
 	m_impl->mode = GetModeIndex(mode);
-	m_dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
+	m_impl->dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
 	Perform(&IObserver::OnModeChanged, m_impl->mode);
 
 	if (m_impl->models[m_impl->mode])
 		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 
-	m_dataProvider->RequestNavigation();
+	m_impl->dataProvider->RequestNavigation();
 }
 
 int TreeViewControllerNavigation::GetModeIndex(const QString& mode) const

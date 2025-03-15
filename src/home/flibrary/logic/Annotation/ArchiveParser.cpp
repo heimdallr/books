@@ -5,9 +5,6 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"

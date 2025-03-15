@@ -1,4 +1,3 @@
-// ReSharper disable CppUnusedIncludeDirective
 #include "di_gui_util.h"
 
 #include <Hypodermic/Hypodermic.h>
@@ -6,8 +5,6 @@
 #include "Dialog.h"
 #include "ParentWidgetProvider.h"
 #include "UiFactory.h"
-
-// ReSharper restore CppUnusedIncludeDirective
 
 namespace HomeCompa::Util
 {

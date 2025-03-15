@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 
@@ -16,7 +17,7 @@ class DatabaseUser : virtual public IDatabaseUser
 	NON_COPY_MOVABLE(DatabaseUser)
 
 public:
-	DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<class IDatabaseController> databaseController);
+	DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseController> databaseController);
 	~DatabaseUser() override;
 
 public:

@@ -1,14 +1,15 @@
 #pragma once
 
+#include <memory>
+
 #include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
 
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
 #include "interface/logic/IUpdateChecker.h"
+#include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -18,10 +19,10 @@ class UpdateChecker final : virtual public IUpdateChecker
 	NON_COPY_MOVABLE(UpdateChecker)
 
 public:
-	UpdateChecker(std::shared_ptr<ISettings> settings,
-	              const std::shared_ptr<const class ILogicFactory>& logicFactory,
-	              std::shared_ptr<class IUiFactory> uiFactory,
-	              std::shared_ptr<class IBooksExtractorProgressController> progressController);
+	UpdateChecker(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	              std::shared_ptr<ISettings> settings,
+	              std::shared_ptr<IUiFactory> uiFactory,
+	              std::shared_ptr<IBooksExtractorProgressController> progressController);
 	~UpdateChecker() override;
 
 private: // IUpdateChecker

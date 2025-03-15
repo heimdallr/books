@@ -6,6 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/IModelProvider.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -21,7 +22,7 @@ class FilteredProxyModel final : public AbstractFilteredProxyModel
 	NON_COPY_MOVABLE(FilteredProxyModel)
 
 public:
-	explicit FilteredProxyModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent = nullptr);
+	explicit FilteredProxyModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent = nullptr);
 	~FilteredProxyModel() override;
 
 private: // QAbstractItemModel

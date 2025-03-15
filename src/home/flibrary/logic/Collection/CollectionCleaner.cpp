@@ -11,11 +11,6 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
-
 #include "common/Constant.h"
 #include "inpx/src/util/constant.h"
 

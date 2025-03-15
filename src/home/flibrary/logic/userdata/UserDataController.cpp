@@ -1,8 +1,6 @@
 #include "UserDataController.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "backup.h"
 #include "log.h"

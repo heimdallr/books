@@ -5,13 +5,10 @@
 
 #include "interface/ui/ILineOption.h"
 
+#include "util/ISettings.h"
+
 class QLineEdit;
 class QString;
-
-namespace HomeCompa
-{
-class ISettings;
-}
 
 namespace HomeCompa::Flibrary
 {

@@ -14,11 +14,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
-#include "interface/logic/IBookInfoProvider.h"
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
+#include "interface/logic/IDataProvider.h"
 
 #include "Util/IExecutor.h"
 #include "data/DataItem.h"

@@ -5,6 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IScriptController.h"
+
 namespace HomeCompa::Flibrary
 {
 

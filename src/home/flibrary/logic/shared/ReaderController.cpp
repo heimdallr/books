@@ -16,13 +16,8 @@
 
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "util/IExecutor.h"
-#include "util/ISettings.h"
 
 #include "ImageRestore.h"
 #include "log.h"

@@ -4,9 +4,6 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-// ReSharper disable CppUnusedIncludeDirective
-#include "interface/ui/IUiFactory.h"
-
 #include "Annotation/AnnotationController.h"
 #include "ChangeNavigationController/SearchController.h"
 #include "Collection/CollectionCleaner.h"
@@ -21,7 +18,6 @@
 #include "database/DatabaseController.h"
 #include "database/DatabaseUser.h"
 #include "log/LogController.h"
-#include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "model/FilteredProxyModel.h"
 #include "model/GenreModel.h"
 #include "model/LanguageModel.h"
@@ -36,14 +32,12 @@
 #include "shared/ReaderController.h"
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
-#include "shared/ZipProgressCallback.h"
 #include "userdata/UserDataController.h"
 #include "util/ISettings.h"
 #include "util/Settings.h"
 #include "util/app.h"
 
 #include "LogicFactory.h"
-// ReSharper restore CppUnusedIncludeDirective
 
 #include "config/version.h"
 
@@ -52,41 +46,44 @@ namespace HomeCompa::Flibrary
 
 void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
-	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<CollectionCleaner>().as<ICollectionCleaner>();
-	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
-	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
-	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
-	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
-	builder.registerType<DataProvider>().singleInstance();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<GenreModel>().as<IGenreModel>();
 	builder.registerType<LanguageModel>().as<ILanguageModel>();
 	builder.registerType<ListModel>().as<AbstractListModel>();
-	builder.registerType<LogController>().as<ILogController>().singleInstance();
-	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
-	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
-	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<ScriptController>().as<IScriptController>();
-	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
-	builder.registerType<SetupPunchlineJokeRequester>().as<IJokeRequester>().singleInstance();
-	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UpdateChecker>().as<IUpdateChecker>();
 	builder.registerType<UserDataController>().as<IUserDataController>();
+	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
+
+	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
+	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
+	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
+	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();
+	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
+	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
+	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
+	builder.registerType<LogController>().as<ILogController>().singleInstance();
+	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
+	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
+	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
+	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
+	builder.registerType<SetupPunchlineJokeRequester>().as<IJokeRequester>().singleInstance();
+
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<IBookInfoProvider>();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<INavigationInfoProvider>();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<LogicFactory>(*container); }).as<ILogicFactory>().singleInstance();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<ModelProvider>(*container); }).as<IModelProvider>().singleInstance();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<ScriptControllerProvider>(*container); }).as<IScriptControllerProvider>().singleInstance();
-
-	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<CommandExecutor>(); }).as<IScriptController::ICommandExecutor>().singleInstance();
 
 	builder
 		.registerInstanceFactory(

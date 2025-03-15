@@ -11,10 +11,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IAnnotationController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IReaderController.h"
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -59,33 +55,36 @@ struct TreeViewControllerBooks::Impl final : IModelObserver
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 	std::shared_ptr<const IDatabaseUser> databaseUser;
+	PropagateConstPtr<IBookInfoProvider, std::shared_ptr> dataProvider;
 	std::shared_ptr<const IReaderController> readerController;
 
-	explicit Impl(std::weak_ptr<const ILogicFactory> logicFactory,
-	              std::shared_ptr<IAnnotationController> annotationController,
-	              std::shared_ptr<const IDatabaseUser> databaseUser,
-	              std::shared_ptr<const IReaderController> readerController)
+	Impl(std::weak_ptr<const ILogicFactory> logicFactory,
+	     std::shared_ptr<IAnnotationController> annotationController,
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<IBookInfoProvider> dataProvider,
+	     std::shared_ptr<const IReaderController> readerController)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
 		, databaseUser { std::move(databaseUser) }
+		, dataProvider { std::move(dataProvider) }
 		, readerController { std::move(readerController) }
 	{
 	}
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
-                                                 std::shared_ptr<DataProvider> dataProvider,
                                                  const std::shared_ptr<const IModelProvider>& modelProvider,
                                                  const std::shared_ptr<const ILogicFactory>& logicFactory,
+                                                 std::shared_ptr<IBookInfoProvider> dataProvider,
                                                  std::shared_ptr<const IReaderController> readerController,
                                                  std::shared_ptr<IAnnotationController> annotationController,
                                                  std::shared_ptr<IDatabaseUser> databaseUser)
-	: AbstractTreeViewController(CONTEXT, std::move(settings), std::move(dataProvider), modelProvider)
-	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(readerController))
+	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
+	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(readerController))
 {
 	Setup();
 
-	m_dataProvider->SetBookRequestCallback(
+	m_impl->dataProvider->SetBookRequestCallback(
 		[&](IDataItem::Ptr data)
 		{
 			assert(m_impl->viewMode != ViewMode::Unknown);
@@ -115,7 +114,7 @@ void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
 void TreeViewControllerBooks::OnModeChanged(const QString& mode)
 {
 	m_impl->viewMode = GetViewModeImpl(mode.toStdString()).viewMode;
-	m_dataProvider->SetBooksViewMode(m_impl->viewMode);
+	m_impl->dataProvider->SetBooksViewMode(m_impl->viewMode);
 	Perform(&IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
 }
 

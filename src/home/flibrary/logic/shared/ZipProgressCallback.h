@@ -2,7 +2,8 @@
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
-#include "fnd/observer.h"
+
+#include "interface/logic/ILogicFactory.h"
 
 #include "zip.h"
 
@@ -14,7 +15,7 @@ class ZipProgressCallback final : public Zip::ProgressCallback
 	NON_COPY_MOVABLE(ZipProgressCallback)
 
 public:
-	explicit ZipProgressCallback(const std::shared_ptr<const class ILogicFactory>& logicFactory);
+	explicit ZipProgressCallback(const std::shared_ptr<const ILogicFactory>& logicFactory);
 	~ZipProgressCallback() override;
 
 public:

@@ -1,14 +1,8 @@
 #include "ModelProvider.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <QString> // for plog
-
 #include <Hypodermic/Container.h>
 
-#include "interface/logic/IScriptController.h"
-
 #include "model/FilteredProxyModel.h"
-#include "model/IModelObserver.h"
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"

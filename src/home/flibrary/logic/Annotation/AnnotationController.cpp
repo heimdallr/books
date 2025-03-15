@@ -16,9 +16,6 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/IJokeRequester.h"
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
