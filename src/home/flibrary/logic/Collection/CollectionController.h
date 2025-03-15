@@ -4,11 +4,10 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ITaskQueue.h"
+#include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -18,10 +17,7 @@ class CollectionController final : public ICollectionController
 	NON_COPY_MOVABLE(CollectionController)
 
 public:
-	CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider,
-	                     std::shared_ptr<ISettings> settings,
-	                     std::shared_ptr<class IUiFactory> uiFactory,
-	                     const std::shared_ptr<class ITaskQueue>& taskQueue);
+	CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, const std::shared_ptr<ITaskQueue>& taskQueue);
 	~CollectionController() override;
 
 public: // ICollectionController

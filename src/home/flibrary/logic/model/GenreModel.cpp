@@ -11,7 +11,6 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/GenresLocalization.h"
-#include "interface/logic/IDatabaseUser.h"
 
 #include "inpx/src/util/constant.h"
 #include "util/localization.h"

@@ -4,6 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
+#include "interface/logic/IModelProvider.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -19,7 +20,7 @@ class SortFilterProxyModel final : public AbstractSortFilterProxyModel
 	NON_COPY_MOVABLE(SortFilterProxyModel)
 
 public:
-	explicit SortFilterProxyModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent = nullptr);
+	explicit SortFilterProxyModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent = nullptr);
 	~SortFilterProxyModel() override;
 
 private: // QAbstractItemModel

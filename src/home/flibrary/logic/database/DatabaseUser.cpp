@@ -4,7 +4,6 @@
 #include <QtGui/QGuiApplication>
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/IDatabaseController.h"
 
 #include "data/DataItem.h"
 #include "util/executor/factory.h"

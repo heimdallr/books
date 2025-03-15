@@ -7,6 +7,8 @@
 
 #include "interface/logic/IBookInfoProvider.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/INavigationQueryExecutor.h"
 
 class QString;
 
@@ -21,12 +23,12 @@ public:
 	using Callback = std::function<void(IDataItem::Ptr)>;
 
 public:
-	DataProvider(std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class INavigationQueryExecutor> navigationQueryExecutor);
+	DataProvider(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor);
 	~DataProvider() override;
 
 public:
 	void SetNavigationId(QString id);
-	void SetNavigationMode(enum class NavigationMode navigationMode);
+	void SetNavigationMode(NavigationMode navigationMode);
 	void SetBooksViewMode(enum class ViewMode viewMode);
 
 	void SetNavigationRequestCallback(Callback callback);

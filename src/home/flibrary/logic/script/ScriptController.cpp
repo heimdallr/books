@@ -9,8 +9,6 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "util/ISettings.h"
-
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;

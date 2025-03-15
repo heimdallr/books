@@ -9,8 +9,6 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/ITaskQueue.h"
-#include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/src/util/constant.h"

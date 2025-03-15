@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fnd/NonCopyMovable.h"
+#include "interface/logic/IModelProvider.h"
 
 #include "BaseModel.h"
 
@@ -10,7 +11,7 @@ namespace HomeCompa::Flibrary
 class AbstractListModel : public BaseModel
 {
 protected:
-	explicit AbstractListModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent);
+	explicit AbstractListModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent);
 };
 
 class ListModel final : public AbstractListModel

@@ -6,19 +6,14 @@
 
 #include "interface/logic/ICollectionProvider.h"
 
-#include "export/logic.h"
-
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
 
 struct CollectionImpl;
 
-class LOGIC_EXPORT CollectionProvider final : virtual public ICollectionProvider
+class CollectionProvider final : virtual public ICollectionProvider
 {
 	NON_COPY_MOVABLE(CollectionProvider)
 

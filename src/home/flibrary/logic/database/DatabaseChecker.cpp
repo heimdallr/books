@@ -1,11 +1,10 @@
 #include "DatabaseChecker.h"
 
-#include "DatabaseUser.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
-DatabaseChecker::DatabaseChecker(std::shared_ptr<DatabaseUser> databaseUser)
+DatabaseChecker::DatabaseChecker(std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_databaseUser(std::move(databaseUser))
 {
 	PLOGV << "DatabaseChecker created";

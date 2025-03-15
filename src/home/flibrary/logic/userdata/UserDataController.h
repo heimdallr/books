@@ -1,9 +1,12 @@
 #pragma once
 
-#include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
+#include <memory>
 
+#include "fnd/NonCopyMovable.h"
+
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IUserDataController.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "constants/UserData.h"
 
@@ -27,7 +30,7 @@ class UserDataController : virtual public IUserDataController
 	NON_COPY_MOVABLE(UserDataController)
 
 public:
-	UserDataController(std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class IUiFactory> uiFactory);
+	UserDataController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory);
 	~UserDataController() override;
 
 private: // IUserDataController
