@@ -5,13 +5,12 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionController.h"
+#include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-namespace HomeCompa
-{
-class IParentWidgetProvider;
-class ISettings;
-}
+#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -25,8 +24,8 @@ class AddCollectionDialog final
 public:
 	AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 	                    std::shared_ptr<ISettings> settings,
-	                    std::shared_ptr<class ICollectionController> collectionController,
-	                    std::shared_ptr<class IUiFactory> uiFactory);
+	                    std::shared_ptr<ICollectionController> collectionController,
+	                    std::shared_ptr<const IUiFactory> uiFactory);
 	~AddCollectionDialog() override;
 
 private: // IAddCollectionDialog

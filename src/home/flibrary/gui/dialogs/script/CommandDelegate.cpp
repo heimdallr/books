@@ -1,14 +1,10 @@
 #include "CommandDelegate.h"
 
-#include <QApplication>
 #include <QMouseEvent>
 
 #include "fnd/FindPair.h"
 
 #include "interface/logic/IScriptController.h"
-
-#include "delegate/OpenFileDialogDelegateEditor.h"
-#include "delegate/StorableComboboxDelegateEditor.h"
 
 using namespace HomeCompa::Flibrary;
 

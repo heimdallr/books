@@ -6,11 +6,8 @@
 #include <QStyle>
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IParentWidgetProvider.h"
 
 #include "log.h"
 #include "zip.h"
@@ -82,7 +79,7 @@ class AddCollectionDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<IUiFactory> uiFactory)
+	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<const IUiFactory> uiFactory)
 		: GeometryRestorable(*this, settings, "AddCollectionDialog")
 		, GeometryRestorableObserver(self)
 		, m_self(self)
@@ -323,7 +320,7 @@ private:
 	AddCollectionDialog& m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
 	bool m_createMode { false };
 	Ui::AddCollectionDialog m_ui {};
 };
@@ -331,7 +328,7 @@ private:
 AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
                                          std::shared_ptr<ISettings> settings,
                                          std::shared_ptr<ICollectionController> collectionController,
-                                         std::shared_ptr<IUiFactory> uiFactory)
+                                         std::shared_ptr<const IUiFactory> uiFactory)
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this, std::move(settings), std::move(collectionController), std::move(uiFactory))
 {
