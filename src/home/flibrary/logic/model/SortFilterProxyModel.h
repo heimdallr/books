@@ -4,6 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
+
 #include "interface/logic/IModelProvider.h"
 
 namespace HomeCompa::Flibrary

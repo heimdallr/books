@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fnd/NonCopyMovable.h"
+
 #include "interface/logic/IModelProvider.h"
 
 #include "BaseModel.h"

@@ -5,8 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IReaderController.h"

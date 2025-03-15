@@ -3,8 +3,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/ILogController.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogController.h"
 
 namespace HomeCompa::Flibrary
 {

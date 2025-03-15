@@ -17,9 +17,7 @@ struct AbstractTreeViewController::Impl final
 	}
 };
 
-AbstractTreeViewController::AbstractTreeViewController(const char* const context,
-                                                       std::shared_ptr<ISettings> settings,
-                                                       const std::shared_ptr<const IModelProvider>& modelProvider)
+AbstractTreeViewController::AbstractTreeViewController(const char* const context, std::shared_ptr<ISettings> settings, const std::shared_ptr<const IModelProvider>& modelProvider)
 	: m_context(context)
 	, m_settings(std::move(settings))
 	, m_modelProvider(modelProvider)
