@@ -81,8 +81,8 @@
         <translation>Сканировать неиндексированные архивы</translation>
     </message>
     <message>
-        <source>Skip books not in archives</source>
-        <translation>Не добавлять отсутствующие в архивах книги</translation>
+        <source>Add books missing from archives</source>
+        <translation>Добавлять отсутствующие в архивах книги</translation>
     </message>
 </context>
 <context>

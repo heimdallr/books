@@ -48,10 +48,6 @@
         <translation>Додавати неіндексовані книги</translation>
     </message>
     <message>
-        <source>Skip books not in archives</source>
-        <translation>Не додавати відсутні в архівах книги</translation>
-    </message>
-    <message>
         <source>Scan unindexed archives</source>
         <translation>Сканувати неіндексовані архіви</translation>
     </message>
@@ -83,6 +79,10 @@
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Create new</source>
         <translation>Створити нову</translation>
+    </message>
+    <message>
+        <source>Add books missing from archives</source>
+        <translation>Додавати відсутні в архівах книги</translation>
     </message>
 </context>
 <context>

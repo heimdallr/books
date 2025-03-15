@@ -81,7 +81,7 @@
         <translation></translation>
     </message>
     <message>
-        <source>Skip books not in archives</source>
+        <source>Add books missing from archives</source>
         <translation></translation>
     </message>
 </context>
