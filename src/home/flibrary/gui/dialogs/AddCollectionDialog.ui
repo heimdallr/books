@@ -146,12 +146,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxSkipLostBooks">
+    <widget class="QCheckBox" name="checkBoxAddMissingBooks">
      <property name="text">
-      <string>Skip books not in archives</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>Add books missing from archives</string>
      </property>
     </widget>
    </item>
@@ -228,6 +225,7 @@
   <tabstop>editArchive</tabstop>
  </tabstops>
  <resources>
+  <include location="../../icons/light/resources/light.qrc"/>
   <include location="../../icons/light/resources/light.qrc"/>
  </resources>
  <connections/>
