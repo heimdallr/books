@@ -68,13 +68,16 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();
 	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
-	builder.registerType<DataProvider>().singleInstance();
+	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
 	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
 	builder.registerType<SetupPunchlineJokeRequester>().as<IJokeRequester>().singleInstance();
+
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<IBookInfoProvider>();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<INavigationInfoProvider>();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<LogicFactory>(*container); }).as<ILogicFactory>().singleInstance();
 

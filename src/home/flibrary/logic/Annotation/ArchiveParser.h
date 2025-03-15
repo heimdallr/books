@@ -4,7 +4,10 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 
@@ -43,9 +46,7 @@ public:
 	};
 
 public:
-	ArchiveParser(std::shared_ptr<class ICollectionProvider> collectionProvider,
-	              std::shared_ptr<class IAnnotationProgressController> progressController,
-	              std::shared_ptr<const class ILogicFactory> logicFactory);
+	ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IAnnotationProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory);
 	~ArchiveParser();
 
 public:

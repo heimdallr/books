@@ -15,17 +15,11 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IInpxGenerator.h"
-#include "interface/logic/IReaderController.h"
-#include "interface/logic/IScriptController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
-#include "data/DataProvider.h"
 #include "extract/BooksExtractor.h"
-#include "util/ISettings.h"
 
 #include "log.h"
 
@@ -198,7 +192,7 @@ public:
 	              std::shared_ptr<const ISettings> settings,
 	              std::shared_ptr<const IReaderController> readerController,
 	              std::shared_ptr<const IDatabaseUser> databaseUser,
-	              std::shared_ptr<const DataProvider> dataProvider,
+	              std::shared_ptr<const IBookInfoProvider> dataProvider,
 	              std::shared_ptr<const IUiFactory> uiFactory,
 	              std::shared_ptr<GroupController> groupController,
 	              std::shared_ptr<IScriptController> scriptController)
@@ -569,7 +563,7 @@ private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	std::shared_ptr<const DataProvider> m_dataProvider;
+	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
@@ -592,7 +586,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const I
                                                    std::shared_ptr<const ISettings> settings,
                                                    std::shared_ptr<const IReaderController> readerController,
                                                    std::shared_ptr<const IDatabaseUser> databaseUser,
-                                                   std::shared_ptr<DataProvider> dataProvider,
+                                                   std::shared_ptr<const IBookInfoProvider> dataProvider,
                                                    std::shared_ptr<const IUiFactory> uiFactory,
                                                    std::shared_ptr<GroupController> groupController,
                                                    std::shared_ptr<IScriptController> scriptController)

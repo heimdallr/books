@@ -7,14 +7,12 @@
 #include "fnd/memory.h"
 #include "fnd/observable.h"
 
+#include "interface/logic/IModelProvider.h"
 #include "interface/logic/ITreeViewController.h"
 
-class QString;
+#include "util/ISettings.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+class QString;
 
 namespace HomeCompa::Flibrary
 {
@@ -26,10 +24,7 @@ class AbstractTreeViewController
 	NON_COPY_MOVABLE(AbstractTreeViewController)
 
 protected:
-	explicit AbstractTreeViewController(const char* context,
-	                                    std::shared_ptr<ISettings> settings,
-	                                    std::shared_ptr<class DataProvider> dataProvider,
-	                                    const std::shared_ptr<const class IModelProvider>& modelProvider);
+	explicit AbstractTreeViewController(const char* context, std::shared_ptr<ISettings> settings, const std::shared_ptr<const IModelProvider>& modelProvider);
 	~AbstractTreeViewController() override;
 
 private: // ITreeViewController
@@ -72,7 +67,6 @@ protected:
 protected:
 	const char* const m_context;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<DataProvider, std::shared_ptr> m_dataProvider;
 	std::weak_ptr<const IModelProvider> m_modelProvider;
 
 private:

@@ -2,12 +2,14 @@
 
 #include <functional>
 
-#include <QString>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionController.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
+#include "interface/logic/IScriptController.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -21,11 +23,11 @@ public:
 	using Extract = void (BooksExtractor::*)(QString, const QString&, ILogicFactory::ExtractedBooks&&, QString, Callback);
 
 public:
-	BooksExtractor(std::shared_ptr<class ICollectionController> collectionController,
-	               std::shared_ptr<class IBooksExtractorProgressController> progressController,
+	BooksExtractor(std::shared_ptr<ICollectionController> collectionController,
+	               std::shared_ptr<IBooksExtractorProgressController> progressController,
 	               const std::shared_ptr<const ILogicFactory>& logicFactory,
-	               std::shared_ptr<const class IScriptController> scriptController,
-	               std::shared_ptr<class IDatabaseUser> databaseUser);
+	               std::shared_ptr<const IScriptController> scriptController,
+	               std::shared_ptr<IDatabaseUser> databaseUser);
 	~BooksExtractor();
 
 public:

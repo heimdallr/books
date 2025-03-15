@@ -4,9 +4,6 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "data/DataProvider.h"
-#include "util/ISettings.h"
-
 using namespace HomeCompa::Flibrary;
 
 struct AbstractTreeViewController::Impl final
@@ -22,11 +19,9 @@ struct AbstractTreeViewController::Impl final
 
 AbstractTreeViewController::AbstractTreeViewController(const char* const context,
                                                        std::shared_ptr<ISettings> settings,
-                                                       std::shared_ptr<DataProvider> dataProvider,
                                                        const std::shared_ptr<const IModelProvider>& modelProvider)
 	: m_context(context)
 	, m_settings(std::move(settings))
-	, m_dataProvider(std::move(dataProvider))
 	, m_modelProvider(modelProvider)
 	, m_impl(*this)
 {

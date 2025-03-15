@@ -3,12 +3,12 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "AbstractTreeViewController.h"
+#include "interface/logic/IDataProvider.h"
+#include "interface/logic/IDatabaseController.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "AbstractTreeViewController.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -19,11 +19,11 @@ class TreeViewControllerNavigation final : public AbstractTreeViewController
 
 public:
 	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
-	                             std::shared_ptr<DataProvider> dataProvider,
 	                             const std::shared_ptr<const IModelProvider>& modelProvider,
-	                             const std::shared_ptr<const class ILogicFactory>& logicFactory,
-	                             std::shared_ptr<class IUiFactory> uiFactory,
-	                             std::shared_ptr<class IDatabaseController> databaseController);
+	                             const std::shared_ptr<const ILogicFactory>& logicFactory,
+	                             std::shared_ptr<INavigationInfoProvider> dataProvider,
+	                             std::shared_ptr<IUiFactory> uiFactory,
+	                             std::shared_ptr<IDatabaseController> databaseController);
 	~TreeViewControllerNavigation() override;
 
 public:

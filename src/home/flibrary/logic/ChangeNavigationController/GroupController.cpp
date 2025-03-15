@@ -7,9 +7,6 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/INavigationQueryExecutor.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "log.h"
 

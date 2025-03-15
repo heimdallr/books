@@ -9,11 +9,6 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
-#include "interface/logic/IScriptController.h"
 
 #include "Util/IExecutor.h"
 #include "shared/ImageRestore.h"
