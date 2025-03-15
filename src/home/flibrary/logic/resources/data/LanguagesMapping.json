@@ -134,7 +134,7 @@
   "rm": [ "roh" ],
   "rn": [ "run" ],
   "ro": [ "ron", "rum" ],
-  "ru": [ "rus", "ru-" ],
+  "ru": [ "rus", "ru-", "ru~", "кг" ],
   "rw": [ "kin" ],
   "sa": [ "san" ],
   "sc": [ "srd" ],
