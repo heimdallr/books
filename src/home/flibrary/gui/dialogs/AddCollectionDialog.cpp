@@ -139,7 +139,7 @@ public:
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
-		m_ui.checkBoxSkipLostBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
+		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 
 		Init();
 	}
@@ -154,7 +154,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), m_ui.checkBoxSkipLostBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
 	}
 
 	QString GetName() const
@@ -184,7 +184,7 @@ public:
 
 	bool SkipLostBooks() const
 	{
-		return m_ui.checkBoxSkipLostBooks->isChecked();
+		return !m_ui.checkBoxAddMissingBooks->isChecked();
 	}
 
 private: // GeometryRestorableObserver
@@ -206,7 +206,7 @@ private:
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.checkBoxAddUnindexedBooks->setEnabled(m_createMode);
 		m_ui.checkBoxScanUnindexedArchives->setEnabled(m_createMode);
-		m_ui.checkBoxSkipLostBooks->setEnabled(m_createMode);
+		m_ui.checkBoxAddMissingBooks->setEnabled(m_createMode);
 		(void)CheckData();
 	}
 
