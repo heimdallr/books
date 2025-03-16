@@ -25,13 +25,16 @@ public:
 	enum class RequestContextMenuOptions
 	{
 		None = 0,
-		IsTree = 1 << 0,
-		HasExpanded = 1 << 1,
-		HasCollapsed = 1 << 2,
-		NodeExpanded = 1 << 3,
-		NodeCollapsed = 1 << 4,
-		HasSelection = 1 << 5,
+		// clang-format off
+		IsTree                     = 1 << 0,
+		HasExpanded                = 1 << 1,
+		HasCollapsed               = 1 << 2,
+		NodeExpanded               = 1 << 3,
+		NodeCollapsed              = 1 << 4,
+		HasSelection               = 1 << 5,
 		AllowDestructiveOperations = 1 << 6,
+		IsArchive                  = 1 << 7,
+		// clang-format on
 	};
 
 public:
