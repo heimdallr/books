@@ -365,6 +365,11 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>&amp;Unpack</source>
+        <translation>&amp;Распаковать</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>As &amp;inpx collection</source>
         <translation>В виде &amp;inpx-коллекции</translation>
     </message>
