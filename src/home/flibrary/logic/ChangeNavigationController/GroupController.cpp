@@ -200,7 +200,7 @@ void GroupController::CreateNew(Callback callback) const
 
 void GroupController::Remove(Ids ids, Callback callback) const
 {
-	if (false || ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_GROUP_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_GROUP_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 		return;
 
 	m_impl->databaseUser->Execute({ "Remove groups",

@@ -147,7 +147,7 @@ void MainWindow::SetSettings(Settings* settings)
 
 void MainWindow::CheckEnabled()
 {
-	const bool startDisabled = false || m_ui->actionInputFilesNotFound->isVisible() || m_ui->actionDstFolderNotExists->isVisible() || m_ui->actionFfmpegNotFound->isVisible();
+	const bool startDisabled = m_ui->actionInputFilesNotFound->isVisible() || m_ui->actionDstFolderNotExists->isVisible() || m_ui->actionFfmpegNotFound->isVisible();
 
 	m_ui->btnStart->setEnabled(!startDisabled);
 }

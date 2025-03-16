@@ -37,7 +37,7 @@ struct ImageSettings
 
 	bool operator==(const ImageSettings& rhs) const noexcept
 	{
-		return true && maxSize == rhs.maxSize && quality == rhs.quality && save == rhs.save && grayscale == rhs.grayscale;
+		return maxSize == rhs.maxSize && quality == rhs.quality && save == rhs.save && grayscale == rhs.grayscale;
 	}
 };
 

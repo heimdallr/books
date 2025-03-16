@@ -136,7 +136,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return true && FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex);
+	return FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -166,7 +166,7 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
 {
-	return false || m_impl->m_languageFilter.isEmpty() || (index.data(Role::Type).value<ItemType>() == ItemType::Books && index.data(Role::Lang) == m_impl->m_languageFilter);
+	return m_impl->m_languageFilter.isEmpty() || (index.data(Role::Type).value<ItemType>() == ItemType::Books && index.data(Role::Lang) == m_impl->m_languageFilter);
 }
 
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
