@@ -12,6 +12,7 @@
 #include <interface/types.h>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "7z-sdk/7z/CPP/7zip/Archive/IArchive.h"
@@ -189,7 +190,7 @@ std::unique_ptr<ArchiveWrapper> CreateInputArchive(const Lib& lib, const QString
 	if (!stream)
 		return std::make_unique<ArchiveWrapper>();
 
-	if (auto archive = std::make_unique<ArchiveWrapper>(bit7z::detect_format_from_extension(filename.toStdWString())); archive->format != bit7z::BitFormat::Auto)
+	if (auto archive = std::make_unique<ArchiveWrapper>(bit7z::detect_format_from_extension(filename.toStdWString())); !IsOneOf(archive->format, bit7z::BitFormat::Auto, bit7z::BitFormat::Rar))
 		if ((archive->archive = CreateInputArchiveImpl(lib, stream, archive->format)))
 			return archive;
 
