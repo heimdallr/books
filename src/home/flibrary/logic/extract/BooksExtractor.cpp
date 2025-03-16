@@ -184,7 +184,7 @@ void Process(const std::filesystem::path& archiveFolder,
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
 		ILogicFactory::FillScriptTemplate(command.args, book);
 
-		if (false || progress.IsStopped() || !scriptController.Execute(command))
+		if (progress.IsStopped() || !scriptController.Execute(command))
 			return;
 	}
 }

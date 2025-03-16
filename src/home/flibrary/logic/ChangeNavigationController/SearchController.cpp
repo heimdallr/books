@@ -193,7 +193,7 @@ void SearchController::CreateNew(Callback callback)
 
 void SearchController::Remove(Ids ids, Callback callback) const
 {
-	if (false || ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_SEARCH_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_SEARCH_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 		return;
 
 	m_impl->databaseUser->Execute({ "Remove search string",

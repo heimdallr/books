@@ -77,7 +77,7 @@ Dictionary::const_iterator FindDefault(const Dictionary& container, const std::w
 
 bool IsComment(const std::wstring_view line)
 {
-	return false || std::size(line) < 3 || line.starts_with(COMMENT_START);
+	return std::size(line) < 3 || line.starts_with(COMMENT_START);
 }
 
 class Ini

@@ -185,7 +185,7 @@ private: // IArchiveUpdateCallback
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
-		assert(false || "unexpected call");
+		assert(false && "unexpected call");
 		return S_OK;
 	}
 

@@ -214,7 +214,7 @@ private:
 	{
 		ResetError();
 
-		return true && CheckName() && CheckDatabase() && CheckFolder();
+		return CheckName() && CheckDatabase() && CheckFolder();
 	}
 
 	[[nodiscard]] bool CheckName() const
