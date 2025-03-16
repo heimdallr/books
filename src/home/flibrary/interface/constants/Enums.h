@@ -53,6 +53,7 @@ enum class ItemType
 	BOOKS_MENU_ACTION_ITEM(ExpandAll)             \
 	BOOKS_MENU_ACTION_ITEM(SendAsArchive)         \
 	BOOKS_MENU_ACTION_ITEM(SendAsIs)              \
+	BOOKS_MENU_ACTION_ITEM(SendUnpack)            \
 	BOOKS_MENU_ACTION_ITEM(SendAsInpxCollection)  \
 	BOOKS_MENU_ACTION_ITEM(SendAsInpxFile)        \
 	BOOKS_MENU_ACTION_ITEM(SendAsScript)

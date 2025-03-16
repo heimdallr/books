@@ -10,7 +10,8 @@ constexpr auto INSERT_QUERY = "insert into Export_List_User(BookID, ExportType, 
 	EXPORT_STAT_TYPE_ITEM(AsIs)        \
 	EXPORT_STAT_TYPE_ITEM(Archive)     \
 	EXPORT_STAT_TYPE_ITEM(Script)      \
-	EXPORT_STAT_TYPE_ITEM(Inpx)
+	EXPORT_STAT_TYPE_ITEM(Inpx)        \
+	EXPORT_STAT_TYPE_ITEM(Unpack)
 
 enum class Type
 {

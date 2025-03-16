@@ -79,6 +79,8 @@ auto find_format_by_extension(const tstring& extension) -> const BitInFormat*
 		case str_hash(BIT7Z_STRING("pptx")):
 		case str_hash(BIT7Z_STRING("epub")):
 			return &BitFormat::Zip;
+		case str_hash(BIT7Z_STRING("rar")):
+			return &BitFormat::Rar;
 		case str_hash(BIT7Z_STRING("001")):
 			return &BitFormat::Split;
 		case str_hash(BIT7Z_STRING("ar")):

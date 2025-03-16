@@ -35,6 +35,7 @@
 #include "ModeComboBox.h"
 #include "ScrollBarController.h"
 #include "log.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -395,7 +396,8 @@ private:
 		ITreeViewController::RequestContextMenuOptions options =
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
-			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations);
+			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
+			| addOption(Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()), ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
