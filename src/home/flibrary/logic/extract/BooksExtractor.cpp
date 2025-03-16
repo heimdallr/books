@@ -172,10 +172,12 @@ void Process(const std::filesystem::path& archiveFolder,
              IProgressController::IProgressItem& progress,
              IPathChecker& pathChecker,
              const IScriptController& scriptController,
-             const IScriptController::Commands& commands,
+             IScriptController::Commands commands,
              const QTemporaryDir& tempDir)
 {
 	const auto sourceFile = Process(archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs);
+
+	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) { return command.number; });
 	for (auto command : commands)
 	{
 		IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
@@ -405,5 +407,5 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 						const QString& dstFolder,
 						const ILogicFactory::ExtractedBook& book,
 						IProgressController::IProgressItem& progress,
-						IPathChecker& pathChecker) { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir); });
+						IPathChecker& pathChecker) mutable { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, std::move(commands), *tempDir); });
 }
