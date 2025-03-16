@@ -441,6 +441,11 @@ std::unique_ptr<IZip> Archive::CreateReader(const QString& filename, std::shared
 	return std::make_unique<ReaderFile>(filename, std::move(progress));
 }
 
+std::unique_ptr<IZip> Archive::CreateReaderStream(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
+{
+	return std::make_unique<ReaderStream>(stream, std::move(progress));
+}
+
 std::unique_ptr<IZip> Archive::CreateWriter(const QString& filename, const Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
 {
 	return std::make_unique<WriterFile>(filename, format, std::move(progress), appendMode);
@@ -449,6 +454,11 @@ std::unique_ptr<IZip> Archive::CreateWriter(const QString& filename, const Forma
 std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice& stream, Format format, std::shared_ptr<ProgressCallback> progress, bool appendMode)
 {
 	return std::make_unique<WriterStream>(stream, format, std::move(progress), appendMode);
+}
+
+bool Archive::IsArchive(const QString& filename)
+{
+	return bit7z::detect_format_from_extension(filename.toStdWString()) != bit7z::BitFormat::Auto;
 }
 
 } // namespace HomeCompa::ZipDetails::SevenZip

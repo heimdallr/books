@@ -42,6 +42,12 @@ public:
 	{
 	}
 
+	Impl(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
+		: m_zip(SevenZip::Archive::CreateReaderStream(stream, GetProgress(std::move(progress))))
+		, m_file(std::unique_ptr<IFile> {})
+	{
+	}
+
 	Impl(const QString& filename, const Format format, const bool appendMode, std::shared_ptr<ProgressCallback> progress)
 		: m_zip(SevenZip::Archive::CreateWriter(filename, format, GetProgress(std::move(progress)), appendMode))
 		, m_file(std::unique_ptr<IFile> {})
@@ -96,8 +102,18 @@ private:
 	PropagateConstPtr<IFile> m_file;
 };
 
+bool Zip::IsArchive(const QString& filename)
+{
+	return SevenZip::Archive::IsArchive(filename);
+}
+
 Zip::Zip(const QString& filename, std::shared_ptr<ProgressCallback> progress)
 	: m_impl(std::make_unique<Impl>(filename, std::move(progress)))
+{
+}
+
+Zip::Zip(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
+	: m_impl(std::make_unique<Impl>(stream, std::move(progress)))
 {
 }
 

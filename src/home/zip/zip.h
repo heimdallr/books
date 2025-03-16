@@ -32,7 +32,11 @@ public:
 	static QString FormatToString(Format format);
 
 public:
+	static bool IsArchive(const QString& filename);
+
+public:
 	explicit Zip(const QString& filename, std::shared_ptr<ProgressCallback> progress = {});
+	explicit Zip(QIODevice& stream, std::shared_ptr<ProgressCallback> progress = {});
 	Zip(const QString& filename, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	Zip(QIODevice& stream, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	~Zip();
