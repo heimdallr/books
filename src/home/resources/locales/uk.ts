@@ -5405,6 +5405,16 @@ Try again?</source>
         <source>&apos;%1&apos; not found. Will you specify another application?</source>
         <translation>Файл &apos;%1&apos; не знайдено. Спробуєте вказати іншу програму?</translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Unsupported file type</source>
+        <translation>Непідтримуваний тип файлу</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Specify the file to be read</source>
+        <translation>Вкажіть файл для читання</translation>
+    </message>
 </context>
 <context>
     <name>Requester</name>
