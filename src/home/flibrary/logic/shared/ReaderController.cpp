@@ -146,6 +146,85 @@ struct ReaderController::Impl
 		, databaseUser { std::move(databaseUser) }
 	{
 	}
+
+	void Read(std::shared_ptr<QTemporaryDir> temporaryDir, QString fileName, Callback callback, const QString& error) const
+	{
+		const ScopedCall callbackGuard([&, callback = std::move(callback)]() mutable { callback(); });
+
+		if (fileName.isEmpty())
+		{
+			fileName = uiFactory->GetOpenFileName({}, Tr(SELECT_FILE), {}, temporaryDir->path());
+			if (fileName.isEmpty())
+				return;
+		}
+
+		if (!temporaryDir)
+			return uiFactory->ShowError(error);
+
+		auto ext = QFileInfo(fileName).suffix();
+		if (ext.isEmpty())
+			return uiFactory->ShowError(Tr(UNSUPPORTED));
+
+		auto key = QString(READER_KEY).arg(ext);
+		auto reader = settings->Get(key).toString();
+
+		const auto getReader = [&]
+		{
+			reader = uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+			if (!reader.isEmpty())
+				settings->Set(key, reader);
+		};
+
+		if (reader.isEmpty())
+		{
+			if (Util::IsRegisteredExtension(ext))
+				switch (uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
+				{
+					case QMessageBox::Yes:
+						settings->Set(key, (reader = DEFAULT));
+						break;
+					case QMessageBox::No:
+						break;
+					case QMessageBox::Cancel:
+					default:
+						return;
+				}
+
+			if (reader.isEmpty())
+			{
+				getReader();
+				if (reader.isEmpty())
+					return;
+			}
+		}
+
+		if (reader == DEFAULT)
+		{
+			if (QDesktopServices::openUrl(fileName))
+				return;
+
+			settings->Remove(key);
+			if (uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+				return;
+
+			getReader();
+			if (reader.isEmpty())
+				return;
+		}
+
+		while (!QFile::exists(reader))
+		{
+			if (uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
+				return;
+
+			getReader();
+			if (reader.isEmpty())
+				return;
+		}
+
+		assert(!reader.isEmpty());
+		new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
+	}
 };
 
 ReaderController::ReaderController(const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -175,82 +254,8 @@ void ReaderController::Read(const QString& folderName, QString fileName, Callbac
 					  return [this, executor = std::move(executor), fileName = std::move(fileName), callback = std::move(callback), temporaryDir = std::move(temporaryDir), error(std::move(error))](
 								 size_t) mutable
 					  {
-						  if (fileName.isEmpty())
-						  {
-							  fileName = m_impl->uiFactory->GetOpenFileName({}, Tr(SELECT_FILE), {}, temporaryDir->path());
-							  if (fileName.isEmpty())
-								  return;
-						  }
-
-						  const ScopedCall callbackGuard([&, callback = std::move(callback)]() mutable { callback(); });
-
-						  if (!temporaryDir)
-							  return m_impl->uiFactory->ShowError(error);
-
-						  auto ext = QFileInfo(fileName).suffix();
-						  if (ext.isEmpty())
-							  return m_impl->uiFactory->ShowError(Tr(UNSUPPORTED));
-
-						  auto key = QString(READER_KEY).arg(ext);
-						  auto reader = m_impl->settings->Get(key).toString();
-
-						  const auto getReader = [&]
-						  {
-							  reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
-							  if (!reader.isEmpty())
-								  m_impl->settings->Set(key, reader);
-						  };
-
-						  if (reader.isEmpty())
-						  {
-							  if (Util::IsRegisteredExtension(ext))
-								  switch (m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
-								  {
-									  case QMessageBox::Yes:
-										  m_impl->settings->Set(key, (reader = DEFAULT));
-										  break;
-									  case QMessageBox::No:
-										  break;
-									  case QMessageBox::Cancel:
-									  default:
-										  return;
-								  }
-
-							  if (reader.isEmpty())
-							  {
-								  getReader();
-								  if (reader.isEmpty())
-									  return;
-							  }
-						  }
-
-						  if (reader == DEFAULT)
-						  {
-							  if (QDesktopServices::openUrl(fileName))
-								  return;
-
-							  m_impl->settings->Remove(key);
-							  if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
-								  return;
-
-							  getReader();
-							  if (reader.isEmpty())
-								  return;
-						  }
-
-						  while (!QFile::exists(reader))
-						  {
-							  if (m_impl->uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)
-				                  != QMessageBox::Yes)
-								  return;
-
-							  getReader();
-							  if (reader.isEmpty())
-								  return;
-						  }
-
-						  assert(!reader.isEmpty());
-						  new ReaderProcess(reader, fileName, std::move(temporaryDir), m_impl->uiFactory->GetParentObject());
+						  m_impl->Read(std::move(temporaryDir), std::move(fileName), std::move(callback), error);
+						  executor.reset();
 					  };
 				  } });
 }
