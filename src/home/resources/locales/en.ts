@@ -5394,6 +5394,16 @@ Try again?</source>
         <source>&apos;%1&apos; not found. Will you specify another application?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Unsupported file type</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Specify the file to be read</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Requester</name>
