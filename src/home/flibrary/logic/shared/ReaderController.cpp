@@ -18,6 +18,7 @@
 #include "interface/constants/Localization.h"
 
 #include "util/IExecutor.h"
+#include "util/PlatformUtil.h"
 
 #include "ImageRestore.h"
 #include "log.h"
@@ -129,21 +130,25 @@ void ReaderController::Read(const QString& folderName, QString fileName, Callbac
 	auto reader = m_impl->settings->Get(key).toString();
 	if (reader.isEmpty())
 	{
-		switch (m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
-		{
-			case QMessageBox::Yes:
-				reader = DEFAULT;
-				break;
-			case QMessageBox::No:
-				reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
-				break;
-			case QMessageBox::Cancel:
-			default:
-				return;
-		}
+		if (Util::IsRegisteredExtension(ext))
+			switch (m_impl->uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
+			{
+				case QMessageBox::Yes:
+					reader = DEFAULT;
+					break;
+				case QMessageBox::No:
+					break;
+				case QMessageBox::Cancel:
+				default:
+					return;
+			}
 
 		if (reader.isEmpty())
-			return;
+		{
+			reader = m_impl->uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
+			if (reader.isEmpty())
+				return;
+		}
 
 		m_impl->settings->Set(key, reader);
 	}
