@@ -168,11 +168,16 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	const auto& fbLang = dataProvider.GetLanguage();
 	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
 
-	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, TranslateLang(lang));
-	if (!fbLang.isEmpty() && fbLang != lang)
-		langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, TranslateLang(fbLang))));
+	const auto langTr = TranslateLang(lang);
+	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr);
+
+	if (!fbLang.isEmpty())
+		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr)
+			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr)));
+
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
-		langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, TranslateLang(fbSourceLang))));
+		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)
+			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr)));
 
 	Table table;
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
