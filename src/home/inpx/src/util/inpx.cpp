@@ -951,7 +951,7 @@ private: // IPool
 			{
 				PLOGI << "parsing " << folder;
 
-				const QFileInfo archiveFileInfo(QString::fromStdWString(m_rootFolder / folder));
+				const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 				const Zip zip(archiveFileInfo.filePath());
 				const auto zipFileList = zip.GetFileNameList();
 				for (size_t counter = 0; const auto& fileName : zipFileList)
@@ -1169,13 +1169,13 @@ private:
 		if (!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 			return;
 
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(m_rootFolder))
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(m_ini(INPX_FOLDER)))
 		{
 			if (entry.is_directory())
 				continue;
 
 			auto folder = entry.path().wstring();
-			folder.erase(0, m_rootFolder.string().size() + 1);
+			folder.erase(0, m_ini(INPX_FOLDER).string().size() + 1);
 
 			if (m_foldersContent.contains(folder))
 				continue;
@@ -1208,12 +1208,11 @@ private:
 	{
 		[[maybe_unused]] const auto* r = std::setlocale(LC_ALL, "en_US.utf8"); // NOLINT(concurrency-mt-unsafe)
 
-		m_rootFolder = Path(inpxFileName).parent_path();
 		if (zipInpx)
 		{
 			GetFieldList(zipInpx);
 			for (const auto& fileName : inpxFiles)
-				GetDecodedStream(*zipInpx, fileName, [&](QIODevice& zipDecodedStream) { ProcessInpx(inpxFileName, zipDecodedStream, m_rootFolder, fileName); });
+				GetDecodedStream(*zipInpx, fileName, [&](QIODevice& zipDecodedStream) { ProcessInpx(inpxFileName, zipDecodedStream, m_ini(INPX_FOLDER), fileName); });
 
 			PLOGI << m_n << " rows parsed";
 		}
@@ -1443,7 +1442,6 @@ private:
 	const Callback m_callback;
 	std::unique_ptr<Util::IExecutor> m_executor;
 
-	Path m_rootFolder;
 	Data m_data;
 	Dictionary m_genresIndex;
 	size_t m_n { 0 };
