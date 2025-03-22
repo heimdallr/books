@@ -43,6 +43,9 @@ DROP TABLE IF EXISTS Genre_List;
 DROP TABLE IF EXISTS Author_List;
 --@@
 
+DROP TABLE IF EXISTS Series_List;
+--@@
+
 DROP TABLE IF EXISTS Folders;
 --@@
 
@@ -97,10 +100,18 @@ CREATE TABLE Books (
 
 CREATE TRIGGER TRBooks_BD BEFORE DELETE ON Books
   BEGIN
+    DELETE FROM Series_List WHERE BookID = OLD.BookID;
     DELETE FROM Genre_List WHERE BookID = OLD.BookID;
     DELETE FROM Author_List WHERE BookID = OLD.BookID;
     DELETE FROM Series WHERE SeriesID IN (SELECT b.SeriesID FROM Books b WHERE  b.SeriesID = OLD.SeriesID GROUP BY b.SeriesID HAVING COUNT(b.SeriesID) <= 1);
   END;
+--@@
+
+CREATE TABLE Series_List (
+    SeriesID  INTEGER NOT NULL,
+    BookID    INTEGER NOT NULL,
+    SeqNumber INTEGER
+);
 --@@
 
 CREATE TABLE Genre_List (

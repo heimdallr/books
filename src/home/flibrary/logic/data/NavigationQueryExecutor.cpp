@@ -36,10 +36,10 @@ constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
 constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
-constexpr auto WHERE_SERIES = "where b.SeriesID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
+constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
 constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH su.Title";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
@@ -201,7 +201,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      { AUTHORS_QUERY, QUERY_INFO_AUTHOR, WHERE_AUTHOR, nullptr, &BindInt, &IBooksTreeCreator::CreateAuthorsTree, BookItem::Mapping(MAPPING_AUTHORS), BookItem::Mapping(MAPPING_TREE_COMMON) } }           },
 	{    NavigationMode::Series,
      { &RequestNavigationSimpleList,
-     { SERIES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_SERIES, nullptr, &BindInt, &IBooksTreeCreator::CreateSeriesTree, BookItem::Mapping(MAPPING_SERIES), BookItem::Mapping(MAPPING_TREE_COMMON) } }    },
+     { SERIES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SERIES, &BindInt, &IBooksTreeCreator::CreateSeriesTree, BookItem::Mapping(MAPPING_SERIES), BookItem::Mapping(MAPPING_TREE_COMMON), "sl" } }     },
 	{    NavigationMode::Genres,
      { &RequestNavigationGenres,
      { GENRES_QUERY, QUERY_INFO_GENRE_ITEM, WHERE_GENRE, nullptr, &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES), BookItem::Mapping(MAPPING_TREE_GENRES) } }       },

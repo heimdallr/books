@@ -58,6 +58,7 @@ struct QueryDescription
 	IBooksTreeCreator::Creator treeCreator;
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
+	const char* seqNumberTableAlias { "b" };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
 	{

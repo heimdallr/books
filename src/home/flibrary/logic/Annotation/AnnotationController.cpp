@@ -50,7 +50,7 @@ using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* inde
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
-constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Books b on b.SeriesID = s.seriesID and b.BookID = :id";
+constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id";
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
@@ -181,7 +181,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 
 	Table table;
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
-		.Add(Loc::SERIES, strategy.GenerateUrl(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
+		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
 		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
@@ -459,7 +459,7 @@ private:
 		                          {
 									  const auto db = m_databaseUser->Database();
 									  const auto bookId = book->GetId().toLongLong();
-									  auto series = CreateSeries(*db, bookId);
+									  auto series = CreateDictionary(*db, SERIES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUtil::CreateFullAuthorItem);
 									  auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
@@ -503,18 +503,10 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(IDatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
+		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg("b")).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
-	}
-
-	static IDataItem::Ptr CreateSeries(DB::IDatabase& db, const long long id)
-	{
-		const auto query = db.CreateQuery(SERIES_QUERY);
-		query->Bind(":id", id);
-		query->Execute();
-		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
 	}
 
 	static IDataItem::Ptr CreateDictionary(DB::IDatabase& db, const char* queryText, const long long id, const Extractor extractor)
