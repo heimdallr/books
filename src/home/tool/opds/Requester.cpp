@@ -100,10 +100,9 @@ constexpr auto JOIN_AUTHOR = "join Author_List al on al.BookID = b.BookID and al
 constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.GenreCode = '%1'";
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
-constexpr auto JOIN_SERIES = "join Books gl on gl.BookID = b.BookID and gl.SeriesID = %1";
+constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
 
 constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
-constexpr auto WHERE_SERIES = "and b.SeriesID = %1";
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
@@ -603,7 +602,8 @@ struct Requester::Impl
 	Node WriteSeriesNavigation(const QString& root, const QString& self, const QString& value) const
 	{
 		const auto startsWithQuery = QString("select %1, count(42) from Series a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
-		const QString navigationItemQuery = "select a.SeriesID, a.SeriesTitle, count(42) from Series a join Books l on l.SeriesID = a.SeriesID where a.SearchTitle %1 ? group by a.SeriesID";
+		const QString navigationItemQuery =
+			"select a.SeriesID, a.SeriesTitle, count(42) from Series a join Series_List sl on sl.SeriesID = a.SeriesID join Books l on l.BookID = sl.BookID where a.SearchTitle %1 ? group by a.SeriesID";
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Series, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
@@ -689,7 +689,7 @@ struct Requester::Impl
 
 	Node WriteSeriesAuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const
 	{
-		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Series, JOIN_SERIES, WHERE_SERIES);
+		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Series, JOIN_SERIES);
 	}
 
 	Node WriteGenresAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
