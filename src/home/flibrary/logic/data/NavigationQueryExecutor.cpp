@@ -201,7 +201,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      { AUTHORS_QUERY, QUERY_INFO_AUTHOR, WHERE_AUTHOR, nullptr, &BindInt, &IBooksTreeCreator::CreateAuthorsTree, BookItem::Mapping(MAPPING_AUTHORS), BookItem::Mapping(MAPPING_TREE_COMMON) } }           },
 	{    NavigationMode::Series,
      { &RequestNavigationSimpleList,
-     { SERIES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SERIES, &BindInt, &IBooksTreeCreator::CreateSeriesTree, BookItem::Mapping(MAPPING_SERIES), BookItem::Mapping(MAPPING_TREE_COMMON) } }     },
+     { SERIES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SERIES, &BindInt, &IBooksTreeCreator::CreateSeriesTree, BookItem::Mapping(MAPPING_SERIES), BookItem::Mapping(MAPPING_TREE_COMMON), "sl" } }     },
 	{    NavigationMode::Genres,
      { &RequestNavigationGenres,
      { GENRES_QUERY, QUERY_INFO_GENRE_ITEM, WHERE_GENRE, nullptr, &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_GENRES), BookItem::Mapping(MAPPING_TREE_GENRES) } }       },

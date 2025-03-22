@@ -503,7 +503,7 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(IDatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
+		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg("b")).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
