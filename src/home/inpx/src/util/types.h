@@ -64,6 +64,15 @@ struct CaseInsensitiveHash
 	}
 };
 
+template <typename First, typename Second>
+struct PairHash
+{
+	size_t operator()(const std::pair<First, Second>& value) const
+	{
+		return std::rotl(std::hash<First>()(value.first), 1) | std::hash<Second>()(value.second);
+	}
+};
+
 struct Book
 {
 	Book(const size_t id_,
@@ -181,6 +190,8 @@ using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter = std::function<std::vector<std::wstring>(std::wstring_view)>;
 using InpxFolders = std::map<std::pair<std::wstring, std::wstring>, std::string, CaseInsensitiveComparer<>>;
 
+using BooksSeries = std::unordered_map<std::pair<size_t, size_t>, std::optional<int>, PairHash<size_t, size_t>>;
+
 struct Data
 {
 	Books books;
@@ -189,6 +200,7 @@ struct Data
 	Links booksAuthors, booksGenres, booksKeywords;
 	Folders bookFolders;
 	InpxFolders inpxFolders;
+	BooksSeries booksSeries;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)
