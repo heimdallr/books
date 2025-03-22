@@ -1184,6 +1184,7 @@ private:
 			ParseInpxFiles(inpxFileName, zip.get(), inpxContent.inpx);
 		}
 
+		GetFieldList();
 		AddUnIndexedBooks();
 		ScanUnIndexedFolders();
 	}
@@ -1225,8 +1226,6 @@ private:
 
 		if (m_foldersToParse.empty())
 			return;
-
-		GetFieldList();
 
 		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
 		const auto maxThreadCount = std::max(std::min(cpuCount - 2, static_cast<int>(m_foldersToParse.size())), 1);
