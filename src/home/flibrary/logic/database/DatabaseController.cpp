@@ -150,7 +150,7 @@ void FixSearches_User(DB::ITransaction& transaction)
 
 void FillBooksSearch(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("select count (42) from Books_Search_idx");
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Books_Search_idx)");
 	query->Execute();
 	if (query->Get<int>(0) == 0)
 		transaction.CreateCommand("insert into Books_Search(Books_Search) values('rebuild')")->Execute();
@@ -158,7 +158,7 @@ void FillBooksSearch(DB::ITransaction& transaction)
 
 void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("select count (42) from Inpx");
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Inpx)");
 	query->Execute();
 	if (query->Get<int>(0) == 0)
 		Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
@@ -166,7 +166,7 @@ void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& t
 
 void FillSeriesList(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("select count (42) from Series_List");
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Series_List)");
 	query->Execute();
 	if (query->Get<int>(0) == 0)
 		transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
