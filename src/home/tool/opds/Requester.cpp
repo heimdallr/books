@@ -590,7 +590,7 @@ struct Requester::Impl : IPostProcessCallback
 	{
 		auto [fileName, title, data] = GetBookImpl(bookId);
 		data = Compress(std::move(data), fileName);
-		return std::make_pair(title + ".zip", std::move(data));
+		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
@@ -773,7 +773,7 @@ where b.BookID = ?
 
 		return Flibrary::ILogicFactory::ExtractedBook { bookId.toInt(),           query->Get<const char*>(0), query->Get<const char*>(1),
 			                                            query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
-			                                            query->Get<int>(5),       query->Get<const char*>(4) };
+			                                            query->Get<int>(5),       query->Get<const char*>(6) };
 	}
 
 	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join) const
