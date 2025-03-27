@@ -38,14 +38,32 @@ constexpr auto NAVIGATION_AUTHOR = "%1/%2/%3/%4";
 constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "%1/%2/Authors/Books/%3/%4/starts/%5";
 constexpr auto READ = "%1/read/%2";
 
-void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& root, QString value = {})
+void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
-	if (key == QHttpHeaders::WellKnownHeader::ContentType && root == "/web")
-		value = "text/html; charset=utf-8";
-
 	auto h = response.headers();
 	h.replaceOrAppend(key, value);
 	response.setHeaders(std::move(h));
+}
+
+enum class MessageType
+{
+	Atom,
+	Read,
+};
+
+constexpr const char* ROOTS[] { "/opds", "/web" };
+
+constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
+	{ "application/atom+xml; charset=utf-8", "text/html; charset=utf-8" },
+	{							   nullptr, "text/html; charset=utf-8" },
+};
+
+void SetContentType(QHttpServerResponse& response, const QString& root, const MessageType type)
+{
+	const auto rootIndex = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) { return root == item; }));
+	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
+	assert(contentType);
+	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
 } // namespace
@@ -99,7 +117,7 @@ private:
 		                                [this](const QHttpServerRequest& request, QHttpServerResponse& resp)
 		                                {
 											PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
-											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "", "FLibrary HTTP Server");
+											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
 										});
 
 		for (const auto& root : {
@@ -119,7 +137,7 @@ private:
 							   [this, root]
 							   {
 								   QHttpServerResponse response(m_requester->GetRoot(root, QString(ROOT).arg(root)));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
 					   });
@@ -131,7 +149,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetBookInfo(root, QString(BOOK_INFO).arg(root, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
 					   });
@@ -143,7 +161,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/fb2");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
 								   return response;
 							   });
 					   });
@@ -155,7 +173,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetBookText(root, value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root);
+								   SetContentType(response, root, MessageType::Read);
 								   return response;
 							   });
 					   });
@@ -167,7 +185,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/zip");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
 								   return response;
 							   });
 					   });
@@ -179,7 +197,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetCover(root, QString(COVER).arg(root, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "image/jpeg");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 								   return response;
 							   });
 					   });
@@ -191,7 +209,7 @@ private:
 							   [this, root, value]
 							   {
 								   QHttpServerResponse response(m_requester->GetCoverThumbnail(root, QString(THUMBNAIL).arg(root, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "image/jpeg");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 								   return response;
 							   });
 					   });
@@ -223,7 +241,7 @@ private:
 								   [this, root, key, invoker]
 								   {
 									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION).arg(root, key), QString {}));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -235,7 +253,7 @@ private:
 								   [this, root, key, invoker, value]
 								   {
 									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_STARTS).arg(root, key, value), value.toUpper()));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -247,7 +265,7 @@ private:
 								   [this, root, key, invoker, navigationId]
 								   {
 									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -260,7 +278,7 @@ private:
 								   {
 									   QHttpServerResponse response(
 										   std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}, QString {}));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -273,7 +291,7 @@ private:
 								   {
 									   QHttpServerResponse response(
 										   std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), value.toUpper()));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -291,7 +309,7 @@ private:
 					                                                            navigationId.toUpper(),
 					                                                            authorId.toUpper(),
 					                                                            QString {}));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -309,7 +327,7 @@ private:
 					                                                            navigationId.toUpper(),
 					                                                            authorId.toUpper(),
 					                                                            value));
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
@@ -323,7 +341,7 @@ private:
 						{
 							QHttpServerResponse response(
 								std::invoke(invoker, *m_requester, std::cref(root), QString(BOOK_LIST_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), QString {}, value.toUpper()));
-							ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, root, "application/atom+xml; charset=utf-8");
+							SetContentType(response, root, MessageType::Atom);
 							return response;
 						});
 				});
