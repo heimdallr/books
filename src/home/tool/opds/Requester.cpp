@@ -559,10 +559,10 @@ struct Requester::Impl
 		return result;
 	}
 
-	std::pair<QString, QByteArray> GetBookImpl(const QString& bookId) const
+	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId) const
 	{
 		const auto db = databaseController->GetDatabase(true);
-		const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+		const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext, b.Title from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
 		query->Bind(0, bookId.toLongLong());
 		query->Execute();
 		if (query->Eof())
@@ -570,25 +570,28 @@ struct Requester::Impl
 
 		const QString archive = query->Get<const char*>(0);
 		QString fileName = query->Get<const char*>(1);
+		QString title = query->Get<const char*>(2);
 		auto data = Decompress(collectionProvider->GetActiveCollection().folder, archive, fileName);
 
-		return std::make_pair(std::move(fileName), std::move(data));
+		return std::make_tuple(std::move(fileName), std::move(title), std::move(data));
 	}
 
-	QByteArray GetBook(const QString& bookId) const
+	std::pair<QString, QByteArray> GetBook(const QString& bookId) const
 	{
-		return GetBookImpl(bookId).second;
+		auto [fileName, title, data] = GetBookImpl(bookId);
+		return std::make_pair(title + "." + QFileInfo(fileName).suffix(), std::move(data));
 	}
 
-	QByteArray GetBookZip(const QString& bookId) const
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId) const
 	{
-		auto [fileName, data] = GetBookImpl(bookId);
-		return Compress(std::move(data), fileName);
+		auto [fileName, title, data] = GetBookImpl(bookId);
+		data = Compress(std::move(data), fileName);
+		return std::make_pair(title + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return GetBookImpl(bookId).second;
+		return std::get<2>(GetBookImpl(bookId));
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -869,12 +872,12 @@ QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self
 	return GetCover(root, self, bookId);
 }
 
-QByteArray Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
 {
 	return m_impl->GetBook(bookId);
 }
 
-QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
 {
 	return m_impl->GetBookZip(bookId);
 }

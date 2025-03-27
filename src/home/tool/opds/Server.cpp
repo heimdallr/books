@@ -160,8 +160,10 @@ private:
 						   return QtConcurrent::run(
 							   [this, root, value]
 							   {
-								   QHttpServerResponse response(m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value));
+								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value);
+								   QHttpServerResponse response(std::move(body));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
 								   return response;
 							   });
 					   });
@@ -184,8 +186,10 @@ private:
 						   return QtConcurrent::run(
 							   [this, root, value]
 							   {
-								   QHttpServerResponse response(m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value));
+								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value);
+								   QHttpServerResponse response(body);
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
 								   return response;
 							   });
 					   });
