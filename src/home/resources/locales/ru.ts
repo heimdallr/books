@@ -5817,7 +5817,7 @@ Try again?</source>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Download zip</source>
-        <translation>Загрузить zip</translation>
+        <translation>Скачать zip</translation>
     </message>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
