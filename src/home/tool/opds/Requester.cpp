@@ -17,10 +17,13 @@
 
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
@@ -36,7 +39,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType, const QStringList&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -52,7 +55,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -394,9 +397,16 @@ private:
 	const Functor m_f;
 };
 
+QString GetOutputFileNameTemplate(const ISettings& settings)
+{
+	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
+	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
+	return outputFileNameTemplate;
+}
+
 } // namespace
 
-struct Requester::Impl
+struct Requester::Impl : IPostProcessCallback
 {
 	std::shared_ptr<const ISettings> settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
@@ -411,6 +421,7 @@ struct Requester::Impl
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
 		, annotationController { std::move(annotationController) }
+		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*this->settings) }
 	{
 		m_coversTimer.setInterval(std::chrono::minutes(1));
 		m_coversTimer.setSingleShot(true);
@@ -561,25 +572,18 @@ struct Requester::Impl
 
 	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId) const
 	{
-		const auto db = databaseController->GetDatabase(true);
-		const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext, b.Title from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-		query->Bind(0, bookId.toLongLong());
-		query->Execute();
-		if (query->Eof())
-			return {};
+		auto book = GetExtractedBook(bookId);
+		auto data = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file);
+		auto outputFileName = m_outputFileNameTemplate;
+		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
 
-		const QString archive = query->Get<const char*>(0);
-		QString fileName = query->Get<const char*>(1);
-		QString title = query->Get<const char*>(2);
-		auto data = Decompress(collectionProvider->GetActiveCollection().folder, archive, fileName);
-
-		return std::make_tuple(std::move(fileName), std::move(title), std::move(data));
+		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 
 	std::pair<QString, QByteArray> GetBook(const QString& bookId) const
 	{
 		auto [fileName, title, data] = GetBookImpl(bookId);
-		return std::make_pair(title + "." + QFileInfo(fileName).suffix(), std::move(data));
+		return std::make_pair(title, std::move(data));
 	}
 
 	std::pair<QString, QByteArray> GetBookZip(const QString& bookId) const
@@ -735,7 +739,43 @@ struct Requester::Impl
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
+private: // IPostProcessCallback
+	QString GetFileName(const QString& bookId) const override
+	{
+		const auto book = GetExtractedBook(bookId);
+		auto outputFileName = m_outputFileNameTemplate;
+		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
+		return outputFileName;
+	}
+
 private:
+	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
+	{
+		const auto db = databaseController->GetDatabase(true);
+		const auto query = db->CreateQuery(R"(
+select
+    f.FolderTitle,
+    b.FileName||b.Ext,
+    b.BookSize,
+    (select a.LastName ||' '||a.FirstName ||' '||a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID order by al.AuthorID limit 1),
+    s.SeriesTitle,
+    b.SeqNumber,
+    b.Title
+from Books b
+join Folders f on f.FolderID = b.FolderID
+left join Series s on s.SeriesID = b.SeriesID
+where b.BookID = ?
+)");
+		query->Bind(0, bookId.toLongLong());
+		query->Execute();
+		if (query->Eof())
+			return {};
+
+		return Flibrary::ILogicFactory::ExtractedBook { bookId.toInt(),           query->Get<const char*>(0), query->Get<const char*>(1),
+			                                            query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
+			                                            query->Get<int>(5),       query->Get<const char*>(4) };
+	}
+
 	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join) const
 	{
 		const auto db = databaseController->GetDatabase(true);
@@ -780,6 +820,7 @@ private:
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	Util::FunctorExecutionForwarder m_forwarder;
+	const QString m_outputFileNameTemplate;
 	mutable QTimer m_coversTimer;
 	mutable std::mutex m_coversGuard;
 	mutable std::unordered_map<QString, QByteArray> m_covers;
@@ -788,12 +829,12 @@ private:
 namespace
 {
 
-QByteArray PostProcess(const ContentType contentType, const QString& root, QByteArray& src, const QStringList& parameters)
+QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
 {
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = postprocessor(buffer, contentType, parameters);
+	auto result = postprocessor(callback, buffer, contentType, parameters);
 
 #ifndef NDEBUG
 	PLOGV << result;
@@ -833,7 +874,7 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	PLOGV << bytes;
 #endif
 
-	return PostProcess(contentType, root, bytes, { root });
+	return PostProcess(contentType, root, obj, bytes, { root });
 }
 
 } // namespace
@@ -885,7 +926,7 @@ std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, co
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
 {
 	auto result = m_impl->GetBookText(bookId);
-	return PostProcess(ContentType::BookText, root, result, { root, bookId });
+	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \
