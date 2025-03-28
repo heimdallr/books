@@ -25,6 +25,7 @@ cmake ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
 -DPRODUCT_VERSION=%PRODUCT_VERSION% ^
+%* ^
 -G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% generate_solution.log
 
 echo -- Start: %start_time%
