@@ -773,6 +773,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>&lt;p&gt;Personal &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Персональна збірка &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt;&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Components / Libraries&lt;/td&gt;&lt;/tr&gt;</source>
         <translation>&lt;tr&gt;&lt;td style=&apos;text-align: center&apos;&gt;Компоненти / Бібліотеки&lt;/td&gt;&lt;/tr&gt;</translation>
     </message>
