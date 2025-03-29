@@ -26,6 +26,8 @@ constexpr auto ROOT = "%1";
 constexpr auto BOOK_INFO = "%1/Book/%2";
 constexpr auto BOOK_DATA = "%1/Book/data/%2";
 constexpr auto BOOK_ZIP = "%1/Book/zip/%2";
+constexpr auto BOOK_DATA_TR = "%1/Book/data/%2/tr";
+constexpr auto BOOK_ZIP_TR = "%1/Book/zip/%2/tr";
 constexpr auto COVER = "%1/Book/cover/%2";
 constexpr auto THUMBNAIL = "%1/Book/cover/thumbnail/%2";
 constexpr auto NAVIGATION = "%1/%2";
@@ -160,9 +162,51 @@ private:
 						   return QtConcurrent::run(
 							   [this, root, value]
 							   {
-								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value);
+								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value, false);
 								   QHttpServerResponse response(std::move(body));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
+								   return response;
+							   });
+					   });
+
+		m_server.route(QString(BOOK_ZIP).arg(root, ARG),
+		               [this, root](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, root, value]
+							   {
+								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value, false);
+								   QHttpServerResponse response(body);
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
+								   return response;
+							   });
+					   });
+
+		m_server.route(QString(BOOK_DATA_TR).arg(root, ARG),
+		               [this, root](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, root, value]
+							   {
+								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value, true);
+								   QHttpServerResponse response(std::move(body));
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
+								   return response;
+							   });
+					   });
+
+		m_server.route(QString(BOOK_ZIP_TR).arg(root, ARG),
+		               [this, root](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, root, value]
+							   {
+								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value, true);
+								   QHttpServerResponse response(body);
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
 								   return response;
 							   });
@@ -176,20 +220,6 @@ private:
 							   {
 								   QHttpServerResponse response(m_requester->GetBookText(root, value));
 								   SetContentType(response, root, MessageType::Read);
-								   return response;
-							   });
-					   });
-
-		m_server.route(QString(BOOK_ZIP).arg(root, ARG),
-		               [this, root](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, root, value]
-							   {
-								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value);
-								   QHttpServerResponse response(body);
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
 								   return response;
 							   });
 					   });

@@ -28,8 +28,6 @@ namespace
 
 constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
-constexpr auto DOWNLOAD_FB2 = QT_TRANSLATE_NOOP("opds", "Download fb2");
-constexpr auto DOWNLOAD_ZIP = QT_TRANSLATE_NOOP("opds", "Download zip");
 constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
 TR_DEF
 
@@ -425,20 +423,32 @@ private:
 			if (!m_coverLink.isEmpty())
 				m_stream << QString(R"(<td><img src="%1" width="480"/></td>)").arg(m_coverLink);
 
-			const auto fileInfo = QFileInfo(m_callback.GetFileName(m_id));
-			const auto href = [&](const QString& url, const QString& message, const bool isZip = false)
+			const auto href = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
 			{
 				if (url.isEmpty())
 					return;
 
 				const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
-				m_stream << QString(R"(<br><a href="%1" download="%2">%3</a></br>)").arg(url, fileName, message);
+				m_stream << QString(R"(<br><a href="%1%3" download="%2">%2</a></br>)").arg(url, fileName, transliterated ? "/tr" : "");
 			};
 
 			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
 			m_stream << QString(R"(<br><a href="/web/read/%1">%2</a></br>)").arg(m_id, Tr(READ));
-			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2));
-			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), true);
+
+			const auto createHrefs = [&](const QFileInfo& fileInfo, const bool transliterated)
+			{
+				m_stream << QString("<br/>");
+				href(m_downloadLinkFb2, fileInfo, false, transliterated);
+				href(m_downloadLinkZip, fileInfo, true, transliterated);
+			};
+
+			const auto fileName = m_callback.GetFileName(m_id, false);
+			const QFileInfo fileInfo(fileName);
+			createHrefs(fileInfo, false);
+
+			if (const auto fileNameTransliterated = m_callback.GetFileName(m_id, true); fileNameTransliterated != fileName)
+				if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
+					createHrefs(fileInfoTransliterated, true);
 		}
 
 		m_stream << m_content << "\n";
