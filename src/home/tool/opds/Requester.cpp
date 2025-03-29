@@ -8,7 +8,6 @@
 #include <QFileInfo>
 #include <QTimer>
 
-#include <unicode/strenum.h>
 #include <unicode/translit.h>
 
 #include "fnd/FindPair.h"
