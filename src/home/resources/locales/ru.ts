@@ -5816,16 +5816,6 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
-        <source>Download fb2</source>
-        <translation>Скачать fb2</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/postprocess/web.cpp"/>
-        <source>Download zip</source>
-        <translation>Скачать zip</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Read</source>
         <translation>Читать</translation>
     </message>
