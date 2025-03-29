@@ -22,7 +22,7 @@ class IPostProcessCallback // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IPostProcessCallback() = default;
 
-	virtual QString GetFileName(const QString& bookId) const = 0;
+	virtual QString GetFileName(const QString& bookId, bool transliterate) const = 0;
 };
 
 }
