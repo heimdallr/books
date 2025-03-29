@@ -367,6 +367,20 @@ QByteArray Compress(QByteArray data, const QString& fileName)
 	return zippedData;
 }
 
+void Transliterate(const char* id, QString& str)
+{
+	UErrorCode status = U_ZERO_ERROR;
+	icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
+	assert(myTrans);
+
+	auto s = str.toStdU32String();
+	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
+	myTrans->transliterate(icuString);
+	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4);
+	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
+	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
+}
+
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
 {
 	using Functor = std::function<void(const Flibrary::IAnnotationController::IDataProvider& dataProvider)>;
@@ -748,20 +762,6 @@ private: // IPostProcessCallback
 	}
 
 private:
-	static void Transliterate(const char* id, QString& str)
-	{
-		UErrorCode status = U_ZERO_ERROR;
-		icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
-		assert(myTrans);
-
-		auto s = str.toStdU32String();
-		auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
-		myTrans->transliterate(icuString);
-		auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4);
-		icuString.toUTF32(buf.get(), icuString.length() * 4, status);
-		str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
-	}
-
 	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book, const bool transliterate) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
