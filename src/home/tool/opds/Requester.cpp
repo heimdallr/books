@@ -28,6 +28,7 @@
 #include "interface/logic/IScriptController.h"
 
 #include "logic/data/DataItem.h"
+#include "logic/data/Genre.h"
 #include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/SortString.h"
@@ -660,21 +661,19 @@ struct Requester::Impl : IPostProcessCallback
 
 	void WriteGenresNavigationImpl(const QString& root, Node::Children& children, const QString& value) const
 	{
-		{
-			const auto db = databaseController->GetDatabase(true);
-			const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, -1 from Genres g where g.ParentCode = ? group by g.GenreCode");
-			const auto arg = value.isEmpty() ? QString("0") : value;
+		const auto genres = Flibrary::Genre::Load(*databaseController->GetDatabase(true));
+		const auto* genre = Flibrary::Genre::Find(&genres, value);
+		assert(genre);
+		while (genre->children.size() == 1)
+			genre = genre->children.data();
 
-			Util::Timer t(L"WriteGenresNavigationImpl: " + arg.toStdWString());
-			query->Bind(0, arg.toStdString());
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				const auto id = QString("%1/starts/%2").arg(Loc::Genres).arg(query->Get<const char*>(0));
-				WriteEntry(root, children, id, Loc::Tr(Flibrary::GENRE, query->Get<const char*>(1)), query->Get<int>(2));
-			}
+		for (const auto& child : genre->children)
+		{
+			const auto id = QString("%1/starts/%2").arg(Loc::Genres).arg(child.code);
+			WriteEntry(root, children, id, child.name, -1);
 		}
 
-		auto node = WriteGenresAuthors(root, QString(), value, QString {});
+		auto node = WriteGenresAuthors(root, QString(), genre->code, QString {});
 		std::ranges::move(std::move(node.children) | std::views::filter([](const auto& item) { return item.name == ENTRY; }), std::back_inserter(children));
 	}
 

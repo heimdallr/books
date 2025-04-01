@@ -8,28 +8,14 @@
 #include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
 
-#include "interface/constants/GenresLocalization.h"
-
-#include "inpx/src/util/constant.h"
-#include "util/localization.h"
+#include "data/Genre.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace
 {
-
-struct Genre
-{
-	QString code;
-	QString name;
-	bool checked { false };
-	int row { 0 };
-	Genre* parent { nullptr };
-	std::vector<Genre> children;
-};
 
 template <typename T>
 void Enumerate(T root, const auto& f)
@@ -224,67 +210,23 @@ private:
 	void CreateGenreTree(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute(
-			{ "Create genre list",
-		      [&, databaseUser = std::move(databaseUser)]() mutable
-		      {
-				  using AllGenresItem = std::tuple<Genre, QString>;
-				  std::unordered_map<QString, AllGenresItem> allGenres;
-				  std::vector<AllGenresItem> buffer;
-				  const auto db = databaseUser->Database();
-				  const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
-				  for (query->Execute(); !query->Eof(); query->Next())
-				  {
-					  AllGenresItem item {
-						  Genre { .code = query->Get<const char*>(0), .name = Loc::Tr(GENRE, query->Get<const char*>(1)) },
-						  query->Get<const char*>(2)
-					  };
-					  if (query->Get<int>(3))
-						  buffer.emplace_back(std::move(item));
-					  else
-						  allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
-				  }
-
-				  const auto updateChildren = [](auto& children)
-				  {
-					  std::ranges::sort(children, {}, [](const auto& item) { return item.code; });
-					  for (int i = 0, sz = static_cast<int>(children.size()); i < sz; ++i)
-						  children[i].row = i;
-				  };
-
-				  Genre root;
-				  while (!buffer.empty())
-				  {
-					  for (auto&& [genre, parentCode] : buffer)
-					  {
-						  updateChildren(genre.children);
-						  const auto it = allGenres.find(parentCode);
-						  (it == allGenres.end() ? root : std::get<0>(it->second)).children.emplace_back(std::move(genre));
-					  }
-					  buffer.clear();
-
-					  for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) { return !get<0>(item).children.empty(); }))
-						  buffer.emplace_back(std::move(genre));
-					  for (const auto& [genre, _] : buffer)
-						  allGenres.erase(genre.code);
-				  }
-
-				  std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
-				  updateChildren(root.children);
-
-				  return [this, root = std::move(root)](size_t) mutable
-				  {
-					  const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
-					  m_root = std::move(root);
-					  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
-					  Enumerate<Genre&>(m_root,
-				                        [&](Genre& parent, Genre& item)
-				                        {
-											item.parent = &parent;
-											item.checked = languagesIndexed.contains(item.code);
-										});
-				  };
-			  } });
+		databaseUserRef.Execute({ "Create genre list",
+		                          [&, databaseUser = std::move(databaseUser)]() mutable
+		                          {
+									  auto root = Genre::Load(*databaseUser->Database());
+									  return [this, root = std::move(root)](size_t) mutable
+									  {
+										  const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
+										  m_root = std::move(root);
+										  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+										  Enumerate<Genre&>(m_root,
+				                                            [&](Genre& parent, Genre& item)
+				                                            {
+																item.parent = &parent;
+																item.checked = languagesIndexed.contains(item.code);
+															});
+									  };
+								  } });
 	}
 
 private:
