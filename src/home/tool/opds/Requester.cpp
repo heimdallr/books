@@ -81,8 +81,8 @@ constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "|| coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '') "
 							  "from Books b "
 							  "%1 "
-							  "left join Series s on s.SeriesID = b.SeriesID "
-							  "where b.SearchTitle %4 ? %2";
+							  "left join Series s on s.SeriesID = b.SeriesID ";
+constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %3 ? %2";
 
 constexpr auto SELECT_AUTHORS_STARTS_WITH = "select substr(a.SearchName, %2, 1), count(42) "
 											"from Authors a "
@@ -106,6 +106,7 @@ constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.G
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
 constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
+constexpr auto JOIN_SEARCH = "join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH ?";
 
 constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
 
@@ -113,8 +114,11 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
+constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 
 constexpr auto ENTRY = "entry";
+constexpr auto TITLE = "title";
 
 TR_DEF
 
@@ -144,7 +148,7 @@ std::vector<Node> GetStandardNodes(QString id, QString title)
 	return std::vector<Node> {
 		{ "updated", QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ssZ") },
 		{      "id",												 std::move(id) },
-		{   "title",											  std::move(title) },
+		{     TITLE,											  std::move(title) },
 	};
 }
 
@@ -185,11 +189,19 @@ Node GetHead(DB::IDatabase& db, QString id, QString title, QString root, QString
 	standardNodes.emplace_back("link",
 	                           QString {
     },
-	                           Node::Attributes { { "href", std::move(root) }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	                           Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	standardNodes.emplace_back("link",
 	                           QString {
     },
 	                           Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	standardNodes.emplace_back("link",
+	                           QString {
+    },
+	                           Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } });
+	standardNodes.emplace_back("link",
+	                           QString {
+    },
+	                           Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } });
 	return Node {
 		"feed",
 		{},
@@ -473,6 +485,23 @@ struct Requester::Impl : IPostProcessCallback
 			if (const auto count = query->Get<int>(1))
 				WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
 		}
+
+		return head;
+	}
+
+	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
+	{
+		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
+
+		auto terms = searchTerms.split(' ', Qt::SkipEmptyParts);
+		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+		const auto n = head.children.size();
+		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), terms.join(' '), root, head.children);
+
+		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+		assert(it != head.children.end());
+		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(searchTerms) : Tr(SEARCH_RESULTS).arg(searchTerms).arg(head.children.size() - n);
 
 		return head;
 	}
@@ -839,7 +868,7 @@ where b.BookID = ?
 			join.append("\n").append(QString(JOIN_AUTHOR).arg(authorId));
 
 		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, where, "%1");
-		const auto bookItemQuery = QString(SELECT_BOOKS).arg(join, where);
+		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, where, "%1");
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
@@ -954,6 +983,11 @@ QByteArray Requester::GetBookText(const QString& root, const QString& bookId) co
 {
 	auto result = m_impl->GetBookText(bookId);
 	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
+}
+
+QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms) const
+{
+	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms);
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \

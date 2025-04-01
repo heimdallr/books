@@ -52,7 +52,6 @@ constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWind
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
 constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
 constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
-constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search books by title, enter part of the title here and press enter");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -75,19 +74,20 @@ constexpr auto QSS = "qss";
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
-	LineEditPlaceholderTextController(MainWindow& mainWindow, QLineEdit& lineEdit, const char* placeholderText)
+	LineEditPlaceholderTextController(MainWindow& mainWindow, QLineEdit& lineEdit, QString placeholderText)
 		: QObject(&lineEdit)
 		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
-		, m_placeholderText { placeholderText }
+		, m_placeholderText { std::move(placeholderText) }
 	{
+		m_lineEdit.setPlaceholderText(m_placeholderText);
 	}
 
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
 		if (event->type() == QEvent::Enter)
-			m_lineEdit.setPlaceholderText(Tr(m_placeholderText));
+			m_lineEdit.setPlaceholderText(m_placeholderText);
 		else if (event->type() == QEvent::Leave)
 			m_lineEdit.setPlaceholderText({});
 		else if (event->type() == QEvent::Show)
@@ -98,7 +98,7 @@ private: // QObject
 private:
 	MainWindow& m_mainWindow;
 	QLineEdit& m_lineEdit;
-	const char* const m_placeholderText;
+	const QString m_placeholderText;
 };
 
 std::set<QString> GetQssList()
@@ -313,7 +313,7 @@ private:
 	void ReplaceMenuBar()
 	{
 		PLOGV << "";
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)));
 		auto* menuBar = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);

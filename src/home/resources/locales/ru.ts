@@ -758,6 +758,11 @@ Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
 Перезапустить сейчас?</translation>
     </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation>Для поиска книги по названию введите здесь часть названия и нажмите Enter</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -5082,11 +5087,6 @@ Try again?</source>
         <translation>Шаблон экспорта книг</translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
-        <translation>Для поиска книги по названию введите здесь часть названия и нажмите Enter</translation>
-    </message>
-    <message>
         <source>Search book by title</source>
         <translation>Поиск книги по названию</translation>
     </message>
@@ -5438,6 +5438,16 @@ Try again?</source>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Books</source>
         <translation>Все книги раздела</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>Books found for the request &quot;%1&quot;: %2</source>
+        <translation>По запросу &quot;%1&quot; найдены книги: %2</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>No books found for the request &quot;%1&quot;</source>
+        <translation>По запросу &quot;%1&quot; книг не найдено</translation>
     </message>
 </context>
 <context>

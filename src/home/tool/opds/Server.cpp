@@ -39,6 +39,7 @@ constexpr auto NAVIGATION_AUTHOR_STARTS = "%1/%2/%3/starts/%4";
 constexpr auto NAVIGATION_AUTHOR = "%1/%2/%3/%4";
 constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "%1/%2/Authors/Books/%3/%4/starts/%5";
 constexpr auto READ = "%1/read/%2";
+constexpr auto SEARCH = "%1/search";
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
@@ -66,6 +67,14 @@ void SetContentType(QHttpServerResponse& response, const QString& root, const Me
 	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
 	assert(contentType);
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
+}
+
+void SetContentType(QHttpHeaders& headers, const QString& root, const MessageType type)
+{
+	const auto rootIndex = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) { return root == item; }));
+	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
+	assert(contentType);
+	headers.replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
 } // namespace
@@ -142,6 +151,17 @@ private:
 								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
+					   });
+
+		m_server.route(QString(SEARCH).arg(root),
+		               [this, root](const QHttpServerRequest& request, QHttpServerResponder& responder)
+		               {
+						   const auto values = request.query().toString(QUrl::FullyDecoded).split("=");
+						   assert(values.size() == 2 && values.front() == "q");
+						   auto body = m_requester->Search(root, QString(SEARCH).arg(root, values.back()), values.back());
+						   QHttpHeaders headers;
+						   SetContentType(headers, root, MessageType::Atom);
+						   responder.write(body, headers);
 					   });
 
 		m_server.route(QString(BOOK_INFO).arg(root, ARG),

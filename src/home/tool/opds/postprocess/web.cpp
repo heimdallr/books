@@ -52,6 +52,9 @@ constexpr auto HTTP_HEAD = R"(<!DOCTYPE html>
 		</style>
 	</head>
 	<body>
+	<form action="/web/search" method="GET">
+        <p><input type="text" id="q" name="q" placeholder="%6" size="80"/></p>
+    </form>
 	<a href="%3">%4</a>
 	%1
 	<hr/>
@@ -124,7 +127,7 @@ protected:
 
 	void WriteHttpHead(const QString& head, const QString& style = {})
 	{
-		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style);
+		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
 	}
 
 private: // SaxParser
@@ -177,6 +180,9 @@ protected:
 
 	virtual bool OnEndElementFeed()
 	{
+		if (!m_mainTitle.isEmpty())
+			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
+
 		m_stream << "</body>\n</html>\n";
 		m_output.close();
 		return true;
