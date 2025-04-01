@@ -45,9 +45,6 @@
     </item>
     <item>
      <widget class="QLineEdit" name="lineEditBookTitleToSearch">
-      <property name="placeholderText">
-       <string>To search books by title, enter part of the title here and press enter</string>
-      </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
       </property>
