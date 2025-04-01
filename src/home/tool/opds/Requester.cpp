@@ -114,9 +114,11 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
-constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Search results for "%1")");
+constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 
 constexpr auto ENTRY = "entry";
+constexpr auto TITLE = "title";
 
 TR_DEF
 
@@ -146,7 +148,7 @@ std::vector<Node> GetStandardNodes(QString id, QString title)
 	return std::vector<Node> {
 		{ "updated", QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ssZ") },
 		{      "id",												 std::move(id) },
-		{   "title",											  std::move(title) },
+		{     TITLE,											  std::move(title) },
 	};
 }
 
@@ -494,7 +496,13 @@ struct Requester::Impl : IPostProcessCallback
 
 		auto terms = searchTerms.split(' ', Qt::SkipEmptyParts);
 		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+		const auto n = head.children.size();
 		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), terms.join(' '), root, head.children);
+
+		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+		assert(it != head.children.end());
+		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(searchTerms) : Tr(SEARCH_RESULTS).arg(searchTerms).arg(head.children.size() - n);
+
 		return head;
 	}
 
