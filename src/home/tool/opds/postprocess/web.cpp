@@ -127,7 +127,8 @@ protected:
 
 	void WriteHttpHead(const QString& head, const QString& style = {})
 	{
-		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER));
+		std::call_once(m_headWritten,
+		               [&] { m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)); });
 	}
 
 private: // SaxParser
@@ -150,6 +151,9 @@ protected:
 	const QString m_root;
 	QBuffer m_output;
 	QTextStream m_stream { &m_output };
+
+private:
+	std::once_flag m_headWritten;
 };
 
 class ParserOpds : public AbstractParser
