@@ -748,6 +748,11 @@
 Restart now?</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -5070,11 +5075,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Search book by title</source>
         <translation></translation>
     </message>
@@ -5426,6 +5426,16 @@ Try again?</source>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Books</source>
         <translation>All books in the section</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>Books found for the request &quot;%1&quot;: %2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>No books found for the request &quot;%1&quot;</source>
+        <translation></translation>
     </message>
 </context>
 <context>
