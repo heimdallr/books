@@ -2,8 +2,6 @@
 
 #include <functional>
 
-#include <QStringList>
-
 namespace HomeCompa::Flibrary
 {
 

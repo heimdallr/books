@@ -5,7 +5,6 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IModelProvider.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -121,7 +120,7 @@ bool FilteredProxyModel::setData(const QModelIndex& index, const QVariant& value
 
 bool FilteredProxyModel::Check(const QVariant& value, const Qt::CheckState checkState)
 {
-	return Check(value, [&](const QModelIndex& index) { return true && index.data(Qt::CheckStateRole).value<Qt::CheckState>() != checkState && setData(index, checkState, Qt::CheckStateRole); });
+	return Check(value, [&](const QModelIndex& index) { return index.data(Qt::CheckStateRole).value<Qt::CheckState>() != checkState && setData(index, checkState, Qt::CheckStateRole); });
 }
 
 void FilteredProxyModel::Check(const QModelIndex& parent, const Qt::CheckState state)

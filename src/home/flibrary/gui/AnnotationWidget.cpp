@@ -15,14 +15,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/IAnnotationController.h"
-#include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDataItem.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IModelProvider.h"
-#include "interface/logic/IProgressController.h"
-#include "interface/logic/IReaderController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/GeometryRestorable.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
@@ -30,10 +23,7 @@
 #include "logic/model/IModelObserver.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
-#include "util/ISettings.h"
 
-#include "ItemViewToolTipper.h"
-#include "ScrollBarController.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -144,11 +134,9 @@ public:
 		m_ui.mainWidget->installEventFilter(this);
 		m_ui.content->viewport()->installEventFilter(m_itemViewToolTipperContent.get());
 		m_ui.content->viewport()->installEventFilter(m_scrollBarControllerContent.get());
-		m_ui.content->setMouseTracking(true);
 		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
 
 		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get());
-		m_ui.info->setMouseTracking(true);
 		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
 
 		const auto setCustomPalette = [](QWidget& widget)

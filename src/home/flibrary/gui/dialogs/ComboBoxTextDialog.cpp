@@ -4,8 +4,6 @@
 
 #include <QPushButton>
 
-#include "interface/ui/IUiFactory.h"
-
 #include "GuiUtil/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;

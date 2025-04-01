@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fnd/NonCopyMovable.h"
+
 #include "AbstractStyleApplier.h"
 
 namespace HomeCompa::Flibrary

@@ -7,6 +7,9 @@ CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE);
 CREATE UNIQUE INDEX UIX_Series_PrimaryKey ON Series (SeriesID);
 --@@
 
+CREATE UNIQUE INDEX UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID);
+--@@
+
 CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE);
 --@@
 

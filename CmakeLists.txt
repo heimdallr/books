@@ -72,3 +72,8 @@ set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/heimdallr/books")
 set(CPACK_WIX_UI_REF WixUI_FeatureTree)
 
 INCLUDE(CPack)
+
+if (PERSONAL_BUILD_NAME)
+	message(WARNING "Personal ${PERSONAL_BUILD_NAME} build")
+	execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
+endif()

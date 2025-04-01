@@ -1,7 +1,5 @@
 #include "ListModel.h"
 
-#include "interface/logic/IModelProvider.h"
-
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;

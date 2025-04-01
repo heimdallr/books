@@ -2,15 +2,12 @@
 
 #include <ranges>
 
-//#include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
 
 #include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-
-#include "interface/logic/IDatabaseUser.h"
 
 #include "util/localization.h"
 

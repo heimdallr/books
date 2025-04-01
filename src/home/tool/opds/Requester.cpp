@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QTimer>
 
+#include <unicode/translit.h>
+
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
@@ -17,12 +19,16 @@
 
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 
 #include "logic/data/DataItem.h"
+#include "logic/data/Genre.h"
 #include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/SortString.h"
@@ -36,7 +42,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(QIODevice& stream, ContentType contentType, const QStringList&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -52,7 +58,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -76,8 +82,8 @@ constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "|| coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '') "
 							  "from Books b "
 							  "%1 "
-							  "left join Series s on s.SeriesID = b.SeriesID "
-							  "where b.SearchTitle %4 ? %2";
+							  "left join Series s on s.SeriesID = b.SeriesID ";
+constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %3 ? %2";
 
 constexpr auto SELECT_AUTHORS_STARTS_WITH = "select substr(a.SearchName, %2, 1), count(42) "
 											"from Authors a "
@@ -100,17 +106,20 @@ constexpr auto JOIN_AUTHOR = "join Author_List al on al.BookID = b.BookID and al
 constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.GenreCode = '%1'";
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
-constexpr auto JOIN_SERIES = "join Books gl on gl.BookID = b.BookID and gl.SeriesID = %1";
+constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
+constexpr auto JOIN_SEARCH = "join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH ?";
 
 constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
-constexpr auto WHERE_SERIES = "and b.SeriesID = %1";
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
+constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 
 constexpr auto ENTRY = "entry";
+constexpr auto TITLE = "title";
 
 TR_DEF
 
@@ -140,7 +149,7 @@ std::vector<Node> GetStandardNodes(QString id, QString title)
 	return std::vector<Node> {
 		{ "updated", QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ssZ") },
 		{      "id",												 std::move(id) },
-		{   "title",											  std::move(title) },
+		{     TITLE,											  std::move(title) },
 	};
 }
 
@@ -181,11 +190,19 @@ Node GetHead(DB::IDatabase& db, QString id, QString title, QString root, QString
 	standardNodes.emplace_back("link",
 	                           QString {
     },
-	                           Node::Attributes { { "href", std::move(root) }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	                           Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	standardNodes.emplace_back("link",
 	                           QString {
     },
 	                           Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	standardNodes.emplace_back("link",
+	                           QString {
+    },
+	                           Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } });
+	standardNodes.emplace_back("link",
+	                           QString {
+    },
+	                           Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } });
 	return Node {
 		"feed",
 		{},
@@ -363,6 +380,20 @@ QByteArray Compress(QByteArray data, const QString& fileName)
 	return zippedData;
 }
 
+void Transliterate(const char* id, QString& str)
+{
+	UErrorCode status = U_ZERO_ERROR;
+	icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
+	assert(myTrans);
+
+	auto s = str.toStdU32String();
+	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
+	myTrans->transliterate(icuString);
+	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4);
+	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
+	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
+}
+
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
 {
 	using Functor = std::function<void(const Flibrary::IAnnotationController::IDataProvider& dataProvider)>;
@@ -395,9 +426,16 @@ private:
 	const Functor m_f;
 };
 
+QString GetOutputFileNameTemplate(const ISettings& settings)
+{
+	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
+	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
+	return outputFileNameTemplate;
+}
+
 } // namespace
 
-struct Requester::Impl
+struct Requester::Impl : IPostProcessCallback
 {
 	std::shared_ptr<const ISettings> settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
@@ -412,6 +450,7 @@ struct Requester::Impl
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
 		, annotationController { std::move(annotationController) }
+		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*this->settings) }
 	{
 		m_coversTimer.setInterval(std::chrono::minutes(1));
 		m_coversTimer.setSingleShot(true);
@@ -447,6 +486,23 @@ struct Requester::Impl
 			if (const auto count = query->Get<int>(1))
 				WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
 		}
+
+		return head;
+	}
+
+	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
+	{
+		const auto db = databaseController->GetDatabase(true);
+		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
+
+		auto terms = searchTerms.split(' ', Qt::SkipEmptyParts);
+		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+		const auto n = head.children.size();
+		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), terms.join(' '), root, head.children);
+
+		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+		assert(it != head.children.end());
+		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(searchTerms) : Tr(SEARCH_RESULTS).arg(searchTerms).arg(head.children.size() - n);
 
 		return head;
 	}
@@ -560,36 +616,31 @@ struct Requester::Impl
 		return result;
 	}
 
-	std::pair<QString, QByteArray> GetBookImpl(const QString& bookId) const
+	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool transliterate) const
 	{
-		const auto db = databaseController->GetDatabase(true);
-		const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-		query->Bind(0, bookId.toLongLong());
-		query->Execute();
-		if (query->Eof())
-			return {};
+		auto book = GetExtractedBook(bookId);
+		auto outputFileName = GetFileName(book, transliterate);
+		auto data = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file);
 
-		const QString archive = query->Get<const char*>(0);
-		QString fileName = query->Get<const char*>(1);
-		auto data = Decompress(collectionProvider->GetActiveCollection().folder, archive, fileName);
-
-		return std::make_pair(std::move(fileName), std::move(data));
+		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 
-	QByteArray GetBook(const QString& bookId) const
+	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool transliterate) const
 	{
-		return GetBookImpl(bookId).second;
+		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		return std::make_pair(title, std::move(data));
 	}
 
-	QByteArray GetBookZip(const QString& bookId) const
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool transliterate) const
 	{
-		auto [fileName, data] = GetBookImpl(bookId);
-		return Compress(std::move(data), fileName);
+		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		data = Compress(std::move(data), fileName);
+		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return GetBookImpl(bookId).second;
+		return std::get<2>(GetBookImpl(bookId, false));
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -603,27 +654,26 @@ struct Requester::Impl
 	Node WriteSeriesNavigation(const QString& root, const QString& self, const QString& value) const
 	{
 		const auto startsWithQuery = QString("select %1, count(42) from Series a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
-		const QString navigationItemQuery = "select a.SeriesID, a.SeriesTitle, count(42) from Series a join Books l on l.SeriesID = a.SeriesID where a.SearchTitle %1 ? group by a.SeriesID";
+		const QString navigationItemQuery =
+			"select a.SeriesID, a.SeriesTitle, count(42) from Series a join Series_List sl on sl.SeriesID = a.SeriesID join Books l on l.BookID = sl.BookID where a.SearchTitle %1 ? group by a.SeriesID";
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Series, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	void WriteGenresNavigationImpl(const QString& root, Node::Children& children, const QString& value) const
 	{
-		{
-			const auto db = databaseController->GetDatabase(true);
-			const auto query = db->CreateQuery("select g.GenreCode, g.FB2Code, -1 from Genres g where g.ParentCode = ? group by g.GenreCode");
-			const auto arg = value.isEmpty() ? QString("0") : value;
+		const auto genres = Flibrary::Genre::Load(*databaseController->GetDatabase(true));
+		const auto* genre = Flibrary::Genre::Find(&genres, value);
+		assert(genre);
+		while (genre->children.size() == 1)
+			genre = genre->children.data();
 
-			Util::Timer t(L"WriteGenresNavigationImpl: " + arg.toStdWString());
-			query->Bind(0, arg.toStdString());
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				const auto id = QString("%1/starts/%2").arg(Loc::Genres).arg(query->Get<const char*>(0));
-				WriteEntry(root, children, id, Loc::Tr(Flibrary::GENRE, query->Get<const char*>(1)), query->Get<int>(2));
-			}
+		for (const auto& child : genre->children)
+		{
+			const auto id = QString("%1/starts/%2").arg(Loc::Genres).arg(child.code);
+			WriteEntry(root, children, id, child.name, -1);
 		}
 
-		auto node = WriteGenresAuthors(root, QString(), value, QString {});
+		auto node = WriteGenresAuthors(root, QString(), genre->code, QString {});
 		std::ranges::move(std::move(node.children) | std::views::filter([](const auto& item) { return item.name == ENTRY; }), std::back_inserter(children));
 	}
 
@@ -689,7 +739,7 @@ struct Requester::Impl
 
 	Node WriteSeriesAuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const
 	{
-		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Series, JOIN_SERIES, WHERE_SERIES);
+		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Series, JOIN_SERIES);
 	}
 
 	Node WriteGenresAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
@@ -732,7 +782,55 @@ struct Requester::Impl
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
+private: // IPostProcessCallback
+	QString GetFileName(const QString& bookId, const bool transliterate) const override
+	{
+		const auto book = GetExtractedBook(bookId);
+		return GetFileName(book, transliterate);
+	}
+
 private:
+	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book, const bool transliterate) const
+	{
+		auto outputFileName = m_outputFileNameTemplate;
+		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
+		if (!transliterate)
+			return outputFileName;
+
+		Transliterate("ru-ru_Latn/BGN", outputFileName);
+		Transliterate("Any-Latin", outputFileName);
+		Transliterate("Latin-ASCII", outputFileName);
+
+		return outputFileName;
+	}
+
+	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
+	{
+		const auto db = databaseController->GetDatabase(true);
+		const auto query = db->CreateQuery(R"(
+select
+    f.FolderTitle,
+    b.FileName||b.Ext,
+    b.BookSize,
+    (select a.LastName ||' '||a.FirstName ||' '||a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID order by al.AuthorID limit 1),
+    s.SeriesTitle,
+    b.SeqNumber,
+    b.Title
+from Books b
+join Folders f on f.FolderID = b.FolderID
+left join Series s on s.SeriesID = b.SeriesID
+where b.BookID = ?
+)");
+		query->Bind(0, bookId.toLongLong());
+		query->Execute();
+		if (query->Eof())
+			return {};
+
+		return Flibrary::ILogicFactory::ExtractedBook { bookId.toInt(),           query->Get<const char*>(0), query->Get<const char*>(1),
+			                                            query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
+			                                            query->Get<int>(5),       query->Get<const char*>(6) };
+	}
+
 	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join) const
 	{
 		const auto db = databaseController->GetDatabase(true);
@@ -769,7 +867,7 @@ private:
 			join.append("\n").append(QString(JOIN_AUTHOR).arg(authorId));
 
 		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, where, "%1");
-		const auto bookItemQuery = QString(SELECT_BOOKS).arg(join, where);
+		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, where, "%1");
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
@@ -777,6 +875,7 @@ private:
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	Util::FunctorExecutionForwarder m_forwarder;
+	const QString m_outputFileNameTemplate;
 	mutable QTimer m_coversTimer;
 	mutable std::mutex m_coversGuard;
 	mutable std::unordered_map<QString, QByteArray> m_covers;
@@ -785,12 +884,12 @@ private:
 namespace
 {
 
-QByteArray PostProcess(const ContentType contentType, const QString& root, QByteArray& src, const QStringList& parameters)
+QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
 {
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = postprocessor(buffer, contentType, parameters);
+	auto result = postprocessor(callback, buffer, contentType, parameters);
 
 #ifndef NDEBUG
 	PLOGV << result;
@@ -830,7 +929,7 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	PLOGV << bytes;
 #endif
 
-	return PostProcess(contentType, root, bytes, { root });
+	return PostProcess(contentType, root, obj, bytes, { root });
 }
 
 } // namespace
@@ -869,20 +968,25 @@ QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self
 	return GetCover(root, self, bookId);
 }
 
-QByteArray Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
 {
-	return m_impl->GetBook(bookId);
+	return m_impl->GetBook(bookId, transliterate);
 }
 
-QByteArray Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId) const
+std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
 {
-	return m_impl->GetBookZip(bookId);
+	return m_impl->GetBookZip(bookId, transliterate);
 }
 
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
 {
 	auto result = m_impl->GetBookText(bookId);
-	return PostProcess(ContentType::BookText, root, result, { root, bookId });
+	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
+}
+
+QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms) const
+{
+	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms);
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \

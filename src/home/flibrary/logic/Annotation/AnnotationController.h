@@ -4,6 +4,9 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IJokeRequester.h"
+#include "interface/logic/ILogicFactory.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -13,7 +16,7 @@ class AnnotationController final : virtual public IAnnotationController
 	NON_COPY_MOVABLE(AnnotationController)
 
 public:
-	AnnotationController(const std::shared_ptr<const class ILogicFactory>& logicFactory, std::shared_ptr<class IDatabaseUser> databaseUser, std::shared_ptr<class IJokeRequester> jokeRequester);
+	AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester);
 	~AnnotationController() override;
 
 private: // IAnnotationController

@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogController.h"
 
 namespace HomeCompa::Flibrary
@@ -13,7 +14,7 @@ class LogController : virtual public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	explicit LogController(std::shared_ptr<class IDatabaseUser> databaseUser);
+	explicit LogController(std::shared_ptr<IDatabaseUser> databaseUser);
 	~LogController() override;
 
 private:

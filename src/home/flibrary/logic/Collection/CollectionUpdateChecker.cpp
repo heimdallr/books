@@ -6,9 +6,6 @@
 
 #include "database/interface/IDatabase.h"
 
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
-
 #include "inpx/src/util/inpx.h"
 
 #include "log.h"

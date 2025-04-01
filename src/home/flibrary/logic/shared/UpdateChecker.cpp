@@ -6,16 +6,12 @@
 #include <QTimer>
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "network/network/downloader.h"
 #include "network/rest/api/github/Release.h"
 #include "network/rest/api/github/Requester.h"
 #include "network/rest/connection/ConnectionFactory.h"
 #include "util/IExecutor.h"
-#include "util/ISettings.h"
 #include "util/app.h"
 
 #include "log.h"
@@ -315,8 +311,8 @@ private:
 	QStringList m_nameSplitted;
 };
 
-UpdateChecker::UpdateChecker(std::shared_ptr<ISettings> settings,
-                             const std::shared_ptr<const ILogicFactory>& logicFactory,
+UpdateChecker::UpdateChecker(const std::shared_ptr<const ILogicFactory>& logicFactory,
+                             std::shared_ptr<ISettings> settings,
                              std::shared_ptr<IUiFactory> uiFactory,
                              std::shared_ptr<IBooksExtractorProgressController> progressController)
 	: m_impl(std::make_shared<Impl>(std::move(settings), logicFactory, std::move(uiFactory), std::move(progressController)))

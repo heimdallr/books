@@ -6,11 +6,8 @@
 #include <QStyle>
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IParentWidgetProvider.h"
 
 #include "log.h"
 #include "zip.h"
@@ -82,7 +79,7 @@ class AddCollectionDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<IUiFactory> uiFactory)
+	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<const IUiFactory> uiFactory)
 		: GeometryRestorable(*this, settings, "AddCollectionDialog")
 		, GeometryRestorableObserver(self)
 		, m_self(self)
@@ -142,7 +139,7 @@ public:
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
-		m_ui.checkBoxSkipLostBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
+		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 
 		Init();
 	}
@@ -157,7 +154,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), m_ui.checkBoxSkipLostBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
 	}
 
 	QString GetName() const
@@ -187,7 +184,7 @@ public:
 
 	bool SkipLostBooks() const
 	{
-		return m_ui.checkBoxSkipLostBooks->isChecked();
+		return !m_ui.checkBoxAddMissingBooks->isChecked();
 	}
 
 private: // GeometryRestorableObserver
@@ -209,7 +206,7 @@ private:
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.checkBoxAddUnindexedBooks->setEnabled(m_createMode);
 		m_ui.checkBoxScanUnindexedArchives->setEnabled(m_createMode);
-		m_ui.checkBoxSkipLostBooks->setEnabled(m_createMode);
+		m_ui.checkBoxAddMissingBooks->setEnabled(m_createMode);
 		(void)CheckData();
 	}
 
@@ -217,7 +214,7 @@ private:
 	{
 		ResetError();
 
-		return true && CheckName() && CheckDatabase() && CheckFolder();
+		return CheckName() && CheckDatabase() && CheckFolder();
 	}
 
 	[[nodiscard]] bool CheckName() const
@@ -323,7 +320,7 @@ private:
 	AddCollectionDialog& m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
 	bool m_createMode { false };
 	Ui::AddCollectionDialog m_ui {};
 };
@@ -331,7 +328,7 @@ private:
 AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
                                          std::shared_ptr<ISettings> settings,
                                          std::shared_ptr<ICollectionController> collectionController,
-                                         std::shared_ptr<IUiFactory> uiFactory)
+                                         std::shared_ptr<const IUiFactory> uiFactory)
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this, std::move(settings), std::move(collectionController), std::move(uiFactory))
 {

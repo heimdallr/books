@@ -9,7 +9,6 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/PLogSeverityLocalization.h"
-#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/LogModelRole.h"
 
 #include "model/LogModel.h"

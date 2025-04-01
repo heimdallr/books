@@ -5,14 +5,11 @@
 
 #include "interface/logic/IScriptController.h"
 
+#include "util/ISettings.h"
+
 namespace Hypodermic
 {
 class Container;
-}
-
-namespace HomeCompa
-{
-class ISettings;
 }
 
 namespace HomeCompa::Flibrary

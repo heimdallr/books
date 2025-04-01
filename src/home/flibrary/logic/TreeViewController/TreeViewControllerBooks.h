@@ -3,14 +3,15 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IDataProvider.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IReaderController.h"
+
 #include "AbstractTreeViewController.h"
 
 class QString;
-
-namespace HomeCompa
-{
-class ISettings;
-}
 
 namespace HomeCompa::Flibrary
 {
@@ -21,12 +22,12 @@ class TreeViewControllerBooks final : public AbstractTreeViewController
 
 public:
 	TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
-	                        std::shared_ptr<DataProvider> dataProvider,
 	                        const std::shared_ptr<const IModelProvider>& modelProvider,
-	                        const std::shared_ptr<const class ILogicFactory>& logicFactory,
-	                        std::shared_ptr<const class IReaderController> readerController,
-	                        std::shared_ptr<class IAnnotationController> annotationController,
-	                        std::shared_ptr<class IDatabaseUser> databaseUser);
+	                        const std::shared_ptr<const ILogicFactory>& logicFactory,
+	                        std::shared_ptr<IBookInfoProvider> dataProvider,
+	                        std::shared_ptr<const IReaderController> readerController,
+	                        std::shared_ptr<IAnnotationController> annotationController,
+	                        std::shared_ptr<IDatabaseUser> databaseUser);
 	~TreeViewControllerBooks() override;
 
 private: // ITreeViewController

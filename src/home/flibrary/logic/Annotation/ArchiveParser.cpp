@@ -5,9 +5,6 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Localization.h"
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"
@@ -176,7 +173,10 @@ private: // Util::SaxParser
 		};
 
 		if (m_textMode)
+		{
 			m_data.textSize += value.length();
+			m_data.wordCount += value.split(' ', Qt::SkipEmptyParts).size();
+		}
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}

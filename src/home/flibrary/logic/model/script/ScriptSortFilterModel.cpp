@@ -19,7 +19,7 @@ bool MoveRow(QSortFilterProxyModel& model, const QModelIndex& index, const int o
 	const auto indexTo = model.index(index.row() + offset, index.column(), index.parent());
 	const auto to = indexTo.data(Role::Number).toInt();
 
-	const auto result = true && model.setData(index, to, Role::Number) && model.setData(indexTo, from, Role::Number);
+	const auto result = model.setData(index, to, Role::Number) && model.setData(indexTo, from, Role::Number);
 
 	if (result)
 		model.invalidate();

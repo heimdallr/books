@@ -4,6 +4,10 @@
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/ICollectionCleaner.h"
+#include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -12,10 +16,10 @@ class CollectionCleaner : public ICollectionCleaner
 {
 	NON_COPY_MOVABLE(CollectionCleaner)
 public:
-	CollectionCleaner(const std::shared_ptr<const class ILogicFactory>& logicFactory,
-	                  std::shared_ptr<const class IDatabaseUser> databaseUser,
-	                  std::shared_ptr<const class ICollectionProvider> collectionProvider,
-	                  std::shared_ptr<class IBooksExtractorProgressController> progressController);
+	CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	                  std::shared_ptr<const IDatabaseUser> databaseUser,
+	                  std::shared_ptr<const ICollectionProvider> collectionProvider,
+	                  std::shared_ptr<IBooksExtractorProgressController> progressController);
 	~CollectionCleaner() override;
 
 private: // ICollectionCleaner

@@ -16,9 +16,6 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/IJokeRequester.h"
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
@@ -42,7 +39,7 @@ constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
-constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages, %2%L4 words)");
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
@@ -53,7 +50,7 @@ using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* inde
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
-constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Books b on b.SeriesID = s.seriesID and b.BookID = :id";
+constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id";
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
@@ -171,15 +168,20 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	const auto& fbLang = dataProvider.GetLanguage();
 	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
 
-	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, TranslateLang(lang));
-	if (!fbLang.isEmpty() && fbLang != lang)
-		langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, TranslateLang(fbLang))));
+	const auto langTr = TranslateLang(lang);
+	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr);
+
+	if (!fbLang.isEmpty())
+		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr)
+			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr)));
+
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
-		langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, TranslateLang(fbSourceLang))));
+		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)
+			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr)));
 
 	Table table;
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
-		.Add(Loc::SERIES, strategy.GenerateUrl(Loc::SERIES, dataProvider.GetSeries().GetId(), dataProvider.GetSeries().GetRawData(NavigationItem::Column::Title)))
+		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
 		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
@@ -332,6 +334,11 @@ private: // IDataProvider
 		return m_archiveData.textSize;
 	}
 
+	[[nodiscard]] size_t GetWordCount() const noexcept override
+	{
+		return m_archiveData.wordCount;
+	}
+
 	[[nodiscard]] IDataItem::Ptr GetContent() const noexcept override
 	{
 		return m_archiveData.content;
@@ -457,7 +464,7 @@ private:
 		                          {
 									  const auto db = m_databaseUser->Database();
 									  const auto bookId = book->GetId().toLongLong();
-									  auto series = CreateSeries(*db, bookId);
+									  auto series = CreateDictionary(*db, SERIES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUtil::CreateFullAuthorItem);
 									  auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
@@ -501,18 +508,10 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(IDatabaseUser::BOOKS_QUERY_FIELDS).toStdString());
+		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg("b")).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
-	}
-
-	static IDataItem::Ptr CreateSeries(DB::IDatabase& db, const long long id)
-	{
-		const auto query = db.CreateQuery(SERIES_QUERY);
-		query->Bind(":id", id);
-		query->Execute();
-		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateSimpleListItem(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
 	}
 
 	static IDataItem::Ptr CreateDictionary(DB::IDatabase& db, const char* queryText, const long long id, const Extractor extractor)
@@ -609,7 +608,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	{
 		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
-			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
+			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));

@@ -48,10 +48,6 @@
         <translation>Додавати неіндексовані книги</translation>
     </message>
     <message>
-        <source>Skip books not in archives</source>
-        <translation>Не додавати відсутні в архівах книги</translation>
-    </message>
-    <message>
         <source>Scan unindexed archives</source>
         <translation>Сканувати неіндексовані архіви</translation>
     </message>
@@ -83,6 +79,10 @@
         <location filename="../../flibrary/gui/dialogs/AddCollectionDialog.cpp"/>
         <source>Create new</source>
         <translation>Створити нову</translation>
+    </message>
+    <message>
+        <source>Add books missing from archives</source>
+        <translation>Додавати відсутні в архівах книги</translation>
     </message>
 </context>
 <context>
@@ -234,8 +234,8 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages)</source>
-        <translation>%L1 (%2%3 сторінок)</translation>
+        <source>%L1 (%2%3 pages, %2%L4 words)</source>
+        <translation>%L1 (%2%3 страниц, %2%L4 слів)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
@@ -362,6 +362,11 @@
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>As &amp;original format</source>
         <translation>В &amp;оригінальному форматі</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>&amp;Unpack</source>
+        <translation>&amp;Розпакувати</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -753,6 +758,11 @@ Restart now?</source>
         <translation>Для застосування змін необхідно перезапустити програму.
 Перезапустити зараз?</translation>
     </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>To search books by title, enter part of the title here and press enter</source>
+        <translation>Для пошуку книги за назвою введіть тут частину назви та натисніть Enter</translation>
+    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -765,6 +775,11 @@ Restart now?</source>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
         <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
         <translation>Ще один каталогізатор книг електронної бібліотеки&lt;p&gt;Версія: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>&lt;p&gt;Personal &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Персональна збірка &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
@@ -2747,11 +2762,6 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Church Slavonic</source>
-        <translation>Церковнослов&apos;янська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
         <source>Chuvash</source>
         <translation>Чуваська</translation>
     </message>
@@ -2842,11 +2852,6 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Lombard</source>
-        <translation>Ломбардська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
         <source>Icelandic</source>
         <translation>Ісландська</translation>
     </message>
@@ -2854,11 +2859,6 @@ Try again?</source>
         <location filename="../../util/localization.h"/>
         <source>Italian</source>
         <translation>Італійська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>Japan</source>
-        <translation>Японська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -2932,11 +2932,6 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Neo</source>
-        <translation>Нео</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
         <source>Dutch</source>
         <translation>Нідерландська</translation>
     </message>
@@ -2952,18 +2947,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Pashto</source>
-        <translation>Пушту</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
         <source>Portuguese</source>
         <translation>Португальська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>Romanian</source>
-        <translation>Румунська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -2972,8 +2957,1183 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Yoruba</source>
+        <translation>Йоруба</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zhuang</source>
+        <translation>Чжуан</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chinese</source>
+        <translation>Китайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zulu</source>
+        <translation>Зулу</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Achinese</source>
+        <translation>Ахінська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Acoli</source>
+        <translation>Аколі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Adangme</source>
+        <translation>Адангме</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Adygei</source>
+        <translation>Адигейська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tonga Islands</source>
+        <translation>Мова островів Тонга</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>[Undetermined]</source>
+        <translation>[Невизначений]</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Afrihili</source>
+        <translation>Африхілі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ainu</source>
+        <translation>Айнська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Akkadian</source>
+        <translation>Аккадська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Aleut</source>
+        <translation>Алеутська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ancient Egyptian</source>
+        <translation>Давньоєгипетська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ancient Greek</source>
+        <translation>Давньогрецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Angika</source>
+        <translation>Ангіка</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Arapaho</source>
+        <translation>Арапахо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Arawak</source>
+        <translation>Аравак</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Aromanian</source>
+        <translation>Арумунська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Asturleonese</source>
+        <translation>Астурлеонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Athapascan</source>
+        <translation>Атапаська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Awadhi</source>
+        <translation>Авадхі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Balinese</source>
+        <translation>Балійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Baluchi</source>
+        <translation>Белуджська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Basa</source>
+        <translation>Баса</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Beja</source>
+        <translation>Беджа</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bemba</source>
+        <translation>Бемба</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bhojpuri</source>
+        <translation>Бходжпурі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bikol</source>
+        <translation>Бікольська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Blissymbolics</source>
+        <translation>Блісімволіка</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Braj</source>
+        <translation>Брадж</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Buginese</source>
+        <translation>Бугінська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Buriat</source>
+        <translation>Бурятська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Caddo</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Cebuano</source>
+        <translation>Себуанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chagatai</source>
+        <translation>Чагатайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Cherokee</source>
+        <translation>Черокі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Cheyenne</source>
+        <translation>Шайєнська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chibcha</source>
+        <translation>Чибча</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chipewyan</source>
+        <translation>Чипевська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Choctaw</source>
+        <translation>Чокто</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chuukese</source>
+        <translation>Чуукеська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Classical Syriac</source>
+        <translation>Класична сирійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Coptic</source>
+        <translation>Коптська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Creek</source>
+        <translation>Крикська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dakota</source>
+        <translation>Дакотська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dargwa</source>
+        <translation>Даргва</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Delaware</source>
+        <translation>Делаверська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dinka</source>
+        <translation>Дінка</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dogri</source>
+        <translation>Догрі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dogrib</source>
+        <translation>Догрібська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Duala</source>
+        <translation>Дуальна</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dyula</source>
+        <translation>Дюла</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Eastern Frisian</source>
+        <translation>Східнофризька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Efik</source>
+        <translation>Ефік</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ekajuk</source>
+        <translation>Екаджукська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Elamite</source>
+        <translation>Еламська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Erzya</source>
+        <translation>Ерзянська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ewondo</source>
+        <translation>Евондо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Fang</source>
+        <translation>Iкла</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Fanti</source>
+        <translation>Фанті</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Filipino</source>
+        <translation>Філіппінська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Fon</source>
+        <translation>Фонова</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Friulian</source>
+        <translation>Фріульська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ga</source>
+        <translation>Га</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Galibi Carib</source>
+        <translation>Галібі Карибська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gayo</source>
+        <translation>Гайо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gbaya</source>
+        <translation>Гбая</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Geez</source>
+        <translation>Геез</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gilbertese</source>
+        <translation>Жільбертська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gondi</source>
+        <translation>Гонді</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gorontalo</source>
+        <translation>Горонтало</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gothic</source>
+        <translation>Готична</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Grebo</source>
+        <translation>Гребська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gwich&apos;in</source>
+        <translation>Гвічін</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Haida</source>
+        <translation>Хайда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hawaiian</source>
+        <translation>Гавайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hiligaynon</source>
+        <translation>Хілігайнонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hittite</source>
+        <translation>хетська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hupa</source>
+        <translation>Хупа</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Iban</source>
+        <translation>Iбан</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Iloko</source>
+        <translation>Ілоцька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Imperial Aramaic</source>
+        <translation>Імперська арамейська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Inari Sami</source>
+        <translation>Інарі саамська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ingush</source>
+        <translation>Інгуська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Judeo-Arabic</source>
+        <translation>Іудео-арабська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Judeo-Persian</source>
+        <translation>Іудейсько-перська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kabyle</source>
+        <translation>Кабільська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kachin</source>
+        <translation>Качинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kalmyk</source>
+        <translation>Калмицька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kamba</source>
+        <translation>Камба</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kara-Kalpak</source>
+        <translation>Каракалпакська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Karelian</source>
+        <translation>Карельська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kashubian</source>
+        <translation>Кашубська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kawi</source>
+        <translation>Каві</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Khasi</source>
+        <translation>Хасі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Khotanese</source>
+        <translation>Хотанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kimbundu</source>
+        <translation>Кімбунду</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Klingon</source>
+        <translation>Клінгонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Konkani</source>
+        <translation>Конкані</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kosraean</source>
+        <translation>Косрайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kpelle</source>
+        <translation>Кпельська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kumyk</source>
+        <translation>Кумицька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kurukh</source>
+        <translation>Курухська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kutenai</source>
+        <translation>Кутенайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ladino</source>
+        <translation>Ладіно</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lahnda</source>
+        <translation>Ланда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lamba</source>
+        <translation>Ламба</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lezghian</source>
+        <translation>Лезгинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lojban</source>
+        <translation>Ложбанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Low German</source>
+        <translation>Нижньонімецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lower Sorbian</source>
+        <translation>Нижньолужицька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lozi</source>
+        <translation>Лозі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Luba-Lulua</source>
+        <translation>Луба-лулуа</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Luiseno</source>
+        <translation>Луїзено</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lule Sami</source>
+        <translation>Лулесаамська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lunda</source>
+        <translation>Лунда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Luo</source>
+        <translation>Луо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lushai</source>
+        <translation>Лушай</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Madurese</source>
+        <translation>Мадурська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Magahi</source>
+        <translation>Магахі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Maithili</source>
+        <translation>Майтілі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Makasar</source>
+        <translation>Макасарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Manchu</source>
+        <translation>Маньчжурська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mandar</source>
+        <translation>Мандарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mandingo</source>
+        <translation>Мандинго</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Manipuri</source>
+        <translation>Маніпурі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mapudungun</source>
+        <translation>Мапудунгун</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mari</source>
+        <translation>Марійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Marwari</source>
+        <translation>Марварі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Masai</source>
+        <translation>Масаї</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mende</source>
+        <translation>Менде</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Micmac</source>
+        <translation>Мікмак</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Middle Dutch</source>
+        <translation>Середньонідерландська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Middle English</source>
+        <translation>Середньоанглійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Middle French</source>
+        <translation>Середньофранцузька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Middle High German</source>
+        <translation>Середньоверхньонімецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Middle Irish</source>
+        <translation>Середньоірландська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Minangkabau</source>
+        <translation>Мінангкабау</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mirandese</source>
+        <translation>Мірандська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mohawk</source>
+        <translation>Iрокез</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Moksha</source>
+        <translation>Мокшанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mongo</source>
+        <translation>Монго</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Montenegrin</source>
+        <translation>Чорногорська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mossi</source>
+        <translation>Мосі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Multiple languages</source>
+        <translation>Кілька мов</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>N&apos;Ko</source>
+        <translation>Нко</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Neapolitan</source>
+        <translation>Неаполітанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Newari</source>
+        <translation>Неварська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nias</source>
+        <translation>Ніас</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Niuean</source>
+        <translation>Ніуеанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nogai</source>
+        <translation>Ногайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Northern Frisian</source>
+        <translation>Північнофризька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Northern Sotho</source>
+        <translation>Північна сото</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nyamwezi</source>
+        <translation>Ньямвезі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nyankole</source>
+        <translation>Нянкольська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nyoro</source>
+        <translation>Ньйоро</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nzima</source>
+        <translation>Нзіма</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old English</source>
+        <translation>Староанглійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old French</source>
+        <translation>Старофранцузька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old High German</source>
+        <translation>Давньоверхньонімецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old Irish</source>
+        <translation>Староірландська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old Newari</source>
+        <translation>Давньоневарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old Norse</source>
+        <translation>Давньоскандинавська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old Occitan</source>
+        <translation>Староокситанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Old Persian</source>
+        <translation>Давньоперська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Osage</source>
+        <translation>Осейська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ottoman Turkish</source>
+        <translation>Османська турецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pahlavi</source>
+        <translation>Пехлеві</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Palauan</source>
+        <translation>Палауська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pampanga</source>
+        <translation>Пампанга</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pangasinan</source>
+        <translation>Пангасінська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Papiamento</source>
+        <translation>Пап&apos;яменто</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Phoenician</source>
+        <translation>Фінікійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pohnpeian</source>
+        <translation>Понпейська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rajasthani</source>
+        <translation>Раджастанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rapanui</source>
+        <translation>Рапануйська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rarotongan</source>
+        <translation>Раротонганська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Romany</source>
+        <translation>Ромська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Samaritan Aramaic</source>
+        <translation>Самаритянська арамейська мова</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sandawe</source>
+        <translation>Сандаве</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Santali</source>
+        <translation>Санталі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sasak</source>
+        <translation>Сасацька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Scots</source>
+        <translation>Шотландська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Selkup</source>
+        <translation>Селькупська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Serer</source>
+        <translation>Серерська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Shan</source>
+        <translation>Шанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sicilian</source>
+        <translation>Сицилійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sidamo</source>
+        <translation>Сідамо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Siksika</source>
+        <translation>Сіксика</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Skolt Sami</source>
+        <translation>Сколт-саамский</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sogdian</source>
+        <translation>Согдійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Soninke</source>
+        <translation>Сонінке</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Southern Altai</source>
+        <translation>Південноалтайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Southern Sami</source>
+        <translation>Південносаамська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sranan Tongo</source>
+        <translation>Сранан тонго</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Standard Moroccan Tamazight</source>
+        <translation>Стандартна марокканська тамазігхт</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sukuma</source>
+        <translation>Сукума</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sumerian</source>
+        <translation>Шумерська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Susu</source>
+        <translation>Сусу</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Swiss German</source>
+        <translation>Швейцарська німецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Syriac</source>
+        <translation>Сирійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tamashek</source>
+        <translation>Тамашека</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tereno</source>
+        <translation>Теренська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tetum</source>
+        <translation>Тетум</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tigre</source>
+        <translation>Тигрська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Timne</source>
+        <translation>Тимненська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tiv</source>
+        <translation>Тівська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tlingit</source>
+        <translation>Тлінгіт</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tok Pisin</source>
+        <translation>Ток-пісинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tokelau</source>
+        <translation>Токелау</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tonga (Nyasa)</source>
+        <translation>Тонга (ньяса)</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tsimshian</source>
+        <translation>Цимшійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tumbuka</source>
+        <translation>Тумбука</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tuvalu</source>
+        <translation>Тувалу</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tuvinian</source>
+        <translation>Тувинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Udmurt</source>
+        <translation>Удмуртська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ugaritic</source>
+        <translation>Угаритська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Umbundu</source>
+        <translation>Умбунду</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Upper Sorbian</source>
+        <translation>Верхньолужицька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Vai</source>
+        <translation>Ваї</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Votic</source>
+        <translation>Вотична</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Waray</source>
+        <translation>Варайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Washo</source>
+        <translation>Вашо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Wolaitta</source>
+        <translation>Волайта</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Yakut</source>
         <translation>Якутська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Yao</source>
+        <translation>Яо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Yapese</source>
+        <translation>Япська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zapotec</source>
+        <translation>Сапотекська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zazaki</source>
+        <translation>Зазакійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zenaga</source>
+        <translation>Зенага</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Zuni</source>
+        <translation>Зуні</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rusinian</source>
+        <translation>Русинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Brauhi</source>
+        <translation>Брагуї</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Evenki</source>
+        <translation>Евенкійська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -2982,13 +4142,488 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Afar</source>
+        <translation>Афарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Abkhazian</source>
+        <translation>Абхазька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Avestan</source>
+        <translation>Авестійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Afrikaans</source>
+        <translation>Африкаанс</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Akan</source>
+        <translation>Аканська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Aragonese</source>
+        <translation>Арагонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Assamese</source>
+        <translation>Асамська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Avaric</source>
+        <translation>Аварська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Aymara</source>
+        <translation>Аймара</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bislama</source>
+        <translation>Біслам</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Breton</source>
+        <translation>Бретонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chamorro</source>
+        <translation>Чаморро</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Corsican</source>
+        <translation>Корсиканська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Cree</source>
+        <translation>Крі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Church Slavic</source>
+        <translation>Церковнослов&apos;янська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Welsh</source>
+        <translation>Валлійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Divehi</source>
+        <translation>Дивехі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Dzongkha</source>
+        <translation>Дзонгха</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ewe</source>
+        <translation>Еве</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Basque</source>
+        <translation>Баскська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Persian</source>
+        <translation>Перська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Fulah</source>
+        <translation>Фула</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Fijian</source>
+        <translation>Фіджійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Faroese</source>
+        <translation>Фарерська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Western Frisian</source>
+        <translation>Західнофризька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Gaelic</source>
+        <translation>Гельська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Galician</source>
+        <translation>Галицька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Guarani</source>
+        <translation>Гуарані</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Manx</source>
+        <translation>Менська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hausa</source>
+        <translation>Хауса</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hiri Motu</source>
+        <translation>Хірі Моту</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Haitian</source>
+        <translation>Гаїтянська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Herero</source>
+        <translation>Гереро</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Interlingua</source>
+        <translation>Інтерлінгва</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Interlingue</source>
+        <translation>Міжмовна</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Igbo</source>
+        <translation>Ігбо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sichuan Yi</source>
+        <translation>Сичуань І</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Inupiaq</source>
+        <translation>Iнупіак</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ido</source>
+        <translation>Ідо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Inuktitut</source>
+        <translation>Інуктитутська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Japanese</source>
+        <translation>Японська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Javanese</source>
+        <translation>Яванська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Georgian</source>
+        <translation>Грузинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kongo</source>
+        <translation>Конго</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kikuyu</source>
+        <translation>Кікую</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kuanyama</source>
+        <translation>Куаньяма</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Greenlandic</source>
+        <translation>Гренландська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Central Khmer</source>
+        <translation>Центральнокхмерська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kanuri</source>
+        <translation>Канурі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Cornish</source>
+        <translation>Корнська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Luxembourgish</source>
+        <translation>Люксембурзька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ganda</source>
+        <translation>Ганда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Limburgish</source>
+        <translation>Лімбурзька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lingala</source>
+        <translation>Лінгала</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Lao</source>
+        <translation>Лаоська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Luba-Katanga</source>
+        <translation>Луба-катанга</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Malagasy</source>
+        <translation>Малагасійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Marshallese</source>
+        <translation>Маршалльська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Maori</source>
+        <translation>Маорі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Mongolian</source>
+        <translation>Монгольська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Malay</source>
+        <translation>Малайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Maltese</source>
+        <translation>Мальтійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nauru</source>
+        <translation>Науру</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Norwegian Bokmål</source>
+        <translation>Норвезька букмол</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>North Ndebele</source>
+        <translation>Північнондебелська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nepali</source>
+        <translation>Непальська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ndonga</source>
+        <translation>Ндонга</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Norwegian Nynorsk</source>
+        <translation>Норвезька нюнорск</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>South Ndebele</source>
+        <translation>Південно-ндебелська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Navajo</source>
+        <translation>Навахо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Nyanja</source>
+        <translation>Ньянджа</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Occitan</source>
+        <translation>Окситанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ojibwa</source>
+        <translation>Оджибва</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Oromo</source>
+        <translation>Оромо</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Oriya</source>
+        <translation>Орійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Panjabi</source>
+        <translation>Панджабі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pali</source>
+        <translation>Палійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Pushto</source>
+        <translation>Пушту</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Quechua</source>
+        <translation>Кечуа</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Romansh</source>
+        <translation>Ретороманська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Rundi</source>
+        <translation>Рунді</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Romanian, Moldavian</source>
+        <translation>Румунська, Молдавська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kinyarwanda</source>
+        <translation>Кіньяруанда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sanskrit</source>
+        <translation>Санскрит</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sardinian</source>
+        <translation>Сардинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Northern Sami</source>
+        <translation>Північносаамська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sango</source>
+        <translation>Санго</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sinhalese</source>
+        <translation>Сингальська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Slovak</source>
         <translation>Словацька</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Samoan</source>
+        <translation>Самоанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Shona</source>
+        <translation>Шона</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Somali</source>
+        <translation>Сомалійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Albanian</source>
+        <translation>Албанська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Serbian</source>
         <translation>Сербська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Swati</source>
+        <translation>Сваті</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Southern Sotho</source>
+        <translation>Південна сото</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Sundanese</source>
+        <translation>Сунданська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3012,8 +4647,28 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
+        <source>Tigrinya</source>
+        <translation>Тигринья</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tagalog</source>
+        <translation>Тагальська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tswana</source>
+        <translation>Тсвана</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
         <source>Turkish</source>
         <translation>Турецька</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tsonga</source>
+        <translation>Тсонга</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3022,18 +4677,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Uigur</source>
-        <translation>Уйгурська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
         <source>Ukrainian</source>
         <translation>Українська</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>Undefined</source>
-        <translation>Мова не вказана</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3052,8 +4697,128 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>Chinese (Simplified)</source>
-        <translation>Китайська (спрощена)</translation>
+        <source>Bambara</source>
+        <translation>Бамбара</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tibetan</source>
+        <translation>Тибетська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bosnian</source>
+        <translation>Боснійська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bini</source>
+        <translation>Біні</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Bilen</source>
+        <translation>Білен</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Chinook</source>
+        <translation>Чінук</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Crimean Tatar</source>
+        <translation>Кримськотатарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Hmong</source>
+        <translation>Хмонг</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Kabardian</source>
+        <translation>Кабардинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Karachay-Balkar</source>
+        <translation>Карачаєво-Балкарська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Komi</source>
+        <translation>Комі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Ossetian</source>
+        <translation>Осетинська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Slovenian</source>
+        <translation>Словенська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Swahili</source>
+        <translation>Суахілі</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Thai</source>
+        <translation>Тайська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Turkmen</source>
+        <translation>Туркменська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Twi</source>
+        <translation>Тві</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Tahitian</source>
+        <translation>Таїтянська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Uighur</source>
+        <translation>Уйгурська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Venda</source>
+        <translation>Венда</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Volapuk</source>
+        <translation>Волапюк</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Walloon</source>
+        <translation>Валлонська</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Wolof</source>
+        <translation>Волоф</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Xhosa</source>
+        <translation>Коса</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>Yiddish</source>
+        <translation>Ідиш</translation>
     </message>
 </context>
 <context>
@@ -3114,11 +4879,6 @@ Try again?</source>
 </context>
 <context>
     <name>MainWindow</name>
-    <message>
-        <location filename="../../flibrary/gui/MainWindow.cpp"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
-        <translation>Для пошуку книги за назвою введіть тут частину назви та натисніть Enter</translation>
-    </message>
     <message>
         <source>&amp;File</source>
         <translation>&amp;Файл</translation>
@@ -3650,6 +5410,16 @@ Try again?</source>
         <source>&apos;%1&apos; not found. Will you specify another application?</source>
         <translation>Файл &apos;%1&apos; не знайдено. Спробуєте вказати іншу програму?</translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Unsupported file type</source>
+        <translation>Непідтримуваний тип файлу</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
+        <source>Specify the file to be read</source>
+        <translation>Вкажіть файл для читання</translation>
+    </message>
 </context>
 <context>
     <name>Requester</name>
@@ -3667,6 +5437,16 @@ Try again?</source>
         <location filename="../../tool/opds/Requester.cpp"/>
         <source>Books</source>
         <translation>Усі книги розділу</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>Books found for the request &quot;%1&quot;: %2</source>
+        <translation>За запитом &quot;%1&quot; знайдені книги: %2</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>No books found for the request &quot;%1&quot;</source>
+        <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
 </context>
 <context>
@@ -4042,16 +5822,6 @@ Try again?</source>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Home</source>
         <translation>Додому</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/postprocess/web.cpp"/>
-        <source>Download fb2</source>
-        <translation>Завантажити fb2</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/postprocess/web.cpp"/>
-        <source>Download zip</source>
-        <translation>Завантажити zip</translation>
     </message>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>

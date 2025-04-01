@@ -56,8 +56,8 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)",
 		"CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)",
 		"CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
-		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)",
-		"CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Series_List (SeriesID  INTEGER NOT NULL, BookID    INTEGER NOT NULL, SeqNumber INTEGER)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 	};
 	// clang-format on
@@ -150,7 +150,7 @@ void FixSearches_User(DB::ITransaction& transaction)
 
 void FillBooksSearch(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("select count (42) from Books_Search_idx");
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Books_Search_idx)");
 	query->Execute();
 	if (query->Get<int>(0) == 0)
 		transaction.CreateCommand("insert into Books_Search(Books_Search) values('rebuild')")->Execute();
@@ -158,10 +158,18 @@ void FillBooksSearch(DB::ITransaction& transaction)
 
 void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("select count (42) from Inpx");
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Inpx)");
 	query->Execute();
 	if (query->Get<int>(0) == 0)
 		Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
+}
+
+void FillSeriesList(DB::ITransaction& transaction)
+{
+	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Series_List)");
+	query->Execute();
+	if (query->Get<int>(0) == 0)
+		transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
 }
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& collectionProvider, const bool readOnly)
@@ -228,7 +236,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 
 		FixSearches_User(*transaction);
 		FillBooksSearch(*transaction);
-
+		FillSeriesList(*transaction);
 		FillInpx(collectionProvider, *transaction);
 
 		transaction->Commit();

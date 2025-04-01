@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include <QBuffer>
 #include <QTemporaryDir>
 
 #include "database/interface/ICommand.h"
@@ -9,11 +10,6 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
-#include "interface/logic/IScriptController.h"
 
 #include "Util/IExecutor.h"
 #include "shared/ImageRestore.h"
@@ -37,7 +33,7 @@ public:
 bool Write(const QByteArray& input, const std::filesystem::path& path)
 {
 	QFile output(QString::fromStdWString(path));
-	return true && output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
+	return output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
 }
 
 bool Archive(QByteArray input, const std::filesystem::path& path, const QString& fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
@@ -58,6 +54,48 @@ bool Archive(QByteArray input, const std::filesystem::path& path, const QString&
 	return false;
 }
 
+bool Unpack(QByteArray& input, const std::filesystem::path& path)
+{
+	try
+	{
+		QBuffer buffer(&input);
+		buffer.open(QIODevice::ReadOnly);
+		Zip zip(buffer);
+
+		std::filesystem::path folder = path;
+		folder.replace_extension("");
+		std::error_code ec;
+		if (!create_directories(folder, ec))
+		{
+			PLOGE << ec.message() << " (" << ec.value() << ")";
+			return false;
+		}
+
+		return std::ranges::all_of(zip.GetFileNameList(),
+		                           [&](const auto& fileName)
+		                           {
+									   const auto fullPath = folder / fileName.toStdWString();
+									   std::filesystem::create_directories(fullPath.parent_path());
+									   QFile output(QString::fromStdWString(fullPath));
+									   const auto fileSize = zip.GetFileSize(fileName);
+									   return output.open(QIODevice::WriteOnly) && output.write(zip.Read(fileName)->GetStream().readAll()) == static_cast<qint64>(fileSize);
+								   });
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
+
+	return Write(input, path);
+}
+
+enum class WriteMode
+{
+	AsIs,
+	Archive,
+	Unpack,
+};
+
 std::pair<bool, std::filesystem::path> Write(QIODevice& input,
                                              const QString& dstFileName,
                                              const QString& folder,
@@ -65,7 +103,7 @@ std::pair<bool, std::filesystem::path> Write(QIODevice& input,
                                              IProgressController::IProgressItem& progress,
                                              std::shared_ptr<Zip::ProgressCallback> zipProgressCallback,
                                              IPathChecker& pathChecker,
-                                             const bool archive)
+                                             const WriteMode mode)
 {
 	auto result = std::make_pair(false, std::filesystem::path {});
 	const QFileInfo dstFileInfo(dstFileName);
@@ -73,7 +111,7 @@ std::pair<bool, std::filesystem::path> Write(QIODevice& input,
 		return result;
 
 	result.second = QDir::toNativeSeparators(dstFileName).toStdWString();
-	if (archive)
+	if (mode == WriteMode::Archive)
 		result.second.replace_extension(".zip");
 
 	pathChecker.Check(result.second);
@@ -82,8 +120,21 @@ std::pair<bool, std::filesystem::path> Write(QIODevice& input,
 		if (!remove(result.second))
 			return assert(false), result;
 
-	auto bytes = RestoreImages(input, folder, book.file);
-	result.first = archive ? Archive(std::move(bytes), result.second, dstFileInfo.fileName(), std::move(zipProgressCallback)) : Write(bytes, result.second);
+	result.first = [&]
+	{
+		auto bytes = RestoreImages(input, folder, book.file);
+		switch (mode)
+		{
+			case WriteMode::AsIs:
+				return Write(bytes, result.second);
+			case WriteMode::Archive:
+				return Archive(std::move(bytes), result.second, dstFileInfo.fileName(), std::move(zipProgressCallback));
+			case WriteMode::Unpack:
+				return Unpack(bytes, result.second);
+			default:
+				return assert(false && "unexpected mode"), false;
+		}
+	}();
 	progress.Increment(1);
 
 	return result;
@@ -96,7 +147,7 @@ std::filesystem::path Process(const std::filesystem::path& archiveFolder,
                               IProgressController::IProgressItem& progress,
                               std::shared_ptr<Zip::ProgressCallback> zipProgressCallback,
                               IPathChecker& pathChecker,
-                              const bool asArchives)
+                              const WriteMode mode)
 {
 	if (progress.IsStopped())
 		return {};
@@ -107,7 +158,7 @@ std::filesystem::path Process(const std::filesystem::path& archiveFolder,
 	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
 	const Zip zip(folder);
 	const auto stream = zip.Read(book.file);
-	auto [ok, path] = Write(stream->GetStream(), outputFileTemplate, folder, book, progress, std::move(zipProgressCallback), pathChecker, asArchives);
+	auto [ok, path] = Write(stream->GetStream(), outputFileTemplate, folder, book, progress, std::move(zipProgressCallback), pathChecker, mode);
 	if (!ok && exists(path))
 		remove(path);
 
@@ -121,17 +172,19 @@ void Process(const std::filesystem::path& archiveFolder,
              IProgressController::IProgressItem& progress,
              IPathChecker& pathChecker,
              const IScriptController& scriptController,
-             const IScriptController::Commands& commands,
+             IScriptController::Commands commands,
              const QTemporaryDir& tempDir)
 {
-	const auto sourceFile = Process(archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, false);
+	const auto sourceFile = Process(archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs);
+
+	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) { return command.number; });
 	for (auto command : commands)
 	{
 		IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
 		ILogicFactory::FillScriptTemplate(command.args, book);
 
-		if (false || progress.IsStopped() || !scriptController.Execute(command))
+		if (progress.IsStopped() || !scriptController.Execute(command))
 			return;
 	}
 }
@@ -310,7 +363,7 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 	                                                                                                                                   const ILogicFactory::ExtractedBook& book,
 	                                                                                                                                   IProgressController::IProgressItem& progress,
 	                                                                                                                                   IPathChecker& pathChecker) mutable
-	                { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, std::move(zipProgressCallback), pathChecker, true); });
+	                { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, std::move(zipProgressCallback), pathChecker, WriteMode::Archive); });
 }
 
 void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
@@ -324,7 +377,21 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, I
 	                                                                             const ILogicFactory::ExtractedBook& book,
 	                                                                             IProgressController::IProgressItem& progress,
 	                                                                             IPathChecker& pathChecker)
-	                { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, {}, pathChecker, false); });
+	                { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::AsIs); });
+}
+
+void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
+{
+	m_impl->Extract(std::move(folder),
+	                std::move(books),
+	                std::move(callback),
+	                ExportStat::Type::Unpack,
+	                [outputFileNameTemplate = std::move(outputFileNameTemplate)](const std::filesystem::path& archiveFolder,
+	                                                                             const QString& dstFolder,
+	                                                                             const ILogicFactory::ExtractedBook& book,
+	                                                                             IProgressController::IProgressItem& progress,
+	                                                                             IPathChecker& pathChecker)
+	                { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::Unpack); });
 }
 
 void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
@@ -340,5 +407,5 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 						const QString& dstFolder,
 						const ILogicFactory::ExtractedBook& book,
 						IProgressController::IProgressItem& progress,
-						IPathChecker& pathChecker) { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir); });
+						IPathChecker& pathChecker) mutable { Process(archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, std::move(commands), *tempDir); });
 }

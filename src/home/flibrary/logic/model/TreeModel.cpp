@@ -1,7 +1,6 @@
 #include "TreeModel.h"
 
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IModelProvider.h"
 
 #include "log.h"
 

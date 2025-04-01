@@ -1,35 +1,30 @@
 #include "Initializer.h"
 
+#include <atomic>
+#include <mutex>
+
 #include <xercesc/util/PlatformUtils.hpp>
 
 using namespace HomeCompa;
 using namespace Util;
 namespace xercesc = xercesc_3_2;
 
-class XMLPlatformInitializer::Impl
-{
-	NON_COPY_MOVABLE(Impl)
-
-public:
-	Impl()
-	{
-		xercesc::XMLPlatformUtils::Initialize();
-	}
-
-	~Impl()
-	{
-		xercesc::XMLPlatformUtils::Terminate();
-	}
-};
-
 namespace
 {
-std::shared_ptr<XMLPlatformInitializer::Impl> g_initializer;
+std::mutex g_xercescGuard;
+int64_t g_counter { 0 };
 }
 
 XMLPlatformInitializer::XMLPlatformInitializer()
-	: m_impl(g_initializer ? g_initializer : std::make_shared<Impl>())
 {
+	std::lock_guard lock(g_xercescGuard);
+	if (g_counter++ == 0)
+		xercesc::XMLPlatformUtils::Initialize();
 }
 
-XMLPlatformInitializer::~XMLPlatformInitializer() = default;
+XMLPlatformInitializer::~XMLPlatformInitializer()
+{
+	std::lock_guard lock(g_xercescGuard);
+	if (--g_counter == 0)
+		xercesc::XMLPlatformUtils::Terminate();
+}

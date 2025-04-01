@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QPointer>
 
+#include "util/ISettings.h"
+
 class QAbstractScrollArea;
 class QTimer;
 
@@ -12,14 +14,14 @@ namespace HomeCompa::Flibrary
 class ScrollBarController final : public QObject
 {
 public:
-	explicit ScrollBarController(QObject* parent = nullptr);
+	explicit ScrollBarController(const std::shared_ptr<const ISettings>& settings, QObject* parent = nullptr);
 	void SetScrollArea(QAbstractScrollArea* area);
 
 private: // QObject
 	bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-	QTimer* CreateTimer(void (ScrollBarController::*)() const);
+	QTimer* CreateTimer(const ISettings& settings, void (ScrollBarController::*)() const);
 	void OnTimeoutV() const;
 	void OnTimeoutH() const;
 

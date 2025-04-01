@@ -15,17 +15,11 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IInpxGenerator.h"
-#include "interface/logic/IReaderController.h"
-#include "interface/logic/IScriptController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
-#include "data/DataProvider.h"
 #include "extract/BooksExtractor.h"
-#include "util/ISettings.h"
 
 #include "log.h"
 
@@ -40,6 +34,7 @@ constexpr auto READ_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "&Read");
 constexpr auto EXPORT = QT_TRANSLATE_NOOP("BookContextMenu", "E&xport");
 constexpr auto SEND_AS_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "As &zip archive");
 constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As &original format");
+constexpr auto UNPACK = QT_TRANSLATE_NOOP("BookContextMenu", "&Unpack");
 constexpr auto SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
 constexpr auto SEND_AS_SINGLE_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "Generate inde&x file (*.inpx)");
 constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
@@ -156,11 +151,14 @@ void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDataba
 	Add(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
 }
 
-void CreateSendMenu(const IDataItem::Ptr& root, const IScriptController::Scripts& scripts)
+void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
 {
 	const auto& send = Add(root, Tr(EXPORT));
 	Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
 	Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
+	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsArchive))
+		Add(send, Tr(UNPACK), BooksMenuAction::SendUnpack);
+
 	if (!scripts.empty())
 	{
 		Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
@@ -198,7 +196,7 @@ public:
 	              std::shared_ptr<const ISettings> settings,
 	              std::shared_ptr<const IReaderController> readerController,
 	              std::shared_ptr<const IDatabaseUser> databaseUser,
-	              std::shared_ptr<const DataProvider> dataProvider,
+	              std::shared_ptr<const IBookInfoProvider> dataProvider,
 	              std::shared_ptr<const IUiFactory> uiFactory,
 	              std::shared_ptr<GroupController> groupController,
 	              std::shared_ptr<IScriptController> scriptController)
@@ -233,7 +231,7 @@ public:
 									  if (type == ItemType::Books)
 										  Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
-									  CreateSendMenu(result, scripts);
+									  CreateSendMenu(result, options, scripts);
 									  Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 
 									  if (type == ItemType::Books)
@@ -414,6 +412,11 @@ private: // IContextMenuHandler
 		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsIs);
 	}
 
+	void SendUnpack(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractUnpack);
+	}
+
 	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		SendAsInpxImpl(model,
@@ -569,7 +572,7 @@ private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	std::shared_ptr<const DataProvider> m_dataProvider;
+	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
@@ -592,7 +595,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const I
                                                    std::shared_ptr<const ISettings> settings,
                                                    std::shared_ptr<const IReaderController> readerController,
                                                    std::shared_ptr<const IDatabaseUser> databaseUser,
-                                                   std::shared_ptr<DataProvider> dataProvider,
+                                                   std::shared_ptr<const IBookInfoProvider> dataProvider,
                                                    std::shared_ptr<const IUiFactory> uiFactory,
                                                    std::shared_ptr<GroupController> groupController,
                                                    std::shared_ptr<IScriptController> scriptController)

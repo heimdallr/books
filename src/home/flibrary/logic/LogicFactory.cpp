@@ -5,33 +5,19 @@
 #include <Hypodermic/Hypodermic.h>
 
 #include "interface/constants/Enums.h"
-#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/INavigationQueryExecutor.h"
-#include "interface/logic/IProgressController.h"
-#include "interface/logic/IReaderController.h"
-#include "interface/logic/IScriptController.h"
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "Annotation/ArchiveParser.h"
 #include "ChangeNavigationController/GroupController.h"
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
-#include "data/DataProvider.h"
-#include "data/ModelProvider.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
-#include "util/ISettings.h"
-#include "util/executor/factory.h"
 
 #include "log.h"
 

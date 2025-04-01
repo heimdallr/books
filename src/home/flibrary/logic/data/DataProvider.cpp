@@ -1,7 +1,5 @@
 #include "DataProvider.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <QString> // for plog
 #include <QTimer>
 
 #include "fnd/FindPair.h"
@@ -9,8 +7,6 @@
 #include "database/interface/IDatabase.h"
 
 #include "interface/constants/Enums.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/INavigationQueryExecutor.h"
 
 #include "util/UiTimer.h"
 

@@ -5,6 +5,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "delegate/OpenFileDialogDelegateEditor.h"
+#include "delegate/StorableComboboxDelegateEditor.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -13,9 +16,7 @@ class CommandDelegate : public QStyledItemDelegate
 	NON_COPY_MOVABLE(CommandDelegate)
 
 public:
-	CommandDelegate(std::shared_ptr<class OpenFileDialogDelegateEditor> openFileDialogDelegateEditor,
-	                std::shared_ptr<class StorableComboboxDelegateEditor> storableComboboxDelegateEditor,
-	                QObject* parent = nullptr);
+	CommandDelegate(std::shared_ptr<OpenFileDialogDelegateEditor> openFileDialogDelegateEditor, std::shared_ptr<StorableComboboxDelegateEditor> storableComboboxDelegateEditor, QObject* parent = nullptr);
 	~CommandDelegate() override;
 
 private: // QStyledItemDelegate

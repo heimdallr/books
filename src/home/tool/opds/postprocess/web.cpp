@@ -1,6 +1,7 @@
 #include <ranges>
 
 #include <QBuffer>
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QTextStream>
 
@@ -27,8 +28,6 @@ namespace
 
 constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
-constexpr auto DOWNLOAD_FB2 = QT_TRANSLATE_NOOP("opds", "Download fb2");
-constexpr auto DOWNLOAD_ZIP = QT_TRANSLATE_NOOP("opds", "Download zip");
 constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
 TR_DEF
 
@@ -53,6 +52,9 @@ constexpr auto HTTP_HEAD = R"(<!DOCTYPE html>
 		</style>
 	</head>
 	<body>
+	<form action="/web/search" method="GET">
+        <p><input type="text" id="q" name="q" placeholder="%6" size="80"/></p>
+    </form>
 	<a href="%3">%4</a>
 	%1
 	<hr/>
@@ -123,9 +125,10 @@ protected:
 		m_output.open(QIODevice::WriteOnly);
 	}
 
-void WriteHttpHead(const QString& head, const QString& style = {})
+	void WriteHttpHead(const QString& head, const QString& style = {})
 	{
-		m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style);
+		std::call_once(m_headWritten,
+		               [&] { m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)); });
 	}
 
 private: // SaxParser
@@ -148,6 +151,9 @@ protected:
 	const QString m_root;
 	QBuffer m_output;
 	QTextStream m_stream { &m_output };
+
+private:
+	std::once_flag m_headWritten;
 };
 
 class ParserOpds : public AbstractParser
@@ -178,6 +184,9 @@ protected:
 
 	virtual bool OnEndElementFeed()
 	{
+		if (!m_mainTitle.isEmpty())
+			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
+
 		m_stream << "</body>\n</html>\n";
 		m_output.close();
 		return true;
@@ -222,7 +231,7 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters)
 	{
 		assert(!parameters.isEmpty());
 		return std::make_unique<ParserNavigation>(stream, parameters.front(), CreateGuard {});
@@ -319,15 +328,16 @@ class ParserBookInfo final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
 	{
 		assert(!parameters.isEmpty());
-		return std::make_unique<ParserBookInfo>(stream, parameters.front(), CreateGuard {});
+		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), CreateGuard {});
 	}
 
 public:
-	ParserBookInfo(QIODevice& stream, QString root, CreateGuard)
+	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
 		: ParserOpds(stream, std::move(root))
+		, m_callback { callback }
 	{
 	}
 
@@ -423,16 +433,32 @@ private:
 			if (!m_coverLink.isEmpty())
 				m_stream << QString(R"(<td><img src="%1" width="480"/></td>)").arg(m_coverLink);
 
-			const auto href = [this](const QString& url, const QString& message, const QString& ext)
+			const auto href = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
 			{
-				if (!url.isEmpty())
-					m_stream << QString(R"(<br><a href="%1" download="%2.%3">%4</a></br>)").arg(url, (m_title.isEmpty() ? "file" : m_title), ext, message);
+				if (url.isEmpty())
+					return;
+
+				const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
+				m_stream << QString(R"(<br><a href="%1%3" download="%2">%2</a></br>)").arg(url, fileName, transliterated ? "/tr" : "");
 			};
 
 			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
 			m_stream << QString(R"(<br><a href="/web/read/%1">%2</a></br>)").arg(m_id, Tr(READ));
-			href(m_downloadLinkFb2, Tr(DOWNLOAD_FB2), "fb2");
-			href(m_downloadLinkZip, Tr(DOWNLOAD_ZIP), "zip");
+
+			const auto createHrefs = [&](const QFileInfo& fileInfo, const bool transliterated)
+			{
+				m_stream << QString("<br/>");
+				href(m_downloadLinkFb2, fileInfo, false, transliterated);
+				href(m_downloadLinkZip, fileInfo, true, transliterated);
+			};
+
+			const auto fileName = m_callback.GetFileName(m_id, false);
+			const QFileInfo fileInfo(fileName);
+			createHrefs(fileInfo, false);
+
+			if (const auto fileNameTransliterated = m_callback.GetFileName(m_id, true); fileNameTransliterated != fileName)
+				if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
+					createHrefs(fileInfoTransliterated, true);
 		}
 
 		m_stream << m_content << "\n";
@@ -454,6 +480,7 @@ private:
 	}
 
 private:
+	const IPostProcessCallback& m_callback;
 	std::vector<std::pair<QString, QString>> m_authors;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
@@ -512,7 +539,7 @@ class ParserFb2 final : public AbstractParser
 	static constexpr auto IMAGE = "image";
 
 public:
-	static std::unique_ptr<AbstractParser> Create(QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters)
 	{
 		assert(parameters.size() > 1);
 		return std::make_unique<ParserFb2>(stream, parameters[0], parameters[1], CreateGuard {});
@@ -821,17 +848,17 @@ private:
 	std::vector<Binary> m_binary;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(QIODevice&, const QStringList&)> PARSER_CREATORS[] {
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
 	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(QIODevice& stream, const ContentType contentType, const QStringList& parameters)
+QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser = parserCreator(stream, parameters);
+	const auto parser = parserCreator(callback, stream, parameters);
 	parser->Parse();
 	return parser->GetResult();
 }

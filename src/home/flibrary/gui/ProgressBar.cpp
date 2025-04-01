@@ -2,8 +2,6 @@
 
 #include "ProgressBar.h"
 
-#include "interface/logic/IProgressController.h"
-
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;

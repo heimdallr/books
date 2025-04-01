@@ -10,12 +10,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/INavigationQueryExecutor.h"
-#include "interface/ui/IUiFactory.h"
-
-#include "util/ISettings.h"
 
 #include "log.h"
 
@@ -74,16 +68,16 @@ struct SearchController::Impl
 	std::shared_ptr<const IUiFactory> uiFactory;
 	const QString currentCollectionId;
 
-	explicit Impl(std::shared_ptr<ISettings> settings,
+	explicit Impl(const ICollectionController& collectionController,
+	              std::shared_ptr<ISettings> settings,
 	              std::shared_ptr<const IDatabaseUser> databaseUser,
 	              std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-	              std::shared_ptr<const IUiFactory> uiFactory,
-	              const std::shared_ptr<ICollectionController>& collectionController)
+	              std::shared_ptr<const IUiFactory> uiFactory)
 		: settings(std::move(settings))
 		, databaseUser(std::move(databaseUser))
 		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
-		, currentCollectionId(collectionController->GetActiveCollectionId())
+		, currentCollectionId(collectionController.GetActiveCollectionId())
 	{
 	}
 
@@ -177,12 +171,12 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(std::shared_ptr<ISettings> settings,
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
+                                   std::shared_ptr<ISettings> settings,
                                    std::shared_ptr<IDatabaseUser> databaseUser,
                                    std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-                                   std::shared_ptr<IUiFactory> uiFactory,
-                                   const std::shared_ptr<ICollectionController>& collectionController)
-	: m_impl(std::move(settings), std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory), collectionController)
+                                   std::shared_ptr<IUiFactory> uiFactory)
+	: m_impl(*collectionController, std::move(settings), std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";
 }
@@ -199,7 +193,7 @@ void SearchController::CreateNew(Callback callback)
 
 void SearchController::Remove(Ids ids, Callback callback) const
 {
-	if (false || ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_SEARCH_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_SEARCH_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 		return;
 
 	m_impl->databaseUser->Execute({ "Remove search string",

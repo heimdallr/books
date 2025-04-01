@@ -11,11 +11,6 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IProgressController.h"
-
 #include "common/Constant.h"
 #include "inpx/src/util/constant.h"
 
@@ -90,7 +85,8 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 {
 	PLOGI << "Removing database book references records started";
 	constexpr std::pair<const char*, const char*> commands[] {
-		{       "Series",					 "delete from Series where not exists(select 42 from Books where Books.SeriesID = Series.SeriesID)" },
+		{  "Series_List",               "delete from Series_List where not exists(select 42 from Books where Books.BookID = Series_List.BookID)" },
+		{       "Series",         "delete from Series where not exists(select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
 		{   "Genre_List",                "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
 		{  "Author_List",              "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
 		{      "Authors",       "delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },

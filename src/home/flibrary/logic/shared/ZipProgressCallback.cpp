@@ -1,6 +1,5 @@
 #include "ZipProgressCallback.h"
 
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
 #include "log.h"

@@ -35,6 +35,7 @@
 #include "ModeComboBox.h"
 #include "ScrollBarController.h"
 #include "log.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -278,7 +279,7 @@ private: // ITreeViewController::IObserver
 				break;
 		}
 
-		if (true && IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
+		if (IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
 		    && item->GetData(MenuItem::Column::HasError).toInt())
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
@@ -395,7 +396,8 @@ private:
 		ITreeViewController::RequestContextMenuOptions options =
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
-			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations);
+			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
+			| addOption(Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()), ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
@@ -514,7 +516,6 @@ private:
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
-		m_ui.treeView->setMouseTracking(true);
 
 		SetupNewItemButton();
 

@@ -10,6 +10,7 @@ constexpr auto FONT_SIZE_FAMILY = "ui/Font/family";
 constexpr auto RECENT_NAVIGATION_ID_KEY = "Collections/%1/Navigation/%2/LastId";
 constexpr auto EXPORT_TEMPLATE_KEY = "ui/Export/OutputTemplate";
 constexpr auto KEEP_RECENT_LANG_FILTER_KEY = "ui/keepLanguage";
+constexpr auto HIDE_SCROLLBARS_KEY = "ui/hideScrollBars";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
 
