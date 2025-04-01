@@ -43,6 +43,7 @@ public:
 		PublishInfo publishInfo;
 		QString error;
 		size_t textSize { 0 };
+		size_t wordCount { 0 };
 	};
 
 public:

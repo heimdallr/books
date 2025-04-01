@@ -52,6 +52,7 @@ public:
 		[[nodiscard]] virtual const Covers& GetCovers() const noexcept = 0;
 		[[nodiscard]] virtual std::optional<size_t> GetCoverIndex() const noexcept = 0;
 		[[nodiscard]] virtual size_t GetTextSize() const noexcept = 0;
+		[[nodiscard]] virtual size_t GetWordCount() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetContent() const noexcept = 0;
 		[[nodiscard]] virtual IDataItem::Ptr GetTranslators() const noexcept = 0;
 
