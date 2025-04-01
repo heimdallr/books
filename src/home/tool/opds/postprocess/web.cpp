@@ -180,6 +180,9 @@ protected:
 
 	virtual bool OnEndElementFeed()
 	{
+		if (!m_mainTitle.isEmpty())
+			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
+
 		m_stream << "</body>\n</html>\n";
 		m_output.close();
 		return true;

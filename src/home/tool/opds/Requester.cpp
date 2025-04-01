@@ -114,6 +114,7 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
+constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Search results for "%1")");
 
 constexpr auto ENTRY = "entry";
 
@@ -489,7 +490,7 @@ struct Requester::Impl : IPostProcessCallback
 	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
 	{
 		const auto db = databaseController->GetDatabase(true);
-		auto head = GetHead(*db, "search", searchTerms, root, self);
+		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
 
 		auto terms = searchTerms.split(' ', Qt::SkipEmptyParts);
 		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
