@@ -39,7 +39,7 @@ constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
-constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages)");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages, %2%L4 words)");
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
@@ -334,6 +334,11 @@ private: // IDataProvider
 		return m_archiveData.textSize;
 	}
 
+	[[nodiscard]] size_t GetWordCount() const noexcept override
+	{
+		return m_archiveData.wordCount;
+	}
+
 	[[nodiscard]] IDataItem::Ptr GetContent() const noexcept override
 	{
 		return m_archiveData.content;
@@ -603,7 +608,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	{
 		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
-			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))));
+			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));

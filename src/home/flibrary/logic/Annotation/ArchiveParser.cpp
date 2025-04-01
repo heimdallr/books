@@ -173,7 +173,10 @@ private: // Util::SaxParser
 		};
 
 		if (m_textMode)
+		{
 			m_data.textSize += value.length();
+			m_data.wordCount += value.split(' ', Qt::SkipEmptyParts).size();
+		}
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
