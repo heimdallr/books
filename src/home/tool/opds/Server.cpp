@@ -137,6 +137,20 @@ private:
 #undef OPDS_REQUEST_ROOT_ITEM
 			 })
 			InitHttp(root);
+
+		m_server.route("/",
+		               [this]
+		               {
+						   return QtConcurrent::run(
+							   [this]
+							   {
+								   const QString root = "/web";
+								   QHttpServerResponse response(m_requester->GetRoot(root, QString(ROOT).arg(root)));
+								   SetContentType(response, root, MessageType::Atom);
+								   return response;
+							   });
+					   });
+
 	}
 
 	void InitHttp(const QString& root)
