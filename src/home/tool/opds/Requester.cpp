@@ -7,6 +7,7 @@
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QTimer>
+#include <QRegularExpression>
 
 #include <unicode/translit.h>
 
@@ -495,14 +496,16 @@ struct Requester::Impl : IPostProcessCallback
 		const auto db = databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
 
-		auto terms = searchTerms.split(' ', Qt::SkipEmptyParts);
-		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+		const auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+		QStringList preparedTerms;
+		preparedTerms.reserve(terms.size());
+		std::ranges::transform(terms, std::back_inserter(preparedTerms), [](const auto& item) { return item + '*'; });
 		const auto n = head.children.size();
-		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), terms.join(' '), root, head.children);
+		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), preparedTerms.join(' '), root, head.children);
 
 		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
 		assert(it != head.children.end());
-		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(searchTerms) : Tr(SEARCH_RESULTS).arg(searchTerms).arg(head.children.size() - n);
+		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(terms.join(' ')) : Tr(SEARCH_RESULTS).arg(terms.join(' ')).arg(head.children.size() - n);
 
 		return head;
 	}
