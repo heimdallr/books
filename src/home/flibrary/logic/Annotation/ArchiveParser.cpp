@@ -111,7 +111,7 @@ private: // Util::SaxParser
 		if (name.compare(A, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(L_HREF);
 
-		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive));
+		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
