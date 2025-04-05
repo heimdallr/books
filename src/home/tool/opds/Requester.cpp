@@ -6,8 +6,8 @@
 #include <QByteArray>
 #include <QEventLoop>
 #include <QFileInfo>
-#include <QTimer>
 #include <QRegularExpression>
+#include <QTimer>
 
 #include <unicode/translit.h>
 
@@ -163,6 +163,57 @@ Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 	return writer;
 }
 
+void PrepareQueryForLike(QString& text, QStringList& arguments)
+{
+	if (!text.contains("like", Qt::CaseInsensitive))
+		return;
+
+	bool ok = true;
+	for (auto& argument : arguments)
+	{
+		if (argument.contains('_'))
+		{
+			ok = false;
+			break;
+		}
+		if (!argument.isEmpty() && std::ranges::any_of(arguments | std::views::take(arguments.length() - 1), [](const auto ch){ return ch == '%'; }))
+		{
+			ok = false;
+			break;
+		}
+	}
+
+	if (ok)
+		return;
+
+	static constexpr char ESCAPE[] { '\\', '|', '#', '@', '~', '^' };
+	const auto it = std::ranges::find_if(ESCAPE, [&](const auto ch) { return std::ranges::none_of(arguments, [&](const auto item) { return item.contains(ch); }); });
+	assert(it != std::end(ESCAPE));
+
+	for (auto& argument : arguments)
+	{
+		const auto endsWithPct = argument.endsWith('%');
+		if (endsWithPct)
+			argument.removeLast();
+
+		argument.replace('_', QString("%1_").arg(*it));
+		argument.replace('%', QString("%1%").arg(*it));
+		if (endsWithPct)
+			argument.append('%');
+	}
+
+	text.replace(QRegularExpression(R"(like +(\?))"), QString(R"(like \1 ESCAPE '%1')").arg(*it));
+}
+
+std::unique_ptr<DB::IQuery> CreateQuery(DB::IDatabase& db, QString text, QStringList arguments)
+{
+	PrepareQueryForLike(text, arguments);
+	auto query = db.CreateQuery(text.toStdString());
+	for (int n = 0; const auto& argument : arguments)
+		query->Bind(n++, argument.toStdString());
+	return query;
+}
+
 QString ParseTitle(DB::IDatabase& db, const QString& type, const QString& id)
 {
 	const auto it = std::ranges::find(HEAD_QUERIES, type, [](const auto& item) { return item.first; });
@@ -171,8 +222,7 @@ QString ParseTitle(DB::IDatabase& db, const QString& type, const QString& id)
 
 	const auto& [queryText, context] = it->second;
 
-	const auto query = db.CreateQuery(queryText);
-	query->Bind(0, id.toStdString());
+	const auto query = CreateQuery(db, queryText, { id });
 	query->Execute();
 	assert(!query->Eof());
 	return context ? Loc::Tr(context, query->Get<const char*>(0)) : query->Get<const char*>(0);
@@ -239,13 +289,11 @@ Node& WriteEntry(const QString& root, Node::Children& children, QString id, QStr
 
 std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase& db, const QString& queryText, const QString& value = {})
 {
+	Util::Timer t(L"ReadStartsWith: " + value.toStdWString());
+
 	std::vector<std::pair<QString, int>> result;
 
-	const auto query = db.CreateQuery(queryText.toStdString());
-	Util::Timer t(L"ReadStartsWith: " + value.toStdWString());
-	query->Bind(0, value.toStdString());
-	query->Bind(1, value.toStdString() + "%");
-
+	const auto query = CreateQuery(db, queryText, { value, value + "%" });
 	for (query->Execute(); !query->Eof(); query->Next())
 		result.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
 
@@ -255,11 +303,10 @@ std::vector<std::pair<QString, int>> ReadStartsWith(DB::IDatabase& db, const QSt
 	return result;
 }
 
-void WriteNavigationEntries(DB::IDatabase& db, const char* navigationType, const std::string& queryText, const QString& arg, const QString& root, Node::Children& children)
+void WriteNavigationEntries(DB::IDatabase& db, const char* navigationType, const QString& queryText, const QString& arg, const QString& root, Node::Children& children)
 {
-	const auto query = db.CreateQuery(queryText);
 	Util::Timer t(L"WriteNavigationEntry: " + arg.toStdWString());
-	query->Bind(0, arg.toStdString());
+	const auto query = CreateQuery(db, queryText, { arg });
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto id = query->Get<int>(0);
@@ -275,11 +322,10 @@ void WriteNavigationEntries(DB::IDatabase& db, const char* navigationType, const
 	}
 }
 
-void WriteBookEntries(DB::IDatabase& db, const char*, const std::string& queryText, const QString& arg, const QString& root, Node::Children& children)
+void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, const QString& arg, const QString& root, Node::Children& children)
 {
-	const auto query = db.CreateQuery(queryText);
 	Util::Timer t(L"WriteBookEntries: " + arg.toStdWString());
-	query->Bind(0, arg.toStdString());
+	const auto query = CreateQuery(db, queryText, { arg });
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto id = query->Get<int>(0);
@@ -295,7 +341,7 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const std::string& queryTe
 	}
 }
 
-using EntryWriter = void (*)(DB::IDatabase& db, const char* navigationType, const std::string& queryText, const QString& arg, const QString& root, Node::Children& children);
+using EntryWriter = void (*)(DB::IDatabase& db, const char* navigationType, const QString& queryText, const QString& arg, const QString& root, Node::Children& children);
 
 Node WriteNavigationStartsWith(DB::IDatabase& db,
                                const QString& value,
@@ -322,12 +368,12 @@ Node WriteNavigationStartsWith(DB::IDatabase& db,
 			dictionary.pop_back();
 
 			if (!ch.isEmpty())
-				entryWriter(db, navigationType, itemQuery.arg("=").toStdString(), ch, root, children);
+				entryWriter(db, navigationType, itemQuery.arg("="), ch, root, children);
 
 			auto startsWith = ReadStartsWith(db, startsWithQuery.arg(ch.length() + 1), ch);
 			auto tail = std::ranges::partition(startsWith, [](const auto& item) { return item.second > 1; });
 			for (const auto& singleCh : tail | std::views::keys)
-				entryWriter(db, navigationType, itemQuery.arg("like").toStdString(), singleCh + "%", root, children);
+				entryWriter(db, navigationType, itemQuery.arg("like"), singleCh + "%", root, children);
 
 			startsWith.erase(std::begin(tail), std::end(startsWith));
 			std::ranges::copy(startsWith, std::back_inserter(buffer));
@@ -500,7 +546,7 @@ struct Requester::Impl : IPostProcessCallback
 		const auto termsGui = terms.join(' ');
 		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
 		const auto n = head.children.size();
-		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH).toStdString(), terms.join(' '), root, head.children);
+		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH), terms.join(' '), root, head.children);
 
 		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
 		assert(it != head.children.end());
