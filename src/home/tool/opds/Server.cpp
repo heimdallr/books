@@ -150,7 +150,6 @@ private:
 								   return response;
 							   });
 					   });
-
 	}
 
 	void InitHttp(const QString& root)
