@@ -176,7 +176,7 @@ void PrepareQueryForLike(QString& text, QStringList& arguments)
 			ok = false;
 			break;
 		}
-		if (!argument.isEmpty() && std::ranges::any_of(arguments | std::views::take(arguments.length() - 1), [](const auto ch){ return ch == '%'; }))
+		if (!argument.isEmpty() && std::ranges::any_of(arguments | std::views::take(arguments.length() - 1), [](const auto ch) { return ch == '%'; }))
 		{
 			ok = false;
 			break;
@@ -812,7 +812,7 @@ struct Requester::Impl : IPostProcessCallback
 
 	Node WriteArchivesAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
 	{
-		return WriteAuthorsImpl(root, self, navigationId, value, Loc::Archives, JOIN_ARCHIVE);
+		return WriteAuthorsImpl(root, self, navigationId, value, Loc::Archives, JOIN_ARCHIVE, false);
 	}
 
 	Node WriteArchivesAuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const
@@ -879,10 +879,18 @@ where b.BookID = ?
 			                                            query->Get<int>(5),       query->Get<const char*>(6) };
 	}
 
-	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join) const
+	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join, const bool checkBooksQuery = true) const
 	{
 		const auto db = databaseController->GetDatabase(true);
 		join = join.arg(navigationId);
+
+		if (checkBooksQuery)
+		{
+			auto node = WriteBooksList(root, self, navigationId, type, QString("select count(42) from Books b %1").arg(join), QString(SELECT_BOOKS).arg(join));
+			if (!node.children.empty())
+				return node;
+		}
+
 		const auto startsWithQuery = QString(SELECT_AUTHORS_STARTS_WITH).arg(join, "%1");
 		const auto bookItemQuery = QString(SELECT_AUTHORS).arg(join, "%1");
 		const auto navigationType = QString("%1/%2").arg(type, navigationId).toStdString();
@@ -918,6 +926,30 @@ where b.BookID = ?
 		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, where, "%1");
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
+	}
+
+	Node WriteBooksList(const QString& root,
+	                    const QString& self,
+	                    const QString& navigationId,
+	                    const QString& type,
+	                    const QString& countQuery,
+	                    const QString& booksQuery) const
+	{
+		const auto db = databaseController->GetDatabase(true);
+		if (navigationId.isEmpty() ||
+		    [&]
+		    {
+				const auto query = db->CreateQuery(countQuery.toStdString());
+				query->Execute();
+				assert(!query->Eof());
+				const auto n = query->Get<long long>(0);
+				return n == 0 || n > 20;
+			}())
+			return Node {};
+
+		auto head = GetHead(*db, navigationId, QString("%1/%2").arg(type, navigationId), root, self);
+		WriteBookEntries(*db, "", booksQuery, navigationId, root, head.children);
+		return head;
 	}
 
 private:
