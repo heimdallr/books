@@ -244,7 +244,7 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages, %2%L4 words)</source>
+        <source>%L1 letters (%2%3 pages, %2%L4 words)</source>
         <translation></translation>
     </message>
     <message>

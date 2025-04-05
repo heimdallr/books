@@ -244,8 +244,8 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages, %2%L4 words)</source>
-        <translation>%L1 (%2%3 страниц, %2%L4 слов)</translation>
+        <source>%L1 letters (%2%3 pages, %2%L4 words)</source>
+        <translation>%L1 букв (%2%3 страниц, %2%L4 слов)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
