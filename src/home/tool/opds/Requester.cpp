@@ -163,8 +163,51 @@ Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 	return writer;
 }
 
+void PrepareQueryForLike(QString& text, QStringList& arguments)
+{
+	if (!text.contains("like", Qt::CaseInsensitive))
+		return;
+
+	bool ok = true;
+	for (auto& argument : arguments)
+	{
+		if (argument.contains('_'))
+		{
+			ok = false;
+			break;
+		}
+		if (!argument.isEmpty() && std::ranges::any_of(arguments | std::views::take(arguments.length() - 1), [](const auto ch){ return ch == '%'; }))
+		{
+			ok = false;
+			break;
+		}
+	}
+
+	if (ok)
+		return;
+
+	static constexpr char ESCAPE[] { '\\', '|', '#', '@', '~', '^' };
+	const auto it = std::ranges::find_if(ESCAPE, [&](const auto ch) { return std::ranges::none_of(arguments, [&](const auto item) { return item.contains(ch); }); });
+	assert(it != std::end(ESCAPE));
+
+	for (auto& argument : arguments)
+	{
+		const auto endsWithPct = argument.endsWith('%');
+		if (endsWithPct)
+			argument.removeLast();
+
+		argument.replace('_', QString("%1_").arg(*it));
+		argument.replace('%', QString("%1%").arg(*it));
+		if (endsWithPct)
+			argument.append('%');
+	}
+
+	text.replace(QRegularExpression(R"(like +(\?))"), QString(R"(like \1 ESCAPE '%1')").arg(*it));
+}
+
 std::unique_ptr<DB::IQuery> CreateQuery(DB::IDatabase& db, QString text, QStringList arguments)
 {
+	PrepareQueryForLike(text, arguments);
 	auto query = db.CreateQuery(text.toStdString());
 	for (int n = 0; const auto& argument : arguments)
 		query->Bind(n++, argument.toStdString());
