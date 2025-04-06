@@ -19,6 +19,7 @@
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
+#include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
 
 #include "log.h"
@@ -283,7 +284,9 @@ private: // IContextMenuHandler
 		ICollectionCleaner::Books books;
 		books.reserve(idList.size());
 		const auto count = idList.size();
-		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& item) { return ICollectionCleaner::Book { item[0].toLongLong(), std::move(item[1]), std::move(item[2]) }; });
+		std::ranges::transform(std::move(idList),
+		                       std::back_inserter(books),
+		                       [](auto&& idListItem) { return ICollectionCleaner::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) }; });
 		auto cleaner = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
 		cleanerRef.RemovePermanently(std::move(books),
@@ -542,19 +545,7 @@ private:
 		m_databaseUser->Execute({ "Remove books",
 		                          [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove]() mutable
 		                          {
-									  bool ok = true;
-									  const auto db = m_databaseUser->Database();
-									  const auto transaction = db->CreateTransaction();
-									  const auto command =
-										  transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) values(:id, :is_deleted, datetime(CURRENT_TIMESTAMP, 'localtime'))");
-									  for (const auto& id : ids)
-									  {
-										  command->Bind(":id", id);
-										  command->Bind(":is_deleted", remove ? 1 : 0);
-										  ok = command->Execute() && ok;
-									  }
-									  ok = transaction->Commit() && ok;
-
+									  const bool ok = DatabaseUtil::ChangeBookRemoved(*m_databaseUser->Database(), ids, remove);
 									  return [this, item = std::move(item), callback = std::move(callback), remove, ok](size_t)
 									  {
 										  if (!ok)

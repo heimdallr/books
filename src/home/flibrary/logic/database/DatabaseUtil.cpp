@@ -2,10 +2,13 @@
 
 #include <QHash>
 
+#include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/GenresLocalization.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "util/localization.h"
@@ -96,6 +99,35 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 	typed.removed = query.Get<int>(BookQueryFields::IsDeleted);
 
 	return item;
+}
+
+bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, const bool remove, const std::shared_ptr<IProgressController>& progressController)
+{
+	auto progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
+	bool ok = true;
+	const auto transaction = db.CreateTransaction();
+	{
+		const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) values(:id, :is_deleted, datetime(CURRENT_TIMESTAMP, 'localtime'))");
+		for (const auto id : ids)
+		{
+			command->Bind(":id", id);
+			command->Bind(":is_deleted", remove ? 1 : 0);
+			ok = command->Execute() && ok;
+			progressItem->Increment(1);
+		}
+	}
+	{
+		ok = transaction
+		         ->CreateCommand(R"(
+			delete from Books_User 
+			where UserRate is null 
+			and exists (select 42 from Books where Books.BookID = Books_User.BookID and Books.IsDeleted = Books_User.IsDeleted)
+		)")
+		         ->Execute()
+		  && ok;
+	}
+
+	return transaction->Commit() && ok;
 }
 
 } // namespace HomeCompa::Flibrary::DatabaseUtil
