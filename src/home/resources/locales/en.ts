@@ -5365,6 +5365,20 @@ Try again?</source>
         <source>Address has been copied to the clipboard</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>No network interfaces found</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>Any</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
