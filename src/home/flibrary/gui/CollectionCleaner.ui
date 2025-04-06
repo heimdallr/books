@@ -110,6 +110,9 @@
      </item>
      <item row="0" column="0">
       <widget class="QCheckBox" name="removeRemoved">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Delete books marked as deleted</string>
        </property>
@@ -256,6 +259,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="removeForever">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Delete forever, along with book files from archives</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QProgressBar" name="progressBar">
@@ -365,5 +378,22 @@
   <tabstop>languages</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>removeForever</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>removeRemoved</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>542</x>
+     <y>595</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>109</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

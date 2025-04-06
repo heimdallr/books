@@ -126,7 +126,7 @@ CREATE TABLE Books_User (
     FOREIGN KEY (
         BookID
     )
-    REFERENCES Books (BookID)
+    REFERENCES Books (BookID) ON DELETE CASCADE
 );
 --@@
 
@@ -155,7 +155,7 @@ CREATE TABLE Groups_List_User (
     FOREIGN KEY (
         BookID
     )
-    REFERENCES Books (BookID)
+    REFERENCES Books (BookID) ON DELETE CASCADE
 );
 --@@
 

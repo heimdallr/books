@@ -12,6 +12,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "common/Constant.h"
+#include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
 
 #include "Zip.h"
@@ -41,13 +42,16 @@ using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
-	left join Books_User bu on bu.BookID = b.BookID)";
+	left join Books_User bu on bu.BookID = b.BookID 
+	%5
+)";
 
 constexpr auto EMPTY_FIELD = "42";
 constexpr auto GENRE_JOIN = "\n	join Genre_List gl on gl.BookID = b.BookID";
 constexpr auto GENRE_FIELD = "gl.GenreCode";
 constexpr auto AUTHOR_JOIN = "\n	join Author_List al on al.BookID = b.BookID";
 constexpr auto AUTHOR_FIELD = "al.AuthorID";
+constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
 bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
@@ -213,6 +217,7 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 	                                      .arg(hasGenres ? GENRE_JOIN : "")
 	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
 	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+	                                      .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
 	                                      .toStdString());
 
 	AnalyzedBooks analyzedBooks;
@@ -327,7 +332,7 @@ struct CollectionCleaner::Impl
 									if (!genres.isEmpty())
 									{
 										const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
-										switch (observer.GetCleanGenreMode())
+										switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
 										{
 											case CleanGenreMode::Full:
 												addToDelete("in specified genres", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
@@ -377,6 +382,18 @@ struct CollectionCleaner::Impl
 	void Remove(Books books, Callback callback) const
 	{
 		databaseUser->Execute({ "Delete books permanently",
+		                        [this, books = std::move(books), callback = std::move(callback)]() mutable
+		                        {
+									std::unordered_set<long long> ids;
+									std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) { return book.id; });
+									const bool ok = DatabaseUtil::ChangeBookRemoved(*databaseUser->Database(), ids, true, progressController);
+									return [callback = std::move(callback), ok](size_t) { callback(ok); };
+								} });
+	}
+
+	void RemovePermanently(Books books, Callback callback) const
+	{
+		databaseUser->Execute({ "Delete books permanently",
 		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable
 		                        {
 									auto progressItem = progressController->Add(100);
@@ -413,6 +430,11 @@ CollectionCleaner::~CollectionCleaner() = default;
 void CollectionCleaner::Remove(Books books, Callback callback) const
 {
 	m_impl->Remove(std::move(books), std::move(callback));
+}
+
+void CollectionCleaner::RemovePermanently(Books books, Callback callback) const
+{
+	m_impl->RemovePermanently(std::move(books), std::move(callback));
 }
 
 void CollectionCleaner::Analyze(IAnalyzeObserver& observer) const

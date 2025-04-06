@@ -334,7 +334,6 @@ private:
 		if (!value)
 		{
 			m_collectionController->AllowDestructiveOperation(value);
-			m_ui.actionShowCollectionCleaner->setEnabled(value);
 			if (m_self.isVisible())
 				m_uiFactory->ShowInfo(Tr(DENY_DESTRUCTIVE_OPERATIONS_MESSAGE));
 			return;
@@ -354,7 +353,6 @@ private:
 		}
 
 		m_collectionController->AllowDestructiveOperation(value);
-		m_ui.actionShowCollectionCleaner->setEnabled(value);
 	}
 
 	void ConnectActionsFile()

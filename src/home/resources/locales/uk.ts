@@ -594,8 +594,13 @@
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
-        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
-        <translation>У колекції знайдено %1 книг, які відповідають вашим критеріям. Ви впевнені, що хочете видалити їх?</translation>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?</source>
+        <translation>У колекції знайдено %1 книг, які відповідають вашим критеріям. Ви впевнені, що хочете видалити їх%2?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source> permanently, without the possibility of recovery</source>
+        <translation> без можливості відновлення</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
@@ -608,9 +613,18 @@
         <translation>Дивні значення для мінімального та максимального розмірів книг. Ви хочете видалити всі книги?</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source>%1 book(s) deleted</source>
+        <translation>Видалено книг: %1</translation>
+    </message>
+    <message>
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
         <translation>Видалено книг: %1</translation>
+    </message>
+    <message>
+        <source>Delete forever, along with book files from archives</source>
+        <translation>Видалити назавжди разом із файлами книг з архівів</translation>
     </message>
 </context>
 <context>
