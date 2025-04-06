@@ -138,7 +138,7 @@ public:
 		Save();
 	}
 
-private: // ICollectionCleaner::IAnalyzeCallback
+private: // ICollectionCleaner::IAnalyzeObserver
 	void AnalyzeFinished(ICollectionCleaner::Books books) override
 	{
 		if (m_analyzeCanceled)
@@ -177,6 +177,11 @@ private: // ICollectionCleaner::IAnalyzeCallback
 										});
 
 		eventLoop.exec();
+	}
+
+	bool IsPermanently() const override
+	{
+		return m_ui.removeForever->isChecked();
 	}
 
 	bool NeedDeleteMarkedAsDeleted() const override

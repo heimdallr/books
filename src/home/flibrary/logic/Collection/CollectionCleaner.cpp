@@ -42,13 +42,16 @@ using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
-	left join Books_User bu on bu.BookID = b.BookID)";
+	left join Books_User bu on bu.BookID = b.BookID 
+	%5
+)";
 
 constexpr auto EMPTY_FIELD = "42";
 constexpr auto GENRE_JOIN = "\n	join Genre_List gl on gl.BookID = b.BookID";
 constexpr auto GENRE_FIELD = "gl.GenreCode";
 constexpr auto AUTHOR_JOIN = "\n	join Author_List al on al.BookID = b.BookID";
 constexpr auto AUTHOR_FIELD = "al.AuthorID";
+constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
 bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
@@ -214,6 +217,7 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 	                                      .arg(hasGenres ? GENRE_JOIN : "")
 	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
 	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+	                                      .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
 	                                      .toStdString());
 
 	AnalyzedBooks analyzedBooks;

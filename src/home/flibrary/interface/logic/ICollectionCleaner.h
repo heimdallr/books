@@ -33,6 +33,7 @@ public:
 		virtual ~IAnalyzeObserver() = default;
 		virtual void AnalyzeFinished(Books books) = 0;
 
+		virtual bool IsPermanently() const = 0;
 		virtual bool NeedDeleteMarkedAsDeleted() const = 0;
 		virtual bool NeedDeleteDuplicates() const = 0;
 		virtual QStringList GetLanguages() const = 0;
