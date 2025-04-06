@@ -928,12 +928,7 @@ where b.BookID = ?
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
 
-	Node WriteBooksList(const QString& root,
-	                    const QString& self,
-	                    const QString& navigationId,
-	                    const QString& type,
-	                    const QString& countQuery,
-	                    const QString& booksQuery) const
+	Node WriteBooksList(const QString& root, const QString& self, const QString& navigationId, const QString& type, const QString& countQuery, const QString& booksQuery) const
 	{
 		const auto db = databaseController->GetDatabase(true);
 		if (navigationId.isEmpty() ||
