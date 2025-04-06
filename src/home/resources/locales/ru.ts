@@ -574,8 +574,13 @@
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
-        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
-        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите их удалить?</translation>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?</source>
+        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите удалить их%2?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source> permanently, without the possibility of recovery</source>
+        <translation> навсегда, без возможности восстановления</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
@@ -586,6 +591,11 @@
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
         <translation>Странные значения для минимального и максимального размеров книг. Вы хотите удалить все книги?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source>%1 book(s) deleted</source>
+        <translation>Удалено книг: %1</translation>
     </message>
     <message>
         <source>Removes books that have at least one genre in the set of marked ones</source>
@@ -611,6 +621,10 @@
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
         <translation>Удалено книг: %1</translation>
+    </message>
+    <message>
+        <source>Delete forever, along with book files from archives</source>
+        <translation>Удалить навсегда, вместе с файлами книг из архивов</translation>
     </message>
 </context>
 <context>
