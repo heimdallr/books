@@ -286,13 +286,13 @@ private: // IContextMenuHandler
 		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& item) { return ICollectionCleaner::Book { item[0].toLongLong(), std::move(item[1]), std::move(item[2]) }; });
 		auto cleaner = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
-		cleanerRef.Remove(std::move(books),
-		                  [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count](const bool result) mutable
-		                  {
-							  if (result)
-								  m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
-							  callback(item);
-						  });
+		cleanerRef.RemovePermanently(std::move(books),
+		                             [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count](const bool result) mutable
+		                             {
+										 if (result)
+											 m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+										 callback(item);
+									 });
 	}
 
 	void UndoRemoveBook(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override

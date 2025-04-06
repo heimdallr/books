@@ -156,14 +156,15 @@ private: // ICollectionCleaner::IAnalyzeCallback
 
 		QEventLoop eventLoop;
 
-		m_collectionCleaner->Remove(std::move(books),
-		                            [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
-		                            {
-										if (ok)
-											m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+		if (m_ui.removeForever->isChecked())
+			m_collectionCleaner->RemovePermanently(std::move(books),
+			                                       [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
+			                                       {
+													   if (ok)
+														   m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 
-										eventLoop.exit();
-									});
+													   eventLoop.exit();
+												   });
 
 		eventLoop.exec();
 	}

@@ -374,7 +374,7 @@ struct CollectionCleaner::Impl
 		analyzeCanceled = true;
 	}
 
-	void Remove(Books books, Callback callback) const
+	void RemovePermanently(Books books, Callback callback) const
 	{
 		databaseUser->Execute({ "Delete books permanently",
 		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable
@@ -410,9 +410,9 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>&
 
 CollectionCleaner::~CollectionCleaner() = default;
 
-void CollectionCleaner::Remove(Books books, Callback callback) const
+void CollectionCleaner::RemovePermanently(Books books, Callback callback) const
 {
-	m_impl->Remove(std::move(books), std::move(callback));
+	m_impl->RemovePermanently(std::move(books), std::move(callback));
 }
 
 void CollectionCleaner::Analyze(IAnalyzeObserver& observer) const

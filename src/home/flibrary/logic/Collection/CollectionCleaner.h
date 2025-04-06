@@ -23,7 +23,7 @@ public:
 	~CollectionCleaner() override;
 
 private: // ICollectionCleaner
-	void Remove(Books books, Callback callback) const override;
+	void RemovePermanently(Books books, Callback callback) const override;
 	void Analyze(IAnalyzeObserver& observer) const override;
 	void AnalyzeCancel() const override;
 
