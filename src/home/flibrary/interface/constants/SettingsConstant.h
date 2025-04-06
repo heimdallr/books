@@ -14,7 +14,9 @@ constexpr auto HIDE_SCROLLBARS_KEY = "ui/hideScrollBars";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
 
+constexpr auto OPDS_HOST_KEY = "opds/host";
 constexpr auto OPDS_PORT_KEY = "opds/port";
+constexpr auto OPDS_HOST_DEFAULT = "Any";
 constexpr auto OPDS_PORT_DEFAULT = 12791;
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";

@@ -5376,6 +5376,20 @@ Try again?</source>
         <source>Address has been copied to the clipboard</source>
         <translation>Адресу скопійовано в буфер обміну</translation>
     </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>No network interfaces found</source>
+        <translation>Мережевих інтерфейсів не знайдено</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>Any</source>
+        <translation>Будь-який</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Адреса</translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
