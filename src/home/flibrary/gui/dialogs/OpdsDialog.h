@@ -21,6 +21,9 @@ public:
 	OpdsDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController, QWidget* parent = nullptr);
 	~OpdsDialog() override;
 
+private: // QDialog
+	int exec() override;
+
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;

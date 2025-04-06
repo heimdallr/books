@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>599</width>
-    <height>170</height>
+    <width>684</width>
+    <height>179</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,28 +25,28 @@
      <property name="horizontalSpacing">
       <number>24</number>
      </property>
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Port</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>Autostart</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="2" column="1">
       <widget class="QCheckBox" name="checkBoxAddToSturtup">
        <property name="text">
         <string>Start automatically</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item row="1" column="1">
       <widget class="QSpinBox" name="spinBoxPort">
        <property name="minimum">
         <number>1024</number>
@@ -59,33 +59,43 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>Web Address</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="3" column="1">
       <widget class="QLineEdit" name="lineEditWebAddress">
        <property name="readOnly">
         <bool>true</bool>
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>OPDS Address</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QLineEdit" name="lineEditOpdsAddress">
        <property name="readOnly">
         <bool>true</bool>
        </property>
       </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Host</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBoxHosts"/>
      </item>
     </layout>
    </item>

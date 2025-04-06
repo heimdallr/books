@@ -466,7 +466,20 @@ private:
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
-		connect(m_ui.actionOpds, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateOpdsDialog()->exec(); });
+		connect(m_ui.actionOpds,
+		        &QAction::triggered,
+		        &m_self,
+		        [&]
+		        {
+					try
+					{
+						m_uiFactory->CreateOpdsDialog()->exec();
+					}
+					catch (const std::exception& ex)
+					{
+						m_uiFactory->ShowError(QString::fromStdString(ex.what()));
+					}
+				});
 		connect(m_ui.actionExportTemplate,
 		        &QAction::triggered,
 		        &m_self,

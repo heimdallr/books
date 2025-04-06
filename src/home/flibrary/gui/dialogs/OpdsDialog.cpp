@@ -18,6 +18,8 @@ namespace
 {
 constexpr auto CONTEXT = "OpdsDialog";
 constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
+constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
+constexpr auto ANY = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
 TR_DEF
 }
 
@@ -41,10 +43,19 @@ struct OpdsDialog::Impl final
 		ui.setupUi(&self);
 		this->opdsController->RegisterObserver(this);
 
+		ui.comboBoxHosts->addItem(Tr(ANY), Constant::Settings::OPDS_HOST_DEFAULT);
+		for (const QHostAddress& address : QNetworkInterface::allAddresses())
+			if (address.protocol() == QAbstractSocket::IPv4Protocol)
+				ui.comboBoxHosts->addItem(address.toString(), address.toString());
+
+		if (const auto index = ui.comboBoxHosts->findData(this->settings->Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT)); index >= 0)
+			ui.comboBoxHosts->setCurrentIndex(index);
+
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
 
-		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] { OnPortChanged(); });
+		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] { OnConnectionChanged(); });
+		connect(ui.comboBoxHosts, &QComboBox::currentIndexChanged, &self, [this] { OnConnectionChanged(); });
 		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] { this->opdsController->Stop(); });
 		connect(ui.btnStart,
 		        &QAbstractButton::clicked,
@@ -52,6 +63,7 @@ struct OpdsDialog::Impl final
 		        [this]
 		        {
 					this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
+					this->settings->Set(Constant::Settings::OPDS_HOST_KEY, ui.comboBoxHosts->currentData());
 					this->opdsController->Start();
 				});
 
@@ -72,7 +84,7 @@ struct OpdsDialog::Impl final
 		actionSetup(ui.actionCopyOpds, ui.lineEditOpdsAddress);
 		actionSetup(ui.actionCopyWeb, ui.lineEditWebAddress);
 
-		OnPortChanged();
+		OnConnectionChanged();
 		OnRunningChanged();
 		Init();
 	}
@@ -98,6 +110,7 @@ private: // IOpdsController::IObserver
 	void OnRunningChanged() override
 	{
 		const auto isRunning = opdsController->IsRunning();
+		ui.comboBoxHosts->setEnabled(!isRunning);
 		ui.spinBoxPort->setEnabled(!isRunning);
 		ui.lineEditOpdsAddress->setEnabled(isRunning);
 		ui.lineEditWebAddress->setEnabled(isRunning);
@@ -106,18 +119,11 @@ private: // IOpdsController::IObserver
 	}
 
 private:
-	void OnPortChanged() const
+	void OnConnectionChanged() const
 	{
-		const QHostAddress& localhost = QHostAddress(QHostAddress::LocalHost);
-		for (const QHostAddress& address : QNetworkInterface::allAddresses())
-		{
-			if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
-			{
-				ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(address.toString()).arg(ui.spinBoxPort->value()));
-				ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(address.toString()).arg(ui.spinBoxPort->value()));
-				return;
-			}
-		}
+		const auto host = ui.comboBoxHosts->currentIndex() ? ui.comboBoxHosts->currentText() : ui.comboBoxHosts->itemText(1);
+		ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
+		ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
 	}
 
 private:
@@ -131,3 +137,11 @@ OpdsDialog::OpdsDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidge
 }
 
 OpdsDialog::~OpdsDialog() = default;
+
+int OpdsDialog::exec()
+{
+	if (m_impl->ui.comboBoxHosts->count() < 2)
+		throw std::runtime_error(Tr(NO_NETWORK_INTERFACES_FOUND).toStdString());
+
+	return QDialog::exec();
+}
