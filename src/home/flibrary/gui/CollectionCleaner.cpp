@@ -8,15 +8,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/IModel.h"
-#include "interface/logic/IReaderController.h"
-
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IUiFactory.h"
 #include "util/localization.h"
-
-#include "ScrollBarController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

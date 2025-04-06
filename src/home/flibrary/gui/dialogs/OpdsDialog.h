@@ -5,11 +5,10 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-namespace HomeCompa
-{
-class IParentWidgetProvider;
-class ISettings;
-}
+#include "interface/logic/IOpdsController.h"
+
+#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "util/Settings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -19,7 +18,7 @@ class OpdsDialog : public QDialog
 	NON_COPY_MOVABLE(OpdsDialog)
 
 public:
-	OpdsDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<class IOpdsController> opdsController, QWidget* parent = nullptr);
+	OpdsDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController, QWidget* parent = nullptr);
 	~OpdsDialog() override;
 
 private:

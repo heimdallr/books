@@ -7,10 +7,8 @@
 #include <QToolTip>
 
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/IOpdsController.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IParentWidgetProvider.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;

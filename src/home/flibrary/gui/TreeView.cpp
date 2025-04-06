@@ -20,20 +20,15 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/util.h"
 #include "util/ColorUtil.h"
-#include "util/ISettings.h"
 #include "util/ObjectsConnector.h"
 #include "util/localization.h"
 
-#include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
-#include "ScrollBarController.h"
 #include "log.h"
 #include "zip.h"
 
