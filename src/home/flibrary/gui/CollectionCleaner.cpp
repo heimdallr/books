@@ -70,6 +70,7 @@ public:
 	     std::shared_ptr<const Util::IUiFactory> uiFactory,
 	     std::shared_ptr<const IReaderController> readerController,
 	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+	     std::shared_ptr<const IBookInfoProvider> dataProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreModel> genreModel,
 	     std::shared_ptr<ILanguageModel> languageModel,
@@ -81,6 +82,7 @@ public:
 		, m_uiFactory { std::move(uiFactory) }
 		, m_readerController { std::move(readerController) }
 		, m_collectionCleaner { std::move(collectionCleaner) }
+		, m_dataProvider { std::move(dataProvider) }
 		, m_settings { std::move(settings) }
 		, m_genreModel { std::shared_ptr<IModel> { std::move(genreModel) } }
 		, m_languageModel { std::shared_ptr<IModel> { std::move(languageModel) } }
@@ -178,6 +180,8 @@ private: // ICollectionCleaner::IAnalyzeObserver
 												m_uiFactory->ShowInfo(Tr(LOGICAL_REMOVING_RESULT).arg(count));
 
 											eventLoop.exit();
+											if (ok)
+												m_dataProvider->RequestBooks(true);
 										});
 		}
 
@@ -342,6 +346,7 @@ private:
 	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const ICollectionCleaner> m_collectionCleaner;
+	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IModel, std::shared_ptr> m_genreModel;
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
@@ -354,6 +359,7 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProv
                                      std::shared_ptr<const Util::IUiFactory> uiFactory,
                                      std::shared_ptr<const IReaderController> readerController,
                                      std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+                                     std::shared_ptr<const IBookInfoProvider> dataProvider,
                                      std::shared_ptr<ISettings> settings,
                                      std::shared_ptr<IGenreModel> genreModel,
                                      std::shared_ptr<ILanguageModel> languageModel,
@@ -366,6 +372,7 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProv
              std::move(uiFactory),
              std::move(readerController),
              std::move(collectionCleaner),
+             std::move(dataProvider),
              std::move(settings),
              std::move(genreModel),
              std::move(languageModel),

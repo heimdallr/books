@@ -7,6 +7,7 @@
 
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IModel.h"
 #include "interface/logic/IReaderController.h"
 
@@ -32,6 +33,7 @@ public:
 	                  std::shared_ptr<const Util::IUiFactory> uiFactory,
 	                  std::shared_ptr<const IReaderController> readerController,
 	                  std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+	                  std::shared_ptr<const IBookInfoProvider> dataProvider,
 	                  std::shared_ptr<ISettings> settings,
 	                  std::shared_ptr<IGenreModel> genreModel,
 	                  std::shared_ptr<ILanguageModel> languageModel,
