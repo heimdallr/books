@@ -82,11 +82,9 @@ void ScrollBarController::OnTimeoutV() const
 	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 	const auto pos = QCursor::pos();
 
-	auto rect = viewport.geometry();
-	rect.setX(rect.width() - threshold - (area.verticalScrollBar()->isVisible() ? 0 : threshold));
-	rect.setWidth(5 * threshold / 2);
-	const auto topLeft = viewport.mapToGlobal(rect.topLeft());
-	const auto bottomRight = viewport.mapToGlobal(rect.bottomRight());
+	const auto x = viewport.geometry().width() - threshold - (area.verticalScrollBar()->isVisible() ? 0 : threshold);
+	auto topLeft = viewport.mapToGlobal(QPoint { x, std::numeric_limits<int>::min() / 100 });
+	auto bottomRight = viewport.mapToGlobal(QPoint { x + 5 * threshold / 2, std::numeric_limits<int>::max() / 100 });
 	if (QRect(topLeft, bottomRight).contains(pos))
 		return area.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
@@ -104,11 +102,9 @@ void ScrollBarController::OnTimeoutH() const
 	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 	const auto pos = QCursor::pos();
 
-	auto rect = viewport.geometry();
-	rect.setY(rect.height() - threshold - (area.horizontalScrollBar()->isVisible() ? 0 : threshold));
-	rect.setHeight(5 * threshold / 2);
-	const auto topLeft = viewport.mapToGlobal(rect.topLeft());
-	const auto bottomRight = viewport.mapToGlobal(rect.bottomRight());
+	const auto y = viewport.geometry().height() - threshold - (area.horizontalScrollBar()->isVisible() ? 0 : threshold);
+	const auto topLeft = viewport.mapToGlobal(QPoint { std::numeric_limits<int>::min() / 100, y });
+	const auto bottomRight = viewport.mapToGlobal(QPoint { std::numeric_limits<int>::max() / 100, y + 5 * threshold / 2 });
 	if (QRect(topLeft, bottomRight).contains(pos))
 		return area.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
