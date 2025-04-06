@@ -28,7 +28,8 @@ class CollectionCleaner final : public QDialog
 	NON_COPY_MOVABLE(CollectionCleaner)
 
 public:
-	CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiFactory,
+	CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	                  std::shared_ptr<const Util::IUiFactory> uiFactory,
 	                  std::shared_ptr<const IReaderController> readerController,
 	                  std::shared_ptr<const ICollectionCleaner> collectionCleaner,
 	                  std::shared_ptr<ISettings> settings,

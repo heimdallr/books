@@ -64,6 +64,7 @@ class CollectionCleaner::Impl final
 
 public:
 	Impl(CollectionCleaner& self,
+	     const ICollectionProvider& collectionProvider,
 	     std::shared_ptr<const Util::IUiFactory> uiFactory,
 	     std::shared_ptr<const IReaderController> readerController,
 	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
@@ -117,6 +118,8 @@ public:
 		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
 		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
 
+		m_ui.removeForever->setEnabled(collectionProvider.ActiveCollectionExists() && collectionProvider.GetActiveCollection().destructiveOperationsAllowed);
+
 		Load();
 
 		auto label = new QLabel(Tr(ANALYZING));
@@ -167,7 +170,7 @@ private: // ICollectionCleaner::IAnalyzeCallback
 
 	bool NeedDeleteMarkedAsDeleted() const override
 	{
-		return m_ui.removeRemoved->isChecked();
+		return m_ui.removeRemoved->isEnabled() && m_ui.removeRemoved->isChecked();
 	}
 
 	bool NeedDeleteDuplicates() const override
@@ -326,7 +329,8 @@ private:
 	bool m_analyzeCanceled { false };
 };
 
-CollectionCleaner::CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiFactory,
+CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+                                     std::shared_ptr<const Util::IUiFactory> uiFactory,
                                      std::shared_ptr<const IReaderController> readerController,
                                      std::shared_ptr<const ICollectionCleaner> collectionCleaner,
                                      std::shared_ptr<ISettings> settings,
@@ -337,6 +341,7 @@ CollectionCleaner::CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiF
                                      QWidget* parent)
 	: QDialog(uiFactory->GetParentWidget(parent))
 	, m_impl(*this,
+             *collectionProvider,
              std::move(uiFactory),
              std::move(readerController),
              std::move(collectionCleaner),
