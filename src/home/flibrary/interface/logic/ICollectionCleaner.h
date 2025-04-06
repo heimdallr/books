@@ -46,6 +46,7 @@ public:
 
 public:
 	virtual ~ICollectionCleaner() = default;
+	virtual void Remove(Books books, Callback callback) const = 0;
 	virtual void RemovePermanently(Books books, Callback callback) const = 0;
 	virtual void Analyze(IAnalyzeObserver& callback) const = 0;
 	virtual void AnalyzeCancel() const = 0;

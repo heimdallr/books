@@ -12,6 +12,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "common/Constant.h"
+#include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
 
 #include "Zip.h"
@@ -327,7 +328,7 @@ struct CollectionCleaner::Impl
 									if (!genres.isEmpty())
 									{
 										const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
-										switch (observer.GetCleanGenreMode())
+										switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
 										{
 											case CleanGenreMode::Full:
 												addToDelete("in specified genres", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
@@ -374,6 +375,18 @@ struct CollectionCleaner::Impl
 		analyzeCanceled = true;
 	}
 
+	void Remove(Books books, Callback callback) const
+	{
+		databaseUser->Execute({ "Delete books permanently",
+		                        [this, books = std::move(books), callback = std::move(callback)]() mutable
+		                        {
+									std::unordered_set<long long> ids;
+									std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) { return book.id; });
+									const bool ok = DatabaseUtil::ChangeBookRemoved(*databaseUser->Database(), ids, true, progressController);
+									return [callback = std::move(callback), ok](size_t) { callback(ok); };
+								} });
+	}
+
 	void RemovePermanently(Books books, Callback callback) const
 	{
 		databaseUser->Execute({ "Delete books permanently",
@@ -409,6 +422,11 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>&
 }
 
 CollectionCleaner::~CollectionCleaner() = default;
+
+void CollectionCleaner::Remove(Books books, Callback callback) const
+{
+	m_impl->Remove(std::move(books), std::move(callback));
+}
 
 void CollectionCleaner::RemovePermanently(Books books, Callback callback) const
 {

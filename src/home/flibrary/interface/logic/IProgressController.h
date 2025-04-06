@@ -24,6 +24,18 @@ public:
 		virtual bool IsStopped() const noexcept = 0;
 	};
 
+	class ProgressItemStub : virtual public IProgressItem
+	{
+		void Increment(int64_t) override
+		{
+		}
+
+		bool IsStopped() const noexcept override
+		{
+			return false;
+		}
+	};
+
 public:
 	virtual ~IProgressController() = default;
 

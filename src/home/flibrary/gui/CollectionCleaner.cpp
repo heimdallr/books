@@ -18,11 +18,12 @@ namespace
 {
 using Role = IModel::Role;
 
-constexpr auto CONTEXT = "CollectionCleaner";
+constexpr auto CONTEXT = ICollectionCleaner::CONTEXT;
 constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
 constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
 constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
 constexpr auto WRONG_SIZES = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
+constexpr auto LOGICAL_REMOVING_RESULT = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted");
 
 constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
 constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
@@ -161,10 +162,19 @@ private: // ICollectionCleaner::IAnalyzeCallback
 			                                       [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
 			                                       {
 													   if (ok)
-														   m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+														   m_uiFactory->ShowInfo(Tr(ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 
 													   eventLoop.exit();
 												   });
+		else
+			m_collectionCleaner->Remove(std::move(books),
+			                            [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
+			                            {
+											if (ok)
+												m_uiFactory->ShowInfo(Tr(LOGICAL_REMOVING_RESULT).arg(count));
+
+											eventLoop.exit();
+										});
 
 		eventLoop.exec();
 	}
