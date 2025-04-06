@@ -108,6 +108,17 @@ public:
 		        &m_self,
 		        [&]
 		        {
+					if (m_createMode)
+					{
+						const auto db = GetDatabaseFileName();
+						const auto dir = QFileInfo(db).dir();
+						if (!dir.exists() && !dir.mkpath("."))
+						{
+							SetErrorText(m_ui.editDatabase, Error(CANNOT_CREATE_FOLDER).arg(dir.path()));
+							return;
+						}
+					}
+
 					if (CheckData())
 						m_self.done(m_createMode ? Result::CreateNew : Result::Add);
 				});
@@ -245,10 +256,6 @@ private:
 
 		if (m_createMode && QFileInfo(db).suffix().toLower() == "inpx")
 			return SetErrorText(m_ui.editDatabase, Error(BAD_DATABASE_EXT));
-
-		const auto dir = QFileInfo(db).dir();
-		if (!dir.exists() && !dir.mkpath("."))
-			return SetErrorText(m_ui.editDatabase, Error(CANNOT_CREATE_FOLDER).arg(dir.path()));
 
 		return true;
 	}
