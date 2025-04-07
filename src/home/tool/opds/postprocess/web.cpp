@@ -462,7 +462,6 @@ private:
 					createHrefs(fileInfoTransliterated, true);
 		}
 
-
 		return ParserOpds::OnEndElementFeed();
 	}
 
