@@ -30,9 +30,21 @@ void Sort(Genre& genre, const auto& proj)
 		Sort(child, proj);
 }
 
+void SortDesc(Genre& genre, const auto& proj)
+{
+	std::ranges::sort(genre.children, std::greater {}, proj);
+	for (auto& child : genre.children)
+		Sort(child, proj);
+}
+
 void SortByCode(Genre& genre)
 {
 	Sort(genre, [](const auto& item) { return item.code; });
+}
+
+void SortByChildCount(Genre& genre)
+{
+	Sort(genre, [](const auto& item) { return item.children.size(); });
 }
 
 void SortByName(Genre& genre)
@@ -40,11 +52,25 @@ void SortByName(Genre& genre)
 	Sort(genre, [](const auto& item) { return item.name; });
 }
 
+void SortByCodeDesc(Genre& genre)
+{
+	SortDesc(genre, [](const auto& item) { return item.code; });
+}
+
+void SortByNameDesc(Genre& genre)
+{
+	SortDesc(genre, [](const auto& item) { return item.name; });
+}
+
+void SortByChildCountDesc(Genre& genre)
+{
+	SortDesc(genre, [](const auto& item) { return item.children.size(); });
+}
+
 using Sorter = void (*)(Genre&);
 constexpr std::pair<const char*, Sorter> SORTERS[] {
 #define ITEM(NAME) { #NAME, &NAME }
-	ITEM(SortByCode),
-	ITEM(SortByName),
+	ITEM(SortByCode), ITEM(SortByName), ITEM(SortByChildCount), ITEM(SortByCodeDesc), ITEM(SortByNameDesc), ITEM(SortByChildCountDesc),
 #undef ITEM
 };
 
