@@ -121,6 +121,8 @@ constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found 
 
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
+constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
+constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
 TR_DEF
 
@@ -924,6 +926,12 @@ where b.BookID = ?
 
 		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, where, "%1");
 		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, where, "%1");
+		if (value.isEmpty())
+		{
+			auto node = WriteBooksList(root, self, navigationId, type, QString("select count(42) from Books b %1").arg(join), QString(SELECT_BOOKS).arg(join));
+			if (!node.children.empty())
+				return node;
+		}
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
 		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
@@ -938,7 +946,7 @@ where b.BookID = ?
 				query->Execute();
 				assert(!query->Eof());
 				const auto n = query->Get<long long>(0);
-				return n == 0 || n > 20;
+				return n == 0 || n > m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT);
 			}())
 			return Node {};
 
