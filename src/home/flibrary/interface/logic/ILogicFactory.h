@@ -38,6 +38,14 @@ namespace HomeCompa::Flibrary
 class ILogicFactory : public Lockable<ILogicFactory> // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	class ITemporaryDir // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~ITemporaryDir() = default;
+		virtual QString filePath(const QString& fileName) const = 0;
+		virtual QString path() const = 0;
+	};
+
 	struct ExtractedBook
 	{
 		int id;
@@ -68,7 +76,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker> CreateUpdateChecker() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner> CreateCollectionCleaner() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QTemporaryDir> CreateTemporaryDir() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir> CreateTemporaryDir(bool singleInstance = false) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::shared_ptr<IProgressController> GetProgressController() const = 0;
