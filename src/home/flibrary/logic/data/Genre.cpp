@@ -14,7 +14,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-Genre Genre::Load(DB::IDatabase& db)
+Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
 {
 	using AllGenresItem = std::tuple<Genre, QString>;
 	std::unordered_map<QString, AllGenresItem> allGenres;
@@ -56,7 +56,9 @@ Genre Genre::Load(DB::IDatabase& db)
 			allGenres.erase(genre.code);
 	}
 
-	std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
+	if (!showDateAdded)
+		std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
+
 	updateChildren(root.children);
 
 	return root;

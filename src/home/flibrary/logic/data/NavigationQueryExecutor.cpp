@@ -2,6 +2,7 @@
 
 #include <QHash>
 
+#include <queue>
 #include <ranges>
 #include <unordered_map>
 
@@ -13,6 +14,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 
+#include "data/Genre.h"
 #include "database/DatabaseUtil.h"
 #include "util/SortString.h"
 
@@ -119,46 +121,32 @@ void RequestNavigationSimpleList(NavigationMode navigationMode, INavigationQuery
 	                     1);
 }
 
-void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, Cache& cache)
+void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription&, Cache& cache)
 {
 	auto db = databaseUser.Database();
 	if (!db)
 		return;
 
 	databaseUser.Execute({ "Get navigation",
-	                       [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
+	                       [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
 	                       {
-							   using AllGenresItem = std::tuple<IDataItem::Ptr, QString>;
-							   std::unordered_map<QString, AllGenresItem> allGenres;
-							   std::vector<AllGenresItem> buffer;
-							   const auto query = db->CreateQuery(queryDescription.query);
-							   for (query->Execute(); !query->Eof(); query->Next())
-							   {
-								   AllGenresItem item { queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index), query->Get<const char*>(3) };
-								   if (query->Get<int>(4))
-									   buffer.emplace_back(std::move(item));
-								   else
-									   allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
-							   }
-
+							   auto genre = Genre::Load(*db, true);
 							   auto root = NavigationItem::Create();
-
-							   while (!buffer.empty())
+							   std::queue<std::pair<const Genre*, IDataItem*>> queue;
+							   queue.emplace(&genre, root.get());
+							   while (!queue.empty())
 							   {
-								   for (auto&& [genre, parentCode] : buffer)
-								   {
-									   genre->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
-									   const auto it = allGenres.find(parentCode);
-									   (it == allGenres.end() ? root : std::get<0>(it->second))->AppendChild(std::move(genre));
-								   }
-								   buffer.clear();
+								   auto [genreItem, dataItem] = queue.front();
+								   queue.pop();
 
-								   for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) { return get<0>(item)->GetChildCount() != 0; }))
-									   buffer.emplace_back(std::move(genre));
-								   for (const auto& [genre, _] : buffer)
-									   allGenres.erase(genre->GetId());
+								   dataItem->SetId(genreItem->code);
+								   dataItem->SetData(genreItem->name);
+								   for (const auto& item : genreItem->children)
+								   {
+									   auto& ptr = dataItem->AppendChild(NavigationItem::Create());
+									   queue.emplace(&item, ptr.get());
+								   }
 							   }
-							   root->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
 
 							   return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable
 							   {
