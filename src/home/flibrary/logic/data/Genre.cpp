@@ -19,14 +19,16 @@ Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
 	using AllGenresItem = std::tuple<Genre, QString>;
 	std::unordered_map<QString, AllGenresItem> allGenres;
 	std::vector<AllGenresItem> buffer;
-	const auto query = db.CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
+	const auto query = db.CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
+		const auto* fb2Code = query->Get<const char*>(1);
+		auto translated = Loc::Tr(GENRE, fb2Code);
 		AllGenresItem item {
-			Genre { .code = query->Get<const char*>(0), .name = Loc::Tr(GENRE, query->Get<const char*>(1)) },
+			Genre { .code = query->Get<const char*>(0), .name = translated != fb2Code ? std::move(translated) : query->Get<const char*>(3) },
 			query->Get<const char*>(2)
 		};
-		if (query->Get<int>(3))
+		if (query->Get<int>(4))
 			buffer.emplace_back(std::move(item));
 		else
 			allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
