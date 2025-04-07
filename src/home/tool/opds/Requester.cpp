@@ -71,11 +71,11 @@ constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %3, 1), count(42) "
+constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), count(42) "
 										  "from Books b "
 										  "%1 "
-										  "where b.SearchTitle != ? and b.SearchTitle like ? %2 "
-										  "group by substr(b.SearchTitle, %3, 1)";
+										  "where b.SearchTitle != ? and b.SearchTitle like ? "
+										  "group by substr(b.SearchTitle, %2, 1)";
 
 constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '') from Authors a join "
@@ -84,7 +84,7 @@ constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "from Books b "
 							  "%1 "
 							  "left join Series s on s.SeriesID = b.SeriesID ";
-constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %3 ? %2";
+constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %2 ?";
 
 constexpr auto SELECT_AUTHORS_STARTS_WITH = "select substr(a.SearchName, %2, 1), count(42) "
 											"from Authors a "
@@ -110,8 +110,6 @@ constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and 
 constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
 constexpr auto JOIN_SEARCH = "join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH ?";
 
-constexpr auto WHERE_ARCHIVE = "and b.FolderID = %1";
-
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
@@ -121,6 +119,9 @@ constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found 
 
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
+constexpr auto CONTENT = "content";
+constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
+constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
 TR_DEF
 
@@ -144,6 +145,23 @@ struct Node
 
 	QString title;
 };
+
+const QString& GetContent(const Node& node)
+{
+	const auto it = std::ranges::find(node.children, CONTENT, [](const auto& item) { return item.name; });
+	assert(it != node.children.end());
+	return it->value;
+}
+
+std::tuple<Util::QStringWrapper, Util::QStringWrapper> ToComparable(const Node& node)
+{
+	return std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title });
+}
+
+bool operator<(const Node& lhs, const Node& rhs)
+{
+	return ToComparable(lhs) < ToComparable(rhs);
+}
 
 std::vector<Node> GetStandardNodes(QString id, QString title)
 {
@@ -279,7 +297,7 @@ Node& WriteEntry(const QString& root, Node::Children& children, QString id, QStr
 	if (content.isEmpty() && count > 0)
 		content = Tr(COUNT).arg(count);
 	if (!content.isEmpty())
-		entry.children.emplace_back("content",
+		entry.children.emplace_back(CONTENT,
 		                            std::move(content),
 		                            Node::Attributes {
 										{ "type", "text/html" }
@@ -482,22 +500,18 @@ QString GetOutputFileNameTemplate(const ISettings& settings)
 
 } // namespace
 
-struct Requester::Impl : IPostProcessCallback
+class Requester::Impl : public IPostProcessCallback
 {
-	std::shared_ptr<const ISettings> settings;
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
-	std::shared_ptr<Flibrary::IAnnotationController> annotationController;
-
+public:
 	Impl(std::shared_ptr<const ISettings> settings,
 	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-		: settings { std::move(settings) }
-		, collectionProvider { std::move(collectionProvider) }
-		, databaseController { std::move(databaseController) }
-		, annotationController { std::move(annotationController) }
-		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*this->settings) }
+		: m_settings { std::move(settings) }
+		, m_collectionProvider { std::move(collectionProvider) }
+		, m_databaseController { std::move(databaseController) }
+		, m_annotationController { std::move(annotationController) }
+		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*m_settings) }
 	{
 		m_coversTimer.setInterval(std::chrono::minutes(1));
 		m_coversTimer.setSingleShot(true);
@@ -510,10 +524,15 @@ struct Requester::Impl : IPostProcessCallback
 						 });
 	}
 
+	const Flibrary::ICollectionProvider& GetCollectionProvider() const
+	{
+		return *m_collectionProvider;
+	}
+
 	Node WriteRoot(const QString& root, const QString& self) const
 	{
-		const auto db = databaseController->GetDatabase(true);
-		auto head = GetHead(*db, "root", collectionProvider->GetActiveCollection().name, root, self);
+		const auto db = m_databaseController->GetDatabase(true);
+		auto head = GetHead(*db, "root", m_collectionProvider->GetActiveCollection().name, root, self);
 
 		const auto dbStatQueryTextItems = QStringList
 		{
@@ -539,7 +558,7 @@ struct Requester::Impl : IPostProcessCallback
 
 	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
 
 		auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
@@ -566,14 +585,14 @@ struct Requester::Impl : IPostProcessCallback
 			{
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 
-				const auto db = databaseController->GetDatabase(true);
+				const auto db = m_databaseController->GetDatabase(true);
 				const auto& book = dataProvider.GetBook();
 
 				head = GetHead(*db, bookId, book.GetRawData(Flibrary::BookItem::Column::Title), root, self);
 
 				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
-				const auto strategy = strategyCreator(*settings);
-				auto annotation = annotationController->CreateAnnotation(dataProvider, *strategy);
+				const auto strategy = strategyCreator(*m_settings);
+				auto annotation = m_annotationController->CreateAnnotation(dataProvider, *strategy);
 
 				auto& entry = WriteEntry(root, head.children, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), 0, annotation, false);
 				for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
@@ -626,8 +645,8 @@ struct Requester::Impl : IPostProcessCallback
 					m_covers.try_emplace(bookId, covers.front().bytes);
 			});
 
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
+		m_annotationController->RegisterObserver(&observer);
+		m_annotationController->SetCurrentBookId(bookId, true);
 		eventLoop.exec();
 
 		return head;
@@ -657,8 +676,8 @@ struct Requester::Impl : IPostProcessCallback
 						result = covers[*coverIndex].bytes;
 			});
 
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
+		m_annotationController->RegisterObserver(&observer);
+		m_annotationController->SetCurrentBookId(bookId, true);
 		eventLoop.exec();
 
 		return result;
@@ -668,7 +687,7 @@ struct Requester::Impl : IPostProcessCallback
 	{
 		auto book = GetExtractedBook(bookId);
 		auto outputFileName = GetFileName(book, transliterate);
-		auto data = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file);
+		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
@@ -696,7 +715,7 @@ struct Requester::Impl : IPostProcessCallback
 		const auto startsWithQuery = QString("select %1, count(42) from Authors a where a.SearchName != ? and a.SearchName like ? group by %1").arg("substr(a.SearchName, %1, 1)");
 		const QString navigationItemQuery =
 			"select a.AuthorID, a.LastName || ' ' || a.FirstName || ' ' || a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where a.SearchName %1 ? group by a.AuthorID";
-		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Authors, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
+		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Authors, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	Node WriteSeriesNavigation(const QString& root, const QString& self, const QString& value) const
@@ -704,12 +723,12 @@ struct Requester::Impl : IPostProcessCallback
 		const auto startsWithQuery = QString("select %1, count(42) from Series a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
 		const QString navigationItemQuery =
 			"select a.SeriesID, a.SeriesTitle, count(42) from Series a join Series_List sl on sl.SeriesID = a.SeriesID join Books l on l.BookID = sl.BookID where a.SearchTitle %1 ? group by a.SeriesID";
-		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Series, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
+		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Series, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	void WriteGenresNavigationImpl(const QString& root, Node::Children& children, const QString& value) const
 	{
-		const auto genres = Flibrary::Genre::Load(*databaseController->GetDatabase(true));
+		const auto genres = Flibrary::Genre::Load(*m_databaseController->GetDatabase(true));
 		const auto* genre = Flibrary::Genre::Find(&genres, value);
 		assert(genre);
 		while (genre->children.size() == 1)
@@ -727,7 +746,7 @@ struct Requester::Impl : IPostProcessCallback
 
 	Node WriteGenresNavigation(const QString& root, const QString& self, const QString& value) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, Loc::Genres, value.isEmpty() ? Loc::Tr(Loc::NAVIGATION, Loc::Genres) : QString("%1/%2").arg(Loc::Genres, value), root, self);
 		WriteGenresNavigationImpl(root, head.children, value);
 		return head;
@@ -737,12 +756,12 @@ struct Requester::Impl : IPostProcessCallback
 	{
 		const auto startsWithQuery = QString("select %1, count(42) from Keywords a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
 		const QString navigationItemQuery = "select a.KeywordID, a.KeywordTitle, count(42) from Keywords a join Keyword_List l on l.KeywordID = a.KeywordID where a.SearchTitle %1 ? group by a.KeywordID";
-		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, Loc::Keywords, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
+		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Keywords, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	Node WriteArchivesNavigation(const QString& root, const QString& self, const QString& /*value*/) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, Loc::Archives, Loc::Tr(Loc::NAVIGATION, Loc::Archives), root, self);
 
 		const auto query = db->CreateQuery("select f.FolderID, f.FolderTitle, count(42) from Folders f join Books b on b.FolderID = f.FolderID group by f.FolderID");
@@ -757,7 +776,7 @@ struct Requester::Impl : IPostProcessCallback
 
 	Node WriteGroupsNavigation(const QString& root, const QString& self, const QString& /*value*/) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups), root, self);
 
 		const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
@@ -812,12 +831,12 @@ struct Requester::Impl : IPostProcessCallback
 
 	Node WriteArchivesAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
 	{
-		return WriteAuthorsImpl(root, self, navigationId, value, Loc::Archives, JOIN_ARCHIVE, false);
+		return WriteAuthorsImpl(root, self, navigationId, value, Loc::Archives, JOIN_ARCHIVE);
 	}
 
 	Node WriteArchivesAuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const
 	{
-		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Archives, JOIN_ARCHIVE, WHERE_ARCHIVE);
+		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Archives, JOIN_ARCHIVE);
 	}
 
 	Node WriteGroupsAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
@@ -854,7 +873,7 @@ private:
 
 	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		const auto query = db->CreateQuery(R"(
 select
     f.FolderTitle,
@@ -881,7 +900,7 @@ where b.BookID = ?
 
 	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join, const bool checkBooksQuery = true) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		join = join.arg(navigationId);
 
 		if (checkBooksQuery)
@@ -911,26 +930,30 @@ where b.BookID = ?
 		return node;
 	}
 
-	Node WriteAuthorBooksImpl(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value, const QString& type, QString join, QString where = {}) const
+	Node WriteAuthorBooksImpl(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value, const QString& type, QString join) const
 	{
-		if (!where.isEmpty())
-			where = where.arg(navigationId);
-
 		if (!join.isEmpty())
 			join = join.arg(navigationId);
 
 		if (!authorId.isEmpty())
 			join.append("\n").append(QString(JOIN_AUTHOR).arg(authorId));
 
-		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, where, "%1");
-		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, where, "%1");
+		if (value.isEmpty())
+		{
+			auto node = WriteBooksList(root, self, navigationId, type, QString("select count(42) from Books b %1").arg(join), QString(SELECT_BOOKS).arg(join));
+			if (!node.children.empty())
+				return node;
+		}
+
+		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, "%1");
+		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, "%1");
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
-		return WriteNavigationStartsWith(*databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
+		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
 
 	Node WriteBooksList(const QString& root, const QString& self, const QString& navigationId, const QString& type, const QString& countQuery, const QString& booksQuery) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 		if (navigationId.isEmpty() ||
 		    [&]
 		    {
@@ -938,17 +961,22 @@ where b.BookID = ?
 				query->Execute();
 				assert(!query->Eof());
 				const auto n = query->Get<long long>(0);
-				return n == 0 || n > 20;
+				return n == 0 || n > m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT);
 			}())
 			return Node {};
 
 		auto head = GetHead(*db, navigationId, QString("%1/%2").arg(type, navigationId), root, self);
 		WriteBookEntries(*db, "", booksQuery, navigationId, root, head.children);
+		const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+		std::sort(it, head.children.end());
 		return head;
 	}
 
 private:
 	std::shared_ptr<const ISettings> m_settings;
+	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const Flibrary::IDatabaseController> m_databaseController;
+	std::shared_ptr<Flibrary::IAnnotationController> m_annotationController;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const QString m_outputFileNameTemplate;
 	mutable QTimer m_coversTimer;
@@ -976,7 +1004,7 @@ QByteArray PostProcess(const ContentType contentType, const QString& root, const
 template <typename Obj, typename NavigationGetter, typename... ARGS>
 QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentType, const QString& root, const QString& self, const ARGS&... args)
 {
-	if (!obj.collectionProvider->ActiveCollectionExists())
+	if (!obj.GetCollectionProvider().ActiveCollectionExists())
 		return {};
 
 	QByteArray bytes;

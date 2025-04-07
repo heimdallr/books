@@ -53,7 +53,7 @@ private: // IRequester
 #undef OPDS_ROOT_ITEM
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
