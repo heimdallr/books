@@ -4,6 +4,11 @@
 
 #include "export/logic.h"
 
+namespace HomeCompa
+{
+class ISettings;
+}
+
 namespace HomeCompa::DB
 {
 class IDatabase;
@@ -23,6 +28,7 @@ struct Genre
 
 	LOGIC_EXPORT static Genre Load(DB::IDatabase& db, bool showDateAdded = false);
 	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);
+	LOGIC_EXPORT static void SetSortMode(const ISettings& settings);
 
 	static const Genre* Find(const Genre* root, const QString& code)
 	{

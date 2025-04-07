@@ -4,15 +4,53 @@
 
 #include <ranges>
 
+#include "fnd/FindPair.h"
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/GenresLocalization.h"
 
 #include "inpx/src/util/constant.h"
+#include "util/ISettings.h"
 #include "util/localization.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
+
+namespace
+{
+
+constexpr auto GENRES_SORT_MODE_KEY = "ui/GenresSortMode";
+
+void Sort(Genre& genre, const auto& proj)
+{
+	std::ranges::sort(genre.children, {}, proj);
+	for (auto& child : genre.children)
+		Sort(child, proj);
+}
+
+void SortByCode(Genre& genre)
+{
+	Sort(genre, [](const auto& item) { return item.code; });
+}
+
+void SortByName(Genre& genre)
+{
+	Sort(genre, [](const auto& item) { return item.name; });
+}
+
+using Sorter = void (*)(Genre&);
+constexpr std::pair<const char*, Sorter> SORTERS[] {
+#define ITEM(NAME) { #NAME, &NAME }
+	ITEM(SortByCode),
+	ITEM(SortByName),
+#undef ITEM
+};
+
+Sorter SORTER = &SortByCode;
+
+} // namespace
 
 Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
 {
@@ -63,6 +101,7 @@ Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
 
 	updateChildren(root.children);
 
+	SORTER(root);
 	return root;
 }
 
@@ -76,4 +115,9 @@ Genre* Genre::Find(Genre* root, const QString& code)
 			return found;
 
 	return nullptr;
+}
+
+void Genre::SetSortMode(const ISettings& settings)
+{
+	SORTER = FindSecond(SORTERS, settings.Get(GENRES_SORT_MODE_KEY).toString().toStdString().data(), &SortByCode, PszComparer {});
 }

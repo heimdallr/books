@@ -19,6 +19,7 @@
 #include "log.h"
 
 #include "config/version.h"
+#include "logic/data/Genre.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -43,6 +44,8 @@ int run(int argc, char* argv[])
 		}
 
 		auto settings = container->resolve<ISettings>();
+		Flibrary::Genre::SetSortMode(*settings);
+
 		Util::QStringWrapper::SetLocale(Loc::GetLocale(*settings));
 		const auto translators = Loc::LoadLocales(*settings); //-V808
 		const auto server = container->resolve<IServer>();
