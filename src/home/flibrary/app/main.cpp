@@ -16,6 +16,7 @@
 #include "interface/ui/IStyleApplierFactory.h"
 
 #include "logging/init.h"
+#include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
@@ -60,6 +61,8 @@ int main(int argc, char* argv[])
 			PLOGD << "DI-container created";
 
 			const auto settings = container->resolve<ISettings>();
+			Genre::SetSortMode(*settings);
+
 			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
 			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
 			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
