@@ -35,7 +35,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<IUpdateChecker> CreateUpdateChecker() const override;
 	[[nodiscard]] std::shared_ptr<ICollectionCleaner> CreateCollectionCleaner() const override;
 	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
-	[[nodiscard]] std::shared_ptr<QTemporaryDir> CreateTemporaryDir() const override;
+	[[nodiscard]] std::shared_ptr<ITemporaryDir> CreateTemporaryDir(bool singleInstance) const override;
 
 public: // special
 	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const override;
