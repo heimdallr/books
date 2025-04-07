@@ -119,6 +119,7 @@ constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found 
 
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
+constexpr auto CONTENT = "content";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
@@ -144,6 +145,23 @@ struct Node
 
 	QString title;
 };
+
+const QString& GetContent(const Node& node)
+{
+	const auto it = std::ranges::find(node.children, CONTENT, [](const auto& item) { return item.name; });
+	assert(it != node.children.end());
+	return it->value;
+}
+
+std::tuple<Util::QStringWrapper, Util::QStringWrapper> ToComparable(const Node& node)
+{
+	return std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title });
+}
+
+bool operator<(const Node& lhs, const Node& rhs)
+{
+	return ToComparable(lhs) < ToComparable(rhs);
+}
 
 std::vector<Node> GetStandardNodes(QString id, QString title)
 {
@@ -279,7 +297,7 @@ Node& WriteEntry(const QString& root, Node::Children& children, QString id, QStr
 	if (content.isEmpty() && count > 0)
 		content = Tr(COUNT).arg(count);
 	if (!content.isEmpty())
-		entry.children.emplace_back("content",
+		entry.children.emplace_back(CONTENT,
 		                            std::move(content),
 		                            Node::Attributes {
 										{ "type", "text/html" }
@@ -949,6 +967,8 @@ where b.BookID = ?
 
 		auto head = GetHead(*db, navigationId, QString("%1/%2").arg(type, navigationId), root, self);
 		WriteBookEntries(*db, "", booksQuery, navigationId, root, head.children);
+		const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+		std::sort(it, head.children.end());
 		return head;
 	}
 
