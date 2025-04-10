@@ -55,6 +55,7 @@ enum class MenuAction
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)   \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search) \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)      \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Updates, Updates)      \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)        \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)
 
@@ -63,6 +64,7 @@ enum class MenuAction
 	SUBSCRIBED_TABLES_ITEM(Groups_User)      \
 	SUBSCRIBED_TABLES_ITEM(Searches_User)    \
 	SUBSCRIBED_TABLES_ITEM(Authors)          \
+	SUBSCRIBED_TABLES_ITEM(Updates)          \
 	SUBSCRIBED_TABLES_ITEM(Series)           \
 	SUBSCRIBED_TABLES_ITEM(Keywords)         \
 	SUBSCRIBED_TABLES_ITEM(Books)
@@ -164,6 +166,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
 	{    Loc::Series,																									 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
 	{    Loc::Genres,																			   { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
 	{  Loc::Keywords,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
+	{   Loc::Updates,																									{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Updates } },
 	{  Loc::Archives,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{ Loc::Languages,																								  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages } },
 	{    Loc::Groups,

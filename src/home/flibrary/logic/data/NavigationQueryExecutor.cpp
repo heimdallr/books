@@ -32,6 +32,7 @@ constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
 constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
+constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId from Updates";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto LANGUAGES_QUERY = "select distinct lang from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
@@ -39,6 +40,7 @@ constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
+constexpr auto WHERE_UPDATE = "where b.UpdateID  = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
 constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
@@ -157,6 +159,63 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 	                     1);
 }
 
+void RequestNavigationUpdates(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, Cache& cache)
+{
+	auto db = databaseUser.Database();
+	if (!db)
+		return;
+
+	databaseUser.Execute({ "Get navigation",
+	                       [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
+	                       {
+							   auto root = NavigationItem::Create();
+							   std::unordered_map<long long, IDataItem::Ptr> items {
+								   { 0, root },
+							   };
+							   std::unordered_map<long long, std::vector<IDataItem::Ptr>> children;
+
+							   const auto query = db->CreateQuery(queryDescription.query);
+							   for (query->Execute(); !query->Eof(); query->Next())
+							   {
+								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
+								   const auto id = item->GetId().toLongLong();
+								   items.try_emplace(id, children[query->Get<long long>(2)].emplace_back(std::move(item)));
+							   }
+
+							   std::vector<long long> stack { 0 };
+							   while (!stack.empty())
+							   {
+								   const auto parentId = stack.back();
+								   stack.pop_back();
+
+								   const auto parentIt = items.find(parentId);
+								   assert(parentIt != items.end());
+								   auto parent = std::move(parentIt->second);
+
+								   const auto childrenIt = children.find(parentId);
+								   if (childrenIt == children.end())
+									   continue;
+
+								   std::ranges::transform(childrenIt->second, std::back_inserter(stack), [](const auto& item) { return item->GetId().toLongLong(); });
+								   for (auto&& child : childrenIt->second)
+									   parent->AppendChild(std::move(child));
+								   parent->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetData().toLongLong() < rhs.GetData().toLongLong(); });
+								   for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
+								   {
+									   auto child = parent->GetChild(i);
+									   child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
+								   }
+							   }
+
+							   return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable
+							   {
+								   cache[mode] = root;
+								   callback(mode, std::move(root));
+							   };
+						   } },
+	                     1);
+}
+
 using NavigationRequest = void (*)(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, Cache& cache);
 
 constexpr size_t NAVIGATION_QUERY_INDEX_AUTHOR[] { 0, 1, 2, 3 };
@@ -207,6 +266,9 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 	{    NavigationMode::Groups,
      { &RequestNavigationSimpleList,
      { GROUPS_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_GROUPS, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }      },
+	{   NavigationMode::Updates,
+     { &RequestNavigationUpdates,
+     { UPDATES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_UPDATE, nullptr, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }    },
 	{  NavigationMode::Archives,
      { &RequestNavigationSimpleList,
      { ARCHIVES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_ARCHIVE, nullptr, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }  },
@@ -231,6 +293,7 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
 	{   "Groups_User",   NavigationMode::Groups },
     {         "Books", NavigationMode::Archives },
     { "Searches_User",   NavigationMode::Search },
+    {       "Updates",  NavigationMode::Updates },
 };
 
 } // namespace
