@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <future>
 #include <queue>
 #include <ranges>
@@ -436,6 +437,14 @@ template <>
 void print<BooksSeries::value_type>(const BooksSeries::value_type& value)
 {
 	PLOGE << value.first.first << ", " << value.first.second << ": " << (value.second ? *value.second : -1);
+}
+
+template <typename ...ARGS>
+void print(const std::tuple<ARGS...>& value)
+{
+	std::ostringstream stream;
+	std::apply([&](auto&&... arg) { ((stream << arg << ", "), ...); }, value);
+	PLOGE << stream.str();
 }
 
 template <typename Container, typename Functor>
