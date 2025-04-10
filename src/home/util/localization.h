@@ -73,6 +73,23 @@ inline QString Warning()
 namespace HomeCompa
 {
 
+constexpr auto MONTHS_CONTEXT = "Month";
+#if 0
+QT_TRANSLATE_NOOP("Month", "1")
+QT_TRANSLATE_NOOP("Month", "2")
+QT_TRANSLATE_NOOP("Month", "3")
+QT_TRANSLATE_NOOP("Month", "4")
+QT_TRANSLATE_NOOP("Month", "5")
+QT_TRANSLATE_NOOP("Month", "6")
+QT_TRANSLATE_NOOP("Month", "7")
+QT_TRANSLATE_NOOP("Month", "8")
+QT_TRANSLATE_NOOP("Month", "9")
+QT_TRANSLATE_NOOP("Month", "10")
+QT_TRANSLATE_NOOP("Month", "11")
+QT_TRANSLATE_NOOP("Month", "12")
+QT_TRANSLATE_NOOP("Month", "2147483647")
+#endif
+
 constexpr auto LANGUAGES_CONTEXT = "Language";
 constexpr auto UNDEFINED = QT_TRANSLATE_NOOP("Language", "[Undetermined]");
 constexpr std::pair<const char*, const char*> LANGUAGES[] {

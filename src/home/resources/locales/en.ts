@@ -5256,6 +5256,74 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>Month</name>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>1</source>
+        <translation>January</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2</source>
+        <translation>February</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>3</source>
+        <translation>March</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>4</source>
+        <translation>April</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>5</source>
+        <translation>May</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>6</source>
+        <translation>June</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>7</source>
+        <translation>July</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>8</source>
+        <translation>August</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>9</source>
+        <translation>September</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>10</source>
+        <translation>October</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>11</source>
+        <translation>November</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>12</source>
+        <translation>December</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2147483647</source>
+        <translation>Not specified</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5275,6 +5343,11 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates</source>
         <translation></translation>
     </message>
     <message>
