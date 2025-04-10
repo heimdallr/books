@@ -13,7 +13,6 @@
 
 #include "common/Constant.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
 
 #include "Zip.h"
 #include "log.h"
@@ -176,42 +175,8 @@ void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
 	}
 }
 
-std::unordered_set<QString> GetAddDateGenres(DB::IDatabase& db)
-{
-	std::unordered_set<QString> result;
-	std::unordered_map<QString, std::vector<QString>> genres;
-	std::vector<QString> stack;
-
-	const auto dateAddedCode = QString::fromStdWString(DATE_ADDED_CODE);
-
-	const auto query = db.CreateQuery("select ParentCode, GenreCode, FB2Code from Genres");
-	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		genres[query->Get<const char*>(0)].emplace_back(query->Get<const char*>(1));
-		if (query->Get<const char*>(2) == dateAddedCode)
-			stack.emplace_back(query->Get<const char*>(1));
-	}
-
-	while (!stack.empty())
-	{
-		auto item = std::move(stack.back());
-		stack.pop_back();
-		const auto it = genres.find(item);
-		if (it == genres.end())
-			continue;
-
-		std::ranges::copy(it->second, std::inserter(result, result.end()));
-		stack.reserve(stack.size() + it->second.size());
-		std::ranges::move(std::move(it->second), std::back_inserter(stack));
-	}
-
-	return result;
-}
-
 AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
-	const auto addDateGenres = GetAddDateGenres(db);
-
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
 	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
 	                                      .arg(hasGenres ? GENRE_JOIN : "")
@@ -235,8 +200,6 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 			it->second.size = query->Get<long long>(7);
 		}
 
-		if (QString genre = query->Get<const char*>(8); !addDateGenres.contains(genre))
-			it->second.genres.emplace(std::move(genre));
 		it->second.authors.emplace(query->Get<long long>(9));
 		if (analyzeCanceled)
 			break;

@@ -35,28 +35,9 @@ Genres GetGenres(DB::IDatabase& db)
 {
 	Genres result;
 
-	std::vector<QString> stack;
-	const auto date_added_code = QString::fromStdWString(DATE_ADDED_CODE);
-
-	std::unordered_map<QString, std::vector<QString>> parents;
-
 	const auto query = db.CreateQuery("select GenreCode, FB2Code, ParentCode from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
-	{
 		const auto& [code, name] = *result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1)).first;
-		parents[query->Get<const char*>(2)].emplace_back(code);
-		if (name == date_added_code)
-			stack.emplace_back(code);
-	}
-
-	while (!stack.empty())
-	{
-		const auto parent = std::move(stack.back());
-		stack.pop_back();
-		result.erase(parent);
-		if (const auto it = parents.find(parent); it != parents.end())
-			stack.insert(stack.end(), std::make_move_iterator(it->second.begin()), std::make_move_iterator(it->second.end()));
-	}
 
 	return result;
 }

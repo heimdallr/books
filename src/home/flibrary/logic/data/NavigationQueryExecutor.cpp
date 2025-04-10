@@ -130,7 +130,7 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 	databaseUser.Execute({ "Get navigation",
 	                       [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
 	                       {
-							   auto genre = Genre::Load(*db, true);
+							   auto genre = Genre::Load(*db);
 							   auto root = NavigationItem::Create();
 							   std::queue<std::pair<const Genre*, IDataItem*>> queue;
 							   queue.emplace(&genre, root.get());

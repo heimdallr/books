@@ -271,47 +271,6 @@ std::set<size_t> ParseKeywords(const std::wstring_view keywordsSrc, Dictionary& 
 		});
 }
 
-void AddGenres(const BookBuf& buf, Dictionary& genresIndex, Data& data, std::set<size_t>& idGenres)
-{
-	const auto addGenre = [&index = genresIndex, &genres = data.genres](std::wstring_view code, std::wstring_view name, const auto parentIt)
-	{
-		assert(parentIt != index.end() && parentIt->second < std::size(genres));
-		const auto itGenre = index.insert(std::make_pair(code, std::size(genres))).first;
-		auto& genre = genres.emplace_back(code, genres[parentIt->second].code, name, parentIt->second);
-		auto& parentGenre = genres[parentIt->second];
-		genre.dbCode = ToWide(std::format("{0}.{1}", ToMultiByte(parentGenre.dbCode), ++parentGenre.childrenCount));
-		genre.dateGenre = true;
-		return itGenre;
-	};
-
-	if (buf.DATE.empty())
-	{
-		auto itIndex = genresIndex.find(NO_DATE_SPECIFIED);
-		if (itIndex == genresIndex.end())
-			itIndex = addGenre(L"no_date_specified", NO_DATE_SPECIFIED, genresIndex.find(DATE_ADDED_CODE));
-		idGenres.emplace(itIndex->second);
-		return;
-	}
-
-	auto itDate = std::cbegin(buf.DATE);
-	const auto endDate = std::cend(buf.DATE);
-	const auto year = Next(itDate, endDate, DATE_SEPARATOR);
-	const auto month = Next(itDate, endDate, DATE_SEPARATOR);
-	const auto dateCode = ToWide(std::format("date_{0}_{1}", ToMultiByte(year), ToMultiByte(month)));
-
-	auto itIndexDate = genresIndex.find(dateCode);
-	if (itIndexDate == genresIndex.end())
-	{
-		const auto yearCode = ToWide(std::format("year_{0}", ToMultiByte(year)));
-		auto itIndexYear = genresIndex.find(yearCode);
-		if (itIndexYear == genresIndex.end())
-			itIndexYear = addGenre(yearCode, year, genresIndex.find(DATE_ADDED_CODE));
-
-		itIndexDate = addGenre(dateCode, std::wstring(year).append(L".").append(month), itIndexYear);
-	}
-	idGenres.emplace(itIndexDate->second);
-}
-
 size_t ParseDate(const std::wstring_view date, Data& data)
 {
 	if (date.empty())
@@ -1469,7 +1428,6 @@ private:
 				return itGenre != container.end() ? itGenre : std::ranges::find_if(container, [value, &data](const auto& item) { return IsStringEqual(value, data[item.second].name); });
 			});
 
-		AddGenres(buf, m_genresIndex, m_data, idGenres);
 		const auto updateId = ParseDate(buf.DATE, m_data);
 
 		std::ranges::transform(idGenres, std::back_inserter(m_data.booksGenres), [&](const size_t idGenre) { return std::make_pair(id, idGenre); });
