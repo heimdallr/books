@@ -548,7 +548,7 @@ private:
 	}
 
 	template <typename T>
-	void ConnectShowHide(T* obj, void (T::*f)(bool), QAction* show, QAction* hide, const char* key = nullptr)
+	void ConnectShowHide(T* obj, void (T::*f)(bool), QAction* show, QAction* hide, const char* key = nullptr, const bool defaultValue = true)
 	{
 		auto apply = [=](const bool value)
 		{
@@ -559,7 +559,7 @@ private:
 
 		if (key)
 		{
-			const auto value = m_settings->Get(key).toBool();
+			const auto value = m_settings->Get(key, defaultValue);
 			apply(value);
 		}
 
