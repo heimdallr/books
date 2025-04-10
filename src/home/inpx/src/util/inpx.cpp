@@ -312,6 +312,28 @@ void AddGenres(const BookBuf& buf, Dictionary& genresIndex, Data& data, std::set
 	idGenres.emplace(itIndexDate->second);
 }
 
+size_t ParseDate(const std::wstring_view date, Data& data)
+{
+	if (date.empty())
+	{
+		constexpr auto noDateTitle = std::numeric_limits<int>::max();
+		const auto it = data.updates.children.find(noDateTitle);
+		auto& update = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, Update { GetId(), noDateTitle, 0, {} }).first->second;
+		return update.id;
+	}
+
+	auto itDate = std::cbegin(date);
+	const auto endDate = std::cend(date);
+	const auto year = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
+	const auto month = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
+
+	const auto itYear = data.updates.children.find(year);
+	auto& yearUpdate = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, Update { GetId(), year, 0, {} }).first->second;
+	const auto itMonth = yearUpdate.children.find(month);
+	auto& monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, Update { GetId(), month, yearUpdate.id, {} }).first->second;
+	return monthUpdate.id;
+}
+
 using BookBufFieldGetter = std::wstring_view& (*)(BookBuf&);
 using BookBufMapping = std::vector<BookBufFieldGetter>;
 
@@ -603,8 +625,8 @@ size_t Store(const Path& dbFileName, const Data& data)
 							"BookID   , LibID     , Title    , SeriesID, "
 							"SeqNumber, UpdateDate, LibRate  , Lang    , "
 							"FolderID , FileName  , InsideNo , Ext     , "
-							"BookSize , IsDeleted, SearchTitle"
-							") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
+							"BookSize , IsDeleted, UpdateId, SearchTitle"
+							") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
 	result += StoreRange(
 		dbFileName,
 		"Books",
@@ -632,7 +654,8 @@ size_t Store(const Path& dbFileName, const Data& data)
 			cmd.bind(12, format, sqlite3pp::nocopy);
 			cmd.bind(13, book.size);
 			cmd.bind(14, book.isDeleted ? 1 : 0);
-			cmd.bind(15, title, sqlite3pp::nocopy);
+			cmd.bind(15, book.updateId);
+			cmd.bind(16, title, sqlite3pp::nocopy);
 			return cmd.execute();
 		},
 		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')");
@@ -683,6 +706,28 @@ size_t Store(const Path& dbFileName, const Data& data)
 							 assert(item.second < std::size(genres));
 							 cmd.bind(1, item.first);
 							 cmd.bind(2, genres[item.second], sqlite3pp::nocopy);
+							 return cmd.execute();
+						 });
+
+	std::vector<std::tuple<size_t, int, size_t>> updates;
+
+	std::vector<const Update*> stack;
+	std::ranges::transform(data.updates.children | std::views::values, std::back_inserter(stack), [](const auto& item) { return &item; });
+	while (!stack.empty())
+	{
+		const auto* update = stack.back();
+		stack.pop_back();
+		updates.emplace_back(update->id, update->title, update->parentId);
+		std::ranges::transform(update->children | std::views::values, std::back_inserter(stack), [](const auto& item) { return &item; });
+	}
+
+	result += StoreRange(dbFileName,
+	                     "Updates",
+	                     "INSERT INTO Updates (UpdateID, UpdateTitle, ParentID) VALUES(?, ?, ?)",
+	                     updates,
+	                     [](sqlite3pp::command& cmd, const auto& item)
+	                     {
+							 cmd.binder() << static_cast<long long>(std::get<0>(item)) << std::get<1>(item) << static_cast<long long>(std::get<2>(item));
 							 return cmd.execute();
 						 });
 
@@ -1425,6 +1470,7 @@ private:
 			});
 
 		AddGenres(buf, m_genresIndex, m_data, idGenres);
+		const auto updateId = ParseDate(buf.DATE, m_data);
 
 		std::ranges::transform(idGenres, std::back_inserter(m_data.booksGenres), [&](const size_t idGenre) { return std::make_pair(id, idGenre); });
 
@@ -1444,7 +1490,8 @@ private:
 		                                       To<size_t>(buf.INSNO),
 		                                       buf.EXT,
 		                                       To<size_t>(buf.SIZE),
-		                                       To<bool>(buf.DEL, false));
+		                                       To<bool>(buf.DEL, false),
+		                                       updateId);
 
 		if (book.language.empty())
 		{
