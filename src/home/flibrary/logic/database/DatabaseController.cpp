@@ -135,28 +135,6 @@ void OnBooksFolderIDAdded(DB::ITransaction& transaction)
 	}
 }
 
-void OnBooksUpdateIDAdded(DB::ITransaction& transaction)
-{
-	auto maxId = [&]
-	{
-		const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
-		query->Execute();
-		assert(!query->Eof());
-		return query->Get<long long>(0);
-	}();
-	{
-		const auto command = transaction.CreateCommand("insert into Updates(UpdateID, UpdateTitle, ParentID) values(?, ?, 0)");
-		command->Bind(0, ++maxId);
-		command->Bind(1, std::numeric_limits<int>::max());
-		command->Execute();
-	}
-	{
-		const auto command = transaction.CreateCommand("update Books set UpdateID = ?");
-		command->Bind(0, maxId);
-		command->Execute();
-	}
-}
-
 void FixSearches_User(DB::ITransaction& transaction)
 {
 	if (!FieldExists(transaction, "Searches_User", "Mode"))
@@ -256,8 +234,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 		                        "CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID)",
 		                        "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }))
 			OnBooksFolderIDAdded(*transaction);
-		if (AddUserTableField(*transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" }))
-			OnBooksUpdateIDAdded(*transaction);
+		AddUserTableField(*transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" });
 
 		FixSearches_User(*transaction);
 		FillBooksSearch(*transaction);
