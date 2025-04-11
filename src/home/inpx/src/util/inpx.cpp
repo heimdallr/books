@@ -4,11 +4,11 @@
 
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <future>
 #include <queue>
 #include <ranges>
 #include <set>
+#include <sstream>
 
 #include <QDir>
 #include <QFile>
@@ -272,28 +272,6 @@ std::set<size_t> ParseKeywords(const std::wstring_view keywordsSrc, Dictionary& 
 		});
 }
 
-size_t ParseDate(const std::wstring_view date, Data& data)
-{
-	if (date.empty())
-	{
-		constexpr auto noDateTitle = std::numeric_limits<int>::max();
-		const auto it = data.updates.children.find(noDateTitle);
-		auto& update = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, Update { GetId(), noDateTitle, 0, {} }).first->second;
-		return update.id;
-	}
-
-	auto itDate = std::cbegin(date);
-	const auto endDate = std::cend(date);
-	const auto year = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
-	const auto month = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
-
-	const auto itYear = data.updates.children.find(year);
-	auto& yearUpdate = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, Update { GetId(), year, 0, {} }).first->second;
-	const auto itMonth = yearUpdate.children.find(month);
-	auto& monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, Update { GetId(), month, yearUpdate.id, {} }).first->second;
-	return monthUpdate.id;
-}
-
 using BookBufFieldGetter = std::wstring_view& (*)(BookBuf&);
 using BookBufMapping = std::vector<BookBufFieldGetter>;
 
@@ -439,7 +417,7 @@ void print<BooksSeries::value_type>(const BooksSeries::value_type& value)
 	PLOGE << value.first.first << ", " << value.first.second << ": " << (value.second ? *value.second : -1);
 }
 
-template <typename ...ARGS>
+template <typename... ARGS>
 void print(const std::tuple<ARGS...>& value)
 {
 	std::ostringstream stream;
@@ -749,6 +727,29 @@ T ReadDictionary(const std::string_view name, sqlite3pp::database& db, const cha
 	sqlite3pp::query query(db, statement);
 	std::transform(std::begin(query), std::end(query), std::inserter(data, std::end(data)), f);
 	return data;
+}
+
+Update ReadUpdates(sqlite3pp::database& db)
+{
+	PLOGI << "Read updates";
+	Update result;
+	std::unordered_map<size_t, Update*> updates {
+		{ 0, &result },
+	};
+	sqlite3pp::query query(db, "select UpdateID, UpdateTitle, ParentID from Updates order by ParentId");
+	for (auto it : query)
+	{
+		const auto id = it.get<long long>(0);
+		const auto title = it.get<int>(1);
+		const auto parentId = it.get<long long>(2);
+
+		const auto parentIt = updates.find(parentId);
+		assert(parentIt != updates.end());
+		auto& child = parentIt->second->children.try_emplace(title, Update { static_cast<size_t>(id), title, static_cast<size_t>(parentId) }).first->second;
+		updates.try_emplace(id, &child);
+	}
+
+	return result;
 }
 
 std::pair<Genres, Dictionary> ReadGenres(sqlite3pp::database& db, const Path& genresFileName)
@@ -1093,6 +1094,7 @@ private:
 		data.bookFolders = ReadDictionary<Folders>("folders", db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
 		auto [genres, genresIndex] = ReadGenres(db, genresFileName);
 		data.genres = std::move(genres);
+		data.updates = ReadUpdates(db);
 
 		sqlite3pp::query query(db, "select BookID, FolderID, FileName||Ext from Books");
 		std::transform(std::begin(query),
@@ -1115,6 +1117,25 @@ private:
 		data.inpxFolders = ReadDictionary<InpxFolders>("inpx", db, "select Folder, File, Hash from Inpx", inpxFolderInserter);
 
 		return std::make_pair(std::move(data), std::move(genresIndex));
+	}
+
+	void Filter(Update& dst) const
+	{
+		Update buf;
+		std::swap(dst, buf);
+		Update* last = &dst;
+		const auto filter = [&](const Update& update, const auto& f) -> void
+		{
+			if (m_newUpdates.contains(update.id))
+			{
+				const auto [it, ok] = last->children.try_emplace(update.title, Update { update.id, update.title, update.parentId, {} });
+				assert(ok);
+				last = &it->second;
+			}
+			for (const auto& child : update.children | std::views::values)
+				f(child, f);
+		};
+		filter(buf, filter);
 	}
 
 	size_t UpdateDatabaseImpl()
@@ -1151,6 +1172,7 @@ private:
 		filter(m_data.keywords, oldData.keywords);
 		filter(m_data.bookFolders, oldData.bookFolders);
 		filter(m_data.inpxFolders, oldData.inpxFolders);
+		Filter(m_data.updates);
 
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
@@ -1392,6 +1414,35 @@ private:
 		AddBook(buf);
 	}
 
+	size_t ParseDate(const std::wstring_view date, Data& data)
+	{
+		const auto createUpdate = [this](const int title, const size_t parentId)
+		{
+			const auto [it, ok] = m_newUpdates.emplace(GetId());
+			assert(ok);
+			return Update { *it, title, parentId, {} };
+		};
+
+		if (date.empty())
+		{
+			constexpr auto noDateTitle = std::numeric_limits<int>::max();
+			const auto it = data.updates.children.find(noDateTitle);
+			auto& update = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, createUpdate(noDateTitle, 0)).first->second;
+			return update.id;
+		}
+
+		auto itDate = std::cbegin(date);
+		const auto endDate = std::cend(date);
+		const auto year = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
+		const auto month = std::stoi(Next(itDate, endDate, DATE_SEPARATOR).data());
+
+		const auto itYear = data.updates.children.find(year);
+		auto& yearUpdate = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, createUpdate(year, 0)).first->second;
+		const auto itMonth = yearUpdate.children.find(month);
+		auto& monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, createUpdate(month, yearUpdate.id)).first->second;
+		return monthUpdate.id;
+	}
+
 	size_t AddBook(const BookBuf& buf)
 	{
 		const auto id = GetId();
@@ -1511,6 +1562,7 @@ private:
 	std::atomic_uint64_t m_parsedN { 0 };
 	std::vector<std::wstring> m_unknownGenres;
 	size_t m_unknownGenreId { 0 };
+	std::unordered_set<size_t> m_newUpdates;
 	std::unordered_map<QString, std::wstring> m_uniqueKeywords;
 	std::unordered_map<std::pair<size_t, std::string>, size_t, PairHash<size_t, std::string>> m_uniqueFiles;
 	std::unordered_set<std::wstring> m_langs;
