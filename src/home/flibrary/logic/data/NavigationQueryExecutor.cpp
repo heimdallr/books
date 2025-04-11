@@ -32,7 +32,7 @@ constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
 constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g";
 constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
-constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId from Updates";
+constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId from Updates order by ParentId";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto LANGUAGES_QUERY = "select distinct lang from Books";
 constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
@@ -172,40 +172,29 @@ void RequestNavigationUpdates(NavigationMode navigationMode, INavigationQueryExe
 							   std::unordered_map<long long, IDataItem::Ptr> items {
 								   { 0, root },
 							   };
-							   std::unordered_map<long long, std::vector<IDataItem::Ptr>> children;
 
 							   const auto query = db->CreateQuery(queryDescription.query);
 							   for (query->Execute(); !query->Eof(); query->Next())
 							   {
 								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
 								   const auto id = item->GetId().toLongLong();
-								   items.try_emplace(id, children[query->Get<long long>(2)].emplace_back(std::move(item)));
-							   }
-
-							   std::vector<long long> stack { 0 };
-							   while (!stack.empty())
-							   {
-								   const auto parentId = stack.back();
-								   stack.pop_back();
-
-								   const auto parentIt = items.find(parentId);
+								   const auto parentIt = items.find(query->Get<long long>(2));
 								   assert(parentIt != items.end());
-								   auto parent = std::move(parentIt->second);
-
-								   const auto childrenIt = children.find(parentId);
-								   if (childrenIt == children.end())
-									   continue;
-
-								   std::ranges::transform(childrenIt->second, std::back_inserter(stack), [](const auto& item) { return item->GetId().toLongLong(); });
-								   for (auto&& child : childrenIt->second)
-									   parent->AppendChild(std::move(child));
-								   parent->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetData().toLongLong() < rhs.GetData().toLongLong(); });
-								   for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
-								   {
-									   auto child = parent->GetChild(i);
-									   child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
-								   }
+								   parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 							   }
+
+							   const auto updateChildren = [](IDataItem& item, const auto& f) -> void
+							   {
+								   item.SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetData().toLongLong() < rhs.GetData().toLongLong(); });
+								   for (size_t i = 0, sz = item.GetChildCount(); i < sz; ++i)
+								   {
+									   auto child = item.GetChild(i);
+									   child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
+									   f(*child, f);
+								   }
+							   };
+
+							   updateChildren(*root, updateChildren);
 
 							   return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable
 							   {
