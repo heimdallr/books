@@ -88,21 +88,23 @@ struct Book
 	     const size_t insideNo_,
 	     const std::wstring_view format_,
 	     const size_t size_,
-	     const bool isDeleted_)
-		: id(id_)
-		, libId(libId_)
-		, title(title_)
-		, seriesId(seriesId_)
-		, seriesNum(seriesNum_)
-		, date(date_)
-		, rate(rate_)
-		, language(language_)
-		, folder(folder_)
-		, fileName(fileName_)
-		, insideNo(insideNo_)
-		, format(InsertDot(format_))
-		, size(size_)
-		, isDeleted(isDeleted_)
+	     const bool isDeleted_,
+	     const size_t updateId_)
+		: id { id_ }
+		, libId { libId_ }
+		, title { title_ }
+		, seriesId { seriesId_ }
+		, seriesNum { seriesNum_ }
+		, date { date_ }
+		, rate { rate_ }
+		, language { language_ }
+		, folder { folder_ }
+		, fileName { fileName_ }
+		, insideNo { insideNo_ }
+		, format { InsertDot(format_) }
+		, size { size_ }
+		, isDeleted { isDeleted_ }
+		, updateId { updateId_ }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -122,6 +124,7 @@ struct Book
 	size_t size;
 	bool isDeleted;
 	std::wstring keywords;
+	size_t updateId;
 
 private:
 	static std::wstring InsertDot(const std::wstring_view format)
@@ -156,6 +159,14 @@ struct Genre
 		, parentId(parentId_)
 	{
 	}
+};
+
+struct Update
+{
+	size_t id { 0 };
+	int title { 0 };
+	size_t parentId { 0 };
+	std::unordered_map<int, Update> children {};
 };
 
 struct WStringHash
@@ -197,6 +208,7 @@ struct Data
 	Books books;
 	Dictionary authors, series, keywords;
 	Genres genres;
+	Update updates;
 	Links booksAuthors, booksGenres, booksKeywords;
 	Folders bookFolders;
 	InpxFolders inpxFolders;

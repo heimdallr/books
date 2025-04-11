@@ -5267,6 +5267,74 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>Month</name>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>1</source>
+        <translation>Січень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2</source>
+        <translation>Лютий</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>3</source>
+        <translation>Березень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>4</source>
+        <translation>Квітень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>5</source>
+        <translation>Травень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>6</source>
+        <translation>Червень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>7</source>
+        <translation>Липень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>8</source>
+        <translation>Серпень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>9</source>
+        <translation>Вересень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>10</source>
+        <translation>Жовтень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>11</source>
+        <translation>Листопад</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>12</source>
+        <translation>Грудень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2147483647</source>
+        <translation>Не вказано</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5287,6 +5355,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
         <translation>Ключові слова</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates</source>
+        <translation>Оновлення</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>

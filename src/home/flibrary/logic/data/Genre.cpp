@@ -78,7 +78,7 @@ Sorter SORTER = &SortByCode;
 
 } // namespace
 
-Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
+Genre Genre::Load(DB::IDatabase& db)
 {
 	using AllGenresItem = std::tuple<Genre, QString>;
 	std::unordered_map<QString, AllGenresItem> allGenres;
@@ -121,9 +121,6 @@ Genre Genre::Load(DB::IDatabase& db, const bool showDateAdded)
 		for (const auto& [genre, _] : buffer)
 			allGenres.erase(genre.code);
 	}
-
-	if (!showDateAdded)
-		std::erase_if(root.children, [dateAddedCode = Loc::Tr(GENRE, QString::fromStdWString(DATE_ADDED_CODE).toStdString().data())](const Genre& item) { return item.name == dateAddedCode; });
 
 	updateChildren(root.children);
 

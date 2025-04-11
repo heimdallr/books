@@ -49,6 +49,16 @@ DROP TABLE IF EXISTS Series_List;
 DROP TABLE IF EXISTS Folders;
 --@@
 
+DROP TABLE IF EXISTS Updates;
+--@@
+
+CREATE TABLE Updates (
+    UpdateID    INTEGER NOT NULL,
+    UpdateTitle INTEGER NOT NULL,
+    ParentID    INTEGER NOT NULL
+);
+--@@
+
 CREATE TABLE Folders (
   FolderID    INTEGER       NOT NULL,
   FolderTitle VARCHAR (200) NOT NULL COLLATE MHL_SYSTEM_NOCASE
@@ -93,6 +103,7 @@ CREATE TABLE Books (
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
+  UpdateID         INTEGER       NOT NULL                           DEFAULT 0,
   IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
   SearchTitle      VARCHAR (150)         COLLATE NOCASE
 );

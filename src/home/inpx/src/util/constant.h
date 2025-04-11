@@ -29,8 +29,6 @@ constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
 constexpr const char* SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
 constexpr auto INP_EXT = L".inp";
-constexpr auto DATE_ADDED_CODE = L"date_added_code_root";
-constexpr auto NO_DATE_SPECIFIED = L"No date specified";
 
 constexpr size_t LOG_INTERVAL = 10000;
 

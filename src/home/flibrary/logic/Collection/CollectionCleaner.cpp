@@ -13,7 +13,6 @@
 
 #include "common/Constant.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
 
 #include "Zip.h"
 #include "log.h"
@@ -89,14 +88,16 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 {
 	PLOGI << "Removing database book references records started";
 	constexpr std::pair<const char*, const char*> commands[] {
-		{  "Series_List",               "delete from Series_List where not exists(select 42 from Books where Books.BookID = Series_List.BookID)" },
-		{       "Series",         "delete from Series where not exists(select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
-		{   "Genre_List",                "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
-		{  "Author_List",              "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
-		{      "Authors",       "delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
-		{ "Keyword_List",            "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
-		{     "Keywords", "delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
-		{ "Books_Search",															 "insert into Books_Search(Books_Search) values('rebuild')" },
+		{   "Series_List",               "delete from Series_List where not exists(select 42 from Books where Books.BookID = Series_List.BookID)" },
+		{        "Series",         "delete from Series where not exists(select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
+		{    "Genre_List",                "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
+		{   "Author_List",              "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
+		{       "Authors",       "delete from Authors where not exists(select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
+		{  "Keyword_List",            "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
+		{      "Keywords", "delete from Keywords where not exists(select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
+		{ "Update months", "delete from Updates where ParentID != 0 and not exists(select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
+		{  "Update years",  "delete from Updates where ParentID = 0 and not exists(select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
+		{  "Books_Search",															 "insert into Books_Search(Books_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands),
 	                       std::cend(commands),
@@ -176,42 +177,8 @@ void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
 	}
 }
 
-std::unordered_set<QString> GetAddDateGenres(DB::IDatabase& db)
-{
-	std::unordered_set<QString> result;
-	std::unordered_map<QString, std::vector<QString>> genres;
-	std::vector<QString> stack;
-
-	const auto dateAddedCode = QString::fromStdWString(DATE_ADDED_CODE);
-
-	const auto query = db.CreateQuery("select ParentCode, GenreCode, FB2Code from Genres");
-	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		genres[query->Get<const char*>(0)].emplace_back(query->Get<const char*>(1));
-		if (query->Get<const char*>(2) == dateAddedCode)
-			stack.emplace_back(query->Get<const char*>(1));
-	}
-
-	while (!stack.empty())
-	{
-		auto item = std::move(stack.back());
-		stack.pop_back();
-		const auto it = genres.find(item);
-		if (it == genres.end())
-			continue;
-
-		std::ranges::copy(it->second, std::inserter(result, result.end()));
-		stack.reserve(stack.size() + it->second.size());
-		std::ranges::move(std::move(it->second), std::back_inserter(stack));
-	}
-
-	return result;
-}
-
 AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
-	const auto addDateGenres = GetAddDateGenres(db);
-
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
 	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
 	                                      .arg(hasGenres ? GENRE_JOIN : "")
@@ -235,8 +202,6 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 			it->second.size = query->Get<long long>(7);
 		}
 
-		if (QString genre = query->Get<const char*>(8); !addDateGenres.contains(genre))
-			it->second.genres.emplace(std::move(genre));
 		it->second.authors.emplace(query->Get<long long>(9));
 		if (analyzeCanceled)
 			break;

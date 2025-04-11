@@ -26,7 +26,7 @@ struct Genre
 	Genre* parent { nullptr };
 	std::vector<Genre> children;
 
-	LOGIC_EXPORT static Genre Load(DB::IDatabase& db, bool showDateAdded = false);
+	LOGIC_EXPORT static Genre Load(DB::IDatabase& db);
 	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);
 	LOGIC_EXPORT static void SetSortMode(const ISettings& settings);
 

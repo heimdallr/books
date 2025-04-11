@@ -10,6 +10,7 @@ enum class NavigationMode
 	Series,
 	Genres,
 	Keywords,
+	Updates,
 	Archives,
 	Languages,
 	Groups,
