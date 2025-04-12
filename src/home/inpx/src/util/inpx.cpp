@@ -399,31 +399,10 @@ void ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 
 void SetIsNavigationDeleted(DatabaseWrapper& db)
 {
-	static constexpr auto update_statement = R"(
-update %1 set IsDeleted = not exists (
-	select 42 from Books b 
-		%2
-		left join Books_User bu on bu.BookID = b.BookID 
-		where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0 
-			and %3
-	)
-	%4
-)";
-
-	static constexpr std::tuple<const char* /*table*/, const char* /*join*/, const char* /*where and condition*/, const char* /*additional condition*/> args[] {
-		{     "Authors",      "join Author_List l on l.BookID = b.BookID",    "l.AuthorID = Authors.AuthorID",                                                                               "" },
-		{     "Folders",											   "",    "b.FolderID = Folders.FolderID",																			   "" },
-		{      "Genres",       "join Genre_List l on l.BookID = b.BookID",   "l.GenreCode = Genres.GenreCode", "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)" },
-		{ "Groups_User", "join Groups_List_User l on l.BookID = b.BookID",  "l.GroupID = Groups_User.GroupID",                                                                               "" },
-		{    "Keywords",     "join Keyword_List l on l.BookID = b.BookID", "l.KeywordID = Keywords.KeywordID",                                                                               "" },
-		{      "Series",      "join Series_List l on l.BookID = b.BookID",     "l.SeriesID = Series.SeriesID",                                                                               "" },
-		{     "Updates",											   "",    "b.UpdateID = Updates.UpdateID",  "and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
-	};
-
-	for (const auto& [table, join, where, additional] : args)
+	for (const auto& [table, join, where, additional] : IS_DELETED_UPDATE_ARGS)
 	{
 		PLOGI << "set IsDeleted for " << table;
-		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(update_statement).arg(table, join, where, additional).toStdString().data()).execute();
+		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(IS_DELETED_UPDATE_STATEMENTS).arg(table, join, where, additional).toStdString().data()).execute();
 		assert(rc == 0);
 	}
 }

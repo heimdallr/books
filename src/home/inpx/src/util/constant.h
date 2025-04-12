@@ -39,3 +39,24 @@ constexpr auto GET_MAX_ID_QUERY = "select coalesce(max(m), 0) from ("
 								  "union select max(KeywordID) m from Keywords "
 								  "union select max(FolderID)  m from Folders "
 								  ")";
+
+static constexpr auto IS_DELETED_UPDATE_STATEMENTS = R"(
+update %1 set IsDeleted = not exists (
+	select 42 from Books b 
+		%2
+		left join Books_User bu on bu.BookID = b.BookID 
+		where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0 
+			and %3
+	)
+	%4
+)";
+
+static constexpr std::tuple<const char* /*table*/, const char* /*join*/, const char* /*where and condition*/, const char* /*additional condition*/> IS_DELETED_UPDATE_ARGS[] {
+	{     "Authors",      "join Author_List l on l.BookID = b.BookID",    "l.AuthorID = Authors.AuthorID",                                                                               "" },
+	{     "Folders",											   "",    "b.FolderID = Folders.FolderID",																			   "" },
+	{	  "Genres",       "join Genre_List l on l.BookID = b.BookID",   "l.GenreCode = Genres.GenreCode", "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)" },
+	{ "Groups_User", "join Groups_List_User l on l.BookID = b.BookID",  "l.GroupID = Groups_User.GroupID",                                                                               "" },
+	{    "Keywords",     "join Keyword_List l on l.BookID = b.BookID", "l.KeywordID = Keywords.KeywordID",                                                                               "" },
+	{	  "Series",      "join Series_List l on l.BookID = b.BookID",     "l.SeriesID = Series.SeriesID",                                                                               "" },
+	{     "Updates",											   "",    "b.UpdateID = Updates.UpdateID",  "and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
+};
