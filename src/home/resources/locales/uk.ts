@@ -1061,11 +1061,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
-        <source>date_added_code_root</source>
-        <translation>За датою додавання</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unknown_root</source>
         <translation>Жанри не з довідника</translation>
     </message>

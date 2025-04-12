@@ -1051,11 +1051,6 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
-        <source>date_added_code_root</source>
-        <translation>By date added</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unknown_root</source>
         <translation>Unknown</translation>
     </message>
