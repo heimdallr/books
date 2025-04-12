@@ -28,7 +28,7 @@ namespace
 constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool) const;
 using MenuRequester = IDataItem::Ptr (*)(ITreeViewController::RequestContextMenuOptions options);
 
 IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
@@ -348,7 +348,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		[&](IDataItem::Ptr data)
 		{
 			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl));
+			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), false);
 			m_impl->models[m_impl->mode].reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 		});

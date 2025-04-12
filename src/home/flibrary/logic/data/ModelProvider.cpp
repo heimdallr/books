@@ -59,13 +59,21 @@ struct ModelProvider::Impl
 	{
 	}
 
+	std::shared_ptr<QAbstractItemModel> CreateSortFilterProxyModel(const bool autoAcceptChildRows) const
+	{
+		auto model = container.resolve<AbstractSortFilterProxyModel>();
+		if (autoAcceptChildRows)
+			model->setAutoAcceptChildRows(autoAcceptChildRows);
+		return model;
+	}
+
 	template <typename T>
-	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver& o) const
+	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver& o, const bool autoAcceptChildRows) const
 	{
 		data = std::move(d);
 		observer = &o;
 		sourceModel = container.resolve<T>();
-		sourceModel = container.resolve<AbstractSortFilterProxyModel>();
+		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows);
 		return container.resolve<AbstractFilteredProxyModel>();
 	}
 };
@@ -81,14 +89,14 @@ ModelProvider::~ModelProvider()
 	PLOGV << "ModelProvider destroyed";
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
 {
-	return m_impl->CreateModel<ListModel>(std::move(data), observer);
+	return m_impl->CreateModel<ListModel>(std::move(data), observer, autoAcceptChildRows);
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
 {
-	auto model = CreateListModel(std::move(data), observer);
+	auto model = CreateListModel(std::move(data), observer, autoAcceptChildRows);
 	return std::make_shared<BooksSearchProxyModel>(std::move(model));
 }
 
@@ -104,9 +112,9 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 	return m_impl->container.resolve<ScriptSortFilterModel>();
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
 {
-	return m_impl->CreateModel<TreeModel>(std::move(data), observer);
+	return m_impl->CreateModel<TreeModel>(std::move(data), observer, autoAcceptChildRows);
 }
 
 IDataItem::Ptr ModelProvider::GetData() const noexcept
