@@ -419,7 +419,6 @@ private:
 		connect(m_ui.actionClearLog, &QAction::triggered, &m_self, [&] { m_logController->Clear(); });
 		const auto logAction = [this](const auto& action)
 		{
-			m_logController->ShowCollectionStatistics();
 			if (!m_ui.actionShowLog->isChecked())
 				m_ui.actionShowLog->trigger();
 			std::invoke(action, *m_logController);
