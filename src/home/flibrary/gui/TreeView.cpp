@@ -392,7 +392,8 @@ private:
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			| addOption(Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()), ITreeViewController::RequestContextMenuOptions::IsArchive);
+			| addOption(m_controller->GetItemType() == ItemType::Books && Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()),
+		                ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
