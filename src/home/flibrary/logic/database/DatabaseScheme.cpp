@@ -197,6 +197,13 @@ void AddTableFields(DB::ITransaction& transaction)
 	                        "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }))
 		OnBooksFolderIDAdded(transaction);
 	AddUserTableField(transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" });
+	AddUserTableField(transaction, "Authors", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Folders", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Genres", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Groups_User", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Keywords", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Series", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Updates", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 }
 
 } // namespace
