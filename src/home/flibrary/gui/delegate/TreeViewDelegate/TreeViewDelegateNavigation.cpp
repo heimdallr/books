@@ -9,6 +9,7 @@
 
 #include "fnd/observable.h"
 
+#include "interface/constants/ModelRole.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ColorUtil.h"
@@ -59,21 +60,25 @@ private: // QStyledItemDelegate
 
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
-		if (!(option.state & QStyle::State_Selected))
-			return QStyledItemDelegate::paint(painter, option, index);
+		auto o = option;
+		if (index.data(Role::IsRemoved).toBool())
+			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		const QWidget* widget = option.widget;
+		if (!(o.state & QStyle::State_Selected))
+			return QStyledItemDelegate::paint(painter, o, index);
+
+		const QWidget* widget = o.widget;
 		assert(widget);
 		QStyle* style = widget->style();
 		assert(style);
-		style->drawControl(QStyle::CE_ItemViewItem, &option, painter, widget);
+		style->drawControl(QStyle::CE_ItemViewItem, &o, painter, widget);
 		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
 		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
 		style->drawItemText(painter,
-		                    option.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin),
+		                    o.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin),
 		                    Qt::AlignLeft,
-		                    option.palette,
-		                    option.state & QStyle::State_Enabled,
+		                    o.palette,
+		                    o.state & QStyle::State_Enabled,
 		                    index.data(Qt::DisplayRole).toString());
 	}
 

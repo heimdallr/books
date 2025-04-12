@@ -59,6 +59,8 @@ public:
 	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept = 0;
 
 	[[nodiscard]] virtual bool IsRemoved() const noexcept = 0;
+	virtual void SetRemoved(bool value) noexcept = 0;
+
 	[[nodiscard]] virtual int RemapColumn(int column) const noexcept = 0;
 	[[nodiscard]] virtual int GetColumnCount() const noexcept = 0;
 

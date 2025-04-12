@@ -73,7 +73,12 @@ size_t DataItem::GetRow() const noexcept
 
 bool DataItem::IsRemoved() const noexcept
 {
-	return true;
+	return m_removed;
+}
+
+void DataItem::SetRemoved(const bool value) noexcept
+{
+	m_removed = value;
 }
 
 int DataItem::RemapColumn(const int column) const noexcept
@@ -266,11 +271,6 @@ std::shared_ptr<IDataItem> BookItem::Create(IDataItem* parent)
 int BookItem::Remap(const int column) noexcept
 {
 	return mapping->columns[static_cast<size_t>(column)];
-}
-
-bool BookItem::IsRemoved() const noexcept
-{
-	return removed;
 }
 
 int BookItem::RemapColumn(const int column) const noexcept

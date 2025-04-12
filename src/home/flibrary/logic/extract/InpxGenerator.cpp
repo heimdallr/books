@@ -147,7 +147,7 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 	stream.append((fileInfo.completeBaseName() + FIELDS_SEPARATOR).toUtf8());
 	stream.append((book.book->GetRawData(BookItem::Column::Size) + FIELDS_SEPARATOR).toUtf8());
 	stream.append((book.book->GetId() + FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString(book.book->To<BookItem>()->removed ? "1" : "0") + FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString(book.book->IsRemoved() ? "1" : "0") + FIELDS_SEPARATOR).toUtf8());
 	stream.append((fileInfo.suffix() + FIELDS_SEPARATOR).toUtf8());
 	stream.append((book.book->GetRawData(BookItem::Column::UpdateDate) + FIELDS_SEPARATOR).toUtf8());
 	stream.append((QString::number(n++) + FIELDS_SEPARATOR).toUtf8());
