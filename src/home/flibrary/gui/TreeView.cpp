@@ -318,13 +318,13 @@ private:
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
-			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			SetLanguageFilter();
 		}
 		else
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
 		}
+		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
 		m_delegate->OnModelChanged();
 
