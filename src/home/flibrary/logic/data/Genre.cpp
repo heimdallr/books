@@ -83,13 +83,13 @@ Genre Genre::Load(DB::IDatabase& db)
 	using AllGenresItem = std::tuple<Genre, QString>;
 	std::unordered_map<QString, AllGenresItem> allGenres;
 	std::vector<AllGenresItem> buffer;
-	const auto query = db.CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g");
+	const auto query = db.CreateQuery("select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted from Genres g");
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto* fb2Code = query->Get<const char*>(1);
 		auto translated = Loc::Tr(GENRE, fb2Code);
 		AllGenresItem item {
-			Genre { .code = query->Get<const char*>(0), .name = translated != fb2Code ? std::move(translated) : query->Get<const char*>(3) },
+			Genre { .code = query->Get<const char*>(0), .name = translated != fb2Code ? std::move(translated) : query->Get<const char*>(3), .removed = static_cast<bool>(query->Get<int>(5)) },
 			query->Get<const char*>(2)
 		};
 		if (query->Get<int>(4))

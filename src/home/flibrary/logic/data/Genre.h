@@ -25,6 +25,7 @@ struct Genre
 	int row { 0 };
 	Genre* parent { nullptr };
 	std::vector<Genre> children;
+	bool removed { false };
 
 	LOGIC_EXPORT static Genre Load(DB::IDatabase& db);
 	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);
@@ -36,4 +37,4 @@ struct Genre
 	}
 };
 
-}
+} // namespace HomeCompa::Flibrary
