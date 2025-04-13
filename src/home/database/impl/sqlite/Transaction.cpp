@@ -4,6 +4,7 @@
 
 #include "ICommand.h"
 #include "IQuery.h"
+#include "ITemporaryTable.h"
 #include "ITransaction.h"
 #include "sqlite3ppext.h"
 
@@ -12,16 +13,17 @@ namespace HomeCompa::DB::Impl::Sqlite
 
 std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database& db, std::string_view command);
 std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
+std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional);
 
 namespace
 {
 
-class Transaction : virtual public DB::ITransaction
+class Transaction : virtual public ITransaction
 {
 	NON_COPY_MOVABLE(Transaction)
 
 public:
-	explicit Transaction(std::mutex& mutex, sqlite3pp::database& db)
+	Transaction(std::mutex& mutex, sqlite3pp::database& db)
 		: m_lock(std::make_unique<std::lock_guard<std::mutex>>(mutex))
 		, m_db(db)
 		, m_transaction(db)
@@ -61,6 +63,11 @@ private: // Transaction
 		return CreateQueryImpl(m_queryMutex, m_db, query);
 	}
 
+	std::unique_ptr<ITemporaryTable> CreateTemporaryTable(const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional) override
+	{
+		return CreateTemporaryTableImpl(*this, fields, additional);
+	}
+
 private:
 	std::unique_ptr<std::lock_guard<std::mutex>> m_lock;
 	sqlite3pp::database& m_db;
@@ -71,7 +78,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<DB::ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db)
+std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db)
 {
 	return std::make_unique<Transaction>(mutex, db);
 }
