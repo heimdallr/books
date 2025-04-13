@@ -2,8 +2,11 @@
 
 #include <QHash>
 
+#include <format>
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/GenresLocalization.h"
@@ -106,26 +109,28 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 	auto progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
 	bool ok = true;
 	const auto transaction = db.CreateTransaction();
+	const auto tempTable = transaction->CreateTemporaryTable();
 	{
-		const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) values(:id, :is_deleted, datetime(CURRENT_TIMESTAMP, 'localtime'))");
+		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)
 		{
-			command->Bind(":id", id);
-			command->Bind(":is_deleted", remove ? 1 : 0);
+			command->Bind(0, id);
 			ok = command->Execute() && ok;
 			progressItem->Increment(1);
 		}
 	}
-	{
-		ok = transaction
-		         ->CreateCommand(R"(
-			delete from Books_User 
+	transaction
+		->CreateCommand(std::format("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) select id, {}, datetime(CURRENT_TIMESTAMP, 'localtime') from {}", remove ? 1 : 0, tempTable->GetName()))
+		->Execute();
+
+	ok = transaction
+	         ->CreateCommand(R"(
+		delete from Books_User 
 			where UserRate is null 
 			and exists (select 42 from Books where Books.BookID = Books_User.BookID and Books.IsDeleted = Books_User.IsDeleted)
-		)")
-		         ->Execute()
-		  && ok;
-	}
+	)")
+	         ->Execute()
+	  && ok;
 
 	return transaction->Commit() && ok;
 }
