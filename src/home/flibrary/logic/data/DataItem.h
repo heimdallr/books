@@ -39,6 +39,8 @@ protected: // IDataItem
 	[[nodiscard]] const QString& GetRawData(int column = 0) const noexcept override;
 
 	[[nodiscard]] bool IsRemoved() const noexcept override;
+	void SetRemoved(bool value) noexcept override;
+
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 
@@ -60,6 +62,7 @@ protected:
 	Items m_children;
 	QString m_id;
 	std::vector<QString> m_data;
+	bool m_removed { false };
 };
 
 class NavigationItem final : public DataItem
@@ -180,7 +183,6 @@ public:
 	};
 
 	Qt::CheckState checkState { Qt::Unchecked };
-	bool removed { false };
 	static const Mapping* mapping;
 
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
@@ -189,7 +191,6 @@ public:
 	explicit BookItem(IDataItem* parent = nullptr);
 
 private: // DataItem
-	[[nodiscard]] bool IsRemoved() const noexcept override;
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 	BookItem* ToBookItem() noexcept override;

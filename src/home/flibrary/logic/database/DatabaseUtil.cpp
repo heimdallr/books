@@ -14,7 +14,10 @@
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
+#include "inpx/src/util/constant.h"
 #include "util/localization.h"
+
+#include "log.h"
 
 namespace HomeCompa::Flibrary::DatabaseUtil
 {
@@ -38,21 +41,26 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 
 }
 
-IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index)
+IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
 	item->SetId(query.Get<const char*>(index[0]));
 	item->SetData(query.Get<const char*>(index[1]));
 
+	if (removedIndex)
+		item->SetRemoved(query.Get<int>(removedIndex));
+
 	return item;
 }
 
-IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index)
+IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
 
 	item->SetId(query.Get<const char*>(index[0]));
+	if (removedIndex)
+		item->SetRemoved(query.Get<int>(removedIndex));
 
 	const auto* fbCode = query.Get<const char*>(index[2]);
 	const auto translated = Loc::Tr(GENRE, fbCode);
@@ -63,13 +71,15 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index)
 	return item;
 }
 
-IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index)
+IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	static const std::unordered_map<QString, const char*> languages { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
 	item->SetId(query.Get<const char*>(index[0]));
+	if (removedIndex)
+		item->SetRemoved(query.Get<int>(removedIndex));
 
 	QString language = query.Get<const char*>(index[1]);
 	const auto it = languages.find(language);
@@ -79,11 +89,14 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index)
 	return item;
 }
 
-IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const size_t* index)
+IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	auto item = AuthorItem::Create();
 
 	item->SetId(QString::number(query.Get<long long>(index[0])));
+	if (removedIndex)
+		item->SetRemoved(query.Get<int>(removedIndex));
+
 	for (int i = 0; i < AuthorItem::Column::Last; ++i)
 		item->SetData(query.Get<const char*>(index[i + 1]), i);
 
@@ -98,8 +111,7 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 	for (const auto& [queryIndex, dataIndex] : BOOK_QUERY_TO_DATA)
 		item->SetData(query.Get<const char*>(queryIndex), dataIndex);
 
-	auto& typed = *item->To<BookItem>();
-	typed.removed = query.Get<int>(BookQueryFields::IsDeleted);
+	item->SetRemoved(query.Get<int>(BookQueryFields::IsDeleted));
 
 	return item;
 }
@@ -131,6 +143,18 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 	)")
 	         ->Execute()
 	  && ok;
+
+	for (const auto& [table, where, byBooks, join, additional] : IS_DELETED_UPDATE_ARGS)
+	{
+		PLOGV << "set IsDeleted for " << table;
+		ok = transaction
+		         ->CreateCommand(QString("%1%2")
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional))
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_BY_BOOKS).arg(tempTable->GetName().data(), QString(byBooks).arg(where)))
+		                             .toStdString())
+		         ->Execute()
+		  && ok;
+	}
 
 	return transaction->Commit() && ok;
 }

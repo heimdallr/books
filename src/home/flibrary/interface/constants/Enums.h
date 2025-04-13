@@ -3,20 +3,25 @@
 namespace HomeCompa::Flibrary
 {
 
+#define NAVIGATION_MODE_ITEMS_X_MACRO \
+	NAVIGATION_MODE_ITEM(Authors)     \
+	NAVIGATION_MODE_ITEM(Series)      \
+	NAVIGATION_MODE_ITEM(Genres)      \
+	NAVIGATION_MODE_ITEM(Keywords)    \
+	NAVIGATION_MODE_ITEM(Updates)     \
+	NAVIGATION_MODE_ITEM(Archives)    \
+	NAVIGATION_MODE_ITEM(Languages)   \
+	NAVIGATION_MODE_ITEM(Groups)      \
+	NAVIGATION_MODE_ITEM(Search)      \
+	NAVIGATION_MODE_ITEM(AllBooks)
+
 enum class NavigationMode
 {
 	Unknown = -1,
-	Authors,
-	Series,
-	Genres,
-	Keywords,
-	Updates,
-	Archives,
-	Languages,
-	Groups,
-	Search,
-	AllBooks,
-	Last
+#define NAVIGATION_MODE_ITEM(NAME) NAME,
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+		Last
 };
 
 enum class ViewMode

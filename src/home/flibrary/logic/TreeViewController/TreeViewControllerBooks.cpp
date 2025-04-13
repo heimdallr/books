@@ -26,7 +26,7 @@ namespace
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool autoAcceptChildRows) const;
 
 struct ModeDescriptor
 {
@@ -89,7 +89,8 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 		{
 			assert(m_impl->viewMode != ViewMode::Unknown);
 			const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-			m_impl->model.reset(((*IModelProvider::Lock(m_modelProvider)).*invoker)(std::move(data), *m_impl));
+			auto model = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), true);
+			m_impl->model.reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->model.get());
 		});
 

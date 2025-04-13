@@ -397,9 +397,20 @@ void ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 	}
 }
 
+void SetIsNavigationDeleted(DatabaseWrapper& db)
+{
+	for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
+	{
+		PLOGI << "set IsDeleted for " << table;
+		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString().data()).execute();
+		assert(rc == 0);
+	}
+}
+
 void Analyze(const Path& dbFileName)
 {
 	DatabaseWrapper db(dbFileName);
+	SetIsNavigationDeleted(db);
 	PLOGI << "ANALYZE";
 	[[maybe_unused]] const auto rc = sqlite3pp::command(db, "ANALYZE").execute();
 	assert(rc == 0);
@@ -1039,6 +1050,8 @@ private:
 			PLOGE << "Something went wrong";
 
 		ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
+
+		Analyze(dbFileName);
 	}
 
 	void SetUnknownGenreId()

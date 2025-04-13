@@ -47,7 +47,6 @@ SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<IModelProvider>
 	, m_impl(modelProvider)
 {
 	QSortFilterProxyModel::setSourceModel(m_impl->m_sourceModel.get());
-	setAutoAcceptChildRows(true);
 	setRecursiveFilteringEnabled(true);
 }
 

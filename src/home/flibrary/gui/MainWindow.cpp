@@ -355,6 +355,12 @@ private:
 		m_collectionController->AllowDestructiveOperation(value);
 	}
 
+	void ShowRemovedBooks(const bool value)
+	{
+		m_navigationWidget->ShowRemoved(value);
+		m_booksWidget->ShowRemoved(value);
+	}
+
 	void ConnectActionsFile()
 	{
 		PLOGV << "ConnectActionsFile";
@@ -437,7 +443,7 @@ private:
 	void ConnectActionsSettingsView()
 	{
 		PLOGV << "ConnectActionsSettingsView";
-		ConnectSettings(m_ui.actionShowRemoved, SHOW_REMOVED_BOOKS_KEY, m_booksWidget.get(), &TreeView::ShowRemoved);
+		ConnectSettings(m_ui.actionShowRemoved, SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);

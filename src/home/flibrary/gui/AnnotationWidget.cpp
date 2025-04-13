@@ -43,7 +43,7 @@ constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images ou
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
 
-#if (false)
+#if (false)  // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
 QT_TRANSLATE_NOOP("Annotation", "AsIs")
 QT_TRANSLATE_NOOP("Annotation", "Archive")
@@ -421,7 +421,7 @@ private: // IAnnotationController::IObserver
 		{
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
-			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), *this));
+			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), *this, true));
 			m_ui.content->setModel(m_contentModel.get());
 		}
 
@@ -480,7 +480,7 @@ private:
 		m_navigationController->SetMode(url.front());
 	}
 
-	void OnCoverEnter()
+	void OnCoverEnter() const
 	{
 		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.front()->size().width() * 4)
 			return;
@@ -491,7 +491,7 @@ private:
 		m_coverButtons[CoverButtonType::Home]->setVisible(m_currentCoverIndex != m_coverIndex);
 	}
 
-	void OnCoverLeave()
+	void OnCoverLeave() const
 	{
 		for (auto* btn : m_coverButtons)
 			btn->setVisible(false);

@@ -28,7 +28,7 @@ namespace
 constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool) const;
 using MenuRequester = IDataItem::Ptr (*)(ITreeViewController::RequestContextMenuOptions options);
 
 IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
@@ -51,23 +51,25 @@ enum class MenuAction
 		Last
 };
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_XMACRO            \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)   \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search) \
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO           \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)      \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Updates, Updates)      \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)        \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)   \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)    \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search) \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)        \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Updates, Updates)
 
-#define SUBSCRIBED_TABLES_ITEMS_XMACRO       \
+#define SUBSCRIBED_TABLES_ITEMS_X_MACRO      \
+	SUBSCRIBED_TABLES_ITEM(Authors)          \
+	SUBSCRIBED_TABLES_ITEM(Books)            \
+	SUBSCRIBED_TABLES_ITEM(Genres)           \
 	SUBSCRIBED_TABLES_ITEM(Groups_List_User) \
 	SUBSCRIBED_TABLES_ITEM(Groups_User)      \
-	SUBSCRIBED_TABLES_ITEM(Searches_User)    \
-	SUBSCRIBED_TABLES_ITEM(Authors)          \
-	SUBSCRIBED_TABLES_ITEM(Updates)          \
-	SUBSCRIBED_TABLES_ITEM(Series)           \
 	SUBSCRIBED_TABLES_ITEM(Keywords)         \
-	SUBSCRIBED_TABLES_ITEM(Books)
+	SUBSCRIBED_TABLES_ITEM(Searches_User)    \
+	SUBSCRIBED_TABLES_ITEM(Series)           \
+	SUBSCRIBED_TABLES_ITEM(Updates)
 
 class ITableSubscriptionHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -77,13 +79,13 @@ public:
 public:
 	virtual ~ITableSubscriptionHandler() = default;
 #define SUBSCRIBED_TABLES_ITEM(NAME) virtual void On_##NAME##_Changed() = 0;
-	SUBSCRIBED_TABLES_ITEMS_XMACRO
+	SUBSCRIBED_TABLES_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_ITEM
 };
 
 constexpr std::pair<std::string_view, ITableSubscriptionHandler::Function> SUBSCRIBED_TABLES[] {
 #define SUBSCRIBED_TABLES_ITEM(NAME) { #NAME, &ITableSubscriptionHandler::On_##NAME##_Changed },
-	SUBSCRIBED_TABLES_ITEMS_XMACRO
+	SUBSCRIBED_TABLES_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_ITEM
 };
 
@@ -292,8 +294,9 @@ private: // DB::IDatabaseObserver
 			forwarder.Forward([this, invoker] { std::invoke(invoker, static_cast<ITableSubscriptionHandler*>(this)); });
 	}
 
-	void OnUpdate(std::string_view /*dbName*/, std::string_view /*tableName*/, int64_t /*rowId*/) override
+	void OnUpdate(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
 	{
+		OnInsert(dbName, tableName, rowId);
 	}
 
 	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
@@ -310,9 +313,9 @@ private: // ITableSubscriptionHandler
 
 	void On_Books_Changed() override
 	{
-		OnTableChanged(NavigationMode::Genres);
-		OnTableChanged(NavigationMode::Archives);
-		OnTableChanged(NavigationMode::Languages);
+#define NAVIGATION_MODE_ITEM(NAME) OnTableChanged(NavigationMode::NAME);
+		NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
 		self.RequestBooks(true);
 	}
 
@@ -321,7 +324,7 @@ private: // ITableSubscriptionHandler
 	{                                                        \
 		OnTableChanged(NavigationMode::TYPE);                \
 	}
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_XMACRO
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
 
 private:
@@ -348,7 +351,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		[&](IDataItem::Ptr data)
 		{
 			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl));
+			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), false);
 			m_impl->models[m_impl->mode].reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 		});
