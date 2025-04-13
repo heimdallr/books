@@ -399,10 +399,10 @@ void ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 
 void SetIsNavigationDeleted(DatabaseWrapper& db)
 {
-	for (const auto& [table, join, where, additional] : IS_DELETED_UPDATE_ARGS)
+	for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
 	{
 		PLOGI << "set IsDeleted for " << table;
-		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(IS_DELETED_UPDATE_STATEMENTS).arg(table, join, where, additional).toStdString().data()).execute();
+		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString().data()).execute();
 		assert(rc == 0);
 	}
 }

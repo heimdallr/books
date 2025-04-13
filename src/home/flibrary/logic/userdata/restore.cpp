@@ -96,10 +96,10 @@ public:
 			restorer->Restore(db);
 
 		const auto tr = db.CreateTransaction();
-		for (const auto& [table, join, where, additional] : IS_DELETED_UPDATE_ARGS)
+		for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
 		{
-			PLOGI << "set IsDeleted for " << table;
-			[[maybe_unused]] const auto ok = tr->CreateCommand(QString(IS_DELETED_UPDATE_STATEMENTS).arg(table, join, where, additional).toStdString())->Execute();
+			PLOGV << "set IsDeleted for " << table;
+			[[maybe_unused]] const auto ok = tr->CreateCommand(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString())->Execute();
 			assert(ok);
 		}
 		tr->Commit();

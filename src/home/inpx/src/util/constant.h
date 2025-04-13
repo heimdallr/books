@@ -40,23 +40,37 @@ constexpr auto GET_MAX_ID_QUERY = "select coalesce(max(m), 0) from ("
 								  "union select max(FolderID)  m from Folders "
 								  ")";
 
-static constexpr auto IS_DELETED_UPDATE_STATEMENTS = R"(
+static constexpr auto IS_DELETED_UPDATE_STATEMENT_TOTAL = R"(
 update %1 set IsDeleted = not exists (
 	select 42 from Books b 
 		%2
 		left join Books_User bu on bu.BookID = b.BookID 
 		where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0 
-			and %3
+			%3
 	)
 	%4
 )";
 
-static constexpr std::tuple<const char* /*table*/, const char* /*join*/, const char* /*where and condition*/, const char* /*additional condition*/> IS_DELETED_UPDATE_ARGS[] {
-	{     "Authors",      "join Author_List l on l.BookID = b.BookID",    "l.AuthorID = Authors.AuthorID",                                                                               "" },
-	{     "Folders",											   "",    "b.FolderID = Folders.FolderID",																			   "" },
-	{	  "Genres",       "join Genre_List l on l.BookID = b.BookID",   "l.GenreCode = Genres.GenreCode", "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)" },
-	{ "Groups_User", "join Groups_List_User l on l.BookID = b.BookID",  "l.GroupID = Groups_User.GroupID",                                                                               "" },
-	{    "Keywords",     "join Keyword_List l on l.BookID = b.BookID", "l.KeywordID = Keywords.KeywordID",                                                                               "" },
-	{	  "Series",      "join Series_List l on l.BookID = b.BookID",     "l.SeriesID = Series.SeriesID",                                                                               "" },
-	{     "Updates",											   "",    "b.UpdateID = Updates.UpdateID",  "and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
+static constexpr auto IS_DELETED_UPDATE_STATEMENT_BY_BOOKS = " where exists (select 42 from %1 t %2)";
+
+struct IsDeletedUpdateArguments
+{
+	const char* table;
+	const char* where;
+	const char* byBooks;
+	const char* join;
+	const char* additional;
+};
+
+static constexpr IsDeletedUpdateArguments IS_DELETED_UPDATE_ARGS[] {
+	{ "Authors", "and l.AuthorID = Authors.AuthorID", "join Author_List l on l.BookID = t.id %1", "join Author_List l on l.BookID = b.BookID", "" },
+	{ "Folders", "and b.FolderID = Folders.FolderID", "join Books b on b.BookID = t.id %1", "", "" },
+	{
+     "Genres", "and l.GenreCode = Genres.GenreCode",
+     "join Books b on b.BookID = t.id join Genre_List l on  l.BookID = b.BookID %1", "join Genre_List l on l.BookID = b.BookID",
+     "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)", },
+	{ "Groups_User", "and l.GroupID = Groups_User.GroupID", "join Groups_List_User l on l.BookID = t.id %1", "join Groups_List_User l on l.BookID = b.BookID", "" },
+	{ "Keywords", "and l.KeywordID = Keywords.KeywordID", "join Keyword_List l on l.BookID = t.id %1", "join Keyword_List l on l.BookID = b.BookID", "" },
+	{ "Series", "and l.SeriesID = Series.SeriesID", "join Series_List l on l.BookID = t.id %1", "join Series_List l on l.BookID = b.BookID", "" },
+	{ "Updates", "and b.UpdateID = Updates.UpdateID", "join Books b on b.BookID = t.id %1", "", "and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
 };

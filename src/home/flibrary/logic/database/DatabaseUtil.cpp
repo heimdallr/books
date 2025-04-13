@@ -14,7 +14,10 @@
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
+#include "inpx/src/util/constant.h"
 #include "util/localization.h"
+
+#include "log.h"
 
 namespace HomeCompa::Flibrary::DatabaseUtil
 {
@@ -140,6 +143,18 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 	)")
 	         ->Execute()
 	  && ok;
+
+	for (const auto& [table, where, byBooks, join, additional] : IS_DELETED_UPDATE_ARGS)
+	{
+		PLOGV << "set IsDeleted for " << table;
+		ok = transaction
+		         ->CreateCommand(QString("%1%2")
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional))
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_BY_BOOKS).arg(tempTable->GetName().data(), QString(byBooks).arg(where)))
+		                             .toStdString())
+		         ->Execute()
+		  && ok;
+	}
 
 	return transaction->Commit() && ok;
 }
