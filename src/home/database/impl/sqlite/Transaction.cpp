@@ -18,7 +18,7 @@ std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(ITransaction& tr, cons
 namespace
 {
 
-class Transaction final: virtual public ITransaction
+class Transaction final : virtual public ITransaction
 {
 	NON_COPY_MOVABLE(Transaction)
 

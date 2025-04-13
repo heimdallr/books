@@ -16,7 +16,7 @@ int Index(const size_t index)
 	return static_cast<int>(index);
 }
 
-class Query final: virtual public IQuery
+class Query final : virtual public IQuery
 {
 public:
 	Query(std::mutex& mutex, sqlite3pp::database& db, const std::string_view query)

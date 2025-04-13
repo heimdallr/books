@@ -10,6 +10,7 @@
 #include "interface/constants/ProductConstant.h"
 
 #include "logging/init.h"
+#include "logic/data/Genre.h"
 #include "util/ISettings.h"
 #include "util/SortString.h"
 #include "util/localization.h"
@@ -19,7 +20,6 @@
 #include "log.h"
 
 #include "config/version.h"
-#include "logic/data/Genre.h"
 
 using namespace HomeCompa;
 using namespace Opds;

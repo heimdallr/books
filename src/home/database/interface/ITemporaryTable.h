@@ -3,7 +3,7 @@
 namespace HomeCompa::DB
 {
 
-class ITemporaryTable  // NOLINT(cppcoreguidelines-special-member-functions)
+class ITemporaryTable // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~ITemporaryTable() = default;
