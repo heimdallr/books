@@ -54,7 +54,7 @@ QT_TRANSLATE_NOOP("Annotation", "Inpx")
 constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
 
-constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::ARCHIVE, Loc::LANGUAGE, Loc::GROUPS, nullptr };
+constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::UPDATES, Loc::ARCHIVE, Loc::LANGUAGE, Loc::GROUPS, nullptr };
 
 TR_DEF
 
