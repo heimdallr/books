@@ -312,7 +312,11 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [&](const QModelIndex& index) { m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString()); });
+		        [&](const QModelIndex& index)
+		        {
+			        m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
+					m_settings->Set(GetRecentIdKey(), m_currentId);
+		        });
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
@@ -484,7 +488,6 @@ private:
 				                                  [&, child = std::move(child)]() mutable
 				                                  {
 													  const auto& view = *m_ui.treeView;
-													  m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
 
 													  auto selected = view.selectionModel()->selectedIndexes();
 													  const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) { return index.column() != 0; });
@@ -620,9 +623,6 @@ private:
 	{
 		if (m_recentMode.isEmpty())
 			return;
-
-		if (const auto currentIndex = m_ui.treeView->currentIndex(); currentIndex.isValid() && !m_currentId.isEmpty())
-			m_settings->Set(GetRecentIdKey(), m_currentId);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
