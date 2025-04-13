@@ -102,7 +102,7 @@ IDataItem::Ptr& Add(const IDataItem::Ptr& dst, QString title, const MenuAction i
 	return dst->AppendChild(std::move(item));
 }
 
-IDataItem::Ptr MenuRequesterGenres(const ITreeViewController::RequestContextMenuOptions options)
+IDataItem::Ptr TreeMenuRequester(const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		return {};
@@ -166,9 +166,9 @@ struct ModeDescriptor
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
 	{   Loc::Authors,																			   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                     },
 	{    Loc::Series,																									 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{    Loc::Genres,																			   { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &MenuRequesterGenres } },
+	{    Loc::Genres,																				 { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &TreeMenuRequester } },
 	{  Loc::Keywords,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{   Loc::Updates,																									{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Updates } },
+	{   Loc::Updates,																				{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Updates, &TreeMenuRequester } },
 	{  Loc::Archives,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
 	{ Loc::Languages,																								  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages } },
 	{    Loc::Groups,
