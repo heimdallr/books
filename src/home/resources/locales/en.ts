@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates:</source>
+        <translation>Updated:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Languages:</source>
         <translation>Language:</translation>
     </message>
@@ -230,11 +235,6 @@
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Images:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>Updated:</source>
         <translation></translation>
     </message>
     <message>

@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates:</source>
+        <translation>Обновлено:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Languages:</source>
         <translation>Язык:</translation>
     </message>
@@ -231,11 +236,6 @@
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Images:</source>
         <translation>Картинки:</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>Updated:</source>
-        <translation>Обновлён:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
