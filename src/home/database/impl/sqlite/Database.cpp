@@ -105,7 +105,7 @@ private:
 	sqlite3pp::ext::context& m_ctx;
 };
 
-class Database
+class Database final
 	: virtual public IDatabase
 	, public Observable<IDatabaseObserver>
 {
@@ -139,6 +139,9 @@ public:
 			m_db.load_extension(begin->second.data());
 
 		m_db.set_update_handler([&](const int opCode, const char* dbName, const char* tableName, const int64_t rowId) { m_observer.OnUpdate(opCode, dbName, tableName, rowId); });
+
+		[[maybe_unused]] const auto ok = Database::CreateQuery("ATTACH DATABASE ':memory:' AS tmp;")->Execute();
+		assert(ok);
 
 		PLOGV << "database created";
 	}
