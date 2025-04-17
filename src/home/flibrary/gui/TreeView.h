@@ -5,13 +5,16 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionProvider.h"
+#include "interface/ui/IUiFactory.h"
+
+#include "util/ISettings.h"
+
+#include "ItemViewToolTipper.h"
+#include "ScrollBarController.h"
+
 class QAbstractItemView;
 class QModelIndex;
-
-namespace HomeCompa
-{
-class ISettings;
-}
 
 namespace HomeCompa::Flibrary
 {
@@ -23,10 +26,10 @@ class TreeView final : public QWidget
 
 public:
 	TreeView(std::shared_ptr<ISettings> settings,
-	         std::shared_ptr<class IUiFactory> uiFactory,
-	         std::shared_ptr<class ItemViewToolTipper> itemViewToolTipper,
-	         std::shared_ptr<class ScrollBarController> scrollBarController,
-	         std::shared_ptr<const class ICollectionProvider> collectionProvider,
+	         std::shared_ptr<IUiFactory> uiFactory,
+	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
+	         std::shared_ptr<ScrollBarController> scrollBarController,
+	         std::shared_ptr<const ICollectionProvider> collectionProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;
 

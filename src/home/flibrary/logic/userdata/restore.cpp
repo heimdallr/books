@@ -5,9 +5,14 @@
 
 #include "fnd/EnumBitmask.h"
 
+#include "database/interface/ICommand.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/ITransaction.h"
+
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 
+#include "inpx/src/util/constant.h"
 #include "util/IExecutor.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
@@ -89,6 +94,15 @@ public:
 
 		for (const auto& restorer : m_restorers)
 			restorer->Restore(db);
+
+		const auto tr = db.CreateTransaction();
+		for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
+		{
+			PLOGV << "set IsDeleted for " << table;
+			[[maybe_unused]] const auto ok = tr->CreateCommand(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString())->Execute();
+			assert(ok);
+		}
+		tr->Commit();
 	}
 
 	~XmlParser() override = default;

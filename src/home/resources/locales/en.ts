@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates:</source>
+        <translation>Updated:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Languages:</source>
         <translation>Language:</translation>
     </message>
@@ -234,17 +239,12 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>Updated:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Translators:</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages, %2%L4 words)</source>
+        <source>%L1 letters (%2%3 pages, %2%L4 words)</source>
         <translation></translation>
     </message>
     <message>
@@ -574,7 +574,12 @@
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
-        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source> permanently, without the possibility of recovery</source>
         <translation></translation>
     </message>
     <message>
@@ -585,6 +590,11 @@
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source>%1 book(s) deleted</source>
         <translation></translation>
     </message>
     <message>
@@ -610,6 +620,10 @@
     <message>
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Delete forever, along with book files from archives</source>
         <translation></translation>
     </message>
 </context>
@@ -1034,11 +1048,6 @@ Restart now?</source>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other_all_root</source>
         <translation>Other</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
-        <source>date_added_code_root</source>
-        <translation>By date added</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5242,6 +5251,74 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>Month</name>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>1</source>
+        <translation>January</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2</source>
+        <translation>February</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>3</source>
+        <translation>March</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>4</source>
+        <translation>April</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>5</source>
+        <translation>May</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>6</source>
+        <translation>June</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>7</source>
+        <translation>July</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>8</source>
+        <translation>August</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>9</source>
+        <translation>September</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>10</source>
+        <translation>October</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>11</source>
+        <translation>November</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>12</source>
+        <translation>December</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2147483647</source>
+        <translation>Not specified</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5261,6 +5338,11 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates</source>
         <translation></translation>
     </message>
     <message>
@@ -5349,6 +5431,20 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Address has been copied to the clipboard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>No network interfaces found</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>Any</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Address</source>
         <translation></translation>
     </message>
 </context>

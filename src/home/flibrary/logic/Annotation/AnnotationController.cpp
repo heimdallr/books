@@ -37,16 +37,15 @@ constexpr auto KEYWORDS_FB2 = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
 constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
-constexpr auto UPDATED = QT_TRANSLATE_NOOP("Annotation", "Updated:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
-constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 (%2%3 pages, %2%L4 words)");
+constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 letters (%2%3 pages, %2%L4 words)");
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
 
 TR_DEF
 
-using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index);
+using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY = "select %1 from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
@@ -113,13 +112,13 @@ QString Join(const std::vector<QString>& strings, const QString& delimiter = ", 
 	return result;
 }
 
-QString Urls(const IAnnotationController::IStrategy& strategy, const char* type, const IDataItem& parent, const TitleGetter tileGetter = &GetTitle)
+QString Urls(const IAnnotationController::IStrategy& strategy, const char* type, const IDataItem& parent, const TitleGetter titleGetter = &GetTitle)
 {
 	std::vector<QString> urls;
 	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 	{
 		const auto item = parent.GetChild(i);
-		urls.emplace_back(strategy.GenerateUrl(type, item->GetId(), tileGetter(*item)));
+		urls.emplace_back(strategy.GenerateUrl(type, item->GetId(), titleGetter(*item)));
 	}
 
 	return Join(urls);
@@ -186,7 +185,8 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(strategy, Loc::KEYWORDS, keywords))
-		.Add(Loc::LANGUAGE, langStr);
+		.Add(Loc::LANGUAGE, langStr)
+		.Add(Loc::UPDATES, strategy.GenerateUrl(Loc::UPDATES, book.GetRawData(BookItem::Column::UpdateID), book.GetRawData(BookItem::Column::UpdateDate)));
 
 	return table;
 }
@@ -521,7 +521,7 @@ private:
 		query->Bind(":id", id);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto child = extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM);
+			auto child = extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM, 0);
 			child->Reduce();
 			root->AppendChild(std::move(child));
 		}
@@ -609,7 +609,6 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
 			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
-		info.Add(UPDATED, book.GetRawData(BookItem::Column::UpdateDate));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 

@@ -8,15 +8,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/IModel.h"
-#include "interface/logic/IReaderController.h"
-
 #include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/interface/IUiFactory.h"
 #include "util/localization.h"
-
-#include "ScrollBarController.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -25,11 +18,13 @@ namespace
 {
 using Role = IModel::Role;
 
-constexpr auto CONTEXT = "CollectionCleaner";
+constexpr auto CONTEXT = ICollectionCleaner::CONTEXT;
 constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
-constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?");
+constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?");
+constexpr auto PERMANENTLY = QT_TRANSLATE_NOOP("CollectionCleaner", " permanently, without the possibility of recovery");
 constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
 constexpr auto WRONG_SIZES = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
+constexpr auto LOGICAL_REMOVING_RESULT = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted");
 
 constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
 constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
@@ -71,9 +66,11 @@ class CollectionCleaner::Impl final
 
 public:
 	Impl(CollectionCleaner& self,
+	     const ICollectionProvider& collectionProvider,
 	     std::shared_ptr<const Util::IUiFactory> uiFactory,
 	     std::shared_ptr<const IReaderController> readerController,
 	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+	     std::shared_ptr<const IBookInfoProvider> dataProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreModel> genreModel,
 	     std::shared_ptr<ILanguageModel> languageModel,
@@ -85,6 +82,7 @@ public:
 		, m_uiFactory { std::move(uiFactory) }
 		, m_readerController { std::move(readerController) }
 		, m_collectionCleaner { std::move(collectionCleaner) }
+		, m_dataProvider { std::move(dataProvider) }
 		, m_settings { std::move(settings) }
 		, m_genreModel { std::shared_ptr<IModel> { std::move(genreModel) } }
 		, m_languageModel { std::shared_ptr<IModel> { std::move(languageModel) } }
@@ -124,6 +122,8 @@ public:
 		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
 		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
 
+		m_ui.removeForever->setEnabled(collectionProvider.ActiveCollectionExists() && collectionProvider.GetActiveCollection().destructiveOperationsAllowed);
+
 		Load();
 
 		auto label = new QLabel(Tr(ANALYZING));
@@ -141,7 +141,7 @@ public:
 		Save();
 	}
 
-private: // ICollectionCleaner::IAnalyzeCallback
+private: // ICollectionCleaner::IAnalyzeObserver
 	void AnalyzeFinished(ICollectionCleaner::Books books) override
 	{
 		if (m_analyzeCanceled)
@@ -155,26 +155,47 @@ private: // ICollectionCleaner::IAnalyzeCallback
 			return m_uiFactory->ShowInfo(Tr(BOOKS_NOT_FOUND));
 
 		const auto count = books.size();
-		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count).arg(m_ui.removeForever->isChecked() ? Tr(PERMANENTLY) : ""), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
 
 		QEventLoop eventLoop;
 
-		m_collectionCleaner->Remove(std::move(books),
-		                            [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
-		                            {
-										if (ok)
-											m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+		if (m_ui.removeForever->isChecked())
+		{
+			m_collectionCleaner->RemovePermanently(std::move(books),
+			                                       [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
+			                                       {
+													   if (ok)
+														   m_uiFactory->ShowInfo(Tr(ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 
-										eventLoop.exit();
-									});
+													   eventLoop.exit();
+												   });
+		}
+		else
+		{
+			m_collectionCleaner->Remove(std::move(books),
+			                            [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
+			                            {
+											if (ok)
+												m_uiFactory->ShowInfo(Tr(LOGICAL_REMOVING_RESULT).arg(count));
+
+											eventLoop.exit();
+											if (ok)
+												m_dataProvider->RequestBooks(true);
+										});
+		}
 
 		eventLoop.exec();
 	}
 
+	bool IsPermanently() const override
+	{
+		return m_ui.removeForever->isChecked();
+	}
+
 	bool NeedDeleteMarkedAsDeleted() const override
 	{
-		return m_ui.removeRemoved->isChecked();
+		return m_ui.removeRemoved->isEnabled() && m_ui.removeRemoved->isChecked();
 	}
 
 	bool NeedDeleteDuplicates() const override
@@ -325,6 +346,7 @@ private:
 	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const ICollectionCleaner> m_collectionCleaner;
+	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IModel, std::shared_ptr> m_genreModel;
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
@@ -333,9 +355,11 @@ private:
 	bool m_analyzeCanceled { false };
 };
 
-CollectionCleaner::CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiFactory,
+CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+                                     std::shared_ptr<const Util::IUiFactory> uiFactory,
                                      std::shared_ptr<const IReaderController> readerController,
                                      std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+                                     std::shared_ptr<const IBookInfoProvider> dataProvider,
                                      std::shared_ptr<ISettings> settings,
                                      std::shared_ptr<IGenreModel> genreModel,
                                      std::shared_ptr<ILanguageModel> languageModel,
@@ -344,9 +368,11 @@ CollectionCleaner::CollectionCleaner(std::shared_ptr<const Util::IUiFactory> uiF
                                      QWidget* parent)
 	: QDialog(uiFactory->GetParentWidget(parent))
 	, m_impl(*this,
+             *collectionProvider,
              std::move(uiFactory),
              std::move(readerController),
              std::move(collectionCleaner),
+             std::move(dataProvider),
              std::move(settings),
              std::move(genreModel),
              std::move(languageModel),

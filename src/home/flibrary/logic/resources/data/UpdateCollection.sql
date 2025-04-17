@@ -34,6 +34,9 @@ CREATE INDEX IX_Books_SeriesID_SeqNumber ON Books (SeriesID, SeqNumber);
 CREATE INDEX IX_Books_FolderID ON Books(FolderID);
 --@@
 
+CREATE INDEX IX_Books_UpdateID ON Books(UpdateID);
+--@@
+
 CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE);
 --@@
 
@@ -70,5 +73,8 @@ CREATE INDEX IX_ExportListUser_BookID ON Export_List_User (BookID);
 CREATE UNIQUE INDEX UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE);
 --@@
 
-ANALYZE;
+CREATE UNIQUE INDEX UIX_Update_PrimaryKey ON Updates (UpdateID);
+--@@
+
+CREATE INDEX IX_Update_ParentID ON Updates (ParentID);
 --@@

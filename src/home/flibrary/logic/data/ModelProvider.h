@@ -24,9 +24,9 @@ public:
 	~ModelProvider() override;
 
 public:
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, IModelObserver& observer) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateScriptModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateScriptCommandModel() const override;
 	[[nodiscard]] IDataItem::Ptr GetData() const noexcept override;

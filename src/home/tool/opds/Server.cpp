@@ -85,7 +85,12 @@ public:
 	Impl(const ISettings& settings, std::shared_ptr<const IRequester> requester)
 		: m_requester { std::move(requester) }
 	{
-		InitHttp(static_cast<uint16_t>(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
+		const auto host = [&]() -> QHostAddress
+		{
+			const auto address = settings.Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
+			return address == Flibrary::Constant::Settings::OPDS_HOST_DEFAULT ? QHostAddress::Any : QHostAddress { address };
+		}();
+		InitHttp(host, static_cast<uint16_t>(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
 
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
@@ -114,13 +119,13 @@ public:
 	}
 
 private:
-	void InitHttp(const uint16_t port)
+	void InitHttp(const QHostAddress& host, const uint16_t port)
 	{
 		auto tcpServer = std::make_unique<QTcpServer>();
-		if (!tcpServer->listen(QHostAddress::Any, port) || !m_server.bind(tcpServer.get()))
+		if (!tcpServer->listen(host, port) || !m_server.bind(tcpServer.get()))
 			throw std::runtime_error(std::format("Cannot listen port {}", port));
 
-		PLOGD << "Listening port " << port;
+		PLOGD << "Listening " << tcpServer->serverAddress().toString() << ":" << port;
 
 		(void)tcpServer.release();
 
@@ -137,6 +142,19 @@ private:
 #undef OPDS_REQUEST_ROOT_ITEM
 			 })
 			InitHttp(root);
+
+		m_server.route("/",
+		               [this]
+		               {
+						   return QtConcurrent::run(
+							   [this]
+							   {
+								   const QString root = "/web";
+								   QHttpServerResponse response(m_requester->GetRoot(root, QString(ROOT).arg(root)));
+								   SetContentType(response, root, MessageType::Atom);
+								   return response;
+							   });
+					   });
 	}
 
 	void InitHttp(const QString& root)

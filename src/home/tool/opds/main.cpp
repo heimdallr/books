@@ -10,6 +10,7 @@
 #include "interface/constants/ProductConstant.h"
 
 #include "logging/init.h"
+#include "logic/data/Genre.h"
 #include "util/ISettings.h"
 #include "util/SortString.h"
 #include "util/localization.h"
@@ -43,6 +44,8 @@ int run(int argc, char* argv[])
 		}
 
 		auto settings = container->resolve<ISettings>();
+		Flibrary::Genre::SetSortMode(*settings);
+
 		Util::QStringWrapper::SetLocale(Loc::GetLocale(*settings));
 		const auto translators = Loc::LoadLocales(*settings); //-V808
 		const auto server = container->resolve<IServer>();

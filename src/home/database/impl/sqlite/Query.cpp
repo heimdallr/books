@@ -16,7 +16,7 @@ int Index(const size_t index)
 	return static_cast<int>(index);
 }
 
-class Query : virtual public DB::IQuery
+class Query final : virtual public IQuery
 {
 public:
 	Query(std::mutex& mutex, sqlite3pp::database& db, const std::string_view query)
@@ -144,7 +144,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<DB::IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query)
+std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query)
 {
 	return std::make_unique<Query>(mutex, db, query);
 }

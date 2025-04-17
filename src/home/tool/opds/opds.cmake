@@ -27,5 +27,6 @@ AddTarget(opds	app
 		logging
 		logic
 		Util
+		ver
 		zip
 )

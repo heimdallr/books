@@ -20,20 +20,15 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
-#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
-#include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/util.h"
 #include "util/ColorUtil.h"
-#include "util/ISettings.h"
 #include "util/ObjectsConnector.h"
 #include "util/localization.h"
 
-#include "ItemViewToolTipper.h"
 #include "ModeComboBox.h"
-#include "ScrollBarController.h"
 #include "log.h"
 #include "zip.h"
 
@@ -317,19 +312,23 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [&](const QModelIndex& index) { m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString()); });
+		        [&](const QModelIndex& index)
+		        {
+			        m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
+					m_settings->Set(GetRecentIdKey(), m_currentId);
+		        });
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
-			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 			SetLanguageFilter();
 		}
 		else
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
 		}
+		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
 		m_delegate->OnModelChanged();
 
@@ -397,7 +396,8 @@ private:
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			| addOption(Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()), ITreeViewController::RequestContextMenuOptions::IsArchive);
+			| addOption(m_controller->GetItemType() == ItemType::Books && Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()),
+		                ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
@@ -488,7 +488,6 @@ private:
 				                                  [&, child = std::move(child)]() mutable
 				                                  {
 													  const auto& view = *m_ui.treeView;
-													  m_settings->Set(GetRecentIdKey(), m_currentId = view.currentIndex().data(Role::Id).toString());
 
 													  auto selected = view.selectionModel()->selectedIndexes();
 													  const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) { return index.column() != 0; });
@@ -624,9 +623,6 @@ private:
 	{
 		if (m_recentMode.isEmpty())
 			return;
-
-		if (const auto currentIndex = m_ui.treeView->currentIndex(); currentIndex.isValid() && !m_currentId.isEmpty())
-			m_settings->Set(GetRecentIdKey(), m_currentId);
 
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;

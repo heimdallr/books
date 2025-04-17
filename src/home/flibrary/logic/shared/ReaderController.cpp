@@ -48,7 +48,7 @@ TR_DEF
 class ReaderProcess final : QProcess
 {
 public:
-	ReaderProcess(const QString& process, const QString& fileName, std::shared_ptr<QTemporaryDir> temporaryDir, QObject* parent = nullptr)
+	ReaderProcess(const QString& process, const QString& fileName, std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QObject* parent = nullptr)
 		: QProcess(parent)
 		, m_temporaryDir(std::move(temporaryDir))
 	{
@@ -58,16 +58,16 @@ public:
 	}
 
 private:
-	std::shared_ptr<QTemporaryDir> m_temporaryDir;
+	std::shared_ptr<ILogicFactory::ITemporaryDir> m_temporaryDir;
 };
 
-std::shared_ptr<QTemporaryDir> Extract(const ISettings& settings, const ILogicFactory& logicFactory, const QString& archive, QString& fileName, QString& error)
+std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings, const ILogicFactory& logicFactory, const QString& archive, QString& fileName, QString& error)
 {
 	try
 	{
 		const Zip zip(archive);
 		const auto stream = zip.Read(fileName);
-		auto temporaryDir = logicFactory.CreateTemporaryDir();
+		auto temporaryDir = logicFactory.CreateTemporaryDir(true);
 
 		if (Zip::IsArchive(fileName))
 		{
@@ -147,7 +147,7 @@ struct ReaderController::Impl
 	{
 	}
 
-	void Read(std::shared_ptr<QTemporaryDir> temporaryDir, QString fileName, Callback callback, const QString& error) const
+	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, Callback callback, const QString& error) const
 	{
 		const ScopedCall callbackGuard([&, callback = std::move(callback)]() mutable { callback(); });
 

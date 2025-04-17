@@ -33,6 +33,7 @@ public:
 		virtual ~IAnalyzeObserver() = default;
 		virtual void AnalyzeFinished(Books books) = 0;
 
+		virtual bool IsPermanently() const = 0;
 		virtual bool NeedDeleteMarkedAsDeleted() const = 0;
 		virtual bool NeedDeleteDuplicates() const = 0;
 		virtual QStringList GetLanguages() const = 0;
@@ -47,6 +48,7 @@ public:
 public:
 	virtual ~ICollectionCleaner() = default;
 	virtual void Remove(Books books, Callback callback) const = 0;
+	virtual void RemovePermanently(Books books, Callback callback) const = 0;
 	virtual void Analyze(IAnalyzeObserver& callback) const = 0;
 	virtual void AnalyzeCancel() const = 0;
 };

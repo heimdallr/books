@@ -14,4 +14,5 @@ AddTarget(fb2cut	app_console
 		zip
 		GuiUtil
 		logic
+		ver
 )

@@ -2,6 +2,7 @@
 
 #include <QHash>
 
+#include <queue>
 #include <ranges>
 #include <unordered_map>
 
@@ -13,6 +14,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 
+#include "data/Genre.h"
 #include "database/DatabaseUtil.h"
 #include "util/SortString.h"
 
@@ -25,18 +27,22 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName from Authors";
-constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle from Series";
-constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle from Keywords";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount from Genres g";
-constexpr auto GROUPS_QUERY = "select GroupID, Title from Groups_User";
-constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
-constexpr auto LANGUAGES_QUERY = "select distinct lang from Books";
-constexpr auto SEARCH_QUERY = "select SearchID, Title from Searches_User";
+constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName, IsDeleted from Authors";
+constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle, IsDeleted from Series";
+constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle, IsDeleted from Keywords";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted from Genres g";
+constexpr auto GROUPS_QUERY = "select GroupID, Title, IsDeleted from Groups_User";
+constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId, IsDeleted from Updates order by ParentId";
+constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle, IsDeleted from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
+constexpr auto LANGUAGES_QUERY = R"(with languages(lang) as (select distinct lang from Books)
+	select l.lang, not exists (select 42 from Books b left join Books_User bu on bu.BookID = b.BookId where b.lang = l.lang and coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0 ) IsDeleted
+	from languages l)";
+constexpr auto SEARCH_QUERY = "select SearchID, Title, 0 IsDeleted from Searches_User";
 constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
+constexpr auto WHERE_UPDATE = "where b.UpdateID  = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
 constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
@@ -58,11 +64,12 @@ QString CreateAuthorTitle(const DB::IQuery& query, const size_t* index)
 	return title;
 }
 
-IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const size_t* index)
+IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	auto item = NavigationItem::Create();
 
 	item->SetId(QString::number(query.Get<long long>(index[0])));
+	item->SetRemoved(query.Get<int>(removedIndex));
 	item->SetData(CreateAuthorTitle(query, index));
 
 	return item;
@@ -97,7 +104,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode, INavigationQuery
 							   const auto query = db->CreateQuery(queryDescription.query);
 							   for (query->Execute(); !query->Eof(); query->Next())
 							   {
-								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index);
+								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index, queryDescription.queryInfo.removedIndex);
 								   index.try_emplace(item->GetId(), item);
 							   }
 
@@ -119,7 +126,44 @@ void RequestNavigationSimpleList(NavigationMode navigationMode, INavigationQuery
 	                     1);
 }
 
-void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, Cache& cache)
+void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription&, Cache& cache)
+{
+	auto db = databaseUser.Database();
+	if (!db)
+		return;
+
+	databaseUser.Execute({ "Get navigation",
+	                       [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
+	                       {
+							   auto genre = Genre::Load(*db);
+							   auto root = NavigationItem::Create();
+							   std::queue<std::pair<const Genre*, IDataItem*>> queue;
+							   queue.emplace(&genre, root.get());
+							   while (!queue.empty())
+							   {
+								   auto [genreItem, dataItem] = queue.front();
+								   queue.pop();
+
+								   dataItem->SetId(genreItem->code);
+								   dataItem->SetRemoved(genreItem->removed);
+								   dataItem->SetData(genreItem->name);
+								   for (const auto& item : genreItem->children)
+								   {
+									   auto& ptr = dataItem->AppendChild(NavigationItem::Create());
+									   queue.emplace(&item, ptr.get());
+								   }
+							   }
+
+							   return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable
+							   {
+								   cache[mode] = root;
+								   callback(mode, std::move(root));
+							   };
+						   } },
+	                     1);
+}
+
+void RequestNavigationUpdates(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, Cache& cache)
 {
 	auto db = databaseUser.Database();
 	if (!db)
@@ -128,37 +172,33 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 	databaseUser.Execute({ "Get navigation",
 	                       [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
 	                       {
-							   using AllGenresItem = std::tuple<IDataItem::Ptr, QString>;
-							   std::unordered_map<QString, AllGenresItem> allGenres;
-							   std::vector<AllGenresItem> buffer;
+							   auto root = NavigationItem::Create();
+							   std::unordered_map<long long, IDataItem::Ptr> items {
+								   { 0, root },
+							   };
+
 							   const auto query = db->CreateQuery(queryDescription.query);
 							   for (query->Execute(); !query->Eof(); query->Next())
 							   {
-								   AllGenresItem item { queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index), query->Get<const char*>(3) };
-								   if (query->Get<int>(4))
-									   buffer.emplace_back(std::move(item));
-								   else
-									   allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
+								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index, queryDescription.queryInfo.removedIndex);
+								   const auto id = item->GetId().toLongLong();
+								   const auto parentIt = items.find(query->Get<long long>(2));
+								   assert(parentIt != items.end());
+								   parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 							   }
 
-							   auto root = NavigationItem::Create();
-
-							   while (!buffer.empty())
+							   const auto updateChildren = [](IDataItem& item, const auto& f) -> void
 							   {
-								   for (auto&& [genre, parentCode] : buffer)
+								   item.SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetData().toLongLong() < rhs.GetData().toLongLong(); });
+								   for (size_t i = 0, sz = item.GetChildCount(); i < sz; ++i)
 								   {
-									   genre->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
-									   const auto it = allGenres.find(parentCode);
-									   (it == allGenres.end() ? root : std::get<0>(it->second))->AppendChild(std::move(genre));
+									   auto child = item.GetChild(i);
+									   child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
+									   f(*child, f);
 								   }
-								   buffer.clear();
+							   };
 
-								   for (auto&& genre : allGenres | std::views::values | std::views::filter([](const auto& item) { return get<0>(item)->GetChildCount() != 0; }))
-									   buffer.emplace_back(std::move(genre));
-								   for (const auto& [genre, _] : buffer)
-									   allGenres.erase(genre->GetId());
-							   }
-							   root->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetId() < rhs.GetId(); });
+							   updateChildren(*root, updateChildren);
 
 							   return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable
 							   {
@@ -176,10 +216,11 @@ constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
 constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE[] { 0, 0 };
 constexpr size_t NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
 
-constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR };
-constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM };
-constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE };
-constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM };
+constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR, 4 };
+constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 2 };
+constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE, 1 };
+constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM, 5 };
+constexpr QueryInfo QUERY_INFO_UPDATE_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 3 };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title,    BookItem::Column::Series,  BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre,
 	                           BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Lang };
@@ -219,6 +260,9 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
 	{    NavigationMode::Groups,
      { &RequestNavigationSimpleList,
      { GROUPS_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_GROUPS, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }      },
+	{   NavigationMode::Updates,
+     { &RequestNavigationUpdates,
+     { UPDATES_QUERY, QUERY_INFO_UPDATE_ITEM, WHERE_UPDATE, nullptr, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }         },
 	{  NavigationMode::Archives,
      { &RequestNavigationSimpleList,
      { ARCHIVES_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, WHERE_ARCHIVE, nullptr, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }  },
@@ -243,6 +287,7 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
 	{   "Groups_User",   NavigationMode::Groups },
     {         "Books", NavigationMode::Archives },
     { "Searches_User",   NavigationMode::Search },
+    {       "Updates",  NavigationMode::Updates },
 };
 
 } // namespace

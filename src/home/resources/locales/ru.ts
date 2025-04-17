@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates:</source>
+        <translation>Обновлено:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Languages:</source>
         <translation>Язык:</translation>
     </message>
@@ -234,18 +239,13 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>Updated:</source>
-        <translation>Обновлён:</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Translators:</source>
         <translation>Перевод:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages, %2%L4 words)</source>
-        <translation>%L1 (%2%3 страниц, %2%L4 слов)</translation>
+        <source>%L1 letters (%2%3 pages, %2%L4 words)</source>
+        <translation>%L1 букв (%2%3 страниц, %2%L4 слов)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
@@ -574,8 +574,13 @@
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
-        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
-        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите их удалить?</translation>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?</source>
+        <translation>В коллекции найдено %1 книг, соответствующих вашим критериям. Вы уверены, что хотите удалить их%2?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source> permanently, without the possibility of recovery</source>
+        <translation> навсегда, без возможности восстановления</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
@@ -586,6 +591,11 @@
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source>Strange values for minimum and maximum book sizes. Do you want to delete all books?</source>
         <translation>Странные значения для минимального и максимального размеров книг. Вы хотите удалить все книги?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source>%1 book(s) deleted</source>
+        <translation>Удалено книг: %1</translation>
     </message>
     <message>
         <source>Removes books that have at least one genre in the set of marked ones</source>
@@ -611,6 +621,10 @@
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
         <translation>Удалено книг: %1</translation>
+    </message>
+    <message>
+        <source>Delete forever, along with book files from archives</source>
+        <translation>Удалить навсегда, вместе с файлами книг из архивов</translation>
     </message>
 </context>
 <context>
@@ -1044,11 +1058,6 @@ Restart now?</source>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other_all_root</source>
         <translation>Прочее</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
-        <source>date_added_code_root</source>
-        <translation>По дате добавления</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5254,6 +5263,74 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>Month</name>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>1</source>
+        <translation>Январь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2</source>
+        <translation>Февраль</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>3</source>
+        <translation>Март</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>4</source>
+        <translation>Апрель</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>5</source>
+        <translation>Май</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>6</source>
+        <translation>Июнь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>7</source>
+        <translation>Июль</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>8</source>
+        <translation>Август</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>9</source>
+        <translation>Сентябрь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>10</source>
+        <translation>Октябрь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>11</source>
+        <translation>Ноябрь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>12</source>
+        <translation>Декабрь</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2147483647</source>
+        <translation>Не указано</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5274,6 +5351,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates</source>
+        <translation>Обновления</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5362,6 +5444,20 @@ Try again?</source>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Address has been copied to the clipboard</source>
         <translation>Адрес скопирован в буфер обмена</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>No network interfaces found</source>
+        <translation>Сетевые интерфейсы не найдены</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>Any</source>
+        <translation>Любой</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Адрес</translation>
     </message>
 </context>
 <context>

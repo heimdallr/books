@@ -1,7 +1,10 @@
 #include <mutex>
 
+#include "fnd/NonCopyMovable.h"
+
 #include "ICommand.h"
 #include "IQuery.h"
+#include "ITemporaryTable.h"
 #include "ITransaction.h"
 #include "sqlite3ppext.h"
 
@@ -10,15 +13,18 @@ namespace HomeCompa::DB::Impl::Sqlite
 
 std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database& db, std::string_view command);
 std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
+std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional);
 
 namespace
 {
 
-class Transaction : virtual public DB::ITransaction
+class Transaction final : virtual public ITransaction
 {
+	NON_COPY_MOVABLE(Transaction)
+
 public:
-	explicit Transaction(std::mutex& mutex, sqlite3pp::database& db)
-		: m_lock(mutex)
+	Transaction(std::mutex& mutex, sqlite3pp::database& db)
+		: m_lock(std::make_unique<std::lock_guard<std::mutex>>(mutex))
 		, m_db(db)
 		, m_transaction(db)
 	{
@@ -34,27 +40,36 @@ private: // Transaction
 	bool Commit() override
 	{
 		m_active = false;
-		return m_transaction.commit() == 0;
+		const auto result = m_transaction.commit() == 0;
+		m_lock.reset();
+		return result;
 	}
 
 	bool Rollback() override
 	{
 		m_active = false;
-		return m_transaction.rollback() == 0;
+		const auto result = m_transaction.rollback() == 0;
+		m_lock.reset();
+		return result;
 	}
 
-	std::unique_ptr<ICommand> CreateCommand(std::string_view command) override
+	std::unique_ptr<ICommand> CreateCommand(const std::string_view command) override
 	{
 		return CreateCommandImpl(m_db, command);
 	}
 
-	std::unique_ptr<IQuery> CreateQuery(std::string_view query) override
+	std::unique_ptr<IQuery> CreateQuery(const std::string_view query) override
 	{
 		return CreateQueryImpl(m_queryMutex, m_db, query);
 	}
 
+	std::unique_ptr<ITemporaryTable> CreateTemporaryTable(const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional) override
+	{
+		return CreateTemporaryTableImpl(*this, fields, additional);
+	}
+
 private:
-	std::lock_guard<std::mutex> m_lock;
+	std::unique_ptr<std::lock_guard<std::mutex>> m_lock;
 	sqlite3pp::database& m_db;
 	sqlite3pp::transaction m_transaction;
 	bool m_active { true };
@@ -63,7 +78,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<DB::ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db)
+std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db)
 {
 	return std::make_unique<Transaction>(mutex, db);
 }

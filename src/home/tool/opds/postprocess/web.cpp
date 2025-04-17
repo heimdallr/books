@@ -439,11 +439,12 @@ private:
 					return;
 
 				const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
-				m_stream << QString(R"(<br><a href="%1%3" download="%2">%2</a></br>)").arg(url, fileName, transliterated ? "/tr" : "");
+				m_stream << QString(R"(<br/><a href="%1%3" download="%2">%2</a>)").arg(url, fileName, transliterated ? "/tr" : "");
 			};
 
 			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
-			m_stream << QString(R"(<br><a href="/web/read/%1">%2</a></br>)").arg(m_id, Tr(READ));
+			m_stream << m_content << "\n";
+			m_stream << QString(R"(<a href="/web/read/%1">%2</a>)").arg(m_id, Tr(READ));
 
 			const auto createHrefs = [&](const QFileInfo& fileInfo, const bool transliterated)
 			{
@@ -460,8 +461,6 @@ private:
 				if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
 					createHrefs(fileInfoTransliterated, true);
 		}
-
-		m_stream << m_content << "\n";
 
 		return ParserOpds::OnEndElementFeed();
 	}

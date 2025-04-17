@@ -189,6 +189,11 @@
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates:</source>
+        <translation>Оновлено:</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Languages:</source>
         <translation>Мова:</translation>
     </message>
@@ -224,18 +229,13 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>Updated:</source>
-        <translation>Оновлено:</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
         <source>Translators:</source>
         <translation>Переклад:</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
-        <source>%L1 (%2%3 pages, %2%L4 words)</source>
-        <translation>%L1 (%2%3 страниц, %2%L4 слів)</translation>
+        <source>%L1 letters (%2%3 pages, %2%L4 words)</source>
+        <translation>%L1 букв (%2%3 страниц, %2%L4 слов)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
@@ -594,8 +594,13 @@
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
-        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them?</source>
-        <translation>У колекції знайдено %1 книг, які відповідають вашим критеріям. Ви впевнені, що хочете видалити їх?</translation>
+        <source>There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?</source>
+        <translation>У колекції знайдено %1 книг, які відповідають вашим критеріям. Ви впевнені, що хочете видалити їх%2?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source> permanently, without the possibility of recovery</source>
+        <translation> без можливості відновлення</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
@@ -608,9 +613,18 @@
         <translation>Дивні значення для мінімального та максимального розмірів книг. Ви хочете видалити всі книги?</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
+        <source>%1 book(s) deleted</source>
+        <translation>Видалено книг: %1</translation>
+    </message>
+    <message>
         <location filename="../../flibrary/interface/logic/ICollectionCleaner.h"/>
         <source>%1 book(s) deleted permanently</source>
         <translation>Видалено книг: %1</translation>
+    </message>
+    <message>
+        <source>Delete forever, along with book files from archives</source>
+        <translation>Видалити назавжди разом із файлами книг з архівів</translation>
     </message>
 </context>
 <context>
@@ -1044,11 +1058,6 @@ Restart now?</source>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other_all_root</source>
         <translation>Інше</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
-        <source>date_added_code_root</source>
-        <translation>За датою додавання</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5253,6 +5262,74 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>Month</name>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>1</source>
+        <translation>Січень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2</source>
+        <translation>Лютий</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>3</source>
+        <translation>Березень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>4</source>
+        <translation>Квітень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>5</source>
+        <translation>Травень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>6</source>
+        <translation>Червень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>7</source>
+        <translation>Липень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>8</source>
+        <translation>Серпень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>9</source>
+        <translation>Вересень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>10</source>
+        <translation>Жовтень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>11</source>
+        <translation>Листопад</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>12</source>
+        <translation>Грудень</translation>
+    </message>
+    <message>
+        <location filename="../../util/localization.h"/>
+        <source>2147483647</source>
+        <translation>Не вказано</translation>
+    </message>
+</context>
+<context>
     <name>Navigation</name>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5273,6 +5350,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Keywords</source>
         <translation>Ключові слова</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/Localization.h"/>
+        <source>Updates</source>
+        <translation>Оновлення</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -5361,6 +5443,20 @@ Try again?</source>
         <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Address has been copied to the clipboard</source>
         <translation>Адресу скопійовано в буфер обміну</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>No network interfaces found</source>
+        <translation>Мережевих інтерфейсів не знайдено</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
+        <source>Any</source>
+        <translation>Будь-який</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Адреса</translation>
     </message>
 </context>
 <context>

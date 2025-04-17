@@ -21,14 +21,69 @@
 
 #include "log.h"
 
+#include "config/version.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
+
+namespace
+{
+
+class QTemporaryDirWrapper : virtual public ILogicFactory::ITemporaryDir
+{
+private: // ILogicFactory::ITemporaryDir
+	QString filePath(const QString& fileName) const override
+	{
+		return m_impl.filePath(fileName);
+	}
+
+	QString path() const override
+	{
+		return m_impl.path();
+	}
+
+private:
+	QTemporaryDir m_impl;
+};
+
+class SingleTemporaryDir : virtual public ILogicFactory::ITemporaryDir
+{
+	NON_COPY_MOVABLE(SingleTemporaryDir)
+
+public:
+	SingleTemporaryDir() = default;
+
+	~SingleTemporaryDir() override
+	{
+		m_impl.removeRecursively();
+	}
+
+private: // ILogicFactory::ITemporaryDir
+	QString filePath(const QString& fileName) const override
+	{
+		if (!m_impl.exists() && !m_impl.mkpath("."))
+			PLOGE << "Cannot create " << m_impl.path();
+
+		return m_impl.filePath(fileName);
+	}
+
+	QString path() const override
+	{
+		return m_impl.path();
+	}
+
+private:
+	QDir m_impl { QDir::tempPath() + "/" + PRODUCT_ID };
+};
+
+} // namespace
 
 struct LogicFactory::Impl final
 {
 	Hypodermic::Container& container;
 	std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
-	std::vector<std::shared_ptr<QTemporaryDir>> temporaryDirs;
+	std::vector<std::shared_ptr<ITemporaryDir>> temporaryDirs;
+	std::shared_ptr<ITemporaryDir> singleTemporaryDir;
 
 	std::mutex progressControllerGuard;
 	std::shared_ptr<IProgressController> progressController;
@@ -130,11 +185,15 @@ std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(s
 	return m_impl->container.resolve<ZipProgressCallback>();
 }
 
-std::shared_ptr<QTemporaryDir> LogicFactory::CreateTemporaryDir() const
+std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(const bool singleInstance) const
 {
-	auto temporaryDir = std::make_shared<QTemporaryDir>();
-	m_impl->temporaryDirs.push_back(temporaryDir);
-	return temporaryDir;
+	if (!singleInstance)
+		return m_impl->temporaryDirs.emplace_back(std::make_shared<QTemporaryDirWrapper>());
+
+	if (!m_impl->singleTemporaryDir)
+		m_impl->singleTemporaryDir = std::make_shared<SingleTemporaryDir>();
+
+	return m_impl->singleTemporaryDir;
 }
 
 std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const

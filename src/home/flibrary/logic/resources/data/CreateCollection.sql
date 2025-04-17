@@ -49,16 +49,29 @@ DROP TABLE IF EXISTS Series_List;
 DROP TABLE IF EXISTS Folders;
 --@@
 
+DROP TABLE IF EXISTS Updates;
+--@@
+
+CREATE TABLE Updates (
+  UpdateID    INTEGER NOT NULL,
+  UpdateTitle INTEGER NOT NULL,
+  ParentID    INTEGER NOT NULL,
+  IsDeleted   INTEGER NOT NULL DEFAULT(0)
+);
+--@@
+
 CREATE TABLE Folders (
   FolderID    INTEGER       NOT NULL,
-  FolderTitle VARCHAR (200) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  FolderTitle VARCHAR (200) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  IsDeleted   INTEGER       NOT NULL DEFAULT(0)
 );
 --@@
 
 CREATE TABLE Series (
   SeriesID    INTEGER     NOT NULL,
   SeriesTitle VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
-  SearchTitle VARCHAR (80)         COLLATE NOCASE
+  SearchTitle VARCHAR (80)         COLLATE NOCASE,
+  IsDeleted   INTEGER     NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -66,7 +79,8 @@ CREATE TABLE Genres (
   GenreCode  VARCHAR(20) NOT NULL COLLATE NOCASE,
   ParentCode VARCHAR(20)          COLLATE NOCASE,
   FB2Code    VARCHAR(20)          COLLATE NOCASE,
-  GenreAlias VARCHAR(50) NOT NULL COLLATE MHL_SYSTEM_NOCASE
+  GenreAlias VARCHAR(50) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  IsDeleted  INTEGER     NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -75,7 +89,8 @@ CREATE TABLE Authors (
   LastName   VARCHAR(128) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   FirstName  VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
   MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
-  SearchName VARCHAR (128)         COLLATE NOCASE
+  SearchName VARCHAR (128)         COLLATE NOCASE,
+  IsDeleted  INTEGER      NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -93,6 +108,7 @@ CREATE TABLE Books (
   InsideNo         INTEGER       NOT NULL,
   Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
+  UpdateID         INTEGER       NOT NULL                           DEFAULT 0,
   IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
   SearchTitle      VARCHAR (150)         COLLATE NOCASE
 );
@@ -118,58 +134,44 @@ CREATE TABLE Author_List (
 --@@
 
 CREATE TABLE Books_User (
-    BookID    INTEGER  NOT NULL
-                       PRIMARY KEY,
-    IsDeleted INTEGER,
-    UserRate  INTEGER,
-    CreatedAt DATETIME,
-    FOREIGN KEY (
-        BookID
-    )
-    REFERENCES Books (BookID)
+  BookID    INTEGER NOT NULL PRIMARY KEY,
+  IsDeleted INTEGER,
+  UserRate  INTEGER,
+  CreatedAt DATETIME,
+  FOREIGN KEY (BookID) REFERENCES Books (BookID) ON DELETE CASCADE
 );
 --@@
 
 CREATE TABLE Groups_User (
-    GroupID   INTEGER       NOT NULL
-                            PRIMARY KEY AUTOINCREMENT,
-    Title     VARCHAR (150) NOT NULL
-                            UNIQUE
-                            COLLATE MHL_SYSTEM_NOCASE,
-    CreatedAt DATETIME
+  GroupID   INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
+  Title     VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
+  CreatedAt DATETIME,
+  IsDeleted  INTEGER      NOT NULL DEFAULT(0)
 );
 --@@
 
 CREATE TABLE Groups_List_User (
-    GroupID   INTEGER  NOT NULL,
-    BookID    INTEGER  NOT NULL,
-    CreatedAt DATETIME,
-    PRIMARY KEY (
-        GroupID,
-        BookID
-    ),
-    FOREIGN KEY (
-        GroupID
-    )
-    REFERENCES Groups_User (GroupID) ON DELETE CASCADE,
-    FOREIGN KEY (
-        BookID
-    )
-    REFERENCES Books (BookID)
+  GroupID   INTEGER  NOT NULL,
+  BookID    INTEGER  NOT NULL,
+  CreatedAt DATETIME,
+  PRIMARY KEY (GroupID, BookID),
+  FOREIGN KEY (GroupID) REFERENCES Groups_User (GroupID) ON DELETE CASCADE,
+  FOREIGN KEY (BookID)  REFERENCES Books (BookID) ON DELETE CASCADE
 );
 --@@
 
 CREATE TABLE Searches_User (
-    SearchID    INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
-    Title       VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
-    CreatedAt   DATETIME
+  SearchID    INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
+  Title       VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
+  CreatedAt   DATETIME
 );
 --@@
 
 CREATE TABLE Keywords (
   KeywordID     INTEGER       NOT NULL,
   KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
-  SearchTitle  VARCHAR (150)           COLLATE NOCASE
+  SearchTitle   VARCHAR(150)           COLLATE NOCASE,
+  IsDeleted     INTEGER       NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -180,16 +182,16 @@ CREATE TABLE Keyword_List (
 --@@
 
 CREATE TABLE Export_List_User (
-    BookID     INTEGER  NOT NULL,
-    ExportType INTEGER  NOT NULL,
-    CreatedAt  DATETIME NOT NULL
+  BookID     INTEGER  NOT NULL,
+  ExportType INTEGER  NOT NULL,
+  CreatedAt  DATETIME NOT NULL
 );
 --@@
 
 CREATE TABLE Inpx (
-    Folder VARCHAR (200) NOT NULL,
-    File   VARCHAR (200) NOT NULL,
-    Hash   VARCHAR (50)  NOT NULL
+  Folder VARCHAR (200) NOT NULL,
+  File   VARCHAR (200) NOT NULL,
+  Hash   VARCHAR (50)  NOT NULL
 );
 --@@
 

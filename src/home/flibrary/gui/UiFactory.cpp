@@ -7,29 +7,19 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
-#include "interface/logic/IModel.h"
-#include "interface/logic/IOpdsController.h"
-#include "interface/logic/IReaderController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
-#include "GuiUtil/interface/IUiFactory.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/OpdsDialog.h"
-#include "util/ISettings.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
 #include "CollectionCleaner.h"
-#include "ItemViewToolTipper.h"
-#include "ScrollBarController.h"
 #include "TreeView.h"
 #include "log.h"
 
