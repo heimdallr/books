@@ -900,54 +900,54 @@ public:
 
 	void Process()
 	{
-		(*m_executor)(
-			{ "Create collection",
-		      [&]
-		      {
-				  try
-				  {
-					  ProcessImpl();
-				  }
-				  catch (const std::exception& ex)
-				  {
-					  m_errors.emplace_back(ex.what());
-				  }
-				  catch (...)
-				  {
-					  m_errors.emplace_back("Unknown error");
-				  }
-				  const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-				  return [this, genres](size_t)
-				  { m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, !m_errors.empty() }); };
-			  } });
+		(*m_executor)({ "Create collection",
+		                [&]
+		                {
+							std::string error;
+							try
+							{
+								ProcessImpl();
+							}
+							catch (const std::exception& ex)
+							{
+								PLOGE << (error = ex.what());
+							}
+							catch (...)
+							{
+								PLOGE << (error = "Unknown error");
+							}
+							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+							return [this, genres, hasError = !error.empty()](size_t)
+							{ m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError }); };
+						} });
 	}
 
 	void UpdateDatabase()
 	{
-		(*m_executor)(
-			{ "Update collection",
-		      [&]
-		      {
-				  const auto foldersCount = [this]() -> size_t
-				  {
-					  try
-					  {
-						  return UpdateDatabaseImpl();
-					  }
-					  catch (const std::exception& ex)
-					  {
-						  m_errors.emplace_back(ex.what());
-					  }
-					  catch (...)
-					  {
-						  m_errors.emplace_back("Unknown error");
-					  }
-					  return 0;
-				  }();
-				  const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-				  return [this, foldersCount, genres](size_t)
-				  { m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound, !m_errors.empty() }); };
-			  } });
+		(*m_executor)({ "Update collection",
+		                [&]
+		                {
+							std::string error;
+							const auto foldersCount = [&]() -> size_t
+							{
+								try
+								{
+									return UpdateDatabaseImpl();
+								}
+								catch (const std::exception& ex)
+								{
+									PLOGE << (error = ex.what());
+								}
+								catch (...)
+								{
+									PLOGE << (error = "Unknown error");
+								}
+								return 0;
+							}();
+							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
+							return [this, foldersCount, genres, hasError = !error.empty()](size_t)
+							{ m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound, hasError }); };
+						} });
 	}
 
 private: // IPool
@@ -1409,7 +1409,7 @@ private:
 		if (!parserData.error.isEmpty())
 		{
 			std::lock_guard lock(m_dataGuard);
-			m_errors.push_back(QString("%1/%2: %3").arg(QString::fromStdWString(folder), fileName, parserData.error));
+			PLOGE << QString("%1/%2: %3").arg(QString::fromStdWString(folder), fileName, parserData.error);
 			return;
 		}
 
@@ -1554,13 +1554,6 @@ private:
 			for (const auto& genre : m_unknownGenres)
 				PLOGW << genre;
 		}
-
-		if (!std::empty(m_errors))
-		{
-			PLOGE << "Parsing skipped due to errors:";
-			for (const auto& error : m_errors)
-				PLOGE << error;
-		}
 	}
 
 private:
@@ -1582,8 +1575,6 @@ private:
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool m_oldDataUpdateFound { false };
-
-	std::vector<QString> m_errors;
 
 	BookBufMapping m_bookBufMapping;
 
