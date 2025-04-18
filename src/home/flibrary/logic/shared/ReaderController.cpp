@@ -19,11 +19,11 @@
 
 #include "util/IExecutor.h"
 #include "util/PlatformUtil.h"
+#include "util/files.h"
 
 #include "ImageRestore.h"
 #include "log.h"
 #include "zip.h"
-#include "util/files.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
