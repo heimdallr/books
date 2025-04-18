@@ -43,7 +43,7 @@ constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images ou
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
 
-#if (false)  // NOLINT(readability-avoid-unconditional-preprocessor-if)
+#if (false) // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
 QT_TRANSLATE_NOOP("Annotation", "AsIs")
 QT_TRANSLATE_NOOP("Annotation", "Archive")
