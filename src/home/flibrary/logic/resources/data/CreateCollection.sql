@@ -193,7 +193,13 @@ CREATE TABLE Inpx (
   File   VARCHAR (200) NOT NULL,
   Hash   VARCHAR (50)  NOT NULL
 );
+
+--@@
+CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID);
 --@@
 
-CREATE VIRTUAL TABLE Books_Search USING fts5(Title, content=Books, content_rowid=BookID)
+CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID);
 --@@

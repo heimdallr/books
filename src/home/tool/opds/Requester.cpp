@@ -108,7 +108,31 @@ constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.G
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
 constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
-constexpr auto JOIN_SEARCH = "join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH ?";
+constexpr auto JOIN_SEARCH = "join Ids i on i.BookID = b.BookID";
+
+constexpr auto WITH_SEARCH = R"(
+with Ids(BookID) as (
+    with Search (Title) as (
+        select ?
+    )
+    select b.BookID
+        from Books b
+        join Books_Search fts on fts.rowid = b.BookID
+        join Search s on Books_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Author_List l on l.BookID = b.BookID
+        join Authors_Search fts on fts.rowid = l.AuthorID
+        join Search s on Authors_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Series_List l on l.BookID = b.BookID
+        join Series_Search fts on fts.rowid = l.SeriesID
+        join Search s on Series_Search match s.Title
+)
+)";
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
@@ -590,11 +614,18 @@ public:
 		const auto termsGui = terms.join(' ');
 		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
 		const auto n = head.children.size();
-		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH), terms.join(' '), root, head.children);
+		WriteBookEntries(*db, "", QString("%1%2").arg(WITH_SEARCH, SELECT_BOOKS).arg(JOIN_SEARCH), terms.join(' '), root, head.children);
 
-		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
-		assert(it != head.children.end());
-		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		{
+			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+			std::sort(it, head.children.end());
+		}
+		{
+			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+			assert(it != head.children.end());
+			it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		}
+
 
 		return head;
 	}
