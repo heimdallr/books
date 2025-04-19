@@ -114,12 +114,20 @@ void FixSearches_User(DB::ITransaction& transaction)
 		transaction.CreateCommand(command)->Execute();
 }
 
-void FillBooksSearch(DB::ITransaction& transaction)
+void FillSearchTables(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Books_Search_idx)");
-	query->Execute();
-	if (query->Get<int>(0) == 0)
-		transaction.CreateCommand("insert into Books_Search(Books_Search) values('rebuild')")->Execute();
+	static constexpr const char* tables[] {
+		"Authors_Search",
+		"Books_Search",
+		"Series_Search",
+	};
+	for (const auto* table : tables)
+	{
+		const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {}_idx)", table));
+		query->Execute();
+		if (query->Get<int>(0) == 0)
+			transaction.CreateCommand(std::format("INSERT INTO {}({}) VALUES('rebuild')", table, table))->Execute();
+	}
 }
 
 void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& transaction)
@@ -153,7 +161,9 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
 		"CREATE TABLE IF NOT EXISTS Series_List (SeriesID  INTEGER NOT NULL, BookID    INTEGER NOT NULL, SeqNumber INTEGER)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID)",
 		"CREATE TABLE IF NOT EXISTS Updates (UpdateID INTEGER NOT NULL, UpdateTitle INTEGER NOT NULL, ParentID INTEGER NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Update_PrimaryKey ON Updates (UpdateID)", "CREATE INDEX IF NOT EXISTS IX_Update_ParentID ON Updates (ParentID)",
+		"CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
+		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
 	};
 	// clang-format on
 
@@ -215,7 +225,7 @@ void Update(DB::IDatabase& db, const ICollectionProvider& collectionProvider)
 	AddUserTables(*transaction);
 	AddTableFields(*transaction);
 	FixSearches_User(*transaction);
-	FillBooksSearch(*transaction);
+	FillSearchTables(*transaction);
 	FillSeriesList(*transaction);
 	FillInpx(collectionProvider, *transaction);
 

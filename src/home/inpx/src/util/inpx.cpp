@@ -491,39 +491,43 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 size_t Store(const Path& dbFileName, const Data& data)
 {
 	size_t result = 0;
-	result += StoreRange(dbFileName,
-	                     "Authors",
-	                     "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, MHL_UPPER(?))",
-	                     data.authors,
-	                     [](sqlite3pp::command& cmd, const Dictionary::value_type& item)
-	                     {
-							 const auto& [author, id] = item;
-							 auto it = std::cbegin(author);
-							 const auto last = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-							 const auto first = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-							 const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+	result += StoreRange(
+		dbFileName,
+		"Authors",
+		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, MHL_UPPER(?))",
+		data.authors,
+		[](sqlite3pp::command& cmd, const Dictionary::value_type& item)
+		{
+			const auto& [author, id] = item;
+			auto it = std::cbegin(author);
+			const auto last = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+			const auto first = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+			const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
 
-							 cmd.bind(1, id);
-							 cmd.bind(2, last, sqlite3pp::nocopy);
-							 cmd.bind(3, first, sqlite3pp::nocopy);
-							 cmd.bind(4, middle, sqlite3pp::nocopy);
-							 cmd.bind(5, last, sqlite3pp::nocopy);
+			cmd.bind(1, id);
+			cmd.bind(2, last, sqlite3pp::nocopy);
+			cmd.bind(3, first, sqlite3pp::nocopy);
+			cmd.bind(4, middle, sqlite3pp::nocopy);
+			cmd.bind(5, last, sqlite3pp::nocopy);
 
-							 return cmd.execute();
-						 });
+			return cmd.execute();
+		},
+		"INSERT INTO Authors_Search(Authors_Search) VALUES('rebuild')");
 
-	result += StoreRange(dbFileName,
-	                     "Series",
-	                     "INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))",
-	                     data.series,
-	                     [](sqlite3pp::command& cmd, const Dictionary::value_type& item)
-	                     {
-							 const auto title = ToMultiByte(item.first);
-							 cmd.bind(1, item.second);
-							 cmd.bind(2, title, sqlite3pp::nocopy);
-							 cmd.bind(3, title, sqlite3pp::nocopy);
-							 return cmd.execute();
-						 });
+	result += StoreRange(
+		dbFileName,
+		"Series",
+		"INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))",
+		data.series,
+		[](sqlite3pp::command& cmd, const Dictionary::value_type& item)
+		{
+			const auto title = ToMultiByte(item.first);
+			cmd.bind(1, item.second);
+			cmd.bind(2, title, sqlite3pp::nocopy);
+			cmd.bind(3, title, sqlite3pp::nocopy);
+			return cmd.execute();
+		},
+		"INSERT INTO Series_Search(Series_Search) VALUES('rebuild')");
 
 	result += StoreRange(dbFileName,
 	                     "Folders",
