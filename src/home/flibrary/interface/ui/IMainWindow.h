@@ -1,7 +1,5 @@
 #pragma once
 
-class QMainWindow;
-
 namespace HomeCompa::Flibrary
 {
 

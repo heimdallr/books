@@ -9,8 +9,6 @@
 namespace HomeCompa::Flibrary
 {
 
-class DatabaseUser;
-
 class DatabaseChecker final : virtual public IDatabaseChecker
 {
 	NON_COPY_MOVABLE(DatabaseChecker)
