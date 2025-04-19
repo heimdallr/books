@@ -9,10 +9,12 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
+#include "interface/ui/IMigrateWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
 
 #include "logging/init.h"
@@ -67,6 +69,14 @@ int main(int argc, char* argv[])
 			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
 			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
 			styleApplierFactory.reset();
+
+			if (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())
+			{
+				const auto migrateWindow = container->resolve<IMigrateWindow>();
+				migrateWindow->Show();
+				QApplication::exec();
+				continue;
+			}
 
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
