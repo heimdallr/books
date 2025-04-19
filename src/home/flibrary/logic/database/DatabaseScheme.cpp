@@ -13,6 +13,8 @@
 #include "inpx/src/util/constant.h"
 #include "inpx/src/util/inpx.h"
 
+#include "log.h"
+
 namespace HomeCompa::Flibrary::DatabaseScheme
 {
 
@@ -21,6 +23,7 @@ namespace
 
 void DropTriggers(DB::ITransaction& transaction)
 {
+	PLOGI << "Drop triggers";
 	std::vector<std::string> triggerNames;
 	{
 		const auto triggerNamesQuery = transaction.CreateQuery("select name from sqlite_master where type = 'trigger'");
@@ -48,6 +51,8 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 {
 	if (FieldExists(transaction, table, column))
 		return false;
+
+	PLOGI << "Add " << column << " to " << table;
 
 	transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
 	for (const auto& command : commands)
@@ -105,6 +110,7 @@ void FixSearches_User(DB::ITransaction& transaction)
 	if (!FieldExists(transaction, "Searches_User", "Mode"))
 		return;
 
+	PLOGI << "Fix Searches_User";
 	static constexpr const char* commands[] {
 		"DROP TABLE Searches_User",
 		"CREATE TABLE Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME)",
@@ -125,8 +131,11 @@ void FillSearchTables(DB::ITransaction& transaction)
 	{
 		const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {}_idx)", table));
 		query->Execute();
-		if (query->Get<int>(0) == 0)
-			transaction.CreateCommand(std::format("INSERT INTO {}({}) VALUES('rebuild')", table, table))->Execute();
+		if (query->Get<int>(0) != 0)
+			continue;
+
+		PLOGI << "Update Full Text Search Table " << table;
+		transaction.CreateCommand(std::format("INSERT INTO {}({}) VALUES('rebuild')", table, table))->Execute();
 	}
 }
 
@@ -134,20 +143,27 @@ void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& t
 {
 	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Inpx)");
 	query->Execute();
-	if (query->Get<int>(0) == 0)
-		Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
+	if (query->Get<int>(0) != 0)
+		return;
+
+	PLOGI << "Update inpx table";
+	Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
 }
 
 void FillSeriesList(DB::ITransaction& transaction)
 {
 	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Series_List)");
 	query->Execute();
-	if (query->Get<int>(0) == 0)
-		transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
+	if (query->Get<int>(0) != 0)
+		return;
+
+	PLOGI << "Update series table";
+	transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
 }
 
 void AddUserTables(DB::ITransaction& transaction)
 {
+	PLOGI << "Add tables";
 	// clang-format off
 	static constexpr const char* commands[] {
 		"CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
@@ -173,6 +189,7 @@ void AddUserTables(DB::ITransaction& transaction)
 
 void AddTableFields(DB::ITransaction& transaction)
 {
+	PLOGI << "Add columns";
 	AddUserTableField(transaction, "Books_User", "UserRate", "INTEGER");
 	AddUserTableField(transaction, "Books_User", "CreatedAt", "DATETIME");
 	AddUserTableField(transaction, "Groups_User", "CreatedAt", "DATETIME");
