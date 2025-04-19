@@ -47,8 +47,33 @@ constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
 constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
-constexpr auto JOIN_SEARCHES = "join Searches_User su on su.SearchID = :id join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH su.Title";
+constexpr auto JOIN_SEARCHES = "join Ids i on i.BookID = b.BookID";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
+
+constexpr auto WITH_SEARCH = R"(
+with Ids(BookID) as (
+    with Search (Title) as (
+        select Title
+        from Searches_User where SearchID = :id
+    )
+    select b.BookID
+        from Books b
+        join Books_Search fts on fts.rowid = b.BookID
+        join Search s on Books_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Author_List l on l.BookID = b.BookID
+        join Authors_Search fts on fts.rowid = l.AuthorID
+        join Search s on Authors_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Series_List l on l.BookID = b.BookID
+        join Series_Search fts on fts.rowid = l.SeriesID
+        join Search s on Series_Search match s.Title
+)
+)";
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 
@@ -271,7 +296,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      { LANGUAGES_QUERY, QUERY_INFO_LANGUAGE_ITEM, WHERE_LANGUAGE, nullptr, &BindString, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 	{    NavigationMode::Search,
      { &RequestNavigationSimpleList,
-     { SEARCH_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SEARCHES, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }    },
+     { SEARCH_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, JOIN_SEARCHES, &BindInt, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON), "b", WITH_SEARCH } }    },
 	{  NavigationMode::AllBooks,
      { &RequestNavigationSimpleList,
      { ALL_BOOK_QUERY, QUERY_INFO_SIMPLE_LIST_ITEM, nullptr, nullptr, &BindStub, &IBooksTreeCreator::CreateGeneralTree, BookItem::Mapping(MAPPING_FULL), BookItem::Mapping(MAPPING_TREE_COMMON) } }       },

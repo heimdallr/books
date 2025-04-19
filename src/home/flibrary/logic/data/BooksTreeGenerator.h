@@ -60,6 +60,7 @@ struct QueryDescription
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
 	const char* seqNumberTableAlias { "b" };
+	const char* with { nullptr };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
 	{

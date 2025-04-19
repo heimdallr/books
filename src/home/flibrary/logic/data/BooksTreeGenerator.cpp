@@ -33,20 +33,21 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 #undef BOOKS_COLUMN_ITEM
 };
 
-constexpr auto BOOKS_QUERY = "select %1 "
-							 ", a.AuthorID, a.LastName, a.FirstName, a.MiddleName "
-							 ", g.GenreCode, g.GenreAlias, g.FB2Code "
-							 ", coalesce(b.SeriesID, -1), s.SeriesTitle "
-							 "from Books b "
-							 "join Author_List al on al.BookID = b.BookID "
-							 "join Authors a on a.AuthorID = al.AuthorID "
-							 "join Genre_List gl on gl.BookID = b.BookID "
-							 "join Genres g on g.GenreCode = gl.GenreCode "
-							 "join Folders f on f.FolderID = b.FolderID "
-							 "%2 "
-							 "left join Series s on s.SeriesID = b.SeriesID "
-							 "left join Books_User bu on bu.BookID = b.BookID "
-							 "%3";
+constexpr auto BOOKS_QUERY = R"(
+%4select
+	%1,
+	a.AuthorID, a.LastName, a.FirstName, a.MiddleName, g.GenreCode, g.GenreAlias, g.FB2Code, coalesce(b.SeriesID, -1), s.SeriesTitle
+		from Books b
+		join Author_List al on al.BookID = b.BookID
+		join Authors a on a.AuthorID = al.AuthorID
+		join Genre_List gl on gl.BookID = b.BookID
+		join Genres g on g.GenreCode = gl.GenreCode
+		join Folders f on f.FolderID = b.FolderID
+		%2
+		left join Series s on s.SeriesID = b.SeriesID
+		left join Books_User bu on bu.BookID = b.BookID
+		%3
+)";
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
@@ -149,7 +150,7 @@ public:
 		if (navigationId.isEmpty())
 			return;
 
-		const auto queryText = QString(BOOKS_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias)).arg(description.joinClause, description.whereClause).toStdString();
+		const auto queryText = QString(BOOKS_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias)).arg(description.joinClause, description.whereClause, description.with).toStdString();
 		const auto query = db.CreateQuery(queryText);
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);
