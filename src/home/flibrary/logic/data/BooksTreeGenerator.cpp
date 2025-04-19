@@ -150,7 +150,8 @@ public:
 		if (navigationId.isEmpty())
 			return;
 
-		const auto queryText = QString(BOOKS_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias)).arg(description.joinClause, description.whereClause, description.with).toStdString();
+		const auto queryText =
+			QString(BOOKS_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias)).arg(description.joinClause, description.whereClause, description.with).toStdString();
 		const auto query = db.CreateQuery(queryText);
 		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
 		assert(result == 0);

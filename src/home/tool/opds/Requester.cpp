@@ -626,7 +626,6 @@ public:
 			it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
 		}
 
-
 		return head;
 	}
 
