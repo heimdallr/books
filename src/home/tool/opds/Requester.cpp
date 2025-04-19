@@ -80,8 +80,7 @@ constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), 
 
 constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '') from Authors a join "
-							  "Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) "
-							  "|| coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '') "
+							  "Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1), s.SeriesTitle, b.SeqNumber "
 							  "from Books b "
 							  "%1 "
 							  "left join Series s on s.SeriesID = b.SeriesID ";
@@ -145,6 +144,10 @@ struct Node
 	Children children;
 
 	QString title;
+
+	QString author;
+	QString series;
+	int seqNum;
 };
 
 const QString& GetContent(const Node& node)
@@ -154,9 +157,10 @@ const QString& GetContent(const Node& node)
 	return it->value;
 }
 
-std::tuple<Util::QStringWrapper, Util::QStringWrapper> ToComparable(const Node& node)
+std::tuple<Util::QStringWrapper, Util::QStringWrapper, int, Util::QStringWrapper> ToComparable(const Node& node)
 {
-	return std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title });
+	return node.author.isEmpty() ? std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title }, 0, Util::QStringWrapper { node.author })
+	                             : std::make_tuple(Util::QStringWrapper { node.author }, Util::QStringWrapper { node.series }, node.seqNum, Util::QStringWrapper { node.title });
 }
 
 bool operator<(const Node& lhs, const Node& rhs)
@@ -350,13 +354,21 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("Book/%1").arg(id);
 		auto href = QString("%1/%2").arg(root, entryId);
-		auto content = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString author = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString series = query->ColumnCount() > 4 ? query->Get<const char*>(4) : QString {};
+		const int seqNum = query->ColumnCount() > 5 ? query->Get<int>(5) : -1;
+
+		auto content = QString("%1 %2%3").arg(author, series, seqNum > 0 ? QString(" #%1").arg(seqNum) : QString {});
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content), false);
 		entry.children.emplace_back("link",
 		                            QString {
         },
 		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+
+		entry.author = std::move(author);
+		entry.series = std::move(series);
+		entry.seqNum = seqNum > 0 ? seqNum : std::numeric_limits<int>::max();
 	}
 }
 
