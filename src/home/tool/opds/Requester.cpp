@@ -18,6 +18,7 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
@@ -79,8 +80,7 @@ constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), 
 
 constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
 							  "(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '') from Authors a join "
-							  "Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) "
-							  "|| coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '') "
+							  "Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1), s.SeriesTitle, b.SeqNumber "
 							  "from Books b "
 							  "%1 "
 							  "left join Series s on s.SeriesID = b.SeriesID ";
@@ -144,6 +144,10 @@ struct Node
 	Children children;
 
 	QString title;
+
+	QString author;
+	QString series;
+	int seqNum;
 };
 
 const QString& GetContent(const Node& node)
@@ -153,9 +157,10 @@ const QString& GetContent(const Node& node)
 	return it->value;
 }
 
-std::tuple<Util::QStringWrapper, Util::QStringWrapper> ToComparable(const Node& node)
+std::tuple<Util::QStringWrapper, Util::QStringWrapper, int, Util::QStringWrapper> ToComparable(const Node& node)
 {
-	return std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title });
+	return node.author.isEmpty() ? std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title }, 0, Util::QStringWrapper { node.author })
+	                             : std::make_tuple(Util::QStringWrapper { node.author }, Util::QStringWrapper { node.series }, node.seqNum, Util::QStringWrapper { node.title });
 }
 
 bool operator<(const Node& lhs, const Node& rhs)
@@ -349,13 +354,21 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("Book/%1").arg(id);
 		auto href = QString("%1/%2").arg(root, entryId);
-		auto content = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString author = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString series = query->ColumnCount() > 4 ? query->Get<const char*>(4) : QString {};
+		const int seqNum = query->ColumnCount() > 5 ? query->Get<int>(5) : -1;
+
+		auto content = QString("%1 %2%3").arg(author, series, seqNum > 0 ? QString(" #%1").arg(seqNum) : QString {});
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content), false);
 		entry.children.emplace_back("link",
 		                            QString {
         },
 		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+
+		entry.author = std::move(author);
+		entry.series = std::move(series);
+		entry.seqNum = seqNum > 0 ? seqNum : std::numeric_limits<int>::max();
 	}
 }
 
@@ -534,23 +547,35 @@ public:
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "root", m_collectionProvider->GetActiveCollection().name, root, self);
 
-		const auto dbStatQueryTextItems = QStringList
-		{
-		}
-#define OPDS_ROOT_ITEM(NAME) << QString("select '%1', count(42) from %1").arg(Loc::NAME)
-		OPDS_ROOT_ITEMS_X_MACRO
+		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
+#define OPDS_ROOT_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
+			OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
-			;
+		};
+		QStringList dbStatQueryTextItems;
+		std::ranges::transform(navigationTypes | std::views::filter([](const auto& item) { return item.first != Flibrary::NavigationMode::Groups; }),
+		                       std::back_inserter(dbStatQueryTextItems),
+		                       [](const auto& item) { return QString("select '%1', count(42) from %1").arg(item.second); });
 
 		auto dbStatQueryText = dbStatQueryTextItems.join(" union all ");
-		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders").replace("count(42) from Groups", "count(42) from Groups_User");
+		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders");
 
-		const auto query = db->CreateQuery(dbStatQueryText.toStdString());
-		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			const auto* id = query->Get<const char*>(0);
-			if (const auto count = query->Get<int>(1))
-				WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			const auto query = db->CreateQuery(dbStatQueryText.toStdString());
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto* id = query->Get<const char*>(0);
+				if (const auto count = query->Get<int>(1))
+					WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			}
+		}
+		{
+			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
+				WriteEntry(root, head.children, id, query->Get<const char*>(1), query->Get<int>(2));
+			}
 		}
 
 		return head;
