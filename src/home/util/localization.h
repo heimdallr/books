@@ -40,7 +40,7 @@ constexpr auto INFORMATION = QT_TRANSLATE_NOOP("Common", "Information");
 constexpr auto QUESTION = QT_TRANSLATE_NOOP("Common", "Question");
 constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning!");
 constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("Common", "You must restart the application to apply the changes.\nRestart now?");
-constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("Common", "To search books by title, enter part of the title here and press enter");
+constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("Common", "To search for books by author, series, or title, enter the name or title here and press Enter");
 
 UTIL_EXPORT QString Tr(const char* context, const char* str);
 UTIL_EXPORT std::vector<const char*> GetLocales();

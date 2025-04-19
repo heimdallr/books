@@ -774,8 +774,8 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
-        <translation>Для пошуку книги за назвою введіть тут частину назви та натисніть Enter</translation>
+        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation>Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
     </message>
 </context>
 <context>
