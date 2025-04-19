@@ -18,6 +18,7 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
@@ -534,23 +535,35 @@ public:
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "root", m_collectionProvider->GetActiveCollection().name, root, self);
 
-		const auto dbStatQueryTextItems = QStringList
-		{
-		}
-#define OPDS_ROOT_ITEM(NAME) << QString("select '%1', count(42) from %1").arg(Loc::NAME)
-		OPDS_ROOT_ITEMS_X_MACRO
+		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
+#define OPDS_ROOT_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
+			OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
-			;
+		};
+		QStringList dbStatQueryTextItems;
+		std::ranges::transform(navigationTypes | std::views::filter([](const auto& item) { return item.first != Flibrary::NavigationMode::Groups; }),
+		                       std::back_inserter(dbStatQueryTextItems),
+		                       [](const auto& item) { return QString("select '%1', count(42) from %1").arg(item.second); });
 
 		auto dbStatQueryText = dbStatQueryTextItems.join(" union all ");
-		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders").replace("count(42) from Groups", "count(42) from Groups_User");
+		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders");
 
-		const auto query = db->CreateQuery(dbStatQueryText.toStdString());
-		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			const auto* id = query->Get<const char*>(0);
-			if (const auto count = query->Get<int>(1))
-				WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			const auto query = db->CreateQuery(dbStatQueryText.toStdString());
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto* id = query->Get<const char*>(0);
+				if (const auto count = query->Get<int>(1))
+					WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			}
+		}
+		{
+			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
+				WriteEntry(root, head.children, id, query->Get<const char*>(1), query->Get<int>(2));
+			}
 		}
 
 		return head;
