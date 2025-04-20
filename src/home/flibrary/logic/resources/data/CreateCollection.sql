@@ -4,6 +4,9 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP TABLE IF EXISTS Settings;
+--@@
+
 DROP TABLE IF EXISTS Inpx;
 --@@
 
@@ -193,8 +196,14 @@ CREATE TABLE Inpx (
   File   VARCHAR (200) NOT NULL,
   Hash   VARCHAR (50)  NOT NULL
 );
-
 --@@
+
+CREATE TABLE Settings (
+  SettingID    INTEGER NOT NULL PRIMARY KEY,
+  SettingValue BLOB
+);
+--@@
+
 CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID);
 --@@
 

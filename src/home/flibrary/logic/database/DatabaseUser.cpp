@@ -3,6 +3,10 @@
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
+
 #include "interface/constants/Localization.h"
 
 #include "data/DataItem.h"
@@ -115,4 +119,31 @@ std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
 void DatabaseUser::EnableApplicationCursorChange(const bool value)
 {
 	APPLICATION_CURSOR_CONTROLLER = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
+}
+
+QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValue) const
+{
+	try
+	{
+		const auto db = m_impl->databaseController->GetDatabase();
+		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?");
+		query->Bind(0, static_cast<long long>(key));
+		query->Execute();
+		return query->Eof() ? defaultValue : QString::fromStdString(query->Get<std::string>(0));
+	}
+	catch (...)
+	{
+		return defaultValue;
+	}
+}
+
+void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
+{
+	const auto db = m_impl->databaseController->GetDatabase();
+	const auto tr = db->CreateTransaction();
+	const auto command = tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, ?)");
+	command->Bind(0, static_cast<long long>(key));
+	command->Bind(1, value.toString().toStdString());
+	command->Execute();
+	tr->Commit();
 }

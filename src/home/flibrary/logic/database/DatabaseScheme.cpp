@@ -177,6 +177,7 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
 		"CREATE TABLE IF NOT EXISTS Series_List(SeriesID INTEGER NOT NULL, BookID INTEGER NOT NULL, SeqNumber INTEGER)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID)",
 		"CREATE TABLE IF NOT EXISTS Updates (UpdateID INTEGER NOT NULL, UpdateTitle INTEGER NOT NULL, ParentID INTEGER NOT NULL, IsDeleted INTEGER NOT NULL DEFAULT(0))", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Update_PrimaryKey ON Updates (UpdateID)", "CREATE INDEX IF NOT EXISTS IX_Update_ParentID ON Updates (ParentID)",
+		"CREATE TABLE IF NOT EXISTS Settings (SettingID INTEGER NOT NULL PRIMARY KEY, SettingValue BLOB)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
