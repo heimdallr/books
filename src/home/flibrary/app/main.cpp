@@ -3,6 +3,7 @@
 #include <QPalette>
 #include <QStandardPaths>
 #include <QStyleFactory>
+#include <QTranslator>
 
 #include <Hypodermic/Hypodermic.h>
 
@@ -21,6 +22,7 @@
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "util/ISettings.h"
+#include "util/localization.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
@@ -63,6 +65,8 @@ int main(int argc, char* argv[])
 			PLOGD << "DI-container created";
 
 			const auto settings = container->resolve<ISettings>();
+			const auto translators = Loc::LoadLocales(*settings); //-V808
+
 			Genre::SetSortMode(*settings);
 
 			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
