@@ -2,7 +2,6 @@
 
 #include <QActionGroup>
 #include <QMenu>
-#include <QTranslator>
 
 #include "interface/constants/Localization.h"
 
@@ -18,12 +17,6 @@ namespace
 constexpr auto LOCALE = "ui/locale";
 constexpr auto NAME = "name";
 
-std::vector<PropagateConstPtr<QTranslator>> LoadTranslators(const ISettings& settings)
-{
-	const auto locales = Loc::GetLocales();
-	return locales.size() == 1 ? Loc::LoadLocales(locales.front()) : Loc::LoadLocales(settings);
-}
-
 }
 
 class LocaleController::Impl
@@ -33,7 +26,6 @@ public:
 		: m_self(self)
 		, m_settings(std::move(settings))
 		, m_uiFactory(std::move(uiFactory))
-		, m_translators(LoadTranslators(*m_settings))
 	{
 		m_actionGroup.setExclusive(true);
 	}
@@ -76,7 +68,6 @@ private:
 	LocaleController& m_self;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	std::vector<PropagateConstPtr<QTranslator>> m_translators;
 	QActionGroup m_actionGroup { nullptr };
 };
 

@@ -13,6 +13,8 @@
 #include "inpx/src/util/constant.h"
 #include "inpx/src/util/inpx.h"
 
+#include "log.h"
+
 namespace HomeCompa::Flibrary::DatabaseScheme
 {
 
@@ -21,6 +23,7 @@ namespace
 
 void DropTriggers(DB::ITransaction& transaction)
 {
+	PLOGI << "Drop triggers";
 	std::vector<std::string> triggerNames;
 	{
 		const auto triggerNamesQuery = transaction.CreateQuery("select name from sqlite_master where type = 'trigger'");
@@ -48,6 +51,8 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 {
 	if (FieldExists(transaction, table, column))
 		return false;
+
+	PLOGI << "Add " << column << " to " << table;
 
 	transaction.CreateCommand(QString("ALTER TABLE %1 ADD COLUMN %2 %3").arg(table).arg(column).arg(definition).toStdString())->Execute();
 	for (const auto& command : commands)
@@ -105,6 +110,7 @@ void FixSearches_User(DB::ITransaction& transaction)
 	if (!FieldExists(transaction, "Searches_User", "Mode"))
 		return;
 
+	PLOGI << "Fix Searches_User";
 	static constexpr const char* commands[] {
 		"DROP TABLE Searches_User",
 		"CREATE TABLE Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME)",
@@ -125,8 +131,11 @@ void FillSearchTables(DB::ITransaction& transaction)
 	{
 		const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {}_idx)", table));
 		query->Execute();
-		if (query->Get<int>(0) == 0)
-			transaction.CreateCommand(std::format("INSERT INTO {}({}) VALUES('rebuild')", table, table))->Execute();
+		if (query->Get<int>(0) != 0)
+			continue;
+
+		PLOGI << "Update Full Text Search Table " << table;
+		transaction.CreateCommand(std::format("INSERT INTO {}({}) VALUES('rebuild')", table, table))->Execute();
 	}
 }
 
@@ -134,33 +143,41 @@ void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& t
 {
 	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Inpx)");
 	query->Execute();
-	if (query->Get<int>(0) == 0)
-		Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
+	if (query->Get<int>(0) != 0)
+		return;
+
+	PLOGI << "Update inpx table";
+	Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().folder.toStdWString(), transaction);
 }
 
 void FillSeriesList(DB::ITransaction& transaction)
 {
 	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Series_List)");
 	query->Execute();
-	if (query->Get<int>(0) == 0)
-		transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
+	if (query->Get<int>(0) != 0)
+		return;
+
+	PLOGI << "Update series table";
+	transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
 }
 
 void AddUserTables(DB::ITransaction& transaction)
 {
+	PLOGI << "Add tables";
 	// clang-format off
 	static constexpr const char* commands[] {
-		"CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate INTEGER, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
-		"CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
-		"CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, PRIMARY KEY(GroupID, BookID), FOREIGN KEY(GroupID) REFERENCES Groups_User(GroupID) ON DELETE CASCADE, FOREIGN KEY(BookID) REFERENCES Books(BookID))",
-		"CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE)",
-		"CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Books_User(BookID INTEGER NOT NULL PRIMARY KEY, IsDeleted INTEGER, UserRate  INTEGER, CreatedAt DATETIME, FOREIGN KEY (BookID) REFERENCES Books (BookID) ON DELETE CASCADE)",
+		"CREATE TABLE IF NOT EXISTS Groups_User(GroupID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME, IsDeleted INTEGER NOT NULL DEFAULT(0))",
+		"CREATE TABLE IF NOT EXISTS Groups_List_User(GroupID INTEGER NOT NULL, BookID INTEGER NOT NULL, CreatedAt DATETIME, PRIMARY KEY (GroupID, BookID), FOREIGN KEY (GroupID) REFERENCES Groups_User (GroupID) ON DELETE CASCADE, FOREIGN KEY (BookID)  REFERENCES Books (BookID) ON DELETE CASCADE)",
+		"CREATE TABLE IF NOT EXISTS Searches_User(SearchID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Title VARCHAR(150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE, CreatedAt DATETIME)",
+		"CREATE TABLE IF NOT EXISTS Keywords(KeywordID INTEGER NOT NULL, KeywordTitle VARCHAR(150) NOT NULL COLLATE MHL_SYSTEM_NOCASE, SearchTitle VARCHAR(150) COLLATE NOCASE, IsDeleted INTEGER NOT NULL DEFAULT(0))",
 		"CREATE TABLE IF NOT EXISTS Keyword_List(KeywordID INTEGER NOT NULL, BookID INTEGER NOT NULL)",
 		"CREATE TABLE IF NOT EXISTS Export_List_User(BookID INTEGER NOT NULL, ExportType INTEGER NOT NULL, CreatedAt DATETIME NOT NULL)",
-		"CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE)",
+		"CREATE TABLE IF NOT EXISTS Folders(FolderID INTEGER NOT NULL, FolderTitle VARCHAR(200) NOT NULL COLLATE MHL_SYSTEM_NOCASE, IsDeleted INTEGER NOT NULL DEFAULT(0))",
 		"CREATE TABLE IF NOT EXISTS Inpx(Folder VARCHAR(200) NOT NULL, File VARCHAR(200) NOT NULL, Hash VARCHAR(50) NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Inpx_PrimaryKey ON Inpx (Folder COLLATE NOCASE, File COLLATE NOCASE)",
-		"CREATE TABLE IF NOT EXISTS Series_List (SeriesID  INTEGER NOT NULL, BookID    INTEGER NOT NULL, SeqNumber INTEGER)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID)",
-		"CREATE TABLE IF NOT EXISTS Updates (UpdateID INTEGER NOT NULL, UpdateTitle INTEGER NOT NULL, ParentID INTEGER NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Update_PrimaryKey ON Updates (UpdateID)", "CREATE INDEX IF NOT EXISTS IX_Update_ParentID ON Updates (ParentID)",
+		"CREATE TABLE IF NOT EXISTS Series_List(SeriesID INTEGER NOT NULL, BookID INTEGER NOT NULL, SeqNumber INTEGER)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID)",
+		"CREATE TABLE IF NOT EXISTS Updates (UpdateID INTEGER NOT NULL, UpdateTitle INTEGER NOT NULL, ParentID INTEGER NOT NULL, IsDeleted INTEGER NOT NULL DEFAULT(0))", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Update_PrimaryKey ON Updates (UpdateID)", "CREATE INDEX IF NOT EXISTS IX_Update_ParentID ON Updates (ParentID)",
+		"CREATE TABLE IF NOT EXISTS Settings (SettingID INTEGER NOT NULL PRIMARY KEY, SettingValue BLOB)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
@@ -173,6 +190,7 @@ void AddUserTables(DB::ITransaction& transaction)
 
 void AddTableFields(DB::ITransaction& transaction)
 {
+	PLOGI << "Add columns";
 	AddUserTableField(transaction, "Books_User", "UserRate", "INTEGER");
 	AddUserTableField(transaction, "Books_User", "CreatedAt", "DATETIME");
 	AddUserTableField(transaction, "Groups_User", "CreatedAt", "DATETIME");

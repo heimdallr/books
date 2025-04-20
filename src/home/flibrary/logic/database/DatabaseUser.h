@@ -26,10 +26,12 @@ public:
 	std::shared_ptr<DB::IDatabase> CheckDatabase() const override;
 	std::shared_ptr<Util::IExecutor> Executor() const override;
 	void EnableApplicationCursorChange(bool value) override;
+	QVariant GetSetting(Key key, QVariant defaultValue) const override;
+	void SetSetting(Key key, const QVariant& value) const override;
 
 private:
 	struct Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

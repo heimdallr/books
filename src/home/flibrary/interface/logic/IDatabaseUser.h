@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QVariant>
+
 #include "util/IExecutor.h"
 
 namespace HomeCompa::DB
@@ -14,6 +16,12 @@ namespace HomeCompa::Flibrary
 class IDatabaseUser // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	enum class Key
+	{
+		DatabaseVersion,
+	};
+
+public:
 	static constexpr auto BOOKS_QUERY_FIELDS = "b.BookID, b.Title, coalesce(%1.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), "
 											   "coalesce(bu.IsDeleted, b.IsDeleted, 0), b.FolderID, b.UpdateID";
 	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
@@ -27,6 +35,9 @@ public:
 	virtual std::shared_ptr<DB::IDatabase> CheckDatabase() const = 0;
 	virtual std::shared_ptr<Util::IExecutor> Executor() const = 0;
 	virtual void EnableApplicationCursorChange(bool value) = 0;
+
+	virtual QVariant GetSetting(Key key, QVariant defaultValue = {}) const = 0;
+	virtual void SetSetting(Key key, const QVariant& value) const = 0;
 };
 
 struct BookQueryFields
