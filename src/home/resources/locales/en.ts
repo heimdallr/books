@@ -2641,6 +2641,14 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::MigrateWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/MigrateWindow.cpp"/>
+        <source>The database migration process is in progress...</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::TreeView</name>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>

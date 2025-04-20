@@ -46,7 +46,7 @@ MigrateWindow::MigrateWindow(std::shared_ptr<ISettings> settings, std::shared_pt
 	, m_impl(*this, std::move(settings), std::move(migrator))
 {
 	PLOGV << "MigrateWindow created";
-	setWindowTitle(tr("Database migration process running..."));
+	setWindowTitle(tr("The database migration process is in progress..."));
 	setMinimumSize(QSize { 1024, 720 });
 	setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 	QListView::setModel(logController->GetModel());
