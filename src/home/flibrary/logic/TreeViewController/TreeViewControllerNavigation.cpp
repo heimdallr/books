@@ -246,7 +246,7 @@ private: // IContextMenuHandler
 	{
 		assert(index.isValid());
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->Rename(index.data(Role::Id).toLongLong(), [=](long long) mutable { controller.reset(); });
+		controller->Rename(index.data(Role::Id).toLongLong(), index.data(Qt::DisplayRole).toString(), [=](long long) mutable { controller.reset(); });
 	}
 
 	template <typename T>
