@@ -198,6 +198,10 @@ void GroupController::CreateNew(Callback callback) const
 	m_impl->GetAllGroups([&, callback = std::move(callback)](const Names& names) mutable { m_impl->CreateNewGroup(names, std::move(callback)); });
 }
 
+void GroupController::Rename(const Id /*id*/, Callback /*callback*/) const
+{
+}
+
 void GroupController::Remove(Ids ids, Callback callback) const
 {
 	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_GROUP_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
