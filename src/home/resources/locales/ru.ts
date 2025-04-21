@@ -2638,6 +2638,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
+        <source>Cannot rename group</source>
+        <translation>Не удалось переименовать группу</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove groups</source>
         <translation>Не удалось удалить группу</translation>
     </message>
@@ -5399,6 +5404,11 @@ Try again?</source>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new group...</source>
         <translation>Создать новую группу...</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Rename group...</source>
+        <translation>Переименовать группу...</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
