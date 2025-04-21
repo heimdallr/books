@@ -38,6 +38,7 @@ IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
 
 #define MENU_ACTION_ITEMS_X_MACRO     \
 	MENU_ACTION_ITEM(CreateNewGroup)  \
+	MENU_ACTION_ITEM(RenameGroup)     \
 	MENU_ACTION_ITEM(RemoveGroup)     \
 	MENU_ACTION_ITEM(CreateNewSearch) \
 	MENU_ACTION_ITEM(RemoveSearch)
@@ -116,9 +117,13 @@ IDataItem::Ptr MenuRequesterGroups(const ITreeViewController::RequestContextMenu
 {
 	auto result = MenuItem::Create();
 	Add(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
+	auto& renameItem = Add(result, QT_TRANSLATE_NOOP("Navigation", "Rename group..."), MenuAction::RenameGroup);
 	auto& removeItem = Add(result, REMOVE, MenuAction::RemoveGroup);
 	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
+	{
+		renameItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 		removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	}
 
 	return result;
 }
@@ -237,6 +242,14 @@ private: // IContextMenuHandler
 	}
 
 	template <typename T>
+	void OnRenameNavigationItem(const QModelIndex& index, ControllerCreator<T> creator) const
+	{
+		assert(index.isValid());
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
+		controller->Rename(index.data(Role::Id).toLongLong(), index.data(Qt::DisplayRole).toString(), [=](long long) mutable { controller.reset(); });
+	}
+
+	template <typename T>
 	void OnRemoveNavigationItem(const QList<QModelIndex>& indexList, const QModelIndex& index, ControllerCreator<T> creator) const
 	{
 		const auto toId = [](const QModelIndex& ind) { return ind.data(Role::Id).toLongLong(); };
@@ -259,6 +272,11 @@ private: // IContextMenuHandler
 	void OnCreateNewGroupTriggered(const QList<QModelIndex>&, const QModelIndex&) const override
 	{
 		OnCreateNavigationItem(&ILogicFactory::CreateGroupController);
+	}
+
+	void OnRenameGroupTriggered(const QList<QModelIndex>&, const QModelIndex& index) const override
+	{
+		OnRenameNavigationItem(index, &ILogicFactory::CreateGroupController);
 	}
 
 	void OnRemoveGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index) const override
