@@ -29,6 +29,7 @@ namespace
 constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
 constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
+constexpr auto SEARCH = QT_TRANSLATE_NOOP("opds", "Search");
 TR_DEF
 
 constexpr auto FEED = "feed";
@@ -53,7 +54,7 @@ constexpr auto HTTP_HEAD = R"(<!DOCTYPE html>
 	</head>
 	<body>
 	<form action="/web/search" method="GET">
-        <p><input type="text" id="q" name="q" placeholder="%6" size="80"/></p>
+        <p><input type="text" id="q" name="q" placeholder="%6" size="64"/></p>
     </form>
 	<a href="%3">%4</a>
 	%1
@@ -127,8 +128,7 @@ protected:
 
 	void WriteHttpHead(const QString& head, const QString& style = {})
 	{
-		std::call_once(m_headWritten,
-		               [&] { m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)); });
+		std::call_once(m_headWritten, [&] { m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Tr(SEARCH)); });
 	}
 
 private: // SaxParser

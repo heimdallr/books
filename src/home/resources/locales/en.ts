@@ -762,11 +762,6 @@
 Restart now?</source>
         <translation></translation>
     </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -5004,6 +4999,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation></translation>
     </message>
@@ -5926,6 +5926,11 @@ Try again?</source>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Read</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Search</source>
         <translation></translation>
     </message>
 </context>

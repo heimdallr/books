@@ -52,6 +52,7 @@ constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWind
 constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
 constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
 constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
+constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -312,7 +313,7 @@ private:
 	void ReplaceMenuBar()
 	{
 		PLOGV << "ReplaceMenuBar";
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)));
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, Tr(SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)));
 		auto* menuBar = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);

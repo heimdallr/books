@@ -772,11 +772,6 @@ Restart now?</source>
         <translation>Для застосування змін необхідно перезапустити програму.
 Перезапустити зараз?</translation>
     </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
-        <translation>Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
-    </message>
 </context>
 <context>
     <name>Dialog</name>
@@ -5107,6 +5102,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation>Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
     </message>
@@ -5941,6 +5941,11 @@ Try again?</source>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Read</source>
         <translation>Читати</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Search</source>
+        <translation>Пошук</translation>
     </message>
 </context>
 </TS>
