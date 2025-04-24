@@ -1,8 +1,11 @@
 #include "TreeViewControllerNavigation.h"
 
+#include <ranges>
+
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -163,29 +166,47 @@ struct ModeDescriptor
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };
+	const char* filter { nullptr };
 	MenuRequester menuRequester { &MenuRequesterStub };
 	ContextMenuHandlerFunction createNewAction { nullptr };
 	ContextMenuHandlerFunction createRemoveAction { nullptr };
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
-	{   Loc::Authors,																			   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors }                     },
-	{    Loc::Series,																									 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series } },
-	{    Loc::Genres,																				 { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Genres, &TreeMenuRequester } },
-	{  Loc::Keywords,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords } },
-	{   Loc::Updates,																				{ ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Updates, &TreeMenuRequester } },
-	{  Loc::Archives,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives } },
-	{ Loc::Languages,																								  { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages } },
+	{   Loc::Authors,{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Authors, "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))" }                     },
+	{    Loc::Series,         { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Series, "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))" } },
+	{    Loc::Genres,
+     { ViewMode::Tree,
+     &IModelProvider::CreateTreeModel,
+     NavigationMode::Genres,
+     "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
+     &TreeMenuRequester }																																											  },
+	{  Loc::Keywords, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Keywords, "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))" } },
+	{   Loc::Updates,
+     { ViewMode::Tree,
+     &IModelProvider::CreateTreeModel,
+     NavigationMode::Updates,
+     "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
+     &TreeMenuRequester }																																											  },
+	{  Loc::Archives,     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives, "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" } },
+	{ Loc::Languages,                { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages, "select exists (select 42 from Books where Lang > (select min(Lang) from Books))" } },
 	{    Loc::Groups,
-     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Groups, &MenuRequesterGroups, &IContextMenuHandler::OnCreateNewGroupTriggered, &IContextMenuHandler::OnRemoveGroupTriggered } },
+     { ViewMode::List,
+     &IModelProvider::CreateListModel,
+     NavigationMode::Groups,
+     nullptr,
+     &MenuRequesterGroups,
+     &IContextMenuHandler::OnCreateNewGroupTriggered,
+     &IContextMenuHandler::OnRemoveGroupTriggered }																																					},
 	{    Loc::Search,
      { ViewMode::List,
      &IModelProvider::CreateSearchListModel,
      NavigationMode::Search,
+     nullptr,
      &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
-     &IContextMenuHandler::OnRemoveSearchTriggered }																																				  },
-	{  Loc::AllBooks,																								   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
+     &IContextMenuHandler::OnRemoveSearchTriggered }																																				   },
+	{  Loc::AllBooks,																									{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -392,9 +413,24 @@ void TreeViewControllerNavigation::RequestBooks(const bool force) const
 	m_impl->dataProvider->RequestBooks(force);
 }
 
-std::vector<const char*> TreeViewControllerNavigation::GetModeNames() const
+std::vector<std::pair<const char*, int>> TreeViewControllerNavigation::GetModeNames() const
 {
-	return GetModeNamesImpl(MODE_DESCRIPTORS);
+	std::vector<std::pair<const char*, int>> result;
+	std::ranges::transform(MODE_DESCRIPTORS
+	                           | std::views::filter(
+								   [db = m_impl->databaseController->GetDatabase()](const auto& item)
+								   {
+									   if (!item.second.filter)
+										   return true;
+
+									   const auto query = db->CreateQuery(item.second.filter);
+									   query->Execute();
+									   assert(!query->Eof());
+									   return query->template Get<int>(0) != 0;
+								   }),
+	                       std::back_inserter(result),
+	                       [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.navigationMode)); });
+	return result;
 }
 
 void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)

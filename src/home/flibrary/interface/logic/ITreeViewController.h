@@ -49,7 +49,7 @@ public:
 public:
 	virtual ~ITreeViewController() = default;
 	[[nodiscard]] virtual const char* TrContext() const noexcept = 0;
-	[[nodiscard]] virtual std::vector<const char*> GetModeNames() const = 0;
+	[[nodiscard]] virtual std::vector<std::pair<const char*, int>> GetModeNames() const = 0;
 	virtual void SetMode(const QString& mode) = 0;
 	virtual void SetCurrentId(ItemType type, QString id) = 0;
 	[[nodiscard]] virtual int GetModeIndex() const = 0;

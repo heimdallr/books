@@ -31,7 +31,7 @@ public:
 	void RequestBooks(bool force) const;
 
 private: // ITreeViewController
-	[[nodiscard]] std::vector<const char*> GetModeNames() const override;
+	[[nodiscard]] std::vector<std::pair<const char*, int>> GetModeNames() const override;
 	void SetCurrentId(ItemType type, QString id) override;
 
 private: // AbstractTreeViewController

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <iterator>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 #include "fnd/observable.h"
@@ -50,15 +47,6 @@ private: // ITreeViewController
 
 protected:
 	void Setup();
-
-	template <typename Value, size_t ArraySize>
-	std::vector<const char*> GetModeNamesImpl(Value (&array)[ArraySize]) const
-	{
-		std::vector<const char*> result;
-		result.reserve(ArraySize);
-		std::transform(std::cbegin(array), std::cend(array), std::back_inserter(result), [](const auto& item) { return item.first; });
-		return result;
-	}
 
 protected:
 	virtual void OnModeChanged(const QString& mode) = 0;
