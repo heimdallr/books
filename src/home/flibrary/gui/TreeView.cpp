@@ -240,7 +240,8 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		m_ui.value->setText({});
-		m_ui.cbMode->setCurrentIndex(index);
+		const auto idIndex = m_ui.cbMode->findData(index, Qt::UserRole + 1);
+		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
 
 		QTimer::singleShot(0, [this, visible = m_controller->GetItemType() == ItemType::Books || index != static_cast<int>(NavigationMode::AllBooks)] { m_self.parentWidget()->setVisible(visible); });
 	}
@@ -564,8 +565,12 @@ private:
 
 	void FillComboBoxes()
 	{
-		for (const auto* name : m_controller->GetModeNames())
+		for (const auto& [name, id] : m_controller->GetModeNames())
+		{
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
+			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, Qt::UserRole + 1);
+		}
+		m_ui.cbMode->setCurrentIndex(-1);
 
 		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) { return mode == item.first; });
 		if (it != std::cend(ModeComboBox::VALUE_MODES))
