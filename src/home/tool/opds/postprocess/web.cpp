@@ -165,12 +165,6 @@ protected:
 	}
 
 protected:
-	virtual bool OnStartElementFeed(const XmlAttributes&)
-	{
-		m_stream << "<html>\n<body>\n";
-		return true;
-	}
-
 	virtual bool OnStartElementEntry(const XmlAttributes&)
 	{
 		if (!m_mainTitle.isEmpty())
@@ -249,7 +243,6 @@ private: // SaxParser
 		using ParseElementFunction = bool (ParserNavigation::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{       FEED,      &ParserNavigation::OnStartElementFeed },
 			{      ENTRY,     &ParserNavigation::OnStartElementEntry },
 			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
@@ -284,17 +277,14 @@ private: // SaxParser
 	}
 
 private:
-	bool OnStartElementFeed(const XmlAttributes& attributes) override
-	{
-		ParserOpds::OnStartElementFeed(attributes);
-		m_stream << "<table>\n";
-		return true;
-	}
-
 	bool OnStartElementEntry(const XmlAttributes& attributes) override
 	{
 		m_link.clear();
-		return ParserOpds::OnStartElementEntry(attributes);
+		bool needStartTable = !m_mainTitle.isEmpty();
+		ParserOpds::OnStartElementEntry(attributes);
+		if (needStartTable)
+			m_stream << "<table>\n";
+		return true;
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
@@ -347,7 +337,6 @@ private: // SaxParser
 		using ParseElementFunction = bool (ParserBookInfo::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{       FEED,      &ParserBookInfo::OnStartElementFeed },
 			{      ENTRY,     &ParserBookInfo::OnStartElementEntry },
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
