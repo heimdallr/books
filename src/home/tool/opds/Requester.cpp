@@ -693,20 +693,24 @@ public:
 			                                Node::Attributes { { "href", QString("%1/%2/zip/%3").arg(root, BOOK, book.GetId()) },
 			                                                   { "rel", "http://opds-spec.org/acquisition" },
 			                                                   { "type", QString("application/%1+zip").arg(format) } });
-				entry.children.emplace_back("link",
-			                                QString {
-                },
-			                                Node::Attributes { { "href", QString("%1/%2/cover/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
-				entry.children.emplace_back(
-					"link",
-					QString {
-                },
-					Node::Attributes { { "href", QString("%1/%2/cover/thumbnail/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
-
 				m_forwarder.Forward([this] { m_coversTimer.start(); });
 				std::lock_guard lock(m_coversGuard);
+
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+				{
+					entry.children.emplace_back("link",
+				                                QString {
+                    },
+				                                Node::Attributes { { "href", QString("%1/%2/cover/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
+
+					entry.children.emplace_back(
+						"link",
+						QString {
+                    },
+						Node::Attributes { { "href", QString("%1/%2/cover/thumbnail/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
+
 					m_covers.try_emplace(bookId, covers.front().bytes);
+				}
 			});
 
 		m_annotationController->RegisterObserver(&observer);
