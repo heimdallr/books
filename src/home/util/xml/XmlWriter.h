@@ -18,7 +18,7 @@ class UTIL_EXPORT XmlWriter
 	NON_COPY_MOVABLE(XmlWriter)
 
 public:
-	explicit XmlWriter(QIODevice& stream);
+	explicit XmlWriter(QIODevice& stream, Type type = Type::Xml);
 	~XmlWriter();
 
 	XmlWriter& WriteProcessingInstruction(const QString& target, const QString& data);
