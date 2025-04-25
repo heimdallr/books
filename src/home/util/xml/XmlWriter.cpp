@@ -223,3 +223,8 @@ XmlWriter& XmlWriter::WriteCharacters(const QString& data)
 	m_impl->WriteCharacters(data);
 	return *this;
 }
+
+XmlWriter::XmlNodeGuard XmlWriter::Guard(const QString& name)
+{
+	return XmlNodeGuard { *this, name };
+}
