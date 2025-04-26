@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fnd/NonCopyMovable.h"
-#include "fnd/ScopedCall.h"
 #include "fnd/memory.h"
 
 #include "export/Util.h"
@@ -27,11 +26,18 @@ public:
 
 	class XmlNodeGuard
 	{
+		NON_COPY_MOVABLE(XmlNodeGuard)
+
 	public:
 		XmlNodeGuard(XmlWriter& writer, const QString& name)
 			: m_writer(writer)
-			, m_impl { [&] { writer.WriteStartElement(name); }, [&] { writer.WriteEndElement(); } }
 		{
+			m_writer.WriteStartElement(name);
+		}
+
+		~XmlNodeGuard()
+		{
+			m_writer.WriteEndElement();
 		}
 
 		XmlWriter* operator->() const noexcept
@@ -41,7 +47,6 @@ public:
 
 	private:
 		XmlWriter& m_writer;
-		ScopedCall m_impl;
 	};
 
 public:

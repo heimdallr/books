@@ -121,7 +121,7 @@ protected:
 		// clang-format off
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
-				.WriteStartElement("style").WriteCharacters(QString("p { max-width: %1px; } %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
 			.WriteEndElement()
 			.WriteStartElement("body")
 				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
@@ -157,7 +157,7 @@ private:
 
 	virtual QString GetStyle() const
 	{
-		return {};
+		return "\n\t\t";
 	}
 
 protected:
@@ -206,6 +206,11 @@ protected:
 		return true;
 	}
 
+	void WriteHeadOnce()
+	{
+		std::call_once(m_headWritten, [this] { WriteHttpHead(); });
+	}
+
 private:
 	bool ParseFeedId(const QString& value)
 	{
@@ -227,7 +232,7 @@ private:
 
 	bool OnStartElementFeedEntry(const XmlAttributes&)
 	{
-		std::call_once(m_headWritten, [this] { WriteHttpHead(); });
+		WriteHeadOnce();
 		return true;
 	}
 
@@ -299,7 +304,7 @@ private:
 	void WriteHttpHead() override
 	{
 		AbstractParser::WriteHttpHead();
-		m_tableGuard = std::make_unique<ScopedCall>([this] { m_writer->WriteStartElement("table"); }, [this] { m_writer->WriteEndElement(); });
+		m_tableGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "table");
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
@@ -310,6 +315,7 @@ private:
 
 	bool OnEndElementFeed()
 	{
+		WriteHeadOnce();
 		m_tableGuard.reset();
 		return true;
 	}
@@ -325,7 +331,7 @@ private:
 
 private:
 	QString m_link;
-	std::unique_ptr<ScopedCall> m_tableGuard;
+	std::unique_ptr<XmlWriter::XmlNodeGuard> m_tableGuard;
 };
 
 class ParserBookInfo final : public ParserOpds
