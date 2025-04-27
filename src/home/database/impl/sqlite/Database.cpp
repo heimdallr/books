@@ -74,7 +74,9 @@ ConnectionParameters ParseConnectionString(const std::string& connection)
 int GetOpenFlags(const ConnectionParameters& parameters)
 {
 	auto [begin, end] = parameters.equal_range(FLAG);
-	const auto result = std::accumulate(begin, end, 0, [](const int init, const auto& item) { return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {}); });
+	auto result = std::accumulate(begin, end, 0, [](const int init, const auto& item) { return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {}); });
+	if (result & SQLITE_OPEN_CREATE)
+		result |= SQLITE_OPEN_READWRITE;
 
 	return result ? result : SQLITE_OPEN_READWRITE;
 }
