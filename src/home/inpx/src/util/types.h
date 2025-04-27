@@ -15,6 +15,12 @@ inline QString ToQString<std::string>(const std::string& str)
 }
 
 template <>
+inline QString ToQString<QString>(const QString& str)
+{
+	return str;
+}
+
+template <>
 inline QString ToQString<std::wstring>(const std::wstring& str)
 {
 	return QString::fromStdWString(str);
