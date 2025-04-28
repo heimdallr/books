@@ -428,6 +428,11 @@ void print<BooksSeries::value_type>(const BooksSeries::value_type& value)
 	PLOGE << value.first.first << ", " << value.first.second << ": " << (value.second ? *value.second : -1);
 }
 
+void print(const std::pair<size_t, std::string>& value)
+{
+	PLOGE << value.first << ", " << value.second;
+}
+
 template <typename... ARGS>
 void print(const std::tuple<ARGS...>& value)
 {
@@ -488,7 +493,7 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 	return result;
 }
 
-size_t Store(const Path& dbFileName, const Data& data)
+size_t Store(const Path& dbFileName, Data& data)
 {
 	size_t result = 0;
 	result += StoreRange(
@@ -691,6 +696,34 @@ size_t Store(const Path& dbFileName, const Data& data)
 							 cmd.binder() << static_cast<long long>(std::get<0>(item)) << std::get<1>(item) << static_cast<long long>(std::get<2>(item));
 							 return cmd.execute();
 						 });
+
+	if (!data.reviews.empty())
+	{
+		std::vector<std::pair<size_t, std::string>> reviews;
+		for (const auto& book : data.books)
+		{
+			try
+			{
+				if (const auto it = data.reviews.find(std::stoull(book.libId)); it != data.reviews.end())
+				{
+					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) { return std::make_pair(book.id, item); });
+					data.reviews.erase(it);
+				}
+			}
+			catch (...) // NOLINT(bugprone-empty-catch)
+			{
+			}
+		}
+		result += StoreRange(dbFileName,
+		                     "Reviews",
+		                     "INSERT INTO Reviews (BookID, Folder) VALUES(?, ?)",
+		                     reviews,
+		                     [](sqlite3pp::command& cmd, const auto& item)
+		                     {
+								 cmd.binder() << static_cast<long long>(item.first) << item.second;
+								 return cmd.execute();
+							 });
+	}
 
 	return result;
 }
@@ -1239,6 +1272,23 @@ private:
 		GetFieldList();
 		AddUnIndexedBooks();
 		ScanUnIndexedFolders();
+		CollectReviews();
+	}
+
+	void CollectReviews()
+	{
+		const auto reviewsFolder = m_ini(INPX_FOLDER) / REVIEWS_FOLDER;
+		if (!exists(reviewsFolder))
+			return;
+
+		PLOGI << "Collect reviews";
+		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder))
+		{
+			auto& path = entry.path();
+			const Zip zip(QString::fromStdWString(path));
+			for (const auto& file : zip.GetFileNameList())
+				m_data.reviews[file.toULongLong()].emplace(path.filename().string());
+		}
 	}
 
 	void AddUnIndexedBooks()
@@ -1248,6 +1298,9 @@ private:
 
 		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
 		{
+			if (folder == REVIEWS_FOLDER)
+				continue;
+
 			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 			for (const Zip zip(archiveFileInfo.filePath()); const auto& fileName : files | std::views::keys)
 			{
