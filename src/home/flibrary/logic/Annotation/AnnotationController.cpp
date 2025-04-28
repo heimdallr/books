@@ -8,8 +8,8 @@
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
-#include "fnd/observable.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -300,9 +300,15 @@ public:
 			RequestJoke();
 	}
 
-	void ShowJokes(const bool value)
+	void ShowJokes(const bool value) noexcept
 	{
 		m_showJokes = value;
+	}
+
+	void ShowReviews(const bool value) noexcept
+	{
+		m_showReviews = value;
+		ExtractInfo();
 	}
 
 private: // IDataProvider
@@ -536,25 +542,6 @@ private:
 										  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 									  }
 
-									  std::vector<std::pair<QString, QString>> reviewFolders;
-									  {
-										  const auto query = db->CreateQuery(REVIEWS_QUERY);
-										  query->Bind(0, bookId);
-										  for (query->Execute(); !query->Eof(); query->Next())
-											  reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
-									  }
-									  const auto archivesFolder = m_collectionProvider->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER);
-									  Reviews reviews;
-									  for (const auto& [libId, reviewFolder] : reviewFolders)
-									  {
-										  if (!QFile::exists(archivesFolder + "/" + reviewFolder))
-											  continue;
-
-										  Zip zip(archivesFolder + "/" + reviewFolder);
-										  const auto stream = zip.Read(libId);
-										  ReviewParser(stream->GetStream(), reviews).Parse();
-									  }
-
 									  return [this,
 			                                  book = std::move(book),
 			                                  series = std::move(series),
@@ -563,7 +550,7 @@ private:
 			                                  groups = std::move(groups),
 			                                  keywords = std::move(keywords),
 			                                  exportStatistics = std::move(exportStatistics),
-			                                  reviews = std::move(reviews)](size_t) mutable
+			                                  reviews = CollectReviews(*db, bookId)](size_t) mutable
 									  {
 										  if (book->GetId() != m_currentBookId)
 											  return;
@@ -583,6 +570,34 @@ private:
 									  };
 								  } },
 		                        3);
+	}
+
+	Reviews CollectReviews(DB::IDatabase& db, const long long bookId) const
+	{
+		if (!m_showReviews)
+			return {};
+
+		std::vector<std::pair<QString, QString>> reviewFolders;
+		{
+			const auto query = db.CreateQuery(REVIEWS_QUERY);
+			query->Bind(0, bookId);
+			for (query->Execute(); !query->Eof(); query->Next())
+				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
+		}
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER);
+
+		Reviews reviews;
+		for (const auto& [libId, reviewFolder] : reviewFolders)
+		{
+			if (!QFile::exists(archivesFolder + "/" + reviewFolder))
+				continue;
+
+			Zip zip(archivesFolder + "/" + reviewFolder);
+			const auto stream = zip.Read(libId);
+			ReviewParser(stream->GetStream(), reviews).Parse();
+		}
+
+		return reviews;
 	}
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
@@ -642,6 +657,7 @@ private:
 	std::weak_ptr<ArchiveParser> m_archiveParser;
 
 	bool m_showJokes { false };
+	bool m_showReviews { true };
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -739,6 +755,11 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 void AnnotationController::ShowJokes(const bool value)
 {
 	m_impl->ShowJokes(value);
+}
+
+void AnnotationController::ShowReviews(const bool value)
+{
+	m_impl->ShowReviews(value);
 }
 
 void AnnotationController::RegisterObserver(IObserver* observer)

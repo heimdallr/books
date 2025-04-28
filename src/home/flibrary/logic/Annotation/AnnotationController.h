@@ -27,6 +27,7 @@ private: // IAnnotationController
 	void SetCurrentBookId(QString bookId, bool extractNow) override;
 	QString CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const override;
 	void ShowJokes(bool value) override;
+	void ShowReviews(bool value) override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
@@ -36,4 +37,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

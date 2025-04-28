@@ -335,6 +335,7 @@
       <addaction name="actionShowAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
+      <addaction name="actionShowReadersReviews"/>
       <addaction name="actionShowJokes"/>
       <addaction name="separator"/>
       <addaction name="actionHideAnnotation"/>
@@ -844,6 +845,20 @@
   <action name="actionDeleteAllThemes">
    <property name="text">
     <string>Delete all themes</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowReadersReviews">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Readers' &amp;Reviews</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
