@@ -47,6 +47,7 @@ constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export stati
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
 constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
+constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("Annotation", "Anonymous");
 
 TR_DEF
 
@@ -78,7 +79,10 @@ private: // SaxParser
 	bool OnStartElement(const QString&, [[maybe_unused]] const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		assert(path == "item");
-		m_reviews.emplace_back(QDateTime::fromString(attributes.GetAttribute("time"), "yyyy-MM-dd hh:mm:ss"), attributes.GetAttribute("name"));
+		auto& review = m_reviews.emplace_back(QDateTime::fromString(attributes.GetAttribute("time"), "yyyy-MM-dd hh:mm:ss"), attributes.GetAttribute("name"));
+		if (review.name.isEmpty())
+			review.name = Tr(ANONYMOUS);
+
 		return true;
 	}
 
@@ -596,6 +600,7 @@ private:
 			const auto stream = zip.Read(libId);
 			ReviewParser(stream->GetStream(), reviews).Parse();
 		}
+		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });
 
 		return reviews;
 	}
