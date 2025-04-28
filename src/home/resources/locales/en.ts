@@ -262,6 +262,16 @@
         <source>, translated from %1</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Readers&apos; Reviews</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Anonymous</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
@@ -5150,6 +5160,10 @@ Try again?</source>
     </message>
     <message>
         <source>Http server management</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Readers&apos; &amp;Reviews</source>
         <translation></translation>
     </message>
 </context>

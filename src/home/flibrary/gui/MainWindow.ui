@@ -858,7 +858,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show Readers' &amp;Reviews</string>
+    <string>Readers' &amp;Reviews</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
