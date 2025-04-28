@@ -128,7 +128,7 @@ protected:
 		// clang-format off
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
-				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
 			.WriteEndElement()
 			.WriteStartElement("body")
 				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")

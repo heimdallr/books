@@ -687,6 +687,9 @@ void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNo
 QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const
 {
 	const auto& book = dataProvider.GetBook();
+	if (book.GetId().isEmpty())
+		return {};
+
 	QString annotation;
 	Add(annotation, strategy.GenerateUrl(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
 	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
@@ -747,7 +750,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 
 	if (!dataProvider.GetReviews().empty())
 	{
-		annotation.append(strategy.GetReviewsDelimiter()).append(QString("<hr/><h4>%1</h4>").arg(Tr(REVIEWS)));
+		annotation.append(strategy.GetReviewsDelimiter()).append("<hr/>").append(QString(TITLE_PATTERN).arg(Tr(REVIEWS)));
 		Table table;
 		for (const auto& review : dataProvider.GetReviews())
 			table.Add(QStringList() << review.name << review.time.toString("yyyy.MM.dd<br>hh:mm:ss") << review.text);
