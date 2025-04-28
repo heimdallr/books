@@ -78,3 +78,6 @@ CREATE UNIQUE INDEX UIX_Update_PrimaryKey ON Updates (UpdateID);
 
 CREATE INDEX IX_Update_ParentID ON Updates (ParentID);
 --@@
+
+CREATE UNIQUE INDEX UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder);
+--@@

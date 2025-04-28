@@ -200,8 +200,8 @@ using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary&, 
 using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter = std::function<std::vector<std::wstring>(std::wstring_view)>;
 using InpxFolders = std::map<std::pair<std::wstring, std::wstring>, std::string, CaseInsensitiveComparer<>>;
-
 using BooksSeries = std::unordered_map<std::pair<size_t, size_t>, std::optional<int>, PairHash<size_t, size_t>>;
+using Reviews = std::map<size_t, std::set<std::string>>;
 
 struct Data
 {
@@ -213,6 +213,7 @@ struct Data
 	Folders bookFolders;
 	InpxFolders inpxFolders;
 	BooksSeries booksSeries;
+	Reviews reviews;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)

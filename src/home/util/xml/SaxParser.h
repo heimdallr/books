@@ -68,13 +68,13 @@ public:
 		return true;
 	}
 
-	virtual bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) = 0;
-	virtual bool OnEndElement(const QString& name, const QString& path) = 0;
-	virtual bool OnCharacters(const QString& path, const QString& value) = 0;
+	virtual bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes);
+	virtual bool OnEndElement(const QString& name, const QString& path);
+	virtual bool OnCharacters(const QString& path, const QString& value);
 
-	virtual bool OnWarning(const QString& text) = 0;
-	virtual bool OnError(const QString& text) = 0;
-	virtual bool OnFatalError(const QString& text) = 0;
+	virtual bool OnWarning(const QString& text);
+	virtual bool OnError(const QString& text);
+	virtual bool OnFatalError(const QString& text);
 
 private:
 	class Impl;

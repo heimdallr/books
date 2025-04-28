@@ -24,7 +24,7 @@ class TemporaryTable final : virtual public ITemporaryTable
 public:
 	TemporaryTable(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional)
 		: m_tr { tr }
-		, m_name { std::format("tab_{}", ++id) }
+		, m_name { std::format("tmp.tab_{}", ++id) }
 	{
 		assert(!fields.empty());
 		std::string statement = "create table ";

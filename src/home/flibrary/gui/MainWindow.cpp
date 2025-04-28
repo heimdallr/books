@@ -25,6 +25,7 @@
 
 #include "GuiUtil/GeometryRestorable.h"
 #include "GuiUtil/util.h"
+#include "inpx/src/util/constant.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -66,6 +67,7 @@ constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
+constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
@@ -390,8 +392,12 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationCover, SHOW_ANNOTATION_COVER_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCover);
 		ConnectSettings(m_ui.actionShowAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowContent);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
+		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
 		ConnectSettings(m_ui.actionShowJokes, SHOW_JOKES_KEY, m_annotationController.get(), &IAnnotationController::ShowJokes);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] { m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible()); });
+
+		m_ui.actionShowReadersReviews->setVisible(m_collectionController->ActiveCollectionExists()
+		                                          && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists());
 	}
 
 	void ConnectActionsSettingsFont()

@@ -48,6 +48,8 @@ constexpr auto MAX_WIDTH = 720;
 using namespace Util;
 using namespace Flibrary;
 
+constexpr auto REVIEWS_DELIMITER = "###reviews###";
+
 constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
 	{  Loc::AUTHORS,  Loc::Authors },
     {   Loc::SERIES,   Loc::Series },
@@ -88,6 +90,11 @@ private: // IAnnotationController::IUrlGenerator
 		return QString { rate, m_starSymbol };
 	}
 
+	QString GetReviewsDelimiter() const override
+	{
+		return REVIEWS_DELIMITER;
+	}
+
 private:
 	const QChar m_starSymbol;
 };
@@ -121,7 +128,7 @@ protected:
 		// clang-format off
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
-				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
 			.WriteEndElement()
 			.WriteStartElement("body")
 				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
@@ -424,40 +431,48 @@ private:
 	{
 		AbstractParser::WriteHttpHead();
 		{
-			auto table = m_writer->Guard("table"), tr = m_writer->Guard("tr");
-			if (!m_coverLink.isEmpty())
-				m_writer->Guard("td")->Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
-
-			const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
+			const auto contents = m_content.split(REVIEWS_DELIMITER);
 			{
-				if (url.isEmpty())
-					return;
+				auto table = m_writer->Guard("table"), tr = m_writer->Guard("tr");
+				if (!m_coverLink.isEmpty())
+				{
+					auto td = m_writer->Guard("td");
+					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
+				}
 
-				const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
-				m_writer->Guard("br");
-				m_writer->Guard("a")->WriteAttribute("href", QString("%1%2").arg(url, transliterated ? "/tr" : "")).WriteAttribute("download", fileName).WriteCharacters(fileName);
-			};
+				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
+				{
+					if (url.isEmpty())
+						return;
 
-			auto ts = m_writer->Guard("td");
-			m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters("");
+					const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
+					m_writer->Guard("br");
+					m_writer->Guard("a")->WriteAttribute("href", QString("%1%2").arg(url, transliterated ? "/tr" : "")).WriteAttribute("download", fileName).WriteCharacters(fileName);
+				};
 
-			m_output->write(m_content.toUtf8());
-			m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+				auto ts = m_writer->Guard("td");
+				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters("");
 
-			const auto createLinks = [&](const QFileInfo& fileInfo, const bool transliterated)
-			{
-				m_writer->Guard("br");
-				createLink(m_downloadLinkFb2, fileInfo, false, transliterated);
-				createLink(m_downloadLinkZip, fileInfo, true, transliterated);
-			};
+				m_output->write(contents.front().toUtf8());
+				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
 
-			const auto fileName = m_callback.GetFileName(m_feedId, false);
-			const QFileInfo fileInfo(fileName);
-			createLinks(fileInfo, false);
+				const auto createLinks = [&](const QFileInfo& fileInfo, const bool transliterated)
+				{
+					m_writer->Guard("br");
+					createLink(m_downloadLinkFb2, fileInfo, false, transliterated);
+					createLink(m_downloadLinkZip, fileInfo, true, transliterated);
+				};
 
-			if (const auto fileNameTransliterated = m_callback.GetFileName(m_feedId, true); fileNameTransliterated != fileName)
-				if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
-					createLinks(fileInfoTransliterated, true);
+				const auto fileName = m_callback.GetFileName(m_feedId, false);
+				const QFileInfo fileInfo(fileName);
+				createLinks(fileInfo, false);
+
+				if (const auto fileNameTransliterated = m_callback.GetFileName(m_feedId, true); fileNameTransliterated != fileName)
+					if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
+						createLinks(fileInfoTransliterated, true);
+			}
+			if (contents.size() > 1)
+				m_output->write(contents.back().toUtf8());
 		}
 
 		return true;
@@ -485,8 +500,12 @@ private: // AbstractParser
 	{
 		{
 			auto h2 = m_writer->Guard("h2");
-			for (const auto& [name, link] : m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }))
+			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }))
+			{
+				if (++n != 1)
+					m_output->write(", ");
 				m_writer->Guard("a")->WriteAttribute("href", link).WriteCharacters(name);
+			}
 		}
 		ParserOpds::WriteHead();
 	}

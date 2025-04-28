@@ -55,6 +55,15 @@ DROP TABLE IF EXISTS Folders;
 DROP TABLE IF EXISTS Updates;
 --@@
 
+DROP TABLE IF EXISTS Reviews;
+--@@
+
+CREATE TABLE Reviews (
+  BookID INTEGER      NOT NULL,
+  Folder VARCHAR (10) NOT NULL
+);
+--@@
+
 CREATE TABLE Updates (
   UpdateID    INTEGER NOT NULL,
   UpdateTitle INTEGER NOT NULL,

@@ -253,6 +253,16 @@
         <translation>, мова оригіналу %1</translation>
     </message>
     <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Readers&apos; Reviews</source>
+        <translation>Відгуки читачів</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Anonymous</source>
+        <translation>Анонім</translation>
+    </message>
+    <message>
         <location filename="../../flibrary/logic/Annotation/ArchiveParser.cpp"/>
         <source>Content</source>
         <translation>Зміст</translation>
@@ -5162,6 +5172,10 @@ Try again?</source>
     <message>
         <source>Http server management</source>
         <translation>Керування сервером Http</translation>
+    </message>
+    <message>
+        <source>Readers&apos; &amp;Reviews</source>
+        <translation></translation>
     </message>
 </context>
 <context>
