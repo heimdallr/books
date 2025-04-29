@@ -5512,6 +5512,29 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>QueryWindow</name>
+    <message>
+        <source>&amp;Commit</source>
+        <translation>&amp;Підтвердити</translation>
+    </message>
+    <message>
+        <source>E&amp;xecute</source>
+        <translation>&amp;Виконати</translation>
+    </message>
+    <message>
+        <source>Let&apos;s run a query on the database</source>
+        <translation>Давайте виконаємо запит до бази даних</translation>
+    </message>
+    <message>
+        <source>Start &amp;transaction</source>
+        <translation>Старт &amp;транзакції</translation>
+    </message>
+    <message>
+        <source>Roll&amp;back</source>
+        <translation>Від&amp;котити</translation>
+    </message>
+</context>
+<context>
     <name>ReaderController</name>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
