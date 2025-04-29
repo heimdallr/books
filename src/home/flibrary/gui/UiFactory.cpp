@@ -20,6 +20,7 @@
 #include "version/AppVersion.h"
 
 #include "CollectionCleaner.h"
+#include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
 
@@ -147,6 +148,11 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 std::shared_ptr<QDialog> UiFactory::CreateCollectionCleaner() const
 {
 	return m_impl->container.resolve<CollectionCleaner>();
+}
+
+std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
+{
+	return m_impl->container.resolve<QueryWindow>();
 }
 
 void UiFactory::ShowAbout() const
