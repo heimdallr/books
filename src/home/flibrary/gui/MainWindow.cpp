@@ -309,6 +309,8 @@ private:
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 %2 - %3").arg(PRODUCT_ID, PRODUCT_VERSION, m_collectionController->GetActiveCollection().name));
 
+		m_self.addAction(m_ui.actionShowQueryWindow);
+
 		ReplaceMenuBar();
 	}
 
@@ -533,6 +535,14 @@ private:
 		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] { SearchBookByTitle(); });
 		connect(m_ui.actionSearchBookByTitle, &QAction::triggered, &m_self, [this] { SearchBookByTitle(); });
+		connect(m_ui.actionShowQueryWindow,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					m_queryWindow.reset(m_uiFactory->CreateQueryWindow());
+					m_queryWindow->show();
+				});
 	}
 
 	template <typename T = QAction>
@@ -895,6 +905,8 @@ private:
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
+
+	PropagateConstPtr<QMainWindow, std::shared_ptr> m_queryWindow;
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };

@@ -864,6 +864,17 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionShowQueryWindow">
+   <property name="text">
+    <string/>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Alt+Shift+Q</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
