@@ -99,7 +99,7 @@
     <string>E&amp;xecute</string>
    </property>
    <property name="shortcut">
-    <string notr="true">Ctrl+R</string>
+    <string notr="true">Ctrl+Return</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
