@@ -33,6 +33,7 @@ private: // IUiFactory
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
 	std::shared_ptr<QDialog> CreateCollectionCleaner() const override;
+	std::shared_ptr<QMainWindow> CreateQueryWindow() const override;
 
 	void ShowAbout() const override;
 	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon,

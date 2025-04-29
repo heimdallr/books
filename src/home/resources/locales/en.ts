@@ -5501,6 +5501,29 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>QueryWindow</name>
+    <message>
+        <source>&amp;Commit</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>E&amp;xecute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Let&apos;s run a query on the database</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Start &amp;transaction</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Roll&amp;back</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ReaderController</name>
     <message>
         <location filename="../../flibrary/logic/shared/ReaderController.cpp"/>
