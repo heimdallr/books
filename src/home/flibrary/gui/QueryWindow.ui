@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="contextMenuPolicy">
-   <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+   <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>Let's run a query on the database</string>
@@ -31,7 +31,11 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QPlainTextEdit" name="text"/>
+     <widget class="QPlainTextEdit" name="text">
+      <property name="contextMenuPolicy">
+       <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -88,7 +92,7 @@
     <string>Roll&amp;back</string>
    </property>
    <property name="shortcut">
-    <string notr="true">Ctrl+Z</string>
+    <string notr="true">Ctrl+R</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -100,6 +104,17 @@
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Return</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Esc</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

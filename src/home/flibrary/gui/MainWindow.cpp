@@ -540,7 +540,7 @@ private:
 		        &m_self,
 		        [this]
 		        {
-					m_queryWindow.reset(m_uiFactory->CreateQueryWindow());
+					m_queryWindow = m_uiFactory->CreateQueryWindow();
 					m_queryWindow->show();
 				});
 	}
@@ -906,7 +906,7 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
-	PropagateConstPtr<QMainWindow, std::shared_ptr> m_queryWindow;
+	std::shared_ptr<QMainWindow> m_queryWindow;
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };

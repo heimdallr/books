@@ -25,10 +25,17 @@ public:
 	{
 		m_ui.setupUi(self);
 
-		connect(m_ui.actionExecute, &QAction::triggered, [this] { Execute(); });
 		connect(m_ui.actionStartTransaction, &QAction::triggered, [this] { StartTransaction(); });
 		connect(m_ui.actionCommit, &QAction::triggered, [this] { Commit(); });
 		connect(m_ui.actionRollback, &QAction::triggered, [this] { Rollback(); });
+		connect(m_ui.actionExecute, &QAction::triggered, [this] { Execute(); });
+		connect(m_ui.actionExit, &QAction::triggered, [self] { self->hide(); });
+
+		self->addAction(m_ui.actionStartTransaction);
+		self->addAction(m_ui.actionCommit);
+		self->addAction(m_ui.actionRollback);
+		self->addAction(m_ui.actionExecute);
+		self->addAction(m_ui.actionExit);
 
 		Init();
 	}
