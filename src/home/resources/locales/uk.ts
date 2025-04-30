@@ -5537,6 +5537,10 @@ Try again?</source>
         <source>E&amp;xit</source>
         <translation>В&amp;ихід</translation>
     </message>
+    <message>
+        <source>Explain query &amp;plan</source>
+        <translation>Поясніть &amp;план запиту</translation>
+    </message>
 </context>
 <context>
     <name>ReaderController</name>

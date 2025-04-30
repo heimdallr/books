@@ -5526,6 +5526,10 @@ Try again?</source>
         <source>E&amp;xit</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Explain query &amp;plan</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ReaderController</name>

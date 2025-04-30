@@ -13,28 +13,38 @@
 
 using namespace HomeCompa::Flibrary;
 
+namespace
+{
+constexpr auto EXPLAIN_QUERY_PLAN = "ui/View/ExplainQueryPlan";
+}
+
 class QueryWindow::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
 public:
 	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser)
-		: GeometryRestorable(*this, std::move(settings), "QueryWindow")
+		: GeometryRestorable(*this, settings, "QueryWindow")
 		, GeometryRestorableObserver(*self)
+		, m_settings { std::move(settings) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
 		m_ui.setupUi(self);
+
+		m_ui.actionExplainQueryPlan->setChecked(m_settings->Get(EXPLAIN_QUERY_PLAN, m_ui.actionExplainQueryPlan->isChecked()));
 
 		connect(m_ui.actionStartTransaction, &QAction::triggered, [this] { StartTransaction(); });
 		connect(m_ui.actionCommit, &QAction::triggered, [this] { Commit(); });
 		connect(m_ui.actionRollback, &QAction::triggered, [this] { Rollback(); });
 		connect(m_ui.actionExecute, &QAction::triggered, [this] { Execute(); });
+		connect(m_ui.actionExplainQueryPlan, &QAction::triggered, [this](const bool checked) { m_settings->Set(EXPLAIN_QUERY_PLAN, checked); });
 		connect(m_ui.actionExit, &QAction::triggered, [self] { self->hide(); });
 
 		self->addAction(m_ui.actionStartTransaction);
 		self->addAction(m_ui.actionCommit);
 		self->addAction(m_ui.actionRollback);
 		self->addAction(m_ui.actionExecute);
+		self->addAction(m_ui.actionExplainQueryPlan);
 		self->addAction(m_ui.actionExit);
 
 		Init();
@@ -70,7 +80,7 @@ private:
 	{
 		try
 		{
-			m_transaction->CreateCommand(m_ui.text->toPlainText().toStdString())->Execute();
+			m_transaction->CreateCommand(GetQueryText())->Execute();
 		}
 		catch (const std::exception& ex)
 		{
@@ -91,7 +101,7 @@ private:
 	void ExecuteQueryImpl() const
 	{
 		const auto db = m_databaseUser->Database();
-		const auto query = db->CreateQuery(m_ui.text->toPlainText().toStdString());
+		const auto query = db->CreateQuery(GetQueryText());
 		query->Execute();
 		{
 			QStringList names;
@@ -116,8 +126,14 @@ private:
 		m_ui.actionRollback->setEnabled(!!m_transaction);
 	}
 
+	std::string GetQueryText() const
+	{
+		return QString("%2%1").arg(m_ui.text->toPlainText(), m_ui.actionExplainQueryPlan->isChecked() ? "explain query plan\n" : "").toStdString();
+	}
+
 private:
 	Ui::QueryWindow m_ui {};
+	std::shared_ptr<ISettings> m_settings;
 	std::shared_ptr<IDatabaseUser> m_databaseUser;
 	std::shared_ptr<DB::ITransaction> m_transaction;
 };

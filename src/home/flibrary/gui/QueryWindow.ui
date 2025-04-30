@@ -58,6 +58,7 @@
    <addaction name="actionRollback"/>
    <addaction name="separator"/>
    <addaction name="actionExecute"/>
+   <addaction name="actionExplainQueryPlan"/>
   </widget>
   <action name="actionStartTransaction">
    <property name="text">
@@ -65,9 +66,6 @@
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+T</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionCommit">
@@ -80,9 +78,6 @@
    <property name="shortcut">
     <string notr="true">Ctrl+S</string>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
   </action>
   <action name="actionRollback">
    <property name="enabled">
@@ -94,9 +89,6 @@
    <property name="shortcut">
     <string notr="true">Ctrl+R</string>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
   </action>
   <action name="actionExecute">
    <property name="text">
@@ -104,9 +96,6 @@
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Return</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionExit">
@@ -116,8 +105,19 @@
    <property name="shortcut">
     <string notr="true">Shift+Esc</string>
    </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+  </action>
+  <action name="actionExplainQueryPlan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Explain query &amp;plan</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+P</string>
    </property>
   </action>
  </widget>
