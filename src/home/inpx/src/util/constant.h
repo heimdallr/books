@@ -22,6 +22,7 @@ constexpr auto INI_EXT = L"ini";
 constexpr auto INPX_EXT = L".inpx";
 constexpr auto INPX_FOLDER = L"inpx_folder";
 constexpr auto REVIEWS_FOLDER = L"reviews";
+constexpr auto AUTHORS_FOLDER = L"authors";
 constexpr auto MHL_TRIGGERS_ON = L"mhl_triggers_on";
 constexpr auto VERSION_INFO = L"version.info";
 constexpr auto ZIP = L"zip";
