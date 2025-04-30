@@ -114,7 +114,7 @@
     <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
-    <string>Shift+Esc</string>
+    <string notr="true">Shift+Esc</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

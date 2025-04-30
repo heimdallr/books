@@ -5535,6 +5535,10 @@ Try again?</source>
         <source>Roll&amp;back</source>
         <translation>От&amp;катить</translation>
     </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation>В&amp;ыход</translation>
+    </message>
 </context>
 <context>
     <name>ReaderController</name>

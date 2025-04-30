@@ -5522,6 +5522,10 @@ Try again?</source>
         <source>Roll&amp;back</source>
         <translation></translation>
     </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ReaderController</name>
