@@ -506,7 +506,8 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 	create_directory(authorImagesFolder);
 
 	int currentId = -1;
-	std::unordered_map<QString, std::pair<QString, std::vector<QString>>> data;
+	using PictureList = std::unordered_set<QString, CaseInsensitiveHash<QString>>;
+	std::unordered_map<QString, std::pair<QString, PictureList>> data;
 
 	std::unique_ptr<Zip> pics;
 	std::unordered_set<QString> picsFiles;
@@ -603,9 +604,9 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), std::vector<QString> {})).first->second.second;
+		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
 		if (const auto* file = query->Get<const char*>(3))
-			files.emplace_back(file);
+			files.insert(file);
 	}
 }
 
