@@ -149,6 +149,10 @@ private:
 
 				m_forwarder->Forward([id = task.id, taskResult = std::move(taskResult)] { taskResult(id); });
 			}
+			catch (const std::exception& ex)
+			{
+				PLOGE << task.name << ": " << ex.what();
+			}
 			catch (...)
 			{
 				PLOGE << task.name << " failed";

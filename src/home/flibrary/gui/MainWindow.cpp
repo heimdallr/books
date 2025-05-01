@@ -62,6 +62,7 @@ constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY = "ui/LogSeverity";
+constexpr auto SHOW_AUTHOR_ANNOTATION_KEY = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
@@ -134,6 +135,7 @@ public:
 	     std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
 	     std::shared_ptr<IAnnotationController> annotationController,
 	     std::shared_ptr<AnnotationWidget> annotationWidget,
+	     std::shared_ptr<AuthorAnnotationWidget> authorAnnotationWidget,
 	     std::shared_ptr<LocaleController> localeController,
 	     std::shared_ptr<ILogController> logController,
 	     std::shared_ptr<QWidget> progressBar,
@@ -152,6 +154,7 @@ public:
 		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
 		, m_annotationController { std::move(annotationController) }
 		, m_annotationWidget { std::move(annotationWidget) }
+		, m_authorAnnotationWidget { std::move(authorAnnotationWidget) }
 		, m_localeController { std::move(localeController) }
 		, m_logController { std::move(logController) }
 		, m_progressBar { std::move(progressBar) }
@@ -165,7 +168,7 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		Init();
+		LoadGeometry();
 		StartDelayed(
 			[&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 			{
@@ -192,6 +195,7 @@ public:
 
 	~Impl() override
 	{
+		SaveGeometry();
 		m_collectionController->UnregisterObserver(this);
 	}
 
@@ -283,6 +287,7 @@ private:
 		m_delayStarter.setInterval(std::chrono::milliseconds(200));
 
 		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
+		m_ui.authorAnnotationWidget->layout()->addWidget(m_authorAnnotationWidget.get());
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
@@ -454,7 +459,11 @@ private:
 		ConnectSettings(m_ui.actionShowRemoved, Constant::Settings::SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
+		ConnectSettings(m_ui.actionShowAuthorAnnotation, SHOW_AUTHOR_ANNOTATION_KEY, m_authorAnnotationWidget.get(), &AuthorAnnotationWidget::Show);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
+
+		m_ui.actionShowAuthorAnnotation->setVisible(m_collectionController->ActiveCollectionExists()
+		                                            && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(AUTHORS_FOLDER)).exists());
 
 		auto restoreDefaultSettings = [this]
 		{
@@ -897,6 +906,7 @@ private:
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentWidgetProvider;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
 	PropagateConstPtr<AnnotationWidget, std::shared_ptr> m_annotationWidget;
+	PropagateConstPtr<AuthorAnnotationWidget, std::shared_ptr> m_authorAnnotationWidget;
 	PropagateConstPtr<LocaleController, std::shared_ptr> m_localeController;
 	PropagateConstPtr<ILogController, std::shared_ptr> m_logController;
 	PropagateConstPtr<QWidget, std::shared_ptr> m_progressBar;
@@ -930,6 +940,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
                        std::shared_ptr<IAnnotationController> annotationController,
                        std::shared_ptr<AnnotationWidget> annotationWidget,
+                       std::shared_ptr<AuthorAnnotationWidget> authorAnnotationWidget,
                        std::shared_ptr<LocaleController> localeController,
                        std::shared_ptr<ILogController> logController,
                        std::shared_ptr<ProgressBar> progressBar,
@@ -949,6 +960,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(parentWidgetProvider),
              std::move(annotationController),
              std::move(annotationWidget),
+             std::move(authorAnnotationWidget),
              std::move(localeController),
              std::move(logController),
              std::move(progressBar),

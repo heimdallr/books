@@ -46,7 +46,7 @@ MainWindow::MainWindow(std::shared_ptr<ISettings> settingsManager,
 {
 	m_ui->setupUi(this);
 
-	Init();
+	LoadGeometry();
 
 	m_common->setCheckable(false);
 
@@ -93,7 +93,10 @@ MainWindow::MainWindow(std::shared_ptr<ISettings> settingsManager,
 		m_ui->format->setCurrentIndex(index);
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow()
+{
+	SaveGeometry();
+}
 
 void MainWindow::SetSettings(Settings* settings)
 {

@@ -23,6 +23,7 @@ namespace HomeCompa::Flibrary
 
 class AnnotationWidget final : public QWidget
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(AnnotationWidget)
 
 public:
