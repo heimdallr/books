@@ -6,7 +6,6 @@
 #include <regex>
 
 #include <QBuffer>
-#include <QDateTime>
 #include <QFileInfo>
 #include <QStandardPaths>
 
@@ -501,10 +500,10 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sqlPath, const std::filesystem::path& outputFolder)
 {
 	const auto authorsFolder = outputFolder / AUTHORS_FOLDER;
-	[[maybe_unused]] auto ok = create_directory(authorsFolder);
+	create_directory(authorsFolder);
 
 	const auto authorImagesFolder = authorsFolder / Global::IMAGES;
-	ok = create_directory(authorImagesFolder);
+	create_directory(authorImagesFolder);
 
 	int currentId = -1;
 	std::unordered_map<QString, std::pair<QString, std::vector<QString>>> data;
@@ -556,7 +555,7 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 
 		if (pics)
 		{
-			const auto archiveName = QString::fromStdWString(authorImagesFolder / std::to_string(currentId)) + ".7z";
+			const auto archiveName = QString::fromStdWString(authorImagesFolder / std::to_string(currentId)) + ".zip";
 			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
 				remove(archivePath);
 
