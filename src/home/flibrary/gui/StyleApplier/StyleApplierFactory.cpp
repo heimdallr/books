@@ -72,15 +72,16 @@ void StyleApplierFactory::CheckAction(const std::vector<QAction*>& actions) cons
 {
 	std::unordered_map<IStyleApplier::Type, std::vector<QAction*>> typedActions;
 	for (auto* action : actions)
-		typedActions[static_cast<IStyleApplier::Type>(action->property(IStyleApplier::THEME_TYPE_KEY).toInt())].emplace_back(action);
+		typedActions[static_cast<IStyleApplier::Type>(action->property(IStyleApplier::ACTION_PROPERTY_THEME_TYPE).toInt())].emplace_back(action);
 
 	for (auto& [type, actionsToCheck] : typedActions)
 	{
 		std::ranges::for_each(actionsToCheck, [](auto* action) { action->setEnabled(true); });
 		auto [name, data] = CreateStyleApplier(type)->GetChecked();
-		const auto it = std::ranges::find_if(actionsToCheck,
-		                                     [&](const QAction* action)
-		                                     { return action->property(IStyleApplier::THEME_NAME_KEY).toString() == name && action->property(IStyleApplier::THEME_FILE_KEY).toString() == data; });
+		const auto it =
+			std::ranges::find_if(actionsToCheck,
+		                         [&](const QAction* action)
+		                         { return action->property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString() == name && action->property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString() == data; });
 		if (it == actionsToCheck.end())
 			continue;
 

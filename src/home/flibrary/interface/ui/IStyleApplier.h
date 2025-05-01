@@ -33,6 +33,10 @@ public:
 	static constexpr auto APP_COLOR_SCHEME_DEFAULT = "System";
 	static constexpr auto STYLE_FILE_NAME = ":/theme/style.qss";
 
+	static constexpr auto ACTION_PROPERTY_THEME_NAME = "value";
+	static constexpr auto ACTION_PROPERTY_THEME_TYPE = "type";
+	static constexpr auto ACTION_PROPERTY_THEME_FILE = "file";
+
 public:
 #define STYLE_APPLIER_TYPE_ITEMS_X_MACRO \
 	STYLE_APPLIER_TYPE_ITEM(ColorScheme) \
