@@ -130,7 +130,7 @@ private:
 										  const auto db = m_databaseUser->Database();
 										  generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
 
-										  if (navigationMode == NavigationMode::Authors)
+										  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 										  {
 											  const auto query = db->CreateQuery(QString("select LastName, FirstName, MiddleName from Authors where AuthorID = %1").arg(navigationId).toStdString());
 											  query->Execute();
