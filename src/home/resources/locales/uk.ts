@@ -5177,6 +5177,10 @@ Try again?</source>
         <source>Readers&apos; &amp;Reviews</source>
         <translation></translation>
     </message>
+    <message>
+        <source>About the author</source>
+        <translation>Про автора</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>

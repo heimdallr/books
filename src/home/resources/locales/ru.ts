@@ -5179,6 +5179,10 @@ Try again?</source>
         <translatorcomment>Відгуки &amp;читачів</translatorcomment>
         <translation>Отзывы &amp;читателей</translation>
     </message>
+    <message>
+        <source>About the author</source>
+        <translation>Об авторе</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
