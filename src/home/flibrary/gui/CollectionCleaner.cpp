@@ -133,11 +133,12 @@ public:
 		layout->setContentsMargins(0, 0, 0, 0);
 		layout->addWidget(label);
 
-		Init();
+		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		SaveGeometry();
 		Save();
 	}
 

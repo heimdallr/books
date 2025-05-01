@@ -24,11 +24,12 @@ struct MigrateWindow::Impl
 		, migrator { std::move(migrator) }
 	{
 		this->migrator->RegisterObserver(this);
-		Init();
+		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		SaveGeometry();
 		migrator->UnregisterObserver(this);
 	}
 

@@ -18,7 +18,33 @@ constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
 constexpr auto FONT_KEY = "ui/Font";
 
+void InitSplitter(QSplitter* splitter)
+{
+	QTimer::singleShot(0,
+	                   [=]
+	                   {
+						   QList<int> sizes = splitter->sizes();
+						   const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
+
+						   QList<int> stretch;
+						   if (splitter->orientation() == Qt::Horizontal)
+							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
+								   stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
+						   else
+							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
+								   stretch << splitter->widget(i)->sizePolicy().verticalStretch();
+
+						   const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
+						   if (weightSum == 0)
+							   return;
+
+						   std::ranges::transform(stretch, sizes.begin(), [=](const auto weight) { return width * weight / weightSum; });
+
+						   splitter->setSizes(sizes);
+					   });
 }
+
+} // namespace
 
 class GeometryRestorable::Impl final
 	: QObject
@@ -38,26 +64,44 @@ public:
 	~Impl() override
 	{
 		m_settings->UnregisterObserver(this);
+		assert(!m_initialized);
+	}
 
+	void LoadGeometry()
+	{
+		m_observer.GetWidget().installEventFilter(this);
+		auto uniqueCheck = [
+#ifndef NDEBUG
+							   uniqueList = std::unordered_set<QString> {}
+#endif
+		](const QString& name) mutable -> const QString&
+		{
+#ifndef NDEBUG
+			assert(uniqueList.insert(name).second && "names must be unique");
+#endif
+			return name;
+		};
+
+		for (auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
+		{
+			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(uniqueCheck(splitter->objectName()))); value.isValid())
+				splitter->restoreState(value.toByteArray());
+			else
+				InitSplitter(splitter);
+			splitter->setChildrenCollapsible(false);
+		}
+	}
+
+	void SaveGeometry()
+	{
 		if (!m_initialized)
 			return;
 
 		m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
 		for (const auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
 			m_settings->Set(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName()), splitter->saveState());
-	}
 
-	void Init()
-	{
-		m_observer.GetWidget().installEventFilter(this);
-		for (auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
-		{
-			if (const auto value = m_settings->Get(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName())); value.isValid())
-				splitter->restoreState(value.toByteArray());
-			else
-				InitSplitter(splitter);
-			splitter->setChildrenCollapsible(false);
-		}
+		m_initialized = false;
 	}
 
 	void OnShow()
@@ -119,9 +163,14 @@ GeometryRestorable::GeometryRestorable(IObserver& observer, std::shared_ptr<ISet
 
 GeometryRestorable::~GeometryRestorable() = default;
 
-void GeometryRestorable::Init()
+void GeometryRestorable::LoadGeometry()
 {
-	m_impl->Init();
+	m_impl->LoadGeometry();
+}
+
+void GeometryRestorable::SaveGeometry()
+{
+	m_impl->SaveGeometry();
 }
 
 GeometryRestorableObserver::GeometryRestorableObserver(QWidget& widget)
@@ -133,34 +182,3 @@ QWidget& GeometryRestorableObserver::GetWidget() noexcept
 {
 	return m_widget;
 }
-
-namespace HomeCompa::Util
-{
-
-void InitSplitter(QSplitter* splitter)
-{
-	QTimer::singleShot(0,
-	                   [=]
-	                   {
-						   QList<int> sizes = splitter->sizes();
-						   const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
-
-						   QList<int> stretch;
-						   if (splitter->orientation() == Qt::Horizontal)
-							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
-								   stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
-						   else
-							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
-								   stretch << splitter->widget(i)->sizePolicy().verticalStretch();
-
-						   const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
-						   if (weightSum == 0)
-							   return;
-
-						   std::ranges::transform(stretch, sizes.begin(), [=](const auto weight) { return width * weight / weightSum; });
-
-						   splitter->setSizes(sizes);
-					   });
-}
-
-} // namespace HomeCompa::Util

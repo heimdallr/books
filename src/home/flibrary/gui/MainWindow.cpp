@@ -168,7 +168,7 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		Init();
+		LoadGeometry();
 		StartDelayed(
 			[&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 			{
@@ -195,6 +195,7 @@ public:
 
 	~Impl() override
 	{
+		SaveGeometry();
 		m_collectionController->UnregisterObserver(this);
 	}
 

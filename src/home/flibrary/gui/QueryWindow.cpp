@@ -22,6 +22,8 @@ class QueryWindow::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser)
 		: GeometryRestorable(*this, settings, "QueryWindow")
@@ -47,7 +49,12 @@ public:
 		self->addAction(m_ui.actionExplainQueryPlan);
 		self->addAction(m_ui.actionExit);
 
-		Init();
+		LoadGeometry();
+	}
+
+	~Impl() override
+	{
+		SaveGeometry();
 	}
 
 private:

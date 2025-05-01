@@ -152,11 +152,12 @@ public:
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 
-		Init();
+		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		SaveGeometry();
 		if (m_self.result() == Result::Cancel)
 			return;
 

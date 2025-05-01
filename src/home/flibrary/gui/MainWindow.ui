@@ -88,7 +88,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QSplitter" name="veritcalSplitter">
+            <widget class="QSplitter" name="verticalSplitter">
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
              </property>
