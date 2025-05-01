@@ -226,6 +226,7 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
+	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
@@ -233,12 +234,14 @@ struct TreeViewControllerNavigation::Impl final
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<INavigationInfoProvider> dataProvider,
 	     std::shared_ptr<IUiFactory> uiFactory,
-	     std::shared_ptr<IDatabaseController> databaseController)
+	     std::shared_ptr<IDatabaseController> databaseController,
+	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 		: self { self }
 		, logicFactory { logicFactory }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
 		, databaseController { std::move(databaseController) }
+		, authorAnnotationController { std::move(authorAnnotationController) }
 	{
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
@@ -380,9 +383,10 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
                                                            const std::shared_ptr<const ILogicFactory>& logicFactory,
                                                            std::shared_ptr<INavigationInfoProvider> dataProvider,
                                                            std::shared_ptr<IUiFactory> uiFactory,
-                                                           std::shared_ptr<IDatabaseController> databaseController)
+                                                           std::shared_ptr<IDatabaseController> databaseController,
+                                                           std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(databaseController))
+	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
 {
 	Setup();
 
@@ -442,6 +446,7 @@ void TreeViewControllerNavigation::OnModeChanged(const QString& mode)
 {
 	m_impl->mode = GetModeIndex(mode);
 	m_impl->dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
+	m_impl->authorAnnotationController->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
 	Perform(&IObserver::OnModeChanged, m_impl->mode);
 
 	if (m_impl->models[m_impl->mode])

@@ -97,7 +97,6 @@ private:
 	void RequestNavigationImpl()
 	{
 		m_navigationQueryExecutor->RequestNavigation(m_navigationMode, [&](const NavigationMode mode, IDataItem::Ptr root) { SendNavigationCallback(mode, std::move(root)); }, m_requestNavigationForce);
-		m_authorAnnotationController->SetNavigationMode(m_navigationMode);
 	}
 
 	void RequestBooksImpl()
