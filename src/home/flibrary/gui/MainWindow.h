@@ -21,6 +21,7 @@
 #include "util/ISettings.h"
 
 #include "AnnotationWidget.h"
+#include "AuthorAnnotationWidget.h"
 #include "LocaleController.h"
 #include "LogItemDelegate.h"
 #include "ProgressBar.h"
@@ -45,6 +46,7 @@ public:
 	           std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
 	           std::shared_ptr<IAnnotationController> annotationController,
 	           std::shared_ptr<AnnotationWidget> annotationWidget,
+	           std::shared_ptr<AuthorAnnotationWidget> authorAnnotationWidget,
 	           std::shared_ptr<LocaleController> localeController,
 	           std::shared_ptr<ILogController> logController,
 	           std::shared_ptr<ProgressBar> progressBar,

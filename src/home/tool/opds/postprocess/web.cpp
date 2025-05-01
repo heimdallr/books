@@ -17,6 +17,7 @@
 #include "util/localization.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
+#include "util/xml/XmlWriter.h"
 
 #include "root.h"
 
@@ -29,41 +30,25 @@ namespace
 constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
 constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
+constexpr auto SEARCH = QT_TRANSLATE_NOOP("opds", "Search");
 TR_DEF
 
 constexpr auto FEED = "feed";
+constexpr auto FEED_ID = "feed/id";
 constexpr auto FEED_TITLE = "feed/title";
 constexpr auto ENTRY = "feed/entry";
-constexpr auto ENTRY_ID = "feed/entry/id";
 constexpr auto ENTRY_TITLE = "feed/entry/title";
 constexpr auto ENTRY_LINK = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
 constexpr auto AUTHOR_NAME = "feed/entry/author/name";
 constexpr auto AUTHOR_LINK = "feed/entry/author/uri";
 
-constexpr auto HTTP_HEAD = R"(<!DOCTYPE html>
-<html>
-	<head>
-		<style>
-			p { 
-				max-width: %2px;
-			}
-			%5
-		</style>
-	</head>
-	<body>
-	<form action="/web/search" method="GET">
-        <p><input type="text" id="q" name="q" placeholder="%6" size="80"/></p>
-    </form>
-	<a href="%3">%4</a>
-	%1
-	<hr/>
-)";
-
 constexpr auto MAX_WIDTH = 720;
 
 using namespace Util;
 using namespace Flibrary;
+
+constexpr auto REVIEWS_DELIMITER = "###reviews###";
 
 constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
 	{  Loc::AUTHORS,  Loc::Authors },
@@ -105,16 +90,30 @@ private: // IAnnotationController::IUrlGenerator
 		return QString { rate, m_starSymbol };
 	}
 
+	QString GetReviewsDelimiter() const override
+	{
+		return REVIEWS_DELIMITER;
+	}
+
 private:
 	const QChar m_starSymbol;
 };
 
 class AbstractParser : public SaxParser
 {
-public:
-	virtual QByteArray GetResult() const
+	static std::unique_ptr<QBuffer> CreateStream()
 	{
-		return m_output.buffer();
+		auto stream = std::make_unique<QBuffer>();
+		stream->open(QIODevice::WriteOnly);
+		return stream;
+	}
+
+public:
+	virtual QByteArray GetResult()
+	{
+		m_writer.reset();
+		m_output->close();
+		return m_output->buffer();
 	}
 
 protected:
@@ -122,13 +121,26 @@ protected:
 		: SaxParser(stream)
 		, m_root { std::move(root) }
 	{
-		m_output.open(QIODevice::WriteOnly);
 	}
 
-	void WriteHttpHead(const QString& head, const QString& style = {})
+	virtual void WriteHttpHead()
 	{
-		std::call_once(m_headWritten,
-		               [&] { m_stream << QString(HTTP_HEAD).arg(head).arg(MAX_WIDTH).arg(m_root).arg(Tr(HOME)).arg(style).arg(Loc::Tr(Loc::Ctx::COMMON, Loc::SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)); });
+		// clang-format off
+		m_writer->WriteStartElement("html")
+			.WriteStartElement("head")
+				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+			.WriteEndElement()
+			.WriteStartElement("body")
+				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
+					.WriteStartElement("p")
+						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64")
+						.WriteEndElement()
+					.WriteEndElement()
+				.WriteEndElement()
+				.WriteStartElement("a").WriteAttribute("href", m_root).WriteCharacters(Tr(HOME)).WriteEndElement();
+		// clang-format on
+		WriteHead();
+		m_writer->Guard("hr");
 	}
 
 private: // SaxParser
@@ -147,13 +159,18 @@ private: // SaxParser
 		return true;
 	}
 
+private:
+	virtual void WriteHead() = 0;
+
+	virtual QString GetStyle() const
+	{
+		return "\n\t\t";
+	}
+
 protected:
 	const QString m_root;
-	QBuffer m_output;
-	QTextStream m_stream { &m_output };
-
-private:
-	std::once_flag m_headWritten;
+	std::unique_ptr<QBuffer> m_output { CreateStream() };
+	PropagateConstPtr<XmlWriter> m_writer { std::make_unique<XmlWriter>(*m_output, XmlWriter::Type::Html) };
 };
 
 class ParserOpds : public AbstractParser
@@ -165,42 +182,52 @@ protected:
 	}
 
 protected:
-	virtual bool OnStartElementFeed(const XmlAttributes&)
+	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
-		m_stream << "<html>\n<body>\n";
+		using ParseElementFunction = bool (ParserOpds::*)(const XmlAttributes&);
+		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		static constexpr ParseElementItem PARSERS[] {
+			{ ENTRY, &ParserOpds::OnStartElementFeedEntry },
+		};
+
+		return Parse(*this, PARSERS, path, attributes);
+	}
+
+	bool OnCharacters(const QString& path, const QString& value) override
+	{
+		using ParseCharacterFunction = bool (ParserOpds::*)(const QString&);
+		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		static constexpr ParseCharacterItem PARSERS[] {
+			{       FEED_ID,       &ParserOpds::ParseFeedId },
+			{    FEED_TITLE,    &ParserOpds::ParseFeedTitle },
+			{   ENTRY_TITLE,   &ParserOpds::ParseEntryTitle },
+			{ ENTRY_CONTENT, &ParserOpds::ParseEntryContent },
+		};
+
+		return Parse(*this, PARSERS, path, value);
+	}
+
+	bool ParseEntryContent(const QString& value)
+	{
+		m_content = value;
 		return true;
 	}
 
-	virtual bool OnStartElementEntry(const XmlAttributes&)
+	void WriteHeadOnce()
 	{
-		if (!m_mainTitle.isEmpty())
-			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
-
-		m_mainTitle.clear();
-		m_title.clear();
-		m_content.clear();
-		return true;
+		std::call_once(m_headWritten, [this] { WriteHttpHead(); });
 	}
 
-	virtual bool OnEndElementFeed()
+private:
+	bool ParseFeedId(const QString& value)
 	{
-		if (!m_mainTitle.isEmpty())
-			WriteHttpHead(QString("<h1>%1</h1>").arg(m_mainTitle));
-
-		m_stream << "</body>\n</html>\n";
-		m_output.close();
-		return true;
-	}
-
-	bool ParseEntryId(const QString& value)
-	{
-		m_id = value;
+		m_feedId = value;
 		return true;
 	}
 
 	bool ParseFeedTitle(const QString& value)
 	{
-		m_mainTitle = value;
+		m_feedTitle = value;
 		return true;
 	}
 
@@ -210,18 +237,27 @@ protected:
 		return true;
 	}
 
-	bool ParseEntryContent(const QString& value)
+	bool OnStartElementFeedEntry(const XmlAttributes&)
 	{
-		m_content = value;
+		WriteHeadOnce();
 		return true;
 	}
 
+protected: // AbstractParser
+	void WriteHead() override
+	{
+		m_writer->Guard("h1")->WriteCharacters(m_feedTitle);
+	}
+
 protected:
-	QString m_id;
+	QString m_feedId;
+	QString m_feedTitle;
+
 	QString m_title;
 	QString m_content;
 
-	QString m_mainTitle;
+private:
+	std::once_flag m_headWritten;
 };
 
 class ParserNavigation final : public ParserOpds
@@ -244,13 +280,15 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) override
 	{
+		const auto result = ParserOpds::OnStartElement(name, path, attributes);
+		if (m_processed)
+			return result;
+
 		using ParseElementFunction = bool (ParserNavigation::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{       FEED,      &ParserNavigation::OnStartElementFeed },
-			{      ENTRY,     &ParserNavigation::OnStartElementEntry },
 			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
 
@@ -269,32 +307,11 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path);
 	}
 
-	bool OnCharacters(const QString& path, const QString& value) override
-	{
-		using ParseCharacterFunction = bool (ParserNavigation::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
-		static constexpr ParseCharacterItem PARSERS[] {
-			{      ENTRY_ID,      &ParserNavigation::ParseEntryId },
-			{   ENTRY_TITLE,   &ParserNavigation::ParseEntryTitle },
-			{ ENTRY_CONTENT, &ParserNavigation::ParseEntryContent },
-			{    FEED_TITLE,    &ParserNavigation::ParseFeedTitle },
-		};
-
-		return Parse(*this, PARSERS, path, value);
-	}
-
 private:
-	bool OnStartElementFeed(const XmlAttributes& attributes) override
+	void WriteHttpHead() override
 	{
-		ParserOpds::OnStartElementFeed(attributes);
-		m_stream << "<table>\n";
-		return true;
-	}
-
-	bool OnStartElementEntry(const XmlAttributes& attributes) override
-	{
-		m_link.clear();
-		return ParserOpds::OnStartElementEntry(attributes);
+		AbstractParser::WriteHttpHead();
+		m_tableGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "table");
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
@@ -303,22 +320,25 @@ private:
 		return true;
 	}
 
-	bool OnEndElementFeed() override
+	bool OnEndElementFeed()
 	{
-		m_stream << "</table>\n";
-		return ParserOpds::OnEndElementFeed();
+		WriteHeadOnce();
+		m_tableGuard.reset();
+		return true;
 	}
 
 	bool OnEndElementEntry()
 	{
-		m_stream << QString(R"(<tr><td><a href="%1">%2</a></td><td>%3</td></tr>)"
-		                    "\n")
-						.arg(m_link, m_title, m_content);
+		auto tr = m_writer->Guard("tr");
+		m_writer->Guard("td")->WriteStartElement("a").WriteAttribute("href", m_link).WriteCharacters(m_title).WriteEndElement();
+		m_writer->Guard("td")->WriteCharacters(m_content);
+
 		return true;
 	}
 
 private:
 	QString m_link;
+	std::unique_ptr<XmlWriter::XmlNodeGuard> m_tableGuard;
 };
 
 class ParserBookInfo final : public ParserOpds
@@ -342,13 +362,15 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) override
 	{
+		const auto result = ParserOpds::OnStartElement(name, path, attributes);
+		if (m_processed)
+			return result;
+
 		using ParseElementFunction = bool (ParserBookInfo::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{       FEED,      &ParserBookInfo::OnStartElementFeed },
-			{      ENTRY,     &ParserBookInfo::OnStartElementEntry },
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
 
@@ -368,28 +390,22 @@ private: // SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
+		const auto result = ParserOpds::OnCharacters(path, value);
+		if (m_processed)
+			return result;
+
 		using ParseCharacterFunction = bool (ParserBookInfo::*)(const QString&);
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
-			{    FEED_TITLE,    &ParserBookInfo::ParseFeedTitle },
-            {      ENTRY_ID,      &ParserBookInfo::ParseEntryId },
-            {   ENTRY_TITLE,   &ParserBookInfo::ParseEntryTitle },
 			{ ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
-            {   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
-            {   AUTHOR_LINK,   &ParserBookInfo::ParseAuthorLink },
+			{   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
+			{   AUTHOR_LINK,   &ParserBookInfo::ParseAuthorLink },
 		};
 
 		return Parse(*this, PARSERS, path, value);
 	}
 
 private:
-	bool OnStartElementEntry(const XmlAttributes&) override
-	{
-		m_title.clear();
-		m_content.clear();
-		return true;
-	}
-
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
 		const auto rel = attributes.GetAttribute("rel");
@@ -411,58 +427,55 @@ private:
 		return true;
 	}
 
-	bool OnEndElementFeed() override
+	bool OnEndElementFeed()
 	{
-		QStringList head;
+		AbstractParser::WriteHttpHead();
 		{
-			QStringList authors;
-			std::ranges::transform(m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }),
-			                       std::back_inserter(authors),
-			                       [](const auto& item) { return QString(R"(<a href = "%1">%2</a>)").arg(item.second, item.first); });
-			if (!authors.isEmpty())
-				head << QString(R"(<h2>%1</h2>)").arg(authors.join("&ensp;"));
+			const auto contents = m_content.split(REVIEWS_DELIMITER);
+			{
+				auto table = m_writer->Guard("table"), tr = m_writer->Guard("tr");
+				if (!m_coverLink.isEmpty())
+				{
+					auto td = m_writer->Guard("td");
+					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
+				}
+
+				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
+				{
+					if (url.isEmpty())
+						return;
+
+					const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
+					m_writer->Guard("br");
+					m_writer->Guard("a")->WriteAttribute("href", QString("%1%2").arg(url, transliterated ? "/tr" : "")).WriteAttribute("download", fileName).WriteCharacters(fileName);
+				};
+
+				auto ts = m_writer->Guard("td");
+				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters("");
+
+				m_output->write(contents.front().toUtf8());
+				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+
+				const auto createLinks = [&](const QFileInfo& fileInfo, const bool transliterated)
+				{
+					m_writer->Guard("br");
+					createLink(m_downloadLinkFb2, fileInfo, false, transliterated);
+					createLink(m_downloadLinkZip, fileInfo, true, transliterated);
+				};
+
+				const auto fileName = m_callback.GetFileName(m_feedId, false);
+				const QFileInfo fileInfo(fileName);
+				createLinks(fileInfo, false);
+
+				if (const auto fileNameTransliterated = m_callback.GetFileName(m_feedId, true); fileNameTransliterated != fileName)
+					if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
+						createLinks(fileInfoTransliterated, true);
+			}
+			if (contents.size() > 1)
+				m_output->write(contents.back().toUtf8());
 		}
 
-		if (!m_mainTitle.isEmpty())
-			head << QString("<h1>%1</h1>\n").arg(m_mainTitle);
-
-		WriteHttpHead(head.join("\n"));
-
-		{
-			const ScopedCall tableGuard([this] { m_stream << "<table><tr>"; }, [this] { m_stream << "</tr></table>"; });
-			if (!m_coverLink.isEmpty())
-				m_stream << QString(R"(<td><img src="%1" width="480"/></td>)").arg(m_coverLink);
-
-			const auto href = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
-			{
-				if (url.isEmpty())
-					return;
-
-				const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
-				m_stream << QString(R"(<br/><a href="%1%3" download="%2">%2</a>)").arg(url, fileName, transliterated ? "/tr" : "");
-			};
-
-			const ScopedCall linkGuard([this] { m_stream << R"(<td style="vertical-align: bottom; padding-left: 7px;">)"; }, [this] { m_stream << "</td>"; });
-			m_stream << m_content << "\n";
-			m_stream << QString(R"(<a href="/web/read/%1">%2</a>)").arg(m_id, Tr(READ));
-
-			const auto createHrefs = [&](const QFileInfo& fileInfo, const bool transliterated)
-			{
-				m_stream << QString("<br/>");
-				href(m_downloadLinkFb2, fileInfo, false, transliterated);
-				href(m_downloadLinkZip, fileInfo, true, transliterated);
-			};
-
-			const auto fileName = m_callback.GetFileName(m_id, false);
-			const QFileInfo fileInfo(fileName);
-			createHrefs(fileInfo, false);
-
-			if (const auto fileNameTransliterated = m_callback.GetFileName(m_id, true); fileNameTransliterated != fileName)
-				if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
-					createHrefs(fileInfoTransliterated, true);
-		}
-
-		return ParserOpds::OnEndElementFeed();
+		return true;
 	}
 
 	bool ParseAuthorName(const QString& value)
@@ -476,6 +489,25 @@ private:
 		assert(!m_authors.empty() && m_authors.back().second.isEmpty());
 		m_authors.back().second = value;
 		return true;
+	}
+
+private: // AbstractParser
+	void WriteHttpHead() override
+	{
+	}
+
+	void WriteHead() override
+	{
+		{
+			auto h2 = m_writer->Guard("h2");
+			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }))
+			{
+				if (++n != 1)
+					m_output->write(", ");
+				m_writer->Guard("a")->WriteAttribute("href", link).WriteCharacters(name);
+			}
+		}
+		ParserOpds::WriteHead();
 	}
 
 private:
@@ -652,9 +684,9 @@ private: // SaxParser
 	}
 
 private: // AbstractParser
-	QByteArray GetResult() const override
+	QByteArray GetResult() override
 	{
-		auto result = m_output.buffer();
+		auto result = AbstractParser::GetResult();
 
 		for (const auto& [id, type, body] : m_binary)
 			result.replace(QString(R"(<img src="#%1"/>)").arg(id).toUtf8(), QString(R"(<img src="data:%1;base64, %2"/>)").arg(type, body).toUtf8());
@@ -688,24 +720,7 @@ private:
 		if (!m_bodyName.isEmpty())
 			return true;
 
-		constexpr auto style = R"(
-			.epigraph {
-				margin-left: %2px;
-				max-width: %2px; 
-				font-style: italic;
-				text-align: end;
-			}
-			.epigraph_text_author {
-				text-align: end;
-			}
-			.poem {
-				max-width: %1px;
-				text-align: center;
-			}
-)";
-
-		const auto head = QString("<h2>%1</h2>\n<h1>%2</h1>\n").arg(m_authors.join(", "), m_bookTitle);
-		WriteHttpHead(head, QString(style).arg(MAX_WIDTH).arg(MAX_WIDTH / 2));
+		WriteHttpHead();
 		return true;
 	}
 
@@ -724,7 +739,6 @@ private:
 	bool OnEndElementFictionBook()
 	{
 		m_stream << "</body>\n</html>\n";
-		m_output.close();
 		return true;
 	}
 
@@ -832,7 +846,37 @@ private:
 		return true;
 	}
 
+private: // AbstractParser
+	void WriteHead() override
+	{
+		m_writer->Guard("h2")->WriteCharacters(m_authors.join(", "));
+		m_writer->Guard("h1")->WriteCharacters(m_bookTitle);
+	}
+
+	QString GetStyle() const override
+	{
+		constexpr auto style = R"(
+			.epigraph {
+				margin-left: %2px;
+				max-width: %2px;
+				font-style: italic;
+				text-align: end;
+			}
+			.epigraph_text_author {
+				text-align: end;
+			}
+			.poem {
+				max-width: %1px;
+				text-align: center;
+			}
+		)";
+
+		return QString(style).arg(MAX_WIDTH).arg(MAX_WIDTH / 2);
+	}
+
 private:
+	QTextStream m_stream { m_output.get() };
+
 	const QString m_bookId;
 	QStringList m_author;
 	QStringList m_authors;

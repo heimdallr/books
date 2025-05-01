@@ -19,6 +19,7 @@
 
 #include "util/IExecutor.h"
 #include "util/PlatformUtil.h"
+#include "util/files.h"
 
 #include "ImageRestore.h"
 #include "log.h"
@@ -69,7 +70,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 		const auto stream = zip.Read(fileName);
 		auto temporaryDir = logicFactory.CreateTemporaryDir(true);
 
-		if (Zip::IsArchive(fileName))
+		if (Zip::IsArchive(Util::RemoveIllegalPathCharacters(fileName)))
 		{
 			const Zip subZip(stream->GetStream());
 			const auto fileList = subZip.GetFileNameList();
@@ -105,7 +106,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 		}
 		else
 		{
-			auto fileNameDst = temporaryDir->filePath(fileName);
+			auto fileNameDst = temporaryDir->filePath(Util::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				file.write(RestoreImages(stream->GetStream(), archive, fileName));
 

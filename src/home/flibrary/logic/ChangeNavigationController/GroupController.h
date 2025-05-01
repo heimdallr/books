@@ -30,6 +30,7 @@ public:
 
 public:
 	void CreateNew(Callback callback) const;
+	void Rename(Id id, QString name, Callback callback) const;
 	void Remove(Ids ids, Callback callback) const;
 	void AddToGroup(Id id, Ids ids, Callback callback) const;
 	void RemoveFromGroup(Id id, Ids ids, Callback callback) const;

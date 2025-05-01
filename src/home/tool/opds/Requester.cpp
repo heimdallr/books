@@ -18,6 +18,7 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
@@ -74,17 +75,23 @@ constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController
 constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), count(42) "
 										  "from Books b "
 										  "%1 "
-										  "where b.SearchTitle != ? and b.SearchTitle like ? "
+										  "left join Books_User bu on bu.BookID = b.BookID "
+										  "where b.SearchTitle != ? and b.SearchTitle like ? %3"
 										  "group by substr(b.SearchTitle, %2, 1)";
 
-constexpr auto SELECT_BOOKS = "select b.BookID, b.Title || b.Ext, 0, "
-							  "(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '') from Authors a join "
-							  "Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1) "
-							  "|| coalesce(' ' || s.SeriesTitle || coalesce(' #'||nullif(b.SeqNumber, 0), ''), '') "
-							  "from Books b "
-							  "%1 "
-							  "left join Series s on s.SeriesID = b.SeriesID ";
-constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %2 ?";
+constexpr auto SELECT_BOOKS = R"(
+select b.BookID, b.Title || b.Ext, 0,
+	(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')
+		from Authors a
+		join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1
+	), s.SeriesTitle, b.SeqNumber
+	from Books b
+	%1
+	left join Series s on s.SeriesID = b.SeriesID
+	left join Books_User bu on bu.BookID = b.BookID
+	%2
+)";
+constexpr auto SELECT_BOOKS_WHERE = "where b.SearchTitle %1 ?";
 
 constexpr auto SELECT_AUTHORS_STARTS_WITH = "select substr(a.SearchName, %2, 1), count(42) "
 											"from Authors a "
@@ -100,7 +107,7 @@ constexpr auto SELECT_AUTHORS = "select a.AuthorID, a.LastName || coalesce(' ' |
 								"where a.SearchName %2 ? "
 								"group by a.AuthorID";
 
-const auto SELECT_BOOK_COUNT = "select count(42) from books b %1";
+const auto SELECT_BOOK_COUNT = "select count(42) from Books b %1 left join Books_User bu on bu.BookID = b.BookID %2";
 
 constexpr auto JOIN_ARCHIVE = "join Books gl on gl.BookID = b.BookID and gl.FolderID = %1";
 constexpr auto JOIN_AUTHOR = "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1";
@@ -108,7 +115,33 @@ constexpr auto JOIN_GENRE = "join Genre_List gl on gl.BookID = b.BookID and gl.G
 constexpr auto JOIN_GROUP = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1";
 constexpr auto JOIN_KEYWORD = "join Keyword_List gl on gl.BookID = b.BookID and gl.KeywordID = %1";
 constexpr auto JOIN_SERIES = "join Series_List gl on gl.BookID = b.BookID and gl.SeriesID = %1";
-constexpr auto JOIN_SEARCH = "join Books_Search bs on bs.rowid = b.BookID and bs.Title MATCH ?";
+constexpr auto JOIN_SEARCH = "join Ids i on i.BookID = b.BookID";
+
+constexpr auto WITH_SEARCH = R"(
+with Ids(BookID) as (
+    with Search (Title) as (
+        select ?
+    )
+    select b.BookID
+        from Books b
+        join Books_Search fts on fts.rowid = b.BookID
+        join Search s on Books_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Author_List l on l.BookID = b.BookID
+        join Authors_Search fts on fts.rowid = l.AuthorID
+        join Search s on Authors_Search match s.Title
+    union
+    select b.BookID
+        from Books b
+        join Series_List l on l.BookID = b.BookID
+        join Series_Search fts on fts.rowid = l.SeriesID
+        join Search s on Series_Search match s.Title
+)
+)";
+
+constexpr auto BOOKS_NOT_DELETED = "coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
 constexpr auto CONTEXT = "Requester";
 constexpr auto COUNT = QT_TRANSLATE_NOOP("Requester", "Number of: %1");
@@ -144,6 +177,10 @@ struct Node
 	Children children;
 
 	QString title;
+
+	QString author;
+	QString series;
+	int seqNum;
 };
 
 const QString& GetContent(const Node& node)
@@ -153,9 +190,10 @@ const QString& GetContent(const Node& node)
 	return it->value;
 }
 
-std::tuple<Util::QStringWrapper, Util::QStringWrapper> ToComparable(const Node& node)
+std::tuple<Util::QStringWrapper, Util::QStringWrapper, int, Util::QStringWrapper> ToComparable(const Node& node)
 {
-	return std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title });
+	return node.author.isEmpty() ? std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title }, 0, Util::QStringWrapper { node.author })
+	                             : std::make_tuple(Util::QStringWrapper { node.author }, Util::QStringWrapper { node.series }, node.seqNum, Util::QStringWrapper { node.title });
 }
 
 bool operator<(const Node& lhs, const Node& rhs)
@@ -349,13 +387,21 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("Book/%1").arg(id);
 		auto href = QString("%1/%2").arg(root, entryId);
-		auto content = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString author = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
+		QString series = query->ColumnCount() > 4 ? query->Get<const char*>(4) : QString {};
+		const int seqNum = query->ColumnCount() > 5 ? query->Get<int>(5) : -1;
+
+		auto content = QString("%1 %2%3").arg(author, series, seqNum > 0 ? QString(" #%1").arg(seqNum) : QString {});
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content), false);
 		entry.children.emplace_back("link",
 		                            QString {
         },
 		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+
+		entry.author = std::move(author);
+		entry.series = std::move(series);
+		entry.seqNum = seqNum > 0 ? seqNum : std::numeric_limits<int>::max();
 	}
 }
 
@@ -534,23 +580,35 @@ public:
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "root", m_collectionProvider->GetActiveCollection().name, root, self);
 
-		const auto dbStatQueryTextItems = QStringList
-		{
-		}
-#define OPDS_ROOT_ITEM(NAME) << QString("select '%1', count(42) from %1").arg(Loc::NAME)
-		OPDS_ROOT_ITEMS_X_MACRO
+		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
+#define OPDS_ROOT_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
+			OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
-			;
+		};
+		QStringList dbStatQueryTextItems;
+		std::ranges::transform(navigationTypes | std::views::filter([](const auto& item) { return item.first != Flibrary::NavigationMode::Groups; }),
+		                       std::back_inserter(dbStatQueryTextItems),
+		                       [this](const auto& item) { return QString("select '%1', count(42) from %1 %2").arg(item.second).arg(ShowRemoved() ? "" : QString(" where IsDeleted = 0")); });
 
 		auto dbStatQueryText = dbStatQueryTextItems.join(" union all ");
-		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders").replace("count(42) from Groups", "count(42) from Groups_User");
+		dbStatQueryText.replace("count(42) from Archives", "count(42) from Folders");
 
-		const auto query = db->CreateQuery(dbStatQueryText.toStdString());
-		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			const auto* id = query->Get<const char*>(0);
-			if (const auto count = query->Get<int>(1))
-				WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			const auto query = db->CreateQuery(dbStatQueryText.toStdString());
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto* id = query->Get<const char*>(0);
+				if (const auto count = query->Get<int>(1))
+					WriteEntry(root, head.children, id, Loc::Tr(Loc::NAVIGATION, id), count);
+			}
+		}
+		{
+			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
+				WriteEntry(root, head.children, id, query->Get<const char*>(1), query->Get<int>(2));
+			}
 		}
 
 		return head;
@@ -565,11 +623,17 @@ public:
 		const auto termsGui = terms.join(' ');
 		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
 		const auto n = head.children.size();
-		WriteBookEntries(*db, "", QString(SELECT_BOOKS).arg(JOIN_SEARCH), terms.join(' '), root, head.children);
+		WriteBookEntries(*db, "", QString("%1%2").arg(WITH_SEARCH, SELECT_BOOKS).arg(JOIN_SEARCH, ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED)), terms.join(' '), root, head.children);
 
-		const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
-		assert(it != head.children.end());
-		it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		{
+			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+			std::sort(it, head.children.end());
+		}
+		{
+			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+			assert(it != head.children.end());
+			it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		}
 
 		return head;
 	}
@@ -629,20 +693,24 @@ public:
 			                                Node::Attributes { { "href", QString("%1/%2/zip/%3").arg(root, BOOK, book.GetId()) },
 			                                                   { "rel", "http://opds-spec.org/acquisition" },
 			                                                   { "type", QString("application/%1+zip").arg(format) } });
-				entry.children.emplace_back("link",
-			                                QString {
-                },
-			                                Node::Attributes { { "href", QString("%1/%2/cover/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
-				entry.children.emplace_back(
-					"link",
-					QString {
-                },
-					Node::Attributes { { "href", QString("%1/%2/cover/thumbnail/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
-
 				m_forwarder.Forward([this] { m_coversTimer.start(); });
 				std::lock_guard lock(m_coversGuard);
+
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+				{
+					entry.children.emplace_back("link",
+				                                QString {
+                    },
+				                                Node::Attributes { { "href", QString("%1/%2/cover/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
+
+					entry.children.emplace_back(
+						"link",
+						QString {
+                    },
+						Node::Attributes { { "href", QString("%1/%2/cover/thumbnail/%3").arg(root, BOOK, book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
+
 					m_covers.try_emplace(bookId, covers.front().bytes);
+				}
 			});
 
 		m_annotationController->RegisterObserver(&observer);
@@ -712,27 +780,46 @@ public:
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
 	{
-		const auto startsWithQuery = QString("select %1, count(42) from Authors a where a.SearchName != ? and a.SearchName like ? group by %1").arg("substr(a.SearchName, %1, 1)");
-		const QString navigationItemQuery =
-			"select a.AuthorID, a.LastName || ' ' || a.FirstName || ' ' || a.MiddleName, count(42) from Authors a join Author_List l on l.AuthorID = a.AuthorID where a.SearchName %1 ? group by a.AuthorID";
+		const auto startsWithQuery =
+			QString("select %2, count(42) from Authors a where %1 a.SearchName != ? and a.SearchName like ? group by %2").arg(ShowRemoved() ? "" : "IsDeleted = 0 and").arg("substr(a.SearchName, %1, 1)");
+		const auto navigationItemQuery = QString(R"(
+select a.AuthorID, a.LastName || ' ' || a.FirstName || ' ' || a.MiddleName, count(42)
+	from Authors a join Author_List l on l.AuthorID = a.AuthorID 
+	join Books b on b.BookID = l.BookID
+	left join Books_User bu on bu.BookID = b.BookID
+	where %1 a.SearchName %2 ?
+	group by a.AuthorID
+)")
+		                                     .arg(ShowRemoved() ? "" : QString("%1 and").arg(BOOKS_NOT_DELETED), "%1");
 		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Authors, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	Node WriteSeriesNavigation(const QString& root, const QString& self, const QString& value) const
 	{
-		const auto startsWithQuery = QString("select %1, count(42) from Series a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
-		const QString navigationItemQuery =
-			"select a.SeriesID, a.SeriesTitle, count(42) from Series a join Series_List sl on sl.SeriesID = a.SeriesID join Books l on l.BookID = sl.BookID where a.SearchTitle %1 ? group by a.SeriesID";
+		const auto startsWithQuery =
+			QString("select %2, count(42) from Series a where %1 a.SearchTitle != ? and a.SearchTitle like ? group by %2").arg(ShowRemoved() ? "" : "IsDeleted = 0 and").arg("substr(a.SearchTitle, %1, 1)");
+		const auto navigationItemQuery = QString(R"(
+select a.SeriesID, a.SeriesTitle, count(42)
+	from Series a 
+	join Series_List sl on sl.SeriesID = a.SeriesID 
+	join Books b on b.BookID = sl.BookID 
+	left join Books_User bu on bu.BookID = b.BookID
+	where %1 a.SearchTitle %2 ? group by a.SeriesID
+)")
+		                                     .arg(ShowRemoved() ? "" : QString("%1 and").arg(BOOKS_NOT_DELETED), "%1");
 		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Series, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
 	void WriteGenresNavigationImpl(const QString& root, Node::Children& children, const QString& value) const
 	{
-		const auto genres = Flibrary::Genre::Load(*m_databaseController->GetDatabase(true));
-		const auto* genre = Flibrary::Genre::Find(&genres, value);
+		auto genres = Flibrary::Genre::Load(*m_databaseController->GetDatabase(true));
+		auto* genre = Flibrary::Genre::Find(&genres, value);
 		assert(genre);
 		while (genre->children.size() == 1)
 			genre = genre->children.data();
+
+		if (!ShowRemoved())
+			std::erase_if(genre->children, [](const auto& item) { return item.removed; });
 
 		for (const auto& child : genre->children)
 		{
@@ -754,8 +841,18 @@ public:
 
 	Node WriteKeywordsNavigation(const QString& root, const QString& self, const QString& value) const
 	{
-		const auto startsWithQuery = QString("select %1, count(42) from Keywords a where a.SearchTitle != ? and a.SearchTitle like ? group by %1").arg("substr(a.SearchTitle, %1, 1)");
-		const QString navigationItemQuery = "select a.KeywordID, a.KeywordTitle, count(42) from Keywords a join Keyword_List l on l.KeywordID = a.KeywordID where a.SearchTitle %1 ? group by a.KeywordID";
+		const auto startsWithQuery =
+			QString("select %2, count(42) from Keywords a where %1 a.SearchTitle != ? and a.SearchTitle like ? group by %2").arg(ShowRemoved() ? "" : "IsDeleted = 0 and").arg("substr(a.SearchTitle, %1, 1)");
+		const auto navigationItemQuery = QString(R"(
+select a.KeywordID, a.KeywordTitle, count(42) 
+	from Keywords a 
+	join Keyword_List l on l.KeywordID = a.KeywordID
+	join Books b on b.BookID = l.BookID 
+	left join Books_User bu on bu.BookID = b.BookID
+	where %1 a.SearchTitle %2 ? 
+	group by a.KeywordID
+)")
+		                                     .arg(ShowRemoved() ? "" : QString("%1 and").arg(BOOKS_NOT_DELETED), "%1");
 		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, Loc::Keywords, root, self, startsWithQuery, navigationItemQuery, &WriteNavigationEntries);
 	}
 
@@ -763,8 +860,15 @@ public:
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, Loc::Archives, Loc::Tr(Loc::NAVIGATION, Loc::Archives), root, self);
-
-		const auto query = db->CreateQuery("select f.FolderID, f.FolderTitle, count(42) from Folders f join Books b on b.FolderID = f.FolderID group by f.FolderID");
+		const auto queryText = QString(R"(
+select f.FolderID, f.FolderTitle, count(42)
+	from Folders f
+	join Books b on b.FolderID = f.FolderID
+	left join Books_User bu on bu.BookID = b.BookID
+	%1 group by f.FolderID
+)")
+		                           .arg(ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED), "%1");
+		const auto query = db->CreateQuery(queryText.toStdString());
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
 			const auto id = QString("%1/%2").arg(Loc::Archives).arg(query->Get<int>(0));
@@ -774,19 +878,10 @@ public:
 		return head;
 	}
 
-	Node WriteGroupsNavigation(const QString& root, const QString& self, const QString& /*value*/) const
+	Node WriteGroupsNavigation(const QString& /*root*/, const QString& /*self*/, const QString& /*value*/) const
 	{
-		const auto db = m_databaseController->GetDatabase(true);
-		auto head = GetHead(*db, Loc::Groups, Loc::Tr(Loc::NAVIGATION, Loc::Groups), root, self);
-
-		const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
-		for (query->Execute(); !query->Eof(); query->Next())
-		{
-			const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
-			WriteEntry(root, head.children, id, query->Get<const char*>(1), query->Get<int>(2));
-		}
-
-		return head;
+		assert(false && "Unexpected call");
+		return {};
 	}
 
 	Node WriteAuthorsAuthors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const
@@ -905,7 +1000,7 @@ where b.BookID = ?
 
 		if (checkBooksQuery)
 		{
-			auto node = WriteBooksList(root, self, navigationId, type, QString("select count(42) from Books b %1").arg(join), QString(SELECT_BOOKS).arg(join));
+			auto node = WriteBooksList(root, self, navigationId, type, join);
 			if (!node.children.empty())
 				return node;
 		}
@@ -922,7 +1017,7 @@ where b.BookID = ?
 									   return n > 1;
 								   }))
 		{
-			const auto query = db->CreateQuery(QString(SELECT_BOOK_COUNT).arg(join).toStdString());
+			const auto query = db->CreateQuery(QString(SELECT_BOOK_COUNT).arg(join, ShowRemoved() ? "" : QString(" where %1").arg(BOOKS_NOT_DELETED)).toStdString());
 			query->Execute();
 			if (const auto count = query->Get<int>(0))
 				WriteEntry(root, node.children, QString("%1/Books/%2").arg(type, navigationId), Tr(BOOKS), count);
@@ -940,24 +1035,25 @@ where b.BookID = ?
 
 		if (value.isEmpty())
 		{
-			auto node = WriteBooksList(root, self, navigationId, type, QString("select count(42) from Books b %1").arg(join), QString(SELECT_BOOKS).arg(join));
+			auto node = WriteBooksList(root, self, navigationId, type, join);
 			if (!node.children.empty())
 				return node;
 		}
 
-		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, "%1");
-		const auto bookItemQuery = (QString(SELECT_BOOKS) + SELECT_BOOKS_WHERE).arg(join, "%1");
+		const auto isNotDeleted = ShowRemoved() ? "" : QString(" and %1").arg(BOOKS_NOT_DELETED);
+		const auto startsWithQuery = QString(SELECT_BOOKS_STARTS_WITH).arg(join, "%1", isNotDeleted);
+		const auto bookItemQuery = QString(SELECT_BOOKS).arg(join, SELECT_BOOKS_WHERE).append(isNotDeleted);
 		const auto navigationType = (authorId.isEmpty() ? QString("%1/Books/%2").arg(type, navigationId) : QString("%1/Authors/Books/%2/%3").arg(type, navigationId, authorId)).toStdString();
 		return WriteNavigationStartsWith(*m_databaseController->GetDatabase(true), value, navigationType.data(), root, self, startsWithQuery, bookItemQuery, &WriteBookEntries);
 	}
 
-	Node WriteBooksList(const QString& root, const QString& self, const QString& navigationId, const QString& type, const QString& countQuery, const QString& booksQuery) const
+	Node WriteBooksList(const QString& root, const QString& self, const QString& navigationId, const QString& type, const QString& join) const
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 		if (navigationId.isEmpty() ||
 		    [&]
 		    {
-				const auto query = db->CreateQuery(countQuery.toStdString());
+				const auto query = db->CreateQuery(QString(SELECT_BOOK_COUNT).arg(join, ShowRemoved() ? "" : QString(" where %1").arg(BOOKS_NOT_DELETED)).toStdString());
 				query->Execute();
 				assert(!query->Eof());
 				const auto n = query->Get<long long>(0);
@@ -965,11 +1061,17 @@ where b.BookID = ?
 			}())
 			return Node {};
 
+		const auto isNotDeleted = ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED);
 		auto head = GetHead(*db, navigationId, QString("%1/%2").arg(type, navigationId), root, self);
-		WriteBookEntries(*db, "", booksQuery, navigationId, root, head.children);
+		WriteBookEntries(*db, "", QString("%1%2").arg(QString(SELECT_BOOKS).arg(join, isNotDeleted)), navigationId, root, head.children);
 		const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
 		std::sort(it, head.children.end());
 		return head;
+	}
+
+	bool ShowRemoved() const
+	{
+		return m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
 	}
 
 private:

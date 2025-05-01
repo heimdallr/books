@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -23,7 +24,8 @@ public:
 	                             const std::shared_ptr<const ILogicFactory>& logicFactory,
 	                             std::shared_ptr<INavigationInfoProvider> dataProvider,
 	                             std::shared_ptr<IUiFactory> uiFactory,
-	                             std::shared_ptr<IDatabaseController> databaseController);
+	                             std::shared_ptr<IDatabaseController> databaseController,
+	                             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
 	~TreeViewControllerNavigation() override;
 
 public:
@@ -31,7 +33,7 @@ public:
 	void RequestBooks(bool force) const;
 
 private: // ITreeViewController
-	[[nodiscard]] std::vector<const char*> GetModeNames() const override;
+	[[nodiscard]] std::vector<std::pair<const char*, int>> GetModeNames() const override;
 	void SetCurrentId(ItemType type, QString id) override;
 
 private: // AbstractTreeViewController

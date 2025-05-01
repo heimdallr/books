@@ -8,6 +8,8 @@
 #include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/util/XMLUniDefs.hpp>
 
+#include "fnd/FindPair.h"
+
 #include "XmlAttributes.h"
 
 using namespace HomeCompa::Util;
@@ -29,22 +31,49 @@ constexpr XMLCh gXMLDecl1[] = { chOpenAngle, chQuestion, chLatin_x, chLatin_m,  
 // "?>
 constexpr XMLCh gXMLDecl2[] = { chDoubleQuote, chQuestion, chCloseAngle, chNull };
 
+// <!DOCTYPE html>
+constexpr XMLCh gHTMLDecl[] = { chOpenAngle, chBang, chLatin_D, chLatin_O, chLatin_C, chLatin_T, chLatin_Y, chLatin_P, chLatin_E, chSpace, chLatin_h, chLatin_t, chLatin_m, chLatin_l, chCloseAngle, chNull };
+
+void XmlStarter(XMLFormatter& formatter)
+{
+	formatter << gXMLDecl1 << formatter.getEncodingName() << gXMLDecl2;
 }
+
+void HtmlStarter(XMLFormatter& formatter)
+{
+	formatter << gHTMLDecl;
+}
+
+constexpr std::pair<XmlWriter::Type, void (*)(XMLFormatter&)> STARTERS[] {
+	{  XmlWriter::Type::Xml,  &XmlStarter },
+	{ XmlWriter::Type::Html, &HtmlStarter },
+};
+
+} // namespace
 
 class XmlWriter::Impl final : public XMLFormatTarget
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(QIODevice& stream)
+	Impl(QIODevice& stream, const Type type)
 		: m_stream(stream)
 		, m_formatter("utf-8", this, XMLFormatter::NoEscapes, XMLFormatter::UnRep_CharRef)
 	{
-		m_formatter << gXMLDecl1 << m_formatter.getEncodingName() << gXMLDecl2;
+		FindSecond(STARTERS, type)(m_formatter);
 	}
 
 	~Impl() override
 	{
+		CloseTag();
+		while (!m_elements.empty())
+		{
+			const auto name = std::move(m_elements.top());
+			m_elements.pop();
+			BreakLine(name);
+			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
+		}
+
 		m_formatter << chLF;
 	}
 
@@ -152,8 +181,8 @@ private:
 	std::set<QString> m_unbreakableTags { "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code", "image" };
 };
 
-XmlWriter::XmlWriter(QIODevice& stream)
-	: m_impl(stream)
+XmlWriter::XmlWriter(QIODevice& stream, const Type type)
+	: m_impl(stream, type)
 {
 }
 
@@ -193,4 +222,9 @@ XmlWriter& XmlWriter::WriteCharacters(const QString& data)
 {
 	m_impl->WriteCharacters(data);
 	return *this;
+}
+
+XmlWriter::XmlNodeGuard XmlWriter::Guard(const QString& name)
+{
+	return XmlNodeGuard { *this, name };
 }

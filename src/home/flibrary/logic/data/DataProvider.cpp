@@ -5,6 +5,7 @@
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
 
@@ -36,9 +37,10 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[] {
 class DataProvider::Impl
 {
 public:
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor)
-		: m_databaseUser(std::move(databaseUser))
-		, m_navigationQueryExecutor(std::move(navigationQueryExecutor))
+	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+		: m_databaseUser { std::move(databaseUser) }
+		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
+		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
 	}
 
@@ -92,12 +94,12 @@ public:
 	}
 
 private:
-	void RequestNavigationImpl() const
+	void RequestNavigationImpl()
 	{
 		m_navigationQueryExecutor->RequestNavigation(m_navigationMode, [&](const NavigationMode mode, IDataItem::Ptr root) { SendNavigationCallback(mode, std::move(root)); }, m_requestNavigationForce);
 	}
 
-	void RequestBooksImpl() const
+	void RequestBooksImpl()
 	{
 		if (m_booksViewMode == ViewMode::Unknown)
 			return;
@@ -121,18 +123,39 @@ private:
 		                           &booksGenerator,
 		                           &columnMapper]() mutable
 		                          {
+									  QString lastName, firstName, middleName;
 									  if (!booksGeneratorReady)
 									  {
 										  const auto db = m_databaseUser->Database();
 										  generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
+
+										  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
+										  {
+											  const auto query = db->CreateQuery(QString("select LastName, FirstName, MiddleName from Authors where AuthorID = %1").arg(navigationId).toStdString());
+											  query->Execute();
+											  assert(!query->Eof());
+											  lastName = query->Get<const char*>(0);
+											  firstName = query->Get<const char*>(1);
+											  middleName = query->Get<const char*>(2);
+										  }
 									  }
 
 									  generator->SetBooksViewMode(viewMode);
 									  auto root = (*generator.*booksGenerator)(description.treeCreator);
-									  return [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), &description, &columnMapper](size_t) mutable
+									  return [this,
+			                                  navigationId = std::move(navigationId),
+			                                  root = std::move(root),
+			                                  generator = std::move(generator),
+			                                  lastName = std::move(lastName),
+			                                  firstName = std::move(firstName),
+			                                  middleName = std::move(middleName),
+			                                  &description,
+			                                  &columnMapper](size_t) mutable
 									  {
 										  m_booksGenerator = std::move(generator);
 										  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+										  if (!lastName.isEmpty())
+											  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(lastName), std::move(firstName), std::move(middleName));
 									  };
 								  } },
 		                        2);
@@ -165,12 +188,15 @@ private:
 
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
+	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
 	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };
 };
 
-DataProvider::DataProvider(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor)
-	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor))
+DataProvider::DataProvider(std::shared_ptr<IDatabaseUser> databaseUser,
+                           std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
+                           std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";
 }

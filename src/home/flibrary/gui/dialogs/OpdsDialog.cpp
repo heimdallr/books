@@ -86,11 +86,12 @@ struct OpdsDialog::Impl final
 
 		OnConnectionChanged();
 		OnRunningChanged();
-		Init();
+		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		SaveGeometry();
 		opdsController->UnregisterObserver(this);
 	}
 

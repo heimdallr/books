@@ -19,7 +19,12 @@ struct ComboBoxTextDialog::Impl final
 		, GeometryRestorableObserver(self)
 		, m_self(self)
 	{
-		Init();
+		LoadGeometry();
+	}
+
+	~Impl() override
+	{
+		SaveGeometry();
 	}
 
 private: // GeometryRestorableObserver
@@ -36,6 +41,9 @@ private: // GeometryRestorableObserver
 
 private:
 	QWidget& m_self;
+
+private:
+	NON_COPY_MOVABLE(Impl)
 };
 
 ComboBoxTextDialog::ComboBoxTextDialog(const std::shared_ptr<const IUiFactory>& uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent)

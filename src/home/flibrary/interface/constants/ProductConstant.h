@@ -15,6 +15,8 @@ constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
 constexpr auto FlibraryBackupVersionNumber = 5;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
+constexpr auto FlibraryDatabaseVersionNumber = 1;
+
 constexpr int APP_FAILED = 1;
 constexpr int RESTART_APP = 1234;
 constexpr size_t MAX_LOG_SIZE = 10000;

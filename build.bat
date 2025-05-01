@@ -29,6 +29,7 @@ echo portable creating
 echo portable > %~dp0build/%BUILD_TYPE%/config/installer_mode
 7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\bin\*
 7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\config\installer_mode
+7z d %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z FlibustaParser.exe
 
 goto End
 

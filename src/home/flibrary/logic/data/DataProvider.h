@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
@@ -20,7 +21,7 @@ class DataProvider : public IDataProvider
 	NON_COPY_MOVABLE(DataProvider)
 
 public:
-	DataProvider(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor);
+	DataProvider(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
 	~DataProvider() override;
 
 public:

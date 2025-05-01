@@ -17,7 +17,6 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDataItem.h"
 
-#include "GuiUtil/GeometryRestorable.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
 #include "logic/model/IModelObserver.h"
@@ -43,7 +42,7 @@ constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images ou
 constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
 
-#if (false)  // NOLINT(readability-avoid-unconditional-preprocessor-if)
+#if (false) // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
 QT_TRANSLATE_NOOP("Annotation", "AsIs")
 QT_TRANSLATE_NOOP("Annotation", "Archive")
@@ -51,7 +50,6 @@ QT_TRANSLATE_NOOP("Annotation", "Script")
 QT_TRANSLATE_NOOP("Annotation", "Inpx")
 #endif
 
-constexpr auto SPLITTER_KEY = "ui/Annotation/Splitter";
 constexpr auto DIALOG_KEY = "Image";
 
 constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::UPDATES, Loc::ARCHIVE, Loc::LANGUAGE, Loc::GROUPS, nullptr };
@@ -152,11 +150,6 @@ public:
 
 		m_progressTimer.setSingleShot(true);
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
-
-		if (const auto value = m_settings->Get(SPLITTER_KEY); value.isValid())
-			m_ui.splitter->restoreState(value.toByteArray());
-		else
-			Util::InitSplitter(m_ui.splitter);
 
 		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
 
@@ -300,7 +293,6 @@ public:
 
 	~Impl() override
 	{
-		m_settings->Set(SPLITTER_KEY, m_ui.splitter->saveState());
 		m_annotationController->UnregisterObserver(this);
 	}
 

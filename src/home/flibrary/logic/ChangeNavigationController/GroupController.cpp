@@ -24,6 +24,7 @@ constexpr auto REMOVE_GROUP_CONFIRM = QT_TRANSLATE_NOOP("GroupController", "Are 
 constexpr auto GROUP_NAME_TOO_LONG = QT_TRANSLATE_NOOP("GroupController", "Group name too long.\nTry again?");
 constexpr auto GROUP_ALREADY_EXISTS = QT_TRANSLATE_NOOP("GroupController", "Group %1 already exists.\nTry again?");
 constexpr auto CANNOT_CREATE_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot create group");
+constexpr auto CANNOT_RENAME_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot rename group");
 constexpr auto CANNOT_REMOVE_GROUPS = QT_TRANSLATE_NOOP("GroupController", "Cannot remove groups");
 constexpr auto CANNOT_ADD_BOOK_TO_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot add book to group");
 constexpr auto CANNOT_REMOVE_BOOKS_FROM_GROUP = QT_TRANSLATE_NOOP("GroupController", "Cannot remove books from group");
@@ -103,6 +104,33 @@ struct GroupController::Impl
 								} });
 	}
 
+	void RenameGroup(const Id id, QString name, const Names& names, Callback callback) const
+	{
+		name = GetNewGroupName(names, std::move(name));
+		if (name.isEmpty())
+			return;
+
+		databaseUser->Execute({ "Rename group",
+		                        [&, id, name = std::move(name), callback = std::move(callback)]() mutable
+		                        {
+									const auto db = databaseUser->Database();
+									const auto transaction = db->CreateTransaction();
+									const auto command = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?");
+									command->Bind(0, name.toStdString());
+									command->Bind(1, id);
+									auto ok = command->Execute();
+									ok = transaction->Commit() && ok;
+
+									return [this, id, callback = std::move(callback), ok](size_t)
+									{
+										if (!ok)
+											uiFactory->ShowError(Tr(CANNOT_RENAME_GROUP));
+
+										callback(id);
+									};
+								} });
+	}
+
 	void AddToGroup(Id id, Ids ids, QString name, Callback callback) const
 	{
 		databaseUser->Execute({ "Add to group",
@@ -148,11 +176,13 @@ struct GroupController::Impl
 								} });
 	}
 
-	QString GetNewGroupName(const Names& names) const
+	QString GetNewGroupName(const Names& names, QString name = {}) const
 	{
 		while (true)
 		{
-			auto name = Tr(NEW_GROUP_NAME);
+			if (name.isEmpty())
+				name = Tr(NEW_GROUP_NAME);
+
 			auto newName = name;
 			for (int i = 2; names.contains(newName); ++i)
 				newName = QString("%1 %2").arg(name).arg(i);
@@ -196,6 +226,11 @@ GroupController::~GroupController()
 void GroupController::CreateNew(Callback callback) const
 {
 	m_impl->GetAllGroups([&, callback = std::move(callback)](const Names& names) mutable { m_impl->CreateNewGroup(names, std::move(callback)); });
+}
+
+void GroupController::Rename(const Id id, QString name, Callback callback) const
+{
+	m_impl->GetAllGroups([&, id, name = std::move(name), callback = std::move(callback)](const Names& names) mutable { m_impl->RenameGroup(id, std::move(name), names, std::move(callback)); });
 }
 
 void GroupController::Remove(Ids ids, Callback callback) const

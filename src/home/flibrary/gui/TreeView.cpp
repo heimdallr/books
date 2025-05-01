@@ -26,6 +26,7 @@
 #include "GuiUtil/util.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
+#include "util/files.h"
 #include "util/localization.h"
 
 #include "ModeComboBox.h"
@@ -239,7 +240,8 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		m_ui.value->setText({});
-		m_ui.cbMode->setCurrentIndex(index);
+		const auto idIndex = m_ui.cbMode->findData(index, Qt::UserRole + 1);
+		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
 
 		QTimer::singleShot(0, [this, visible = m_controller->GetItemType() == ItemType::Books || index != static_cast<int>(NavigationMode::AllBooks)] { m_self.parentWidget()->setVisible(visible); });
 	}
@@ -314,9 +316,9 @@ private:
 		        &m_self,
 		        [&](const QModelIndex& index)
 		        {
-			        m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
+					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
 					m_settings->Set(GetRecentIdKey(), m_currentId);
-		        });
+				});
 
 		if (m_controller->GetItemType() == ItemType::Books)
 		{
@@ -396,7 +398,8 @@ private:
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			| addOption(m_controller->GetItemType() == ItemType::Books && Zip::IsArchive(m_ui.treeView->currentIndex().data(Role::FileName).toString()),
+			| addOption(m_ui.treeView->currentIndex().data(Role::Type).value<ItemType>() == ItemType::Books
+		                    && Zip::IsArchive(Util::RemoveIllegalPathCharacters(m_ui.treeView->currentIndex().data(Role::FileName).toString())),
 		                ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -562,8 +565,12 @@ private:
 
 	void FillComboBoxes()
 	{
-		for (const auto* name : m_controller->GetModeNames())
+		for (const auto& [name, id] : m_controller->GetModeNames())
+		{
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
+			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, Qt::UserRole + 1);
+		}
+		m_ui.cbMode->setCurrentIndex(-1);
 
 		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) { return mode == item.first; });
 		if (it != std::cend(ModeComboBox::VALUE_MODES))
@@ -581,9 +588,9 @@ private:
 		        {
 					auto newMode = m_ui.cbMode->currentData().toString();
 					emit m_self.NavigationModeNameChanged(newMode);
-					m_controller->SetMode(newMode);
 					SaveHeaderLayout();
 					m_recentMode = std::move(newMode);
+					m_controller->SetMode(m_recentMode);
 				});
 		connect(m_ui.cbValueMode,
 		        &QComboBox::currentIndexChanged,

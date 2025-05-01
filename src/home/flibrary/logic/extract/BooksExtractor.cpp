@@ -156,6 +156,9 @@ std::filesystem::path Process(const std::filesystem::path& archiveFolder,
 	ILogicFactory::FillScriptTemplate(outputFileTemplate, book);
 
 	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
+	if (!QFile::exists(folder))
+		throw std::runtime_error((folder + ": archive not found").toStdString());
+
 	const Zip zip(folder);
 	const auto stream = zip.Read(book.file);
 	auto [ok, path] = Write(stream->GetStream(), outputFileTemplate, folder, book, progress, std::move(zipProgressCallback), pathChecker, mode);

@@ -262,6 +262,16 @@
         <source>, translated from %1</source>
         <translation>, язык оригинала %1</translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Readers&apos; Reviews</source>
+        <translation>Отзывы читателей</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Anonymous</source>
+        <translation>Аноним</translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
@@ -771,11 +781,6 @@
 Restart now?</source>
         <translation>Для применения изменений необходимо перезапустить приложение.
 Перезапустить сейчас?</translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
-        <translation>Для поиска книги по названию введите здесь часть названия и нажмите Enter</translation>
     </message>
 </context>
 <context>
@@ -2638,6 +2643,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
+        <source>Cannot rename group</source>
+        <translation>Не удалось переименовать группу</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove groups</source>
         <translation>Не удалось удалить группу</translation>
     </message>
@@ -2650,6 +2660,14 @@ Try again?</source>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove books from group</source>
         <translation>Не удалось удалить книгу из группы</translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::MigrateWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/MigrateWindow.cpp"/>
+        <source>The database migration process is in progress...</source>
+        <translation>Идёт процесс миграции базы данных...</translation>
     </message>
 </context>
 <context>
@@ -5003,6 +5021,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation>Для поиска книг по автору, серии или названию введите имя или название здесь и нажмите Enter</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
     </message>
@@ -5150,6 +5173,15 @@ Try again?</source>
     <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
+    </message>
+    <message>
+        <source>Readers&apos; &amp;Reviews</source>
+        <translatorcomment>Відгуки &amp;читачів</translatorcomment>
+        <translation>Отзывы &amp;читателей</translation>
+    </message>
+    <message>
+        <source>About the author</source>
+        <translation>Об авторе</translation>
     </message>
 </context>
 <context>
@@ -5394,6 +5426,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Rename group...</source>
+        <translation>Переименовать группу...</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
         <translation>Новый поиск...</translation>
     </message>
@@ -5478,6 +5515,37 @@ Try again?</source>
     <message>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+</context>
+<context>
+    <name>QueryWindow</name>
+    <message>
+        <source>&amp;Commit</source>
+        <translation>&amp;Подтвердить</translation>
+    </message>
+    <message>
+        <source>E&amp;xecute</source>
+        <translation>&amp;Выполнить</translation>
+    </message>
+    <message>
+        <source>Let&apos;s run a query on the database</source>
+        <translation>Давайте выполним запрос к базе данных</translation>
+    </message>
+    <message>
+        <source>Start &amp;transaction</source>
+        <translation>Старт &amp;транзакции</translation>
+    </message>
+    <message>
+        <source>Roll&amp;back</source>
+        <translation>От&amp;катить</translation>
+    </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation>В&amp;ыход</translation>
+    </message>
+    <message>
+        <source>Explain query &amp;plan</source>
+        <translation>Объяснить &amp;план запроса</translation>
     </message>
 </context>
 <context>
@@ -5924,6 +5992,11 @@ Try again?</source>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Read</source>
         <translation>Читать</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Search</source>
+        <translation>Поиск</translation>
     </message>
 </context>
 </TS>

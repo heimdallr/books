@@ -4,6 +4,9 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP TABLE IF EXISTS Settings;
+--@@
+
 DROP TABLE IF EXISTS Inpx;
 --@@
 
@@ -50,6 +53,15 @@ DROP TABLE IF EXISTS Folders;
 --@@
 
 DROP TABLE IF EXISTS Updates;
+--@@
+
+DROP TABLE IF EXISTS Reviews;
+--@@
+
+CREATE TABLE Reviews (
+  BookID INTEGER      NOT NULL,
+  Folder VARCHAR (10) NOT NULL
+);
 --@@
 
 CREATE TABLE Updates (
@@ -195,5 +207,17 @@ CREATE TABLE Inpx (
 );
 --@@
 
-CREATE VIRTUAL TABLE Books_Search USING fts5(Title, content=Books, content_rowid=BookID)
+CREATE TABLE Settings (
+  SettingID    INTEGER NOT NULL PRIMARY KEY,
+  SettingValue BLOB
+);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID);
 --@@

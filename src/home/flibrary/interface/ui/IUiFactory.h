@@ -3,6 +3,7 @@
 #include "GuiUtil/interface/IUiFactory.h"
 
 class QAbstractItemView;
+class QMainWindow;
 class QTreeView;
 
 namespace HomeCompa::Flibrary
@@ -16,9 +17,10 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IScriptDialog> CreateScriptDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class QDialog> CreateOpdsDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateOpdsDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class QDialog> CreateCollectionCleaner() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateCollectionCleaner() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
 
 	virtual void ShowAbout() const = 0;
 

@@ -8,6 +8,7 @@
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
@@ -20,8 +21,11 @@
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
+#include "inpx/src/util/constant.h"
 #include "util/UiTimer.h"
 #include "util/localization.h"
+#include "util/xml/SaxParser.h"
+#include "util/xml/XmlAttributes.h"
 
 #include "ArchiveParser.h"
 #include "log.h"
@@ -42,6 +46,8 @@ constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 letters (%2%3 pa
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
+constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
+constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("Annotation", "Anonymous");
 
 TR_DEF
 
@@ -54,10 +60,42 @@ constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.Fir
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by k.KeywordTitle";
+constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
 
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
 constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
+
+class ReviewParser final : public Util::SaxParser
+{
+public:
+	ReviewParser(QIODevice& stream, IAnnotationController::IDataProvider::Reviews& reviews)
+		: SaxParser(stream)
+		, m_reviews { reviews }
+	{
+	}
+
+private: // SaxParser
+	bool OnStartElement(const QString&, [[maybe_unused]] const QString& path, const Util::XmlAttributes& attributes) override
+	{
+		assert(path == "item");
+		auto& review = m_reviews.emplace_back(QDateTime::fromString(attributes.GetAttribute("time"), "yyyy-MM-dd hh:mm:ss"), attributes.GetAttribute("name"));
+		if (review.name.isEmpty())
+			review.name = Tr(ANONYMOUS);
+
+		return true;
+	}
+
+	bool OnCharacters([[maybe_unused]] const QString& path, const QString& value) override
+	{
+		assert(path == "item" && !m_reviews.empty());
+		m_reviews.back().text = value;
+		return true;
+	}
+
+private:
+	IAnnotationController::IDataProvider::Reviews& m_reviews;
+};
 
 enum class Ready
 {
@@ -144,6 +182,20 @@ struct Table
 		return *this;
 	}
 
+	Table& Add(const QStringList& values)
+	{
+		QString str;
+		ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
+		for (const auto& value : values)
+		{
+			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top;">)"); }, [&] { str.append("</td>"); });
+			str.append(value);
+		}
+		data << str;
+
+		return *this;
+	}
+
 	[[nodiscard]] QString ToString() const
 	{
 		return data.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(data.join("\n"));
@@ -226,8 +278,12 @@ class AnnotationController::Impl final
 	, IJokeRequester::IClient
 {
 public:
-	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester)
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<IJokeRequester> jokeRequester)
 		: m_logicFactory { logicFactory }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseUser { std::move(databaseUser) }
 		, m_jokeRequester { std::move(jokeRequester) }
 		, m_executor { logicFactory->GetExecutor() }
@@ -248,9 +304,15 @@ public:
 			RequestJoke();
 	}
 
-	void ShowJokes(const bool value)
+	void ShowJokes(const bool value) noexcept
 	{
 		m_showJokes = value;
+	}
+
+	void ShowReviews(const bool value) noexcept
+	{
+		m_showReviews = value;
+		ExtractInfo();
 	}
 
 private: // IDataProvider
@@ -369,9 +431,14 @@ private: // IDataProvider
 		return m_archiveData.publishInfo.isbn;
 	}
 
-	[[nodiscard]] const ExportStatistics& GetExportStatistics() const override
+	[[nodiscard]] const ExportStatistics& GetExportStatistics() const noexcept override
 	{
 		return m_exportStatistics;
+	}
+
+	[[nodiscard]] const Reviews& GetReviews() const noexcept override
+	{
+		return m_reviews;
 	}
 
 private: // IProgressController::IObserver
@@ -401,10 +468,13 @@ private:
 	void ExtractInfo()
 	{
 		m_ready = Ready::None;
+		auto db = m_databaseUser->Database();
+		if (!db)
+			return;
+
 		m_databaseUser->Execute({ "Get database book info",
-		                          [&, id = m_currentBookId.toLongLong()]
+		                          [&, db = std::move(db), id = m_currentBookId.toLongLong()]
 		                          {
-									  const auto db = m_databaseUser->Database();
 									  return [this, book = CreateBook(*db, id)](size_t) mutable
 									  {
 										  if (book->GetId() == m_currentBookId)
@@ -470,13 +540,14 @@ private:
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
-									  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
-									  const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
-									  for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
-										  exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
-
 									  ExportStatistics exportStatistics;
-									  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
+									  {
+										  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
+										  const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
+										  for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
+											  exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+										  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
+									  }
 
 									  return [this,
 			                                  book = std::move(book),
@@ -485,7 +556,8 @@ private:
 			                                  genres = std::move(genres),
 			                                  groups = std::move(groups),
 			                                  keywords = std::move(keywords),
-			                                  exportStatistics = std::move(exportStatistics)](size_t) mutable
+			                                  exportStatistics = std::move(exportStatistics),
+			                                  reviews = CollectReviews(*db, bookId)](size_t) mutable
 									  {
 										  if (book->GetId() != m_currentBookId)
 											  return;
@@ -497,6 +569,7 @@ private:
 										  m_groups = std::move(groups);
 										  m_keywords = std::move(keywords);
 										  m_exportStatistics = std::move(exportStatistics);
+										  m_reviews = std::move(reviews);
 										  m_ready |= Ready::Database;
 
 										  if (m_ready == Ready::All)
@@ -504,6 +577,35 @@ private:
 									  };
 								  } },
 		                        3);
+	}
+
+	Reviews CollectReviews(DB::IDatabase& db, const long long bookId) const
+	{
+		if (!m_showReviews)
+			return {};
+
+		std::vector<std::pair<QString, QString>> reviewFolders;
+		{
+			const auto query = db.CreateQuery(REVIEWS_QUERY);
+			query->Bind(0, bookId);
+			for (query->Execute(); !query->Eof(); query->Next())
+				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
+		}
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER);
+
+		Reviews reviews;
+		for (const auto& [libId, reviewFolder] : reviewFolders)
+		{
+			if (!QFile::exists(archivesFolder + "/" + reviewFolder))
+				continue;
+
+			Zip zip(archivesFolder + "/" + reviewFolder);
+			const auto stream = zip.Read(libId);
+			ReviewParser(stream->GetStream(), reviews).Parse();
+		}
+		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });
+
+		return reviews;
 	}
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
@@ -536,6 +638,7 @@ private:
 
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<IJokeRequester, std::shared_ptr> m_jokeRequester;
 	PropagateConstPtr<Util::IExecutor> m_executor;
@@ -557,14 +660,19 @@ private:
 	IDataItem::Ptr m_keywords;
 
 	ExportStatistics m_exportStatistics;
+	Reviews m_reviews;
 
 	std::weak_ptr<ArchiveParser> m_archiveParser;
 
 	bool m_showJokes { false };
+	bool m_showReviews { true };
 };
 
-AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IJokeRequester> jokeRequester)
-	: m_impl(logicFactory, std::move(databaseUser), std::move(jokeRequester))
+AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
+                                           std::shared_ptr<const ICollectionProvider> collectionProvider,
+                                           std::shared_ptr<IDatabaseUser> databaseUser,
+                                           std::shared_ptr<IJokeRequester> jokeRequester)
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(jokeRequester))
 {
 	PLOGV << "AnnotationController created";
 }
@@ -582,6 +690,9 @@ void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNo
 QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const
 {
 	const auto& book = dataProvider.GetBook();
+	if (book.GetId().isEmpty())
+		return {};
+
 	QString annotation;
 	Add(annotation, strategy.GenerateUrl(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
 	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
@@ -640,12 +751,26 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		Add(annotation, exportStatistics.ToString());
 	}
 
+	if (!dataProvider.GetReviews().empty())
+	{
+		annotation.append(strategy.GetReviewsDelimiter()).append("<hr/>").append(QString(TITLE_PATTERN).arg(Tr(REVIEWS)));
+		Table table;
+		for (const auto& review : dataProvider.GetReviews())
+			table.Add(QStringList() << review.name << review.time.toString("yyyy.MM.dd<br>hh:mm:ss") << review.text);
+		Add(annotation, table.ToString());
+	}
+
 	return annotation;
 }
 
 void AnnotationController::ShowJokes(const bool value)
 {
 	m_impl->ShowJokes(value);
+}
+
+void AnnotationController::ShowReviews(const bool value)
+{
+	m_impl->ShowReviews(value);
 }
 
 void AnnotationController::RegisterObserver(IObserver* observer)

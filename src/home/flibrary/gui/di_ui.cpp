@@ -11,6 +11,7 @@
 
 #include "LineOption.h"
 #include "MainWindow.h"
+#include "MigrateWindow.h"
 #include "UiFactory.h"
 
 namespace HomeCompa::Flibrary
@@ -22,6 +23,7 @@ void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermi
 	builder.registerType<ComboBoxTextDialog>().as<IComboBoxTextDialog>();
 	builder.registerType<LineOption>().as<ILineOption>();
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
+	builder.registerType<MigrateWindow>().as<IMigrateWindow>();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return std::make_shared<StyleApplierFactory>(*container, ctx.resolve<ISettings>()); }).as<IStyleApplierFactory>().singleInstance();

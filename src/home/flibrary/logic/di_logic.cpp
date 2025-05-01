@@ -5,6 +5,7 @@
 #include <Hypodermic/Hypodermic.h>
 
 #include "Annotation/AnnotationController.h"
+#include "Annotation/AuthorAnnotationController.h"
 #include "ChangeNavigationController/SearchController.h"
 #include "Collection/CollectionCleaner.h"
 #include "Collection/CollectionController.h"
@@ -16,6 +17,7 @@
 #include "data/NavigationQueryExecutor.h"
 #include "database/DatabaseChecker.h"
 #include "database/DatabaseController.h"
+#include "database/DatabaseMigrator.h"
 #include "database/DatabaseUser.h"
 #include "log/LogController.h"
 #include "model/FilteredProxyModel.h"
@@ -50,6 +52,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
+	builder.registerType<DatabaseMigrator>().as<IDatabaseMigrator>();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<GenreModel>().as<IGenreModel>();
 	builder.registerType<LanguageModel>().as<ILanguageModel>();
@@ -63,6 +66,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
+	builder.registerType<AuthorAnnotationController>().as<IAuthorAnnotationController>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();

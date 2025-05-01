@@ -33,7 +33,8 @@ protected:
 	~GeometryRestorable();
 
 protected:
-	void Init();
+	void LoadGeometry();
+	void SaveGeometry();
 
 private:
 	class Impl;
@@ -51,7 +52,5 @@ protected: // GeometryRestorable::IObserver
 private:
 	QWidget& m_widget;
 };
-
-GUIUTIL_EXPORT void InitSplitter(QSplitter* splitter);
 
 } // namespace HomeCompa::Util

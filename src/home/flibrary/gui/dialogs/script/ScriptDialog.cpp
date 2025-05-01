@@ -104,11 +104,12 @@ public:
 
 		m_ui.viewScript->setCurrentIndex(m_scriptModel->index(0, 1));
 
-		Init();
+		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		SaveGeometry();
 		SaveLayout(m_self, *m_ui.viewScript, *m_settings);
 		SaveLayout(m_self, *m_ui.viewCommand, *m_settings);
 	}

@@ -262,6 +262,16 @@
         <source>, translated from %1</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Readers&apos; Reviews</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/Annotation/AnnotationController.cpp"/>
+        <source>Anonymous</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
@@ -760,11 +770,6 @@
         <location filename="../../util/localization.h"/>
         <source>You must restart the application to apply the changes.
 Restart now?</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../util/localization.h"/>
-        <source>To search books by title, enter part of the title here and press enter</source>
         <translation></translation>
     </message>
 </context>
@@ -2626,6 +2631,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
+        <source>Cannot rename group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove groups</source>
         <translation></translation>
     </message>
@@ -2637,6 +2647,14 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove books from group</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::MigrateWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/MigrateWindow.cpp"/>
+        <source>The database migration process is in progress...</source>
         <translation></translation>
     </message>
 </context>
@@ -4991,6 +5009,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation></translation>
     </message>
@@ -5137,6 +5160,14 @@ Try again?</source>
     </message>
     <message>
         <source>Http server management</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Readers&apos; &amp;Reviews</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>About the author</source>
         <translation></translation>
     </message>
 </context>
@@ -5382,6 +5413,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Rename group...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
         <translation></translation>
     </message>
@@ -5465,6 +5501,37 @@ Try again?</source>
     <name>ProgressBar</name>
     <message>
         <source>Cancel</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>QueryWindow</name>
+    <message>
+        <source>&amp;Commit</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>E&amp;xecute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Let&apos;s run a query on the database</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Start &amp;transaction</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Roll&amp;back</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Explain query &amp;plan</source>
         <translation></translation>
     </message>
 </context>
@@ -5908,6 +5975,11 @@ Try again?</source>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Read</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>Search</source>
         <translation></translation>
     </message>
 </context>

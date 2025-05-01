@@ -3,7 +3,6 @@
 #include <QFileInfo>
 #include <QLineEdit>
 #include <QMenu>
-#include <QRegularExpression>
 #include <QUuid>
 
 #include "fnd/FindPair.h"
@@ -12,6 +11,7 @@
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
+#include "util/files.h"
 #include "util/localization.h"
 
 namespace HomeCompa::Flibrary
@@ -19,16 +19,6 @@ namespace HomeCompa::Flibrary
 
 namespace
 {
-
-QString RemoveIllegalCharacters(QString str)
-{
-	str.remove(QRegularExpression(R"([/\\<>:"\|\?\*\t])"));
-
-	while (!str.isEmpty() && str.endsWith('.'))
-		str.chop(1);
-
-	return str.simplified();
-}
 
 void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
 {
@@ -170,17 +160,17 @@ ILogicFactory::ExtractedBooks ILogicFactory::GetExtractedBooks(QAbstractItemMode
 
 void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book)
 {
-	const auto authorNameSplitted = RemoveIllegalCharacters(book.author).split(' ', Qt::SkipEmptyParts);
+	const auto authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 
 	const QFileInfo fileInfo(book.file);
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Title, RemoveIllegalCharacters(book.title));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileExt, RemoveIllegalCharacters(fileInfo.suffix()));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileName, RemoveIllegalCharacters(fileInfo.fileName()));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::BaseFileName, RemoveIllegalCharacters(fileInfo.completeBaseName()));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Title, Util::RemoveIllegalPathCharacters(book.title));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileExt, Util::RemoveIllegalPathCharacters(fileInfo.suffix()));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileName, Util::RemoveIllegalPathCharacters(fileInfo.fileName()));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::BaseFileName, Util::RemoveIllegalPathCharacters(fileInfo.completeBaseName()));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Uid, QUuid::createUuid().toString(QUuid::WithoutBraces));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Id, QString::number(book.id));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Author, RemoveIllegalCharacters(book.author));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, RemoveIllegalCharacters(book.series));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Author, Util::RemoveIllegalPathCharacters(book.author));
+	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, Util::RemoveIllegalPathCharacters(book.series));
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileSize, QString::number(book.size));
 	IScriptController::SetMacro(scriptTemplate,

@@ -12,6 +12,7 @@
 
 #include "Initializer.h"
 #include "XmlAttributes.h"
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Util;
@@ -312,4 +313,37 @@ void SaxParser::Parse()
 bool SaxParser::IsLastItemProcessed() const noexcept
 {
 	return m_processed;
+}
+
+bool SaxParser::OnStartElement(const QString& /*name*/, const QString& /*path*/, const XmlAttributes& /*attributes*/)
+{
+	return true;
+}
+
+bool SaxParser::OnEndElement(const QString& /*name*/, const QString& /*path*/)
+{
+	return true;
+}
+
+bool SaxParser::OnCharacters(const QString& /*path*/, const QString& /*value*/)
+{
+	return true;
+}
+
+bool SaxParser::OnWarning(const QString& text)
+{
+	PLOGW << text;
+	return true;
+}
+
+bool SaxParser::OnError(const QString& text)
+{
+	PLOGE << text;
+	return false;
+}
+
+bool SaxParser::OnFatalError(const QString& text)
+{
+	PLOGF << text;
+	return false;
 }

@@ -74,12 +74,7 @@ private: // QStyledItemDelegate
 		style->drawControl(QStyle::CE_ItemViewItem, &o, painter, widget);
 		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
 		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
-		style->drawItemText(painter,
-		                    o.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin),
-		                    Qt::AlignLeft,
-		                    o.palette,
-		                    o.state & QStyle::State_Enabled,
-		                    index.data(Qt::DisplayRole).toString());
+		style->drawItemText(painter, o.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin), Qt::AlignLeft, o.palette, o.state & QStyle::State_Enabled, index.data(Qt::DisplayRole).toString());
 	}
 
 	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, [[maybe_unused]] const QModelIndex& index) const override

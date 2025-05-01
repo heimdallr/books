@@ -10,7 +10,6 @@
 #include "database/factory/Factory.h"
 #include "util/FunctorExecutionForwarder.h"
 
-#include "DatabaseScheme.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -44,7 +43,6 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 
 	try
 	{
-		DatabaseScheme::Update(*db, collectionProvider);
 		return db;
 	}
 	catch (const std::exception& ex)
@@ -106,6 +104,7 @@ private: // ICollectionsObserver
 	{
 		if (m_db)
 			Perform(&IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
+
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
 	}

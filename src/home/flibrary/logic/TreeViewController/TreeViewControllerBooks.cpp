@@ -102,9 +102,11 @@ TreeViewControllerBooks::~TreeViewControllerBooks()
 	PLOGV << "TreeViewControllerBooks destroyed";
 }
 
-std::vector<const char*> TreeViewControllerBooks::GetModeNames() const
+std::vector<std::pair<const char*, int>> TreeViewControllerBooks::GetModeNames() const
 {
-	return GetModeNamesImpl(MODE_NAMES);
+	std::vector<std::pair<const char*, int>> result;
+	std::ranges::transform(MODE_NAMES, std::back_inserter(result), [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.viewMode)); });
+	return result;
 }
 
 void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
