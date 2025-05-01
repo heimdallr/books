@@ -468,10 +468,13 @@ private:
 	void ExtractInfo()
 	{
 		m_ready = Ready::None;
+		auto db = m_databaseUser->Database();
+		if (!db)
+			return;
+
 		m_databaseUser->Execute({ "Get database book info",
-		                          [&, id = m_currentBookId.toLongLong()]
+		                          [&, db = std::move(db), id = m_currentBookId.toLongLong()]
 		                          {
-									  const auto db = m_databaseUser->Database();
 									  return [this, book = CreateBook(*db, id)](size_t) mutable
 									  {
 										  if (book->GetId() == m_currentBookId)

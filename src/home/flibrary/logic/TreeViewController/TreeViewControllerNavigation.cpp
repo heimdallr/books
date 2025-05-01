@@ -424,7 +424,7 @@ std::vector<std::pair<const char*, int>> TreeViewControllerNavigation::GetModeNa
 	                           | std::views::filter(
 								   [db = m_impl->databaseController->GetDatabase()](const auto& item)
 								   {
-									   if (!item.second.filter)
+									   if (!db || !item.second.filter)
 										   return true;
 
 									   const auto query = db->CreateQuery(item.second.filter);
