@@ -1,5 +1,4 @@
-﻿#include <Constant.h>
-#include <QCryptographicHash>
+﻿#include <QCryptographicHash>
 
 #include <filesystem>
 #include <fstream>
@@ -30,6 +29,7 @@
 #include "util/xml/Initializer.h"
 #include "util/xml/XmlWriter.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -593,7 +593,7 @@ select
     n.nid / 10000, a.LastName || ' ' || a.FirstName || ' ' || a.MiddleName, n.Body, p.File
 from libaannotations n 
 join libavtorname a on a.AvtorId = n.AvtorId 
-join libapics p on p.AvtorId = n.AvtorId
+left join libapics p on p.AvtorId = n.AvtorId
 order by n.nid
 )");
 	for (query->Execute(); !query->Eof(); query->Next())
@@ -604,7 +604,9 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), std::vector<QString> {})).first->second.second.emplace_back(query->Get<const char*>(3));
+		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), std::vector<QString> {})).first->second.second;
+		if (const auto* file = query->Get<const char*>(3))
+			files.emplace_back(file);
 	}
 }
 
