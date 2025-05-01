@@ -528,12 +528,12 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 		if (currentId < 0)
 			return;
 
-		PLOGI << currentId;
-
 		{
 			const auto archiveName = QString::fromStdWString(authorsFolder / std::to_string(currentId)) + ".7z";
 			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
 				remove(archivePath);
+
+			PLOGI << archiveName;
 
 			std::vector<QString> files;
 			files.reserve(data.size());
