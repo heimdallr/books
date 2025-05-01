@@ -28,7 +28,7 @@ public:
 
 	bool IsReady() const noexcept
 	{
-		return m_ready && m_authorsMode;
+		return m_authorsMode && !m_authorToArchive.empty();
 	}
 
 	void SetNavigationMode(const NavigationMode mode)
@@ -40,9 +40,10 @@ public:
 	void SetAuthor(const long long id, QString lastName, QString firstName, QString middleName)
 	{
 		m_authorId = id;
-		if (!m_executor)
+		if (m_authorToArchive.empty())
 			return;
 
+		assert(m_executor);
 		(*m_executor)({ "Extract author's annotation",
 		                [this, id, lastName = std::move(lastName), firstName = std::move(firstName), middleName = std::move(middleName)]() mutable
 		                {
@@ -84,7 +85,6 @@ private:
 									return m_executor.reset();
 
 								m_authorToArchive = std::move(authorToArchive);
-								m_ready = true;
 								Perform(&IObserver::OnReadyChanged);
 							};
 						} },
@@ -128,7 +128,6 @@ private:
 	}
 
 private:
-	bool m_ready { false };
 	bool m_authorsMode { false };
 
 	QDir m_authorsDir;
