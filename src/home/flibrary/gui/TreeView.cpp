@@ -588,9 +588,9 @@ private:
 		        {
 					auto newMode = m_ui.cbMode->currentData().toString();
 					emit m_self.NavigationModeNameChanged(newMode);
-					m_controller->SetMode(newMode);
 					SaveHeaderLayout();
 					m_recentMode = std::move(newMode);
+					m_controller->SetMode(m_recentMode);
 				});
 		connect(m_ui.cbValueMode,
 		        &QComboBox::currentIndexChanged,
