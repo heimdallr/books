@@ -465,7 +465,7 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 
 									   Util::XmlWriter writer(buffer);
 									   for (const auto& [name, time, text] : value)
-										   writer.Guard("item")->WriteAttribute("name", name).WriteAttribute("time", time).WriteCharacters(text);
+										   writer.Guard("item")->WriteAttribute("name", name.simplified()).WriteAttribute("time", time).WriteCharacters(text.simplified());
 								   }
 								   return buffer.buffer();
 							   });
@@ -541,7 +541,7 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 
 			std::vector<QByteArray> bytes;
 			bytes.reserve(data.size());
-			std::ranges::transform(data | std::views::values | std::views::keys, std::back_inserter(bytes), [](const auto& value) { return value.toUtf8(); });
+			std::ranges::transform(data | std::views::values | std::views::keys, std::back_inserter(bytes), [](const auto& value) { return value.simplified().toUtf8(); });
 
 			const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
 
