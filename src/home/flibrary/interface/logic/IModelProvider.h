@@ -17,6 +17,7 @@ public:
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, class IModelObserver& observer, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateAuthorsListModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateScriptModel() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateScriptCommandModel() const = 0;
