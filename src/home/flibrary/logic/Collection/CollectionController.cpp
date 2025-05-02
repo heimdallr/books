@@ -9,6 +9,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/src/util/constant.h"
@@ -266,6 +267,8 @@ private:
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto& parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(db, folder, true);
+
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
 		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
