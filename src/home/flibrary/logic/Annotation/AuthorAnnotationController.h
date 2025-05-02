@@ -22,7 +22,10 @@ private: // IAuthorAnnotationController
 	bool IsReady() const noexcept override;
 
 	void SetNavigationMode(NavigationMode mode) override;
-	void SetAuthor(long long id, QString lastName, QString firstName, QString middleName) override;
+	void SetAuthor(long long id, QString name) override;
+
+	bool CheckAuthor(const QString& name) const override;
+	QString GetInfo(const QString& name) const override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

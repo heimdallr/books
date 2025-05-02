@@ -282,6 +282,12 @@ private: // ITreeViewController::IObserver
 	}
 
 private: // ITreeViewDelegate::IObserver
+	void OnLineHeightChanged(const int height) override
+	{
+		m_lineHeight = height;
+		UpdateSectionSize();
+	}
+
 	void OnButtonClicked(const QModelIndex&) override
 	{
 		assert(m_removeItems);
@@ -658,6 +664,7 @@ private:
 
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
 
+		UpdateSectionSize();
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
 			return;
 
@@ -852,6 +859,23 @@ private:
 			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);
 	}
 
+	void UpdateSectionSize() const
+	{
+		if (!m_lineHeight || m_controller->GetItemType() != ItemType::Navigation)
+			return;
+
+		auto* header = m_ui.treeView->header();
+		if (!header || !header->count())
+			return;
+
+		header->setSectionResizeMode(0, QHeaderView::Stretch);
+		if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
+		{
+			header->setSectionResizeMode(1, QHeaderView::Interactive);
+			header->resizeSection(1, m_lineHeight);
+		}
+	}
+
 	void OnCountChanged() const
 	{
 		m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
@@ -893,6 +917,7 @@ private:
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
+	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
 };

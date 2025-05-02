@@ -27,4 +27,10 @@ constexpr auto OPDS_SERVER_COMMAND_STOP = "stop";
 
 constexpr auto BOOK = "Book:";
 
-}
+const auto INFO = []
+{
+	static constexpr char32_t info = 0x0001F6C8;
+	return QString::fromUcs4(&info, 1);
+}();
+
+} // namespace HomeCompa::Flibrary::Constant

@@ -112,53 +112,45 @@ private:
 		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
 			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
 
-		m_databaseUser->Execute({ "Get books",
-		                          [this,
-		                           navigationMode = m_navigationMode,
-		                           navigationId = m_navigationId,
-		                           viewMode = m_booksViewMode,
-		                           generator = std::move(m_booksGenerator),
-		                           booksGeneratorReady,
-		                           &description,
-		                           &booksGenerator,
-		                           &columnMapper]() mutable
-		                          {
-									  QString lastName, firstName, middleName;
-									  if (!booksGeneratorReady)
-									  {
-										  const auto db = m_databaseUser->Database();
-										  generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
+		m_databaseUser->Execute(
+			{ "Get books",
+		      [this,
+		       navigationMode = m_navigationMode,
+		       navigationId = m_navigationId,
+		       viewMode = m_booksViewMode,
+		       generator = std::move(m_booksGenerator),
+		       booksGeneratorReady,
+		       &description,
+		       &booksGenerator,
+		       &columnMapper]() mutable
+		      {
+				  QString authorName;
+				  if (!booksGeneratorReady)
+				  {
+					  const auto db = m_databaseUser->Database();
+					  generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
 
-										  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
-										  {
-											  const auto query = db->CreateQuery(QString("select LastName, FirstName, MiddleName from Authors where AuthorID = %1").arg(navigationId).toStdString());
-											  query->Execute();
-											  assert(!query->Eof());
-											  lastName = query->Get<const char*>(0);
-											  firstName = query->Get<const char*>(1);
-											  middleName = query->Get<const char*>(2);
-										  }
-									  }
+					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
+					  {
+						  const auto query = db->CreateQuery(QString("select LastName || ' ' || FirstName || ' ' || MiddleName from Authors where AuthorID = %1").arg(navigationId).toStdString());
+						  query->Execute();
+						  assert(!query->Eof());
+						  authorName = query->Get<const char*>(0);
+					  }
+				  }
 
-									  generator->SetBooksViewMode(viewMode);
-									  auto root = (*generator.*booksGenerator)(description.treeCreator);
-									  return [this,
-			                                  navigationId = std::move(navigationId),
-			                                  root = std::move(root),
-			                                  generator = std::move(generator),
-			                                  lastName = std::move(lastName),
-			                                  firstName = std::move(firstName),
-			                                  middleName = std::move(middleName),
-			                                  &description,
-			                                  &columnMapper](size_t) mutable
-									  {
-										  m_booksGenerator = std::move(generator);
-										  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
-										  if (!lastName.isEmpty())
-											  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(lastName), std::move(firstName), std::move(middleName));
-									  };
-								  } },
-		                        2);
+				  generator->SetBooksViewMode(viewMode);
+				  auto root = (*generator.*booksGenerator)(description.treeCreator);
+				  return
+					  [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](size_t) mutable
+				  {
+					  m_booksGenerator = std::move(generator);
+					  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+					  if (!authorName.isEmpty())
+						  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
+				  };
+			  } },
+			2);
 	}
 
 	void SendNavigationCallback(const NavigationMode mode, IDataItem::Ptr root) const

@@ -4,6 +4,8 @@
 #include <QHelpEvent>
 #include <QToolTip>
 
+#include "interface/constants/ProductConstant.h"
+
 using namespace HomeCompa::Flibrary;
 
 ItemViewToolTipper::ItemViewToolTipper(QObject* parent)
@@ -32,20 +34,25 @@ bool ItemViewToolTipper::eventFilter(QObject* obj, QEvent* event)
 	if (itemTooltip.isEmpty())
 		return false;
 
-	auto font = view->font();
-	font.setPointSizeF(font.pointSizeF() * 1.2);
-
 	const auto itemText = model.data(index).toString();
-	const int itemTextWidth = QFontMetrics(font).horizontalAdvance(itemText);
+	const auto authorAnnotationMode = itemText == Constant::INFO;
 
-	const auto rect = view->visualRect(index);
-	auto rectWidth = rect.width();
+	auto font = view->font();
+	font.setPointSizeF(font.pointSizeF() * (authorAnnotationMode ? 0.8 : 1.2));
 
-	if (model.flags(index) & Qt::ItemIsUserCheckable)
-		rectWidth -= rect.height();
+	if (!authorAnnotationMode)
+	{
+		const int itemTextWidth = QFontMetrics(font).horizontalAdvance(itemText);
 
-	if (itemTextWidth <= rectWidth)
-		return true;
+		const auto rect = view->visualRect(index);
+		auto rectWidth = rect.width();
+
+		if (model.flags(index) & Qt::ItemIsUserCheckable)
+			rectWidth -= rect.height();
+
+		if (itemTextWidth <= rectWidth)
+			return true;
+	}
 
 	QToolTip::setFont(font);
 	QToolTip::showText(helpEvent->globalPos(), itemTooltip, view);

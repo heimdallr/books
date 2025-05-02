@@ -15,7 +15,7 @@ protected:
 	explicit AbstractListModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent);
 };
 
-class ListModel final : public AbstractListModel
+class ListModel : public AbstractListModel
 {
 	NON_COPY_MOVABLE(ListModel)
 
