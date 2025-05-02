@@ -33,7 +33,7 @@ private: // IAuthorAnnotationController::IObserver
 	void OnReadyChanged() override
 	{
 		if (Util::Set(isReady, authorAnnotationController->IsReady()))
-			self->dataChanged(self->index(0, 0), self->index(self->rowCount() - 1, 0), { Qt::CheckStateRole });
+			self->dataChanged(self->index(0, 0), self->index(self->rowCount() - 1, self->columnCount() - 1), { Qt::CheckStateRole });
 	}
 
 	void OnAuthorChanged(const QString&, const std::vector<QByteArray>&) override
@@ -57,7 +57,7 @@ AuthorsModel::~AuthorsModel()
 
 int AuthorsModel::columnCount(const QModelIndex& parent) const
 {
-	return parent.isValid() ? 0 : 2;
+	return parent.isValid() ? 0 : m_impl->authorAnnotationController->IsReady() ? 2 : 1;
 }
 
 QVariant AuthorsModel::data(const QModelIndex& index, const int role) const

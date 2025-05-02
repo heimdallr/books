@@ -869,7 +869,7 @@ private:
 			return;
 
 		header->setSectionResizeMode(0, QHeaderView::Stretch);
-		if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
+		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
 		{
 			header->setSectionResizeMode(1, QHeaderView::Interactive);
 			header->resizeSection(1, m_lineHeight);
