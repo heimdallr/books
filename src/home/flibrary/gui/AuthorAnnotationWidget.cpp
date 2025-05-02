@@ -3,6 +3,7 @@
 #include "AuthorAnnotationWidget.h"
 
 #include <QAbstractTableModel>
+#include <QDesktopServices>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
@@ -78,6 +79,8 @@ public:
 		m_scrollBarControllerImages->SetScrollArea(m_ui.gallery);
 
 		m_annotationController->RegisterObserver(this);
+
+		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { QDesktopServices::openUrl(link); });
 	}
 
 	~Impl() override
