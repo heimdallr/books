@@ -29,4 +29,4 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

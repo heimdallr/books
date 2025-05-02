@@ -57,6 +57,19 @@ public:
 		              1000);
 	}
 
+	bool CheckAuthor(const QString& name) const
+	{
+		return IsReady() ? Find(name).second >= 0 : false;
+	}
+
+	QString GetInfo(const QString& name) const
+	{
+		if (const auto [hashed, index] = Find(name); index >= 0)
+			return GetAnnotationText(hashed, index);
+
+		return {};
+	}
+
 private:
 	std::pair<QString, int> Find(const QString& name) const
 	{
@@ -165,7 +178,15 @@ void AuthorAnnotationController::SetAuthor(const long long id, QString name)
 {
 	m_impl->SetAuthor(id, std::move(name));
 }
+
+bool AuthorAnnotationController::CheckAuthor(const QString& name) const
 {
+	return m_impl->CheckAuthor(name);
+}
+
+QString AuthorAnnotationController::GetInfo(const QString& name) const
+{
+	return m_impl->GetInfo(name);
 }
 
 void AuthorAnnotationController::RegisterObserver(IObserver* observer)
