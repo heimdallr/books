@@ -74,6 +74,9 @@ QVariant AuthorsModel::data(const QModelIndex& index, const int role) const
 		case Qt::ToolTipRole:
 			return m_impl->authorAnnotationController->GetInfo(author);
 
+		case Qt::TextAlignmentRole:
+			return Qt::AlignRight;
+
 		default:
 			break;
 	}
