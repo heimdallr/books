@@ -11,9 +11,10 @@ namespace HomeCompa::Flibrary
 class ITreeViewDelegate // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	class IObserver : public HomeCompa::Observer
+	class IObserver : public Observer
 	{
 	public:
+		virtual void OnLineHeightChanged(int height) = 0;
 		virtual void OnButtonClicked(const QModelIndex&) = 0;
 	};
 

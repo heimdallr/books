@@ -7,6 +7,7 @@
 #include <QStyledItemDelegate>
 #include <QToolButton>
 
+#include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
 #include "interface/constants/ModelRole.h"
@@ -60,6 +61,9 @@ private: // QStyledItemDelegate
 
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
+		if (Util::Set(*m_height, option.rect.size().height()))
+			Perform(&IObserver::OnLineHeightChanged, *m_height);
+
 		auto o = option;
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
@@ -98,6 +102,7 @@ private:
 	QAbstractItemView& m_view;
 	QMetaObject::Connection m_connection;
 	bool m_enabled { false };
+	std::unique_ptr<int> m_height { std::make_unique<int>() };
 };
 
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory>& uiFactory)
