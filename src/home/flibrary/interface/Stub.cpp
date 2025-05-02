@@ -8,6 +8,8 @@
 #include "fnd/FindPair.h"
 
 #include "constants/ModelRole.h"
+#include "constants/ProductConstant.h"
+#include "logic/IDatabaseUser.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
@@ -185,6 +187,11 @@ void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedB
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorMiddleName, authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorF, authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString {});
 	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorM, authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString {});
+}
+
+QString IDatabaseUser::GetDatabaseVersionStatement()
+{
+	return QString("insert or replace into Settings(SettingID, SettingValue) values(%1, %2)").arg(static_cast<int>(Key::DatabaseVersion)).arg(Constant::FlibraryDatabaseVersionNumber);
 }
 
 namespace

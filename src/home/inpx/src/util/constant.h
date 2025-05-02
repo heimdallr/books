@@ -25,10 +25,9 @@ constexpr auto REVIEWS_FOLDER = L"reviews";
 constexpr auto AUTHORS_FOLDER = L"authors";
 constexpr auto MHL_TRIGGERS_ON = L"mhl_triggers_on";
 constexpr auto VERSION_INFO = L"version.info";
+constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";
 constexpr auto ZIP = L"zip";
 constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
-
-constexpr const char* SCHEMA_VERSION_VALUE = "{FEC8CB6F-300A-4b92-86D1-7B40867F782B}";
 
 constexpr auto INP_EXT = L".inp";
 

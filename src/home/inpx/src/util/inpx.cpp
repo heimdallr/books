@@ -416,6 +416,13 @@ void Analyze(const Path& dbFileName)
 	assert(rc == 0);
 }
 
+void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
+{
+	DatabaseWrapper db(dbFileName);
+	[[maybe_unused]] const auto rc = sqlite3pp::command(db, ToMultiByte(statement).data()).execute();
+	assert(rc == 0);
+}
+
 template <typename T>
 void print(const T& value)
 {
@@ -1133,6 +1140,7 @@ private:
 		const auto& dbFileName = m_ini(DB_PATH);
 
 		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
+		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
