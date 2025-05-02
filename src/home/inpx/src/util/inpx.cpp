@@ -1519,8 +1519,9 @@ private:
 
 	auto& GetFileList(const Path& rootFolder, const std::wstring& folder)
 	{
-		auto& fileList = m_foldersContent[folder];
-		if (!fileList.empty())
+		const auto [it, inserted] = m_foldersContent.try_emplace(folder, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>{});
+		auto& fileList = it->second;
+		if (!inserted)
 			return fileList;
 
 		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
