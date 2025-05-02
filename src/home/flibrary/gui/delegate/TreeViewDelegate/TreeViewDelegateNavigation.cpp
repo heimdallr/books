@@ -64,7 +64,7 @@ private: // QStyledItemDelegate
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		if (!(o.state & QStyle::State_Selected))
+		if (!m_enabled || !(o.state & QStyle::State_Selected))
 			return QStyledItemDelegate::paint(painter, o, index);
 
 		const QWidget* widget = o.widget;
