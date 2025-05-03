@@ -391,6 +391,26 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 
 	std::vector<QString> inpFiles;
 	std::vector<QByteArray> data;
+
+	if (const auto it = std::find_if(std::filesystem::directory_iterator { archivesPath },
+	                                 std::filesystem::directory_iterator {},
+	                                 [](const auto& entry) { return !entry.is_directory() && entry.path().extension() == ".inpx"; });
+	    it != std::filesystem::directory_iterator {})
+	{
+		const auto& path = it->path();
+		PLOGV << path.string();
+
+		QByteArray file;
+		Zip zip(QString::fromStdWString(path));
+		std::ranges::transform(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+		                       std::back_inserter(data),
+		                       [&](const auto& item)
+		                       {
+			                       inpFiles.emplace_back(item);
+								   return zip.Read(item)->GetStream().readAll();
+		                       });
+	}
+
 	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
 	                           | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
 	                       std::back_inserter(inpFiles),
