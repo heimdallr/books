@@ -336,9 +336,9 @@ left join libfilename f on f.BookId=b.BookID
 	return inpData;
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPath)
+std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPath, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder)
 {
-	const std::filesystem::path dbPath = "t:/db.db";
+	const auto dbPath = outputFolder / (archivesPath.filename().wstring() + L".db");
 	const auto dbExists = exists(dbPath);
 
 	auto db = Create(DB::Factory::Impl::Sqlite, std::format("path={};flag={}", dbPath.string(), dbExists ? "READONLY" : "CREATE"));
@@ -385,7 +385,7 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 			fileToId.emplace(query->Get<const char*>(0), query->Get<long long>(1));
 	}
 
-	const auto inpxFileName = outputFolder / "lib.inpx";
+	const auto inpxFileName = outputFolder / (archivesPath.filename().wstring() + L".inpx");
 	if (exists(inpxFileName))
 		remove(inpxFileName);
 
@@ -641,7 +641,7 @@ int main(const int argc, char* argv[])
 		return 1;
 	}
 
-	const auto db = CreateDatabase(argv[1]);
+	const auto db = CreateDatabase(argv[1], argv[2], argv[3]);
 	const auto inpData = GenerateInpData(*db);
 	const auto libIds = CreateInpx(*db, inpData, argv[2], argv[3]);
 	CreateReview(*db, libIds, argv[3]);
