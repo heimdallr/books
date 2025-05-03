@@ -15,6 +15,7 @@
 #include "util/IExecutor.h"
 
 #include "Constant.h"
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -65,7 +66,12 @@ public:
 	QString GetInfo(const QString& name) const
 	{
 		if (const auto [hashed, index] = Find(name); index >= 0)
+		{
+#ifndef NDEBUG
+			PLOGV << name << ": " << index << ". " << hashed;
+#endif
 			return GetAnnotationText(hashed, index);
+		}
 
 		return {};
 	}
