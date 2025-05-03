@@ -7,6 +7,7 @@
 
 #include <QBuffer>
 #include <QFileInfo>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 #include <config/version.h>
@@ -208,6 +209,19 @@ void ReplaceStringInPlace(std::string& subject, const std::string& search, const
 	}
 }
 
+QString& ReplaceTags(QString& str)
+{
+	static constexpr const char* tags[] {
+		"br",
+		"hr",
+	};
+	str.replace(QRegularExpression(R"(\[(\w)\])"), R"(<\1>)").replace(QRegularExpression(R"(\[(/\w)\])"), R"(<\1>)");
+	for (const auto* tag : tags)
+		str.replace(QString("[%1]").arg(tag), QString("<%1>").arg(tag), Qt::CaseInsensitive);
+
+	return str;
+}
+
 void FillTables(DB::IDatabase& db, const std::filesystem::path& path)
 {
 	LOGI << path.string();
@@ -322,9 +336,9 @@ left join libfilename f on f.BookId=b.BookID
 	return inpData;
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPath)
+std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPath, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder)
 {
-	const std::filesystem::path dbPath = "t:/db.db";
+	const auto dbPath = outputFolder / (archivesPath.filename().wstring() + L".db");
 	const auto dbExists = exists(dbPath);
 
 	auto db = Create(DB::Factory::Impl::Sqlite, std::format("path={};flag={}", dbPath.string(), dbExists ? "READONLY" : "CREATE"));
@@ -371,12 +385,32 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 			fileToId.emplace(query->Get<const char*>(0), query->Get<long long>(1));
 	}
 
-	const auto inpxFileName = outputFolder / "lib.inpx";
+	const auto inpxFileName = outputFolder / (archivesPath.filename().wstring() + L".inpx");
 	if (exists(inpxFileName))
 		remove(inpxFileName);
 
 	std::vector<QString> inpFiles;
 	std::vector<QByteArray> data;
+
+	if (const auto it = std::find_if(std::filesystem::directory_iterator { archivesPath },
+	                                 std::filesystem::directory_iterator {},
+	                                 [](const auto& entry) { return !entry.is_directory() && entry.path().extension() == ".inpx"; });
+	    it != std::filesystem::directory_iterator {})
+	{
+		const auto& path = it->path();
+		PLOGV << path.string();
+
+		QByteArray file;
+		Zip zip(QString::fromStdWString(path));
+		std::ranges::transform(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+		                       std::back_inserter(data),
+		                       [&](const auto& item)
+		                       {
+			                       inpFiles.emplace_back(item);
+								   return zip.Read(item)->GetStream().readAll();
+		                       });
+	}
+
 	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
 	                           | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
 	                       std::back_inserter(inpFiles),
@@ -491,7 +525,8 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 		if (const auto month = date.year() * 100 + date.month(); month != currentMonth)
 			write(month);
 
-		data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3));
+		auto& text = std::get<2>(data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3)));
+		ReplaceTags(text);
 	}
 
 	write(currentMonth);
@@ -604,7 +639,8 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
+		auto& [annotation, files] = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second;
+		ReplaceTags(annotation);
 		if (const auto* file = query->Get<const char*>(3))
 			files.insert(file);
 	}
@@ -625,7 +661,7 @@ int main(const int argc, char* argv[])
 		return 1;
 	}
 
-	const auto db = CreateDatabase(argv[1]);
+	const auto db = CreateDatabase(argv[1], argv[2], argv[3]);
 	const auto inpData = GenerateInpData(*db);
 	const auto libIds = CreateInpx(*db, inpData, argv[2], argv[3]);
 	CreateReview(*db, libIds, argv[3]);

@@ -15,6 +15,7 @@
 #include "util/IExecutor.h"
 
 #include "Constant.h"
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -65,7 +66,12 @@ public:
 	QString GetInfo(const QString& name) const
 	{
 		if (const auto [hashed, index] = Find(name); index >= 0)
+		{
+#ifndef NDEBUG
+			PLOGV << name << ": " << index << ". " << hashed;
+#endif
 			return GetAnnotationText(hashed, index);
+		}
 
 		return {};
 	}
@@ -127,9 +133,7 @@ private:
 		const auto annotationFileName = m_authorsDir.filePath(QString("%1.7z").arg(file));
 		assert(QFile::exists(annotationFileName));
 		Zip zip(annotationFileName);
-		auto result = QString::fromUtf8(zip.Read(name)->GetStream().readAll());
-		result.replace("[b]", "<b>").replace("[/b]", "</b>");
-		return result;
+		return QString::fromUtf8(zip.Read(name)->GetStream().readAll());
 	}
 
 	std::vector<QByteArray> GetAnnotationImages(const QString& name, const int file) const
