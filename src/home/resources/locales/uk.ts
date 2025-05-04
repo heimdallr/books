@@ -5611,6 +5611,26 @@ Try again?</source>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Previous page]</source>
+        <translation>Попередня сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Next page]</source>
+        <translation>Наступна сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[First page]</source>
+        <translation>Перша сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Last page]</source>
+        <translation>Остання сторінка</translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>

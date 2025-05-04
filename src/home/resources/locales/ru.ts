@@ -5613,6 +5613,26 @@ Try again?</source>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>По запросу &quot;%1&quot; книг не найдено</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Previous page]</source>
+        <translation>Предыдущая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Next page]</source>
+        <translation>Следующая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[First page]</source>
+        <translation>Первая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Last page]</source>
+        <translation>Последняя страница</translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
