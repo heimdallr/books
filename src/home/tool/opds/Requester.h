@@ -38,7 +38,7 @@ private: // IRequester
 	std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool transliterate) const override;
 	std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool transliterate) const override;
 	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
-	QByteArray Search(const QString& root, const QString& self, const QString& searchTerms) const override;
+	QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const override;
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO

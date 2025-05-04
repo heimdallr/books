@@ -1,7 +1,8 @@
 #pragma once
 
+#include <QString>
+
 class QByteArray;
-class QString;
 
 #define OPDS_ROOT_ITEMS_X_MACRO \
 	OPDS_ROOT_ITEM(Authors)     \
@@ -26,7 +27,7 @@ public:
 	virtual std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool transliterate) const = 0;
 	virtual std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool transliterate) const = 0;
 	virtual QByteArray GetBookText(const QString& root, const QString& bookId) const = 0;
-	virtual QByteArray Search(const QString& root, const QString& self, const QString& searchTerms) const = 0;
+	virtual QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start = {}) const = 0;
 
 #define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const = 0;
 	OPDS_ROOT_ITEMS_X_MACRO

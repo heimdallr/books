@@ -333,6 +333,10 @@ private:
 		m_writer->Guard("td")->WriteStartElement("a").WriteAttribute("href", m_link).WriteCharacters(m_title).WriteEndElement();
 		m_writer->Guard("td")->WriteCharacters(m_content);
 
+		m_link.clear();
+		m_title.clear();
+		m_content.clear();
+
 		return true;
 	}
 
