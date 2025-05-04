@@ -149,6 +149,10 @@ constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
 constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
+constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
+constexpr auto NEXT = QT_TRANSLATE_NOOP("Requester", "[Next page]");
+constexpr auto FIRST = QT_TRANSLATE_NOOP("Requester", "[First page]");
+constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
@@ -500,7 +504,7 @@ void Transliterate(const char* id, QString& str)
 	auto s = str.toStdU32String();
 	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
 	myTrans->transliterate(icuString);
-	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4);
+	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4ULL);
 	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
 	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
 }
@@ -614,7 +618,7 @@ public:
 		return head;
 	}
 
-	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
+	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
@@ -626,13 +630,52 @@ public:
 		WriteBookEntries(*db, "", QString("%1%2").arg(WITH_SEARCH, SELECT_BOOKS).arg(JOIN_SEARCH, ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED)), terms.join(' '), root, head.children);
 
 		{
-			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
-			std::sort(it, head.children.end());
-		}
-		{
 			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
 			assert(it != head.children.end());
 			it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		}
+		{
+			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+			const auto startEntryIndex = std::distance(head.children.begin(), it);
+			std::sort(it, head.children.end());
+
+			const auto selectionSize = static_cast<ptrdiff_t>(head.children.size());
+			const auto maxResultSize = GetMaxResultSize();
+			const auto startResultIndex = std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
+			const auto tailSize = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);
+
+			if (tailSize > 0)
+				head.children.erase(std::next(head.children.begin(), selectionSize - tailSize), head.children.end());
+			head.children.erase(std::next(head.children.begin(), startEntryIndex), std::next(head.children.begin(), startEntryIndex + startResultIndex));
+
+			const auto writeNextPage = [&](QString title, const ptrdiff_t nextPageIndex, const ptrdiff_t pos)
+			{
+				auto& entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
+				entry.title = std::move(title);
+				entry.children.emplace_back(
+					"link",
+					QString {
+                },
+					Node::Attributes { { "href", self + QString("&start=%1").arg(nextPageIndex) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			};
+
+			if (startResultIndex > 0)
+			{
+				writeNextPage(Tr(FIRST), 0LL, startEntryIndex);
+				if (startResultIndex - maxResultSize > 0)
+					writeNextPage(Tr(PREVIOUS), std::max(startResultIndex - maxResultSize, 0LL), startEntryIndex + 1);
+			}
+
+			if (tailSize > 0)
+			{
+				auto lastPageIndex = (selectionSize - startEntryIndex) / maxResultSize * maxResultSize;
+				if (lastPageIndex == selectionSize - startEntryIndex)
+					lastPageIndex -= maxResultSize;
+
+				writeNextPage(Tr(LAST), lastPageIndex, static_cast<ptrdiff_t>(head.children.size()));
+				if (tailSize > maxResultSize)
+					writeNextPage(Tr(NEXT), startResultIndex + maxResultSize, static_cast<ptrdiff_t>(head.children.size()) - 1);
+			}
 		}
 
 		return head;
@@ -1057,7 +1100,7 @@ where b.BookID = ?
 				query->Execute();
 				assert(!query->Eof());
 				const auto n = query->Get<long long>(0);
-				return n == 0 || n > m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT);
+				return n == 0 || n > GetMaxResultSize();
 			}())
 			return Node {};
 
@@ -1072,6 +1115,13 @@ where b.BookID = ?
 	bool ShowRemoved() const
 	{
 		return m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
+	}
+
+	ptrdiff_t GetMaxResultSize() const
+	{
+		if (const auto result = m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT); result > 0)
+			return result;
+		return OPDS_BOOK_LIMIT_DEFAULT;
 	}
 
 private:
@@ -1189,9 +1239,9 @@ QByteArray Requester::GetBookText(const QString& root, const QString& bookId) co
 	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
 }
 
-QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms) const
+QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const
 {
-	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms);
+	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms, start);
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \

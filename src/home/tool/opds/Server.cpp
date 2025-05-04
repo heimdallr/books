@@ -174,9 +174,19 @@ private:
 		m_server.route(QString(SEARCH).arg(root),
 		               [this, root](const QHttpServerRequest& request, QHttpServerResponder& responder)
 		               {
-						   const auto values = request.query().toString(QUrl::FullyDecoded).split("=");
-						   assert(values.size() == 2 && values.front() == "q");
-						   auto body = m_requester->Search(root, QString(SEARCH).arg(root, values.back()), values.back());
+						   QString q, start;
+						   for (const auto& parameter : request.query().toString(QUrl::FullyDecoded).split("&", Qt::SkipEmptyParts))
+						   {
+							   const auto values = parameter.split("=");
+							   assert(values.size() == 2);
+							   if (values.front() == "q")
+								   q = values.back();
+							   else if (values.front() == "start")
+								   start = values.back();
+							   else
+								   assert(false && "unexpected parameter");
+						   }
+						   auto body = m_requester->Search(root, QString("%1?q=%2").arg(QString(SEARCH).arg(root)).arg(q), q, start);
 						   QHttpHeaders headers;
 						   SetContentType(headers, root, MessageType::Atom);
 						   responder.write(body, headers);
