@@ -40,7 +40,7 @@ namespace
 
 using InpData = std::unordered_map<QString, QByteArray, CaseInsensitiveHash<QString>>;
 
-constexpr auto APP_ID = "FlibustaParser";
+constexpr auto APP_ID = "fliparser";
 
 constexpr auto g_libaannotations = R"(CREATE TABLE libaannotations (
   AvtorId INTEGER,
@@ -218,6 +218,8 @@ QString& ReplaceTags(QString& str)
 	str.replace(QRegularExpression(R"(\[(\w)\])"), R"(<\1>)").replace(QRegularExpression(R"(\[(/\w)\])"), R"(<\1>)");
 	for (const auto* tag : tags)
 		str.replace(QString("[%1]").arg(tag), QString("<%1>").arg(tag), Qt::CaseInsensitive);
+
+	str.replace(QRegularExpression(R"((\s|(?<!")>)(https{0,1}\://.+?)([\s<]))"), R"(\1<a href="\2">\2</a>\3)");
 
 	return str;
 }
@@ -525,7 +527,7 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 		if (const auto month = date.year() * 100 + date.month(); month != currentMonth)
 			write(month);
 
-		auto& text = std::get<2>(data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3)));
+		auto& text = std::get<2>(data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3))).append(' ');
 		ReplaceTags(text);
 	}
 
@@ -639,7 +641,7 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		auto& [annotation, files] = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second;
+		auto& [annotation, files] = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)).append(' '), PictureList {})).first->second;
 		ReplaceTags(annotation);
 		if (const auto* file = query->Get<const char*>(3))
 			files.insert(file);
