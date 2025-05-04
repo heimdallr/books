@@ -1,4 +1,4 @@
-CreateWinRC(FlibustaParser
+CreateWinRC(fliparser
     	COMPANY_NAME      "HomeCompa"
     	FILE_NAME         "FlibustaParser"
     	FILE_DESCRIPTION  "Flibusta database dump parser"
@@ -6,10 +6,10 @@ CreateWinRC(FlibustaParser
     	APP_VERSION       ${PRODUCT_VERSION}
 )
 
-AddTarget(FlibustaParser	app_console
+AddTarget(fliparser	app_console
 	PROJECT_GROUP    tool
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
-	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/FlibustaParser.rc
+	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/fliparser.rc
 	SKIP_INSTALL
 	LINK_LIBRARIES
 		Hypodermic

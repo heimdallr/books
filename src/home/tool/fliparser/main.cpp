@@ -406,9 +406,9 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 		                       std::back_inserter(data),
 		                       [&](const auto& item)
 		                       {
-			                       inpFiles.emplace_back(item);
+								   inpFiles.emplace_back(item);
 								   return zip.Read(item)->GetStream().readAll();
-		                       });
+							   });
 	}
 
 	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
