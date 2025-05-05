@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <ranges>
 #include <regex>
 
 #include <QBuffer>
@@ -26,6 +25,7 @@
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "util/LogConsoleFormatter.h"
+#include "util/executor/ThreadPool.h"
 #include "util/xml/Initializer.h"
 #include "util/xml/XmlWriter.h"
 
@@ -461,12 +461,17 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	return libIds;
 }
 
-void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
+std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
 {
+	auto threadPool = std::make_unique<Util::ThreadPool>();
+
 	const auto reviewsFolder = outputFolder / REVIEWS_FOLDER;
 	[[maybe_unused]] const auto ok = create_directory(reviewsFolder);
 	int currentMonth { -1 };
 	std::unordered_map<long long, std::vector<std::tuple<QString, QString, QString>>> data;
+
+	std::mutex archivesGuard;
+	std::vector<std::tuple<QString, QByteArray>> archives;
 
 	const auto write = [&](const int month)
 	{
@@ -483,37 +488,54 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 		if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
 			remove(archivePath);
 
-		PLOGI << archiveName;
+		auto dataCopy = std::move(data);
+		data = {};
 
-		std::vector<QString> files;
-		files.reserve(data.size());
-		std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const long long id) { return QString::number(id); });
+		threadPool->enqueue(
+			[&archivesGuard, &archives, archiveName = archiveName, data = std::move(dataCopy)]() mutable
+			{
+				const ScopedCall logGuard([&] { PLOGI << archiveName << " started"; }, [=] { PLOGI << archiveName << " finished"; });
 
-		std::vector<QByteArray> bytes;
-		bytes.reserve(data.size());
-		std::ranges::transform(data | std::views::values,
-		                       std::back_inserter(bytes),
-		                       [](const auto& value)
-		                       {
-								   QBuffer buffer;
-								   {
-									   ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+				std::vector<QString> files;
+				files.reserve(data.size());
+				std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const long long id) { return QString::number(id); });
 
-									   Util::XmlWriter writer(buffer);
-									   for (const auto& [name, time, text] : value)
-										   writer.Guard("item")->WriteAttribute("name", name.simplified()).WriteAttribute("time", time).WriteCharacters(text.simplified());
-								   }
-								   return buffer.buffer();
-							   });
+				std::vector<QByteArray> bytes;
+				bytes.reserve(data.size());
+				std::ranges::transform(data | std::views::values,
+			                           std::back_inserter(bytes),
+			                           [](auto& value)
+			                           {
+										   QBuffer buffer;
+										   {
+											   ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 
-		const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
+											   Util::XmlWriter writer(buffer);
+											   for (auto& [name, time, text] : value)
+											   {
+												   text.append(' ');
+												   writer.Guard("item")->WriteAttribute("name", name.simplified()).WriteAttribute("time", time).WriteCharacters(ReplaceTags(text).simplified());
+											   }
+										   }
+										   return buffer.buffer();
+									   });
 
-		const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
+				QByteArray zipBytes;
+				{
+					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
+					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
 
-		Zip zip(archiveName, Zip::Format::SevenZip);
-		zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
-		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
-		zip.Write(files, streamGetter, sizeGetter);
+					QBuffer buffer(&zipBytes);
+					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+					Zip zip(buffer, Zip::Format::SevenZip);
+					zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
+					zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
+					zip.Write(files, streamGetter, sizeGetter);
+				}
+
+				std::lock_guard lock(archivesGuard);
+				archives.emplace_back(std::move(archiveName), std::move(zipBytes));
+			});
 	};
 
 	const auto query = db.CreateQuery("select r.BookId, r.Name, r.Time, r.Text from libreviews r order by r.Time");
@@ -523,29 +545,44 @@ void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds
 		if (!libIds.contains(bookId))
 			continue;
 
-		const auto date = QDateTime::fromString(query->Get<const char*>(2), "yyyy-MM-dd hh:mm:ss").date();
-		if (const auto month = date.year() * 100 + date.month(); month != currentMonth)
+		const auto* date = query->Get<const char*>(2);
+		if (const auto month = atoi(date) * 100 + atoi(date + 5); month != currentMonth) // NOLINT(cert-err34-c)
 			write(month);
 
-		auto& text = std::get<2>(data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3))).append(' ');
-		ReplaceTags(text);
+		data[bookId].emplace_back(query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3));
 	}
 
 	write(currentMonth);
+
+	threadPool.reset();
+
+	return archives;
 }
 
-void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sqlPath, const std::filesystem::path& outputFolder)
+void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
 {
-	const auto authorsFolder = outputFolder / AUTHORS_FOLDER;
-	create_directory(authorsFolder);
+	PLOGI << "write reviews";
 
-	const auto authorImagesFolder = authorsFolder / Global::IMAGES;
-	create_directory(authorImagesFolder);
+	for (const auto& [fileName, data] : CreateReviewData(db, libIds, outputFolder))
+	{
+		QFile output(fileName);
+		output.open(QIODevice::WriteOnly);
+		output.write(data);
+	}
+}
+
+std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData(DB::IDatabase& db, const std::filesystem::path& sqlPath)
+{
+	auto threadPool = std::make_unique<Util::ThreadPool>();
 
 	int currentId = -1;
 	using PictureList = std::unordered_set<QString, CaseInsensitiveHash<QString>>;
 	std::unordered_map<QString, std::pair<QString, PictureList>> data;
 
+	std::mutex archivesGuard;
+	std::vector<std::tuple<int, QByteArray, QByteArray>> archives;
+
+	std::mutex picsGuard, zipGuard;
 	std::unique_ptr<Zip> pics;
 	std::unordered_set<QString> picsFiles;
 	if (const auto picsArchiveName = sqlPath / "lib.a.attached.zip"; exists(picsArchiveName))
@@ -566,63 +603,83 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 		if (currentId < 0)
 			return;
 
-		{
-			const auto archiveName = QString::fromStdWString(authorsFolder / std::to_string(currentId)) + ".7z";
-			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
-				remove(archivePath);
+		auto dataCopy = std::move(data);
+		data = {};
 
-			PLOGI << archiveName;
-
-			std::vector<QString> files;
-			files.reserve(data.size());
-			std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const auto& item) { return item; });
-
-			std::vector<QByteArray> bytes;
-			bytes.reserve(data.size());
-			std::ranges::transform(data | std::views::values | std::views::keys, std::back_inserter(bytes), [](const auto& value) { return value.simplified().toUtf8(); });
-
-			const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
-
-			const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
-
-			Zip zip(archiveName, Zip::Format::SevenZip);
-			zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
-			zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
-			zip.Write(files, streamGetter, sizeGetter);
-		}
-
-		if (pics)
-		{
-			const auto archiveName = QString::fromStdWString(authorImagesFolder / std::to_string(currentId)) + ".zip";
-			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
-				remove(archivePath);
-
-			std::vector<QString> files;
-			std::vector<QByteArray> bytes;
-
-			for (const auto& [dstFolder, values] : data)
+		threadPool->enqueue(
+			[&archivesGuard, &archives, &picsGuard, &zipGuard, &pics, &picsFiles, currentId, data = std::move(dataCopy)]() mutable
 			{
-				for (const auto& file : values.second)
+				const ScopedCall logGuard([=] { PLOGI << "Authors pack " << currentId << " started"; }, [=] { PLOGI << "Authors pack " << currentId << " finished"; });
+
+				QByteArray annotation;
+
 				{
-					if (!picsFiles.contains(file))
-						continue;
+					std::vector<QString> files;
+					files.reserve(data.size());
+					std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const auto& item) { return item; });
 
-					const auto fileSplit = file.split('/', Qt::SkipEmptyParts);
-					if (fileSplit.size() != 3)
-						continue;
+					std::vector<QByteArray> bytes;
+					bytes.reserve(data.size());
+					std::ranges::transform(data | std::views::values | std::views::keys,
+				                           std::back_inserter(bytes),
+				                           [](QString& value)
+				                           {
+											   value.append(' ');
+											   return ReplaceTags(value).simplified().toUtf8();
+										   });
 
-					files.emplace_back(QString("%1/%2").arg(dstFolder, fileSplit.back()));
-					bytes.emplace_back(pics->Read(file)->GetStream().readAll());
+					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
+
+					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
+
+					QBuffer buffer(&annotation);
+					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+					Zip zip(buffer, Zip::Format::SevenZip);
+					zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
+					zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
+					zip.Write(files, streamGetter, sizeGetter);
 				}
-			}
 
-			const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
+				QByteArray pictures;
 
-			const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
+				if (pics)
+				{
+					std::vector<QString> files;
+					std::vector<QByteArray> bytes;
 
-			Zip zip(archiveName, Zip::Format::Zip);
-			zip.Write(files, streamGetter, sizeGetter);
-		}
+					for (const auto& [dstFolder, values] : data)
+					{
+						for (const auto& file : values.second)
+						{
+							if (!picsFiles.contains(file))
+								continue;
+
+							const auto fileSplit = file.split('/', Qt::SkipEmptyParts);
+							if (fileSplit.size() != 3)
+								continue;
+
+							files.emplace_back(QString("%1/%2").arg(dstFolder, fileSplit.back()));
+
+							std::lock_guard lock(picsGuard);
+							bytes.emplace_back(pics->Read(file)->GetStream().readAll());
+						}
+					}
+
+					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
+
+					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
+
+					QBuffer buffer(&pictures);
+					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+
+					std::lock_guard zipLock(zipGuard);
+					Zip zip(buffer, Zip::Format::Zip);
+					zip.Write(files, streamGetter, sizeGetter);
+				}
+
+				std::lock_guard lock(archivesGuard);
+				archives.emplace_back(currentId, std::move(annotation), std::move(pictures));
+			});
 	};
 
 	const auto query = db.CreateQuery(R"(
@@ -641,10 +698,49 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		auto& [annotation, files] = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)).append(' '), PictureList {})).first->second;
-		ReplaceTags(annotation);
+		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
 		if (const auto* file = query->Get<const char*>(3))
 			files.insert(file);
+	}
+
+	write(currentId);
+	threadPool.reset();
+
+	return archives;
+}
+
+void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sqlPath, const std::filesystem::path& outputFolder)
+{
+	PLOGI << "write author annotations";
+
+	const auto authorsFolder = outputFolder / AUTHORS_FOLDER;
+	create_directory(authorsFolder);
+
+	const auto authorImagesFolder = authorsFolder / Global::IMAGES;
+	create_directory(authorImagesFolder);
+
+	for (const auto& [id, annotation, images] : CreateAuthorAnnotationsData(db, sqlPath))
+	{
+		if (!annotation.isEmpty())
+		{
+			const auto archiveName = QString::fromStdWString(authorsFolder / std::to_string(id)) + ".7z";
+			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
+				remove(archivePath);
+
+			QFile output(archiveName);
+			output.open(QIODevice::WriteOnly);
+			output.write(annotation);
+		}
+		if (!images.isEmpty())
+		{
+			const auto archiveName = QString::fromStdWString(authorImagesFolder / std::to_string(id)) + ".zip";
+			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
+				remove(archivePath);
+
+			QFile output(archiveName);
+			output.open(QIODevice::WriteOnly);
+			output.write(images);
+		}
 	}
 }
 
