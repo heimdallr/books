@@ -156,6 +156,7 @@ public:
 		m_annotationController->RegisterObserver(this);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { OnLinkActivated(link); });
+		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
 
 		const auto onCoverClicked = [&](const QPoint& pos)
 		{

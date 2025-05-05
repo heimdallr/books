@@ -10,6 +10,8 @@
 
 #include "interface/logic/ITreeViewController.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace
@@ -81,6 +83,7 @@ public:
 		m_annotationController->RegisterObserver(this);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { QDesktopServices::openUrl(link); });
+		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
 	}
 
 	~Impl() override
