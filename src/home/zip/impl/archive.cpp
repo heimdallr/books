@@ -345,7 +345,7 @@ class ReaderStream : public Reader
 public:
 	ReaderStream(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
 		: Reader(std::move(progress))
-		, m_bytes { stream.readAll() }
+		, m_bytes { stream.isReadable() ? stream.readAll() : QByteArray {} }
 	{
 		m_archive = CreateInputArchive(m_lib, reinterpret_cast<const BYTE*>(m_bytes.constData()), static_cast<UINT>(m_bytes.size()));
 		m_files = CreateFileList(m_archive->archive);
