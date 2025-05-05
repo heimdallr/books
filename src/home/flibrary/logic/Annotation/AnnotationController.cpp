@@ -760,6 +760,9 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		Add(annotation, table.ToString());
 	}
 
+#ifndef NDEBUG
+	PLOGV << annotation;
+#endif
 	return annotation;
 }
 
