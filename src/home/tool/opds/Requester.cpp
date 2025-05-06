@@ -76,7 +76,7 @@ constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), 
 										  "from Books b "
 										  "%1 "
 										  "left join Books_User bu on bu.BookID = b.BookID "
-										  "where b.SearchTitle != ? and b.SearchTitle like ? %3"
+										  "where b.SearchTitle != ? and b.SearchTitle like ? %3 "
 										  "group by substr(b.SearchTitle, %2, 1)";
 
 constexpr auto SELECT_BOOKS = R"(
