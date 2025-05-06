@@ -70,7 +70,7 @@ private:
 	std::queue<std::function<void()>> m_tasks;
 	std::mutex m_tasksGuard;
 	std::condition_variable m_condition;
-	bool m_stopped { false };
+	std::atomic_bool m_stopped { false };
 };
 
 } // namespace HomeCompa::Util
