@@ -205,6 +205,7 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 			it->second.size = query->Get<long long>(7);
 		}
 
+		it->second.genres.emplace(query->Get<const char*>(8));
 		it->second.authors.emplace(query->Get<long long>(9));
 		if (analyzeCanceled)
 			break;
@@ -303,10 +304,10 @@ struct CollectionCleaner::Impl
 										switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
 										{
 											case CleanGenreMode::Full:
-												addToDelete("in specified genres", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
+												addToDelete("in specified genres full", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
 												break;
 											case CleanGenreMode::Partial:
-												addToDelete("in specified genres", [&](const auto& item) { return Util::Intersect(indexedGenres, item.second.genres); });
+												addToDelete("in specified genres partial", [&](const auto& item) { return Util::Intersect(indexedGenres, item.second.genres); });
 												break;
 											default: // NOLINT(clang-diagnostic-covered-switch-default)
 												assert(false && "unexpected mode");
