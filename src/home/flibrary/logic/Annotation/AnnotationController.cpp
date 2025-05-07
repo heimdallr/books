@@ -177,7 +177,7 @@ struct Table
 	Table& Add(const char* name, const QString& value)
 	{
 		if (!value.isEmpty())
-			data << QString(R"(<tr><td style="vertical-align: top;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
+			data << QString(R"(<tr><td style="vertical-align: top; padding-right: 7px;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
 
 		return *this;
 	}
@@ -188,7 +188,7 @@ struct Table
 		ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
 		for (const auto& value : values)
 		{
-			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top;">)"); }, [&] { str.append("</td>"); });
+			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
 			str.append(value);
 		}
 		data << str;
