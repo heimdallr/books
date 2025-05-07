@@ -2427,7 +2427,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation>Автомобільне</translation>
+        <translation>Автомобілі та ПДР</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>auto_business</source>
+        <translation>Автосправа</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>

@@ -2417,7 +2417,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation>Auto</translation>
+        <translation>Cars and traffic rules</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>auto_business</source>
+        <translation>Auto business</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
