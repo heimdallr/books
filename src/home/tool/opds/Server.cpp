@@ -134,6 +134,9 @@ private:
 		                                {
 											PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
 											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
+											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
+											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
 										});
 
 		for (const auto& root : {

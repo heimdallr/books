@@ -138,6 +138,9 @@ public:
 
 	void WriteCharacters(const QString& data)
 	{
+		if (data.isEmpty())
+			return;
+
 		CloseTag();
 		const auto chars = data.toStdU16String();
 		m_formatter.formatBuf(chars.data(), chars.length(), XMLFormatter::CharEscapes);

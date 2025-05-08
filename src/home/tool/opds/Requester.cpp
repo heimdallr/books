@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QUrl>
 
 #include <unicode/translit.h>
 
@@ -208,15 +209,15 @@ bool operator<(const Node& lhs, const Node& rhs)
 std::vector<Node> GetStandardNodes(QString id, QString title)
 {
 	return std::vector<Node> {
-		{ "updated", QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ssZ") },
-		{      "id",												 std::move(id) },
-		{     TITLE,											  std::move(title) },
+		{ "updated", QDateTime::currentDateTime().toUTC().toString("yyyy-MM-ddThh:mm:ssZ") },
+		{      "id",														 std::move(id) },
+		{     TITLE,													  std::move(title) },
 	};
 }
 
 Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 {
-	ScopedCall nameGuard([&] { writer.WriteStartElement(node.name); }, [&] { writer.WriteEndElement(); });
+	const auto nodeGuard = writer.Guard(node.name);
 	std::ranges::for_each(node.attributes, [&](const auto& item) { writer.WriteAttribute(item.first, item.second); });
 	writer.WriteCharacters(node.value);
 	std::ranges::for_each(node.children, [&](const auto& item) { writer << item; });
@@ -650,13 +651,14 @@ public:
 
 			const auto writeNextPage = [&](QString title, const ptrdiff_t nextPageIndex, const ptrdiff_t pos)
 			{
+				const QUrl url(self + QString("&start=%1").arg(nextPageIndex));
 				auto& entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
 				entry.title = std::move(title);
 				entry.children.emplace_back(
 					"link",
 					QString {
                 },
-					Node::Attributes { { "href", self + QString("&start=%1").arg(nextPageIndex) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 			};
 
 			if (startResultIndex > 0)
