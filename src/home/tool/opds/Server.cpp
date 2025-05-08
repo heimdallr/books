@@ -40,6 +40,7 @@ constexpr auto NAVIGATION_AUTHOR = "%1/%2/%3/%4";
 constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "%1/%2/Authors/Books/%3/%4/starts/%5";
 constexpr auto READ = "%1/read/%2";
 constexpr auto SEARCH = "%1/search";
+constexpr auto FAVICON = "/favicon.ico";
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
@@ -132,7 +133,7 @@ private:
 		m_server.addAfterRequestHandler(&m_server,
 		                                [this](const QHttpServerRequest& request, QHttpServerResponse& resp)
 		                                {
-											PLOGD << request.value("Host") << " requests " << request.url().path() << request.query().toString();
+											PLOGD << request.remoteAddress().toString() << " requests " << request.url().path() << request.query().toString();
 											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
 											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
 											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
@@ -157,6 +158,20 @@ private:
 								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
+					   });
+		m_server.route(FAVICON, [this](const QHttpServerRequest& request, QHttpServerResponder& responder)
+		               {
+						   PLOGD << request.remoteAddress().toString() << " requests " << request.url().path() << request.query().toString();
+						   QHttpHeaders headers;
+						   headers.replaceOrAppend("Content-Type", "image/x-icon");
+						   headers.replaceOrAppend("Date", QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+						   headers.replaceOrAppend("Connection", "keep-alive");
+						   headers.replaceOrAppend("Keep-Alive", "timeout=5");
+
+						   QFile icon(":/icons/main.ico");
+						   [[maybe_unused]]const auto ok = icon.open(QIODevice::ReadOnly);
+						   assert(ok);
+ 						   responder.write(icon.readAll(), headers);
 					   });
 	}
 

@@ -2,7 +2,7 @@ CreateWinRC(fliparser
     	COMPANY_NAME      "HomeCompa"
     	FILE_NAME         "FlibustaParser"
     	FILE_DESCRIPTION  "Flibusta database dump parser"
-    	APP_ICON          "${CMAKE_CURRENT_LIST_DIR}/../../flibrary/app/resources/icons/main.ico"
+    	APP_ICON          "${CMAKE_CURRENT_LIST_DIR}/../../resources/icons/main.ico"
     	APP_VERSION       ${PRODUCT_VERSION}
 )
 
