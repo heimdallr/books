@@ -12,6 +12,8 @@ class QByteArray;
 	OPDS_ROOT_ITEM(Archives)    \
 	OPDS_ROOT_ITEM(Groups)
 
+#define OPDS_GET_BOOKS_API_ITEMS_X_MACRO OPDS_GET_BOOKS_API_ITEM(getSearchTitles, search)
+
 namespace HomeCompa::Opds
 {
 
@@ -40,6 +42,10 @@ public:
 #define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const = 0;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
+
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _) virtual QByteArray NAME(const QString& value) const = 0;
+	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM
 };
 
 } // namespace HomeCompa::Opds

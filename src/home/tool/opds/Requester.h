@@ -50,6 +50,10 @@ private: // IRequester
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
 
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _) QByteArray NAME(const QString& value) const override;
+	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM
+
 private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;

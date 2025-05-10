@@ -991,6 +991,11 @@ select f.FolderID, f.FolderTitle, count(42)
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
+	Node getSearchTitles(const QString&, const QString&, const QString& /*searchTerms*/) const
+	{
+		return {};
+	}
+
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId, const bool transliterate) const override
 	{
@@ -1154,6 +1159,9 @@ namespace
 
 QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
 {
+	if (root.isEmpty())
+		return src;
+
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
@@ -1281,3 +1289,11 @@ OPDS_ROOT_ITEMS_X_MACRO
 	}
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
+
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                                                \
+	QByteArray Requester::NAME(const QString& value) const                              \
+	{                                                                                   \
+		return GetImpl(*m_impl, &Impl::NAME, ContentType::Books, {}, {}, value); \
+	}
+OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM

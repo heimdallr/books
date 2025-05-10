@@ -194,6 +194,28 @@ private:
 						   responder.write(icon.readAll(), headers);
 					   });
 		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return FromWebsiteAssets(fileName); }); });
+
+		using Requester = QByteArray (IRequester::*)(const QString&) const;
+		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
+#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IRequester::NAME },
+			OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM
+		};
+
+		for (const auto& [name, queryKey, requester] : booksApiDescription)
+		{
+			m_server.route(QString("/main/getBooks/%1").arg(name),
+			               [this, requester, queryKey](const QHttpServerRequest& request)
+			               {
+							   return QtConcurrent::run(
+								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded)]
+								   {
+									   QHttpServerResponse response(std::invoke(requester, *m_requester, std::cref(value)));
+									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
+									   return response;
+								   });
+						   });
+		}
 	}
 
 	void InitHttp(const QString& root)
