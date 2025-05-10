@@ -6,6 +6,8 @@
 #include <QTcpServer>
 #include <QtConcurrent>
 
+#include "fnd/FindPair.h"
+
 #include "interface/IRequester.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
@@ -41,6 +43,7 @@ constexpr auto NAVIGATION_AUTHOR_BOOKS_STARTS = "%1/%2/Authors/Books/%3/%4/start
 constexpr auto READ = "%1/read/%2";
 constexpr auto SEARCH = "%1/search";
 constexpr auto FAVICON = "/favicon.ico";
+constexpr auto ASSETS = "/assets/%1";
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
@@ -70,12 +73,23 @@ void SetContentType(QHttpServerResponse& response, const QString& root, const Me
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
-void SetContentType(QHttpHeaders& headers, const QString& root, const MessageType type)
+QHttpServerResponse FromFile(const QString& fileName, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
 {
-	const auto rootIndex = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) { return root == item; }));
-	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
-	assert(contentType);
-	headers.replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, contentType);
+	QFile file(fileName);
+	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+	assert(ok);
+	QHttpServerResponse response(dataUpdater(file.readAll()));
+	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
+	return response;
+}
+
+QHttpServerResponse FromWebsiteAssets(const QString& fileName)
+{
+	static constexpr std::pair<const char*, const char*> types[] {
+		{  "js", "text/javascript" },
+		{ "css",        "text/css" },
+	};
+	return FromFile(QString(":/website/assets/%1").arg(fileName), FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {}));
 }
 
 } // namespace
@@ -83,8 +97,9 @@ void SetContentType(QHttpHeaders& headers, const QString& root, const MessageTyp
 class Server::Impl
 {
 public:
-	Impl(const ISettings& settings, std::shared_ptr<const IRequester> requester)
+	Impl(const ISettings& settings, std::shared_ptr<const IRequester> requester, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider)
 		: m_requester { std::move(requester) }
+		, m_collectionProvider { std::move(collectionProvider) }
 	{
 		const auto host = [&]() -> QHostAddress
 		{
@@ -130,15 +145,18 @@ private:
 
 		(void)tcpServer.release();
 
-		m_server.addAfterRequestHandler(&m_server,
-		                                [this](const QHttpServerRequest& request, QHttpServerResponse& resp)
-		                                {
-											PLOGD << request.remoteAddress().toString() << " requests " << request.url().path() << request.query().toString();
-											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
-											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
-											ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
-										});
+		m_server.addAfterRequestHandler(
+			&m_server,
+			[this](const QHttpServerRequest& request, QHttpServerResponse& resp)
+			{
+				const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
+				PLOGD << log;
+
+				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
+				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
+				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
+			});
 
 		for (const auto& root : {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
@@ -147,16 +165,17 @@ private:
 			 })
 			InitHttp(root);
 
+		m_server.route(FAVICON, [this] { return QtConcurrent::run([this] { return FromFile(":/icons/main.ico", "image/x-icon"); }); });
+
 		m_server.route("/",
 		               [this]
 		               {
 						   return QtConcurrent::run(
 							   [this]
 							   {
-								   const QString root = "/web";
-								   QHttpServerResponse response(m_requester->GetRoot(root, QString(ROOT).arg(root)));
-								   SetContentType(response, root, MessageType::Atom);
-								   return response;
+								   return FromFile(":/website/index.html",
+				                                   "text/html; charset=utf-8",
+				                                   [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); });
 							   });
 					   });
 		m_server.route(FAVICON,
@@ -174,6 +193,7 @@ private:
 						   assert(ok);
 						   responder.write(icon.readAll(), headers);
 					   });
+		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return FromWebsiteAssets(fileName); }); });
 	}
 
 	void InitHttp(const QString& root)
@@ -191,7 +211,7 @@ private:
 					   });
 
 		m_server.route(QString(SEARCH).arg(root),
-		               [this, root](const QHttpServerRequest& request, QHttpServerResponder& responder)
+		               [this, root](const QHttpServerRequest& request)
 		               {
 						   QString q, start;
 						   for (const auto& parameter : request.query().toString(QUrl::FullyDecoded).split("&", Qt::SkipEmptyParts))
@@ -205,10 +225,14 @@ private:
 							   else
 								   assert(false && "unexpected parameter");
 						   }
-						   auto body = m_requester->Search(root, QString("%1?q=%2").arg(QString(SEARCH).arg(root)).arg(q), q, start);
-						   QHttpHeaders headers;
-						   SetContentType(headers, root, MessageType::Atom);
-						   responder.write(body, headers);
+
+						   return QtConcurrent::run(
+							   [this, root, q, start]
+							   {
+								   QHttpServerResponse response(m_requester->Search(root, QString("%1?q=%2").arg(QString(SEARCH).arg(root)).arg(q), q, start));
+								   SetContentType(response, root, MessageType::Atom);
+								   return response;
+							   });
 					   });
 
 		m_server.route(QString(BOOK_INFO).arg(root, ARG),
@@ -453,10 +477,11 @@ private:
 	QLocalServer m_localServer;
 	QHttpServer m_server;
 	std::shared_ptr<const IRequester> m_requester;
+	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
 };
 
-Server::Server(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<IRequester> requester)
-	: m_impl(*settings, std::move(requester))
+Server::Server(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<IRequester> requester, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider)
+	: m_impl(*settings, std::move(requester), std::move(collectionProvider))
 {
 	PLOGV << "Server created";
 }
