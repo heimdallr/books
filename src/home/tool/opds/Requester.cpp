@@ -642,7 +642,7 @@ public:
 
 			const auto selectionSize = static_cast<ptrdiff_t>(head.children.size());
 			const auto maxResultSize = GetMaxResultSize();
-			const auto startResultIndex = std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
+			const auto startResultIndex = start.isEmpty() ? 0 : std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
 			const auto tailSize = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);
 
 			if (tailSize > 0)
