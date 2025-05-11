@@ -138,7 +138,7 @@ private:
 
 	std::vector<QByteArray> GetAnnotationImages(const QString& name, const int file) const
 	{
-		const auto imagesFileName = m_authorsDir.filePath(QString("%1/%2.zip").arg(Global::IMAGES).arg(file));
+		const auto imagesFileName = m_authorsDir.filePath(QString("%1/%2.zip").arg(Global::PICTURES).arg(file));
 		if (!QFile::exists(imagesFileName))
 			return {};
 

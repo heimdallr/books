@@ -649,6 +649,7 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 
 					for (const auto& [dstFolder, values] : data)
 					{
+						std::unordered_set<QString> uniqueFiles;
 						for (const auto& file : values.second)
 						{
 							if (!picsFiles.contains(file))
@@ -658,10 +659,13 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 							if (fileSplit.size() != 3)
 								continue;
 
-							files.emplace_back(QString("%1/%2").arg(dstFolder, fileSplit.back()));
+							if (uniqueFiles.insert(fileSplit.back()).second)
+							{
+								files.emplace_back(QString("%1/%2").arg(dstFolder, fileSplit.back()));
 
-							std::lock_guard lock(picsGuard);
-							bytes.emplace_back(pics->Read(file)->GetStream().readAll());
+								std::lock_guard lock(picsGuard);
+								bytes.emplace_back(pics->Read(file)->GetStream().readAll());
+							}
 						}
 					}
 
@@ -716,7 +720,7 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 	const auto authorsFolder = outputFolder / AUTHORS_FOLDER;
 	create_directory(authorsFolder);
 
-	const auto authorImagesFolder = authorsFolder / Global::IMAGES;
+	const auto authorImagesFolder = authorsFolder / Global::PICTURES;
 	create_directory(authorImagesFolder);
 
 	for (const auto& [id, annotation, images] : CreateAuthorAnnotationsData(db, sqlPath))
