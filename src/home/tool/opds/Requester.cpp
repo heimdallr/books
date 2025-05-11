@@ -6,6 +6,9 @@
 #include <QByteArray>
 #include <QEventLoop>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QTimer>
 #include <QUrl>
@@ -549,6 +552,22 @@ QString GetOutputFileNameTemplate(const ISettings& settings)
 	return outputFileNameTemplate;
 }
 
+QString PrepareSearchTerms(const QString& searchTerms)
+{
+	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+	return terms.join(' ');
+}
+
+template <typename T>
+QJsonObject FromQuery(const DB::IQuery& query)
+{
+	QJsonObject object;
+	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
+		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
+	return object;
+}
+
 } // namespace
 
 class Requester::Impl : public IPostProcessCallback
@@ -991,9 +1010,66 @@ select f.FolderID, f.FolderTitle, count(42)
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
-	Node getSearchTitles(const QString&, const QString&, const QString& /*searchTerms*/) const
+	QJsonObject getSearchStats(const QString& searchTerms) const
 	{
-		return {};
+		static constexpr auto queryText = R"(
+with Search (Title) as (
+    select ?
+)
+select (select count (42) from Books_Search join Search s on Books_Search match s.Title) as bookTitles
+    , (select count (42) from Authors_Search join Search s on Authors_Search match s.Title) as authors
+    , (select count (42) from Series_Search join Search s on Series_Search match s.Title) as bookSeries
+)";
+		const auto query = CreateSearchQuery(queryText, searchTerms);
+		query->Execute();
+		assert(!query->Eof());
+
+		return QJsonObject {
+			{ "searchStats", FromQuery<int>(*query) }
+		};
+	}
+
+	QJsonObject getSearchTitles(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, b.SeqNumber, b.FileName, (
+    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
+        from Authors a 
+        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
+    ) as AuthorsNames, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?
+left join Series s on s.SeriesID = b.SeriesID
+)";
+		return GetSearchList(queryText, searchTerms, "titlesList");
+	}
+
+	QJsonObject getSearchAuthors(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') as Authors, count(42) as Books
+from Authors a
+join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?
+join Author_List al on al.AuthorID = a.AuthorID
+group by a.AuthorID
+)";
+		return GetSearchList(queryText, searchTerms, "authorsList");
+	}
+
+	QJsonObject getSearchSeries(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select s.SeriesID, s.SeriesTitle, count(42) as Books
+from Series s
+join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?
+join Series_List sl on sl.SeriesID = s.SeriesID
+group by s.SeriesID
+)";
+		return GetSearchList(queryText, searchTerms, "seriesList");
 	}
 
 private: // IPostProcessCallback
@@ -1012,6 +1088,27 @@ private: // IPostProcessCallback
 	}
 
 private:
+	std::unique_ptr<DB::IQuery> CreateSearchQuery(const QString& queryText, const QString& searchTerms) const
+	{
+		const auto db = m_databaseController->GetDatabase(true);
+		auto query = db->CreateQuery(queryText.toStdString());
+		query->Bind(0, PrepareSearchTerms(searchTerms).toStdString());
+		return query;
+	}
+
+	QJsonObject GetSearchList(const QString& queryText, const QString& searchTerms, const QString& resultName) const
+	{
+		QJsonArray array;
+
+		const auto query = CreateSearchQuery(queryText, searchTerms);
+		for (query->Execute(); !query->Eof(); query->Next())
+			array.append(FromQuery<const char*>(*query));
+
+		return QJsonObject {
+			{ resultName, array }
+		};
+	}
+
 	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book, const bool transliterate) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
@@ -1208,6 +1305,36 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	return PostProcess(contentType, root, obj, bytes, { root });
 }
 
+template <typename Obj, typename NavigationGetter, typename... ARGS>
+QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
+{
+	if (!obj.GetCollectionProvider().ActiveCollectionExists())
+		return {};
+
+	QByteArray bytes;
+	try
+	{
+		const QJsonDocument doc(std::invoke(getter, std::cref(obj), std::cref(args)...));
+		bytes = doc.toJson();
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+		return {};
+	}
+	catch (...)
+	{
+		PLOGE << "Unknown error";
+		return {};
+	}
+
+#ifndef NDEBUG
+	PLOGV << bytes;
+#endif
+
+	return bytes;
+}
+
 } // namespace
 
 Requester::Requester(std::shared_ptr<const ISettings> settings,
@@ -1290,10 +1417,10 @@ OPDS_ROOT_ITEMS_X_MACRO
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
 
-#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                                                \
-	QByteArray Requester::NAME(const QString& value) const                              \
-	{                                                                                   \
-		return GetImpl(*m_impl, &Impl::NAME, ContentType::Books, {}, {}, value); \
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                   \
+	QByteArray Requester::NAME(const QString& value) const \
+	{                                                      \
+		return GetImpl(*m_impl, &Impl::NAME, value);       \
 	}
 OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM

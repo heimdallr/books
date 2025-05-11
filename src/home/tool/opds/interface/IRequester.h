@@ -12,7 +12,11 @@ class QByteArray;
 	OPDS_ROOT_ITEM(Archives)    \
 	OPDS_ROOT_ITEM(Groups)
 
-#define OPDS_GET_BOOKS_API_ITEMS_X_MACRO OPDS_GET_BOOKS_API_ITEM(getSearchTitles, search)
+#define OPDS_GET_BOOKS_API_ITEMS_X_MACRO              \
+	OPDS_GET_BOOKS_API_ITEM(getSearchStats, search)   \
+	OPDS_GET_BOOKS_API_ITEM(getSearchTitles, search)  \
+	OPDS_GET_BOOKS_API_ITEM(getSearchAuthors, search) \
+	OPDS_GET_BOOKS_API_ITEM(getSearchSeries, search)
 
 namespace HomeCompa::Opds
 {
