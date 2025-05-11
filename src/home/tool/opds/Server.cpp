@@ -44,6 +44,7 @@ constexpr auto READ = "%1/read/%2";
 constexpr auto SEARCH = "%1/search";
 constexpr auto FAVICON = "/favicon.ico";
 constexpr auto ASSETS = "/assets/%1";
+constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
@@ -221,6 +222,17 @@ private:
 								   });
 						   });
 		}
+		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG),
+		               [this](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, value]
+							   {
+								   QHttpServerResponse response(m_requester->GetCover("/web", QString(COVER).arg("/web", value), value));
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
+								   return response;
+							   });
+					   });
 	}
 
 	void InitHttp(const QString& root)

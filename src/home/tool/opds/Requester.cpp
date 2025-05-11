@@ -513,6 +513,29 @@ void Transliterate(const char* id, QString& str)
 	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
 }
 
+QString GetOutputFileNameTemplate(const ISettings& settings)
+{
+	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
+	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
+	return outputFileNameTemplate;
+}
+
+QString PrepareSearchTerms(const QString& searchTerms)
+{
+	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+	return terms.join(' ');
+}
+
+template <typename T>
+QJsonObject FromQuery(const DB::IQuery& query)
+{
+	QJsonObject object;
+	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
+		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
+	return object;
+}
+
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
 {
 	using Functor = std::function<void(const Flibrary::IAnnotationController::IDataProvider& dataProvider)>;
@@ -544,29 +567,6 @@ private: // IAnnotationController::IObserver
 private:
 	const Functor m_f;
 };
-
-QString GetOutputFileNameTemplate(const ISettings& settings)
-{
-	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
-	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
-	return outputFileNameTemplate;
-}
-
-QString PrepareSearchTerms(const QString& searchTerms)
-{
-	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
-	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
-	return terms.join(' ');
-}
-
-template <typename T>
-QJsonObject FromQuery(const DB::IQuery& query)
-{
-	QJsonObject object;
-	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
-		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
-	return object;
-}
 
 } // namespace
 
@@ -1032,7 +1032,7 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
 	QJsonObject getSearchTitles(const QString& searchTerms) const
 	{
 		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, b.SeqNumber, b.FileName, (
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, (
     select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
         from Authors a 
         join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
@@ -1045,7 +1045,7 @@ from Books b
 join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		return GetSearchList(queryText, searchTerms, "titlesList");
+		return GetBookListBySearch(queryText, searchTerms, "titlesList");
 	}
 
 	QJsonObject getSearchAuthors(const QString& searchTerms) const
@@ -1057,7 +1057,7 @@ join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?
 join Author_List al on al.AuthorID = a.AuthorID
 group by a.AuthorID
 )";
-		return GetSearchList(queryText, searchTerms, "authorsList");
+		return GetBookListBySearch(queryText, searchTerms, "authorsList");
 	}
 
 	QJsonObject getSearchSeries(const QString& searchTerms) const
@@ -1069,7 +1069,113 @@ join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?
 join Series_List sl on sl.SeriesID = s.SeriesID
 group by s.SeriesID
 )";
-		return GetSearchList(queryText, searchTerms, "seriesList");
+		return GetBookListBySearch(queryText, searchTerms, "seriesList");
+	}
+
+	QJsonObject getSearchAuthorBooks(const QString& authorId) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Author_List al on al.BookID = b.BookID and al.AuthorID = ?
+left join Series s on s.SeriesID = b.SeriesID
+)";
+		return GetBookListById(queryText, authorId, "titlesList");
+	}
+
+	QJsonObject getSearchSeriesBooks(const QString& seriesId) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, (
+    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
+        from Authors a 
+        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
+    ) as AuthorsNames, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
+)";
+		return GetBookListById(queryText, seriesId, "titlesList");
+	}
+
+	QJsonObject getBookForm(const QString& bookId) const
+	{
+		QJsonObject result;
+
+		QEventLoop eventLoop;
+		AnnotationControllerObserver observer(
+			[&](const Flibrary::IAnnotationController::IDataProvider& dataProvider)
+			{
+				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
+
+				const auto& book = dataProvider.GetBook();
+
+				const auto authors = [&]
+				{
+					QStringList values;
+					for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
+					{
+						const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
+						values << QString("%1 %2 %3")
+									  .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+					                       authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
+					                       authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName))
+									  .split(' ', Qt::SkipEmptyParts)
+									  .join(' ');
+					}
+					return values.join(", ");
+				}();
+
+				const auto genres = [&]
+				{
+					QStringList values;
+					for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
+						values << dataProvider.GetGenres().GetChild(i)->GetRawData(Flibrary::NavigationItem::Column::Title);
+					return values.join(", ");
+				}();
+
+				auto fileName = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).baseName();
+
+				QJsonObject bookForm {
+					{       "BookID",										   book.GetId() },
+					{     "BookSize",      book.GetRawData(Flibrary::BookItem::Column::Size) },
+					{     "FileName",											   fileName },
+					{         "Lang",      book.GetRawData(Flibrary::BookItem::Column::Lang) },
+					{      "LibRate",   book.GetRawData(Flibrary::BookItem::Column::LibRate) },
+					{    "SeqNumber", book.GetRawData(Flibrary::BookItem::Column::SeqNumber) },
+					{  "SeriesTitle",    book.GetRawData(Flibrary::BookItem::Column::Series) },
+					{        "Title",     book.GetRawData(Flibrary::BookItem::Column::Title) },
+					{ "AuthorsNames",												authors },
+					{       "Genres",												 genres },
+				};
+
+				result.insert("annotation", dataProvider.GetAnnotation());
+				result.insert("city", dataProvider.GetPublishCity());
+				result.insert("isbn", dataProvider.GetPublishIsbn());
+				result.insert("publisher", dataProvider.GetPublisher());
+				result.insert("year", dataProvider.GetPublishYear());
+
+				result.insert("bookForm", bookForm);
+
+				m_forwarder.Forward([this] { m_coversTimer.start(); });
+				std::lock_guard lock(m_coversGuard);
+
+				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+					m_covers.try_emplace(std::move(fileName), covers.front().bytes);
+			});
+
+		m_annotationController->RegisterObserver(&observer);
+		m_annotationController->SetCurrentBookId(bookId, true);
+		eventLoop.exec();
+
+		return result;
 	}
 
 private: // IPostProcessCallback
@@ -1096,11 +1202,34 @@ private:
 		return query;
 	}
 
-	QJsonObject GetSearchList(const QString& queryText, const QString& searchTerms, const QString& resultName) const
+	std::unique_ptr<DB::IQuery> CreateIdQuery(const QString& queryText, const QString& id) const
+	{
+		const auto db = m_databaseController->GetDatabase(true);
+		auto query = db->CreateQuery(queryText.toStdString());
+		bool ok = false;
+		query->Bind(0, id.toLongLong(&ok));
+		assert(ok);
+		return query;
+	}
+
+	QJsonObject GetBookListBySearch(const QString& queryText, const QString& searchTerms, const QString& resultName) const
 	{
 		QJsonArray array;
 
 		const auto query = CreateSearchQuery(queryText, searchTerms);
+		for (query->Execute(); !query->Eof(); query->Next())
+			array.append(FromQuery<const char*>(*query));
+
+		return QJsonObject {
+			{ resultName, array }
+		};
+	}
+
+	QJsonObject GetBookListById(const QString& queryText, const QString& id, const QString& resultName) const
+	{
+		QJsonArray array;
+
+		auto query = CreateIdQuery(queryText, id);
 		for (query->Execute(); !query->Eof(); query->Next())
 			array.append(FromQuery<const char*>(*query));
 
