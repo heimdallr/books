@@ -455,7 +455,7 @@ private:
 				};
 
 				auto ts = m_writer->Guard("td");
-				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters("");
+				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters(" ");
 
 				m_output->write(contents.front().toUtf8());
 				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
