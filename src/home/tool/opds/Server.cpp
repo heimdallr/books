@@ -159,7 +159,8 @@ private:
 								   return response;
 							   });
 					   });
-		m_server.route(FAVICON, [this](const QHttpServerRequest& request, QHttpServerResponder& responder)
+		m_server.route(FAVICON,
+		               [this](const QHttpServerRequest& request, QHttpServerResponder& responder)
 		               {
 						   PLOGD << request.remoteAddress().toString() << " requests " << request.url().path() << request.query().toString();
 						   QHttpHeaders headers;
@@ -169,9 +170,9 @@ private:
 						   headers.replaceOrAppend("Keep-Alive", "timeout=5");
 
 						   QFile icon(":/icons/main.ico");
-						   [[maybe_unused]]const auto ok = icon.open(QIODevice::ReadOnly);
+						   [[maybe_unused]] const auto ok = icon.open(QIODevice::ReadOnly);
 						   assert(ok);
- 						   responder.write(icon.readAll(), headers);
+						   responder.write(icon.readAll(), headers);
 					   });
 	}
 
