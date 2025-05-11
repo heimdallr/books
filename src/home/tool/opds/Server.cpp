@@ -73,23 +73,33 @@ void SetContentType(QHttpServerResponse& response, const QString& root, const Me
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
-QHttpServerResponse FromFile(const QString& fileName, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
+std::optional<QHttpServerResponse> FromFile(const QString& fileName, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
 {
 	QFile file(fileName);
-	[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-	assert(ok);
+	if (!file.exists())
+		return std::nullopt;
+
+	const auto ok = file.open(QIODevice::ReadOnly);
+	if (!ok)
+		return std::nullopt;
+
 	QHttpServerResponse response(dataUpdater(file.readAll()));
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 	return response;
 }
 
-QHttpServerResponse FromWebsiteAssets(const QString& fileName)
+std::optional<QHttpServerResponse> FromWebsite(const QString& fileName, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
 {
 	static constexpr std::pair<const char*, const char*> types[] {
-		{  "js", "text/javascript" },
-		{ "css",        "text/css" },
+		{ "html", "text/html; charset=utf-8" },
+		{   "js",          "text/javascript" },
+		{  "css",				 "text/css" },
 	};
-	return FromFile(QString(":/website/assets/%1").arg(fileName), FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {}));
+	const auto& contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
+	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), contentType, dataUpdater))
+		return result;
+
+	return FromFile(QString(":/website/%1").arg(fileName), contentType, dataUpdater);
 }
 
 } // namespace
@@ -165,18 +175,13 @@ private:
 			 })
 			InitHttp(root);
 
-		m_server.route(FAVICON, [this] { return QtConcurrent::run([this] { return FromFile(":/icons/main.ico", "image/x-icon"); }); });
+		m_server.route(FAVICON, [this] { return QtConcurrent::run([this] { return *FromFile(":/icons/main.ico", "image/x-icon"); }); });
 
 		m_server.route("/",
 		               [this]
 		               {
 						   return QtConcurrent::run(
-							   [this]
-							   {
-								   return FromFile(":/website/index.html",
-				                                   "text/html; charset=utf-8",
-				                                   [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); });
-							   });
+							   [this] { return *FromWebsite("index.html", [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
 					   });
 		m_server.route(FAVICON,
 		               [this](const QHttpServerRequest& request, QHttpServerResponder& responder)
@@ -193,7 +198,7 @@ private:
 						   assert(ok);
 						   responder.write(icon.readAll(), headers);
 					   });
-		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return FromWebsiteAssets(fileName); }); });
+		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return *FromWebsite("assets/" + fileName); }); });
 
 		using Requester = QByteArray (IRequester::*)(const QString&) const;
 		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
