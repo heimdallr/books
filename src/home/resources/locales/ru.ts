@@ -5501,6 +5501,10 @@ Try again?</source>
         <source>Address</source>
         <translation>Адрес</translation>
     </message>
+    <message>
+        <source>Site Address</source>
+        <translation>Адрес сайта</translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
