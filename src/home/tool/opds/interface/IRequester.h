@@ -13,6 +13,7 @@ class QByteArray;
 	OPDS_ROOT_ITEM(Groups)
 
 #define OPDS_GET_BOOKS_API_ITEMS_X_MACRO                          \
+	OPDS_GET_BOOKS_API_ITEM(getConfig, )                          \
 	OPDS_GET_BOOKS_API_ITEM(getSearchStats, search)               \
 	OPDS_GET_BOOKS_API_ITEM(getSearchTitles, search)              \
 	OPDS_GET_BOOKS_API_ITEM(getSearchAuthors, search)             \

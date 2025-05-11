@@ -1010,6 +1010,11 @@ select f.FolderID, f.FolderTitle, count(42)
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
+	QJsonObject getConfig(const QString&) const
+	{
+		return {};
+	}
+
 	QJsonObject getSearchStats(const QString& searchTerms) const
 	{
 		static constexpr auto queryText = R"(
