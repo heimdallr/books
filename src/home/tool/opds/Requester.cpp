@@ -557,10 +557,12 @@ public:
 	Impl(std::shared_ptr<const ISettings> settings,
 	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+	     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
+		, m_authorAnnotationController { std::move(authorAnnotationController) }
 		, m_annotationController { std::move(annotationController) }
 		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*m_settings) }
 	{
@@ -912,7 +914,7 @@ select f.FolderID, f.FolderTitle, count(42)
 	left join Books_User bu on bu.BookID = b.BookID
 	%1 group by f.FolderID
 )")
-		                           .arg(ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED), "%1");
+		                           .arg(ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED));
 		const auto query = db->CreateQuery(queryText.toStdString());
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
@@ -994,6 +996,14 @@ private: // IPostProcessCallback
 	{
 		const auto book = GetExtractedBook(bookId);
 		return GetFileName(book, transliterate);
+	}
+
+	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override
+	{
+		if (auto info = m_authorAnnotationController->GetInfo(name); !info.isEmpty())
+			return std::make_pair(std::move(info), m_authorAnnotationController->GetImages(name));
+
+		return {};
 	}
 
 private:
@@ -1130,6 +1140,7 @@ private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> m_databaseController;
+	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<Flibrary::IAnnotationController> m_annotationController;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const QString m_outputFileNameTemplate;
@@ -1192,10 +1203,11 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 } // namespace
 
 Requester::Requester(std::shared_ptr<const ISettings> settings,
-                     std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
-                     std::shared_ptr<Flibrary::IDatabaseController> databaseController,
+                     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+                     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+                     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
                      std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(authorAnnotationController), std::move(annotationController))
 {
 	PLOGV << "Requester created";
 }

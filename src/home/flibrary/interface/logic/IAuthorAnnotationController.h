@@ -31,6 +31,7 @@ public:
 
 	virtual bool CheckAuthor(const QString& name) const = 0;
 	virtual QString GetInfo(const QString& name) const = 0;
+	virtual std::vector<QByteArray> GetImages(const QString& name) const = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

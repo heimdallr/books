@@ -4,17 +4,14 @@
 #include "fnd/memory.h"
 
 #include "interface/IRequester.h"
+#include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IAuthorAnnotationController.h"
+#include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IDatabaseController.h"
 
 #include "util/ISettings.h"
 
 class QIODevice;
-
-namespace HomeCompa::Flibrary
-{
-class IAnnotationController;
-class ICollectionProvider;
-class IDatabaseController;
-}
 
 namespace HomeCompa::Opds
 {
@@ -25,8 +22,9 @@ class Requester : virtual public IRequester
 
 public:
 	Requester(std::shared_ptr<const ISettings> settings,
-	          std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
-	          std::shared_ptr<Flibrary::IDatabaseController> databaseController,
+	          std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	          std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+	          std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
 	~Requester() override;
 
