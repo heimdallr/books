@@ -364,6 +364,7 @@ private:
 		}
 		if (const auto cutIndex = info.indexOf(QRegularExpression(R"([\.,\s])"), 720); cutIndex < 0)
 		{
+			p->WriteCharacters(" ");
 			m_output->write(info.toUtf8());
 		}
 		else
