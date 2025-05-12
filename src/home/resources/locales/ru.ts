@@ -6023,5 +6023,10 @@ Try again?</source>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>more</source>
+        <translation>ещё</translation>
+    </message>
 </context>
 </TS>

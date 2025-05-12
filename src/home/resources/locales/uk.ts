@@ -6021,5 +6021,10 @@ Try again?</source>
         <source>Search</source>
         <translation>Пошук</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>more</source>
+        <translation>ще</translation>
+    </message>
 </context>
 </TS>
