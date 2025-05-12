@@ -23,6 +23,7 @@ public:
 	virtual ~IPostProcessCallback() = default;
 
 	virtual QString GetFileName(const QString& bookId, bool transliterate) const = 0;
+	virtual std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const = 0;
 };
 
 }

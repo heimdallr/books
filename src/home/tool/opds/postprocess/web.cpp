@@ -31,6 +31,7 @@ constexpr auto CONTEXT = "opds";
 constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
 constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
 constexpr auto SEARCH = QT_TRANSLATE_NOOP("opds", "Search");
+constexpr auto MORE = QT_TRANSLATE_NOOP("opds", "more");
 TR_DEF
 
 constexpr auto FEED = "feed";
@@ -128,7 +129,7 @@ protected:
 		// clang-format off
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
-				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} .leftimg {\n\t\t\t\tfloat:left; margin: 7px 7px 7px 0;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
 			.WriteEndElement()
 			.WriteStartElement("body")
 				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
@@ -176,8 +177,9 @@ protected:
 class ParserOpds : public AbstractParser
 {
 protected:
-	ParserOpds(QIODevice& stream, QString root)
+	ParserOpds(const IPostProcessCallback& callback, QIODevice& stream, QString root)
 		: AbstractParser(stream, std::move(root))
+		, m_callback { callback }
 	{
 	}
 
@@ -250,6 +252,8 @@ protected: // AbstractParser
 	}
 
 protected:
+	const IPostProcessCallback& m_callback;
+
 	QString m_feedId;
 	QString m_feedTitle;
 
@@ -267,15 +271,15 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
 	{
 		assert(!parameters.isEmpty());
-		return std::make_unique<ParserNavigation>(stream, parameters.front(), CreateGuard {});
+		return std::make_unique<ParserNavigation>(callback, stream, parameters.front(), CreateGuard {});
 	}
 
 public:
-	ParserNavigation(QIODevice& stream, QString root, CreateGuard)
-		: ParserOpds(stream, std::move(root))
+	ParserNavigation(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
+		: ParserOpds(callback, stream, std::move(root))
 	{
 	}
 
@@ -311,6 +315,8 @@ private:
 	void WriteHttpHead() override
 	{
 		AbstractParser::WriteHttpHead();
+		WriteAuthorInfo();
+
 		m_tableGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "table");
 	}
 
@@ -340,6 +346,41 @@ private:
 		return true;
 	}
 
+	void WriteAuthorInfo()
+	{
+		const auto [info, images] = m_callback.GetAuthorInfo(m_feedTitle);
+		if (info.isEmpty())
+			return;
+
+		const auto table = m_writer->Guard("table");
+		const auto tr = m_writer->Guard("tr");
+		const auto td = m_writer->Guard("td");
+		const auto p = m_writer->Guard("p");
+		std::unique_ptr<XmlWriter::XmlNodeGuard> imgGuard;
+		if (!images.empty())
+		{
+			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "img");
+			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").WriteCharacters(" ");
+		}
+		if (const auto cutIndex = info.indexOf(QRegularExpression(R"([\.,\s])"), 720); cutIndex < 0)
+		{
+			m_output->write(info.toUtf8());
+		}
+		else
+		{
+			const auto infoBegin = info.first(cutIndex + 1);
+			m_output->write(infoBegin.toUtf8());
+			if (info.size() > infoBegin.size())
+			{
+				const auto details = m_writer->Guard("details");
+				m_writer->Guard("summary")->WriteCharacters(Tr(MORE));
+				const auto pp = m_writer->Guard("p");
+				pp->WriteCharacters(" ");
+				m_output->write(info.mid(infoBegin.size()).toUtf8());
+			}
+		}
+	}
+
 private:
 	QString m_link;
 	std::unique_ptr<XmlWriter::XmlNodeGuard> m_tableGuard;
@@ -360,8 +401,7 @@ public:
 
 public:
 	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
-		: ParserOpds(stream, std::move(root))
-		, m_callback { callback }
+		: ParserOpds(callback, stream, std::move(root))
 	{
 	}
 
@@ -515,7 +555,6 @@ private: // AbstractParser
 	}
 
 private:
-	const IPostProcessCallback& m_callback;
 	std::vector<std::pair<QString, QString>> m_authors;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
