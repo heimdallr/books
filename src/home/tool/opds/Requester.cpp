@@ -1122,12 +1122,22 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 
 				const auto& book = dataProvider.GetBook();
 
-				const auto authors = [&]
+				QJsonArray authors;
+
+				const auto authorsList = [&]
 				{
 					QStringList values;
 					for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
 					{
 						const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
+
+						authors.append(QJsonObject {
+							{   "AuthorID",											  authorItem->GetId() },
+							{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
+							{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
+							{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
+						});
+
 						values << QString("%1 %2 %3")
 									  .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
 					                       authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
@@ -1138,7 +1148,7 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 					return values.join(", ");
 				}();
 
-				const auto genres = [&]
+				const auto genresList = [&]
 				{
 					QStringList values;
 					for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
@@ -1146,19 +1156,18 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 					return values.join(", ");
 				}();
 
-				auto fileName = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).baseName();
-
 				QJsonObject bookForm {
-					{       "BookID",										   book.GetId() },
-					{     "BookSize",      book.GetRawData(Flibrary::BookItem::Column::Size) },
-					{     "FileName",											   fileName },
-					{         "Lang",      book.GetRawData(Flibrary::BookItem::Column::Lang) },
-					{      "LibRate",   book.GetRawData(Flibrary::BookItem::Column::LibRate) },
-					{    "SeqNumber", book.GetRawData(Flibrary::BookItem::Column::SeqNumber) },
-					{  "SeriesTitle",    book.GetRawData(Flibrary::BookItem::Column::Series) },
-					{        "Title",     book.GetRawData(Flibrary::BookItem::Column::Title) },
-					{ "AuthorsNames",												authors },
-					{       "Genres",												 genres },
+					{       "BookID",																	book.GetId() },
+					{     "BookSize",                               book.GetRawData(Flibrary::BookItem::Column::Size) },
+					{     "FileName",     QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).baseName() },
+					{          "Ext", "." + QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix() },
+					{         "Lang",							   book.GetRawData(Flibrary::BookItem::Column::Lang) },
+					{      "LibRate",                            book.GetRawData(Flibrary::BookItem::Column::LibRate) },
+					{    "SeqNumber",                          book.GetRawData(Flibrary::BookItem::Column::SeqNumber) },
+					{  "SeriesTitle",                             book.GetRawData(Flibrary::BookItem::Column::Series) },
+					{        "Title",                              book.GetRawData(Flibrary::BookItem::Column::Title) },
+					{ "AuthorsNames",																	 authorsList },
+					{       "Genres",																	  genresList },
 				};
 
 				result.insert("annotation", dataProvider.GetAnnotation());
@@ -1167,13 +1176,14 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 				result.insert("publisher", dataProvider.GetPublisher());
 				result.insert("year", dataProvider.GetPublishYear());
 
+				result.insert("authors", authors);
 				result.insert("bookForm", bookForm);
 
 				m_forwarder.Forward([this] { m_coversTimer.start(); });
 				std::lock_guard lock(m_coversGuard);
 
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					m_covers.try_emplace(std::move(fileName), covers.front().bytes);
+					m_covers.try_emplace(bookId, covers.front().bytes);
 			});
 
 		m_annotationController->RegisterObserver(&observer);
