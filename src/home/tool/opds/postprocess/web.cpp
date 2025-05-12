@@ -360,11 +360,11 @@ private:
 		if (!images.empty())
 		{
 			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "img");
-			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").WriteCharacters(" ");
+			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").CloseTag();
 		}
 		if (const auto cutIndex = info.indexOf(QRegularExpression(R"([\.,\s])"), 720); cutIndex < 0)
 		{
-			p->WriteCharacters(" ");
+			p->CloseTag();
 			m_output->write(info.toUtf8());
 		}
 		else
@@ -376,7 +376,7 @@ private:
 				const auto details = m_writer->Guard("details");
 				m_writer->Guard("summary")->WriteCharacters(Tr(MORE));
 				const auto pp = m_writer->Guard("p");
-				pp->WriteCharacters(" ");
+				pp->CloseTag();
 				m_output->write(info.mid(infoBegin.size()).toUtf8());
 			}
 		}
@@ -496,7 +496,7 @@ private:
 				};
 
 				auto ts = m_writer->Guard("td");
-				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").WriteCharacters(" ");
+				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
 				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));

@@ -59,6 +59,7 @@ public:
 	XmlWriter& WriteEndElement();
 	XmlWriter& WriteAttribute(const QString& name, const QString& value);
 	XmlWriter& WriteCharacters(const QString& data);
+	XmlWriter& CloseTag();
 
 	XmlNodeGuard Guard(const QString& name);
 
