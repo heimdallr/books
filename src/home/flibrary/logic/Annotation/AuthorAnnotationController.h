@@ -26,6 +26,7 @@ private: // IAuthorAnnotationController
 
 	bool CheckAuthor(const QString& name) const override;
 	QString GetInfo(const QString& name) const override;
+	std::vector<QByteArray> GetImages(const QString& name) const override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

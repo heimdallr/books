@@ -76,6 +76,14 @@ public:
 		return {};
 	}
 
+	std::vector<QByteArray> GetImages(const QString& name) const
+	{
+		if (const auto [hashed, index] = Find(name); index >= 0)
+			return GetAnnotationImages(hashed, index);
+
+		return {};
+	}
+
 private:
 	std::pair<QString, int> Find(const QString& name) const
 	{
@@ -191,6 +199,11 @@ bool AuthorAnnotationController::CheckAuthor(const QString& name) const
 QString AuthorAnnotationController::GetInfo(const QString& name) const
 {
 	return m_impl->GetInfo(name);
+}
+
+std::vector<QByteArray> AuthorAnnotationController::GetImages(const QString& name) const
+{
+	return m_impl->GetImages(name);
 }
 
 void AuthorAnnotationController::RegisterObserver(IObserver* observer)
