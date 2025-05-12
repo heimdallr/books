@@ -176,28 +176,24 @@ private:
 			 })
 			InitHttp(root);
 
-		m_server.route(FAVICON, [this] { return QtConcurrent::run([this] { return *FromFile(":/icons/main.ico", "image/x-icon"); }); });
+		m_server.route(FAVICON,
+		               [this]
+		               {
+						   return QtConcurrent::run(
+							   [this]
+							   {
+								   auto response = *FromFile(":/icons/main.ico", "image/x-icon");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
+								   return response;
+							   });
+					   });
 
 		m_server.route("/",
 		               [this]
 		               {
 						   return QtConcurrent::run(
 							   [this] { return *FromWebsite("index.html", [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
-					   });
-		m_server.route(FAVICON,
-		               [this](const QHttpServerRequest& request, QHttpServerResponder& responder)
-		               {
-						   PLOGD << request.remoteAddress().toString() << " requests " << request.url().path() << request.query().toString();
-						   QHttpHeaders headers;
-						   headers.replaceOrAppend("Content-Type", "image/x-icon");
-						   headers.replaceOrAppend("Date", QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-						   headers.replaceOrAppend("Connection", "keep-alive");
-						   headers.replaceOrAppend("Keep-Alive", "timeout=5");
-
-						   QFile icon(":/icons/main.ico");
-						   [[maybe_unused]] const auto ok = icon.open(QIODevice::ReadOnly);
-						   assert(ok);
-						   responder.write(icon.readAll(), headers);
 					   });
 		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return *FromWebsite("assets/" + fileName); }); });
 
