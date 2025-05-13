@@ -360,23 +360,24 @@ private:
 		if (!images.empty())
 		{
 			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "img");
-			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").CloseTag();
+			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg");
 		}
-		if (const auto cutIndex = info.indexOf(QRegularExpression(R"([\.,\s])"), 720); cutIndex < 0)
+		if (const auto cutIndex = info.indexOf(QRegularExpression(R"(\s)"), 720); cutIndex < 0)
 		{
-			p->CloseTag();
+			m_writer->CloseTag();
 			m_output->write(info.toUtf8());
 		}
 		else
 		{
 			const auto infoBegin = info.first(cutIndex + 1);
+			m_writer->CloseTag();
 			m_output->write(infoBegin.toUtf8());
 			if (info.size() > infoBegin.size())
 			{
 				const auto details = m_writer->Guard("details");
 				m_writer->Guard("summary")->WriteCharacters(Tr(MORE));
 				const auto pp = m_writer->Guard("p");
-				pp->CloseTag();
+				m_writer->CloseTag();
 				m_output->write(info.mid(infoBegin.size()).toUtf8());
 			}
 		}

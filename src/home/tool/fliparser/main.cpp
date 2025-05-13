@@ -211,15 +211,29 @@ void ReplaceStringInPlace(std::string& subject, const std::string& search, const
 
 QString& ReplaceTags(QString& str)
 {
-	static constexpr const char* tags[] {
-		"br",
-		"hr",
+	static constexpr std::pair<const char*, const char*> tags[] {
+		{    "br",    "br" },
+        {    "hr",    "hr" },
+        { "quote",     "q" },
+        { "table", "table" },
+        {    "tr",    "tr" },
+        {    "th",    "th" },
+        {    "td",    "td" },
 	};
 	str.replace(QRegularExpression(R"(\[(\w)\])"), R"(<\1>)").replace(QRegularExpression(R"(\[(/\w)\])"), R"(<\1>)");
-	for (const auto* tag : tags)
-		str.replace(QString("[%1]").arg(tag), QString("<%1>").arg(tag), Qt::CaseInsensitive);
+	for (const auto& [from, to] : tags)
+		str.replace(QString("[%1]").arg(from), QString("<%1>").arg(to), Qt::CaseInsensitive).replace(QString("[/%1]").arg(from), QString("</%1>").arg(to), Qt::CaseInsensitive);
 
-	str.replace(QRegularExpression(R"((\s|(?<!")>)(https{0,1}\://.+?)([\s<]))"), R"(\1<a href="\2">\2</a>\3)");
+	str.replace(QRegularExpression(R"(\[img\](.*?)\[/img\])"), R"(<img src="\1"/>)");
+	str.replace(QRegularExpression(R"(\[(URL|url)=(.*?)\](.*?)\[/(URL|url)\])"), R"(<a href="\2"/>\3</a>)");
+	str.replace(QRegularExpression(R"(\[color=(.*?)\])"), R"(<font color="\1">)").replace("[/color]", "</font>");
+
+	str.replace("\n", "\n\n");
+	str.replace(QRegularExpression(R"(([^"])(https{0,1}:\/\/\S+?)([\s<]))"), R"(\1<a href="\2">\2</a>\3)");
+	str.replace("\n\n", "\n");
+
+	str.replace(QRegularExpression(R"(\[collapse collapsed title=(.*?)\])"), R"(<details><summary>\1</summary>)");
+	str.replace(QRegularExpression(R"(\[/collapse])"), R"(</details>)");
 
 	return str;
 }
@@ -624,6 +638,7 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 				                           std::back_inserter(bytes),
 				                           [](QString& value)
 				                           {
+											   value.prepend(' ');
 											   value.append(' ');
 											   return ReplaceTags(value).simplified().toUtf8();
 										   });
