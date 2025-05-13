@@ -2,6 +2,9 @@
 	<qresource prefix="icons">
 		<file alias="main.ico">../../resources/icons/main.ico</file>
 	</qresource>
+	<qresource prefix="images">
+		<file alias="book.png">resources/images/book.png</file>
+	</qresource>
 	<qresource prefix="website">
 		<file alias="index.html">resources/website/index.html</file>
 	</qresource>

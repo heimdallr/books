@@ -811,7 +811,15 @@ public:
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 					if (const auto coverIndex = dataProvider.GetCoverIndex())
+					{
 						result = covers[*coverIndex].bytes;
+						return;
+					}
+
+				QFile file(":/images/book.png");
+				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+				assert(ok);
+				result = file.readAll();
 			});
 
 		m_annotationController->RegisterObserver(&observer);
