@@ -56,14 +56,16 @@ OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
 	auto h = response.headers();
-	h.replaceOrAppend(key, value);
+	[[maybe_unused]] const auto ok = h.replaceOrAppend(key, value);
+	assert(ok);
 	response.setHeaders(std::move(h));
 }
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QString& key, const QString& value)
 {
 	auto h = response.headers();
-	h.replaceOrAppend(key, value);
+	[[maybe_unused]] const auto ok = h.replaceOrAppend(key, value);
+	assert(ok);
 	response.setHeaders(std::move(h));
 }
 
