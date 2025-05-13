@@ -19,6 +19,7 @@ namespace HomeCompa::Flibrary
 
 struct Genre
 {
+	QString fb2Code;
 	QString code;
 	QString name;
 	bool checked { false };

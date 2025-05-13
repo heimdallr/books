@@ -1012,7 +1012,39 @@ select f.FolderID, f.FolderTitle, count(42)
 
 	QJsonObject getConfig(const QString&) const
 	{
-		return {};
+		const auto db = m_databaseController->GetDatabase(true);
+
+		QJsonObject result;
+		{
+			auto query = db->CreateQuery("select count (42) from Books");
+			query->Execute();
+			assert(!query->Eof());
+			result.insert("numberOfBooks", query->Get<long long>(0));
+		}
+
+		{
+			QJsonArray array;
+			const auto genres = Flibrary::Genre::Load(*db);
+			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void
+			{
+				for (const auto& child : genre.children)
+				{
+					array.append(QJsonObject {
+						{  "GenreCode",                child.code },
+						{ "ParentCode",                genre.code },
+						{    "FB2Code",             child.fb2Code },
+						{ "GenreAlias",                child.name },
+						{  "IsDeleted", child.removed ? "1" : "0" },
+					});
+					f(child, f);
+				}
+			};
+
+			process(genres, process);
+			result.insert("genres", array);
+		}
+
+		return result;
 	}
 
 	QJsonObject getSearchStats(const QString& searchTerms) const
