@@ -508,13 +508,9 @@ private:
 					createLink(m_downloadLinkZip, fileInfo, true, transliterated);
 				};
 
-				const auto fileName = m_callback.GetFileName(m_feedId, false);
+				const auto fileName = m_callback.GetFileName(m_feedId);
 				const QFileInfo fileInfo(fileName);
 				createLinks(fileInfo, false);
-
-				if (const auto fileNameTransliterated = m_callback.GetFileName(m_feedId, true); fileNameTransliterated != fileName)
-					if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
-						createLinks(fileInfoTransliterated, true);
 			}
 			if (contents.size() > 1)
 				m_output->write(contents.back().toUtf8());

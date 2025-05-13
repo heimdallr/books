@@ -161,6 +161,7 @@ constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
 constexpr auto CONTENT = "content";
+constexpr auto OPDS_TRANSLITERATE = "opds/transliterate";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
@@ -820,31 +821,31 @@ public:
 		return result;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool transliterate, const bool restoreImages) const
+	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool restoreImages) const
 	{
 		auto book = GetExtractedBook(bookId);
-		auto outputFileName = GetFileName(book, transliterate);
+		auto outputFileName = GetFileName(book);
 		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool transliterate, const bool restoreImages) const
+	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate, restoreImages);
+		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
 		return std::make_pair(title, std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool transliterate, const bool restoreImages) const
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate, restoreImages);
+		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
 		data = Compress(std::move(data), fileName);
 		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return std::get<2>(GetBookImpl(bookId, false, true));
+		return std::get<2>(GetBookImpl(bookId, true));
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -1229,10 +1230,10 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 	}
 
 private: // IPostProcessCallback
-	QString GetFileName(const QString& bookId, const bool transliterate) const override
+	QString GetFileName(const QString& bookId) const override
 	{
 		const auto book = GetExtractedBook(bookId);
-		return GetFileName(book, transliterate);
+		return GetFileName(book);
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override
@@ -1288,11 +1289,11 @@ private:
 		};
 	}
 
-	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book, const bool transliterate) const
+	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
 		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
-		if (!transliterate)
+		if (!m_settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
 		Transliterate("ru-ru_Latn/BGN", outputFileName);
@@ -1551,14 +1552,14 @@ QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self
 	return GetCover(root, self, bookId);
 }
 
-std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate, const bool restoreImages) const
+std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
 {
-	return m_impl->GetBook(bookId, transliterate, restoreImages);
+	return m_impl->GetBook(bookId, restoreImages);
 }
 
-std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate, const bool restoreImages) const
+std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
 {
-	return m_impl->GetBookZip(bookId, transliterate, restoreImages);
+	return m_impl->GetBookZip(bookId, restoreImages);
 }
 
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
