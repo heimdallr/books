@@ -45,8 +45,22 @@ constexpr auto SEARCH = "%1/search";
 constexpr auto FAVICON = "/favicon.ico";
 constexpr auto ASSETS = "/assets/%1";
 constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
+constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
+constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
+constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
+
+#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto NAME = "/" #NAME;
+OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
+{
+	auto h = response.headers();
+	h.replaceOrAppend(key, value);
+	response.setHeaders(std::move(h));
+}
+
+void ReplaceOrAppendHeader(QHttpServerResponse& response, const QString& key, const QString& value)
 {
 	auto h = response.headers();
 	h.replaceOrAppend(key, value);
@@ -59,7 +73,7 @@ enum class MessageType
 	Read,
 };
 
-constexpr const char* ROOTS[] { "/opds", "/web" };
+constexpr const char* ROOTS[] { opds, web };
 
 constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
 	{ "application/atom+xml; charset=utf-8", "text/html; charset=utf-8" },
@@ -146,6 +160,23 @@ public:
 	}
 
 private:
+	using BookGetter = std::pair<QString, QByteArray> (IRequester::*)(const QString& root, const QString& self, const QString& bookId, bool transliterate, bool restoreImages) const;
+
+	auto GetBook(BookGetter getter, QString root, QString self, QString value, QString contentType, const bool transliterate, const bool restoreImages) const
+	{
+		return QtConcurrent::run(
+			[this, getter, root = std::move(root), self = std::move(self), value = std::move(value), contentType = std::move(contentType), transliterate, restoreImages]
+			{
+				auto [fileName, body] = std::invoke(getter, *m_requester, std::cref(root), std::cref(self), std::cref(value), transliterate, restoreImages);
+				QHttpServerResponse response(std::move(body));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
+				ReplaceOrAppendHeader(response, "content-description", "File Transfer");
+				ReplaceOrAppendHeader(response, "content-transfer-encoding", "binary");
+				return response;
+			});
+	}
+
 	void InitHttp(const QHostAddress& host, const uint16_t port)
 	{
 		auto tcpServer = std::make_unique<QTcpServer>();
@@ -224,11 +255,20 @@ private:
 						   return QtConcurrent::run(
 							   [this, value]
 							   {
-								   QHttpServerResponse response(m_requester->GetCover("/web", QString(COVER).arg("/web", value), value));
+								   QHttpServerResponse response(m_requester->GetCover(web, QString(COVER).arg(web, value), value));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 								   return response;
 							   });
 					   });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG),
+		               [this](const QString& value) { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, "application/fb2", true, false); });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG),
+		               [this](const QString& value) { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, "application/fb2", true, true); });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG),
+		               [this](const QString& value) { return GetBook(&IRequester::GetBookZip, web, QString(BOOK_ZIP).arg(web, value), value, "application/zip", true, true); });
 	}
 
 	void InitHttp(const QString& root)
@@ -283,60 +323,16 @@ private:
 					   });
 
 		m_server.route(QString(BOOK_DATA).arg(root, ARG),
-		               [this, root](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, root, value]
-							   {
-								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value, false);
-								   QHttpServerResponse response(std::move(body));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
-								   return response;
-							   });
-					   });
+		               [this, root](const QString& value) { return GetBook(&IRequester::GetBook, root, QString(BOOK_DATA).arg(root, value), value, "application/fb2", false, true); });
 
 		m_server.route(QString(BOOK_ZIP).arg(root, ARG),
-		               [this, root](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, root, value]
-							   {
-								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value, false);
-								   QHttpServerResponse response(body);
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
-								   return response;
-							   });
-					   });
+		               [this, root](const QString& value) { return GetBook(&IRequester::GetBookZip, root, QString(BOOK_ZIP).arg(root, value), value, "application/zip", false, true); });
 
 		m_server.route(QString(BOOK_DATA_TR).arg(root, ARG),
-		               [this, root](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, root, value]
-							   {
-								   auto [fileName, body] = m_requester->GetBook(root, QString(BOOK_DATA).arg(root, value), value, true);
-								   QHttpServerResponse response(std::move(body));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/fb2");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
-								   return response;
-							   });
-					   });
+		               [this, root](const QString& value) { return GetBook(&IRequester::GetBook, root, QString(BOOK_DATA).arg(root, value), value, "application/fb2", true, true); });
 
 		m_server.route(QString(BOOK_ZIP_TR).arg(root, ARG),
-		               [this, root](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, root, value]
-							   {
-								   auto [fileName, body] = m_requester->GetBookZip(root, QString(BOOK_ZIP).arg(root, value), value, true);
-								   QHttpServerResponse response(body);
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/zip");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
-								   return response;
-							   });
-					   });
+		               [this, root](const QString& value) { return GetBook(&IRequester::GetBookZip, root, QString(BOOK_ZIP).arg(root, value), value, "application/zip", true, true); });
 
 		m_server.route(QString(READ).arg(root, ARG),
 		               [this, root](const QString& value)

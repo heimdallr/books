@@ -470,14 +470,17 @@ Node WriteNavigationStartsWith(DB::IDatabase& db,
 	return head;
 }
 
-QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName)
+QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
+	const Zip unzip(path + "/" + archive);
+	const auto stream = unzip.Read(fileName);
+	if (!restoreImages)
+		return stream->GetStream().readAll();
+
 	QByteArray data;
 	{
 		QBuffer buffer(&data);
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		const Zip unzip(path + "/" + archive);
-		const auto stream = unzip.Read(fileName);
 		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
@@ -817,31 +820,31 @@ public:
 		return result;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool transliterate) const
+	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool transliterate, const bool restoreImages) const
 	{
 		auto book = GetExtractedBook(bookId);
 		auto outputFileName = GetFileName(book, transliterate);
-		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file);
+		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool transliterate) const
+	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool transliterate, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		auto [fileName, title, data] = GetBookImpl(bookId, transliterate, restoreImages);
 		return std::make_pair(title, std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool transliterate) const
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool transliterate, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		auto [fileName, title, data] = GetBookImpl(bookId, transliterate, restoreImages);
 		data = Compress(std::move(data), fileName);
 		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return std::get<2>(GetBookImpl(bookId, false));
+		return std::get<2>(GetBookImpl(bookId, false, true));
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -1548,14 +1551,14 @@ QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self
 	return GetCover(root, self, bookId);
 }
 
-std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
+std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate, const bool restoreImages) const
 {
-	return m_impl->GetBook(bookId, transliterate);
+	return m_impl->GetBook(bookId, transliterate, restoreImages);
 }
 
-std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
+std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate, const bool restoreImages) const
 {
-	return m_impl->GetBookZip(bookId, transliterate);
+	return m_impl->GetBookZip(bookId, transliterate, restoreImages);
 }
 
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
