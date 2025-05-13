@@ -33,8 +33,8 @@ private: // IRequester
 	QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const override;
 	QByteArray GetCover(const QString& root, const QString& self, const QString& bookId) const override;
 	QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const override;
-	std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool transliterate) const override;
-	std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool transliterate) const override;
+	std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool transliterate, bool restoreImages) const override;
+	std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool transliterate, bool restoreImages) const override;
 	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
 	QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const override;
 
@@ -49,6 +49,10 @@ private: // IRequester
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
+
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _) QByteArray NAME(const QString& value) const override;
+	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM
 
 private:
 	class Impl;

@@ -83,6 +83,7 @@ struct OpdsDialog::Impl final
 		};
 		actionSetup(ui.actionCopyOpds, ui.lineEditOpdsAddress);
 		actionSetup(ui.actionCopyWeb, ui.lineEditWebAddress);
+		actionSetup(ui.actionCopySite, ui.lineEditSiteAddress);
 
 		OnConnectionChanged();
 		OnRunningChanged();
@@ -115,6 +116,7 @@ private: // IOpdsController::IObserver
 		ui.spinBoxPort->setEnabled(!isRunning);
 		ui.lineEditOpdsAddress->setEnabled(isRunning);
 		ui.lineEditWebAddress->setEnabled(isRunning);
+		ui.lineEditSiteAddress->setEnabled(isRunning);
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
 	}
@@ -123,6 +125,7 @@ private:
 	void OnConnectionChanged() const
 	{
 		const auto host = ui.comboBoxHosts->currentIndex() ? ui.comboBoxHosts->currentText() : ui.comboBoxHosts->itemText(1);
+		ui.lineEditSiteAddress->setText(QString("http://%1:%2/").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
 	}

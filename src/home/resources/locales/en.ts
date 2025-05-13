@@ -5488,6 +5488,10 @@ Try again?</source>
         <source>Address</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Site Address</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
