@@ -170,7 +170,7 @@ private:
 				auto [fileName, body] = std::invoke(getter, *m_requester, std::cref(root), std::cref(self), std::cref(value), transliterate, restoreImages);
 				QHttpServerResponse response(std::move(body));
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
-				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(fileName));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
 				ReplaceOrAppendHeader(response, "content-description", "File Transfer");
 				ReplaceOrAppendHeader(response, "content-transfer-encoding", "binary");
 				return response;
