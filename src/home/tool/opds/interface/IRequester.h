@@ -34,8 +34,8 @@ public:
 	virtual QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const = 0;
 	virtual QByteArray GetCover(const QString& root, const QString& self, const QString& bookId) const = 0;
 	virtual QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const = 0;
-	virtual std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool transliterate, bool restoreImages = true) const = 0;
-	virtual std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool transliterate, bool restoreImages = true) const = 0;
+	virtual std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool restoreImages = true) const = 0;
+	virtual std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool restoreImages = true) const = 0;
 	virtual QByteArray GetBookText(const QString& root, const QString& bookId) const = 0;
 	virtual QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start = {}) const = 0;
 

@@ -485,14 +485,14 @@ private:
 					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
 				}
 
-				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const bool transliterated)
+				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip)
 				{
 					if (url.isEmpty())
 						return;
 
 					const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
 					m_writer->Guard("br");
-					m_writer->Guard("a")->WriteAttribute("href", QString("%1%2").arg(url, transliterated ? "/tr" : "")).WriteAttribute("download", fileName).WriteCharacters(fileName);
+					m_writer->Guard("a")->WriteAttribute("href", QString("%1").arg(url)).WriteAttribute("download", fileName).WriteCharacters(fileName);
 				};
 
 				auto ts = m_writer->Guard("td");
@@ -501,20 +501,16 @@ private:
 				m_output->write(contents.front().toUtf8());
 				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
 
-				const auto createLinks = [&](const QFileInfo& fileInfo, const bool transliterated)
+				const auto createLinks = [&](const QFileInfo& fileInfo)
 				{
 					m_writer->Guard("br");
-					createLink(m_downloadLinkFb2, fileInfo, false, transliterated);
-					createLink(m_downloadLinkZip, fileInfo, true, transliterated);
+					createLink(m_downloadLinkFb2, fileInfo, false);
+					createLink(m_downloadLinkZip, fileInfo, true);
 				};
 
-				const auto fileName = m_callback.GetFileName(m_feedId, false);
+				const auto fileName = m_callback.GetFileName(m_feedId);
 				const QFileInfo fileInfo(fileName);
-				createLinks(fileInfo, false);
-
-				if (const auto fileNameTransliterated = m_callback.GetFileName(m_feedId, true); fileNameTransliterated != fileName)
-					if (const QFileInfo fileInfoTransliterated(fileNameTransliterated); fileInfoTransliterated.fileName() != fileInfo.fileName())
-						createLinks(fileInfoTransliterated, true);
+				createLinks(fileInfo);
 			}
 			if (contents.size() > 1)
 				m_output->write(contents.back().toUtf8());
