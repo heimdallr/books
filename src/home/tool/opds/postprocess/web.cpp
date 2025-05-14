@@ -362,7 +362,7 @@ private:
 		if (!images.empty())
 		{
 			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "img");
-			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg");
+			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").WriteAttribute("width", "180");
 		}
 		if (const auto cutIndex = info.indexOf(QRegularExpression(R"(\s)"), 720); cutIndex < 0)
 		{
