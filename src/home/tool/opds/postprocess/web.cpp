@@ -21,6 +21,8 @@
 
 #include "root.h"
 
+#include "config/version.h"
+
 namespace HomeCompa::Opds
 {
 
@@ -130,12 +132,12 @@ protected:
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
 				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} .leftimg {\n\t\t\t\tfloat:left; margin: 7px 7px 7px 0;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement("title").WriteCharacters(PRODUCT_ID).WriteEndElement()
 			.WriteEndElement()
 			.WriteStartElement("body")
 				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
 					.WriteStartElement("p")
-						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64")
-						.WriteEndElement()
+						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
 				.WriteStartElement("a").WriteAttribute("href", m_root).WriteCharacters(Tr(HOME)).WriteEndElement();
