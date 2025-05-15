@@ -288,17 +288,16 @@ private:
 		m_server.route(QString(SEARCH).arg(root),
 		               [this, root](const QHttpServerRequest& request)
 		               {
-						   QString q, start;
-						   for (const auto& parameter : request.query().toString(QUrl::FullyDecoded).split("&", Qt::SkipEmptyParts))
+						   const auto query = request.query();
+						   QString q = query.queryItemValue("q", QUrl::FullyDecoded), start = query.queryItemValue("start", QUrl::FullyDecoded);
+						   if (q.isEmpty())
+							   if (const auto& parameters = query.queryItems(); !parameters.isEmpty())
+								   q = parameters.front().second;
+
+						   if (q.isEmpty())
 						   {
-							   const auto values = parameter.split("=");
-							   assert(values.size() == 2);
-							   if (values.front() == "q")
-								   q = values.back();
-							   else if (values.front() == "start")
-								   start = values.back();
-							   else
-								   assert(false && "unexpected parameter");
+							   assert(false);
+							   PLOGE << "search term is empty";
 						   }
 
 						   return QtConcurrent::run(

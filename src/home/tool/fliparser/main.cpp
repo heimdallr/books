@@ -326,9 +326,16 @@ left join libfilename f on f.BookId=b.BookID
 
 		const auto index = fileName.empty() ? libId + "." + type : fileName;
 		if (fileName.empty())
+		{
 			fileName = libId;
+		}
 		else
-			fileName.resize(fileName.find_last_of('.'));
+		{
+			QFileInfo fileInfo(QString::fromStdString(fileName));
+			fileName = fileInfo.completeBaseName().toStdString();
+			if (const auto ext = fileInfo.suffix().toLower(); ext == "fb2")
+				type = "fb2";
+		}
 
 		QByteArray data;
 		data.append(query->Get<const char*>(0)) // AUTHOR
@@ -498,8 +505,6 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 
 				const auto bookInfo = inpStr.split('\x04');
 				assert(bookInfo.size() == 15);
-				if (bookInfo[2].isEmpty())
-					continue;
 
 				const auto bookInfoFileName = bookInfo[5] + "." + bookInfo[9];
 				if (const auto it = files.find(bookInfoFileName); it != files.end())

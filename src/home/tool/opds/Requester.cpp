@@ -178,7 +178,7 @@ constexpr std::pair<const char*, std::tuple<const char*, const char*>> HEAD_QUER
 
 struct Node
 {
-	using Attributes = std::unordered_map<QString, QString>;
+	using Attributes = std::vector<std::pair<QString, QString>>;
 	using Children = std::vector<Node>;
 	QString name;
 	QString value;
