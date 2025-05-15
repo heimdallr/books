@@ -292,7 +292,7 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
 		f[i](buf) = Next(it, end, FIELDS_SEPARATOR);
 
-	if (buf.GENRE.empty())
+	if (buf.GENRE.size() < 2)
 		buf.GENRE = GENRE_NOT_SPECIFIED;
 
 	return buf;
