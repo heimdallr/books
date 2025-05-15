@@ -352,6 +352,8 @@ left join libfilename f on f.BookId=b.BookID
 			.append('\04')
 			.append(query->Get<const char*>(13)) // KEYWORDS
 			.append('\04');
+		data.replace('\n', ' ');
+		data.replace('\r', "");
 		inpData.try_emplace(QString::fromStdString(index), std::move(data));
 
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
