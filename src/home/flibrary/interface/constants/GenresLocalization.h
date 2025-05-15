@@ -340,7 +340,6 @@ QT_TRANSLATE_NOOP("Genre", "fanfiction")
 QT_TRANSLATE_NOOP("Genre", "unfinished")
 QT_TRANSLATE_NOOP("Genre", "unordered")
 QT_TRANSLATE_NOOP("Genre", "other")
-QT_TRANSLATE_NOOP("Genre", "genre_not_specified")
 #endif
 
 } // namespace HomeCompa::Flibrary
