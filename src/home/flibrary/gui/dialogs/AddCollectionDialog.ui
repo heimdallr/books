@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>208</height>
+    <width>612</width>
+    <height>236</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -146,6 +146,36 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QWidget" name="widget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxMarkUnindexedAdDeleted">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Mark unindexed books as deleted</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QCheckBox" name="checkBoxAddMissingBooks">
      <property name="text">
       <string>Add books missing from archives</string>
@@ -228,5 +258,22 @@
   <include location="../../icons/light/resources/light.qrc"/>
   <include location="../../icons/light/resources/light.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>checkBoxAddUnindexedBooks</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBoxMarkUnindexedAdDeleted</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>305</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>131</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

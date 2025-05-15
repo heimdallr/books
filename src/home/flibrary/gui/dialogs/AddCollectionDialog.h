@@ -36,6 +36,7 @@ private: // IAddCollectionDialog
 	[[nodiscard]] bool AddUnIndexedBooks() const override;
 	[[nodiscard]] bool ScanUnIndexedFolders() const override;
 	[[nodiscard]] bool SkipLostBooks() const override;
+	[[nodiscard]] bool MarkUnIndexedBooksAsDeleted() const override;
 
 private:
 	class Impl;
