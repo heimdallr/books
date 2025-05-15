@@ -3,6 +3,9 @@
 #include <ranges>
 
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPixmap>
 #include <QTimer>
 
@@ -24,8 +27,6 @@
 #include "inpx/src/util/constant.h"
 #include "util/UiTimer.h"
 #include "util/localization.h"
-#include "util/xml/SaxParser.h"
-#include "util/xml/XmlAttributes.h"
 
 #include "ArchiveParser.h"
 #include "log.h"
@@ -65,37 +66,6 @@ constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Boo
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
 constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
-
-class ReviewParser final : public Util::SaxParser
-{
-public:
-	ReviewParser(QIODevice& stream, IAnnotationController::IDataProvider::Reviews& reviews)
-		: SaxParser(stream)
-		, m_reviews { reviews }
-	{
-	}
-
-private: // SaxParser
-	bool OnStartElement(const QString&, [[maybe_unused]] const QString& path, const Util::XmlAttributes& attributes) override
-	{
-		assert(path == "item");
-		auto& review = m_reviews.emplace_back(QDateTime::fromString(attributes.GetAttribute("time"), "yyyy-MM-dd hh:mm:ss"), attributes.GetAttribute("name"));
-		if (review.name.isEmpty())
-			review.name = Tr(ANONYMOUS);
-
-		return true;
-	}
-
-	bool OnCharacters([[maybe_unused]] const QString& path, const QString& value) override
-	{
-		assert(path == "item" && !m_reviews.empty());
-		m_reviews.back().text = value;
-		return true;
-	}
-
-private:
-	IAnnotationController::IDataProvider::Reviews& m_reviews;
-};
 
 enum class Ready
 {
@@ -601,7 +571,22 @@ private:
 
 			Zip zip(archivesFolder + "/" + reviewFolder);
 			const auto stream = zip.Read(libId);
-			ReviewParser(stream->GetStream(), reviews).Parse();
+			QJsonParseError jsonParseError;
+			const auto doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
+			if (jsonParseError.error != QJsonParseError::NoError)
+			{
+				PLOGE << jsonParseError.errorString();
+				continue;
+			}
+			assert(doc.isArray());
+			for (const auto jsonValue : doc.array())
+			{
+				assert(jsonValue.isObject());
+				const auto obj = jsonValue.toObject();
+				auto& review = reviews.emplace_back(QDateTime::fromString(obj["time"].toString(), "yyyy-MM-dd hh:mm:ss"), obj["name"].toString(), obj["text"].toString());
+				if (review.name.isEmpty())
+					review.name = Tr(ANONYMOUS);
+			}
 		}
 		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });
 

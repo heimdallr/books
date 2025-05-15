@@ -6,6 +6,9 @@
 
 #include <QBuffer>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QStandardPaths>
 
@@ -26,8 +29,6 @@
 #include "logging/init.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/executor/ThreadPool.h"
-#include "util/xml/Initializer.h"
-#include "util/xml/XmlWriter.h"
 
 #include "Constant.h"
 #include "log.h"
@@ -525,18 +526,18 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 			                           std::back_inserter(bytes),
 			                           [](auto& value)
 			                           {
-										   QBuffer buffer;
+										   QJsonArray array;
+										   for (auto& [name, time, text] : value)
 										   {
-											   ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-
-											   Util::XmlWriter writer(buffer);
-											   for (auto& [name, time, text] : value)
-											   {
-												   text.append(' ');
-												   writer.Guard("item")->WriteAttribute("name", name.simplified()).WriteAttribute("time", time).WriteCharacters(ReplaceTags(text).simplified());
-											   }
+											   text.prepend(' ');
+											   text.append(' ');
+											   array.append(QJsonObject {
+												   { "name",              name.simplified() },
+												   { "time",                           time },
+												   { "text", ReplaceTags(text).simplified() },
+											   });
 										   }
-										   return buffer.buffer();
+										   return QJsonDocument(array).toJson();
 									   });
 
 				QByteArray zipBytes;
@@ -775,7 +776,6 @@ int main(const int argc, char* argv[])
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
-	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 	if (argc < 4)
 	{
