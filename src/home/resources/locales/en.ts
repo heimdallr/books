@@ -84,6 +84,10 @@
         <source>Add books missing from archives</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Mark unindexed books as deleted</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
