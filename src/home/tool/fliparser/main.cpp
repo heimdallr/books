@@ -314,6 +314,13 @@ left join libfilename f on f.BookId=b.BookID
 		const auto* modifiedEnd = strchr(modified, ' ');
 
 		std::string type = query->Get<const char*>(9);
+		for (const auto* typoType : {"fd2", "fb", "???", "fb 2", "fbd"})
+			if (type == typoType)
+			{
+				type = "fb2";
+				break;
+			}
+
 		const auto* fileNamePtr = query->Get<const char*>(5);
 		std::string fileName = fileNamePtr ? fileNamePtr : std::string {};
 
