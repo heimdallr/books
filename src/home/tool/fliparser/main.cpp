@@ -488,7 +488,7 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 	const auto reviewsFolder = outputFolder / REVIEWS_FOLDER;
 	[[maybe_unused]] const auto ok = create_directory(reviewsFolder);
 	int currentMonth { -1 };
-	std::unordered_map<long long, std::vector<std::tuple<QString, QString, QString>>> data;
+	std::map<long long, std::vector<std::tuple<QString, QString, QString>>> data;
 
 	std::mutex archivesGuard;
 	std::vector<std::tuple<QString, QByteArray>> archives;
@@ -596,8 +596,8 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 	auto threadPool = std::make_unique<Util::ThreadPool>();
 
 	int currentId = -1;
-	using PictureList = std::unordered_set<QString, CaseInsensitiveHash<QString>>;
-	std::unordered_map<QString, std::pair<QString, PictureList>> data;
+	using PictureList = std::set<QString>;
+	std::map<QString, std::pair<QString, PictureList>> data;
 
 	std::mutex archivesGuard;
 	std::vector<std::tuple<int, QByteArray, QByteArray>> archives;
