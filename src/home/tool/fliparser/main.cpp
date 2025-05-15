@@ -258,6 +258,7 @@ void FillTables(DB::IDatabase& db, const std::filesystem::path& path)
 
 	const std::regex escape(R"(\\(.))"), escapeBack("\x04(.)\x05");
 
+	int64_t currentPercents = 0;
 	while (std::getline(inp, line))
 	{
 		if (!line.starts_with("INSERT INTO"))
@@ -272,10 +273,11 @@ void FillTables(DB::IDatabase& db, const std::filesystem::path& path)
 		line = std::regex_replace(line, escapeBack, "$1");
 		[[maybe_unused]] const auto ok = tr->CreateCommand(line)->Execute();
 		assert(ok);
-		LOGI << 100 * inp.tellg() / size << "%";
+		if (const auto percents = 100 * inp.tellg() / size; percents != currentPercents)
+			LOGI << path.stem().string() << " " << (currentPercents = percents) << "%";
 	}
 
-	LOGI << 100 << "%";
+	LOGI << path.stem().string() << " " << 100 << "%";
 
 	tr->Commit();
 }
