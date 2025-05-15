@@ -6,6 +6,9 @@
 
 #include <QBuffer>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QStandardPaths>
 
@@ -26,8 +29,6 @@
 #include "logging/init.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/executor/ThreadPool.h"
-#include "util/xml/Initializer.h"
-#include "util/xml/XmlWriter.h"
 
 #include "Constant.h"
 #include "log.h"
@@ -257,6 +258,7 @@ void FillTables(DB::IDatabase& db, const std::filesystem::path& path)
 
 	const std::regex escape(R"(\\(.))"), escapeBack("\x04(.)\x05");
 
+	int64_t currentPercents = 0;
 	while (std::getline(inp, line))
 	{
 		if (!line.starts_with("INSERT INTO"))
@@ -271,10 +273,11 @@ void FillTables(DB::IDatabase& db, const std::filesystem::path& path)
 		line = std::regex_replace(line, escapeBack, "$1");
 		[[maybe_unused]] const auto ok = tr->CreateCommand(line)->Execute();
 		assert(ok);
-		LOGI << 100 * inp.tellg() / size << "%";
+		if (const auto percents = 100 * inp.tellg() / size; percents != currentPercents)
+			LOGI << path.stem().string() << " " << (currentPercents = percents) << "%";
 	}
 
-	LOGI << 100 << "%";
+	LOGI << path.stem().string() << " " << 100 << "%";
 
 	tr->Commit();
 }
@@ -487,7 +490,7 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 	const auto reviewsFolder = outputFolder / REVIEWS_FOLDER;
 	[[maybe_unused]] const auto ok = create_directory(reviewsFolder);
 	int currentMonth { -1 };
-	std::unordered_map<long long, std::vector<std::tuple<QString, QString, QString>>> data;
+	std::map<long long, std::vector<std::tuple<QString, QString, QString>>> data;
 
 	std::mutex archivesGuard;
 	std::vector<std::tuple<QString, QByteArray>> archives;
@@ -525,18 +528,18 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 			                           std::back_inserter(bytes),
 			                           [](auto& value)
 			                           {
-										   QBuffer buffer;
+										   QJsonArray array;
+										   for (auto& [name, time, text] : value)
 										   {
-											   ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-
-											   Util::XmlWriter writer(buffer);
-											   for (auto& [name, time, text] : value)
-											   {
-												   text.append(' ');
-												   writer.Guard("item")->WriteAttribute("name", name.simplified()).WriteAttribute("time", time).WriteCharacters(ReplaceTags(text).simplified());
-											   }
+											   text.prepend(' ');
+											   text.append(' ');
+											   array.append(QJsonObject {
+												   { "name",              name.simplified() },
+												   { "time",                           time },
+												   { "text", ReplaceTags(text).simplified() },
+											   });
 										   }
-										   return buffer.buffer();
+										   return QJsonDocument(array).toJson();
 									   });
 
 				QByteArray zipBytes;
@@ -595,8 +598,8 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 	auto threadPool = std::make_unique<Util::ThreadPool>();
 
 	int currentId = -1;
-	using PictureList = std::unordered_set<QString, CaseInsensitiveHash<QString>>;
-	std::unordered_map<QString, std::pair<QString, PictureList>> data;
+	using PictureList = std::set<QString>;
+	std::map<QString, std::pair<QString, PictureList>> data;
 
 	std::mutex archivesGuard;
 	std::vector<std::tuple<int, QByteArray, QByteArray>> archives;
@@ -775,7 +778,6 @@ int main(const int argc, char* argv[])
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
-	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 	if (argc < 4)
 	{
