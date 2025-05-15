@@ -575,7 +575,7 @@ private:
 			const auto doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
 			if (jsonParseError.error != QJsonParseError::NoError)
 			{
-				PLOGE << jsonParseError.errorString();
+				PLOGW << jsonParseError.errorString();
 				continue;
 			}
 			assert(doc.isArray());
