@@ -1581,7 +1581,8 @@ private:
 
 		const auto values = QStringList() << ToString(parserData.authors) << (parserData.genres.empty() ? QString {} : parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR) << parserData.title
 		                                  << parserData.series << QString::number(parserData.seqNumber) << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName))
-		                                  << fileInfo.completeBaseName() << "0" << fileInfo.suffix() << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
+		                                  << fileInfo.completeBaseName() << (!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted) ? "0" : "1") << fileInfo.suffix() << std::move(dateTime)
+		                                  << parserData.lang << "0" << parserData.keywords;
 
 		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
