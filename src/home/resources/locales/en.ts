@@ -2416,6 +2416,11 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>genre_not_specified</source>
+        <translation>Genre not specified</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
         <translation>Cars and traffic rules</translation>
     </message>

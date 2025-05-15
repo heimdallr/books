@@ -292,6 +292,9 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
 		f[i](buf) = Next(it, end, FIELDS_SEPARATOR);
 
+	if (buf.GENRE.empty())
+		buf.GENRE = GENRE_NOT_SPECIFIED;
+
 	return buf;
 }
 
@@ -1576,9 +1579,9 @@ private:
 		const auto& fileDateTime = zip.GetFileTime(fileName);
 		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
 
-		const auto values = QStringList() << ToString(parserData.authors) << parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR << parserData.title << parserData.series
-		                                  << QString::number(parserData.seqNumber) << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << "0"
-		                                  << fileInfo.suffix() << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
+		const auto values = QStringList() << ToString(parserData.authors) << (parserData.genres.empty() ? QString {} : parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR) << parserData.title
+		                                  << parserData.series << QString::number(parserData.seqNumber) << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName))
+		                                  << fileInfo.completeBaseName() << "0" << fileInfo.suffix() << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
 
 		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
