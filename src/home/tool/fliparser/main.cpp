@@ -314,6 +314,13 @@ left join libfilename f on f.BookId=b.BookID
 		const auto* modifiedEnd = strchr(modified, ' ');
 
 		std::string type = query->Get<const char*>(9);
+		for (const auto* typoType : {"fd2", "fb", "???", "fb 2", "fbd"})
+			if (type == typoType)
+			{
+				type = "fb2";
+				break;
+			}
+
 		const auto* fileNamePtr = query->Get<const char*>(5);
 		std::string fileName = fileNamePtr ? fileNamePtr : std::string {};
 
@@ -352,6 +359,8 @@ left join libfilename f on f.BookId=b.BookID
 			.append('\04')
 			.append(query->Get<const char*>(13)) // KEYWORDS
 			.append('\04');
+		data.replace('\n', ' ');
+		data.replace('\r', "");
 		inpData.try_emplace(QString::fromStdString(index), std::move(data));
 
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
@@ -416,24 +425,7 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	std::vector<QString> inpFiles;
 	std::vector<QByteArray> data;
 
-	if (const auto it = std::find_if(std::filesystem::directory_iterator { archivesPath },
-	                                 std::filesystem::directory_iterator {},
-	                                 [](const auto& entry) { return !entry.is_directory() && entry.path().extension() == ".inpx"; });
-	    it != std::filesystem::directory_iterator {})
-	{
-		const auto& path = it->path();
-		PLOGV << path.string();
-
-		QByteArray file;
-		Zip zip(QString::fromStdWString(path));
-		std::ranges::transform(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
-		                       std::back_inserter(data),
-		                       [&](const auto& item)
-		                       {
-								   inpFiles.emplace_back(item);
-								   return zip.Read(item)->GetStream().readAll();
-							   });
-	}
+	std::unordered_map<size_t, std::unordered_set<QString>> notFoundRecords;
 
 	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
 	                           | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
@@ -443,14 +435,20 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 							   const auto& path = entry.path();
 							   PLOGV << path.string();
 
+							   auto notFound = notFoundRecords.emplace(data.size(), std::unordered_set<QString> {}).first;
+
 							   QByteArray file;
 							   Zip zip(QString::fromStdWString(path));
 							   for (const auto& bookFile : zip.GetFileNameList())
 							   {
 								   if (const auto it = inpData.find(bookFile); it != inpData.end())
+								   {
 									   file.append(it->second).append("\x0d\x0a");
+								   }
 								   else
-									   PLOGW << bookFile << " not found";
+								   {
+									   notFound->second.emplace(bookFile);
+								   }
 
 								   if (const auto it = fileToId.find(bookFile); it != fileToId.end())
 								   {
@@ -463,10 +461,59 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 										   libIds.insert(libId);
 								   }
 							   }
+
+							   if (notFound->second.empty())
+								   notFoundRecords.erase(notFound);
+
 							   data.emplace_back(std::move(file));
 
 							   return QString::fromStdWString(path.filename().replace_extension("inp"));
 						   });
+
+	if (const auto itFile = std::find_if(std::filesystem::directory_iterator { archivesPath },
+	                                     std::filesystem::directory_iterator {},
+	                                     [](const auto& entry) { return !entry.is_directory() && entry.path().extension() == ".inpx"; });
+	    itFile != std::filesystem::directory_iterator {})
+	{
+		const auto& path = itFile->path();
+		PLOGV << path.string();
+
+		QByteArray file;
+		Zip zip(QString::fromStdWString(path));
+		std::ranges::transform(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+		                       std::back_inserter(data),
+		                       [&](const auto& item)
+		                       {
+								   inpFiles.emplace_back(item);
+								   return zip.Read(item)->GetStream().readAll();
+							   });
+
+		for (auto& [index, files] : notFoundRecords)
+		{
+			const auto fileData = QString::fromUtf8(zip.Read(inpFiles[index])->GetStream().readAll());
+			for (const auto& inpStr : fileData.split("\r\n", Qt::SkipEmptyParts))
+			{
+				if (inpStr.isEmpty())
+					continue;
+
+				const auto bookInfo = inpStr.split('\x04');
+				assert(bookInfo.size() == 15);
+				if (bookInfo[2].isEmpty())
+					continue;
+
+				const auto bookInfoFileName = bookInfo[5] + "." + bookInfo[9];
+				if (const auto it = files.find(bookInfoFileName); it != files.end())
+				{
+					data[index].append(inpStr.toUtf8()).append("\r\n");
+					files.erase(it);
+					if (files.empty())
+						break;
+				}
+			}
+			for (const auto& notFound : files)
+				PLOGW << inpFiles[index] << "." << notFound << " not found";
+		}
+	}
 
 	Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
 
