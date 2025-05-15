@@ -27,6 +27,7 @@ constexpr auto FOLDER = "ArchiveFolder";
 constexpr auto ADD_UN_INDEXED_BOOKS = "AddUnIndexedBooks";
 constexpr auto SCAN_UN_INDEXED_FOLDERS = "ScanUnIndexedFolders";
 constexpr auto SKIP_NOT_IN_ARCHIVES = "SkipNotInArchives";
+constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
 
 constexpr auto CONTEXT = "AddCollectionDialog";
 constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
@@ -149,6 +150,7 @@ public:
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
+		m_ui.checkBoxMarkUnindexedAdDeleted->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 
@@ -165,6 +167,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAdDeleted->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
 	}
@@ -199,6 +202,11 @@ public:
 		return !m_ui.checkBoxAddMissingBooks->isChecked();
 	}
 
+	bool MarkUnIndexedBooksAsDeleted() const
+	{
+		return m_ui.checkBoxMarkUnindexedAdDeleted->isChecked();
+	}
+
 private: // GeometryRestorableObserver
 	void OnFontChanged(const QFont&) override
 	{
@@ -217,6 +225,7 @@ private:
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.checkBoxAddUnindexedBooks->setEnabled(m_createMode);
+		m_ui.checkBoxMarkUnindexedAdDeleted->setEnabled(m_createMode);
 		m_ui.checkBoxScanUnindexedArchives->setEnabled(m_createMode);
 		m_ui.checkBoxAddMissingBooks->setEnabled(m_createMode);
 		(void)CheckData();
@@ -381,4 +390,9 @@ bool AddCollectionDialog::ScanUnIndexedFolders() const
 bool AddCollectionDialog::SkipLostBooks() const
 {
 	return m_impl->SkipLostBooks();
+}
+
+bool AddCollectionDialog::MarkUnIndexedBooksAsDeleted() const
+{
+	return m_impl->MarkUnIndexedBooksAsDeleted();
 }

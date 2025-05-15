@@ -84,6 +84,10 @@
         <source>Add books missing from archives</source>
         <translation>Додавати відсутні в архівах книги</translation>
     </message>
+    <message>
+        <source>Mark unindexed books as deleted</source>
+        <translation>Позначати неіндексовані книги як видалені</translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>

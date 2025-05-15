@@ -29,6 +29,7 @@ public:
 	[[nodiscard]] virtual bool AddUnIndexedBooks() const = 0;
 	[[nodiscard]] virtual bool ScanUnIndexedFolders() const = 0;
 	[[nodiscard]] virtual bool SkipLostBooks() const = 0;
+	[[nodiscard]] virtual bool MarkUnIndexedBooksAsDeleted() const = 0;
 };
 
 } // namespace HomeCompa::Flibrary
