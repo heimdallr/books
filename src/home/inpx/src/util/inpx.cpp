@@ -30,12 +30,12 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "util/Fb2InpxParser.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
 #include "util/localization.h"
 #include "util/timer.h"
 
-#include "Fb2Parser.h"
 #include "constant.h"
 #include "inpx.h"
 #include "types.h"
@@ -158,7 +158,7 @@ auto LoadGenres(const Path& genresIniFileName)
 		std::wstring code;
 		while (itCode != std::cend(codes))
 		{
-			const auto& added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), std::size(genres)).first->first;
+			const auto& added = index.emplace(Next(itCode, std::cend(codes), Util::Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
 				code = added;
 		}
@@ -197,7 +197,7 @@ T Add(std::wstring_view value, Dictionary& container, const GetIdFunctor& getId 
 
 std::set<size_t> ParseItem(const std::wstring_view data,
                            Dictionary& container,
-                           const wchar_t separator = LIST_SEPARATOR,
+                           const wchar_t separator = Util::Fb2InpxParser::LIST_SEPARATOR,
                            const ParseChecker& parseChecker = &ParseCheckerDefault,
                            const GetIdFunctor& getId = &GetIdDefault,
                            const FindFunctor& find = &FindDefault)
@@ -290,20 +290,12 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	auto it = std::begin(line);
 	const auto end = std::end(line);
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = Next(it, end, FIELDS_SEPARATOR);
+		f[i](buf) = Next(it, end, Util::Fb2InpxParser::FIELDS_SEPARATOR);
 
 	if (buf.GENRE.size() < 2)
 		buf.GENRE = GENRE_NOT_SPECIFIED;
 
 	return buf;
-}
-
-QString ToString(const Fb2Parser::Data::Authors& authors)
-{
-	QStringList values;
-	values.reserve(static_cast<int>(authors.size()));
-	std::ranges::transform(authors, std::back_inserter(values), [](const Fb2Parser::Data::Author& author) { return (QStringList() << author.last << author.first << author.middle).join(NAMES_SEPARATOR); });
-	return values.join(LIST_SEPARATOR) + LIST_SEPARATOR;
 }
 
 struct InpxContent
@@ -515,9 +507,9 @@ size_t Store(const Path& dbFileName, Data& data)
 		{
 			const auto& [author, id] = item;
 			auto it = std::cbegin(author);
-			const auto last = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-			const auto first = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-			const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+			const auto last = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+			const auto first = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+			const auto middle = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
 
 			cmd.bind(1, id);
 			cmd.bind(2, last, sqlite3pp::nocopy);
@@ -1563,28 +1555,10 @@ private:
 
 	void ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
-		QFileInfo fileInfo(fileName);
-		const auto stream = zip.Read(fileName);
-		Fb2Parser parser(stream->GetStream(), fileName);
-		const auto parserData = parser.Parse();
-		PLOGI_IF(++m_parsedN % LOG_INTERVAL == 0) << m_parsedN << " books parsed";
-
-		if (!parserData.error.isEmpty())
-		{
-			std::lock_guard lock(m_dataGuard);
-			PLOGE << QString("%1/%2: %3").arg(QString::fromStdWString(folder), fileName, parserData.error);
+		auto line = Util::Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
+		if (line.empty())
 			return;
-		}
 
-		const auto& fileDateTime = zip.GetFileTime(fileName);
-		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
-
-		const auto values = QStringList() << ToString(parserData.authors) << (parserData.genres.empty() ? QString {} : parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR) << parserData.title
-		                                  << parserData.series << QString::number(parserData.seqNumber) << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName))
-		                                  << fileInfo.completeBaseName() << (!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted) ? "0" : "1") << fileInfo.suffix() << std::move(dateTime)
-		                                  << parserData.lang << "0" << parserData.keywords;
-
-		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
 
 		std::lock_guard lock(m_dataGuard);
@@ -1639,7 +1613,7 @@ private:
 				return std::numeric_limits<size_t>::max();
 		}
 
-		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, LIST_SEPARATOR, &ParseCheckerAuthor);
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Util::Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
 		if (authorIds.empty())
 			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
@@ -1648,7 +1622,7 @@ private:
 		auto idGenres = ParseItem(
 			buf.GENRE,
 			m_genresIndex,
-			LIST_SEPARATOR,
+			Util::Fb2InpxParser::LIST_SEPARATOR,
 			&ParseCheckerDefault,
 			[&, &data = m_data.genres](std::wstring_view newItemTitle)
 			{

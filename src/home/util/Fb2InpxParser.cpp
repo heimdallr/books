@@ -1,4 +1,6 @@
-#include "Fb2Parser.h"
+#include "Fb2InpxParser.h"
+
+#include <QFileInfo>
 
 #include "fnd/FindPair.h"
 
@@ -6,9 +8,10 @@
 #include "util/xml/XmlAttributes.h"
 
 #include "log.h"
+#include "zip.h"
 
 using namespace HomeCompa;
-using namespace Inpx;
+using namespace Util;
 
 namespace
 {
@@ -30,12 +33,25 @@ constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
 constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
 
+QString AuthorsToString(const Fb2InpxParser::Data::Authors& authors)
+{
+	QStringList values;
+	values.reserve(static_cast<int>(authors.size()));
+	std::ranges::transform(authors, std::back_inserter(values), [](const auto& author) { return (QStringList() << author.last << author.first << author.middle).join(Fb2InpxParser::NAMES_SEPARATOR); });
+	return values.join(Fb2InpxParser::LIST_SEPARATOR) + Fb2InpxParser::LIST_SEPARATOR;
 }
 
-class Fb2Parser::Impl final : public Util::SaxParser
+QString GenresToString(const QStringList& genres)
+{
+	return genres.empty() ? QString {} : genres.join(Fb2InpxParser::LIST_SEPARATOR) + Fb2InpxParser::LIST_SEPARATOR;
+}
+
+} // namespace
+
+class Fb2InpxParser::Impl final : public SaxParser
 {
 public:
-	explicit Impl(QIODevice& stream, const QString& fileName)
+	Impl(QIODevice& stream, const QString& fileName)
 		: SaxParser(stream, 512)
 		, m_fileName(fileName)
 	{
@@ -50,10 +66,10 @@ public:
 		return data;
 	}
 
-private: // Util::SaxParser
-	bool OnStartElement(const QString& /*name*/, const QString& path, const Util::XmlAttributes& attributes) override
+private: // SaxParser
+	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
-		using ParseElementFunction = bool (Impl::*)(const Util::XmlAttributes&);
+		using ParseElementFunction = bool (Impl::*)(const XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{     AUTHOR,    &Impl::OnStartElementAuthor },
@@ -116,19 +132,19 @@ private: // Util::SaxParser
 	}
 
 private:
-	bool OnStartElementAuthor(const Util::XmlAttributes&)
+	bool OnStartElementAuthor(const XmlAttributes&)
 	{
 		m_insertAuthorMode = true;
 		m_data.authors.emplace_back();
 		return true;
 	}
 
-	bool OnStartElementAuthorDoc(const Util::XmlAttributes& attributes)
+	bool OnStartElementAuthorDoc(const XmlAttributes& attributes)
 	{
 		return m_data.authors.empty() ? OnStartElementAuthor(attributes) : true;
 	}
 
-	bool OnStartElementSequence(const Util::XmlAttributes& attributes)
+	bool OnStartElementSequence(const XmlAttributes& attributes)
 	{
 		m_data.series = attributes.GetAttribute(NAME);
 		m_data.seqNumber = attributes.GetAttribute(NUMBER).toInt();
@@ -205,14 +221,54 @@ private:
 	bool m_insertAuthorMode { false };
 };
 
-Fb2Parser::Fb2Parser(QIODevice& stream, const QString& fileName)
+Fb2InpxParser::Fb2InpxParser(QIODevice& stream, const QString& fileName)
 	: m_impl(stream, fileName)
 {
 }
 
-Fb2Parser::~Fb2Parser() = default;
+Fb2InpxParser::~Fb2InpxParser() = default;
 
-Fb2Parser::Data Fb2Parser::Parse()
+QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime, const bool isDeleted)
 {
-	return m_impl->GetData();
+	try
+	{
+		QFileInfo fileInfo(fileName);
+		const auto stream = zip.Read(fileName);
+		Fb2InpxParser parser(stream->GetStream(), fileName);
+		const auto parserData = parser.m_impl->GetData();
+
+		if (!parserData.error.isEmpty())
+		{
+			PLOGE << QString("%1/%2: %3").arg(folder, fileName, parserData.error);
+			return {};
+		}
+
+		if (parserData.authors.empty())
+			PLOGW << QString("%1/%2: author empty").arg(folder, fileName);
+
+		if (parserData.title.isEmpty())
+			PLOGW << QString("%1/%2: title empty").arg(folder, fileName);
+
+		if (zip.GetFileSize(fileName) == 0)
+			PLOGW << QString("%1/%2: file empty").arg(folder, fileName);
+
+		const auto& fileDateTime = zip.GetFileTime(fileName);
+		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
+
+		const auto values = QStringList() << AuthorsToString(parserData.authors) << GenresToString(parserData.genres) << parserData.title << parserData.series << QString::number(parserData.seqNumber)
+		                                  << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << (isDeleted ? "1" : "0") << fileInfo.suffix()
+		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
+
+		return values.join(FIELDS_SEPARATOR);
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
+	catch (...)
+	{
+		PLOGE << "unknown error";
+	}
+
+	return {};
 }

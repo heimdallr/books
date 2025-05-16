@@ -2,11 +2,8 @@
 
 constexpr wchar_t COMMENT_START = '#';
 constexpr wchar_t DATE_SEPARATOR = '-';
-constexpr wchar_t FIELDS_SEPARATOR = '\x04';
 constexpr wchar_t GENRE_SEPARATOR = '|';
 constexpr wchar_t INI_SEPARATOR = '=';
-constexpr wchar_t LIST_SEPARATOR = ':';
-constexpr wchar_t NAMES_SEPARATOR = ',';
 
 constexpr auto COLLECTION_INFO = L"collection.info";
 constexpr auto DB_CREATE_SCRIPT = L"db_create_script";
