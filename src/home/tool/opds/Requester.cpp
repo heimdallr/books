@@ -1200,6 +1200,14 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 					return values.join(", ");
 				}();
 
+				const auto seqNumber = [&]
+				{
+					bool ok = false;
+					if (const auto value = book.GetRawData(Flibrary::BookItem::Column::SeqNumber).toInt(&ok); ok && value > 0)
+						return QString::number(value);
+					return QString {};
+				}();
+
 				QJsonObject bookForm {
 					{       "BookID",																	book.GetId() },
 					{     "BookSize",                               book.GetRawData(Flibrary::BookItem::Column::Size) },
@@ -1207,7 +1215,7 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 					{          "Ext", "." + QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix() },
 					{         "Lang",							   book.GetRawData(Flibrary::BookItem::Column::Lang) },
 					{      "LibRate",                            book.GetRawData(Flibrary::BookItem::Column::LibRate) },
-					{    "SeqNumber",                          book.GetRawData(Flibrary::BookItem::Column::SeqNumber) },
+					{    "SeqNumber",																	   seqNumber },
 					{  "SeriesTitle",                             book.GetRawData(Flibrary::BookItem::Column::Series) },
 					{        "Title",                              book.GetRawData(Flibrary::BookItem::Column::Title) },
 					{ "AuthorsNames",																	 authorsList },
