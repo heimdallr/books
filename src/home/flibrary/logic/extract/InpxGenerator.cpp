@@ -18,8 +18,8 @@
 
 #include "Util/IExecutor.h"
 #include "data/DataItem.h"
-#include "inpx/src/util/constant.h"
 #include "shared/ImageRestore.h"
+#include "util/Fb2InpxParser.h"
 
 #include "log.h"
 #include "zip.h"
@@ -133,26 +133,26 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 	{
 		const QStringList authorNames = QStringList() << author->GetRawData(AuthorItem::Column::LastName) << author->GetRawData(AuthorItem::Column::FirstName)
 		                                              << author->GetRawData(AuthorItem::Column::MiddleName);
-		authors << authorNames.join(NAMES_SEPARATOR) << QString(LIST_SEPARATOR);
+		authors << authorNames.join(Util::Fb2InpxParser::NAMES_SEPARATOR) << QString(Util::Fb2InpxParser::LIST_SEPARATOR);
 	}
-	stream.append((authors.join("") + FIELDS_SEPARATOR).toUtf8());
+	stream.append((authors.join("") + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	for (const auto& genre : book.genres)
-		stream.append((genre->GetRawData(GenreItem::Column::Fb2Code) + LIST_SEPARATOR).toUtf8());
-	stream.append(QString(FIELDS_SEPARATOR).toUtf8());
+		stream.append((genre->GetRawData(GenreItem::Column::Fb2Code) + Util::Fb2InpxParser::LIST_SEPARATOR).toUtf8());
+	stream.append(QString(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
-	stream.append((book.book->GetRawData(BookItem::Column::Title) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::Series) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((seqNumber + FIELDS_SEPARATOR).toUtf8());
-	stream.append((fileInfo.completeBaseName() + FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::Size) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetId() + FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString(book.book->IsRemoved() ? "1" : "0") + FIELDS_SEPARATOR).toUtf8());
-	stream.append((fileInfo.suffix() + FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::UpdateDate) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString::number(n++) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString("%1.zip").arg(uid) + FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::Lang) + FIELDS_SEPARATOR + FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::Title) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::Series) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((seqNumber + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((fileInfo.completeBaseName() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::Size) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetId() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString(book.book->IsRemoved() ? "1" : "0") + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((fileInfo.suffix() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::UpdateDate) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString::number(n++) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString("%1.zip").arg(uid) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::Lang) + Util::Fb2InpxParser::FIELDS_SEPARATOR + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	stream.append("\n");
 }
@@ -194,7 +194,7 @@ void Write(QByteArray& stream,
 			                       {
 									   const auto itemIt = dictionary.find(id);
 									   assert(itemIt != dictionary.end());
-									   return f(itemIt->second) + LIST_SEPARATOR;
+									   return f(itemIt->second) + Util::Fb2InpxParser::LIST_SEPARATOR;
 								   });
 		return result;
 	};
@@ -206,14 +206,14 @@ void Write(QByteArray& stream,
 	                                [](const auto& item)
 	                                {
 										const auto& [lastName, firstName, middleName] = item;
-										return (QStringList() << lastName << firstName << middleName).join(NAMES_SEPARATOR).append(LIST_SEPARATOR);
+										return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR).append(Util::Fb2InpxParser::LIST_SEPARATOR);
 									});
 
 	auto book = QStringList() << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << (seqNumber ? QString::number(seqNumber) : QString {}) << query.Get<const char*>(9)
 	                          << QString::number(query.Get<long long>(12)) << query.Get<const char*>(1) << QString::number(query.Get<int>(13)) << query.Get<const char*>(11) + 1 << query.Get<const char*>(5)
 	                          << query.Get<const char*>(7) << QString::number(query.Get<int>(6)) << keywordList.join("");
 
-	stream.append(book.join(FIELDS_SEPARATOR).toUtf8()).append("\n");
+	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append("\n");
 }
 
 QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress)

@@ -162,7 +162,7 @@ private:
 class SaxHandler final : public xercesc::HandlerBase
 {
 public:
-	explicit SaxHandler(SaxParser& parser, InputSource& inputSource)
+	SaxHandler(SaxParser& parser, InputSource& inputSource)
 		: m_parser(parser)
 		, m_inputSource(inputSource)
 	{
@@ -271,7 +271,7 @@ private:
 class SaxParser::Impl
 {
 public:
-	explicit Impl(SaxParser& self, QIODevice& stream, const int64_t maxChunkSize)
+	Impl(SaxParser& self, QIODevice& stream, const int64_t maxChunkSize)
 		: m_self(self)
 		, m_inputSource(stream, maxChunkSize)
 	{
