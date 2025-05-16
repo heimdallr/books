@@ -27,8 +27,10 @@
 #include "inpx/src/util/types.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
+#include "util/Fb2InpxParser.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/executor/ThreadPool.h"
+#include "util/xml/Initializer.h"
 
 #include "Constant.h"
 #include "log.h"
@@ -414,6 +416,11 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 	return db;
 }
 
+QByteArray ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
+{
+	return Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true).toUtf8();
+}
+
 std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpData, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder)
 {
 	std::unordered_set<long long> libIds;
@@ -432,8 +439,6 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	std::vector<QString> inpFiles;
 	std::vector<QByteArray> data;
 
-	std::vector<std::pair<std::filesystem::path, std::vector<QString>>> notFoundRecords;
-
 	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
 	                           | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
 	                       std::back_inserter(inpFiles),
@@ -442,16 +447,20 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 							   const auto& path = entry.path();
 							   PLOGV << path.string();
 
-							   auto& notFound = notFoundRecords.emplace_back(path, std::vector<QString> {}).second;
-
 							   QByteArray file;
-							   Zip zip(QString::fromStdWString(path));
+							   const QFileInfo zipFileInfo(QString::fromStdWString(path));
+							   Zip zip(zipFileInfo.filePath());
 							   for (const auto& bookFile : zip.GetFileNameList())
 							   {
 								   if (const auto it = inpData.find(bookFile); it != inpData.end())
 									   file.append(it->second).append("\x0d\x0a");
+								   else if (auto bytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !bytes.isEmpty())
+									   file.append(bytes).append("\x0d\x0a");
 								   else
-									   notFound.emplace_back(bookFile);
+								   {
+									   PLOGW << zipFileInfo.filePath() << "/" << bookFile << " not found";
+									   continue;
+								   }
 
 								   if (const auto it = fileToId.find(bookFile); it != fileToId.end())
 								   {
@@ -464,9 +473,6 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 										   libIds.insert(libId);
 								   }
 							   }
-
-							   if (notFound.empty())
-								   notFound.pop_back();
 
 							   data.emplace_back(std::move(file));
 
@@ -802,10 +808,11 @@ int main(const int argc, char* argv[])
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
+	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 	if (argc < 4)
 	{
-		PLOGE << "\n" << "usage:" << "\n" << "FlibustaParser.exe sql_path archives_path output_folder";
+		PLOGE << "\n" << "usage:" << "\n" << "fliparser.exe sql_path archives_path output_folder";
 		return 1;
 	}
 
