@@ -416,6 +416,50 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 	return db;
 }
 
+QByteArray CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unIndexed)
+{
+	const auto fileData = zip.Read(fileName)->GetStream().readAll();
+	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+	hash.addData(fileData);
+	const auto key = hash.result().toHex();
+	const auto it = unIndexed.constFind(key);
+	if (it == unIndexed.constEnd())
+		return {};
+
+	QFileInfo fileInfo(fileName);
+
+	const auto value = it.value().toObject();
+	return QByteArray()
+	    .append(value["author"].toString().toUtf8()) // AUTHOR
+	    .append('\04')
+	    .append(value["genre"].toString().toUtf8()) // GENRE
+	    .append('\04')
+	    .append(value["title"].toString().toUtf8()) // TITLE
+	    .append('\04')
+	    .append(value["series"].toString().toUtf8()) // SERIES
+	    .append('\04')
+	    .append(value["seqNumber"].toString().toUtf8()) // SERNO
+	    .append('\04')
+	    .append(fileInfo.baseName().toUtf8()) // FILE
+	    .append('\04')
+	    .append(QString::number(fileData.size()).toUtf8()) // SIZE
+	    .append('\04')
+	    .append(fileInfo.baseName().toUtf8()) // LIBID
+	    .append('\04')
+	    .append("1") // DEL
+	    .append('\04')
+	    .append(fileInfo.suffix().toUtf8()) // EXT
+	    .append('\04')
+	    .append(value["date"].toString().toUtf8()) // DATE
+	    .append('\04')
+	    .append(value["lang"].toString().toUtf8()) // LANG
+	    .append('\04')
+	    .append("") // LIBRATE
+	    .append('\04')
+	    .append(value["keywords"].toString().toUtf8()) // KEYWORDS
+	    .append('\04');
+}
+
 QByteArray ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 {
 	return Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true).toUtf8();
@@ -431,6 +475,19 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 		for (query->Execute(); !query->Eof(); query->Next())
 			fileToId.emplace(query->Get<const char*>(0), query->Get<long long>(1));
 	}
+
+	const auto unIndexed = []() -> QJsonObject
+	{
+		QFile file(":/data/unindexed.json");
+		[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+		assert(ok);
+
+		QJsonParseError jsonParserError;
+		const auto doc = QJsonDocument::fromJson(file.readAll(), &jsonParserError);
+		assert(jsonParserError.error == QJsonParseError::NoError && doc.isObject());
+
+		return doc.object();
+	}();
 
 	const auto inpxFileName = outputFolder / (archivesPath.filename().wstring() + L".inpx");
 	if (exists(inpxFileName))
@@ -457,9 +514,13 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 									   for (const auto& bytes : it->second)
 										   file.append(bytes).append("\x0d\x0a");
 								   }
-								   else if (auto bytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !bytes.isEmpty())
+								   else if (auto customBytes = CheckCustom(zip, bookFile, unIndexed); !customBytes.isEmpty())
 								   {
-									   file.append(bytes).append("\x0d\x0a");
+									   file.append(customBytes).append("\x0d\x0a");
+								   }
+								   else if (auto parsedBytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBytes.isEmpty())
+								   {
+									   file.append(parsedBytes).append("\x0d\x0a");
 								   }
 								   else
 								   {

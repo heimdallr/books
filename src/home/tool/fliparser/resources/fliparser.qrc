@@ -1,0 +1,5 @@
+<RCC>
+	<qresource prefix="data">
+		<file alias="unindexed.json">data/unindexed.json</file>
+	</qresource>
+</RCC>
