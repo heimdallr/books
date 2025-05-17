@@ -147,7 +147,7 @@ private:
 	bool OnStartElementSequence(const XmlAttributes& attributes)
 	{
 		m_data.series = attributes.GetAttribute(NAME);
-		m_data.seqNumber = attributes.GetAttribute(NUMBER).toInt();
+		m_data.seqNumber = GetSeqNumber(attributes.GetAttribute(NUMBER));
 		return true;
 	}
 
@@ -255,7 +255,7 @@ QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QStrin
 		const auto& fileDateTime = zip.GetFileTime(fileName);
 		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
 
-		const auto values = QStringList() << AuthorsToString(parserData.authors) << GenresToString(parserData.genres) << parserData.title << parserData.series << QString::number(parserData.seqNumber)
+		const auto values = QStringList() << AuthorsToString(parserData.authors) << GenresToString(parserData.genres) << parserData.title << parserData.series << parserData.seqNumber
 		                                  << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << (isDeleted ? "1" : "0") << fileInfo.suffix()
 		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
 
@@ -271,4 +271,12 @@ QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QStrin
 	}
 
 	return {};
+}
+
+QString Fb2InpxParser::GetSeqNumber(QString seqNumber)
+{
+	bool ok = false;
+	if (const auto value = seqNumber.toInt(&ok); ok && value > 0)
+		return seqNumber;
+	return QString {};
 }

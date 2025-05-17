@@ -348,7 +348,7 @@ left join libfilename f on f.BookId=b.BookID
 			.append('\04')
 			.append(query->Get<const char*>(3)) // SERIES
 			.append('\04')
-			.append(query->Get<const char*>(4)) // SERNO
+			.append(Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)).toUtf8()) // SERNO
 			.append('\04')
 			.append(fileName.data()) // FILE
 			.append('\04')
