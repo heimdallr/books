@@ -41,7 +41,7 @@ using namespace HomeCompa;
 namespace
 {
 
-using InpData = std::unordered_map<QString, QByteArray, CaseInsensitiveHash<QString>>;
+using InpData = std::unordered_map<QString, std::vector<QByteArray>, CaseInsensitiveHash<QString>>;
 
 constexpr auto APP_ID = "fliparser";
 
@@ -370,7 +370,7 @@ left join libfilename f on f.BookId=b.BookID
 			.append('\04');
 		data.replace('\n', ' ');
 		data.replace('\r', "");
-		inpData.try_emplace(QString::fromStdString(index), std::move(data));
+		inpData[QString::fromStdString(index)].emplace_back(std::move(data));
 
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
 	}
@@ -453,9 +453,14 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 							   for (const auto& bookFile : zip.GetFileNameList())
 							   {
 								   if (const auto it = inpData.find(bookFile); it != inpData.end())
-									   file.append(it->second).append("\x0d\x0a");
+								   {
+									   for (const auto& bytes : it->second)
+										   file.append(bytes).append("\x0d\x0a");
+								   }
 								   else if (auto bytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !bytes.isEmpty())
+								   {
 									   file.append(bytes).append("\x0d\x0a");
+								   }
 								   else
 								   {
 									   PLOGW << zipFileInfo.filePath() << "/" << bookFile << " not found";
