@@ -1393,9 +1393,13 @@ private:
 		if (!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
 			return;
 
-		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
+		for (auto& [folder, files] : m_foldersContent)
 		{
-			if (folder == REVIEWS_FOLDER)
+			if (IsOneOf(folder, REVIEWS_FOLDER, AUTHORS_FOLDER))
+				continue;
+
+			std::erase_if(files, [](const auto& item) { return item.second.second != 0; });
+			if (files.empty())
 				continue;
 
 			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
@@ -1514,7 +1518,7 @@ private:
 
 	auto& GetFileList(const Path& rootFolder, const std::wstring& folder)
 	{
-		const auto [it, inserted] = m_foldersContent.try_emplace(folder, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>> {});
+		const auto [it, inserted] = m_foldersContent.try_emplace(folder, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>> {});
 		auto& fileList = it->second;
 		if (!inserted)
 			return fileList;
@@ -1524,7 +1528,9 @@ private:
 			return fileList;
 
 		Zip archiveFile(archiveFileInfo.filePath());
-		std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
+		std::ranges::transform(archiveFile.GetFileNameList(),
+		                       std::inserter(fileList, fileList.end()),
+		                       [&](const auto& item) { return std::make_pair(item.toStdWString(), std::make_pair(archiveFile.GetFileSize(item), 0)); });
 
 		return fileList;
 	}
@@ -1546,10 +1552,11 @@ private:
 		}
 
 		const auto bookIndex = AddBook(buf);
-		if (found && bookIndex < m_data.books.size())
+		if (found)
 		{
-			m_data.books[bookIndex].size = it->second;
-			fileList.erase(it);
+			++it->second.second;
+			if (bookIndex < m_data.books.size())
+				m_data.books[bookIndex].size = it->second.first;
 		}
 	}
 
@@ -1711,7 +1718,7 @@ private:
 	std::unordered_map<std::pair<size_t, std::string>, size_t, PairHash<size_t, std::string>> m_uniqueFiles;
 	std::unordered_set<std::wstring> m_langs;
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
-	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool m_oldDataUpdateFound { false };
 
 	BookBufMapping m_bookBufMapping;
