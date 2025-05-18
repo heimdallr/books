@@ -5673,7 +5673,12 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Запуск програми</translation>
+        <translation>Запуск консольної програми</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Запуск GUI програми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
