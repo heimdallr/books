@@ -21,9 +21,24 @@ std::shared_ptr<BaseDelegateEditor> CreateStorableComboboxDelegateEditor(std::sh
 	return storableComboboxDelegateEditor;
 }
 
+class IDelegateGetter // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IDelegateGetter() = default;
+	virtual BaseDelegateEditor* GetOpenFileDialogDelegateEditor() const = 0;
+	virtual BaseDelegateEditor* GetStorableComboboxDelegateEditor() const = 0;
+};
+
+constexpr std::pair<IScriptController::Command::Type, BaseDelegateEditor* (IDelegateGetter::*)() const> TYPES[] {
+	{ IScriptController::Command::Type::LaunchConsoleApp,   &IDelegateGetter::GetOpenFileDialogDelegateEditor },
+	{     IScriptController::Command::Type::LaunchGuiApp,   &IDelegateGetter::GetOpenFileDialogDelegateEditor },
+	{		   IScriptController::Command::Type::System, &IDelegateGetter::GetStorableComboboxDelegateEditor },
+};
+static_assert(std::size(TYPES) == static_cast<size_t>(IScriptController::Command::Type::Last));
+
 }
 
-class CommandDelegate::Impl
+class CommandDelegate::Impl final : public IDelegateGetter
 {
 	using Editors = std::vector<std::pair<IScriptController::Command::Type, BaseDelegateEditor*>>;
 
@@ -40,13 +55,24 @@ public:
 		return FindSecond(m_editors, static_cast<IScriptController::Command::Type>(index.data(Role::Type).toInt()));
 	}
 
+private: // IDelegateGetter
+	BaseDelegateEditor* GetOpenFileDialogDelegateEditor() const override
+	{
+		return m_openFileDialogDelegateEditor.get();
+	}
+
+	BaseDelegateEditor* GetStorableComboboxDelegateEditor() const override
+	{
+		return m_storableComboboxDelegateEditor.get();
+	}
+
 private:
 	Editors CreateEditors() const
 	{
-		return Editors {
-			{ IScriptController::Command::Type::LaunchApp,   m_openFileDialogDelegateEditor.get() },
-			{    IScriptController::Command::Type::System, m_storableComboboxDelegateEditor.get() },
-		};
+		Editors editors;
+		editors.reserve(std::size(TYPES));
+		std::ranges::transform(TYPES, std::back_inserter(editors), [this](const auto& item) { return std::make_pair(item.first, std::invoke(item.second, this)); });
+		return editors;
 	}
 
 private:
