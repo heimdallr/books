@@ -123,6 +123,28 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
+class SeriesItem final : public DataItem
+{
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Title = 0,
+			SeqNum,
+			Last
+		};
+	};
+
+public:
+	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	explicit SeriesItem(IDataItem* parent);
+
+private: // DataItem
+	SeriesItem* ToSeriesItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
+};
+
 class LOGIC_EXPORT BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \

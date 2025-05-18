@@ -55,6 +55,20 @@ IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index
 	return item;
 }
 
+IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+{
+	auto item = IDataItem::Ptr(SeriesItem::Create());
+
+	item->SetId(query.Get<const char*>(index[0]));
+	item->SetData(query.Get<const char*>(index[1]), SeriesItem::Column::Title);
+	item->SetData(query.Get<const char*>(index[2]), SeriesItem::Column::SeqNum);
+
+	if (removedIndex)
+		item->SetRemoved(query.Get<int>(removedIndex));
+
+	return item;
+}
+
 IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
