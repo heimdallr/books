@@ -5662,7 +5662,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Launch application</translation>
+        <translation>Launch console application</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5688,6 +5688,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_ext%</source>
         <translation>File extension</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Launch GUI application</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>

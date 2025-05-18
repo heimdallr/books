@@ -104,14 +104,16 @@ public:
 	{
 		enum class Type
 		{
-			LaunchApp,
+			LaunchConsoleApp,
+			LaunchGuiApp,
 			System,
+			Last
 		};
 
 		QString scriptUid;
 		QString command;
 		QString args;
-		Type type { Type::LaunchApp };
+		Type type { Type::LaunchConsoleApp };
 	};
 
 	using Commands = std::vector<Command>;
@@ -127,7 +129,8 @@ public:
 	public:
 		virtual ~ICommandExecutor() = default;
 		virtual bool ExecuteSystem(const Command& command) const = 0;
-		virtual bool ExecuteLaunchApp(const Command& command) const = 0;
+		virtual bool ExecuteLaunchConsoleApp(const Command& command) const = 0;
+		virtual bool ExecuteLaunchGuiApp(const Command& command) const = 0;
 	};
 
 	using CommandExecutorFunctor = bool (ICommandExecutor::*)(const Command& command) const;
@@ -139,9 +142,11 @@ public:
 	};
 
 	static constexpr std::pair<Command::Type, CommandDescription> s_commandTypes[] {
-		{ Command::Type::LaunchApp, { QT_TRANSLATE_NOOP("ScriptController", "LaunchApp"), &ICommandExecutor::ExecuteLaunchApp } },
-		{    Command::Type::System,       { QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem } },
+		{ Command::Type::LaunchConsoleApp, { QT_TRANSLATE_NOOP("ScriptController", "LaunchApp"), &ICommandExecutor::ExecuteLaunchConsoleApp } },
+		{     Command::Type::LaunchGuiApp,  { QT_TRANSLATE_NOOP("ScriptController", "LaunchGuiApp"), &ICommandExecutor::ExecuteLaunchGuiApp } },
+		{		   Command::Type::System,              { QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem } },
 	};
+	static_assert(std::size(s_commandTypes) == static_cast<size_t>(Command::Type::Last));
 
 	static constexpr std::pair<Macro, const char*> s_commandMacros[] {
 		{			Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController",             "%source_file%") },

@@ -5675,7 +5675,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Запуск приложения</translation>
+        <translation>Запуск консольного приложения</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5701,6 +5701,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_ext%</source>
         <translation>Расширение файла</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Запуск GUI приложения</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
