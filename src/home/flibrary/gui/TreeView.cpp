@@ -28,8 +28,8 @@
 #include "util/ObjectsConnector.h"
 #include "util/files.h"
 #include "util/localization.h"
+#include "widgets/ModeComboBox.h"
 
-#include "ModeComboBox.h"
 #include "log.h"
 #include "zip.h"
 
