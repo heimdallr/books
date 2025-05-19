@@ -24,7 +24,6 @@ constexpr auto AUTHORS_FOLDER = L"authors";
 constexpr auto MHL_TRIGGERS_ON = L"mhl_triggers_on";
 constexpr auto VERSION_INFO = L"version.info";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";
-constexpr auto ZIP = L"zip";
 constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
 constexpr auto GENRE_NOT_SPECIFIED = L"unordered:";
 

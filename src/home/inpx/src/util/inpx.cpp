@@ -1504,7 +1504,7 @@ private:
 		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [](const auto& file) { return file.toLower(); });
 
-		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
+		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(m_ini(DEFAULT_ARCHIVE_TYPE)).wstring() : suitableFiles.front().toStdWString();
 
 		QCryptographicHash hash(QCryptographicHash::Md5);
 		for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
