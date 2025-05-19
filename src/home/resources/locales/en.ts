@@ -5866,12 +5866,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Find</source>
         <translation>Search</translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Filter</source>
         <translation></translation>
     </message>
