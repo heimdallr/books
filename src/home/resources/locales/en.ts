@@ -88,6 +88,10 @@
         <source>Mark unindexed books as deleted</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Archive type</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>

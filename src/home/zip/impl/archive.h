@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <QStringList>
+
 class QIODevice;
 class QString;
 
@@ -22,6 +24,7 @@ struct Archive
 	static std::unique_ptr<IZip> CreateWriter(const QString& filename, Format, std::shared_ptr<ProgressCallback> progress, bool appendMode);
 	static std::unique_ptr<IZip> CreateWriterStream(QIODevice& stream, Format, std::shared_ptr<ProgressCallback> progress, bool appendMode);
 	static bool IsArchive(const QString& filename);
+	static QStringList GetTypes();
 };
 
 }

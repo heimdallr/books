@@ -33,6 +33,7 @@ private: // IAddCollectionDialog
 	[[nodiscard]] QString GetName() const override;
 	[[nodiscard]] QString GetDatabaseFileName() const override;
 	[[nodiscard]] QString GetArchiveFolder() const override;
+	[[nodiscard]] QString GetDefaultArchiveType() const override;
 	[[nodiscard]] bool AddUnIndexedBooks() const override;
 	[[nodiscard]] bool ScanUnIndexedFolders() const override;
 	[[nodiscard]] bool SkipLostBooks() const override;
