@@ -188,7 +188,7 @@ const QDateTime& Zip::GetFileTime(const QString& filename) const
 
 Zip::Format Zip::FormatFromString(const QString& str)
 {
-	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparer {});
+	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparerCaseInsensitive {});
 }
 
 QString Zip::FormatToString(const Format format)
