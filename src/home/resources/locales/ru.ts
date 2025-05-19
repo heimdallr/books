@@ -88,6 +88,10 @@
         <source>Mark unindexed books as deleted</source>
         <translation>Помечать неиндексированные книги как удалённые</translation>
     </message>
+    <message>
+        <source>Archive type</source>
+        <translation>Тип архива</translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
