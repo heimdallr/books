@@ -334,14 +334,14 @@ Node GetHead(DB::IDatabase& db, QString id, QString title, QString root, QString
 
 Node& WriteEntry(const QString& root, Node::Children& children, QString id, QString title, const int count, QString content = {}, const bool isCatalog = true)
 {
-	auto href = QString("%1/%2").arg(root, id);
+	const auto href = QString("%1/%2").arg(root, id);
 	auto& entry = children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(std::move(id), title));
 	entry.title = std::move(title);
 	if (isCatalog)
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	if (content.isEmpty() && count > 0)
 		content = Tr(COUNT).arg(count);
 	if (!content.isEmpty())
@@ -377,14 +377,14 @@ void WriteNavigationEntries(DB::IDatabase& db, const char* navigationType, const
 	{
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("%1/%2").arg(navigationType).arg(id);
-		auto href = QString("%1/%2").arg(root, entryId);
+		const auto href = QString("%1/%2").arg(root, entryId);
 		auto content = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content));
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	}
 }
 
@@ -396,7 +396,7 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 	{
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("Book/%1").arg(id);
-		auto href = QString("%1/%2").arg(root, entryId);
+		const auto href = QString("%1/%2").arg(root, entryId);
 		QString author = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
 		QString series = query->ColumnCount() > 4 ? query->Get<const char*>(4) : QString {};
 		const int seqNum = query->ColumnCount() > 5 ? query->Get<int>(5) : -1;
@@ -407,7 +407,7 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
 
 		entry.author = std::move(author);
 		entry.series = std::move(series);
