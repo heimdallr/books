@@ -85,8 +85,9 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib& lib, CComPtr<IStream> stre
 const bit7z::BitInOutFormat& GetInOutFormat(const Format format)
 {
 	static constexpr std::pair<Format, const bit7z::BitInOutFormat&> formats[] {
-		{ Format::SevenZip, bit7z::BitFormat::SevenZip },
-		{      Format::Zip,      bit7z::BitFormat::Zip },
+#define ZIP_FORMAT_ITEM(NAME) { Format::NAME, bit7z::BitFormat::NAME },
+		ZIP_FORMAT_ITEMS_X_MACRO
+#undef ZIP_FORMAT_ITEM
 	};
 
 	return FindSecond(formats, format);
