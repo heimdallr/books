@@ -1,5 +1,6 @@
 #include "Server.h"
 
+#include <QHttpHeaders>
 #include <QHttpServer>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -7,6 +8,7 @@
 #include <QtConcurrent>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/IRequester.h"
 #include "interface/constants/ProductConstant.h"
@@ -16,6 +18,7 @@
 
 #include "log.h"
 #include "root.h"
+#include "zip.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -88,7 +91,30 @@ void SetContentType(QHttpServerResponse& response, const QString& root, const Me
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
-std::optional<QHttpServerResponse> FromFile(const QString& fileName, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
+QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
+{
+	if (!acceptEncoding.contains("gzip"))
+		return QHttpServerResponse { src };
+
+	QByteArray zipped;
+	{
+		QBuffer stream(&zipped);
+		const ScopedCall streamGuard([&] { stream.open(QIODevice::WriteOnly); }, [&] { stream.close(); });
+		Zip zip(stream, Zip::Format::GZip);
+		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
+		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
+		zip.Write({
+			{ "file", std::move(src) }
+        });
+	}
+
+	QHttpServerResponse result { zipped };
+	ReplaceOrAppendHeader(result, QHttpHeaders::WellKnownHeader::ContentEncoding, "gzip");
+	return result;
+}
+
+std::optional<QHttpServerResponse>
+FromFile(const QString& fileName, const QString& acceptEncoding, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
 {
 	QFile file(fileName);
 	if (!file.exists())
@@ -98,12 +124,12 @@ std::optional<QHttpServerResponse> FromFile(const QString& fileName, const QStri
 	if (!ok)
 		return std::nullopt;
 
-	QHttpServerResponse response(dataUpdater(file.readAll()));
+	QHttpServerResponse response(EncodeContent(dataUpdater(file.readAll()), acceptEncoding));
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 	return response;
 }
 
-std::optional<QHttpServerResponse> FromWebsite(const QString& fileName, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
+std::optional<QHttpServerResponse> FromWebsite(const QString& fileName, const QString& acceptEncoding, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
 {
 	static constexpr std::pair<const char*, const char*> types[] {
 		{ "html", "text/html; charset=utf-8" },
@@ -111,10 +137,15 @@ std::optional<QHttpServerResponse> FromWebsite(const QString& fileName, const st
 		{  "css",				 "text/css" },
 	};
 	const auto& contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
-	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), contentType, dataUpdater))
+	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
 		return result;
 
-	return FromFile(QString(":/website/%1").arg(fileName), contentType, dataUpdater);
+	return FromFile(QString(":/website/%1").arg(fileName), acceptEncoding, contentType, dataUpdater);
+}
+
+QString GetAcceptEncoding(const QHttpServerRequest& request)
+{
+	return QString::fromUtf8(request.headers().value(QHttpHeaders::WellKnownHeader::AcceptEncoding));
 }
 
 } // namespace
@@ -162,13 +193,13 @@ public:
 private:
 	using BookGetter = std::pair<QString, QByteArray> (IRequester::*)(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const;
 
-	auto GetBook(BookGetter getter, QString root, QString self, QString value, QString contentType, const bool restoreImages) const
+	auto GetBook(BookGetter getter, QString root, QString self, QString value, QString acceptEncoding, QString contentType, const bool restoreImages) const
 	{
 		return QtConcurrent::run(
-			[this, getter, root = std::move(root), self = std::move(self), value = std::move(value), contentType = std::move(contentType), restoreImages]
+			[this, getter, root = std::move(root), self = std::move(self), value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages]
 			{
 				auto [fileName, body] = std::invoke(getter, *m_requester, std::cref(root), std::cref(self), std::cref(value), restoreImages);
-				QHttpServerResponse response(std::move(body));
+				auto response = EncodeContent(std::move(body), acceptEncoding);
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
 				ReplaceOrAppendHeader(response, "content-description", "File Transfer");
@@ -213,20 +244,24 @@ private:
 						   return QtConcurrent::run(
 							   [this]
 							   {
-								   auto response = *FromFile(":/icons/main.ico", "image/x-icon");
+								   auto response = *FromFile(":/icons/main.ico", "", "image/x-icon");
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
 								   return response;
 							   });
 					   });
 
-		m_server.route("/",
-		               [this]
-		               {
-						   return QtConcurrent::run(
-							   [this] { return *FromWebsite("index.html", [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
-					   });
-		m_server.route(QString(ASSETS).arg(ARG), [this](const QString& fileName) { return QtConcurrent::run([this, fileName] { return *FromWebsite("assets/" + fileName); }); });
+		m_server.route(
+			"/",
+			[this](const QHttpServerRequest& request)
+			{
+				return QtConcurrent::run(
+					[this, acceptEncoding = GetAcceptEncoding(request)]
+					{ return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
+			});
+		m_server.route(QString(ASSETS).arg(ARG),
+		               [this](const QString& fileName, const QHttpServerRequest& request)
+		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
 
 		using Requester = QByteArray (IRequester::*)(const QString&) const;
 		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
@@ -241,9 +276,9 @@ private:
 			               [this, requester, queryKey](const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded)]
+								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded), acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(requester, *m_requester, std::cref(value)));
+									   auto response = EncodeContent(std::invoke(requester, *m_requester, std::cref(value)), acceptEncoding);
 									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
 									   return response;
 								   });
@@ -262,24 +297,26 @@ private:
 					   });
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG),
-		               [this](const QString& value) { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, "application/fb2", false); });
+		               [this](const QString& value, const QHttpServerRequest& request)
+		               { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, GetAcceptEncoding(request), "application/fb2", false); });
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG),
-		               [this](const QString& value) { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, "application/fb2", true); });
+		               [this](const QString& value, const QHttpServerRequest& request)
+		               { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, GetAcceptEncoding(request), "application/fb2", true); });
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG),
-		               [this](const QString& value) { return GetBook(&IRequester::GetBookZip, web, QString(BOOK_ZIP).arg(web, value), value, "application/zip", true); });
+		               [this](const QString& value) { return GetBook(&IRequester::GetBookZip, web, QString(BOOK_ZIP).arg(web, value), value, "", "application/zip", true); });
 	}
 
 	void InitHttp(const QString& root)
 	{
 		m_server.route(QString(ROOT).arg(root),
-		               [this, root]
+		               [this, root](const QHttpServerRequest& request)
 		               {
 						   return QtConcurrent::run(
-							   [this, root]
+							   [this, root, acceptEncoding = GetAcceptEncoding(request)]
 							   {
-								   QHttpServerResponse response(m_requester->GetRoot(root, QString(ROOT).arg(root)));
+								   auto response = EncodeContent(m_requester->GetRoot(root, QString(ROOT).arg(root)), acceptEncoding);
 								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
@@ -301,39 +338,40 @@ private:
 						   }
 
 						   return QtConcurrent::run(
-							   [this, root, q, start]
+							   [this, root, q, start, acceptEncoding = GetAcceptEncoding(request)]
 							   {
-								   QHttpServerResponse response(m_requester->Search(root, QString("%1?q=%2").arg(QString(SEARCH).arg(root)).arg(q), q, start));
+								   auto response = EncodeContent(m_requester->Search(root, QString("%1?q=%2").arg(QString(SEARCH).arg(root)).arg(q), q, start), acceptEncoding);
 								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
 					   });
 
 		m_server.route(QString(BOOK_INFO).arg(root, ARG),
-		               [this, root](const QString& value)
+		               [this, root](const QString& value, const QHttpServerRequest& request)
 		               {
 						   return QtConcurrent::run(
-							   [this, root, value]
+							   [this, root, value, acceptEncoding = GetAcceptEncoding(request)]
 							   {
-								   QHttpServerResponse response(m_requester->GetBookInfo(root, QString(BOOK_INFO).arg(root, value), value));
+								   auto response = EncodeContent(m_requester->GetBookInfo(root, QString(BOOK_INFO).arg(root, value), value), acceptEncoding);
 								   SetContentType(response, root, MessageType::Atom);
 								   return response;
 							   });
 					   });
 
 		m_server.route(QString(BOOK_DATA).arg(root, ARG),
-		               [this, root](const QString& value) { return GetBook(&IRequester::GetBook, root, QString(BOOK_DATA).arg(root, value), value, "application/fb2", true); });
+		               [this, root](const QString& value, const QHttpServerRequest& request)
+		               { return GetBook(&IRequester::GetBook, root, QString(BOOK_DATA).arg(root, value), value, GetAcceptEncoding(request), "application/fb2", true); });
 
 		m_server.route(QString(BOOK_ZIP).arg(root, ARG),
-		               [this, root](const QString& value) { return GetBook(&IRequester::GetBookZip, root, QString(BOOK_ZIP).arg(root, value), value, "application/zip", true); });
+		               [this, root](const QString& value) { return GetBook(&IRequester::GetBookZip, root, QString(BOOK_ZIP).arg(root, value), value, "", "application/zip", true); });
 
 		m_server.route(QString(READ).arg(root, ARG),
-		               [this, root](const QString& value)
+		               [this, root](const QString& value, const QHttpServerRequest& request)
 		               {
 						   return QtConcurrent::run(
-							   [this, root, value]
+							   [this, root, value, acceptEncoding = GetAcceptEncoding(request)]
 							   {
-								   QHttpServerResponse response(m_requester->GetBookText(root, value));
+								   auto response = EncodeContent(m_requester->GetBookText(root, value), acceptEncoding);
 								   SetContentType(response, root, MessageType::Read);
 								   return response;
 							   });
@@ -384,98 +422,103 @@ private:
 			const auto& [navigationInvoker, navigationAuthorsInvoker, authorBooksInvoker] = invokers;
 
 			m_server.route(QString(NAVIGATION).arg(root, key),
-			               [this, root, key, invoker = navigationInvoker]
+			               [this, root, key, invoker = navigationInvoker](const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker]
+								   [this, root, key, invoker, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION).arg(root, key), QString {}));
+									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION).arg(root, key), QString {}), acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(NAVIGATION_STARTS).arg(root, key, ARG),
-			               [this, root, key, invoker = navigationInvoker](const QString& value)
+			               [this, root, key, invoker = navigationInvoker](const QString& value, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, value]
+								   [this, root, key, invoker, value, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_STARTS).arg(root, key, value), value.toUpper()));
+									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_STARTS).arg(root, key, value), value.toUpper()), acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(AUTHOR_LIST).arg(root, key, ARG),
-			               [this, root, key, invoker = navigationAuthorsInvoker](const QString& navigationId)
+			               [this, root, key, invoker = navigationAuthorsInvoker](const QString& navigationId, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, navigationId]
+								   [this, root, key, invoker, navigationId, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}));
+									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}),
+					                                                 acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(BOOK_LIST).arg(root, key, ARG),
-			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId)
+			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, navigationId]
+								   [this, root, key, invoker, navigationId, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(
-										   std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}, QString {}));
+									   auto response =
+										   EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), QString(AUTHOR_LIST).arg(root, key, navigationId), navigationId.toUpper(), QString {}, QString {}),
+					                                     acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, ARG, ARG),
-			               [this, root, key, invoker = navigationAuthorsInvoker](const QString& navigationId, const QString& value)
+			               [this, root, key, invoker = navigationAuthorsInvoker](const QString& navigationId, const QString& value, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, navigationId, value]
+								   [this, root, key, invoker, navigationId, value, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(
-										   std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), value.toUpper()));
+									   auto response = EncodeContent(
+										   std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), value.toUpper()),
+										   acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(NAVIGATION_AUTHOR).arg(root, key, ARG, ARG),
-			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& authorId)
+			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& authorId, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, navigationId, authorId]
+								   [this, root, key, invoker, navigationId, authorId, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(invoker,
-					                                                            *m_requester,
-					                                                            std::cref(root),
-					                                                            QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, authorId),
-					                                                            navigationId.toUpper(),
-					                                                            authorId.toUpper(),
-					                                                            QString {}));
+									   auto response = EncodeContent(std::invoke(invoker,
+					                                                             *m_requester,
+					                                                             std::cref(root),
+					                                                             QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, authorId),
+					                                                             navigationId.toUpper(),
+					                                                             authorId.toUpper(),
+					                                                             QString {}),
+					                                                 acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
 						   });
 
 			m_server.route(QString(NAVIGATION_AUTHOR_BOOKS_STARTS).arg(root, key, ARG, ARG, ARG),
-			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& authorId, const QString& value)
+			               [this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& authorId, const QString& value, const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, key, invoker, navigationId, authorId, value]
+								   [this, root, key, invoker, navigationId, authorId, value, acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   QHttpServerResponse response(std::invoke(invoker,
-					                                                            *m_requester,
-					                                                            std::cref(root),
-					                                                            QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, authorId),
-					                                                            navigationId.toUpper(),
-					                                                            authorId.toUpper(),
-					                                                            value));
+									   auto response = EncodeContent(std::invoke(invoker,
+					                                                             *m_requester,
+					                                                             std::cref(root),
+					                                                             QString(NAVIGATION_AUTHOR_STARTS).arg(root, key, navigationId, authorId),
+					                                                             navigationId.toUpper(),
+					                                                             authorId.toUpper(),
+					                                                             value),
+					                                                 acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
 									   return response;
 								   });
@@ -483,13 +526,14 @@ private:
 
 			m_server.route(
 				QString(BOOK_LIST_STARTS).arg(root, key, ARG, ARG),
-				[this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& value)
+				[this, root, key, invoker = authorBooksInvoker](const QString& navigationId, const QString& value, const QHttpServerRequest& request)
 				{
 					return QtConcurrent::run(
-						[this, root, key, invoker, navigationId, value]
+						[this, root, key, invoker, navigationId, value, acceptEncoding = GetAcceptEncoding(request)]
 						{
-							QHttpServerResponse response(
-								std::invoke(invoker, *m_requester, std::cref(root), QString(BOOK_LIST_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), QString {}, value.toUpper()));
+							auto response = EncodeContent(
+								std::invoke(invoker, *m_requester, std::cref(root), QString(BOOK_LIST_STARTS).arg(root, key, navigationId, value), navigationId.toUpper(), QString {}, value.toUpper()),
+								acceptEncoding);
 							SetContentType(response, root, MessageType::Atom);
 							return response;
 						});
