@@ -33,6 +33,7 @@ public:
 
 public:
 	static bool IsArchive(const QString& filename);
+	static QStringList GetTypes();
 
 public:
 	explicit Zip(const QString& filename, std::shared_ptr<ProgressCallback> progress = {});

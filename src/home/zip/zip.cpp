@@ -107,6 +107,11 @@ bool Zip::IsArchive(const QString& filename)
 	return SevenZip::Archive::IsArchive(filename);
 }
 
+QStringList Zip::GetTypes()
+{
+	return SevenZip::Archive::GetTypes();
+}
+
 Zip::Zip(const QString& filename, std::shared_ptr<ProgressCallback> progress)
 	: m_impl(std::make_unique<Impl>(filename, std::move(progress)))
 {
