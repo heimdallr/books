@@ -3,8 +3,8 @@
 
 <details>
 <summary>Скриншоты</summary>
-<img width="1706" alt="image" src="https://github.com/user-attachments/assets/b5b82b42-782b-406c-b96a-2c5c5a3e8035" />
-<img width="1706" alt="image" src="https://github.com/user-attachments/assets/dd61bcfd-5ef6-4c04-9b38-d0923d24b8e1" />
+ <img width="1871" alt="image" src="https://github.com/user-attachments/assets/7b5ef1fe-b3e5-4df7-9852-b1ea67241257" />
+ <img width="1871" alt="image" src="https://github.com/user-attachments/assets/bd1a76d9-12cb-4039-94f1-0811a3f912d1" />
 </details>
 
 Замена для [MyHomeLib](https://github.com/OleksiyPenkov/MyHomeLib)
