@@ -4,7 +4,7 @@
 <details>
 <summary>Скриншоты</summary>
  <img width="1871" alt="image" src="https://github.com/user-attachments/assets/7b5ef1fe-b3e5-4df7-9852-b1ea67241257" />
- <img width="1871" alt="image" src="https://github.com/user-attachments/assets/bd1a76d9-12cb-4039-94f1-0811a3f912d1" />
+ <img width="1871" alt="image" src="https://github.com/user-attachments/assets/fc0501c8-726b-4117-85c9-a5b358ca06d9" />
 </details>
 
 Замена для [MyHomeLib](https://github.com/OleksiyPenkov/MyHomeLib)
