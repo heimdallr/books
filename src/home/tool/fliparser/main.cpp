@@ -291,14 +291,27 @@ InpData GenerateInpData(DB::IDatabase& db)
 
 	const auto query = db.CreateQuery(R"(
 with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywords, LibRate) as (
-select b.BookId, b.Title, b.FileSize, b.BookId, b.Deleted, b.FileType, b.Time, b.Lang, b.keywords, avg(r.Rate)
-from libbook b
-left join librate r on r.BookID = b.BookId
-group by b.BookId
+    select b.BookId, b.Title, b.FileSize, b.BookId, b.Deleted, b.FileType, b.Time, b.Lang, b.keywords, avg(r.Rate)
+        from libbook b
+        left join librate r on r.BookID = b.BookId
+        group by b.BookId
 )
 select
-    (select group_concat(a.LastName||','||a.FirstName||','||a.MiddleName, ':')||':' from libavtorname a join libavtor l on l.AvtorID = a.AvtorID and l.BookID = b.BookID order by l.pos) Author,
-    (select group_concat(g.GenreCode, ':')||':' from libgenrelist g join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID order by g.GenreID) Genre,
+    (select group_concat(
+            case when m.rowid is null 
+                then a.LastName ||','|| a.FirstName ||','|| a.MiddleName
+                else m.LastName ||','|| m.FirstName ||','|| m.MiddleName
+            end, ':')||':'
+        from libavtorname a 
+        join libavtor l on l.AvtorID = a.AvtorID and l.BookID = b.BookID
+        left join libavtorname m on m.AvtorID = a.MasterId
+        order by l.pos
+    ) Author,
+    (select group_concat(g.GenreCode, ':')||':'
+        from libgenrelist g 
+        join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID 
+        order by g.GenreID
+    ) Genre,
     b.Title, s.SeqName, ls.SeqNumb, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
 from Books b
 left join libseq ls on ls.BookID = b.BookID
