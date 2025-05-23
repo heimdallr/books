@@ -2,7 +2,7 @@ CreateWinRC(app
     	COMPANY_NAME      "HomeCompa"
     	FILE_NAME         "FLibrary"
     	FILE_DESCRIPTION  "e-book cataloger"
-    	APP_ICON          "${CMAKE_CURRENT_LIST_DIR}/resources/icons/main.ico"
+    	APP_ICON          "${CMAKE_CURRENT_LIST_DIR}/../../resources/icons/main.ico"
     	APP_VERSION       ${PRODUCT_VERSION}
 )
 

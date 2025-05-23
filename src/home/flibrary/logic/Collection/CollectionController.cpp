@@ -9,6 +9,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/src/util/constant.h"
@@ -123,12 +124,13 @@ public:
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
 		const auto mode = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
+		                | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
 		                | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
 		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None);
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
+				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetDefaultArchiveType(), mode);
 				break;
 
 			case IAddCollectionDialog::Result::Add:
@@ -247,7 +249,7 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
+	void CreateNew(QString name, QString db, QString folder, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
 		if (QFile(db).exists())
 		{
@@ -266,6 +268,9 @@ private:
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto& parserRef = *parser;
 		auto [tmpDir, ini] = GetIniMap(db, folder, true);
+		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
+
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
 		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable
 		{
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });

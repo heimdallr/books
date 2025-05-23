@@ -142,8 +142,14 @@
      <property name="animated">
       <bool>true</bool>
      </property>
+     <attribute name="headerMinimumSectionSize">
+      <number>10</number>
+     </attribute>
      <attribute name="headerShowSortIndicator" stdset="0">
       <bool>true</bool>
+     </attribute>
+     <attribute name="headerStretchLastSection">
+      <bool>false</bool>
      </attribute>
     </widget>
    </item>
@@ -153,7 +159,7 @@
   <customwidget>
    <class>HomeCompa::Flibrary::ModeComboBox</class>
    <extends>QComboBox</extends>
-   <header>ModeComboBox.h</header>
+   <header>widgets/ModeComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources>

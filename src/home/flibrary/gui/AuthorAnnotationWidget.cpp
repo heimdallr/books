@@ -3,11 +3,14 @@
 #include "AuthorAnnotationWidget.h"
 
 #include <QAbstractTableModel>
+#include <QDesktopServices>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
 
 #include "interface/logic/ITreeViewController.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -78,6 +81,9 @@ public:
 		m_scrollBarControllerImages->SetScrollArea(m_ui.gallery);
 
 		m_annotationController->RegisterObserver(this);
+
+		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { QDesktopServices::openUrl(link); });
+		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
 	}
 
 	~Impl() override

@@ -85,8 +85,9 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib& lib, CComPtr<IStream> stre
 const bit7z::BitInOutFormat& GetInOutFormat(const Format format)
 {
 	static constexpr std::pair<Format, const bit7z::BitInOutFormat&> formats[] {
-		{ Format::SevenZip, bit7z::BitFormat::SevenZip },
-		{      Format::Zip,      bit7z::BitFormat::Zip },
+#define ZIP_FORMAT_ITEM(NAME) { Format::NAME, bit7z::BitFormat::NAME },
+		ZIP_FORMAT_ITEMS_X_MACRO
+#undef ZIP_FORMAT_ITEM
 	};
 
 	return FindSecond(formats, format);
@@ -345,7 +346,7 @@ class ReaderStream : public Reader
 public:
 	ReaderStream(QIODevice& stream, std::shared_ptr<ProgressCallback> progress)
 		: Reader(std::move(progress))
-		, m_bytes { stream.readAll() }
+		, m_bytes { stream.isReadable() ? stream.readAll() : QByteArray {} }
 	{
 		m_archive = CreateInputArchive(m_lib, reinterpret_cast<const BYTE*>(m_bytes.constData()), static_cast<UINT>(m_bytes.size()));
 		m_files = CreateFileList(m_archive->archive);
@@ -459,6 +460,95 @@ std::unique_ptr<IZip> Archive::CreateWriterStream(QIODevice& stream, Format form
 bool Archive::IsArchive(const QString& filename)
 {
 	return bit7z::detect_format_from_extension(filename.toStdWString()) != bit7z::BitFormat::Auto;
+}
+
+QStringList Archive::GetTypes()
+{
+	return QStringList {} << "7z"
+	                      << "zip"
+	                      << "rar"
+	                      << "bzip2"
+	                      << "bz2"
+	                      << "tbz2"
+	                      << "tbz"
+	                      << "gz"
+	                      << "gzip"
+	                      << "tgz"
+	                      << "tar"
+	                      << "ova"
+	                      << "wim"
+	                      << "swm"
+	                      << "xz"
+	                      << "txz"
+	                      << "zipx"
+	                      << "jar"
+	                      << "xpi"
+	                      << "odt"
+	                      << "ods"
+	                      << "odp"
+	                      << "docx"
+	                      << "xlsx"
+	                      << "pptx"
+	                      << "epub"
+	                      << "001"
+	                      << "ar"
+	                      << "deb"
+	                      << "apm"
+	                      << "arj"
+	                      << "cab"
+	                      << "chm"
+	                      << "chi"
+	                      << "msi"
+	                      << "doc"
+	                      << "xls"
+	                      << "ppt"
+	                      << "msg"
+	                      << "obj"
+	                      << "cpio"
+	                      << "cramfs"
+	                      << "dmg"
+	                      << "dll"
+	                      << "exe"
+	                      << "dylib"
+	                      << "ext"
+	                      << "ext2"
+	                      << "ext3"
+	                      << "ext4"
+	                      << "fat"
+	                      << "flv"
+	                      << "gpt"
+	                      << "hfs"
+	                      << "hfsx"
+	                      << "hxs"
+	                      << "ihex"
+	                      << "lzh"
+	                      << "lha"
+	                      << "lzma"
+	                      << "lzma86"
+	                      << "mbr"
+	                      << "mslz"
+	                      << "mub"
+	                      << "nsis"
+	                      << "ntfs"
+	                      << "pmd"
+	                      << "ppmd"
+	                      << "qcow"
+	                      << "qcow2"
+	                      << "qcow2c"
+	                      << "rpm"
+	                      << "squashfs"
+	                      << "swf"
+	                      << "te"
+	                      << "udf"
+	                      << "scap"
+	                      << "uefif"
+	                      << "vmdk"
+	                      << "vdi"
+	                      << "vhd"
+	                      << "xar"
+	                      << "pkg"
+	                      << "z"
+	                      << "taz";
 }
 
 } // namespace HomeCompa::ZipDetails::SevenZip

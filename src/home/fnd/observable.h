@@ -35,7 +35,7 @@ public:
 	}
 
 	template <typename F, typename... ARGS>
-	void Perform(F function, ARGS&&... args)
+	void Perform(F function, ARGS&&... args) const
 	{
 		for (auto* const observer : m_observers)
 			std::invoke(function, observer, std::forward<ARGS>(args)...);

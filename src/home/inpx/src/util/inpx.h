@@ -21,10 +21,13 @@ namespace HomeCompa::Inpx
 
 enum class CreateCollectionMode
 {
-	None = 0,
-	AddUnIndexedFiles = 1 << 0,
-	ScanUnIndexedFolders = 1 << 1,
-	SkipLostBooks = 1 << 2,
+	// clang-format off
+	None                        = 0,
+	AddUnIndexedFiles           = 1 << 0,
+	ScanUnIndexedFolders        = 1 << 1,
+	SkipLostBooks               = 1 << 2,
+	MarkUnIndexedFilesAsDeleted = 1 << 3,
+	// clang-format on
 };
 
 struct UpdateResult

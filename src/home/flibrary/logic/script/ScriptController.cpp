@@ -207,7 +207,7 @@ bool ScriptController::InsertCommand(const QString& uid, const int row, const in
 							uid,
 							{},
 							{},
-							Command::Type::LaunchApp
+							Command::Type::LaunchConsoleApp
 						};
 					});
 	m_impl->commands.insert(std::next(m_impl->commands.begin(), row), std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));

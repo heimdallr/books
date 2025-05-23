@@ -7,4 +7,5 @@ AddTarget(Util	shared_lib
 		xercesc
 	LINK_TARGETS
 		logging
+		zip
 )

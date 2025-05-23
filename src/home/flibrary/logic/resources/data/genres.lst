@@ -285,6 +285,7 @@ home_pets|home_all_root|Домашние животные
 home_crafts|home_all_root|Хобби и ремесла
 home_entertain|home_all_root|Развлечения
 home_collecting|home_all_root|Коллекционирование
+auto_regulations|home_all_root|Автомобили и ПДД
 home_health|home_all_root|Здоровье
 home_garden|home_all_root|Сад и огород
 home_diy|home_all_root|Сделай сам
@@ -318,7 +319,7 @@ sci_metal|tech_all_root|Металлургия
 sci_radio|tech_all_root|Радиоэлектроника
 sci_build|tech_all_root|Строительство и сопромат
 sci_transport|tech_all_root|Транспорт и авиация
-auto_regulations:auto_business|tech_all_root|Автомобильное
+auto_business|tech_all_root|Автодело
 equ_history|tech_all_root|История техники
 tech_all|tech_all_root|Техника: прочее
 
@@ -357,5 +358,5 @@ network_literature|other_all_root|Сетевая литература
 diafilm|other_all_root|Диафильмы
 fanfiction|other_all_root|Фанфик
 unfinished|other_all_root|Недописанное
-unordered|other_all_root|Неотсортированное
 other:other_all|other_all_root|Прочее
+unordered|other_all_root|Неотсортированное

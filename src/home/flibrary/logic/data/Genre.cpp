@@ -89,7 +89,10 @@ Genre Genre::Load(DB::IDatabase& db)
 		const auto* fb2Code = query->Get<const char*>(1);
 		auto translated = Loc::Tr(GENRE, fb2Code);
 		AllGenresItem item {
-			Genre { .code = query->Get<const char*>(0), .name = translated != fb2Code ? std::move(translated) : query->Get<const char*>(3), .removed = static_cast<bool>(query->Get<int>(5)) },
+			Genre { .fb2Code = fb2Code,
+                   .code = query->Get<const char*>(0),
+                   .name = translated != fb2Code ? std::move(translated) : query->Get<const char*>(3),
+                   .removed = static_cast<bool>(query->Get<int>(5)) },
 			query->Get<const char*>(2)
 		};
 		if (query->Get<int>(4))

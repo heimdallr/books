@@ -84,6 +84,14 @@
         <source>Add books missing from archives</source>
         <translation>Додавати відсутні в архівах книги</translation>
     </message>
+    <message>
+        <source>Mark unindexed books as deleted</source>
+        <translation>Позначати неіндексовані книги як видалені</translation>
+    </message>
+    <message>
+        <source>Archive type</source>
+        <translation>Тип архіву</translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
@@ -2427,7 +2435,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation>Автомобільне</translation>
+        <translation>Автомобілі та ПДР</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>auto_business</source>
+        <translation>Автосправа</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5494,6 +5507,10 @@ Try again?</source>
         <source>Address</source>
         <translation>Адреса</translation>
     </message>
+    <message>
+        <source>Site Address</source>
+        <translation>Адреса сайту</translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
@@ -5611,6 +5628,26 @@ Try again?</source>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Previous page]</source>
+        <translation>Попередня сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Next page]</source>
+        <translation>Наступна сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[First page]</source>
+        <translation>Перша сторінка</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Last page]</source>
+        <translation>Остання сторінка</translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
@@ -5640,7 +5677,12 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Запуск програми</translation>
+        <translation>Запуск консольної програми</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Запуск GUI програми</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5838,12 +5880,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Find</source>
         <translation>Пошук</translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Filter</source>
         <translation>Фільтр</translation>
     </message>
@@ -5995,6 +6037,11 @@ Try again?</source>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Search</source>
         <translation>Пошук</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>more</source>
+        <translation>ще</translation>
     </message>
 </context>
 </TS>

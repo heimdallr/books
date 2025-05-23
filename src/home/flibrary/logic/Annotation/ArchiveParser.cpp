@@ -3,6 +3,7 @@
 #include <QFile>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/Localization.h"
 
@@ -36,9 +37,6 @@ constexpr auto TRANSLATOR_FIRST_NAME = "FictionBook/description/title-info/trans
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
 constexpr auto TRANSLATOR_LAST_NAME = "FictionBook/description/title-info/translator/last-name";
 constexpr auto ANNOTATION = "FictionBook/description/title-info/annotation";
-constexpr auto ANNOTATION_P = "FictionBook/description/title-info/annotation/p";
-constexpr auto ANNOTATION_HREF = "FictionBook/description/title-info/annotation/a";
-constexpr auto ANNOTATION_HREF_P = "FictionBook/description/title-info/annotation/p/a";
 constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto LANG_SRC = "FictionBook/description/title-info/src-lang";
@@ -56,6 +54,21 @@ constexpr auto PUBLISH_INFO_CITY = "FictionBook/description/publish-info/city";
 constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
 constexpr auto PUBLISH_INFO_ISBN = "FictionBook/description/publish-info/isbn";
 constexpr auto BODY = "FictionBook/body/";
+
+constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_TAGS[] {
+	{ EMPHASIS, "em" },
+	{  "style",   "" }
+};
+
+constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[] {
+	{ "l:href", "href" },
+};
+
+QString AnnotationReplaceAttributeName(const QString& name)
+{
+	const auto it = std::ranges::find(ANNOTATION_REPLACE_ATTRIBUTE_NAME, name, [](const auto& item) { return item.first; });
+	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
+}
 
 class XmlParser final : public Util::SaxParser
 {
@@ -113,20 +126,31 @@ private: // Util::SaxParser
 
 		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
+		if (m_annotationMode)
+		{
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+			{
+				const ScopedCall nodeGuard([&] { m_data.annotation.append(QString("<%1").arg(replacedName)); }, [&] { m_data.annotation.append(QString(">")); });
+				for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+					m_data.annotation.append(QString(R"( %1="%2")").arg(AnnotationReplaceAttributeName(attributes.GetName(i)), attributes.GetValue(i)));
+			}
+		}
+
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
-			{          BINARY,         &XmlParser::OnStartElementBinary },
-			{         SECTION,        &XmlParser::OnStartElementSection },
+            {          BINARY,         &XmlParser::OnStartElementBinary },
+            {         SECTION,        &XmlParser::OnStartElementSection },
 			{      TRANSLATOR,     &XmlParser::OnStartElementTranslator },
-			{    ANNOTATION_P,    &XmlParser::OnStartElementAnnotationP },
+            {      ANNOTATION,     &XmlParser::OnStartElementAnnotation },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString& /*name*/, const QString& path) override
+	bool OnEndElement(const QString& name, const QString& path) override
 	{
 		const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
 		if (m_percents < percents)
@@ -135,10 +159,18 @@ private: // Util::SaxParser
 			m_percents = percents;
 		}
 
+		if (m_annotationMode)
+		{
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+				m_data.annotation.append(QString("</%1>").arg(replacedName));
+		}
+
 		using ParseElementFunction = bool (XmlParser::*)();
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{ SECTION, &XmlParser::OnEndElementSection },
+			{    SECTION,    &XmlParser::OnEndElementSection },
+			{ ANNOTATION, &XmlParser::OnEndElementAnnotation },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path);
@@ -150,9 +182,6 @@ private: // Util::SaxParser
 		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{             ANNOTATION,           &XmlParser::ParseAnnotation },
-			{           ANNOTATION_P,           &XmlParser::ParseAnnotation },
-			{        ANNOTATION_HREF,       &XmlParser::ParseAnnotationHref },
-			{      ANNOTATION_HREF_P,       &XmlParser::ParseAnnotationHref },
 			{			   KEYWORDS,             &XmlParser::ParseKeywords },
 			{				   LANG,                 &XmlParser::ParseLang },
 			{			   LANG_SRC,              &XmlParser::ParseSrcLang },
@@ -177,6 +206,9 @@ private: // Util::SaxParser
 			m_data.textSize += value.length();
 			m_data.wordCount += value.split(' ', Qt::SkipEmptyParts).size();
 		}
+
+		if (m_annotationMode)
+			m_data.annotation.append(value);
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
@@ -231,10 +263,9 @@ private:
 		return true;
 	}
 
-	bool OnStartElementAnnotationP(const Util::XmlAttributes&)
+	bool OnStartElementAnnotation(const Util::XmlAttributes&)
 	{
-		if (!m_data.annotation.isEmpty())
-			m_data.annotation.append("<p>");
+		m_annotationMode = true;
 		return true;
 	}
 
@@ -250,15 +281,15 @@ private:
 		return true;
 	}
 
-	bool ParseAnnotation(const QString& value)
+	bool OnEndElementAnnotation()
 	{
-		m_data.annotation.append(value);
+		m_annotationMode = false;
 		return true;
 	}
 
-	bool ParseAnnotationHref(const QString& value)
+	bool ParseAnnotation(const QString& value)
 	{
-		m_data.annotation.append(QString(R"(<p><a href="%1">%2</a></p>)").arg(m_href).arg(value));
+		m_data.annotation.append(value);
 		return true;
 	}
 
@@ -368,6 +399,7 @@ private:
 	std::vector<std::pair<QString, QByteArray>> m_covers;
 	int64_t m_percents { 0 };
 	bool m_textMode { false };
+	bool m_annotationMode { false };
 };
 
 } // namespace

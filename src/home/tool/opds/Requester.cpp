@@ -6,8 +6,12 @@
 #include <QByteArray>
 #include <QEventLoop>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QUrl>
 
 #include <unicode/translit.h>
 
@@ -32,6 +36,7 @@
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
 #include "logic/shared/ImageRestore.h"
+#include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/SortString.h"
 #include "util/localization.h"
@@ -76,7 +81,7 @@ constexpr auto SELECT_BOOKS_STARTS_WITH = "select substr(b.SearchTitle, %2, 1), 
 										  "from Books b "
 										  "%1 "
 										  "left join Books_User bu on bu.BookID = b.BookID "
-										  "where b.SearchTitle != ? and b.SearchTitle like ? %3"
+										  "where b.SearchTitle != ? and b.SearchTitle like ? %3 "
 										  "group by substr(b.SearchTitle, %2, 1)";
 
 constexpr auto SELECT_BOOKS = R"(
@@ -149,10 +154,15 @@ constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
 constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
+constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
+constexpr auto NEXT = QT_TRANSLATE_NOOP("Requester", "[Next page]");
+constexpr auto FIRST = QT_TRANSLATE_NOOP("Requester", "[First page]");
+constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
 constexpr auto CONTENT = "content";
+constexpr auto OPDS_TRANSLITERATE = "opds/transliterate";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
@@ -169,7 +179,7 @@ constexpr std::pair<const char*, std::tuple<const char*, const char*>> HEAD_QUER
 
 struct Node
 {
-	using Attributes = std::unordered_map<QString, QString>;
+	using Attributes = std::vector<std::pair<QString, QString>>;
 	using Children = std::vector<Node>;
 	QString name;
 	QString value;
@@ -204,15 +214,15 @@ bool operator<(const Node& lhs, const Node& rhs)
 std::vector<Node> GetStandardNodes(QString id, QString title)
 {
 	return std::vector<Node> {
-		{ "updated", QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ssZ") },
-		{      "id",												 std::move(id) },
-		{     TITLE,											  std::move(title) },
+		{ "updated", QDateTime::currentDateTime().toUTC().toString("yyyy-MM-ddThh:mm:ssZ") },
+		{      "id",														 std::move(id) },
+		{     TITLE,													  std::move(title) },
 	};
 }
 
 Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 {
-	ScopedCall nameGuard([&] { writer.WriteStartElement(node.name); }, [&] { writer.WriteEndElement(); });
+	const auto nodeGuard = writer.Guard(node.name);
 	std::ranges::for_each(node.attributes, [&](const auto& item) { writer.WriteAttribute(item.first, item.second); });
 	writer.WriteCharacters(node.value);
 	std::ranges::for_each(node.children, [&](const auto& item) { writer << item; });
@@ -324,14 +334,14 @@ Node GetHead(DB::IDatabase& db, QString id, QString title, QString root, QString
 
 Node& WriteEntry(const QString& root, Node::Children& children, QString id, QString title, const int count, QString content = {}, const bool isCatalog = true)
 {
-	auto href = QString("%1/%2").arg(root, id);
+	const auto href = QString("%1/%2").arg(root, id);
 	auto& entry = children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(std::move(id), title));
 	entry.title = std::move(title);
 	if (isCatalog)
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	if (content.isEmpty() && count > 0)
 		content = Tr(COUNT).arg(count);
 	if (!content.isEmpty())
@@ -367,14 +377,14 @@ void WriteNavigationEntries(DB::IDatabase& db, const char* navigationType, const
 	{
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("%1/%2").arg(navigationType).arg(id);
-		auto href = QString("%1/%2").arg(root, entryId);
+		const auto href = QString("%1/%2").arg(root, entryId);
 		auto content = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content));
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
 	}
 }
 
@@ -386,7 +396,7 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 	{
 		const auto id = query->Get<int>(0);
 		auto entryId = QString("Book/%1").arg(id);
-		auto href = QString("%1/%2").arg(root, entryId);
+		const auto href = QString("%1/%2").arg(root, entryId);
 		QString author = query->ColumnCount() > 3 ? query->Get<const char*>(3) : QString {};
 		QString series = query->ColumnCount() > 4 ? query->Get<const char*>(4) : QString {};
 		const int seqNum = query->ColumnCount() > 5 ? query->Get<int>(5) : -1;
@@ -397,7 +407,7 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		entry.children.emplace_back("link",
 		                            QString {
         },
-		                            Node::Attributes { { "href", std::move(href) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
 
 		entry.author = std::move(author);
 		entry.series = std::move(series);
@@ -462,14 +472,17 @@ Node WriteNavigationStartsWith(DB::IDatabase& db,
 	return head;
 }
 
-QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName)
+QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
+	const Zip unzip(path + "/" + archive);
+	const auto stream = unzip.Read(fileName);
+	if (!restoreImages)
+		return stream->GetStream().readAll();
+
 	QByteArray data;
 	{
 		QBuffer buffer(&data);
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		const Zip unzip(path + "/" + archive);
-		const auto stream = unzip.Read(fileName);
 		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
@@ -500,9 +513,32 @@ void Transliterate(const char* id, QString& str)
 	auto s = str.toStdU32String();
 	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
 	myTrans->transliterate(icuString);
-	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4);
+	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4ULL);
 	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
 	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
+}
+
+QString GetOutputFileNameTemplate(const ISettings& settings)
+{
+	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
+	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
+	return outputFileNameTemplate;
+}
+
+QString PrepareSearchTerms(const QString& searchTerms)
+{
+	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+	return terms.join(' ');
+}
+
+template <typename T>
+QJsonObject FromQuery(const DB::IQuery& query)
+{
+	QJsonObject object;
+	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
+		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
+	return object;
 }
 
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
@@ -537,13 +573,6 @@ private:
 	const Functor m_f;
 };
 
-QString GetOutputFileNameTemplate(const ISettings& settings)
-{
-	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
-	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
-	return outputFileNameTemplate;
-}
-
 } // namespace
 
 class Requester::Impl : public IPostProcessCallback
@@ -552,10 +581,12 @@ public:
 	Impl(std::shared_ptr<const ISettings> settings,
 	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+	     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
+		, m_authorAnnotationController { std::move(authorAnnotationController) }
 		, m_annotationController { std::move(annotationController) }
 		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*m_settings) }
 	{
@@ -614,7 +645,7 @@ public:
 		return head;
 	}
 
-	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms) const
+	Node WriteSearch(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 		auto head = GetHead(*db, "search", Tr(SEARCH_RESULTS).arg(searchTerms), root, self);
@@ -626,13 +657,53 @@ public:
 		WriteBookEntries(*db, "", QString("%1%2").arg(WITH_SEARCH, SELECT_BOOKS).arg(JOIN_SEARCH, ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED)), terms.join(' '), root, head.children);
 
 		{
-			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
-			std::sort(it, head.children.end());
-		}
-		{
 			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
 			assert(it != head.children.end());
 			it->value = n == head.children.size() ? Tr(NOTHING_FOUND).arg(termsGui) : Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+		}
+		{
+			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+			const auto startEntryIndex = std::distance(head.children.begin(), it);
+			std::sort(it, head.children.end());
+
+			const auto selectionSize = static_cast<ptrdiff_t>(head.children.size());
+			const auto maxResultSize = GetMaxResultSize();
+			const auto startResultIndex = start.isEmpty() ? 0 : std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
+			const auto tailSize = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);
+
+			if (tailSize > 0)
+				head.children.erase(std::next(head.children.begin(), selectionSize - tailSize), head.children.end());
+			head.children.erase(std::next(head.children.begin(), startEntryIndex), std::next(head.children.begin(), startEntryIndex + startResultIndex));
+
+			const auto writeNextPage = [&](QString title, const ptrdiff_t nextPageIndex, const ptrdiff_t pos)
+			{
+				const QUrl url(self + QString("&start=%1").arg(nextPageIndex));
+				auto& entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
+				entry.title = std::move(title);
+				entry.children.emplace_back(
+					"link",
+					QString {
+                },
+					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			};
+
+			if (startResultIndex > 0)
+			{
+				writeNextPage(Tr(FIRST), 0LL, startEntryIndex);
+				if (startResultIndex - maxResultSize > 0)
+					writeNextPage(Tr(PREVIOUS), std::max(startResultIndex - maxResultSize, 0LL), startEntryIndex + 1);
+			}
+
+			if (tailSize > 0)
+			{
+				auto lastPageIndex = (selectionSize - startEntryIndex) / maxResultSize * maxResultSize;
+				if (lastPageIndex == selectionSize - startEntryIndex)
+					lastPageIndex -= maxResultSize;
+
+				writeNextPage(Tr(LAST), lastPageIndex, static_cast<ptrdiff_t>(head.children.size()));
+				if (tailSize > maxResultSize)
+					writeNextPage(Tr(NEXT), startResultIndex + maxResultSize, static_cast<ptrdiff_t>(head.children.size()) - 1);
+			}
 		}
 
 		return head;
@@ -741,7 +812,15 @@ public:
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 					if (const auto coverIndex = dataProvider.GetCoverIndex())
+					{
 						result = covers[*coverIndex].bytes;
+						return;
+					}
+
+				QFile file(":/images/book.png");
+				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+				assert(ok);
+				result = file.readAll();
 			});
 
 		m_annotationController->RegisterObserver(&observer);
@@ -751,31 +830,31 @@ public:
 		return result;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool transliterate) const
+	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool restoreImages) const
 	{
 		auto book = GetExtractedBook(bookId);
-		auto outputFileName = GetFileName(book, transliterate);
-		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file);
+		auto outputFileName = GetFileName(book);
+		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool transliterate) const
+	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
 		return std::make_pair(title, std::move(data));
 	}
 
-	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool transliterate) const
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool restoreImages) const
 	{
-		auto [fileName, title, data] = GetBookImpl(bookId, transliterate);
+		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
 		data = Compress(std::move(data), fileName);
 		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 	}
 
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return std::get<2>(GetBookImpl(bookId, false));
+		return std::get<2>(GetBookImpl(bookId, true));
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -867,7 +946,7 @@ select f.FolderID, f.FolderTitle, count(42)
 	left join Books_User bu on bu.BookID = b.BookID
 	%1 group by f.FolderID
 )")
-		                           .arg(ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED), "%1");
+		                           .arg(ShowRemoved() ? "" : QString("where %1").arg(BOOKS_NOT_DELETED));
 		const auto query = db->CreateQuery(queryText.toStdString());
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
@@ -944,19 +1023,301 @@ select f.FolderID, f.FolderTitle, count(42)
 		return WriteAuthorBooksImpl(root, self, navigationId, authorId, value, Loc::Groups, JOIN_GROUP);
 	}
 
+	QJsonObject getConfig(const QString&) const
+	{
+		const auto db = m_databaseController->GetDatabase(true);
+
+		QJsonObject result;
+		{
+			auto query = db->CreateQuery("select count (42) from Books");
+			query->Execute();
+			assert(!query->Eof());
+			result.insert("numberOfBooks", query->Get<long long>(0));
+		}
+
+		{
+			QJsonArray array;
+			const auto genres = Flibrary::Genre::Load(*db);
+			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void
+			{
+				for (const auto& child : genre.children)
+				{
+					array.append(QJsonObject {
+						{  "GenreCode",                child.code },
+						{ "ParentCode",                genre.code },
+						{    "FB2Code",             child.fb2Code },
+						{ "GenreAlias",                child.name },
+						{  "IsDeleted", child.removed ? "1" : "0" },
+					});
+					f(child, f);
+				}
+			};
+
+			process(genres, process);
+			result.insert("genres", array);
+		}
+
+		return result;
+	}
+
+	QJsonObject getSearchStats(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+with Search (Title) as (
+    select ?
+)
+select (select count (42) from Books_Search join Search s on Books_Search match s.Title) as bookTitles
+    , (select count (42) from Authors_Search join Search s on Authors_Search match s.Title) as authors
+    , (select count (42) from Series_Search join Search s on Series_Search match s.Title) as bookSeries
+)";
+		const auto query = CreateSearchQuery(queryText, searchTerms);
+		query->Execute();
+		assert(!query->Eof());
+
+		return QJsonObject {
+			{ "searchStats", FromQuery<int>(*query) }
+		};
+	}
+
+	QJsonObject getSearchTitles(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, (
+    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
+        from Authors a 
+        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
+    ) as AuthorsNames, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?
+left join Series s on s.SeriesID = b.SeriesID
+)";
+		return GetBookListBySearch(queryText, searchTerms, "titlesList");
+	}
+
+	QJsonObject getSearchAuthors(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') as Authors, count(42) as Books
+from Authors a
+join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?
+join Author_List al on al.AuthorID = a.AuthorID
+group by a.AuthorID
+)";
+		return GetBookListBySearch(queryText, searchTerms, "authorsList");
+	}
+
+	QJsonObject getSearchSeries(const QString& searchTerms) const
+	{
+		static constexpr auto queryText = R"(
+select s.SeriesID, s.SeriesTitle, count(42) as Books
+from Series s
+join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?
+join Series_List sl on sl.SeriesID = s.SeriesID
+group by s.SeriesID
+)";
+		return GetBookListBySearch(queryText, searchTerms, "seriesList");
+	}
+
+	QJsonObject getSearchAuthorBooks(const QString& authorId) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Author_List al on al.BookID = b.BookID and al.AuthorID = ?
+left join Series s on s.SeriesID = b.SeriesID
+)";
+		return GetBookListById(queryText, authorId, "titlesList");
+	}
+
+	QJsonObject getSearchSeriesBooks(const QString& seriesId) const
+	{
+		static constexpr auto queryText = R"(
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, (
+    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
+        from Authors a 
+        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
+    ) as AuthorsNames, (
+    select group_concat(g.GenreAlias, ', ')
+        from Genres g
+        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+    ) as Genres
+from Books b
+join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
+)";
+		return GetBookListById(queryText, seriesId, "titlesList");
+	}
+
+	QJsonObject getBookForm(const QString& bookId) const
+	{
+		QJsonObject result;
+
+		QEventLoop eventLoop;
+		AnnotationControllerObserver observer(
+			[&](const Flibrary::IAnnotationController::IDataProvider& dataProvider)
+			{
+				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
+
+				const auto& book = dataProvider.GetBook();
+
+				QJsonArray authors;
+
+				const auto authorsList = [&]
+				{
+					QStringList values;
+					for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
+					{
+						const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
+
+						authors.append(QJsonObject {
+							{   "AuthorID",											  authorItem->GetId() },
+							{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
+							{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
+							{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
+						});
+
+						values << QString("%1 %2 %3")
+									  .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+					                       authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
+					                       authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName))
+									  .split(' ', Qt::SkipEmptyParts)
+									  .join(' ');
+					}
+					return values.join(", ");
+				}();
+
+				const auto genresList = [&]
+				{
+					QStringList values;
+					for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
+						values << dataProvider.GetGenres().GetChild(i)->GetRawData(Flibrary::NavigationItem::Column::Title);
+					return values.join(", ");
+				}();
+
+				QJsonArray series;
+				const auto& bookSeries = dataProvider.GetSeries();
+				for (size_t i = 0, sz = bookSeries.GetChildCount(); i < sz; ++i)
+				{
+					const auto item = bookSeries.GetChild(i);
+					QJsonObject obj {
+						{    "SeriesID",										 item->GetId() },
+						{ "SeriesTitle", item->GetRawData(Flibrary::SeriesItem::Column::Title) },
+					};
+					if (const auto seqNum = Util::Fb2InpxParser::GetSeqNumber(item->GetRawData(Flibrary::SeriesItem::Column::SeqNum)); !seqNum.isEmpty())
+						obj.insert("SeqNumber", seqNum);
+					series.append(obj);
+				}
+
+				QJsonObject bookForm {
+					{       "BookID",																			  book.GetId() },
+					{     "BookSize",										 book.GetRawData(Flibrary::BookItem::Column::Size) },
+					{     "FileName",               QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).baseName() },
+					{          "Ext",           "." + QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix() },
+					{         "Lang",										 book.GetRawData(Flibrary::BookItem::Column::Lang) },
+					{      "LibRate",									  book.GetRawData(Flibrary::BookItem::Column::LibRate) },
+					{    "SeqNumber", Util::Fb2InpxParser::GetSeqNumber(book.GetRawData(Flibrary::BookItem::Column::SeqNumber)) },
+					{  "SeriesTitle",									   book.GetRawData(Flibrary::BookItem::Column::Series) },
+					{        "Title",										book.GetRawData(Flibrary::BookItem::Column::Title) },
+					{ "AuthorsNames",																			   authorsList },
+					{       "Genres",																				genresList },
+				};
+
+				result.insert("annotation", dataProvider.GetAnnotation());
+				result.insert("city", dataProvider.GetPublishCity());
+				result.insert("isbn", dataProvider.GetPublishIsbn());
+				result.insert("publisher", dataProvider.GetPublisher());
+				result.insert("year", dataProvider.GetPublishYear());
+
+				result.insert("authors", authors);
+				result.insert("bookForm", bookForm);
+				result.insert("series", series);
+
+				m_forwarder.Forward([this] { m_coversTimer.start(); });
+				std::lock_guard lock(m_coversGuard);
+
+				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+					m_covers.try_emplace(bookId, covers.front().bytes);
+			});
+
+		m_annotationController->RegisterObserver(&observer);
+		m_annotationController->SetCurrentBookId(bookId, true);
+		eventLoop.exec();
+
+		return result;
+	}
+
 private: // IPostProcessCallback
-	QString GetFileName(const QString& bookId, const bool transliterate) const override
+	QString GetFileName(const QString& bookId) const override
 	{
 		const auto book = GetExtractedBook(bookId);
-		return GetFileName(book, transliterate);
+		return GetFileName(book);
+	}
+
+	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override
+	{
+		if (auto info = m_authorAnnotationController->GetInfo(name); !info.isEmpty())
+			return std::make_pair(std::move(info), m_authorAnnotationController->GetImages(name));
+
+		return {};
 	}
 
 private:
-	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book, const bool transliterate) const
+	std::unique_ptr<DB::IQuery> CreateSearchQuery(const QString& queryText, const QString& searchTerms) const
+	{
+		const auto db = m_databaseController->GetDatabase(true);
+		auto query = db->CreateQuery(queryText.toStdString());
+		query->Bind(0, PrepareSearchTerms(searchTerms).toStdString());
+		return query;
+	}
+
+	std::unique_ptr<DB::IQuery> CreateIdQuery(const QString& queryText, const QString& id) const
+	{
+		const auto db = m_databaseController->GetDatabase(true);
+		auto query = db->CreateQuery(queryText.toStdString());
+		bool ok = false;
+		query->Bind(0, id.toLongLong(&ok));
+		assert(ok);
+		return query;
+	}
+
+	QJsonObject GetBookListBySearch(const QString& queryText, const QString& searchTerms, const QString& resultName) const
+	{
+		QJsonArray array;
+
+		const auto query = CreateSearchQuery(queryText, searchTerms);
+		for (query->Execute(); !query->Eof(); query->Next())
+			array.append(FromQuery<const char*>(*query));
+
+		return QJsonObject {
+			{ resultName, array }
+		};
+	}
+
+	QJsonObject GetBookListById(const QString& queryText, const QString& id, const QString& resultName) const
+	{
+		QJsonArray array;
+
+		auto query = CreateIdQuery(queryText, id);
+		for (query->Execute(); !query->Eof(); query->Next())
+			array.append(FromQuery<const char*>(*query));
+
+		return QJsonObject {
+			{ resultName, array }
+		};
+	}
+
+	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
 		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
-		if (!transliterate)
+		if (!m_settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
 		Transliterate("ru-ru_Latn/BGN", outputFileName);
@@ -1057,7 +1418,7 @@ where b.BookID = ?
 				query->Execute();
 				assert(!query->Eof());
 				const auto n = query->Get<long long>(0);
-				return n == 0 || n > m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT);
+				return n == 0 || n > GetMaxResultSize();
 			}())
 			return Node {};
 
@@ -1074,10 +1435,18 @@ where b.BookID = ?
 		return m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
 	}
 
+	ptrdiff_t GetMaxResultSize() const
+	{
+		if (const auto result = m_settings->Get(OPDS_BOOK_LIMIT_KEY, OPDS_BOOK_LIMIT_DEFAULT); result > 0)
+			return result;
+		return OPDS_BOOK_LIMIT_DEFAULT;
+	}
+
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> m_databaseController;
+	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<Flibrary::IAnnotationController> m_annotationController;
 	Util::FunctorExecutionForwarder m_forwarder;
 	const QString m_outputFileNameTemplate;
@@ -1091,6 +1460,9 @@ namespace
 
 QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
 {
+	if (root.isEmpty())
+		return src;
+
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
@@ -1137,13 +1509,44 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ContentType contentT
 	return PostProcess(contentType, root, obj, bytes, { root });
 }
 
+template <typename Obj, typename NavigationGetter, typename... ARGS>
+QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
+{
+	if (!obj.GetCollectionProvider().ActiveCollectionExists())
+		return {};
+
+	QByteArray bytes;
+	try
+	{
+		const QJsonDocument doc(std::invoke(getter, std::cref(obj), std::cref(args)...));
+		bytes = doc.toJson();
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+		return {};
+	}
+	catch (...)
+	{
+		PLOGE << "Unknown error";
+		return {};
+	}
+
+#ifndef NDEBUG
+	PLOGV << bytes;
+#endif
+
+	return bytes;
+}
+
 } // namespace
 
 Requester::Requester(std::shared_ptr<const ISettings> settings,
-                     std::shared_ptr<Flibrary::ICollectionProvider> collectionProvider,
-                     std::shared_ptr<Flibrary::IDatabaseController> databaseController,
+                     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+                     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+                     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
                      std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(annotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(authorAnnotationController), std::move(annotationController))
 {
 	PLOGV << "Requester created";
 }
@@ -1173,14 +1576,14 @@ QByteArray Requester::GetCoverThumbnail(const QString& root, const QString& self
 	return GetCover(root, self, bookId);
 }
 
-std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
+std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
 {
-	return m_impl->GetBook(bookId, transliterate);
+	return m_impl->GetBook(bookId, restoreImages);
 }
 
-std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool transliterate) const
+std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
 {
-	return m_impl->GetBookZip(bookId, transliterate);
+	return m_impl->GetBookZip(bookId, restoreImages);
 }
 
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
@@ -1189,9 +1592,9 @@ QByteArray Requester::GetBookText(const QString& root, const QString& bookId) co
 	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
 }
 
-QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms) const
+QByteArray Requester::Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const
 {
-	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms);
+	return GetImpl(*m_impl, &Impl::WriteSearch, ContentType::Books, root, self, searchTerms, start);
 }
 
 #define OPDS_ROOT_ITEM(NAME)                                                                                          \
@@ -1217,3 +1620,11 @@ OPDS_ROOT_ITEMS_X_MACRO
 	}
 OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
+
+#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                   \
+	QByteArray Requester::NAME(const QString& value) const \
+	{                                                      \
+		return GetImpl(*m_impl, &Impl::NAME, value);       \
+	}
+OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM

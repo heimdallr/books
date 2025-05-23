@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>208</height>
+    <width>693</width>
+    <height>257</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,9 +25,9 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="_3">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="_4">
      <item row="1" column="1">
       <widget class="QLineEdit" name="editDatabase">
        <property name="toolTip">
@@ -136,31 +136,110 @@
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxAddUnindexedBooks">
-     <property name="text">
-      <string>Add unindexed books</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
+    <widget class="QWidget" name="options" native="true">
+     <layout class="QVBoxLayout" name="_2">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="checkBoxAddUnindexedBooks">
+        <property name="text">
+         <string>Add unindexed books</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="_6">
+        <item>
+         <widget class="QWidget" name="widget" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>32</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxMarkUnindexedAdDeleted">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Mark unindexed books as deleted</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="_7">
+        <item>
+         <widget class="QCheckBox" name="checkBoxAddMissingBooks">
+          <property name="text">
+           <string>Add books missing from archives</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblDefaultArchiveType">
+          <property name="text">
+           <string>Archive type</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxDefaultArchiveType">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxScanUnindexedArchives">
+        <property name="text">
+         <string>Scan unindexed archives</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxAddMissingBooks">
-     <property name="text">
-      <string>Add books missing from archives</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxScanUnindexedArchives">
-     <property name="text">
-      <string>Scan unindexed archives</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="layoutButton" stretch="0,1,0,0">
+    <layout class="QHBoxLayout" name="_5" stretch="0,1,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
      </property>
@@ -228,5 +307,38 @@
   <include location="../../icons/light/resources/light.qrc"/>
   <include location="../../icons/light/resources/light.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>checkBoxAddUnindexedBooks</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>checkBoxMarkUnindexedAdDeleted</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>305</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>131</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxAddMissingBooks</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>comboBoxDefaultArchiveType</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>159</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>648</x>
+     <y>160</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

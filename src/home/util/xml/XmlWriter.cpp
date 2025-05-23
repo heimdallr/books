@@ -138,9 +138,21 @@ public:
 
 	void WriteCharacters(const QString& data)
 	{
+		if (data.isEmpty())
+			return;
+
 		CloseTag();
 		const auto chars = data.toStdU16String();
 		m_formatter.formatBuf(chars.data(), chars.length(), XMLFormatter::CharEscapes);
+	}
+
+	void CloseTag()
+	{
+		if (!m_tagOpened)
+			return;
+
+		m_formatter << XMLFormatter::NoEscapes << chCloseAngle;
+		m_tagOpened = false;
 	}
 
 private: // XMLFormatTarget
@@ -160,15 +172,6 @@ private:
 		m_formatter << chLF;
 		for (size_t i = 0, sz = m_elements.size(); i < sz; ++i)
 			m_formatter << chHTab;
-	}
-
-	void CloseTag()
-	{
-		if (!m_tagOpened)
-			return;
-
-		m_formatter << XMLFormatter::NoEscapes << chCloseAngle;
-		m_tagOpened = false;
 	}
 
 private:
@@ -221,6 +224,12 @@ XmlWriter& XmlWriter::WriteAttribute(const QString& name, const QString& value)
 XmlWriter& XmlWriter::WriteCharacters(const QString& data)
 {
 	m_impl->WriteCharacters(data);
+	return *this;
+}
+
+XmlWriter& XmlWriter::CloseTag()
+{
+	m_impl->CloseTag();
 	return *this;
 }
 

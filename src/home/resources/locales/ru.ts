@@ -84,6 +84,14 @@
         <source>Add books missing from archives</source>
         <translation>Добавлять отсутствующие в архивах книги</translation>
     </message>
+    <message>
+        <source>Mark unindexed books as deleted</source>
+        <translation>Помечать неиндексированные книги как удалённые</translation>
+    </message>
+    <message>
+        <source>Archive type</source>
+        <translation>Тип архива</translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
@@ -2427,7 +2435,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation>Автомобильное</translation>
+        <translation>Автомобили и ПДД</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>auto_business</source>
+        <translation>Автодело</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5496,6 +5509,10 @@ Try again?</source>
         <source>Address</source>
         <translation>Адрес</translation>
     </message>
+    <message>
+        <source>Site Address</source>
+        <translation>Адрес сайта</translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
@@ -5613,6 +5630,26 @@ Try again?</source>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>По запросу &quot;%1&quot; книг не найдено</translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Previous page]</source>
+        <translation>Предыдущая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Next page]</source>
+        <translation>Следующая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[First page]</source>
+        <translation>Первая страница</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Last page]</source>
+        <translation>Последняя страница</translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
@@ -5642,7 +5679,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Запуск приложения</translation>
+        <translation>Запуск консольного приложения</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5668,6 +5705,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_ext%</source>
         <translation>Расширение файла</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Запуск GUI приложения</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5840,12 +5882,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Find</source>
         <translation>Поиск</translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>
@@ -5997,6 +6039,11 @@ Try again?</source>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Search</source>
         <translation>Поиск</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>more</source>
+        <translation>ещё</translation>
     </message>
 </context>
 </TS>

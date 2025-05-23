@@ -9,7 +9,8 @@ class CommandExecutor final : public IScriptController::ICommandExecutor
 {
 public:
 	bool ExecuteSystem(const IScriptController::Command& command) const override;
-	bool ExecuteLaunchApp(const IScriptController::Command& command) const override;
+	bool ExecuteLaunchConsoleApp(const IScriptController::Command& command) const override;
+	bool ExecuteLaunchGuiApp(const IScriptController::Command& command) const override;
 };
 
 }

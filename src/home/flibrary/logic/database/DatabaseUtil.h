@@ -19,6 +19,7 @@ namespace HomeCompa::Flibrary::DatabaseUtil
 {
 
 IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index, size_t removedIndex);
+IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const size_t* index, size_t removedIndex);

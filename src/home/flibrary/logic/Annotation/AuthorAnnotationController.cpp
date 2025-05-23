@@ -15,6 +15,7 @@
 #include "util/IExecutor.h"
 
 #include "Constant.h"
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -37,7 +38,7 @@ public:
 			Perform(&IObserver::OnReadyChanged);
 	}
 
-	void SetAuthor(const long long id, QString lastName, QString firstName, QString middleName)
+	void SetAuthor(const long long id, QString name)
 	{
 		m_authorId = id;
 		if (m_authorToArchive.empty())
@@ -45,9 +46,9 @@ public:
 
 		assert(m_executor);
 		(*m_executor)({ "Extract author's annotation",
-		                [this, id, lastName = std::move(lastName), firstName = std::move(firstName), middleName = std::move(middleName)]() mutable
+		                [this, id, name = std::move(name)]() mutable
 		                {
-							auto annotation = GetAnnotation(std::move(lastName), firstName, middleName);
+							auto annotation = GetAnnotation(name);
 							return [this, id, annotation = std::move(annotation)](size_t)
 							{
 								if (id == m_authorId)
@@ -57,7 +58,43 @@ public:
 		              1000);
 	}
 
+	bool CheckAuthor(const QString& name) const
+	{
+		return IsReady() ? Find(name).second >= 0 : false;
+	}
+
+	QString GetInfo(const QString& name) const
+	{
+		if (const auto [hashed, index] = Find(name); index >= 0)
+		{
+#ifndef NDEBUG
+			PLOGV << name << ": " << index << ". " << hashed;
+#endif
+			return GetAnnotationText(hashed, index);
+		}
+
+		return {};
+	}
+
+	std::vector<QByteArray> GetImages(const QString& name) const
+	{
+		if (const auto [hashed, index] = Find(name); index >= 0)
+			return GetAnnotationImages(hashed, index);
+
+		return {};
+	}
+
 private:
+	std::pair<QString, int> Find(const QString& name) const
+	{
+		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
+		hash.addData(name.split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
+		auto hashed = hash.result().toHex();
+		const auto it = m_authorToArchive.find(hashed);
+
+		return std::make_pair(std::move(hashed), it != m_authorToArchive.end() ? it->second : -1);
+	}
+
 	void Init(const ILogicFactory& logicFactory, const ICollectionProvider& collectionProvider)
 	{
 		if (!collectionProvider.ActiveCollectionExists())
@@ -91,14 +128,10 @@ private:
 		              1000);
 	}
 
-	std::pair<QString, std::vector<QByteArray>> GetAnnotation(QString lastName, const QString& firstName, const QString& middleName) const
+	std::pair<QString, std::vector<QByteArray>> GetAnnotation(const QString& name) const
 	{
-		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
-		hash.addData(lastName.append(' ').append(firstName).append(' ').append(middleName).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
-		const auto hashed = hash.result().toHex();
-
-		if (const auto it = m_authorToArchive.find(hashed); it != m_authorToArchive.end())
-			return std::make_pair(GetAnnotationText(hashed, it->second), GetAnnotationImages(hashed, it->second));
+		if (const auto [hashed, index] = Find(name); index >= 0)
+			return std::make_pair(GetAnnotationText(hashed, index), GetAnnotationImages(hashed, index));
 
 		return {};
 	}
@@ -108,14 +141,12 @@ private:
 		const auto annotationFileName = m_authorsDir.filePath(QString("%1.7z").arg(file));
 		assert(QFile::exists(annotationFileName));
 		Zip zip(annotationFileName);
-		auto result = QString::fromUtf8(zip.Read(name)->GetStream().readAll());
-		result.replace("[b]", "<b>").replace("[/b]", "</b>");
-		return result;
+		return QString::fromUtf8(zip.Read(name)->GetStream().readAll());
 	}
 
 	std::vector<QByteArray> GetAnnotationImages(const QString& name, const int file) const
 	{
-		const auto imagesFileName = m_authorsDir.filePath(QString("%1/%2.zip").arg(Global::IMAGES).arg(file));
+		const auto imagesFileName = m_authorsDir.filePath(QString("%1/%2.zip").arg(Global::PICTURES).arg(file));
 		if (!QFile::exists(imagesFileName))
 			return {};
 
@@ -155,9 +186,24 @@ void AuthorAnnotationController::SetNavigationMode(const NavigationMode mode)
 	m_impl->SetNavigationMode(mode);
 }
 
-void AuthorAnnotationController::SetAuthor(const long long id, QString lastName, QString firstName, QString middleName)
+void AuthorAnnotationController::SetAuthor(const long long id, QString name)
 {
-	m_impl->SetAuthor(id, std::move(lastName), std::move(firstName), std::move(middleName));
+	m_impl->SetAuthor(id, std::move(name));
+}
+
+bool AuthorAnnotationController::CheckAuthor(const QString& name) const
+{
+	return m_impl->CheckAuthor(name);
+}
+
+QString AuthorAnnotationController::GetInfo(const QString& name) const
+{
+	return m_impl->GetInfo(name);
+}
+
+std::vector<QByteArray> AuthorAnnotationController::GetImages(const QString& name) const
+{
+	return m_impl->GetImages(name);
 }
 
 void AuthorAnnotationController::RegisterObserver(IObserver* observer)

@@ -3,6 +3,9 @@
 #include <ranges>
 
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPixmap>
 #include <QTimer>
 
@@ -24,8 +27,6 @@
 #include "inpx/src/util/constant.h"
 #include "util/UiTimer.h"
 #include "util/localization.h"
-#include "util/xml/SaxParser.h"
-#include "util/xml/XmlAttributes.h"
 
 #include "ArchiveParser.h"
 #include "log.h"
@@ -54,8 +55,10 @@ TR_DEF
 using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-constexpr auto BOOK_QUERY = "select %1 from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID where b.BookID = :id";
-constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id";
+constexpr auto BOOK_QUERY =
+	"select %1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, coalesce(b.SeqNumber, -1), s.SeriesTitle from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID "
+	"left join Series s on s.SeriesID = b.SeriesID where b.BookID = :id";
+constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id";
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = :id";
@@ -65,37 +68,6 @@ constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Boo
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
 constexpr auto EPIGRAPH_PATTERN = R"(<p align=right style="font-style:italic;">%1</p>)";
-
-class ReviewParser final : public Util::SaxParser
-{
-public:
-	ReviewParser(QIODevice& stream, IAnnotationController::IDataProvider::Reviews& reviews)
-		: SaxParser(stream)
-		, m_reviews { reviews }
-	{
-	}
-
-private: // SaxParser
-	bool OnStartElement(const QString&, [[maybe_unused]] const QString& path, const Util::XmlAttributes& attributes) override
-	{
-		assert(path == "item");
-		auto& review = m_reviews.emplace_back(QDateTime::fromString(attributes.GetAttribute("time"), "yyyy-MM-dd hh:mm:ss"), attributes.GetAttribute("name"));
-		if (review.name.isEmpty())
-			review.name = Tr(ANONYMOUS);
-
-		return true;
-	}
-
-	bool OnCharacters([[maybe_unused]] const QString& path, const QString& value) override
-	{
-		assert(path == "item" && !m_reviews.empty());
-		m_reviews.back().text = value;
-		return true;
-	}
-
-private:
-	IAnnotationController::IDataProvider::Reviews& m_reviews;
-};
 
 enum class Ready
 {
@@ -177,7 +149,7 @@ struct Table
 	Table& Add(const char* name, const QString& value)
 	{
 		if (!value.isEmpty())
-			data << QString(R"(<tr><td style="vertical-align: top;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
+			data << QString(R"(<tr><td style="vertical-align: top; padding-right: 7px;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
 
 		return *this;
 	}
@@ -188,7 +160,7 @@ struct Table
 		ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
 		for (const auto& value : values)
 		{
-			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top;">)"); }, [&] { str.append("</td>"); });
+			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
 			str.append(value);
 		}
 		data << str;
@@ -534,7 +506,7 @@ private:
 		                          {
 									  const auto db = m_databaseUser->Database();
 									  const auto bookId = book->GetId().toLongLong();
-									  auto series = CreateDictionary(*db, SERIES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto series = CreateDictionary(*db, SERIES_QUERY, bookId, &DatabaseUtil::CreateSeriesItem);
 									  auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUtil::CreateFullAuthorItem);
 									  auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
@@ -601,7 +573,22 @@ private:
 
 			Zip zip(archivesFolder + "/" + reviewFolder);
 			const auto stream = zip.Read(libId);
-			ReviewParser(stream->GetStream(), reviews).Parse();
+			QJsonParseError jsonParseError;
+			const auto doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
+			if (jsonParseError.error != QJsonParseError::NoError)
+			{
+				PLOGW << jsonParseError.errorString();
+				continue;
+			}
+			assert(doc.isArray());
+			for (const auto jsonValue : doc.array())
+			{
+				assert(jsonValue.isObject());
+				const auto obj = jsonValue.toObject();
+				auto& review = reviews.emplace_back(QDateTime::fromString(obj["time"].toString(), "yyyy-MM-dd hh:mm:ss"), obj["name"].toString(), obj["text"].toString());
+				if (review.name.isEmpty())
+					review.name = Tr(ANONYMOUS);
+			}
 		}
 		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });
 
@@ -760,6 +747,9 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		Add(annotation, table.ToString());
 	}
 
+#ifndef NDEBUG
+	PLOGV << annotation;
+#endif
 	return annotation;
 }
 

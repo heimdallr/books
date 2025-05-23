@@ -256,6 +256,26 @@ ItemType AuthorItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
+std::shared_ptr<IDataItem> SeriesItem::Create(IDataItem* parent)
+{
+	return std::make_shared<SeriesItem>(parent);
+}
+
+SeriesItem::SeriesItem(IDataItem* parent)
+	: DataItem(Column::Last, parent)
+{
+}
+
+SeriesItem* SeriesItem::ToSeriesItem() noexcept
+{
+	return this;
+}
+
+ItemType SeriesItem::GetType() const noexcept
+{
+	return ItemType::Navigation;
+}
+
 const BookItem::Mapping* BookItem::mapping = &FULL;
 
 BookItem::BookItem(IDataItem* parent)

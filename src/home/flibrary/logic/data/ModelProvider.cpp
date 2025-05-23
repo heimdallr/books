@@ -2,6 +2,7 @@
 
 #include <Hypodermic/Container.h>
 
+#include "model/AuthorsModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
 #include "model/SortFilterProxyModel.h"
@@ -92,6 +93,11 @@ ModelProvider::~ModelProvider()
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
 {
 	return m_impl->CreateModel<ListModel>(std::move(data), observer, autoAcceptChildRows);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorsListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
+{
+	return m_impl->CreateModel<AuthorsModel>(std::move(data), observer, autoAcceptChildRows);
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const

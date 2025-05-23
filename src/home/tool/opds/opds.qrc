@@ -1,0 +1,15 @@
+<RCC>
+	<qresource prefix="icons">
+		<file alias="main.ico">../../resources/icons/main.ico</file>
+	</qresource>
+	<qresource prefix="images">
+		<file alias="book.png">resources/images/book.png</file>
+	</qresource>
+	<qresource prefix="website">
+		<file alias="index.html">resources/website/index.html</file>
+	</qresource>
+	<qresource prefix="website/assets">
+		<file alias="index-TMrU8xHd.js">resources/website/assets/index.js.bin</file>
+		<file alias="index-Bg2MVWOB.css">resources/website/assets/index.css.bin</file>
+	</qresource>
+</RCC>

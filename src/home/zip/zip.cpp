@@ -107,6 +107,11 @@ bool Zip::IsArchive(const QString& filename)
 	return SevenZip::Archive::IsArchive(filename);
 }
 
+QStringList Zip::GetTypes()
+{
+	return SevenZip::Archive::GetTypes();
+}
+
 Zip::Zip(const QString& filename, std::shared_ptr<ProgressCallback> progress)
 	: m_impl(std::make_unique<Impl>(filename, std::move(progress)))
 {
@@ -183,7 +188,7 @@ const QDateTime& Zip::GetFileTime(const QString& filename) const
 
 Zip::Format Zip::FormatFromString(const QString& str)
 {
-	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparer {});
+	return FindSecond(ZIP_FORMATS, str.toStdString().data(), PszComparerCaseInsensitive {});
 }
 
 QString Zip::FormatToString(const Format format)

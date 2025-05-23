@@ -27,6 +27,8 @@ constexpr auto FOLDER = "ArchiveFolder";
 constexpr auto ADD_UN_INDEXED_BOOKS = "AddUnIndexedBooks";
 constexpr auto SCAN_UN_INDEXED_FOLDERS = "ScanUnIndexedFolders";
 constexpr auto SKIP_NOT_IN_ARCHIVES = "SkipNotInArchives";
+constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
+constexpr auto DEFAULT_ARCHIVE_TYPE = "DefaultArchiveType";
 
 constexpr auto CONTEXT = "AddCollectionDialog";
 constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
@@ -89,6 +91,8 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_ui.comboBoxDefaultArchiveType->addItems(Zip::GetTypes());
+
 		connect(m_ui.editArchive,
 		        &QLineEdit::textChanged,
 		        &m_self,
@@ -149,8 +153,22 @@ public:
 		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
 		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
+		m_ui.checkBoxMarkUnindexedAdDeleted->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
+
+		m_ui.comboBoxDefaultArchiveType->setCurrentIndex(
+			[this]
+			{
+				const auto defaultArchiveType = m_settings->Get(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), QString("7z"));
+				auto index = m_ui.comboBoxDefaultArchiveType->findText(defaultArchiveType);
+				if (index < 0)
+				{
+					m_ui.comboBoxDefaultArchiveType->addItem(defaultArchiveType);
+					index = m_ui.comboBoxDefaultArchiveType->count() - 1;
+				}
+				return index;
+			}());
 
 		LoadGeometry();
 	}
@@ -165,8 +183,10 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAdDeleted->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), m_ui.comboBoxDefaultArchiveType->currentText());
 	}
 
 	QString GetName() const
@@ -184,6 +204,11 @@ public:
 		return m_ui.editArchive->text();
 	}
 
+	QString GetDefaultArchiveType() const
+	{
+		return m_ui.comboBoxDefaultArchiveType->currentText();
+	}
+
 	bool AddUnIndexedBooks() const
 	{
 		return m_ui.checkBoxAddUnindexedBooks->isChecked();
@@ -197,6 +222,11 @@ public:
 	bool SkipLostBooks() const
 	{
 		return !m_ui.checkBoxAddMissingBooks->isChecked();
+	}
+
+	bool MarkUnIndexedBooksAsDeleted() const
+	{
+		return m_ui.checkBoxMarkUnindexedAdDeleted->isChecked();
 	}
 
 private: // GeometryRestorableObserver
@@ -216,9 +246,7 @@ private:
 	{
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
-		m_ui.checkBoxAddUnindexedBooks->setEnabled(m_createMode);
-		m_ui.checkBoxScanUnindexedArchives->setEnabled(m_createMode);
-		m_ui.checkBoxAddMissingBooks->setEnabled(m_createMode);
+		m_ui.options->setEnabled(m_createMode);
 		(void)CheckData();
 	}
 
@@ -368,6 +396,11 @@ QString AddCollectionDialog::GetArchiveFolder() const
 	return m_impl->GetArchiveFolder();
 }
 
+QString AddCollectionDialog::GetDefaultArchiveType() const
+{
+	return m_impl->GetDefaultArchiveType();
+}
+
 bool AddCollectionDialog::AddUnIndexedBooks() const
 {
 	return m_impl->AddUnIndexedBooks();
@@ -381,4 +414,9 @@ bool AddCollectionDialog::ScanUnIndexedFolders() const
 bool AddCollectionDialog::SkipLostBooks() const
 {
 	return m_impl->SkipLostBooks();
+}
+
+bool AddCollectionDialog::MarkUnIndexedBooksAsDeleted() const
+{
+	return m_impl->MarkUnIndexedBooksAsDeleted();
 }

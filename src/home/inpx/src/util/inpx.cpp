@@ -30,12 +30,12 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "util/Fb2InpxParser.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
 #include "util/localization.h"
 #include "util/timer.h"
 
-#include "Fb2Parser.h"
 #include "constant.h"
 #include "inpx.h"
 #include "types.h"
@@ -158,7 +158,7 @@ auto LoadGenres(const Path& genresIniFileName)
 		std::wstring code;
 		while (itCode != std::cend(codes))
 		{
-			const auto& added = index.emplace(Next(itCode, std::cend(codes), LIST_SEPARATOR), std::size(genres)).first->first;
+			const auto& added = index.emplace(Next(itCode, std::cend(codes), Util::Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
 				code = added;
 		}
@@ -197,7 +197,7 @@ T Add(std::wstring_view value, Dictionary& container, const GetIdFunctor& getId 
 
 std::set<size_t> ParseItem(const std::wstring_view data,
                            Dictionary& container,
-                           const wchar_t separator = LIST_SEPARATOR,
+                           const wchar_t separator = Util::Fb2InpxParser::LIST_SEPARATOR,
                            const ParseChecker& parseChecker = &ParseCheckerDefault,
                            const GetIdFunctor& getId = &GetIdDefault,
                            const FindFunctor& find = &FindDefault)
@@ -290,17 +290,12 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	auto it = std::begin(line);
 	const auto end = std::end(line);
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = Next(it, end, FIELDS_SEPARATOR);
+		f[i](buf) = Next(it, end, Util::Fb2InpxParser::FIELDS_SEPARATOR);
+
+	if (buf.GENRE.size() < 2)
+		buf.GENRE = GENRE_NOT_SPECIFIED;
 
 	return buf;
-}
-
-QString ToString(const Fb2Parser::Data::Authors& authors)
-{
-	QStringList values;
-	values.reserve(static_cast<int>(authors.size()));
-	std::ranges::transform(authors, std::back_inserter(values), [](const Fb2Parser::Data::Author& author) { return (QStringList() << author.last << author.first << author.middle).join(NAMES_SEPARATOR); });
-	return values.join(LIST_SEPARATOR) + LIST_SEPARATOR;
 }
 
 struct InpxContent
@@ -416,6 +411,13 @@ void Analyze(const Path& dbFileName)
 	assert(rc == 0);
 }
 
+void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
+{
+	DatabaseWrapper db(dbFileName);
+	[[maybe_unused]] const auto rc = sqlite3pp::command(db, ToMultiByte(statement).data()).execute();
+	assert(rc == 0);
+}
+
 template <typename T>
 void print(const T& value)
 {
@@ -505,9 +507,9 @@ size_t Store(const Path& dbFileName, Data& data)
 		{
 			const auto& [author, id] = item;
 			auto it = std::cbegin(author);
-			const auto last = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-			const auto first = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
-			const auto middle = ToMultiByte(Next(it, std::cend(author), NAMES_SEPARATOR));
+			const auto last = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+			const auto first = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+			const auto middle = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
 
 			cmd.bind(1, id);
 			cmd.bind(2, last, sqlite3pp::nocopy);
@@ -1133,6 +1135,7 @@ private:
 		const auto& dbFileName = m_ini(DB_PATH);
 
 		ExecuteScript(L"create database", dbFileName, m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
+		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
@@ -1390,9 +1393,13 @@ private:
 		if (!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
 			return;
 
-		for (const auto& [folder, files] : m_foldersContent | std::views::filter([](const auto& item) { return !item.second.empty(); }))
+		for (auto& [folder, files] : m_foldersContent)
 		{
-			if (folder == REVIEWS_FOLDER)
+			if (IsOneOf(folder, REVIEWS_FOLDER, AUTHORS_FOLDER))
+				continue;
+
+			std::erase_if(files, [](const auto& item) { return item.second.second != 0; });
+			if (files.empty())
 				continue;
 
 			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
@@ -1497,7 +1504,7 @@ private:
 		QStringList suitableFiles = QDir(QString::fromStdWString(rootFolder)).entryList({ mask });
 		std::ranges::transform(suitableFiles, suitableFiles.begin(), [](const auto& file) { return file.toLower(); });
 
-		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(ZIP).wstring() : suitableFiles.front().toStdWString();
+		folder = suitableFiles.isEmpty() ? Path(folder).replace_extension(m_ini(DEFAULT_ARCHIVE_TYPE)).wstring() : suitableFiles.front().toStdWString();
 
 		QCryptographicHash hash(QCryptographicHash::Md5);
 		for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
@@ -1511,8 +1518,9 @@ private:
 
 	auto& GetFileList(const Path& rootFolder, const std::wstring& folder)
 	{
-		auto& fileList = m_foldersContent[folder];
-		if (!fileList.empty())
+		const auto [it, inserted] = m_foldersContent.try_emplace(folder, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>> {});
+		auto& fileList = it->second;
+		if (!inserted)
 			return fileList;
 
 		const QFileInfo archiveFileInfo(QString::fromStdWString(rootFolder / folder));
@@ -1520,7 +1528,9 @@ private:
 			return fileList;
 
 		Zip archiveFile(archiveFileInfo.filePath());
-		std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) { return std::make_pair(item.toStdWString(), archiveFile.GetFileSize(item)); });
+		std::ranges::transform(archiveFile.GetFileNameList(),
+		                       std::inserter(fileList, fileList.end()),
+		                       [&](const auto& item) { return std::make_pair(item.toStdWString(), std::make_pair(archiveFile.GetFileSize(item), 0)); });
 
 		return fileList;
 	}
@@ -1542,36 +1552,20 @@ private:
 		}
 
 		const auto bookIndex = AddBook(buf);
-		if (found && bookIndex < m_data.books.size())
+		if (found)
 		{
-			m_data.books[bookIndex].size = it->second;
-			fileList.erase(it);
+			++it->second.second;
+			if (bookIndex < m_data.books.size())
+				m_data.books[bookIndex].size = it->second.first;
 		}
 	}
 
 	void ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
-		QFileInfo fileInfo(fileName);
-		const auto stream = zip.Read(fileName);
-		Fb2Parser parser(stream->GetStream(), fileName);
-		const auto parserData = parser.Parse();
-		PLOGI_IF(++m_parsedN % LOG_INTERVAL == 0) << m_parsedN << " books parsed";
-
-		if (!parserData.error.isEmpty())
-		{
-			std::lock_guard lock(m_dataGuard);
-			PLOGE << QString("%1/%2: %3").arg(QString::fromStdWString(folder), fileName, parserData.error);
+		auto line = Util::Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
+		if (line.empty())
 			return;
-		}
 
-		const auto& fileDateTime = zip.GetFileTime(fileName);
-		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
-
-		const auto values = QStringList() << ToString(parserData.authors) << parserData.genres.join(LIST_SEPARATOR) + LIST_SEPARATOR << parserData.title << parserData.series
-		                                  << QString::number(parserData.seqNumber) << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << "0"
-		                                  << fileInfo.suffix() << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
-
-		auto line = values.join(FIELDS_SEPARATOR).toStdWString();
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
 
 		std::lock_guard lock(m_dataGuard);
@@ -1626,7 +1620,7 @@ private:
 				return std::numeric_limits<size_t>::max();
 		}
 
-		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, LIST_SEPARATOR, &ParseCheckerAuthor);
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Util::Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
 		if (authorIds.empty())
 			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
@@ -1635,7 +1629,7 @@ private:
 		auto idGenres = ParseItem(
 			buf.GENRE,
 			m_genresIndex,
-			LIST_SEPARATOR,
+			Util::Fb2InpxParser::LIST_SEPARATOR,
 			&ParseCheckerDefault,
 			[&, &data = m_data.genres](std::wstring_view newItemTitle)
 			{
@@ -1724,7 +1718,7 @@ private:
 	std::unordered_map<std::pair<size_t, std::string>, size_t, PairHash<size_t, std::string>> m_uniqueFiles;
 	std::unordered_set<std::wstring> m_langs;
 	std::unordered_map<std::wstring, std::wstring> m_langMap;
-	std::unordered_map<std::wstring, std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
+	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool m_oldDataUpdateFound { false };
 
 	BookBufMapping m_bookBufMapping;

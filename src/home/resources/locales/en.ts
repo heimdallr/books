@@ -84,6 +84,14 @@
         <source>Add books missing from archives</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Mark unindexed books as deleted</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Archive type</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>Annotation</name>
@@ -2417,7 +2425,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>auto_regulations</source>
-        <translation>Auto</translation>
+        <translation>Cars and traffic rules</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
+        <source>auto_business</source>
+        <translation>Auto business</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5483,6 +5496,10 @@ Try again?</source>
         <source>Address</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Site Address</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>OpenFileDialogDelegateEditor</name>
@@ -5600,6 +5617,26 @@ Try again?</source>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Previous page]</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Next page]</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[First page]</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/Requester.cpp"/>
+        <source>[Last page]</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
@@ -5629,7 +5666,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>LaunchApp</source>
-        <translation>Launch application</translation>
+        <translation>Launch console application</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5655,6 +5692,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_ext%</source>
         <translation>File extension</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>LaunchGuiApp</source>
+        <translation>Launch GUI application</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -5824,12 +5866,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Find</source>
         <translation>Search</translation>
     </message>
     <message>
-        <location filename="../../flibrary/gui/ModeComboBox.h"/>
+        <location filename="../../flibrary/gui/widgets/ModeComboBox.h"/>
         <source>Filter</source>
         <translation></translation>
     </message>
@@ -5980,6 +6022,11 @@ Try again?</source>
     <message>
         <location filename="../../tool/opds/postprocess/web.cpp"/>
         <source>Search</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/postprocess/web.cpp"/>
+        <source>more</source>
         <translation></translation>
     </message>
 </context>
