@@ -296,7 +296,7 @@ with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywor
         left join librate r on r.BookID = b.BookId
         group by b.BookId
 )
-select
+select distinct
     (select group_concat(
             case when m.rowid is null 
                 then a.LastName ||','|| a.FirstName ||','|| a.MiddleName
@@ -312,14 +312,15 @@ select
         join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID 
         order by g.GenreID
     ) Genre,
-    b.Title, s.SeqName, ls.SeqNumb, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
+    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
 from Books b
 left join libseq ls on ls.BookID = b.BookID
 left join libseqname s on s.SeqID = ls.SeqID
 left join libfilename f on f.BookId=b.BookID
 )");
-	query->Execute();
-	for (size_t n = 1; !query->Eof(); query->Next(), ++n)
+	
+	size_t n = 0;
+	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const std::string libId = query->Get<const char*>(7);
 		const auto libRateValue = query->Get<double>(12);
@@ -385,9 +386,11 @@ left join libfilename f on f.BookId=b.BookID
 		data.replace('\r', "");
 		inpData[QString::fromStdString(index)].emplace_back(std::move(data));
 
+		++n;
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
 	}
 
+	PLOGV << n << " total records selected";
 	return inpData;
 }
 
