@@ -296,7 +296,7 @@ with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywor
         left join librate r on r.BookID = b.BookId
         group by b.BookId
 )
-select
+select distinct
     (select group_concat(
             case when m.rowid is null 
                 then a.LastName ||','|| a.FirstName ||','|| a.MiddleName
