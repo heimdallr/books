@@ -312,7 +312,7 @@ select
         join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID 
         order by g.GenreID
     ) Genre,
-    b.Title, s.SeqName, ls.SeqNumb, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
+    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
 from Books b
 left join libseq ls on ls.BookID = b.BookID
 left join libseqname s on s.SeqID = ls.SeqID
