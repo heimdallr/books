@@ -157,12 +157,15 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 	stream.append("\n");
 }
 
-constexpr auto BOOK_QUERY = R"(select
-b.BookID, b.LibID, b.Title, b.SeriesID, b.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.InsideNo, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
+constexpr auto BOOK_QUERY = R"(
+select
+b.BookID, b.LibID, b.Title, sl.SeriesID, sl.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.InsideNo, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
 from Books b
 join Folders f on f.FolderID = b.FolderID
 left join Books_User bu on bu.BookID = b.BookID
-order by f.FolderID, b.InsideNo)";
+left join Series_List sl on sl.BookID = b.BookID
+order by f.FolderID, b.InsideNo
+)";
 
 void Write(QByteArray& stream,
            const DB::IQuery& query,
@@ -179,10 +182,6 @@ void Write(QByteArray& stream,
 	QString seriesTitle;
 	if (const auto it = series.find(query.Get<long long>(3)); it != series.end())
 		seriesTitle = it->second;
-
-	auto seqNumber = query.Get<int>(4);
-	if (seqNumber <= 0)
-		seqNumber = 0;
 
 	const auto getList = [bookId](const auto& dictionary, const auto& index, const auto f) -> QStringList
 	{
@@ -206,14 +205,14 @@ void Write(QByteArray& stream,
 	                                [](const auto& item)
 	                                {
 										const auto& [lastName, firstName, middleName] = item;
-										return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR).append(Util::Fb2InpxParser::LIST_SEPARATOR);
+										return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
 									});
 
-	auto book = QStringList() << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << (seqNumber ? QString::number(seqNumber) : QString {}) << query.Get<const char*>(9)
-	                          << QString::number(query.Get<long long>(12)) << query.Get<const char*>(1) << QString::number(query.Get<int>(13)) << query.Get<const char*>(11) + 1 << query.Get<const char*>(5)
-	                          << query.Get<const char*>(7) << QString::number(query.Get<int>(6)) << keywordList.join("");
+	auto book = QStringList {} << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(4))
+	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(12)) << query.Get<const char*>(1) << QString::number(query.Get<int>(13)) << query.Get<const char*>(11) + 1
+	                           << query.Get<const char*>(5) << query.Get<const char*>(7) << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(6)) << keywordList.join("");
 
-	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append("\n");
+	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");
 }
 
 QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress)
@@ -430,7 +429,7 @@ private:
 		auto db = m_databaseUser->Database();
 		const auto booksCount = [&]
 		{
-			auto query = db->CreateQuery("select count(42) from Books");
+			auto query = db->CreateQuery("select count(42) from Books b left join Series_List sl on sl.BookID = b.BookID");
 			query->Execute();
 			assert(!query->Eof());
 			return query->Get<long long>(0);
@@ -455,6 +454,9 @@ private:
 		dictionaryProgressItem.reset();
 
 		{
+			if (QFile::exists(inpxFileName))
+				QFile::remove(inpxFileName);
+
 			Zip zip(inpxFileName, Zip::Format::Zip);
 			std::vector<std::pair<QString, QByteArray>> toZip;
 			toZip.emplace_back("collection.info", QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8());
