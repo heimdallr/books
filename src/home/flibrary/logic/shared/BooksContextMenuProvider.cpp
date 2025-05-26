@@ -68,7 +68,7 @@ constexpr auto REMOVE = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
 constexpr auto RESTORE = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
 
 constexpr auto REMOVE_PERMANENTLY_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
-constexpr auto CHANGE_LANGUAGE_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "Are you sure you want to change the language of the books?");
+constexpr auto CHANGE_LANGUAGE_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "Are you sure you want to change the language of the books to %1?");
 
 TR_DEF
 
@@ -486,7 +486,7 @@ private: // IContextMenuHandler
 		if (idList.empty())
 			return callback(item);
 
-		if (m_uiFactory->ShowQuestion(Tr(CHANGE_LANGUAGE_CONFIRM), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+		if (m_uiFactory->ShowQuestion(Tr(CHANGE_LANGUAGE_CONFIRM).arg(item->GetData(MenuItem::Column::Title)), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return callback(item);
 
 		m_databaseUser->Execute({ "Change book language",

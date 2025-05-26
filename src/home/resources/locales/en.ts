@@ -498,7 +498,17 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Change language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Cannot set language of books</source>
         <translation></translation>
     </message>
     <message>
@@ -519,6 +529,11 @@
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Are you sure you want to change the language of the books to %1?</source>
         <translation></translation>
     </message>
 </context>
@@ -3156,7 +3171,6 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Caddo</source>
-        <translatorcomment>Каддо</translatorcomment>
         <translation></translation>
     </message>
     <message>

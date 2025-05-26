@@ -498,8 +498,18 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Change language</source>
+        <translation>Змінити мову</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation>Не вдалося оцінити</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Cannot set language of books</source>
+        <translation>Не вдалося змінити мову книг</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -520,6 +530,11 @@
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат цієї операції не можна скасувати. Впевнені, що хочете видалити ці книги назавжди?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Are you sure you want to change the language of the books to %1?</source>
+        <translation>Ви впевнені, що хочете, щоб мовою цих книг була %1?</translation>
     </message>
 </context>
 <context>
@@ -3168,7 +3183,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Caddo</source>
-        <translation></translation>
+        <translation>Каддо</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
