@@ -114,15 +114,15 @@ CREATE TABLE Books (
   SeqNumber        INTEGER,
   UpdateDate       VARCHAR(23)   NOT NULL,
   LibRate          INTEGER       NOT NULL                           DEFAULT 0,
-  Lang             VARCHAR(2)            COLLATE MHL_SYSTEM_NOCASE,
+  Lang             VARCHAR(3)             COLLATE MHL_SYSTEM_NOCASE,
   FolderID         INTEGER       NOT NULL,
   FileName         VARCHAR(170)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   InsideNo         INTEGER       NOT NULL,
-  Ext              VARCHAR(10)           COLLATE MHL_SYSTEM_NOCASE,
+  Ext              VARCHAR(10)            COLLATE MHL_SYSTEM_NOCASE,
   BookSize         INTEGER,
   UpdateID         INTEGER       NOT NULL                           DEFAULT 0,
   IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
-  SearchTitle      VARCHAR (150)         COLLATE NOCASE
+  SearchTitle      VARCHAR (150)          COLLATE NOCASE
 );
 --@@
 
@@ -149,6 +149,7 @@ CREATE TABLE Books_User (
   BookID    INTEGER NOT NULL PRIMARY KEY,
   IsDeleted INTEGER,
   UserRate  INTEGER,
+  Lang      VARCHAR (3),
   CreatedAt DATETIME,
   FOREIGN KEY (BookID) REFERENCES Books (BookID) ON DELETE CASCADE
 );

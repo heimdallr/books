@@ -12,10 +12,10 @@ constexpr auto VALUE = "Value";
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
-constexpr auto FlibraryBackupVersionNumber = 5;
+constexpr auto FlibraryBackupVersionNumber = 6;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
-constexpr auto FlibraryDatabaseVersionNumber = 1;
+constexpr auto FlibraryDatabaseVersionNumber = 2;
 
 constexpr int APP_FAILED = 1;
 constexpr int RESTART_APP = 1234;

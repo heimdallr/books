@@ -174,7 +174,7 @@ private:
 
 private:
 	Items m_items;
-	const std::unordered_map<QString, const char*> m_translations { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
+	const std::unordered_map<QString, const char*> m_translations { GetLanguagesMap() };
 	QStringList m_checked;
 };
 

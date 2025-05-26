@@ -21,6 +21,7 @@
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
+#include "util/localization.h"
 
 #include "log.h"
 
@@ -58,13 +59,16 @@ constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+constexpr auto CHANGE_LANGUAGE = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
+constexpr auto CANNOT_SET_LANGUAGE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
 constexpr auto CANNOT_REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "Books %1 failed");
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("BookContextMenu", "removing");
 constexpr auto RESTORE = QT_TRANSLATE_NOOP("BookContextMenu", "restoring");
 
 constexpr auto REMOVE_PERMANENTLY_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
+constexpr auto CHANGE_LANGUAGE_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "Are you sure you want to change the language of the books to %1?");
 
 TR_DEF
 
@@ -182,6 +186,22 @@ void CreateCheckMenu(const IDataItem::Ptr& root)
 	Add(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
+void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLocale)
+{
+	const auto parent = Add(root, Tr(CHANGE_LANGUAGE));
+	std::vector<std::tuple<const char*, QString, int>> languages {
+		{ "-1", "", 5000 }
+	};
+	languages.reserve(std::size(LANGUAGES) + 1);
+	std::ranges::transform(LANGUAGES, std::back_inserter(languages), [](const Language& item) { return std::make_tuple(item.key, Loc::Tr(LANGUAGES_CONTEXT, item.title), item.priority); });
+	if (auto it = std::ranges::find(languages, currentLocale, [](const auto& item) { return std::get<0>(item); }); it != languages.end())
+		std::get<2>(*it) = std::numeric_limits<int>::min();
+	std::ranges::sort(languages, {}, [](const auto& item) { return std::make_tuple(std::get<2>(item), std::get<1>(item)); });
+
+	for (auto&& [key, value, priority] : languages)
+		Add(parent, std::move(value), priority == 5000 ? BooksMenuAction::None : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
+}
+
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -217,6 +237,8 @@ public:
 	{
 		auto scripts = m_scriptController->GetScripts();
 		std::ranges::sort(scripts, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
+		auto currentLocale = Loc::GetLocale(*m_settings);
+
 		m_databaseUser->Execute({ "Create context menu",
 		                          [id = index.data(Role::Id).toString(),
 		                           type = index.data(Role::Type).value<ItemType>(),
@@ -225,7 +247,8 @@ public:
 		                           starSymbol = m_starSymbol,
 		                           callback = std::move(callback),
 		                           db = m_databaseUser->Database(),
-		                           scripts = std::move(scripts)]() mutable
+		                           scripts = std::move(scripts),
+		                           currentLocale = std::move(currentLocale)]() mutable
 		                          {
 									  auto result = MenuItem::Create();
 
@@ -243,6 +266,7 @@ public:
 
 									  CreateCheckMenu(result);
 									  CreateTreeMenu(result, options);
+									  CreateChangeLangMenu(result, currentLocale);
 
 									  if (type == ItemType::Books)
 									  {
@@ -454,6 +478,52 @@ private: // IContextMenuHandler
 		     &BooksExtractor::ExtractAsScript,
 		     QString("%1/%2").arg(IScriptController::GetMacro(IScriptController::Macro::UserDestinationFolder)).arg(IScriptController::GetMacro(IScriptController::Macro::FileName)),
 		     hasUserDestinationFolder);
+	}
+
+	void ChangeLanguage(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
+		if (idList.empty())
+			return callback(item);
+
+		if (m_uiFactory->ShowQuestion(Tr(CHANGE_LANGUAGE_CONFIRM).arg(item->GetData(MenuItem::Column::Title)), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+			return callback(item);
+
+		m_databaseUser->Execute({ "Change book language",
+		                          [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable
+		                          {
+									  const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
+
+									  const auto db = m_databaseUser->Database();
+									  const auto transaction = db->CreateTransaction();
+
+									  const auto execute = [&](const char* commandText) -> bool
+									  {
+										  const auto command = transaction->CreateCommand(commandText);
+
+										  return std::accumulate(ids.cbegin(),
+				                                                 ids.cend(),
+				                                                 true,
+				                                                 [&](const bool init, const auto id)
+				                                                 {
+																	 command->Bind(":id", id);
+																	 command->Bind(":lang", lang);
+																	 return command->Execute() && init;
+																 });
+									  };
+									  const auto ok = execute("insert or replace into Books_User(BookID, Lang, CreatedAt) values(:id, :lang, datetime(CURRENT_TIMESTAMP, 'localtime'))")
+			                                       && execute("update Books set Lang = :lang where BookID = :id") && transaction->Commit();
+
+									  return [this, item = std::move(item), callback = std::move(callback), ok](size_t)
+									  {
+										  if (!ok)
+											  m_uiFactory->ShowError(Tr(CANNOT_SET_LANGUAGE));
+
+										  callback(item);
+										  if (ok)
+											  m_dataProvider->RequestBooks(true);
+									  };
+								  } });
 	}
 
 private:
