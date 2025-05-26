@@ -198,17 +198,6 @@ public:
 		return m_ui.treeView;
 	}
 
-	void FillContextMenu(QMenu& menu)
-	{
-		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(),
-		                                 GetContextMenuOptions(),
-		                                 [&](const QString& id, const IDataItem::Ptr& item)
-		                                 {
-											 if (m_ui.treeView->currentIndex().data(Role::Id).toString() == id)
-												 GenerateMenu(menu, *item);
-										 });
-	}
-
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -952,11 +941,6 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
-}
-
-void TreeView::FillMenu(QMenu& menu)
-{
-	m_impl->FillContextMenu(menu);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const

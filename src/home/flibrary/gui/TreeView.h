@@ -41,7 +41,6 @@ public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool hideRemoved);
 	QAbstractItemView* GetView() const;
-	void FillMenu(QMenu& menu);
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;
