@@ -59,7 +59,7 @@ public:
 private: // QProxyStyle
 	int styleHint(const StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
 	{
-		return IsOneOf(hint, SH_Menu_Scrollable, SH_ScrollBar_ContextMenu) ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
+		return IsOneOf(hint, SH_Menu_Scrollable, SH_Menu_KeyboardSearch) ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
 	}
 };
 
