@@ -813,7 +813,7 @@ private:
 		languageTranslated.reserve(languages.size());
 		std::ranges::transform(std::move(languages),
 		                       std::back_inserter(languageTranslated),
-		                       [translations = std::unordered_map<QString, const char*> { std::cbegin(LANGUAGES), std::cend(LANGUAGES) }](QString& language)
+		                       [translations = GetLanguagesMap()](QString& language)
 		                       {
 								   const auto it = translations.find(language);
 								   auto translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;

@@ -186,16 +186,20 @@ void CreateCheckMenu(const IDataItem::Ptr& root)
 	Add(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
-void CreateChangeLangMenu(const IDataItem::Ptr& root)
+void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLocale)
 {
 	const auto parent = Add(root, Tr(CHANGE_LANGUAGE));
-	for (const auto& [key, value] : LANGUAGES)
-	{
-		auto& item = Add(parent, Loc::Tr(LANGUAGES_CONTEXT, value), BooksMenuAction::ChangeLanguage);
-		item->SetData(key, MenuItem::Column::Parameter);
-	}
+	std::vector<std::tuple<const char*, QString, int>> languages {
+		{ "-1", "", 5000 }
+	};
+	languages.reserve(std::size(LANGUAGES) + 1);
+	std::ranges::transform(LANGUAGES, std::back_inserter(languages), [](const Language& item) { return std::make_tuple(item.key, Loc::Tr(LANGUAGES_CONTEXT, item.title), item.priority); });
+	if (auto it = std::ranges::find(languages, currentLocale, [](const auto& item) { return std::get<0>(item); }); it != languages.end())
+		std::get<2>(*it) = std::numeric_limits<int>::min();
+	std::ranges::sort(languages, {}, [](const auto& item) { return std::make_tuple(std::get<2>(item), std::get<1>(item)); });
 
-	parent->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return lhs.GetData(MenuItem::Column::Title) < rhs.GetData(MenuItem::Column::Title); });
+	for (auto&& [key, value, priority] : languages)
+		Add(parent, std::move(value), priority == 5000 ? BooksMenuAction::None : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
 }
 
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
@@ -233,6 +237,8 @@ public:
 	{
 		auto scripts = m_scriptController->GetScripts();
 		std::ranges::sort(scripts, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
+		auto currentLocale = Loc::GetLocale(*m_settings);
+
 		m_databaseUser->Execute({ "Create context menu",
 		                          [id = index.data(Role::Id).toString(),
 		                           type = index.data(Role::Type).value<ItemType>(),
@@ -241,7 +247,8 @@ public:
 		                           starSymbol = m_starSymbol,
 		                           callback = std::move(callback),
 		                           db = m_databaseUser->Database(),
-		                           scripts = std::move(scripts)]() mutable
+		                           scripts = std::move(scripts),
+		                           currentLocale = std::move(currentLocale)]() mutable
 		                          {
 									  auto result = MenuItem::Create();
 
@@ -259,7 +266,7 @@ public:
 
 									  CreateCheckMenu(result);
 									  CreateTreeMenu(result, options);
-									  CreateChangeLangMenu(result);
+									  CreateChangeLangMenu(result, currentLocale);
 
 									  if (type == ItemType::Books)
 									  {

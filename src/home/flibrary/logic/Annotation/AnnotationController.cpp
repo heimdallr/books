@@ -178,7 +178,8 @@ struct Table
 
 QString TranslateLang(const QString& code)
 {
-	const auto* language = FindSecond(LANGUAGES, code.toStdString().data(), UNDEFINED, PszComparer {});
+	const auto it = std::ranges::find(LANGUAGES, code, [](const auto& item) { return item.key; });
+	const auto* language = it != std::end(LANGUAGES) ? it->title : UNDEFINED;
 	return Loc::Tr(LANGUAGES_CONTEXT, language);
 }
 
@@ -195,7 +196,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr);
 
 	if (!fbLang.isEmpty())
-		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr)
+		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr && fbLangTr != Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED))
 			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr)));
 
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)

@@ -1124,7 +1124,7 @@ private:
 				m_langMap.try_emplace(key.toString().toStdWString(), lang);
 		}
 
-		std::ranges::transform(LANGUAGES | std::views::keys, std::inserter(m_langs, m_langs.end()), [](const auto* item) { return ToWide(item); });
+		std::ranges::transform(LANGUAGES, std::inserter(m_langs, m_langs.end()), [](const auto& item) { return ToWide(item.key); });
 		assert(std::size(m_langs) == std::size(LANGUAGES));
 	}
 

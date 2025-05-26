@@ -88,7 +88,7 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, con
 
 IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
-	static const std::unordered_map<QString, const char*> languages { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
+	static const auto languages = GetLanguagesMap();
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
