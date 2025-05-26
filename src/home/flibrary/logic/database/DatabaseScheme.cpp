@@ -233,6 +233,7 @@ void AddTableFields(DB::ITransaction& transaction)
 	AddUserTableField(transaction, "Keywords", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Series", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Updates", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
+	AddUserTableField(transaction, "Books_User", "Lang", "VARCHAR(3)");
 }
 
 } // namespace
