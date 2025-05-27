@@ -89,8 +89,9 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 			[&](Hypodermic::ComponentContext& ctx)
 			{
 				const auto settings = ctx.resolve<ISettings>();
-				return settings->Get(Constant::Settings::STAR_VIEW_PRECISION, 0) == 0 ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
-		                                                                              : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
+				return settings->Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT
+		                 ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
+		                 : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
 			})
 		.as<ILibRateProvider>()
 		.singleInstance();

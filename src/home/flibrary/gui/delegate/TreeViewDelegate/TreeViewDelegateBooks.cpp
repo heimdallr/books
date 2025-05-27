@@ -121,8 +121,9 @@ private:
 
 std::unique_ptr<const IBookRenderer> GetLibRateRenderer(const ISettings& settings)
 {
-	return settings.Get(Constant::Settings::STAR_VIEW_PRECISION, 0) != 0 ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(Role::LibRate) }
-	                                                                     : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) };
+	return settings.Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT
+	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) }
+	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(Role::LibRate) };
 }
 
 } // namespace

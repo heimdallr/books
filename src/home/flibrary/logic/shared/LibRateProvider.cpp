@@ -24,8 +24,7 @@ std::unordered_map<QString, double> ReadRate(const ISettings& settings, const IC
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
 
-	const auto precision = settings.Get(Constant::Settings::STAR_VIEW_PRECISION, 0);
-	if (!precision)
+	if (settings.Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT)
 		return {};
 
 	const auto additionalFileName = collectionProvider.GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + REVIEWS_ADDITIONAL_ARCHIVE_NAME;
