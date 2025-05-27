@@ -404,10 +404,11 @@ void WriteBookEntries(DB::IDatabase& db, const char*, const QString& queryText, 
 		auto content = QString("%1 %2%3").arg(author, series, seqNum > 0 ? QString(" #%1").arg(seqNum) : QString {});
 
 		auto& entry = WriteEntry(root, children, std::move(entryId), query->Get<const char*>(1), query->Get<int>(2), std::move(content), false);
-		entry.children.emplace_back("link",
-		                            QString {
+		entry.children.emplace_back(
+			"link",
+			QString {
         },
-		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
 
 		entry.author = std::move(author);
 		entry.series = std::move(series);

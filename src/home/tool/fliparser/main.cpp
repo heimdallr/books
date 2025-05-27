@@ -318,7 +318,7 @@ left join libseq ls on ls.BookID = b.BookID
 left join libseqname s on s.SeqID = ls.SeqID
 left join libfilename f on f.BookId=b.BookID
 )");
-	
+
 	size_t n = 0;
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
