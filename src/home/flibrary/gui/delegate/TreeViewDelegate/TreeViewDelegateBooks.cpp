@@ -20,8 +20,10 @@
 
 #include "Measure.h"
 #include "log.h"
+#include "zip.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace
 {
@@ -47,9 +49,82 @@ QString SizeDelegate(const QVariant& value)
 
 constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
 	{	  BookItem::Column::Size,   &SizeDelegate },
-	{   BookItem::Column::LibRate, &NumberDelegate },
 	{ BookItem::Column::SeqNumber, &NumberDelegate },
 };
+
+class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IBookRenderer() = default;
+	virtual void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
+};
+
+class BookRendererDefault final : virtual public IBookRenderer
+{
+public:
+	explicit BookRendererDefault(const QStyledItemDelegate& impl)
+		: m_impl { impl }
+	{
+	}
+
+private: // IBookRenderer
+	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	{
+		m_impl.QStyledItemDelegate::paint(painter, o, index);
+	}
+
+private:
+	const QStyledItemDelegate& m_impl;
+};
+
+class RateRendererStars final : virtual public IBookRenderer
+{
+public:
+	RateRendererStars(const int role, const ISettings& settings)
+		: m_role { role }
+		, m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+	{
+	}
+
+private: // IRateRenderer
+	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	{
+		const auto rate = index.data(m_role).toInt();
+		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+	}
+
+private:
+	const int m_role;
+	const int m_starSymbol;
+};
+
+class RateRendererNumber final : virtual public IBookRenderer
+{
+public:
+	explicit RateRendererNumber(const int role)
+		: m_role { role }
+	{
+	}
+
+private: // IRateRenderer
+	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	{
+		o.text = index.data(m_role).toString();
+		o.displayAlignment = Qt::AlignRight;
+		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+	}
+
+private:
+	const int m_role;
+};
+
+std::unique_ptr<const IBookRenderer> GetLibRateRenderer(const ISettings& settings)
+{
+	return settings.Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT
+	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) }
+	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(Role::LibRate) };
+}
 
 } // namespace
 
@@ -61,7 +136,8 @@ public:
 	Impl(const IUiFactory& uiFactory, const ISettings& settings)
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
-		, m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		, m_libRateRenderer { GetLibRateRenderer(settings) }
+		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
 	{
 	}
 
@@ -101,23 +177,20 @@ private:
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		const auto isRate = IsOneOf(column, BookItem::Column::LibRate, BookItem::Column::UserRate);
-		if (!isRate)
-			return QStyledItemDelegate::paint(painter, o, index);
-
-		static constexpr std::pair<int, int> columnToRole[] {
-			{  BookItem::Column::LibRate,  Role::LibRate },
-			{ BookItem::Column::UserRate, Role::UserRate },
-		};
-		const auto rate = index.data(FindSecond(columnToRole, BookItem::Remap(index.column()))).toInt();
-		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
-		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
+		renderer->Render(painter, o, index);
 	}
 
 private:
 	QTreeView& m_view;
 	mutable TextDelegate m_textDelegate;
-	const int m_starSymbol;
+	std::unique_ptr<const IBookRenderer> m_defaultRenderer { std::make_unique<BookRendererDefault>(*this) };
+	std::unique_ptr<const IBookRenderer> m_libRateRenderer;
+	std::unique_ptr<const IBookRenderer> m_userRateRenderer;
+	const std::vector<std::pair<int, const IBookRenderer*>> m_rateRenderers {
+		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
+		{ BookItem::Column::UserRate, m_userRateRenderer.get() },
+	};
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)

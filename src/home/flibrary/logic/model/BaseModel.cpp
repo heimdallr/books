@@ -5,7 +5,10 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
+
+#include "data/DataItem.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -29,7 +32,8 @@ QVariant GetValue(const IDataItem& item, const int column)
 
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
-	, m_data(modelProvider->GetData())
+	, m_data { modelProvider->GetData() }
+	, m_libRateProvider { modelProvider->GetLibRateProvider() }
 {
 }
 
@@ -59,6 +63,9 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		return {};
 
 	const auto* item = static_cast<IDataItem*>(index.internalPointer());
+	if (item->GetType() == ItemType::Books && (role == Role::LibRate || role == Qt::DisplayRole && item->RemapColumn(index.column()) == BookItem::Column::LibRate))
+		return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
 	switch (role)
 	{
 		case Qt::DisplayRole:

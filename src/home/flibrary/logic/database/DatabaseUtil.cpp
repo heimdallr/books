@@ -38,6 +38,7 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{		BookQueryFields::Lang,       BookItem::Column::Lang },
     {    BookQueryFields::FolderID,   BookItem::Column::FolderID },
     {    BookQueryFields::UpdateID,   BookItem::Column::UpdateID },
+	{	   BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
 }

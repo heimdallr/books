@@ -74,7 +74,7 @@ struct UnorderedSetHash
 };
 
 constexpr size_t BOOK_QUERY_TO_AUTHOR[] {
-	BookQueryFields::AuthorId, BookQueryFields::AuthorLastName, BookQueryFields::AuthorLastName, BookQueryFields::AuthorFirstName, BookQueryFields::AuthorMiddleName,
+	BookQueryFields::AuthorID, BookQueryFields::AuthorLastName, BookQueryFields::AuthorLastName, BookQueryFields::AuthorFirstName, BookQueryFields::AuthorMiddleName,
 };
 
 constexpr size_t BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
