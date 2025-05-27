@@ -644,7 +644,27 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	return libIds;
 }
 
-std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
+QByteArray CreateReviewAdditional(const InpData& inpData, const std::unordered_set<long long>& libIds)
+{
+	QJsonObject jsonObject;
+	for (const auto& book : inpData | std::views::values)
+	{
+		if (book.rate <= std::numeric_limits<double>::epsilon() || !libIds.contains(book.libId.toLongLong()))
+			continue;
+
+		jsonObject.insert(book.libId,
+		                  QJsonObject {
+							  { "libRate", book.rate }
+        });
+	}
+
+	if (jsonObject.isEmpty())
+		return {};
+
+	return QJsonDocument(jsonObject).toJson();
+}
+
+std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db, const InpData& inpData, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
 {
 	auto threadPool = std::make_unique<Util::ThreadPool>();
 
@@ -655,6 +675,30 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 
 	std::mutex archivesGuard;
 	std::vector<std::tuple<QString, QByteArray>> archives;
+
+	threadPool->enqueue(
+		[&]()
+		{
+			auto archiveName = QString::fromStdWString(reviewsFolder / REVIEWS_ADDITIONAL_ARCHIVE_NAME);
+			const ScopedCall logGuard([&] { PLOGI << archiveName << " started"; }, [=] { PLOGI << archiveName << " finished"; });
+
+			auto additional = CreateReviewAdditional(inpData, libIds);
+			if (additional.isEmpty())
+				return;
+
+			QByteArray zipBytes;
+			{
+				QBuffer buffer(&zipBytes);
+				const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+				Zip zip(buffer, Zip::Format::Zip);
+				zip.Write({
+					{ REVIEWS_ADDITIONAL_BOOKS_FILE_NAME, std::move(additional) }
+                });
+			}
+
+			std::lock_guard lock(archivesGuard);
+			archives.emplace_back(std::move(archiveName), std::move(zipBytes));
+		});
 
 	const auto write = [&](const int month)
 	{
@@ -668,8 +712,6 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 			return;
 
 		const auto archiveName = QString::fromStdWString(reviewsFolder / std::to_string(currentMonth)) + ".7z";
-		if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
-			remove(archivePath);
 
 		auto dataCopy = std::move(data);
 		data = {};
@@ -742,11 +784,11 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 	return archives;
 }
 
-void CreateReview(DB::IDatabase& db, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
+void CreateReview(DB::IDatabase& db, const InpData& inpData, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
 {
 	PLOGI << "write reviews";
 
-	for (const auto& [fileName, data] : CreateReviewData(db, libIds, outputFolder))
+	for (const auto& [fileName, data] : CreateReviewData(db, inpData, libIds, outputFolder))
 	{
 		QFile output(fileName);
 		output.open(QIODevice::WriteOnly);
@@ -950,7 +992,7 @@ int main(const int argc, char* argv[])
 	const auto db = CreateDatabase(argv[1], argv[2], argv[3]);
 	const auto inpData = GenerateInpData(*db);
 	const auto libIds = CreateInpx(*db, inpData, argv[2], argv[3]);
-	CreateReview(*db, libIds, argv[3]);
+	CreateReview(*db, inpData, libIds, argv[3]);
 	CreateAuthorAnnotations(*db, argv[1], argv[3]);
 
 	return 0;
