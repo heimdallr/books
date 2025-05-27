@@ -33,6 +33,7 @@ public:
 	[[nodiscard]] IDataItem::Ptr GetData() const noexcept override;
 	[[nodiscard]] IModelObserver& GetObserver() const noexcept override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> GetSourceModel() const noexcept override;
+	[[nodiscard]] std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const noexcept override;
 
 private:
 	struct Impl;

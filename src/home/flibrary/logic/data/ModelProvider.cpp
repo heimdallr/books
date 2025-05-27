@@ -2,6 +2,8 @@
 
 #include <Hypodermic/Container.h>
 
+#include "interface/logic/ILibRateProvider.h"
+
 #include "model/AuthorsModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
@@ -139,4 +141,9 @@ IModelObserver& ModelProvider::GetObserver() const noexcept
 {
 	assert(m_impl->sourceModel);
 	return std::move(m_impl->sourceModel);
+}
+
+std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() const noexcept
+{
+	return m_impl->container.resolve<ILibRateProvider>();
 }
