@@ -2699,6 +2699,14 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::QueryWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/QueryWindow.cpp"/>
+        <source>Affected rows: %1</source>
+        <translation>Затронуто строк: %1</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::TreeView</name>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>
