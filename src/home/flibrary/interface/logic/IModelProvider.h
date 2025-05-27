@@ -28,4 +28,4 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const noexcept = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

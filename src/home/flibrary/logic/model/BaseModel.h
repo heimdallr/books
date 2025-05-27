@@ -30,4 +30,4 @@ protected:
 	bool m_checkable { false };
 };
 
-}
+} // namespace HomeCompa::Flibrary
