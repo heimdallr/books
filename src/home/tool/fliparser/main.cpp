@@ -41,7 +41,75 @@ using namespace HomeCompa;
 namespace
 {
 
-using InpData = std::unordered_map<QString, std::vector<QByteArray>, CaseInsensitiveHash<QString>>;
+struct Series
+{
+	QString title;
+	QString serNo;
+};
+
+struct Book
+{
+	QString author;
+	QString genre;
+	QString title;
+	std::vector<Series> series;
+	QString file;
+	QString size;
+	QString libId;
+	bool deleted;
+	QString ext;
+	QString date;
+	QString lang;
+	double rate;
+	QString keywords;
+};
+
+QByteArray& operator<<(QByteArray& bytes, const Book& book)
+{
+	const auto rate = std::llround(book.rate);
+	const auto rateBytes = rate > 0 && rate <= 5 ? QString::number(rate).toUtf8() : QByteArray {};
+
+	for (const auto& [seriesTitle, serNo] : book.series)
+	{
+		QByteArray data;
+		data.append(book.author.toUtf8())
+			.append('\04')
+			.append(book.genre.toUtf8())
+			.append('\04')
+			.append(book.title.toUtf8())
+			.append('\04')
+			.append(seriesTitle.toUtf8())
+			.append('\04')
+			.append(serNo.toUtf8())
+			.append('\04')
+			.append(book.file.toUtf8())
+			.append('\04')
+			.append(book.size.toUtf8())
+			.append('\04')
+			.append(book.libId.toUtf8())
+			.append('\04')
+			.append(book.deleted ? "1" : "0")
+			.append('\04')
+			.append(book.ext.toUtf8())
+			.append('\04')
+			.append(book.date.toUtf8())
+			.append('\04')
+			.append(book.lang.toUtf8())
+			.append('\04')
+			.append(rateBytes)
+			.append('\04')
+			.append(book.keywords.toUtf8()) // KEYWORDS
+			.append('\04');
+		data.replace('\n', ' ');
+		data.replace('\r', "");
+		data.append("\x0d\x0a");
+
+		bytes.append(data);
+	}
+	return bytes;
+}
+
+using InpData = std::unordered_map<QString, Book, CaseInsensitiveHash<QString>>;
 
 constexpr auto APP_ID = "fliparser";
 
@@ -322,69 +390,61 @@ left join libfilename f on f.BookId=b.BookID
 	size_t n = 0;
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		const std::string libId = query->Get<const char*>(7);
-		const auto libRateValue = query->Get<double>(12);
-		const auto libRate = libRateValue > 0.4 ? QString::number(std::llround(libRateValue)).toUtf8() : QByteArray {};
+		QString libId = query->Get<const char*>(7);
 
 		const auto* modified = query->Get<const char*>(10);
 		const auto* modifiedEnd = strchr(modified, ' ');
 
-		std::string type = query->Get<const char*>(9);
-		for (const auto* typoType : { "fd2", "fb", "???", "fb 2", "fbd" })
-			if (type == typoType)
+		QString type = query->Get<const char*>(9);
+		if (type != "fb2")
+			for (const auto* typoType : { "fd2", "fb", "???", "fb 2", "fbd" })
+				if (type == typoType)
+				{
+					type = "fb2";
+					break;
+				}
+
+		QString fileName = query->Get<const char*>(5);
+
+		auto index = fileName.isEmpty() ? libId + "." + type : fileName;
+
+		auto it = inpData.find(index);
+		if (it == inpData.end())
+		{
+			if (fileName.isEmpty())
 			{
-				type = "fb2";
-				break;
+				fileName = libId;
+			}
+			else
+			{
+				QFileInfo fileInfo(fileName);
+				fileName = fileInfo.completeBaseName();
+				if (const auto ext = fileInfo.suffix().toLower(); ext == "fb2")
+					type = "fb2";
 			}
 
-		const auto* fileNamePtr = query->Get<const char*>(5);
-		std::string fileName = fileNamePtr ? fileNamePtr : std::string {};
+			const auto* deleted = query->Get<const char*>(8);
 
-		const auto index = fileName.empty() ? libId + "." + type : fileName;
-		if (fileName.empty())
-		{
-			fileName = libId;
-		}
-		else
-		{
-			QFileInfo fileInfo(QString::fromStdString(fileName));
-			fileName = fileInfo.completeBaseName().toStdString();
-			if (const auto ext = fileInfo.suffix().toLower(); ext == "fb2")
-				type = "fb2";
+			it = inpData
+			         .try_emplace(std::move(index),
+			                      Book {
+									  .author = query->Get<const char*>(0),
+									  .genre = query->Get<const char*>(1),
+									  .title = query->Get<const char*>(2),
+									  .file = std::move(fileName),
+									  .size = query->Get<const char*>(6),
+									  .libId = std::move(libId),
+									  .deleted = deleted && *deleted != '0',
+									  .ext = std::move(type),
+									  .date = QString::fromUtf8(modified, modifiedEnd - modified),
+									  .lang = query->Get<const char*>(11),
+									  .rate = query->Get<double>(12),
+									  .keywords = query->Get<const char*>(13),
+								  })
+			         .first;
 		}
 
-		QByteArray data;
-		data.append(query->Get<const char*>(0)) // AUTHOR
-			.append('\04')
-			.append(query->Get<const char*>(1)) // GENRE
-			.append('\04')
-			.append(query->Get<const char*>(2)) // TITLE
-			.append('\04')
-			.append(query->Get<const char*>(3)) // SERIES
-			.append('\04')
-			.append(Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)).toUtf8()) // SERNO
-			.append('\04')
-			.append(fileName.data()) // FILE
-			.append('\04')
-			.append(query->Get<const char*>(6)) // SIZE
-			.append('\04')
-			.append(libId) // LIBID
-			.append('\04')
-			.append(query->Get<const char*>(8)) // DEL
-			.append('\04')
-			.append(type.data()) // EXT
-			.append('\04')
-			.append(modified, modifiedEnd - modified) // DATE
-			.append('\04')
-			.append(query->Get<const char*>(11)) // LANG
-			.append('\04')
-			.append(libRate) // LIBRATE
-			.append('\04')
-			.append(query->Get<const char*>(13)) // KEYWORDS
-			.append('\04');
-		data.replace('\n', ' ');
-		data.replace('\r', "");
-		inpData[QString::fromStdString(index)].emplace_back(std::move(data));
+		it->second.series.emplace_back(query->Get<const char*>(3), Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)));
 
 		++n;
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
@@ -432,7 +492,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 	return db;
 }
 
-QByteArray CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unIndexed)
+Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unIndexed)
 {
 	const auto fileData = zip.Read(fileName)->GetStream().readAll();
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
@@ -445,35 +505,23 @@ QByteArray CheckCustom(const Zip& zip, const QString& fileName, const QJsonObjec
 	QFileInfo fileInfo(fileName);
 
 	const auto value = it.value().toObject();
-	return QByteArray()
-	    .append(value["author"].toString().toUtf8()) // AUTHOR
-	    .append('\04')
-	    .append(value["genre"].toString().toUtf8()) // GENRE
-	    .append('\04')
-	    .append(value["title"].toString().toUtf8()) // TITLE
-	    .append('\04')
-	    .append(value["series"].toString().toUtf8()) // SERIES
-	    .append('\04')
-	    .append(value["seqNumber"].toString().toUtf8()) // SERNO
-	    .append('\04')
-	    .append(fileInfo.baseName().toUtf8()) // FILE
-	    .append('\04')
-	    .append(QString::number(fileData.size()).toUtf8()) // SIZE
-	    .append('\04')
-	    .append(fileInfo.baseName().toUtf8()) // LIBID
-	    .append('\04')
-	    .append("1") // DEL
-	    .append('\04')
-	    .append(fileInfo.suffix().toUtf8()) // EXT
-	    .append('\04')
-	    .append(value["date"].toString().toUtf8()) // DATE
-	    .append('\04')
-	    .append(value["lang"].toString().toUtf8()) // LANG
-	    .append('\04')
-	    .append("") // LIBRATE
-	    .append('\04')
-	    .append(value["keywords"].toString().toUtf8()) // KEYWORDS
-	    .append('\04');
+	return Book {
+		.author = value["author"].toString(),
+		.genre = value["genre"].toString(),
+		.title = value["title"].toString(),
+		.series = { {
+			value["series"].toString(),
+			value["serNo"].toString(),
+		} },
+		.file = fileInfo.baseName(),
+		.size = QString::number(fileData.size()),
+		.libId = fileInfo.baseName(),
+		.deleted = true,
+		.ext = fileInfo.suffix(),
+		.date = value["date"].toString(),
+		.lang = value["lang"].toString(),
+		.keywords = value["keywords"].toString(),
+	};
 }
 
 QByteArray ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
@@ -527,12 +575,11 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 							   {
 								   if (const auto it = inpData.find(bookFile); it != inpData.end())
 								   {
-									   for (const auto& bytes : it->second)
-										   file.append(bytes).append("\x0d\x0a");
+									   file << it->second;
 								   }
-								   else if (auto customBytes = CheckCustom(zip, bookFile, unIndexed); !customBytes.isEmpty())
+								   else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
 								   {
-									   file.append(customBytes).append("\x0d\x0a");
+									   file << customBook;
 								   }
 								   else if (auto parsedBytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBytes.isEmpty())
 								   {
@@ -580,17 +627,19 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 							   });
 	}
 
-	Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
-
-	const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice>
 	{
-		PLOGV << inpFiles[n];
-		return std::make_unique<QBuffer>(&data[n]);
-	};
+		Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
 
-	const auto sizeGetter = [&](const size_t n) -> size_t { return data[n].size(); };
+		const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice>
+		{
+			PLOGV << inpFiles[n];
+			return std::make_unique<QBuffer>(&data[n]);
+		};
 
-	inpx.Write(inpFiles, streamGetter, sizeGetter);
+		const auto sizeGetter = [&](const size_t n) -> size_t { return data[n].size(); };
+
+		inpx.Write(inpFiles, streamGetter, sizeGetter);
+	}
 
 	return libIds;
 }
