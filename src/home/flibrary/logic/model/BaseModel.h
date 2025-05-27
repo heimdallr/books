@@ -8,6 +8,7 @@
 
 namespace HomeCompa::Flibrary
 {
+class ILibRateProvider;
 
 class BaseModel : public QAbstractItemModel
 {
@@ -25,6 +26,7 @@ protected: // QAbstractItemModel
 
 protected:
 	IDataItem::Ptr m_data;
+	std::shared_ptr<const ILibRateProvider> m_libRateProvider;
 	bool m_checkable { false };
 };
 
