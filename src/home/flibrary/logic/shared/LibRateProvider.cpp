@@ -1,7 +1,5 @@
 #include "LibRateProvider.h"
 
-#include <QBrush>
-
 #include <QColor>
 #include <QFile>
 #include <QGuiApplication>
@@ -11,6 +9,7 @@
 
 #include "fnd/IsOneOf.h"
 #include "fnd/linear.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -66,14 +65,22 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 	return {};
 }
 
-std::map<double, uint32_t> ReadColors(const ISettings& /*settings*/)
+std::map<double, uint32_t> ReadColors(const ISettings& settings)
 {
-	const auto color = QGuiApplication::palette().brush(QPalette::ColorRole::WindowText).color().rgba();
+	const auto color = QGuiApplication::palette().brush(QPalette::ColorRole::WindowText).color().rgb();
 
 	std::map<double, uint32_t> result {
 		{ 0.0, color },
 		{ 6.0, color },
 	};
+
+	const ScopedCall settingsGuard([&] { settings.BeginGroup(Constant::Settings::LIBRATE_VIEW_COLORS_KEY); }, [&] { settings.EndGroup(); });
+	for (const auto& key : settings.GetKeys())
+	{
+		bool ok = false;
+		if (const auto value = key.toDouble(&ok); ok)
+			result.try_emplace(value, settings.Get(key, color));
+	}
 
 	return result;
 }
@@ -144,7 +151,7 @@ QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const Q
 		return static_cast<uint32_t>(l(rateValue)) << bits;
 	};
 
-	return QBrush { get(0) | get(8) | get(16) | get(24) };
+	return QBrush { get(0) | get(8) | get(16) };
 }
 
 double LibRateProviderDouble::GetRateValue(const QString& libId, const QString& libRate) const
