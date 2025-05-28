@@ -392,11 +392,17 @@
       <addaction name="menuColorScheme"/>
       <addaction name="separator"/>
      </widget>
+     <widget class="QMenu" name="menuNavigation">
+      <property name="title">
+       <string>Navigation</string>
+      </property>
+     </widget>
      <addaction name="actionShowRemoved"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
      <addaction name="actionShowAuthorAnnotation"/>
+     <addaction name="menuNavigation"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuLog"/>

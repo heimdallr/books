@@ -168,6 +168,7 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
+		CreateViewNavigationMenu();
 		LoadGeometry();
 		StartDelayed(
 			[&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
@@ -854,6 +855,22 @@ private:
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
 		m_ui.actionRemoveCollection->setEnabled(enabled);
 		m_ui.menuSelectCollection->setEnabled(enabled);
+	}
+
+	void CreateViewNavigationMenu()
+	{
+		const auto createAction = [this](const char* name)
+		{
+			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			action->setCheckable(true);
+			action->setChecked(true);
+			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
+			connect(action, &QAction::toggled, [this] { RebootDialog(); });
+		};
+
+#define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
+		NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
 	}
 
 	void CheckForUpdates(const bool force) const
