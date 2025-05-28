@@ -10,6 +10,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
 
 #include "ChangeNavigationController/GroupController.h"
@@ -211,6 +212,29 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
 
+std::vector<std::pair<const char*, int>> GetModes(const IDatabaseController& databaseController, const ISettings& settings)
+{
+	std::vector<std::pair<const char*, int>> result;
+	std::ranges::transform(MODE_DESCRIPTORS
+	                           | std::views::filter(
+								   [&, db = databaseController.GetDatabase()](const auto& item)
+								   {
+									   if (!settings.Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(item.first), true))
+										   return false;
+
+									   if (!db || !item.second.filter)
+										   return true;
+
+									   const auto query = db->CreateQuery(item.second.filter);
+									   query->Execute();
+									   assert(!query->Eof());
+									   return query->template Get<int>(0) != 0;
+								   }),
+	                       std::back_inserter(result),
+	                       [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.navigationMode)); });
+	return result;
+}
+
 } // namespace
 
 struct TreeViewControllerNavigation::Impl final
@@ -227,6 +251,7 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
+	const std::vector<std::pair<const char*, int>> modes { GetModes(*this->databaseController, *self.m_settings) };
 	Util::FunctorExecutionForwarder forwarder;
 	int mode = { -1 };
 
@@ -419,22 +444,7 @@ void TreeViewControllerNavigation::RequestBooks(const bool force) const
 
 std::vector<std::pair<const char*, int>> TreeViewControllerNavigation::GetModeNames() const
 {
-	std::vector<std::pair<const char*, int>> result;
-	std::ranges::transform(MODE_DESCRIPTORS
-	                           | std::views::filter(
-								   [db = m_impl->databaseController->GetDatabase()](const auto& item)
-								   {
-									   if (!db || !item.second.filter)
-										   return true;
-
-									   const auto query = db->CreateQuery(item.second.filter);
-									   query->Execute();
-									   assert(!query->Eof());
-									   return query->template Get<int>(0) != 0;
-								   }),
-	                       std::back_inserter(result),
-	                       [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.navigationMode)); });
-	return result;
+	return m_impl->modes;
 }
 
 void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
@@ -442,8 +452,15 @@ void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
 	m_impl->dataProvider->SetNavigationId(std::move(id));
 }
 
-void TreeViewControllerNavigation::OnModeChanged(const QString& mode)
+void TreeViewControllerNavigation::OnModeChanged(const QString& modeSrc)
 {
+	if (m_impl->modes.empty())
+		return;
+
+	QString mode = modeSrc;
+	if (std::ranges::none_of(m_impl->modes, [&](const auto& item) { return item.first == mode; }))
+		mode = m_impl->modes.front().first;
+
 	m_impl->mode = GetModeIndex(mode);
 	m_impl->dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
 	m_impl->authorAnnotationController->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
