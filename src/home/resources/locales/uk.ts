@@ -5217,6 +5217,10 @@ Try again?</source>
         <source>About the author</source>
         <translation>Про автора</translation>
     </message>
+    <message>
+        <source>Navigation</source>
+        <translation>Навігація</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
@@ -5445,7 +5449,7 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
-        <source>All books</source>
+        <source>AllBooks</source>
         <translation>Усі книги</translation>
     </message>
     <message>

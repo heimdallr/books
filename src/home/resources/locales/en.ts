@@ -5205,6 +5205,10 @@ Try again?</source>
         <source>About the author</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Navigation</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
@@ -5433,8 +5437,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
-        <source>All books</source>
-        <translation></translation>
+        <source>AllBooks</source>
+        <translation>All books</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
