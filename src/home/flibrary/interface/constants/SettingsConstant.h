@@ -22,9 +22,10 @@ constexpr auto OPDS_PORT_DEFAULT = 12791;
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 
-constexpr auto STAR_SYMBOL_KEY = "ui/star";
-constexpr auto STAR_SYMBOL_DEFAULT = 0x2B50;
-constexpr auto STAR_VIEW_PRECISION = "ui/starPrecision";
-constexpr auto STAR_VIEW_PRECISION_DEFAULT = -1;
+constexpr auto LIBRATE_STAR_SYMBOL_KEY = "ui/Books/LibRate/symbol";
+constexpr auto LIBRATE_VIEW_PRECISION_KEY = "ui/Books/LibRate/precision";
+constexpr auto LIBRATE_VIEW_COLORS_KEY = "ui/Books/LibRate/colors";
+constexpr auto LIBRATE_STAR_SYMBOL_DEFAULT = 0x2B50;
+constexpr auto LIBRATE_VIEW_PRECISION_DEFAULT = -1;
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

@@ -71,7 +71,7 @@ class AnnotationControllerStrategy final : public IAnnotationController::IStrate
 {
 public:
 	AnnotationControllerStrategy(const ISettings& settings)
-		: m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		: m_starSymbol { settings.Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
 	}
 

@@ -637,7 +637,7 @@ private:
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
-	const int m_starSymbol { m_settings->Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	const int m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
 
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)

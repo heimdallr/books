@@ -59,7 +59,7 @@ public:
 	virtual void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
 };
 
-class BookRendererDefault final : virtual public IBookRenderer
+class BookRendererDefault : virtual public IBookRenderer
 {
 public:
 	explicit BookRendererDefault(const QStyledItemDelegate& impl)
@@ -67,7 +67,7 @@ public:
 	{
 	}
 
-private: // IBookRenderer
+protected: // IBookRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
 		m_impl.QStyledItemDelegate::paint(painter, o, index);
@@ -82,7 +82,7 @@ class RateRendererStars final : virtual public IBookRenderer
 public:
 	RateRendererStars(const int role, const ISettings& settings)
 		: m_role { role }
-		, m_starSymbol { settings.Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		, m_starSymbol { settings.Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -99,31 +99,27 @@ private:
 	const int m_starSymbol;
 };
 
-class RateRendererNumber final : virtual public IBookRenderer
+class RateRendererNumber final : virtual public BookRendererDefault
 {
 public:
-	explicit RateRendererNumber(const int role)
-		: m_role { role }
+	explicit RateRendererNumber(const QStyledItemDelegate& impl)
+		: BookRendererDefault(impl)
 	{
 	}
 
 private: // IRateRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
-		o.text = index.data(m_role).toString();
 		o.displayAlignment = Qt::AlignRight;
-		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		BookRendererDefault::Render(painter, o, index);
 	}
-
-private:
-	const int m_role;
 };
 
-std::unique_ptr<const IBookRenderer> GetLibRateRenderer(const ISettings& settings)
+std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
 {
-	return settings.Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT
+	return settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
 	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) }
-	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(Role::LibRate) };
+	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl) };
 }
 
 } // namespace
@@ -136,7 +132,7 @@ public:
 	Impl(const IUiFactory& uiFactory, const ISettings& settings)
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
-		, m_libRateRenderer { GetLibRateRenderer(settings) }
+		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
 		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
 	{
 	}
