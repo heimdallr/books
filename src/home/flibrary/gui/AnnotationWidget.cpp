@@ -518,7 +518,7 @@ private:
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool m_coverButtonsEnabled { false };
 	bool m_coverButtonsVisible { true };
-	const int m_starSymbol { m_settings->Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	const int m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
 
 AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider,

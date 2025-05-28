@@ -22,7 +22,7 @@ std::unordered_map<QString, double> ReadRate(const ISettings& settings, const IC
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
 
-	if (settings.Get(Constant::Settings::STAR_VIEW_PRECISION, Constant::Settings::STAR_VIEW_PRECISION_DEFAULT) <= Constant::Settings::STAR_VIEW_PRECISION_DEFAULT)
+	if (settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
 		return {};
 
 	const auto additionalFileName = collectionProvider.GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + REVIEWS_ADDITIONAL_ARCHIVE_NAME;
@@ -67,7 +67,7 @@ QString LibRateProviderSimple::GetLibRate(const QString& /*libId*/, QString libR
 
 LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider)
 	: m_rate { ReadRate(*settings, *collectionProvider) }
-	, m_precision { settings->Get(Constant::Settings::STAR_VIEW_PRECISION, 0) }
+	, m_precision { settings->Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, 0) }
 {
 }
 
