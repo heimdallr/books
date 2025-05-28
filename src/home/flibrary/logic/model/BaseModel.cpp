@@ -75,6 +75,9 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 				case Qt::DisplayRole:
 					return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
 
+				case Qt::ForegroundRole:
+					return m_libRateProvider->GetForegroundBrush(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
 				default:
 					break;
 			}

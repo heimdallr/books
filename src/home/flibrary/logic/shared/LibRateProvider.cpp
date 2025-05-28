@@ -17,7 +17,7 @@ using namespace Flibrary;
 namespace
 {
 
-std::unordered_map<QString, double> ReadRate(const ISettings& settings, const ICollectionProvider& collectionProvider)
+std::unordered_map<QString, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider)
 {
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
@@ -65,6 +65,11 @@ QVariant LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QStri
 	return libRate;
 }
 
+QVariant LibRateProviderSimple::GetForegroundBrush(const QString& /*libId*/, const QString& /*libRate*/) const
+{
+	return {};
+}
+
 LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider)
 	: m_rate { ReadRate(*settings, *collectionProvider) }
 	, m_precision { settings->Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, 0) }
@@ -75,6 +80,11 @@ QVariant LibRateProviderDouble::GetLibRate(const QString& libId, const QString& 
 {
 	const auto rateValue = GetRateValue(libId, libRate);
 	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_precision);
+}
+
+QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const QString& libRate) const
+{
+	return {};
 }
 
 double LibRateProviderDouble::GetRateValue(const QString& libId, const QString& libRate) const
