@@ -1,8 +1,16 @@
 #include "LibRateProvider.h"
 
+#include <QBrush>
+
+#include <QColor>
 #include <QFile>
+#include <QGuiApplication>
 #include <QJsonObject>
+#include <QPalette>
 #include <QString>
+
+#include "fnd/IsOneOf.h"
+#include "fnd/linear.h"
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -58,6 +66,26 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 	return {};
 }
 
+std::map<double, uint32_t> ReadColors(const ISettings& /*settings*/)
+{
+	const auto color = QGuiApplication::palette().brush(QPalette::ColorRole::WindowText).color().rgba();
+
+	std::map<double, uint32_t> result {
+		{ 0.0, color },
+		{ 6.0, color },
+	};
+
+	return result;
+}
+
+int GetPower(const int precision)
+{
+	int result = 1;
+	for (int i = 0; i < precision; ++i)
+		result *= 10;
+	return result;
+}
+
 } // namespace
 
 QVariant LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString& libRate) const
@@ -70,25 +98,57 @@ QVariant LibRateProviderSimple::GetForegroundBrush(const QString& /*libId*/, con
 	return {};
 }
 
+struct LibRateProviderDouble::Impl
+{
+	const std::unordered_map<QString, double> rate;
+	const std::map<double, uint32_t> colors;
+	const int precision;
+	const int power { GetPower(precision) };
+
+	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider)
+		: rate { ReadRates(settings, collectionProvider) }
+		, colors { ReadColors(settings) }
+		, precision { settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, 0) }
+	{
+	}
+};
+
 LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider)
-	: m_rate { ReadRate(*settings, *collectionProvider) }
-	, m_precision { settings->Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, 0) }
+	: m_impl(*settings, *collectionProvider)
 {
 }
+
+LibRateProviderDouble::~LibRateProviderDouble() = default;
 
 QVariant LibRateProviderDouble::GetLibRate(const QString& libId, const QString& libRate) const
 {
 	const auto rateValue = GetRateValue(libId, libRate);
-	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_precision);
+	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_impl->precision);
 }
 
 QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const QString& libRate) const
 {
-	return {};
+	auto rateValue = GetRateValue(libId, libRate);
+	if (rateValue < 1.0 || rateValue > 5.0)
+		return {};
+
+	rateValue = std::lround(rateValue * m_impl->power) * 1.0 / m_impl->power;
+
+	const auto it = m_impl->colors.upper_bound(rateValue);
+	assert(!IsOneOf(it, m_impl->colors.begin(), m_impl->colors.end()));
+
+	const auto get = [&](const int bits)
+	{
+		const auto prev = std::prev(it);
+		const Linear l(prev->first, static_cast<float>((prev->second >> bits) & 0xFF), it->first, static_cast<float>((it->second >> bits) & 0xFF));
+		return static_cast<uint32_t>(l(rateValue)) << bits;
+	};
+
+	return QBrush { get(0) | get(8) | get(16) | get(24) };
 }
 
 double LibRateProviderDouble::GetRateValue(const QString& libId, const QString& libRate) const
 {
-	const auto it = m_rate.find(libId);
-	return it != m_rate.end() ? it->second : libRate.isEmpty() ? 0.0 : libRate.toDouble();
+	const auto it = m_impl->rate.find(libId);
+	return it != m_impl->rate.end() ? it->second : libRate.isEmpty() ? 0.0 : libRate.toDouble();
 }

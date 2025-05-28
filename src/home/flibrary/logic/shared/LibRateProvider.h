@@ -1,5 +1,8 @@
 #pragma once
 
+#include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
+
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 
@@ -21,8 +24,11 @@ private: // ILibRateProvider
 
 class LibRateProviderDouble : public AbstractLibRateProvider
 {
+	NON_COPY_MOVABLE(LibRateProviderDouble)
+
 public:
 	LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider);
+	~LibRateProviderDouble() override;
 
 private: // ILibRateProvider
 	QVariant GetLibRate(const QString& libId, const QString& libRate) const override;
@@ -32,8 +38,8 @@ private:
 	double GetRateValue(const QString& libId, const QString& libRate) const;
 
 private:
-	const std::unordered_map<QString, double> m_rate;
-	const int m_precision;
+	struct Impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 } // namespace HomeCompa::Flibrary
