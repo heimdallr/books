@@ -8,8 +8,8 @@
 #include <QString>
 
 #include "fnd/IsOneOf.h"
-#include "fnd/linear.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/linear.h"
 
 #include "interface/constants/SettingsConstant.h"
 

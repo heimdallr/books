@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fnd/memory.h"
 #include "fnd/NonCopyMovable.h"
+#include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ILibRateProvider.h"
