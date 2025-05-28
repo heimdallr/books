@@ -1,7 +1,6 @@
 #include "LibRateProvider.h"
 
 #include <QFile>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
 
@@ -20,7 +19,6 @@ namespace
 
 std::unordered_map<QString, double> ReadRate(const ISettings& settings, const ICollectionProvider& collectionProvider)
 {
-	PLOGD << "LibRateProviderDouble started";
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
 
@@ -71,7 +69,6 @@ LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettin
 	: m_rate { ReadRate(*settings, *collectionProvider) }
 	, m_precision { settings->Get(Constant::Settings::STAR_VIEW_PRECISION, 0) }
 {
-	PLOGD << "LibRateProviderDouble done";
 }
 
 QString LibRateProviderDouble::GetLibRate(const QString& libId, QString libRate) const
