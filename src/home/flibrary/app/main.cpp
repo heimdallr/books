@@ -9,7 +9,9 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
@@ -68,6 +70,9 @@ int main(int argc, char* argv[])
 			const auto translators = Loc::LoadLocales(*settings); //-V808
 
 			Genre::SetSortMode(*settings);
+			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
+				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
+
 
 			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
 			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
