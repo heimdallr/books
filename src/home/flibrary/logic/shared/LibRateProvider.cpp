@@ -60,7 +60,7 @@ std::unordered_map<QString, double> ReadRate(const ISettings& settings, const IC
 
 } // namespace
 
-QString LibRateProviderSimple::GetLibRate(const QString& /*libId*/, QString libRate) const
+QVariant LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString& libRate) const
 {
 	return libRate;
 }
@@ -71,9 +71,14 @@ LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettin
 {
 }
 
-QString LibRateProviderDouble::GetLibRate(const QString& libId, QString libRate) const
+QVariant LibRateProviderDouble::GetLibRate(const QString& libId, const QString& libRate) const
 {
-	const auto get = [this](const double rate) { return rate <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rate, 'f', m_precision); };
+	const auto rateValue = GetRateValue(libId, libRate);
+	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_precision);
+}
+
+double LibRateProviderDouble::GetRateValue(const QString& libId, const QString& libRate) const
+{
 	const auto it = m_rate.find(libId);
-	return it != m_rate.end() ? get(it->second) : libRate.isEmpty() ? libRate : get(libRate.toDouble());
+	return it != m_rate.end() ? it->second : libRate.isEmpty() ? 0.0 : libRate.toDouble();
 }

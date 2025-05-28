@@ -63,8 +63,23 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		return {};
 
 	const auto* item = static_cast<IDataItem*>(index.internalPointer());
-	if (item->GetType() == ItemType::Books && (role == Role::LibRate || role == Qt::DisplayRole && item->RemapColumn(index.column()) == BookItem::Column::LibRate))
-		return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+	if (item->GetType() == ItemType::Books)
+	{
+		if (role == Role::LibRate)
+			return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
+		if (item->RemapColumn(index.column()) == BookItem::Column::LibRate)
+		{
+			switch (role)
+			{
+				case Qt::DisplayRole:
+					return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
+				default:
+					break;
+			}
+		}
+	}
 
 	switch (role)
 	{
