@@ -240,7 +240,7 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		return m_ui.maximumSizeEnabled->isChecked() ? std::optional { m_ui.maximumSize->value() } : std::nullopt;
 	}
 
-	std::optional<double> GetMaximumLibRate() const override
+	std::optional<double> GetMinimumLibRate() const override
 	{
 		return m_ui.ratedLess->isChecked() ? std::optional { m_ui.minimumRate->value() } : std::nullopt;
 	}
