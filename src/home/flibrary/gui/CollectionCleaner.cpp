@@ -42,6 +42,9 @@ constexpr auto MAXIMUM_SIZE = "ui/Cleaner/MaximumSize";
 constexpr auto MAXIMUM_SIZE_ENABLED = "ui/Cleaner/MaximumSizeEnabled";
 constexpr auto MINIMUM_SIZE = "ui/Cleaner/MinimumSize";
 constexpr auto MINIMUM_SIZE_ENABLED = "ui/Cleaner/MinimumSizeEnabled";
+constexpr auto MINIMUM_RATE = "ui/Cleaner/MinimumRate";
+constexpr auto DELETE_BY_RATE = "ui/Cleaner/DeleteByRate";
+constexpr auto DELETE_UNRATED = "ui/Cleaner/DeleteUnrated";
 
 TR_DEF
 
@@ -108,9 +111,6 @@ public:
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] { OnGenresContextMenuRequested(); });
 		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
 		connect(m_ui.languages, &QAbstractItemView::doubleClicked, m_ui.actionLanguageReadRandomBook, &QAction::trigger);
-
-		connect(m_ui.maximumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.maximumSize, &QWidget::setEnabled);
-		connect(m_ui.minimumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.minimumSize, &QWidget::setEnabled);
 
 		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] { OpenRandomBook(); });
 		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::CheckAll); });
@@ -208,6 +208,11 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		return m_ui.duplicates->isChecked();
 	}
 
+	bool NeedDeleteUnrated() const override
+	{
+		return m_ui.unrated->isChecked();
+	}
+
 	QStringList GetLanguages() const override
 	{
 		return m_ui.groupBoxLanguages->isChecked() ? m_ui.languages->model()->data({}, Role::SelectedList).toStringList() : QStringList {};
@@ -233,6 +238,11 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	std::optional<size_t> GetMaximumBookSize() const override
 	{
 		return m_ui.maximumSizeEnabled->isChecked() ? std::optional { m_ui.maximumSize->value() } : std::nullopt;
+	}
+
+	std::optional<double> GetMaximumLibRate() const override
+	{
+		return m_ui.ratedLess->isChecked() ? std::optional { m_ui.minimumRate->value() } : std::nullopt;
 	}
 
 private:
@@ -317,6 +327,9 @@ private:
 		m_ui.minimumSize->setValue(m_settings->Get(MINIMUM_SIZE, m_ui.minimumSize->value()));
 		m_ui.maximumSizeEnabled->setChecked(m_settings->Get(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked()));
 		m_ui.minimumSizeEnabled->setChecked(m_settings->Get(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked()));
+		m_ui.ratedLess->setChecked(m_settings->Get(DELETE_BY_RATE, m_ui.ratedLess->isChecked()));
+		m_ui.unrated->setChecked(m_settings->Get(DELETE_UNRATED, m_ui.unrated->isChecked()));
+		m_ui.minimumRate->setValue(m_settings->Get(MINIMUM_RATE, m_ui.minimumRate->value()));
 
 		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
 		{
@@ -343,6 +356,9 @@ private:
 		m_settings->Set(MINIMUM_SIZE, m_ui.minimumSize->value());
 		m_settings->Set(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked());
 		m_settings->Set(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked());
+		m_settings->Set(DELETE_BY_RATE, m_ui.ratedLess->isChecked());
+		m_settings->Set(DELETE_UNRATED, m_ui.unrated->isChecked());
+		m_settings->Set(MINIMUM_RATE, m_ui.minimumRate->value());
 
 		QVector<int> widths;
 		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
