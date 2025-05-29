@@ -1,6 +1,5 @@
 #include "LibRateProvider.h"
 
-#include <QColor>
 #include <QFile>
 #include <QGuiApplication>
 #include <QJsonObject>
@@ -95,7 +94,7 @@ int GetPower(const int precision)
 
 } // namespace
 
-QVariant LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString& libRate) const
+QVariant LibRateProviderSimple::GetLibRateString(const QString& /*libId*/, const QString& libRate) const
 {
 	return libRate;
 }
@@ -127,7 +126,7 @@ LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettin
 
 LibRateProviderDouble::~LibRateProviderDouble() = default;
 
-QVariant LibRateProviderDouble::GetLibRate(const QString& libId, const QString& libRate) const
+QVariant LibRateProviderDouble::GetLibRateString(const QString& libId, const QString& libRate) const
 {
 	const auto rateValue = GetRateValue(libId, libRate);
 	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_impl->precision);
