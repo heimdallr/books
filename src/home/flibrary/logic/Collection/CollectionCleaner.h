@@ -6,6 +6,7 @@
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
@@ -19,6 +20,7 @@ public:
 	CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	                  std::shared_ptr<const IDatabaseUser> databaseUser,
 	                  std::shared_ptr<const ICollectionProvider> collectionProvider,
+	                  std::shared_ptr<const ILibRateProvider> libRateProvider,
 	                  std::shared_ptr<IBooksExtractorProgressController> progressController);
 	~CollectionCleaner() override;
 
