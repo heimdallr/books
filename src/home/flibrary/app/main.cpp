@@ -73,7 +73,6 @@ int main(int argc, char* argv[])
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
 
-
 			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
 			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
 			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);

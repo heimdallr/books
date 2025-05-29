@@ -465,8 +465,7 @@ private: // IAnnotationController::IUrlGenerator
 		};
 		static_assert(std::size(typeToNavigation) == static_cast<size_t>(NavigationMode::Last));
 		const auto* navigation = FindSecond(typeToNavigation, type, nullptr, PszComparer {});
-		return !navigation || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str)
-		                                                                                                                       : QString("%1").arg(str);
+		return !navigation || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str) : QString("%1").arg(str);
 	}
 
 	QString GenerateStars(const int rate) const override
