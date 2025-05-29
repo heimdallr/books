@@ -10,3 +10,6 @@
 [submodule "src/ext/sqlite/sqlite"]
 	path = src/ext/sqlite/sqlite
 	url = ../sqlite3.git
+[submodule "src/ext/ReactApp"]
+	path = src/ext/ReactApp
+	url = ../ReactApp.git
