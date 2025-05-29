@@ -77,6 +77,7 @@ struct UiFactory::Impl
 	mutable QTreeView* treeView { nullptr };
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
+	mutable AdditionalWidgetCallback additionalWidgetCallback;
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -145,8 +146,10 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 	return m_impl->container.resolve<IComboBoxTextDialog>();
 }
 
-std::shared_ptr<QDialog> UiFactory::CreateCollectionCleaner() const
+std::shared_ptr<QWidget> UiFactory::CreateCollectionCleaner(AdditionalWidgetCallback callback) const
 {
+	assert(callback && !m_impl->additionalWidgetCallback);
+	m_impl->additionalWidgetCallback = std::move(callback);
 	return m_impl->container.resolve<CollectionCleaner>();
 }
 
@@ -258,6 +261,14 @@ QAbstractItemView& UiFactory::GetAbstractItemView() const noexcept
 QString UiFactory::GetTitle() const noexcept
 {
 	return std::move(m_impl->title);
+}
+
+IUiFactory::AdditionalWidgetCallback UiFactory::GetAdditionalWidgetCallback() const noexcept
+{
+	assert(m_impl->additionalWidgetCallback);
+	auto callback = m_impl->additionalWidgetCallback;
+	m_impl->additionalWidgetCallback = {};
+	return callback;
 }
 
 } // namespace HomeCompa::Flibrary

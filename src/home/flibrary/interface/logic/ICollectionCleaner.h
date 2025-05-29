@@ -11,6 +11,16 @@ public:
 	static constexpr auto CONTEXT = "CollectionCleaner";
 	static constexpr auto REMOVE_PERMANENTLY_INFO = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted permanently");
 
+	struct State
+	{
+		enum
+		{
+			Canceled,
+			Started,
+			Finished,
+		};
+	};
+
 	struct Book
 	{
 		long long id;
