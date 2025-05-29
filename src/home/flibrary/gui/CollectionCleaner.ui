@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>CollectionCleaner</class>
- <widget class="QDialog" name="CollectionCleaner">
+ <widget class="QWidget" name="CollectionCleaner">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1085</width>
-    <height>840</height>
+    <height>808</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,58 @@
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="7">
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="6">
+      <widget class="QDoubleSpinBox" name="minimumRate">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>5.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>3.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QCheckBox" name="ratedLess">
+       <property name="text">
+        <string>Remove rated less than</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="3">
       <widget class="QSpinBox" name="maximumSize">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -47,33 +92,10 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item row="0" column="2">
       <widget class="QCheckBox" name="minimumSizeEnabled">
        <property name="text">
         <string>Delete books smaller than</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QCheckBox" name="duplicates">
-       <property name="text">
-        <string>Find and remove duplicate books</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -83,7 +105,7 @@
         <bool>false</bool>
        </property>
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -121,6 +143,39 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="5">
+      <widget class="QCheckBox" name="unrated">
+       <property name="text">
+        <string>Remove unrated books</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Preferred</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="duplicates">
+       <property name="text">
+        <string>Find and remove duplicate books</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2">
       <widget class="QCheckBox" name="maximumSizeEnabled">
        <property name="text">
@@ -129,9 +184,12 @@
       </widget>
      </item>
      <item row="0" column="4">
-      <spacer name="horizontalSpacer_4">
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Preferred</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -259,17 +317,30 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="removeForever">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Delete forever, along with book files from archives</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QCheckBox" name="removeForever">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Delete forever, along with book files from archives</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QProgressBar" name="progressBar">
        <property name="sizePolicy">
@@ -290,15 +361,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="buttons">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <widget class="QPushButton" name="btnAnalyze">
+       <property name="text">
+        <string>Analyze collection</string>
        </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancel">
+       <property name="text">
+        <string>Cancel</string>
        </property>
       </widget>
      </item>
@@ -364,12 +436,18 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
+  <tabstop>btnAnalyze</tabstop>
+  <tabstop>btnCancel</tabstop>
+  <tabstop>removeForever</tabstop>
   <tabstop>removeRemoved</tabstop>
   <tabstop>duplicates</tabstop>
   <tabstop>minimumSizeEnabled</tabstop>
-  <tabstop>minimumSize</tabstop>
   <tabstop>maximumSizeEnabled</tabstop>
+  <tabstop>minimumSize</tabstop>
   <tabstop>maximumSize</tabstop>
+  <tabstop>ratedLess</tabstop>
+  <tabstop>minimumRate</tabstop>
+  <tabstop>unrated</tabstop>
   <tabstop>groupBoxGenres</tabstop>
   <tabstop>genresMatchFull</tabstop>
   <tabstop>genresMatchPartial</tabstop>
@@ -392,6 +470,54 @@
     <hint type="destinationlabel">
      <x>109</x>
      <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ratedLess</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minimumRate</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>666</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>768</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minimumSizeEnabled</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minimumSize</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>485</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maximumSizeEnabled</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>maximumSize</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>157</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>485</x>
+     <y>157</y>
     </hint>
    </hints>
   </connection>

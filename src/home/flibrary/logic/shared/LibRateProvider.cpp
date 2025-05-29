@@ -1,6 +1,5 @@
 #include "LibRateProvider.h"
 
-#include <QColor>
 #include <QFile>
 #include <QGuiApplication>
 #include <QJsonObject>
@@ -95,7 +94,12 @@ int GetPower(const int precision)
 
 } // namespace
 
-QVariant LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString& libRate) const
+double LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString& libRate) const
+{
+	return libRate.toDouble();
+}
+
+QVariant LibRateProviderSimple::GetLibRateString(const QString& /*libId*/, const QString& libRate) const
 {
 	return libRate;
 }
@@ -127,15 +131,21 @@ LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettin
 
 LibRateProviderDouble::~LibRateProviderDouble() = default;
 
-QVariant LibRateProviderDouble::GetLibRate(const QString& libId, const QString& libRate) const
+double LibRateProviderDouble::GetLibRate(const QString& libId, const QString& libRate) const
 {
-	const auto rateValue = GetRateValue(libId, libRate);
+	const auto it = m_impl->rate.find(libId);
+	return it != m_impl->rate.end() ? it->second : libRate.isEmpty() ? 0.0 : libRate.toDouble();
+}
+
+QVariant LibRateProviderDouble::GetLibRateString(const QString& libId, const QString& libRate) const
+{
+	const auto rateValue = GetLibRate(libId, libRate);
 	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_impl->precision);
 }
 
 QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const QString& libRate) const
 {
-	auto rateValue = GetRateValue(libId, libRate);
+	auto rateValue = GetLibRate(libId, libRate);
 	if (rateValue < 1.0 || rateValue > 5.0)
 		return {};
 
@@ -152,10 +162,4 @@ QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const Q
 	};
 
 	return QBrush { get(0) | get(8) | get(16) };
-}
-
-double LibRateProviderDouble::GetRateValue(const QString& libId, const QString& libRate) const
-{
-	const auto it = m_impl->rate.find(libId);
-	return it != m_impl->rate.end() ? it->second : libRate.isEmpty() ? 0.0 : libRate.toDouble();
 }

@@ -659,6 +659,22 @@
         <source>Delete forever, along with book files from archives</source>
         <translation>Удалить навсегда, вместе с файлами книг из архивов</translation>
     </message>
+    <message>
+        <source>Analyze collection</source>
+        <translation>Анализ коллекции</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Remove rated less than</source>
+        <translation>Удалить с рейтингом ниже</translation>
+    </message>
+    <message>
+        <source>Remove unrated books</source>
+        <translation>Удалить книги без рейтинга</translation>
+    </message>
 </context>
 <context>
     <name>CollectionController</name>

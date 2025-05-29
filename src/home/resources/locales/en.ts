@@ -659,6 +659,22 @@
         <source>Delete forever, along with book files from archives</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Analyze collection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove rated less than</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove unrated books</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>CollectionController</name>

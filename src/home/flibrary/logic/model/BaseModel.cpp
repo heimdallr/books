@@ -66,14 +66,14 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 	if (item->GetType() == ItemType::Books)
 	{
 		if (role == Role::LibRate)
-			return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+			return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
 
 		if (item->RemapColumn(index.column()) == BookItem::Column::LibRate)
 		{
 			switch (role)
 			{
 				case Qt::DisplayRole:
-					return m_libRateProvider->GetLibRate(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+					return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
 
 				case Qt::ForegroundRole:
 					return m_libRateProvider->GetForegroundBrush(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
