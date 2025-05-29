@@ -100,6 +100,7 @@ public:
 		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
+		self.addAction(m_ui.actionCancel);
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
