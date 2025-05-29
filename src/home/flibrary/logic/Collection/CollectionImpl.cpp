@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QString> // for plog
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "util/ISettings.h"
 #include "util/hash.h"
 
@@ -15,14 +17,12 @@ namespace HomeCompa::Flibrary
 namespace
 {
 
-constexpr auto COLLECTIONS = "Collections";
 constexpr auto CURRENT = "current";
 constexpr auto DATABASE = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER = "folder";
 constexpr auto NAME = "name";
 constexpr auto CREATION_MODE = "creationMode";
-constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED = "destructiveOperationsAllowed";
 
 Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 {
@@ -47,7 +47,7 @@ Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 
 	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString {});
 	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
-	collection->destructiveOperationsAllowed = settings.Get(DESTRUCTIVE_OPERATIONS_ALLOWED, false);
+	collection->destructiveOperationsAllowed = settings.Get(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, false);
 
 	return collection;
 }
@@ -69,13 +69,13 @@ CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_
 
 QString CollectionImpl::GetActive(const ISettings& settings)
 {
-	SettingsGroup databaseGroup(settings, COLLECTIONS);
+	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
 	return settings.Get(CURRENT, QString {});
 }
 
 void CollectionImpl::Serialize(const Collection& collection, ISettings& settings)
 {
-	SettingsGroup databaseGroup(settings, COLLECTIONS);
+	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
 	SettingsGroup idGroup(settings, collection.id);
 
 	settings.Set(NAME, collection.name);
@@ -83,13 +83,13 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	settings.Set(FOLDER, collection.folder);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
-	settings.Set(DESTRUCTIVE_OPERATIONS_ALLOWED, collection.destructiveOperationsAllowed);
+	settings.Set(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, collection.destructiveOperationsAllowed);
 }
 
 Collections CollectionImpl::Deserialize(ISettings& settings)
 {
 	Collections collections;
-	SettingsGroup settingsGroup(settings, COLLECTIONS);
+	SettingsGroup settingsGroup(settings, Constant::Settings::COLLECTIONS);
 	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) { return DeserializeImpl(settings, std::move(groupId)); });
 
 	std::erase_if(collections,
@@ -107,7 +107,7 @@ Collections CollectionImpl::Deserialize(ISettings& settings)
 
 void CollectionImpl::SetActive(ISettings& settings, const QString& uid)
 {
-	SettingsGroup databaseGroup(settings, COLLECTIONS);
+	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
 	if (uid.isEmpty())
 	{
 		settings.Remove(CURRENT);
@@ -121,7 +121,7 @@ void CollectionImpl::SetActive(ISettings& settings, const QString& uid)
 
 void CollectionImpl::Remove(ISettings& settings, const QString& uid)
 {
-	SettingsGroup databaseGroup(settings, COLLECTIONS);
+	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
 	settings.Remove(uid);
 	PLOGW << "Collection " << uid << " removed";
 }

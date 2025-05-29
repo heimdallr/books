@@ -8,9 +8,11 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
+#include "interface/constants/SettingsConstant.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "GuiUtil/GeometryRestorable.h"
+#include "util/ISettingsObserver.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;
@@ -66,6 +68,7 @@ class CollectionCleaner::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 	, ICollectionCleaner::IAnalyzeObserver
+	, ISettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -94,6 +97,7 @@ public:
 		, m_scrollBarControllerGenre { std::move(scrollBarControllerGenre) }
 		, m_scrollBarControllerLanguage { std::move(scrollBarControllerLanguage) }
 		, m_additionalWidgetCallback { m_uiFactory->GetAdditionalWidgetCallback() }
+		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
 
@@ -137,10 +141,13 @@ public:
 		layout->addWidget(label);
 
 		LoadGeometry();
+
+		m_settings->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
+		m_settings->UnregisterObserver(this);
 		SaveGeometry();
 		Save();
 	}
@@ -243,6 +250,13 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	std::optional<double> GetMinimumLibRate() const override
 	{
 		return m_ui.ratedLess->isChecked() ? std::optional { m_ui.minimumRate->value() } : std::nullopt;
+	}
+
+private: // ISettingsObserver
+	void HandleValueChanged(const QString& key, const QVariant& value) override
+	{
+		if (key == m_destructiveOperationsAllowedKey)
+			m_ui.removeForever->setEnabled(value.toBool());
 	}
 
 private:
@@ -379,6 +393,7 @@ private:
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
 	IUiFactory::AdditionalWidgetCallback m_additionalWidgetCallback;
+	const QString m_destructiveOperationsAllowedKey;
 	bool m_analyzeCanceled { false };
 };
 
