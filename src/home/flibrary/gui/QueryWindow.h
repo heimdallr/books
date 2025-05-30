@@ -7,6 +7,7 @@
 
 #include "interface/logic/IDatabaseUser.h"
 
+#include "GuiUtil/Dialog.h"
 #include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
@@ -18,7 +19,7 @@ class QueryWindow : public QMainWindow
 	NON_COPY_MOVABLE(QueryWindow)
 
 public:
-	QueryWindow(std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent = nullptr);
+	QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent = nullptr);
 	~QueryWindow() override;
 
 private:

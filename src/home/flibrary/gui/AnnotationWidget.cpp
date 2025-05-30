@@ -11,6 +11,8 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include "fnd/FindPair.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
@@ -446,7 +448,24 @@ private: // IAnnotationController::IObserver
 private: // IAnnotationController::IUrlGenerator
 	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
 	{
-		return str.isEmpty() ? QString {} : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+		if (str.isEmpty())
+			return {};
+
+		static constexpr std::pair<const char*, const char*> typeToNavigation[] {
+			{  Loc::AUTHORS,   Loc::Authors },
+            {   Loc::SERIES,    Loc::Series },
+            {   Loc::GENRES,    Loc::Genres },
+            { Loc::KEYWORDS,  Loc::Keywords },
+            {  Loc::UPDATES,   Loc::Updates },
+			{  Loc::ARCHIVE,  Loc::Archives },
+            { Loc::LANGUAGE, Loc::Languages },
+            {   Loc::GROUPS,    Loc::Groups },
+            {      "Search",    Loc::Search },
+            {    "AllBooks",  Loc::AllBooks },
+		};
+		static_assert(std::size(typeToNavigation) == static_cast<size_t>(NavigationMode::Last));
+		const auto* navigation = FindSecond(typeToNavigation, type, nullptr, PszComparer {});
+		return !navigation || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str) : QString("%1").arg(str);
 	}
 
 	QString GenerateStars(const int rate) const override
@@ -518,7 +537,7 @@ private:
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool m_coverButtonsEnabled { false };
 	bool m_coverButtonsVisible { true };
-	const int m_starSymbol { m_settings->Get(Constant::Settings::STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	const int m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
 
 AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider,

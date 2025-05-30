@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QDialog>
+#include <QWidget>
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
@@ -10,8 +10,8 @@
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IModel.h"
 #include "interface/logic/IReaderController.h"
+#include "interface/ui/IUiFactory.h"
 
-#include "GuiUtil/interface/IUiFactory.h"
 #include "util/ISettings.h"
 
 #include "ScrollBarController.h"
@@ -24,13 +24,13 @@ class CollectionCleaner;
 namespace HomeCompa::Flibrary
 {
 
-class CollectionCleaner final : public QDialog
+class CollectionCleaner final : public QWidget
 {
 	NON_COPY_MOVABLE(CollectionCleaner)
 
 public:
 	CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	                  std::shared_ptr<const Util::IUiFactory> uiFactory,
+	                  std::shared_ptr<const IUiFactory> uiFactory,
 	                  std::shared_ptr<const IReaderController> readerController,
 	                  std::shared_ptr<const ICollectionCleaner> collectionCleaner,
 	                  std::shared_ptr<const IBookInfoProvider> dataProvider,

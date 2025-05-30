@@ -8,6 +8,7 @@ class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary
 {
+class ILibRateProvider;
 
 class IModelProvider : public Lockable<IModelProvider> // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -24,6 +25,7 @@ public:
 	[[nodiscard]] virtual IDataItem::Ptr GetData() const noexcept = 0;
 	[[nodiscard]] virtual IModelObserver& GetObserver() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> GetSourceModel() const noexcept = 0;
+	[[nodiscard]] virtual std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const noexcept = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

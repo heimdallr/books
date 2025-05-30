@@ -161,6 +161,7 @@ class LOGIC_EXPORT BookItem final : public DataItem
 	BOOKS_COLUMN_ITEM(UpdateDate)  \
 	BOOKS_COLUMN_ITEM(Lang)        \
 	BOOKS_COLUMN_ITEM(AuthorFull)  \
+	BOOKS_COLUMN_ITEM(LibID)       \
 	BOOKS_COLUMN_ITEM(FolderID)    \
 	BOOKS_COLUMN_ITEM(UpdateID)
 

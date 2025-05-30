@@ -5,7 +5,10 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
+
+#include "data/DataItem.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -29,7 +32,8 @@ QVariant GetValue(const IDataItem& item, const int column)
 
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
-	, m_data(modelProvider->GetData())
+	, m_data { modelProvider->GetData() }
+	, m_libRateProvider { modelProvider->GetLibRateProvider() }
 {
 }
 
@@ -59,6 +63,27 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		return {};
 
 	const auto* item = static_cast<IDataItem*>(index.internalPointer());
+	if (item->GetType() == ItemType::Books)
+	{
+		if (role == Role::LibRate)
+			return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
+		if (item->RemapColumn(index.column()) == BookItem::Column::LibRate)
+		{
+			switch (role)
+			{
+				case Qt::DisplayRole:
+					return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
+				case Qt::ForegroundRole:
+					return m_libRateProvider->GetForegroundBrush(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+
+				default:
+					break;
+			}
+		}
+	}
+
 	switch (role)
 	{
 		case Qt::DisplayRole:

@@ -62,7 +62,8 @@ enum class ItemType
 	BOOKS_MENU_ACTION_ITEM(SendUnpack)            \
 	BOOKS_MENU_ACTION_ITEM(SendAsInpxCollection)  \
 	BOOKS_MENU_ACTION_ITEM(SendAsInpxFile)        \
-	BOOKS_MENU_ACTION_ITEM(SendAsScript)
+	BOOKS_MENU_ACTION_ITEM(SendAsScript)          \
+	BOOKS_MENU_ACTION_ITEM(ChangeLanguage)
 
 enum class BooksMenuAction
 {

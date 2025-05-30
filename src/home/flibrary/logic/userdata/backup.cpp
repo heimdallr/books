@@ -79,13 +79,14 @@ private:
 
 void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
-	static constexpr auto text = "select f.FolderTitle, b.FileName, u.IsDeleted, u.UserRate, u.CreatedAt "
+	static constexpr auto text = "select f.FolderTitle, b.FileName, u.IsDeleted, u.UserRate, u.Lang, u.CreatedAt "
 								 "from Books_User u "
 								 "join Books b on b.BookID = u.BookID "
 								 "join Folders f on f.FolderID = b.FolderID ";
 
 	static constexpr const char* fields[] = {
-		Constant::UserData::Books::Folder, Constant::UserData::Books::FileName, Constant::UserData::Books::IsDeleted, Constant::UserData::Books::UserRate, Constant::UserData::Books::CreatedAt,
+		Constant::UserData::Books::Folder,   Constant::UserData::Books::FileName, Constant::UserData::Books::IsDeleted,
+		Constant::UserData::Books::UserRate, Constant::UserData::Books::Lang,     Constant::UserData::Books::CreatedAt,
 	};
 
 	const auto query = db.CreateQuery(text);

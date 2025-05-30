@@ -16,6 +16,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
+#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
@@ -168,6 +169,7 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
+		CreateViewNavigationMenu();
 		LoadGeometry();
 		StartDelayed(
 			[&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
@@ -390,7 +392,25 @@ private:
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection({}); });
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [&] { m_collectionController->RemoveCollection(); });
 		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [&] { GenerateCollectionInpx(); });
-		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateCollectionCleaner()->exec(); });
+		connect(m_ui.actionShowCollectionCleaner,
+		        &QAction::triggered,
+		        &m_self,
+		        [&]
+		        {
+					m_additionalWidget = m_uiFactory->CreateCollectionCleaner(
+						[this](const int state)
+						{
+							m_ui.stackedWidget->setCurrentIndex(0);
+							if (state == ICollectionCleaner::State::Started)
+								return;
+
+							m_additionalWidget->setParent(nullptr);
+							m_ui.stackedWidget->removeWidget(m_additionalWidget.get());
+							m_additionalWidget.reset();
+						});
+					const auto index = m_ui.stackedWidget->addWidget(m_additionalWidget.get());
+					m_ui.stackedWidget->setCurrentIndex(index);
+				});
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
@@ -435,7 +455,17 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsLog";
 		connect(m_ui.logView, &QWidget::customContextMenuRequested, &m_self, [&](const QPoint& pos) { m_ui.menuLog->exec(m_ui.logView->viewport()->mapToGlobal(pos)); });
-		connect(m_ui.actionShowLog, &QAction::triggered, &m_self, [&](const bool checked) { m_ui.stackedWidget->setCurrentIndex(checked ? 1 : 0); });
+		connect(m_ui.actionShowLog,
+		        &QAction::triggered,
+		        &m_self,
+		        [&](const bool checked) { m_ui.stackedWidget->setCurrentIndex(checked                           ? 1
+			                                                                  : m_ui.stackedWidget->count() > 2 ? m_ui.stackedWidget->count() - 1
+			                                                                                                    : 0); });
+		connect(m_ui.stackedWidget,
+		        &QStackedWidget::currentChanged,
+		        &m_self,
+		        [this](const int currentIndex) { m_ui.lineEditBookTitleToSearch->setVisible(m_ui.actionShowSearchBookString->isChecked() && currentIndex == 0); });
+
 		connect(m_ui.actionClearLog, &QAction::triggered, &m_self, [&] { m_logController->Clear(); });
 		const auto logAction = [this](const auto& action)
 		{
@@ -856,6 +886,22 @@ private:
 		m_ui.menuSelectCollection->setEnabled(enabled);
 	}
 
+	void CreateViewNavigationMenu()
+	{
+		const auto createAction = [this](const char* name)
+		{
+			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			action->setCheckable(true);
+			action->setChecked(true);
+			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
+			connect(action, &QAction::toggled, [this] { RebootDialog(); });
+		};
+
+#define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
+		NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+	}
+
 	void CheckForUpdates(const bool force) const
 	{
 		auto updateChecker = ILogicFactory::Lock(m_logicFactory)->CreateUpdateChecker();
@@ -918,6 +964,7 @@ private:
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
 
 	std::shared_ptr<QMainWindow> m_queryWindow;
+	std::shared_ptr<QWidget> m_additionalWidget;
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };

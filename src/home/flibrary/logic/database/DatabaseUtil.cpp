@@ -38,6 +38,7 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{		BookQueryFields::Lang,       BookItem::Column::Lang },
     {    BookQueryFields::FolderID,   BookItem::Column::FolderID },
     {    BookQueryFields::UpdateID,   BookItem::Column::UpdateID },
+	{	   BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
 }
@@ -88,7 +89,7 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, con
 
 IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
 {
-	static const std::unordered_map<QString, const char*> languages { std::cbegin(LANGUAGES), std::cend(LANGUAGES) };
+	static const auto languages = GetLanguagesMap();
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
@@ -152,8 +153,8 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 
 	ok = transaction
 	         ->CreateCommand(R"(
-		delete from Books_User 
-			where UserRate is null 
+		delete from Books_User
+			where UserRate is null and Lang is null
 			and exists (select 42 from Books where Books.BookID = Books_User.BookID and Books.IsDeleted = Books_User.IsDeleted)
 	)")
 	         ->Execute()

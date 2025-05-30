@@ -498,8 +498,18 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Change language</source>
+        <translation>Змінити мову</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation>Не вдалося оцінити</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Cannot set language of books</source>
+        <translation>Не вдалося змінити мову книг</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -520,6 +530,11 @@
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат цієї операції не можна скасувати. Впевнені, що хочете видалити ці книги назавжди?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Are you sure you want to change the language of the books to %1?</source>
+        <translation>Ви впевнені, що хочете, щоб мовою цих книг була %1?</translation>
     </message>
 </context>
 <context>
@@ -643,6 +658,22 @@
     <message>
         <source>Delete forever, along with book files from archives</source>
         <translation>Видалити назавжди разом із файлами книг з архівів</translation>
+    </message>
+    <message>
+        <source>Analyze collection</source>
+        <translation>Аналіз колекції</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
+        <source>Remove rated less than</source>
+        <translation>Видалити з рейтингом нижче</translation>
+    </message>
+    <message>
+        <source>Remove unrated books</source>
+        <translation>Видалити книги без рейтингу</translation>
     </message>
 </context>
 <context>
@@ -2684,6 +2715,14 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::QueryWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/QueryWindow.cpp"/>
+        <source>Affected rows: %1</source>
+        <translation>Торкається рядків: %1</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::TreeView</name>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>
@@ -3168,7 +3207,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Caddo</source>
-        <translation></translation>
+        <translation>Каддо</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -5194,6 +5233,10 @@ Try again?</source>
         <source>About the author</source>
         <translation>Про автора</translation>
     </message>
+    <message>
+        <source>Navigation</source>
+        <translation>Навігація</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
@@ -5422,7 +5465,7 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
-        <source>All books</source>
+        <source>AllBooks</source>
         <translation>Усі книги</translation>
     </message>
     <message>

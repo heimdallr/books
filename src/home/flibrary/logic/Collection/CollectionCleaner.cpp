@@ -13,6 +13,7 @@
 
 #include "common/Constant.h"
 #include "database/DatabaseUtil.h"
+#include "util/Fb2InpxParser.h"
 
 #include "Zip.h"
 #include "log.h"
@@ -32,13 +33,16 @@ struct AnalyzedBook
 	QString date;
 	QString title;
 	size_t size;
+	QString libId;
+	double libRate;
 	std::set<QString> genres;
 	std::set<long long> authors;
 };
 
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
-constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, %1, %3 
+constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(
+select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, b.LibID, b.LibRate, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
 	left join Books_User bu on bu.BookID = b.BookID 
@@ -180,7 +184,7 @@ void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
 	}
 }
 
-AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
+AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
 	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
@@ -203,10 +207,12 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ICollectionCleaner::IAna
 			it->second.date = query->Get<const char*>(5);
 			it->second.title = QString(query->Get<const char*>(6)).toLower();
 			it->second.size = query->Get<long long>(7);
+			it->second.libId = query->Get<const char*>(8);
+			it->second.libRate = libRateProvider.GetLibRate(it->second.libId, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(9)));
 		}
 
-		it->second.genres.emplace(query->Get<const char*>(8));
-		it->second.authors.emplace(query->Get<long long>(9));
+		it->second.genres.emplace(query->Get<const char*>(10));
+		it->second.authors.emplace(query->Get<long long>(11));
 		if (analyzeCanceled)
 			break;
 	}
@@ -254,6 +260,7 @@ struct CollectionCleaner::Impl
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	std::shared_ptr<const IDatabaseUser> databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
+	std::shared_ptr<const ILibRateProvider> libRateProvider;
 	std::shared_ptr<IBooksExtractorProgressController> progressController;
 	std::atomic_bool analyzeCanceled { false };
 
@@ -266,12 +273,12 @@ struct CollectionCleaner::Impl
 									auto genres = observer.GetGenres();
 									auto languages = observer.GetLanguages();
 									if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize()
-			                            && !observer.GetMaximumBookSize())
+			                            && !observer.GetMaximumBookSize() && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate())
 										return result;
 
 									const auto db = databaseUser->Database();
 									PLOGI << "get books info";
-									auto analysedBooks = GetAnalysedBooks(*db, observer, !genres.isEmpty(), analyzeCanceled);
+									auto analysedBooks = GetAnalysedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
 									PLOGI << "total books found: " << analysedBooks.size();
 
 									std::unordered_set<long long> toDelete;
@@ -285,6 +292,14 @@ struct CollectionCleaner::Impl
 
 									if (observer.NeedDeleteMarkedAsDeleted())
 										addToDelete("marked as deleted", [](const auto& item) { return item.second.deleted; });
+
+									if (observer.NeedDeleteUnrated())
+										addToDelete("unrated", [](const auto& item) { return item.second.libRate < 1.0; });
+
+									if (auto value = observer.GetMinimumLibRate())
+										addToDelete("rated less then minimum",
+				                                    [value = *value - std::numeric_limits<double>::epsilon()](const auto& item)
+				                                    { return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value; });
 
 									if (auto value = observer.GetMinimumBookSize())
 										addToDelete("smaller then minimum", [value = *value](const auto& item) { return item.second.size < value; });
@@ -389,8 +404,9 @@ struct CollectionCleaner::Impl
 CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory,
                                      std::shared_ptr<const IDatabaseUser> databaseUser,
                                      std::shared_ptr<const ICollectionProvider> collectionProvider,
+                                     std::shared_ptr<const ILibRateProvider> libRateProvider,
                                      std::shared_ptr<IBooksExtractorProgressController> progressController)
-	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(progressController)) }
+	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {
 }
 

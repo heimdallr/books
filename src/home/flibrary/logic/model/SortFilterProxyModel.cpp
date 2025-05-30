@@ -143,7 +143,7 @@ bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelI
 	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
 	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
 	return lhsType != rhsType                  ? lhsType < rhsType
-	     : lhsType == QMetaType::Type::QString ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper(lhs.toString()) < Util::QStringWrapper(rhs.toString()))
+	     : lhsType == QMetaType::Type::QString ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper { lhs.toString() } < Util::QStringWrapper { rhs.toString() })
 	                                           : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
 }
 

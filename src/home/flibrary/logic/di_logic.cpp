@@ -4,6 +4,8 @@
 
 #include <Hypodermic/Hypodermic.h>
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "Annotation/AnnotationController.h"
 #include "Annotation/AuthorAnnotationController.h"
 #include "ChangeNavigationController/SearchController.h"
@@ -29,6 +31,7 @@
 #include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
 #include "shared/CommandLine.h"
+#include "shared/LibRateProvider.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/ReaderController.h"
@@ -81,6 +84,17 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<SetupPunchlineJokeRequester>().as<IJokeRequester>().singleInstance();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<IBookInfoProvider>();
+	builder
+		.registerInstanceFactory(
+			[&](Hypodermic::ComponentContext& ctx)
+			{
+				const auto settings = ctx.resolve<ISettings>();
+				return settings->Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
+		                 ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
+		                 : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
+			})
+		.as<ILibRateProvider>()
+		.singleInstance();
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<INavigationInfoProvider>();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<LogicFactory>(*container); }).as<ILogicFactory>().singleInstance();

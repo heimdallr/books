@@ -4,6 +4,7 @@ namespace HomeCompa::Flibrary::Constant::Settings
 {
 
 constexpr auto VIEW_MODE_KEY_TEMPLATE = "ui/%1/Mode";
+constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
 constexpr auto FONT_KEY = "ui/Font";
 constexpr auto FONT_SIZE_KEY = "ui/Font/pointSizeF";
 constexpr auto FONT_SIZE_FAMILY = "ui/Font/family";
@@ -22,7 +23,12 @@ constexpr auto OPDS_PORT_DEFAULT = 12791;
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 
-constexpr auto STAR_SYMBOL_KEY = "ui/star";
-constexpr auto STAR_SYMBOL_DEFAULT = 0x2B50;
+constexpr auto LIBRATE_STAR_SYMBOL_KEY = "ui/Books/LibRate/symbol";
+constexpr auto LIBRATE_VIEW_PRECISION_KEY = "ui/Books/LibRate/precision";
+constexpr auto LIBRATE_VIEW_COLORS_KEY = "ui/Books/LibRate/colors";
+constexpr auto LIBRATE_STAR_SYMBOL_DEFAULT = 0x2B50;
+constexpr auto LIBRATE_VIEW_PRECISION_DEFAULT = -1;
+constexpr auto COLLECTIONS = "Collections";
+constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED_KEY = "destructiveOperationsAllowed";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

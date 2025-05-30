@@ -498,7 +498,17 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Change language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Cannot set language of books</source>
         <translation></translation>
     </message>
     <message>
@@ -519,6 +529,11 @@
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Are you sure you want to change the language of the books to %1?</source>
         <translation></translation>
     </message>
 </context>
@@ -642,6 +657,22 @@
     </message>
     <message>
         <source>Delete forever, along with book files from archives</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Analyze collection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove rated less than</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove unrated books</source>
         <translation></translation>
     </message>
 </context>
@@ -2672,6 +2703,14 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::QueryWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/QueryWindow.cpp"/>
+        <source>Affected rows: %1</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::TreeView</name>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>
@@ -3156,7 +3195,6 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Caddo</source>
-        <translatorcomment>Каддо</translatorcomment>
         <translation></translation>
     </message>
     <message>
@@ -5183,6 +5221,10 @@ Try again?</source>
         <source>About the author</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Navigation</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
@@ -5411,8 +5453,8 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
-        <source>All books</source>
-        <translation></translation>
+        <source>AllBooks</source>
+        <translation>All books</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>

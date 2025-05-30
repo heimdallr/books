@@ -8,7 +8,11 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
+#include "interface/constants/SettingsConstant.h"
+#include "interface/ui/IUiFactory.h"
+
 #include "GuiUtil/GeometryRestorable.h"
+#include "util/ISettingsObserver.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;
@@ -40,6 +44,9 @@ constexpr auto MAXIMUM_SIZE = "ui/Cleaner/MaximumSize";
 constexpr auto MAXIMUM_SIZE_ENABLED = "ui/Cleaner/MaximumSizeEnabled";
 constexpr auto MINIMUM_SIZE = "ui/Cleaner/MinimumSize";
 constexpr auto MINIMUM_SIZE_ENABLED = "ui/Cleaner/MinimumSizeEnabled";
+constexpr auto MINIMUM_RATE = "ui/Cleaner/MinimumRate";
+constexpr auto DELETE_BY_RATE = "ui/Cleaner/DeleteByRate";
+constexpr auto DELETE_UNRATED = "ui/Cleaner/DeleteUnrated";
 
 TR_DEF
 
@@ -61,13 +68,14 @@ class CollectionCleaner::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 	, ICollectionCleaner::IAnalyzeObserver
+	, ISettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
 	Impl(CollectionCleaner& self,
 	     const ICollectionProvider& collectionProvider,
-	     std::shared_ptr<const Util::IUiFactory> uiFactory,
+	     std::shared_ptr<const IUiFactory> uiFactory,
 	     std::shared_ptr<const IReaderController> readerController,
 	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
 	     std::shared_ptr<const IBookInfoProvider> dataProvider,
@@ -88,8 +96,11 @@ public:
 		, m_languageModel { std::shared_ptr<IModel> { std::move(languageModel) } }
 		, m_scrollBarControllerGenre { std::move(scrollBarControllerGenre) }
 		, m_scrollBarControllerLanguage { std::move(scrollBarControllerLanguage) }
+		, m_additionalWidgetCallback { m_uiFactory->GetAdditionalWidgetCallback() }
+		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
+		self.addAction(m_ui.actionCancel);
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
@@ -106,9 +117,6 @@ public:
 		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
 		connect(m_ui.languages, &QAbstractItemView::doubleClicked, m_ui.actionLanguageReadRandomBook, &QAction::trigger);
 
-		connect(m_ui.maximumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.maximumSize, &QWidget::setEnabled);
-		connect(m_ui.minimumSizeEnabled, &QCheckBox::checkStateChanged, m_ui.minimumSize, &QWidget::setEnabled);
-
 		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] { OpenRandomBook(); });
 		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::CheckAll); });
 		connect(m_ui.actionLanguageUncheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::UncheckAll); });
@@ -116,8 +124,8 @@ public:
 		connect(m_ui.actionGenreCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::CheckAll); });
 		connect(m_ui.actionGenreUncheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::UncheckAll); });
 		connect(m_ui.actionGenreInvertChecks, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::RevertChecks); });
-		connect(m_ui.buttons, &QDialogButtonBox::rejected, &self, [&] { OnCancelClicked(); });
-		connect(m_ui.buttons, &QDialogButtonBox::accepted, &self, [&] { Analyze(); });
+		connect(m_ui.btnCancel, &QAbstractButton::clicked, &self, [&] { OnCancelClicked(); });
+		connect(m_ui.btnAnalyze, &QAbstractButton::clicked, &self, [&] { Analyze(); });
 
 		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
 		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
@@ -134,10 +142,13 @@ public:
 		layout->addWidget(label);
 
 		LoadGeometry();
+
+		m_settings->RegisterObserver(this);
 	}
 
 	~Impl() override
 	{
+		m_settings->UnregisterObserver(this);
 		SaveGeometry();
 		Save();
 	}
@@ -146,11 +157,9 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	void AnalyzeFinished(ICollectionCleaner::Books books) override
 	{
 		if (m_analyzeCanceled)
-			return m_self.reject();
+			return m_additionalWidgetCallback(ICollectionCleaner::State::Canceled);
 
-		auto dialogGuard = std::make_shared<ScopedCall>([this] { m_self.hide(); }, [this] { m_self.accept(); });
-
-		m_ui.progressBar->setVisible(false);
+		OnAnalyzing(false);
 
 		if (books.empty())
 			return m_uiFactory->ShowInfo(Tr(BOOKS_NOT_FOUND));
@@ -158,6 +167,9 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		const auto count = books.size();
 		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count).arg(m_ui.removeForever->isChecked() ? Tr(PERMANENTLY) : ""), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
+
+		auto dialogGuard =
+			std::make_shared<ScopedCall>([this] { m_additionalWidgetCallback(ICollectionCleaner::State::Started); }, [this] { m_additionalWidgetCallback(ICollectionCleaner::State::Finished); });
 
 		QEventLoop eventLoop;
 
@@ -204,6 +216,11 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		return m_ui.duplicates->isChecked();
 	}
 
+	bool NeedDeleteUnrated() const override
+	{
+		return m_ui.unrated->isChecked();
+	}
+
 	QStringList GetLanguages() const override
 	{
 		return m_ui.groupBoxLanguages->isChecked() ? m_ui.languages->model()->data({}, Role::SelectedList).toStringList() : QStringList {};
@@ -229,6 +246,18 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	std::optional<size_t> GetMaximumBookSize() const override
 	{
 		return m_ui.maximumSizeEnabled->isChecked() ? std::optional { m_ui.maximumSize->value() } : std::nullopt;
+	}
+
+	std::optional<double> GetMinimumLibRate() const override
+	{
+		return m_ui.ratedLess->isChecked() ? std::optional { m_ui.minimumRate->value() } : std::nullopt;
+	}
+
+private: // ISettingsObserver
+	void HandleValueChanged(const QString& key, const QVariant& value) override
+	{
+		if (key == m_destructiveOperationsAllowedKey)
+			m_ui.removeForever->setEnabled(value.toBool());
 	}
 
 private:
@@ -262,9 +291,9 @@ private:
 
 	void OnCancelClicked()
 	{
-		m_ui.buttons->button(QDialogButtonBox::StandardButton::Cancel)->setEnabled(false);
+		m_ui.btnCancel->setEnabled(false);
 		m_analyzeCanceled = true;
-		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.reject();
+		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_additionalWidgetCallback(QDialog::Rejected);
 	}
 
 	void Analyze()
@@ -273,9 +302,14 @@ private:
 		    && m_uiFactory->ShowQuestion(WRONG_SIZES, QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 			return;
 
-		m_ui.progressBar->setVisible(true);
-		m_ui.buttons->button(QDialogButtonBox::StandardButton::Ok)->setEnabled(false);
+		OnAnalyzing(true);
 		m_collectionCleaner->Analyze(*this);
+	}
+
+	void OnAnalyzing(const bool running) const
+	{
+		m_ui.progressBar->setVisible(running);
+		m_ui.btnAnalyze->setEnabled(!running);
 	}
 
 	void Load()
@@ -308,6 +342,9 @@ private:
 		m_ui.minimumSize->setValue(m_settings->Get(MINIMUM_SIZE, m_ui.minimumSize->value()));
 		m_ui.maximumSizeEnabled->setChecked(m_settings->Get(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked()));
 		m_ui.minimumSizeEnabled->setChecked(m_settings->Get(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked()));
+		m_ui.ratedLess->setChecked(m_settings->Get(DELETE_BY_RATE, m_ui.ratedLess->isChecked()));
+		m_ui.unrated->setChecked(m_settings->Get(DELETE_UNRATED, m_ui.unrated->isChecked()));
+		m_ui.minimumRate->setValue(m_settings->Get(MINIMUM_RATE, m_ui.minimumRate->value()));
 
 		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
 		{
@@ -334,6 +371,9 @@ private:
 		m_settings->Set(MINIMUM_SIZE, m_ui.minimumSize->value());
 		m_settings->Set(MAXIMUM_SIZE_ENABLED, m_ui.maximumSizeEnabled->isChecked());
 		m_settings->Set(MINIMUM_SIZE_ENABLED, m_ui.minimumSizeEnabled->isChecked());
+		m_settings->Set(DELETE_BY_RATE, m_ui.ratedLess->isChecked());
+		m_settings->Set(DELETE_UNRATED, m_ui.unrated->isChecked());
+		m_settings->Set(MINIMUM_RATE, m_ui.minimumRate->value());
 
 		QVector<int> widths;
 		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
@@ -342,9 +382,9 @@ private:
 	}
 
 private:
-	QDialog& m_self;
+	QWidget& m_self;
 	Ui::CollectionCleaner m_ui;
-	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
+	std::shared_ptr<const IUiFactory> m_uiFactory;
 	std::shared_ptr<const IReaderController> m_readerController;
 	std::shared_ptr<const ICollectionCleaner> m_collectionCleaner;
 	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
@@ -353,11 +393,13 @@ private:
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
+	IUiFactory::AdditionalWidgetCallback m_additionalWidgetCallback;
+	const QString m_destructiveOperationsAllowedKey;
 	bool m_analyzeCanceled { false };
 };
 
 CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-                                     std::shared_ptr<const Util::IUiFactory> uiFactory,
+                                     std::shared_ptr<const IUiFactory> uiFactory,
                                      std::shared_ptr<const IReaderController> readerController,
                                      std::shared_ptr<const ICollectionCleaner> collectionCleaner,
                                      std::shared_ptr<const IBookInfoProvider> dataProvider,
@@ -367,7 +409,7 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProv
                                      std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
                                      std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
                                      QWidget* parent)
-	: QDialog(uiFactory->GetParentWidget(parent))
+	: QWidget(uiFactory->GetParentWidget(parent))
 	, m_impl(*this,
              *collectionProvider,
              std::move(uiFactory),

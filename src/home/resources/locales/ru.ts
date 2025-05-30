@@ -498,8 +498,18 @@
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Change language</source>
+        <translation>Изменить язык</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Cannot set rate</source>
         <translation>Не удалось поставить оценку</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Cannot set language of books</source>
+        <translation>Не удалось изменить язык книг</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -520,6 +530,11 @@
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат этой операции нельзя отменить. Уверены, что хотите навсегда удалить эти книги?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <source>Are you sure you want to change the language of the books to %1?</source>
+        <translation>Вы уверены, что хотите изменить язык книг на %1?</translation>
     </message>
 </context>
 <context>
@@ -643,6 +658,22 @@
     <message>
         <source>Delete forever, along with book files from archives</source>
         <translation>Удалить навсегда, вместе с файлами книг из архивов</translation>
+    </message>
+    <message>
+        <source>Analyze collection</source>
+        <translation>Анализ коллекции</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Remove rated less than</source>
+        <translation>Удалить с рейтингом ниже</translation>
+    </message>
+    <message>
+        <source>Remove unrated books</source>
+        <translation>Удалить книги без рейтинга</translation>
     </message>
 </context>
 <context>
@@ -2684,6 +2715,14 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::QueryWindow</name>
+    <message>
+        <location filename="../../flibrary/gui/QueryWindow.cpp"/>
+        <source>Affected rows: %1</source>
+        <translation>Затронуто строк: %1</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::TreeView</name>
     <message>
         <location filename="../../flibrary/gui/TreeView.cpp"/>
@@ -3168,8 +3207,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Caddo</source>
-        <translatorcomment>Каддо</translatorcomment>
-        <translation></translation>
+        <translation>Каддо</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -5196,6 +5234,10 @@ Try again?</source>
         <source>About the author</source>
         <translation>Об авторе</translation>
     </message>
+    <message>
+        <source>Navigation</source>
+        <translation>Навигация</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>
@@ -5424,7 +5466,7 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
-        <source>All books</source>
+        <source>AllBooks</source>
         <translation>Все книги</translation>
     </message>
     <message>

@@ -80,7 +80,7 @@ private:
 
 	void Execute() const
 	{
-		m_transaction ? ExecuteCommand() : ExecuteQuery();
+		m_transaction && !m_ui.actionExplainQueryPlan->isChecked() ? ExecuteCommand() : ExecuteQuery();
 	}
 
 	void ExecuteCommand() const
@@ -88,6 +88,10 @@ private:
 		try
 		{
 			m_transaction->CreateCommand(GetQueryText())->Execute();
+			const auto query = m_transaction->CreateQuery("select changes()");
+			query->Execute();
+			assert(!query->Eof());
+			PLOGI << QString(tr("Affected rows: %1").arg(query->Get<int>(0)));
 		}
 		catch (const std::exception& ex)
 		{
@@ -135,7 +139,9 @@ private:
 
 	std::string GetQueryText() const
 	{
-		return QString("%2%1").arg(m_ui.text->toPlainText(), m_ui.actionExplainQueryPlan->isChecked() ? "explain query plan\n" : "").toStdString();
+		auto result = QString("%2%1").arg(m_ui.text->toPlainText(), m_ui.actionExplainQueryPlan->isChecked() ? "explain query plan\n" : "").toStdString();
+		PLOGI << result;
+		return result;
 	}
 
 private:
@@ -145,8 +151,8 @@ private:
 	std::shared_ptr<DB::ITransaction> m_transaction;
 };
 
-QueryWindow::QueryWindow(std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent)
-	: QMainWindow(parent)
+QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent)
+	: QMainWindow(parent ? parent : parentWidgetProvider->GetWidget())
 	, m_impl(this, std::move(settings), std::move(databaseUser))
 {
 }

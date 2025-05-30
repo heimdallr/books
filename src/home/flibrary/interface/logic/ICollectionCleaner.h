@@ -11,6 +11,16 @@ public:
 	static constexpr auto CONTEXT = "CollectionCleaner";
 	static constexpr auto REMOVE_PERMANENTLY_INFO = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted permanently");
 
+	struct State
+	{
+		enum
+		{
+			Canceled,
+			Started,
+			Finished,
+		};
+	};
+
 	struct Book
 	{
 		long long id;
@@ -36,11 +46,13 @@ public:
 		virtual bool IsPermanently() const = 0;
 		virtual bool NeedDeleteMarkedAsDeleted() const = 0;
 		virtual bool NeedDeleteDuplicates() const = 0;
+		virtual bool NeedDeleteUnrated() const = 0;
 		virtual QStringList GetLanguages() const = 0;
 		virtual QStringList GetGenres() const = 0;
 		virtual CleanGenreMode GetCleanGenreMode() const = 0;
 		virtual std::optional<size_t> GetMinimumBookSize() const = 0;
 		virtual std::optional<size_t> GetMaximumBookSize() const = 0;
+		virtual std::optional<double> GetMinimumLibRate() const = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <qttranslation.h>
 
 #include <QString>
@@ -90,8 +91,18 @@ QT_TRANSLATE_NOOP("Month", "2147483647")
 #endif
 
 constexpr auto LANGUAGES_CONTEXT = "Language";
+constexpr auto UNDEFINED_KEY = "un";
 constexpr auto UNDEFINED = QT_TRANSLATE_NOOP("Language", "[Undetermined]");
-constexpr std::pair<const char*, const char*> LANGUAGES[] {
+
+struct Language
+{
+	const char* key;
+	const char* title;
+	int priority { std::numeric_limits<int>::max() };
+};
+
+constexpr Language LANGUAGES[] {
+	{ UNDEFINED_KEY, UNDEFINED, 10000 },
 	{ "aa", QT_TRANSLATE_NOOP("Language", "Afar") },
 	{ "ab", QT_TRANSLATE_NOOP("Language", "Abkhazian") },
 	{ "ad", QT_TRANSLATE_NOOP("Language", "Adygei") },
@@ -106,7 +117,7 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "ay", QT_TRANSLATE_NOOP("Language", "Aymara") },
 	{ "az", QT_TRANSLATE_NOOP("Language", "Azerbaijani") },
 	{ "ba", QT_TRANSLATE_NOOP("Language", "Bashkir") },
-	{ "be", QT_TRANSLATE_NOOP("Language", "Belarusian") },
+	{ "be", QT_TRANSLATE_NOOP("Language", "Belarusian"), 1000 },
 	{ "bg", QT_TRANSLATE_NOOP("Language", "Bulgarian") },
 	{ "bi", QT_TRANSLATE_NOOP("Language", "Bislama") },
 	{ "bm", QT_TRANSLATE_NOOP("Language", "Bambara") },
@@ -124,14 +135,14 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "cv", QT_TRANSLATE_NOOP("Language", "Chuvash") },
 	{ "cy", QT_TRANSLATE_NOOP("Language", "Welsh") },
 	{ "da", QT_TRANSLATE_NOOP("Language", "Danish") },
-	{ "de", QT_TRANSLATE_NOOP("Language", "German") },
+	{ "de", QT_TRANSLATE_NOOP("Language", "German"), 1000 },
 	{ "dv", QT_TRANSLATE_NOOP("Language", "Divehi") },
 	{ "dz", QT_TRANSLATE_NOOP("Language", "Dzongkha") },
 	{ "ee", QT_TRANSLATE_NOOP("Language", "Ewe") },
 	{ "el", QT_TRANSLATE_NOOP("Language", "Greek") },
-	{ "en", QT_TRANSLATE_NOOP("Language", "English") },
+	{ "en", QT_TRANSLATE_NOOP("Language", "English"), 100 },
 	{ "eo", QT_TRANSLATE_NOOP("Language", "Esperanto") },
-	{ "es", QT_TRANSLATE_NOOP("Language", "Spanish") },
+	{ "es", QT_TRANSLATE_NOOP("Language", "Spanish"), 1000 },
 	{ "et", QT_TRANSLATE_NOOP("Language", "Estonian") },
 	{ "eu", QT_TRANSLATE_NOOP("Language", "Basque") },
 	{ "fa", QT_TRANSLATE_NOOP("Language", "Persian") },
@@ -139,7 +150,7 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "fi", QT_TRANSLATE_NOOP("Language", "Finnish") },
 	{ "fj", QT_TRANSLATE_NOOP("Language", "Fijian") },
 	{ "fo", QT_TRANSLATE_NOOP("Language", "Faroese") },
-	{ "fr", QT_TRANSLATE_NOOP("Language", "French") },
+	{ "fr", QT_TRANSLATE_NOOP("Language", "French"), 1000 },
 	{ "fy", QT_TRANSLATE_NOOP("Language", "Western Frisian") },
 	{ "ga", QT_TRANSLATE_NOOP("Language", "Irish") },
 	{ "gd", QT_TRANSLATE_NOOP("Language", "Gaelic") },
@@ -207,7 +218,7 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "nd", QT_TRANSLATE_NOOP("Language", "North Ndebele") },
 	{ "ne", QT_TRANSLATE_NOOP("Language", "Nepali") },
 	{ "ng", QT_TRANSLATE_NOOP("Language", "Ndonga") },
-	{ "nl", QT_TRANSLATE_NOOP("Language", "Dutch") },
+	{ "nl", QT_TRANSLATE_NOOP("Language", "Dutch"), 1000 },
 	{ "nn", QT_TRANSLATE_NOOP("Language", "Norwegian Nynorsk") },
 	{ "no", QT_TRANSLATE_NOOP("Language", "Norwegian") },
 	{ "nr", QT_TRANSLATE_NOOP("Language", "South Ndebele") },
@@ -220,14 +231,14 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "os", QT_TRANSLATE_NOOP("Language", "Ossetian") },
 	{ "pa", QT_TRANSLATE_NOOP("Language", "Panjabi") },
 	{ "pi", QT_TRANSLATE_NOOP("Language", "Pali") },
-	{ "pl", QT_TRANSLATE_NOOP("Language", "Polish") },
+	{ "pl", QT_TRANSLATE_NOOP("Language", "Polish"), 1000 },
 	{ "ps", QT_TRANSLATE_NOOP("Language", "Pushto") },
-	{ "pt", QT_TRANSLATE_NOOP("Language", "Portuguese") },
+	{ "pt", QT_TRANSLATE_NOOP("Language", "Portuguese"), 1000 },
 	{ "qu", QT_TRANSLATE_NOOP("Language", "Quechua") },
 	{ "rm", QT_TRANSLATE_NOOP("Language", "Romansh") },
 	{ "rn", QT_TRANSLATE_NOOP("Language", "Rundi") },
 	{ "ro", QT_TRANSLATE_NOOP("Language", "Romanian, Moldavian") },
-	{ "ru", QT_TRANSLATE_NOOP("Language", "Russian") },
+	{ "ru", QT_TRANSLATE_NOOP("Language", "Russian"), 100 },
 	{ "rw", QT_TRANSLATE_NOOP("Language", "Kinyarwanda") },
 	{ "sa", QT_TRANSLATE_NOOP("Language", "Sanskrit") },
 	{ "sc", QT_TRANSLATE_NOOP("Language", "Sardinian") },
@@ -262,8 +273,7 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "tw", QT_TRANSLATE_NOOP("Language", "Twi") },
 	{ "ty", QT_TRANSLATE_NOOP("Language", "Tahitian") },
 	{ "ug", QT_TRANSLATE_NOOP("Language", "Uighur") },
-	{ "uk", QT_TRANSLATE_NOOP("Language", "Ukrainian") },
-	{ "un", UNDEFINED },
+	{ "uk", QT_TRANSLATE_NOOP("Language", "Ukrainian"), 100 },
 	{ "ur", QT_TRANSLATE_NOOP("Language", "Urdu") },
 	{ "uz", QT_TRANSLATE_NOOP("Language", "Uzbek") },
 	{ "ve", QT_TRANSLATE_NOOP("Language", "Venda") },
@@ -515,7 +525,14 @@ constexpr std::pair<const char*, const char*> LANGUAGES[] {
 	{ "evn", QT_TRANSLATE_NOOP("Language", "Evenki") },
 };
 
+inline std::unordered_map<QString, const char*> GetLanguagesMap()
+{
+	std::unordered_map<QString, const char*> result;
+	std::ranges::transform(LANGUAGES, std::inserter(result, result.end()), [](const auto& item) { return std::make_pair(QString { item.key }, item.title); });
+	return result;
 }
+
+} // namespace HomeCompa
 
 #define TR_DEF                        \
 	QString Tr(const char* str)       \
