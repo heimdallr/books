@@ -5227,7 +5227,7 @@ Try again?</source>
     </message>
     <message>
         <source>Readers&apos; &amp;Reviews</source>
-        <translation></translation>
+        <translation>Відгуки &amp;читачів</translation>
     </message>
     <message>
         <source>About the author</source>

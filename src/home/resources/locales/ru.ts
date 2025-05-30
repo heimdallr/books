@@ -394,7 +394,7 @@
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>Generate inde&amp;x file (*.inpx)</source>
-        <translation>Создять инде&amp;кс (*.inpx)</translation>
+        <translation>Создать инде&amp;кс (*.inpx)</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -574,7 +574,7 @@
     </message>
     <message>
         <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-        <translation>Осторожо! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
+        <translation>Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
     </message>
     <message>
         <source>Find and remove duplicate books</source>
@@ -582,7 +582,7 @@
     </message>
     <message>
         <source>Delete books marked as deleted</source>
-        <translation>Удалить книги, помеченые как удаленные</translation>
+        <translation>Удалить книги, помеченные как удаленные</translation>
     </message>
     <message>
         <source>Read random book</source>
@@ -707,7 +707,7 @@
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation>Похоже, коллекция обновиласть. Применить изменения?</translation>
+        <translation>Похоже, коллекция обновилась. Применить изменения?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
@@ -3687,7 +3687,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Marwari</source>
-        <translation>Марварі</translation>
+        <translation>Марвари</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -4527,7 +4527,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Maltese</source>
-        <translation>Малтийский</translation>
+        <translation>Мальтийский</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -5008,7 +5008,7 @@ Try again?</source>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
-        <translation>&amp;Уровень детализации жунрала</translation>
+        <translation>&amp;Уровень детализации журнала</translation>
     </message>
     <message>
         <source>&amp;Clear log</source>
@@ -5227,7 +5227,6 @@ Try again?</source>
     </message>
     <message>
         <source>Readers&apos; &amp;Reviews</source>
-        <translatorcomment>Відгуки &amp;читачів</translatorcomment>
         <translation>Отзывы &amp;читателей</translation>
     </message>
     <message>
