@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/ICoverCache.h"
 #include "interface/IRequester.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IAuthorAnnotationController.h"
@@ -25,6 +26,7 @@ public:
 	          std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	          std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	          std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+	          std::shared_ptr<const ICoverCache> coverCache,
 	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
 	~Requester() override;
 
@@ -49,10 +51,6 @@ private: // IRequester
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const override;
 	OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
-
-#define OPDS_GET_BOOKS_API_ITEM(NAME, _) QByteArray NAME(const QString& value) const override;
-	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
-#undef OPDS_GET_BOOKS_API_ITEM
 
 private:
 	class Impl;

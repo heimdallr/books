@@ -5635,47 +5635,47 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Number of: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>All books in the section</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books found for the request &quot;%1&quot;: %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Previous page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Next page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[First page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Last page]</source>
         <translation></translation>
     </message>
