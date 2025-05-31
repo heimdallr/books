@@ -537,7 +537,7 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	{
 		const auto query = db.CreateQuery("select FileName, BookId from libfilename");
 		for (query->Execute(); !query->Eof(); query->Next())
-			fileToId.emplace(query->Get<const char*>(0), query->Get<long long>(1));
+			fileToId.try_emplace(query->Get<const char*>(0), query->Get<long long>(1));
 	}
 
 	const auto unIndexed = []() -> QJsonObject
@@ -711,13 +711,13 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 		if (currentMonth < 0)
 			return;
 
-		const auto archiveName = QString::fromStdWString(reviewsFolder / std::to_string(currentMonth)) + ".7z";
+		auto archiveName = QString::fromStdWString(reviewsFolder / std::to_string(currentMonth)) + ".7z";
 
 		auto dataCopy = std::move(data);
 		data = {};
 
 		threadPool->enqueue(
-			[&archivesGuard, &archives, archiveName = archiveName, data = std::move(dataCopy)]() mutable
+			[&archivesGuard, &archives, archiveName = std::move(archiveName), data = std::move(dataCopy)]() mutable
 			{
 				const ScopedCall logGuard([&] { PLOGI << archiveName << " started"; }, [=] { PLOGI << archiveName << " finished"; });
 
@@ -928,7 +928,7 @@ order by n.nid
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
 		auto authorHash = hash.result().toHex();
-		auto& files = data.emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
+		auto& files = data.try_emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
 		if (const auto* file = query->Get<const char*>(3))
 			files.insert(file);
 	}

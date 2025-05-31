@@ -405,12 +405,14 @@ private:
 
 		const auto addOption = [](const bool condition, const ITreeViewController::RequestContextMenuOptions option) { return condition ? option : ITreeViewController::RequestContextMenuOptions::None; };
 
+		const auto currentIndex = m_ui.treeView->currentIndex();
+
 		ITreeViewController::RequestContextMenuOptions options =
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
 			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			| addOption(m_ui.treeView->currentIndex().data(Role::Type).value<ItemType>() == ItemType::Books
-		                    && Zip::IsArchive(Util::RemoveIllegalPathCharacters(m_ui.treeView->currentIndex().data(Role::FileName).toString())),
+			| addOption(currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
+		                    && Zip::IsArchive(Util::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 		                ITreeViewController::RequestContextMenuOptions::IsArchive);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -424,8 +426,8 @@ private:
 				return result;
 			};
 
-			if (m_ui.treeView->currentIndex().isValid())
-				checkIndex(m_ui.treeView->currentIndex(), ITreeViewController::RequestContextMenuOptions::NodeExpanded, ITreeViewController::RequestContextMenuOptions::NodeCollapsed);
+			if (currentIndex.isValid())
+				checkIndex(currentIndex, ITreeViewController::RequestContextMenuOptions::NodeExpanded, ITreeViewController::RequestContextMenuOptions::NodeCollapsed);
 
 			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())

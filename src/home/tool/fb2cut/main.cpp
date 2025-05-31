@@ -143,17 +143,19 @@ bool HasAlpha(const QImage& image, const char* data)
 	return true;
 }
 
-QImage ReducePng(const char* imageType, const QString& imageFile, QImage image, int quantity)
+QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputImage, int quantity)
 {
 	if (quantity < 0)
 		quantity = 80;
+
+	QImage image = std::move(inputImage);
 
 	quantity = std::min(quantity, 100);
 
 	const auto size = image.size();
 	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
 	std::vector<void*> rowsIn;
-	rowsIn.reserve(size.height());
+	rowsIn.reserve(static_cast<size_t>(size.height()));
 	for (int i = 0, sz = size.height(); i < sz; ++i)
 		rowsIn.emplace_back(imageSrc.scanLine(i));
 	auto* attr = liq_attr_create();
@@ -184,7 +186,7 @@ QImage ReducePng(const char* imageType, const QString& imageFile, QImage image, 
 
 	QImage result(size, QImage::Format_Indexed8);
 	std::vector<unsigned char*> rowsOut;
-	rowsIn.reserve(size.height());
+	rowsIn.reserve(static_cast<size_t>(size.height()));
 	for (int i = 0, sz = size.height(); i < sz; ++i)
 		rowsOut.emplace_back(result.scanLine(i));
 
@@ -522,7 +524,7 @@ public:
 		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 	}
 
-	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const
+	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const //-V826
 	{
 		if (!saveFlag || images.empty())
 			return;

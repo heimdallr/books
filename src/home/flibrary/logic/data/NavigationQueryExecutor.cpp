@@ -382,16 +382,17 @@ NavigationQueryExecutor::~NavigationQueryExecutor()
 
 void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationMode, Callback callback, const bool force) const
 {
-	if (const auto it = m_impl->cache.find(navigationMode); it != m_impl->cache.end())
+	auto& cache = m_impl->cache;
+	if (const auto it = cache.find(navigationMode); it != cache.end())
 	{
 		if (force)
-			m_impl->cache.erase(it);
+			cache.erase(it);
 		else
 			return callback(navigationMode, it->second);
 	}
 
 	const auto& [request, description] = FindSecond(QUERIES, navigationMode);
-	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, m_impl->cache);
+	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, cache);
 }
 
 const QueryDescription& NavigationQueryExecutor::GetQueryDescription(const NavigationMode navigationMode) const

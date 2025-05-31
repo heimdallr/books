@@ -28,7 +28,7 @@ class ModelImpl : public QAbstractTableModel
 	struct Item
 	{
 		QString language;
-		int count;
+		int count { 0 };
 		bool checked { false };
 	};
 
@@ -91,7 +91,7 @@ private: // QAbstractItemModel
 			return result;
 		}
 
-		const auto& item = m_items[index.row()];
+		const auto& item = m_items[static_cast<size_t>(index.row())];
 
 		switch (role)
 		{
@@ -126,7 +126,7 @@ private: // QAbstractItemModel
 		if (index.isValid())
 		{
 			assert(role == Qt::CheckStateRole);
-			auto& item = m_items[index.row()];
+			auto& item = m_items[static_cast<size_t>(index.row())];
 			item.checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
 			return true;
 		}

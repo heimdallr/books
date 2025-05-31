@@ -51,12 +51,12 @@ struct QueryDescription
 	using Binder = int (*)(DB::IQuery&, const QString&);
 	using MappingGetter = const BookItem::Mapping& (QueryDescription::*)() const noexcept;
 
-	const char* query;
+	const char* query { nullptr };
 	const QueryInfo& queryInfo;
-	const char* whereClause;
-	const char* joinClause;
+	const char* whereClause { nullptr };
+	const char* joinClause { nullptr };
 	Binder binder;
-	IBooksTreeCreator::Creator treeCreator;
+	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
 	const char* seqNumberTableAlias { "b" };

@@ -720,9 +720,6 @@ private: // SaxParser
 		};
 
 		const auto result = Parse(*this, PARSERS, path, value);
-		if (m_processed || !m_body)
-			return result;
-
 		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, value);
 	}
 

@@ -121,8 +121,10 @@ void DatabaseUser::EnableApplicationCursorChange(const bool value)
 	APPLICATION_CURSOR_CONTROLLER = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
 }
 
-QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValue) const
+QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 {
+	auto defaultValue = std::move(defaultValueSrc);
+
 	try
 	{
 		const auto db = m_impl->databaseController->GetDatabase();

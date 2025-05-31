@@ -397,7 +397,7 @@ private: // ITableSubscriptionHandler
 private:
 	void OnTableChanged(const NavigationMode tableMode)
 	{
-		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<int>(tableMode)].reset();
+		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<size_t>(tableMode)].reset();
 	}
 
 	NON_COPY_MOVABLE(Impl)
@@ -489,13 +489,13 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback) //-V801
 {
 	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester(options))
 		callback(index.data(Role::Id).toString(), item);
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item)
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item) //-V801
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

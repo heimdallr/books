@@ -147,7 +147,7 @@ private: // QAbstractItemModel
 	{
 		assert(index.column() < columnCount());
 
-		auto pixmap = m_images[index.column()];
+		auto pixmap = m_images[static_cast<size_t>(index.column())];
 		const auto height = m_ui.gallery->height();
 
 		switch (role)
@@ -156,7 +156,7 @@ private: // QAbstractItemModel
 				return QSize { height * pixmap.width() / pixmap.height(), height };
 
 			case Qt::DecorationRole:
-				return m_images[index.column()].scaled(height * pixmap.width() / pixmap.height(), height);
+				return m_images[static_cast<size_t>(index.column())].scaled(height * pixmap.width() / pixmap.height(), height);
 
 			default:
 				break;

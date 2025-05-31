@@ -1,7 +1,5 @@
 #include "Genre.h"
 
-#include <QHash>
-
 #include <ranges>
 
 #include "fnd/FindPair.h"
@@ -11,7 +9,6 @@
 
 #include "interface/constants/GenresLocalization.h"
 
-#include "inpx/src/util/constant.h"
 #include "util/ISettings.h"
 #include "util/localization.h"
 
@@ -69,7 +66,7 @@ void SortByChildCountDesc(Genre& genre)
 
 using Sorter = void (*)(Genre&);
 constexpr std::pair<const char*, Sorter> SORTERS[] {
-#define ITEM(NAME) { #NAME, &NAME }
+#define ITEM(NAME) { #NAME, &(NAME) }
 	ITEM(SortByCode), ITEM(SortByName), ITEM(SortByChildCount), ITEM(SortByCodeDesc), ITEM(SortByNameDesc), ITEM(SortByChildCountDesc),
 #undef ITEM
 };
@@ -101,11 +98,11 @@ Genre Genre::Load(DB::IDatabase& db)
 			allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
 	}
 
-	const auto updateChildren = [](auto& children)
+	const auto updateChildren = [](auto& childrenList)
 	{
-		std::ranges::sort(children, {}, [](const auto& item) { return item.code; });
-		for (int i = 0, sz = static_cast<int>(children.size()); i < sz; ++i)
-			children[i].row = i;
+		std::ranges::sort(childrenList, {}, [](const auto& item) { return item.code; });
+		for (size_t i = 0, sz = childrenList.size(); i < sz; ++i)
+			childrenList[i].row = i;
 	};
 
 	Genre root;

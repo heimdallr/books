@@ -11,7 +11,7 @@ using namespace HomeCompa::ZipDetails::SevenZip;
 
 class StreamSetRestriction : public IStreamSetRestriction
 {
-	UNKNOWN_IMPL(IStreamSetRestriction)
+	UNKNOWN_IMPL(IStreamSetRestriction) //-V835
 
 public:
 	static CComPtr<IStreamSetRestriction> Create()
@@ -46,7 +46,7 @@ OutMemStream::~OutMemStream()
 		file->resize(m_maxPos);
 }
 
-HRESULT OutMemStream::QueryInterface(REFIID iid, void** ppvObject)
+HRESULT OutMemStream::QueryInterface(REFIID iid, void** ppvObject) //-V835
 {
 	if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 	{

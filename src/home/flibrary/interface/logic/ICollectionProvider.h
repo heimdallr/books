@@ -19,7 +19,7 @@ struct Collection
 	QString database;
 	QString folder;
 	QString discardedUpdate;
-	int createCollectionMode;
+	int createCollectionMode { 0 };
 	bool destructiveOperationsAllowed { false };
 
 	using Ptr = std::unique_ptr<Collection>;
