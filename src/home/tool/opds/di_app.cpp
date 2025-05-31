@@ -8,6 +8,7 @@
 #include "requester/NoSqlRequester.h"
 #include "requester/ReactAppRequester.h"
 #include "requester/Requester.h"
+#include "util/BookExtractor.h"
 #include "util/CoverCache.h"
 
 #include "Server.h"
@@ -19,6 +20,7 @@ void DiInit(Hypodermic::ContainerBuilder& builder, std::shared_ptr<Hypodermic::C
 {
 	Flibrary::DiLogic(builder, container);
 
+	builder.registerType<BookExtractor>().as<IBookExtractor>().singleInstance();
 	builder.registerType<CoverCache>().as<ICoverCache>().singleInstance();
 	builder.registerType<NoSqlRequester>().as<INoSqlRequester>().singleInstance();
 	builder.registerType<ReactAppRequester>().as<IReactAppRequester>().singleInstance();
