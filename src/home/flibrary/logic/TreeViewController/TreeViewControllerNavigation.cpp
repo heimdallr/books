@@ -17,7 +17,6 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "util/FunctorExecutionForwarder.h"
 
@@ -32,7 +31,7 @@ namespace
 constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool) const;
 using MenuRequester = IDataItem::Ptr (*)(ITreeViewController::RequestContextMenuOptions options);
 
 IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
@@ -238,8 +237,7 @@ std::vector<std::pair<const char*, int>> GetModes(const IDatabaseController& dat
 } // namespace
 
 struct TreeViewControllerNavigation::Impl final
-	: IModelObserver
-	, virtual IContextMenuHandler
+	: virtual IContextMenuHandler
 	, virtual private IDatabaseController::IObserver
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
@@ -419,7 +417,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		[&](IDataItem::Ptr data)
 		{
 			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), false);
+			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), false);
 			m_impl->models[m_impl->mode].reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 		});
