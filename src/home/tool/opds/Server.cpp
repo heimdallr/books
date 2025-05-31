@@ -158,10 +158,12 @@ public:
 	Impl(const ISettings& settings,
 	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const IRequester> requester,
-	     std::shared_ptr<const IReactAppRequester> reactAppRequesterRequester)
+	     std::shared_ptr<const IReactAppRequester> reactAppRequester,
+	     std::shared_ptr<const INoSqlRequester> noSqlRequester)
 		: m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
-		, m_reactAppRequesterRequester { std::move(reactAppRequesterRequester) }
+		, m_reactAppRequester { std::move(reactAppRequester) }
+		, m_noSqlRequester { std::move(noSqlRequester) }
 	{
 		const auto host = [&]() -> QHostAddress
 		{
@@ -197,14 +199,14 @@ public:
 	}
 
 private:
-	using BookGetter = std::pair<QString, QByteArray> (IRequester::*)(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const;
+	using BookGetter = std::pair<QString, QByteArray> (INoSqlRequester::*)(const QString& bookId, bool restoreImages) const;
 
-	auto GetBook(BookGetter getter, QString root, QString self, QString value, QString acceptEncoding, QString contentType, const bool restoreImages) const
+	auto GetBook(BookGetter getter, QString value, QString acceptEncoding, QString contentType, const bool restoreImages) const
 	{
 		return QtConcurrent::run(
-			[this, getter, root = std::move(root), self = std::move(self), value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages]
+			[this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages]
 			{
-				auto [fileName, body] = std::invoke(getter, *m_requester, std::cref(root), std::cref(self), std::cref(value), restoreImages);
+				auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages);
 				auto response = EncodeContent(std::move(body), acceptEncoding);
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
@@ -237,13 +239,11 @@ private:
 				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
 			});
 
-		for (const auto& root : {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
-				 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
-#undef OPDS_REQUEST_ROOT_ITEM
-			 })
-			InitHttp(root);
+		Route();
+	}
 
+	void Route()
+	{
 		m_server.route(FAVICON,
 		               [this]
 		               {
@@ -257,64 +257,17 @@ private:
 							   });
 					   });
 
-		m_server.route(
-			"/",
-			[this](const QHttpServerRequest& request)
-			{
-				return QtConcurrent::run(
-					[this, acceptEncoding = GetAcceptEncoding(request)]
-					{ return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
-			});
-		m_server.route(QString(ASSETS).arg(ARG),
-		               [this](const QString& fileName, const QHttpServerRequest& request)
-		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
+		for (const auto& root : {
+#define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
+				 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
+#undef OPDS_REQUEST_ROOT_ITEM
+			 })
+			RouteWithRoot(root);
 
-		using Requester = QByteArray (IReactAppRequester::*)(const QString&) const;
-		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
-#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IReactAppRequester::NAME },
-			OPDS_GET_BOOKS_API_ITEMS_X_MACRO
-#undef OPDS_GET_BOOKS_API_ITEM
-		};
-
-		for (const auto& [name, queryKey, requester] : booksApiDescription)
-		{
-			m_server.route(QString(GET_BOOKS_API).arg(name),
-			               [this, requester, queryKey](const QHttpServerRequest& request)
-			               {
-							   return QtConcurrent::run(
-								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded), acceptEncoding = GetAcceptEncoding(request)]
-								   {
-									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequesterRequester, std::cref(value)), acceptEncoding);
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
-									   return response;
-								   });
-						   });
-		}
-		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG),
-		               [this](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, value]
-							   {
-								   QHttpServerResponse response(m_requester->GetCover(web, QString(COVER).arg(web, value), value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
-								   return response;
-							   });
-					   });
-
-		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG),
-		               [this](const QString& value, const QHttpServerRequest& request)
-		               { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, GetAcceptEncoding(request), "application/fb2", false); });
-
-		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG),
-		               [this](const QString& value, const QHttpServerRequest& request)
-		               { return GetBook(&IRequester::GetBook, web, QString(BOOK_DATA).arg(web, value), value, GetAcceptEncoding(request), "application/fb2", true); });
-
-		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG),
-		               [this](const QString& value) { return GetBook(&IRequester::GetBookZip, web, QString(BOOK_ZIP).arg(web, value), value, "", "application/zip", true); });
+		RouteReactApp();
 	}
 
-	void InitHttp(const QString& root)
+	void RouteWithRoot(const QString& root)
 	{
 		m_server.route(QString(ROOT).arg(root),
 		               [this, root](const QHttpServerRequest& request)
@@ -365,11 +318,9 @@ private:
 					   });
 
 		m_server.route(QString(BOOK_DATA).arg(root, ARG),
-		               [this, root](const QString& value, const QHttpServerRequest& request)
-		               { return GetBook(&IRequester::GetBook, root, QString(BOOK_DATA).arg(root, value), value, GetAcceptEncoding(request), "application/fb2", true); });
+		               [this](const QString& value, const QHttpServerRequest& request) { return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true); });
 
-		m_server.route(QString(BOOK_ZIP).arg(root, ARG),
-		               [this, root](const QString& value) { return GetBook(&IRequester::GetBookZip, root, QString(BOOK_ZIP).arg(root, value), value, "", "application/zip", true); });
+		m_server.route(QString(BOOK_ZIP).arg(root, ARG), [this](const QString& value) { return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true); });
 
 		m_server.route(QString(READ).arg(root, ARG),
 		               [this, root](const QString& value, const QHttpServerRequest& request)
@@ -384,24 +335,24 @@ private:
 					   });
 
 		m_server.route(QString(COVER).arg(root, ARG),
-		               [this, root](const QString& value)
+		               [this](const QString& value)
 		               {
 						   return QtConcurrent::run(
-							   [this, root, value]
+							   [this, value]
 							   {
-								   QHttpServerResponse response(m_requester->GetCover(root, QString(COVER).arg(root, value), value));
+								   QHttpServerResponse response(m_noSqlRequester->GetCover(value));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 								   return response;
 							   });
 					   });
 
 		m_server.route(QString(THUMBNAIL).arg(root, ARG),
-		               [this, root](const QString& value)
+		               [this](const QString& value)
 		               {
 						   return QtConcurrent::run(
-							   [this, root, value]
+							   [this, value]
 							   {
-								   QHttpServerResponse response(m_requester->GetCoverThumbnail(root, QString(THUMBNAIL).arg(root, value), value));
+								   QHttpServerResponse response(m_noSqlRequester->GetCoverThumbnail(value));
 								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 								   return response;
 							   });
@@ -547,19 +498,78 @@ private:
 		}
 	}
 
+	void RouteReactApp()
+	{
+		m_server.route(
+			"/",
+			[this](const QHttpServerRequest& request)
+			{
+				return QtConcurrent::run(
+					[this, acceptEncoding = GetAcceptEncoding(request)]
+					{ return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
+			});
+
+		m_server.route(QString(ASSETS).arg(ARG),
+		               [this](const QString& fileName, const QHttpServerRequest& request)
+		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
+
+		using Requester = QByteArray (IReactAppRequester::*)(const QString&) const;
+		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
+#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IReactAppRequester::NAME },
+			OPDS_GET_BOOKS_API_ITEMS_X_MACRO
+#undef OPDS_GET_BOOKS_API_ITEM
+		};
+
+		for (const auto& [name, queryKey, requester] : booksApiDescription)
+		{
+			m_server.route(QString(GET_BOOKS_API).arg(name),
+			               [this, requester, queryKey](const QHttpServerRequest& request)
+			               {
+							   return QtConcurrent::run(
+								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded), acceptEncoding = GetAcceptEncoding(request)]
+								   {
+									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(value)), acceptEncoding);
+									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
+									   return response;
+								   });
+						   });
+		}
+		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG),
+		               [this](const QString& value)
+		               {
+						   return QtConcurrent::run(
+							   [this, value]
+							   {
+								   QHttpServerResponse response(m_noSqlRequester->GetCover(value));
+								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
+								   return response;
+							   });
+					   });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG),
+		               [this](const QString& value, const QHttpServerRequest& request) { return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", false); });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG),
+		               [this](const QString& value, const QHttpServerRequest& request) { return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true); });
+
+		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value) { return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true); });
+	}
+
 private:
 	QLocalServer m_localServer;
 	QHttpServer m_server;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IRequester> m_requester;
-	std::shared_ptr<const IReactAppRequester> m_reactAppRequesterRequester;
+	std::shared_ptr<const IReactAppRequester> m_reactAppRequester;
+	std::shared_ptr<const INoSqlRequester> m_noSqlRequester;
 };
 
 Server::Server(const std::shared_ptr<const ISettings>& settings,
                std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
                std::shared_ptr<const IRequester> requester,
-               std::shared_ptr<const IReactAppRequester> reactAppRequesterRequester)
-	: m_impl(*settings, std::move(collectionProvider), std::move(requester), std::move(reactAppRequesterRequester))
+               std::shared_ptr<const IReactAppRequester> reactAppRequester,
+               std::shared_ptr<const INoSqlRequester> noSqlRequester)
+	: m_impl(*settings, std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
 {
 	PLOGV << "Server created";
 }
