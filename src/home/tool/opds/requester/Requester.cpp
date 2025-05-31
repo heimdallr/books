@@ -9,8 +9,6 @@
 #include <QTimer>
 #include <QUrl>
 
-#include <unicode/translit.h>
-
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
@@ -26,12 +24,10 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IScriptController.h"
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
-#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/SortString.h"
@@ -41,7 +37,6 @@
 
 #include "log.h"
 #include "root.h"
-#include "zip.h"
 
 namespace HomeCompa::Opds
 {
@@ -158,7 +153,6 @@ constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
 constexpr auto CONTENT = "content";
-constexpr auto OPDS_TRANSLITERATE = "opds/transliterate";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
@@ -469,59 +463,6 @@ Node WriteNavigationStartsWith(DB::IDatabase& db,
 	return head;
 }
 
-QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
-{
-	const Zip unzip(path + "/" + archive);
-	const auto stream = unzip.Read(fileName);
-	if (!restoreImages)
-		return stream->GetStream().readAll();
-
-	QByteArray data;
-	{
-		QBuffer buffer(&data);
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
-	}
-	return data;
-}
-
-QByteArray Compress(QByteArray data, const QString& fileName)
-{
-	QByteArray zippedData;
-	{
-		QBuffer buffer(&zippedData);
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		buffer.open(QIODevice::WriteOnly);
-		Zip zip(buffer, Zip::Format::Zip);
-		std::vector<std::pair<QString, QByteArray>> toZip {
-			{ fileName, std::move(data) }
-		};
-		zip.Write(std::move(toZip));
-	}
-	return zippedData;
-}
-
-void Transliterate(const char* id, QString& str)
-{
-	UErrorCode status = U_ZERO_ERROR;
-	icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
-	assert(myTrans);
-
-	auto s = str.toStdU32String();
-	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
-	myTrans->transliterate(icuString);
-	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4ULL);
-	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
-	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
-}
-
-QString GetOutputFileNameTemplate(const ISettings& settings)
-{
-	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
-	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
-	return outputFileNameTemplate;
-}
-
 } // namespace
 
 class Requester::Impl : public IPostProcessCallback
@@ -532,14 +473,17 @@ public:
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	     std::shared_ptr<const ICoverCache> coverCache,
+	     std::shared_ptr<const IBookExtractor> bookExtractor,
+	     std::shared_ptr<const INoSqlRequester> noSqlRequester,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 		, m_coverCache { std::move(coverCache) }
+		, m_bookExtractor { std::move(bookExtractor) }
+		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
-		, m_outputFileNameTemplate { GetOutputFileNameTemplate(*m_settings) }
 	{
 	}
 
@@ -731,31 +675,9 @@ public:
 		return head;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBookImpl(const QString& bookId, const bool restoreImages) const
-	{
-		auto book = GetExtractedBook(bookId);
-		auto outputFileName = GetFileName(book);
-		auto data = Decompress(m_collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
-
-		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
-	}
-
-	std::pair<QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages) const
-	{
-		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
-		return std::make_pair(title, std::move(data));
-	}
-
-	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, const bool restoreImages) const
-	{
-		auto [fileName, title, data] = GetBookImpl(bookId, restoreImages);
-		data = Compress(std::move(data), fileName);
-		return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
-	}
-
 	QByteArray GetBookText(const QString& bookId) const
 	{
-		return std::get<2>(GetBookImpl(bookId, true));
+		return m_noSqlRequester->GetBook(bookId).second;
 	}
 
 	Node WriteAuthorsNavigation(const QString& root, const QString& self, const QString& value) const
@@ -927,8 +849,7 @@ select f.FolderID, f.FolderTitle, count(42)
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId) const override
 	{
-		const auto book = GetExtractedBook(bookId);
-		return GetFileName(book);
+		return m_bookExtractor->GetFileName(bookId);
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override
@@ -940,47 +861,6 @@ private: // IPostProcessCallback
 	}
 
 private:
-	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
-	{
-		auto outputFileName = m_outputFileNameTemplate;
-		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
-		if (!m_settings->Get(OPDS_TRANSLITERATE, false))
-			return outputFileName;
-
-		Transliterate("ru-ru_Latn/BGN", outputFileName);
-		Transliterate("Any-Latin", outputFileName);
-		Transliterate("Latin-ASCII", outputFileName);
-
-		return outputFileName;
-	}
-
-	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
-	{
-		const auto db = m_databaseController->GetDatabase(true);
-		const auto query = db->CreateQuery(R"(
-select
-    f.FolderTitle,
-    b.FileName||b.Ext,
-    b.BookSize,
-    (select a.LastName ||' '||a.FirstName ||' '||a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID order by al.AuthorID limit 1),
-    s.SeriesTitle,
-    b.SeqNumber,
-    b.Title
-from Books b
-join Folders f on f.FolderID = b.FolderID
-left join Series s on s.SeriesID = b.SeriesID
-where b.BookID = ?
-)");
-		query->Bind(0, bookId.toLongLong());
-		query->Execute();
-		if (query->Eof())
-			return {};
-
-		return Flibrary::ILogicFactory::ExtractedBook { bookId.toInt(),           query->Get<const char*>(0), query->Get<const char*>(1),
-			                                            query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
-			                                            query->Get<int>(5),       query->Get<const char*>(6) };
-	}
-
 	Node WriteAuthorsImpl(const QString& root, const QString& self, const QString& navigationId, const QString& value, const QString& type, QString join, const bool checkBooksQuery = true) const
 	{
 		const auto db = m_databaseController->GetDatabase(true);
@@ -1075,8 +955,9 @@ private:
 	std::shared_ptr<const Flibrary::IDatabaseController> m_databaseController;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<const ICoverCache> m_coverCache;
+	std::shared_ptr<const IBookExtractor> m_bookExtractor;
+	std::shared_ptr<const INoSqlRequester> m_noSqlRequester;
 	std::shared_ptr<Flibrary::IAnnotationController> m_annotationController;
-	const QString m_outputFileNameTemplate;
 };
 
 namespace
@@ -1140,8 +1021,17 @@ Requester::Requester(std::shared_ptr<const ISettings> settings,
                      std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
                      std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
                      std::shared_ptr<const ICoverCache> coverCache,
+                     std::shared_ptr<const IBookExtractor> bookExtractor,
+                     std::shared_ptr<const INoSqlRequester> noSqlRequester,
                      std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(authorAnnotationController), std::move(coverCache), std::move(annotationController))
+	: m_impl(std::move(settings),
+             std::move(collectionProvider),
+             std::move(databaseController),
+             std::move(authorAnnotationController),
+             std::move(coverCache),
+             std::move(bookExtractor),
+             std::move(noSqlRequester),
+             std::move(annotationController))
 {
 	PLOGV << "Requester created";
 }
@@ -1159,16 +1049,6 @@ QByteArray Requester::GetRoot(const QString& root, const QString& self) const
 QByteArray Requester::GetBookInfo(const QString& root, const QString& self, const QString& bookId) const
 {
 	return GetImpl(*m_impl, &Impl::WriteBook, ContentType::BookInfo, root, self, bookId);
-}
-
-std::pair<QString, QByteArray> Requester::GetBook(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
-{
-	return m_impl->GetBook(bookId, restoreImages);
-}
-
-std::pair<QString, QByteArray> Requester::GetBookZip(const QString& /*root*/, const QString& /*self*/, const QString& bookId, const bool restoreImages) const
-{
-	return m_impl->GetBookZip(bookId, restoreImages);
 }
 
 QByteArray Requester::GetBookText(const QString& root, const QString& bookId) const
