@@ -32,12 +32,12 @@ public:
 		XmlNodeGuard(XmlWriter& writer, const QString& name)
 			: m_writer(writer)
 		{
-			m_writer.WriteStartElement(name);
+			(void)m_writer.WriteStartElement(name);
 		}
 
 		~XmlNodeGuard()
 		{
-			m_writer.WriteEndElement();
+			(void)m_writer.WriteEndElement();
 		}
 
 		XmlWriter* operator->() const noexcept

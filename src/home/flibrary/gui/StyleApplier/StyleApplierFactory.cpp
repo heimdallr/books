@@ -33,7 +33,7 @@ struct StyleApplierFactory::Impl
 	{
 		using ApplierCreator = std::shared_ptr<IStyleApplier> (Impl::*)() const;
 		static constexpr ApplierCreator creators[] {
-#define STYLE_APPLIER_TYPE_ITEM(NAME) &Impl::CreateApplierImpl<NAME##Applier>,
+#define STYLE_APPLIER_TYPE_ITEM(NAME) &Impl::CreateApplierImpl<NAME##Applier>, //-V1003
 			STYLE_APPLIER_TYPE_ITEMS_X_MACRO
 #undef STYLE_APPLIER_TYPE_ITEM
 		};

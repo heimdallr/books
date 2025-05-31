@@ -73,7 +73,7 @@ private: // QAbstractItemModel
 			return {};
 
 		auto* parentItem = parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root;
-		auto& childItem = parentItem->children[row];
+		auto& childItem = parentItem->children[static_cast<size_t>(row)];
 
 		return createIndex(row, column, &childItem);
 	}
@@ -86,7 +86,7 @@ private: // QAbstractItemModel
 		auto* childItem = static_cast<Genre*>(index.internalPointer());
 		auto* parentItem = childItem->parent;
 
-		return parentItem != &m_root ? createIndex(parentItem->row, 0, parentItem) : QModelIndex {};
+		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
 	}
 
 	int rowCount(const QModelIndex& parent) const override

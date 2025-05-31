@@ -52,7 +52,7 @@ constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto NAME = "/" #NAME;
+#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto (NAME) = "/" #NAME;
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -378,17 +378,20 @@ private:
 		{
 			const auto& [navigationInvoker, navigationAuthorsInvoker, authorBooksInvoker] = invokers;
 
-			m_server.route(QString(NAVIGATION).arg(root, key),
-			               [this, root, key, invoker = navigationInvoker](const QHttpServerRequest& request)
-			               {
-							   return QtConcurrent::run(
-								   [this, root, key, invoker, acceptEncoding = GetAcceptEncoding(request)]
-								   {
-									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), QString(NAVIGATION).arg(root, key), QString {}), acceptEncoding);
-									   SetContentType(response, root, MessageType::Atom);
-									   return response;
-								   });
-						   });
+			{
+				auto self = QString(NAVIGATION).arg(root, key);
+				m_server.route(self,
+				               [this, root, self, invoker = navigationInvoker](const QHttpServerRequest& request)
+				               {
+								   return QtConcurrent::run(
+									   [this, root, self, invoker, acceptEncoding = GetAcceptEncoding(request)]
+									   {
+										   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(self), QString {}), acceptEncoding);
+										   SetContentType(response, root, MessageType::Atom);
+										   return response;
+									   });
+							   });
+			}
 
 			m_server.route(QString(NAVIGATION_STARTS).arg(root, key, ARG),
 			               [this, root, key, invoker = navigationInvoker](const QString& value, const QHttpServerRequest& request)

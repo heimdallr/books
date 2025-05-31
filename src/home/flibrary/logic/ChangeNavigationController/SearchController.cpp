@@ -88,7 +88,11 @@ struct SearchController::Impl
 		                                           {
 													   Names names;
 													   for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-														   names.try_emplace(root->GetChild(i)->GetData().toUpper(), root->GetChild(i)->GetId().toLongLong());
+													   {
+														   const auto childPtr = root->GetChild(i);
+														   const auto& child = *childPtr;
+														   names.try_emplace(child.GetData().toUpper(), child.GetId().toLongLong());
+													   }
 													   callback(names);
 												   });
 	}

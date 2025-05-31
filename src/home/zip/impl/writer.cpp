@@ -26,7 +26,7 @@ namespace
 
 class CryptoGetTextPassword final : public ICryptoGetTextPassword2
 {
-	UNKNOWN_IMPL(ICryptoGetTextPassword2)
+	UNKNOWN_IMPL(ICryptoGetTextPassword2) //-V835
 public:
 	static CComPtr<ICryptoGetTextPassword2> Create()
 	{
@@ -44,7 +44,7 @@ private: // ICryptoGetTextPassword2
 
 class ArchiveExtractCallbackMessage final : public IArchiveExtractCallbackMessage2
 {
-	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2)
+	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2) //-V835
 
 public:
 	static CComPtr<IArchiveExtractCallbackMessage2> Create()
@@ -61,7 +61,7 @@ private: // IArchiveExtractCallbackMessage2
 
 class SequentialInStream final : public ISequentialInStream
 {
-	UNKNOWN_IMPL(ISequentialInStream)
+	UNKNOWN_IMPL(ISequentialInStream) //-V835
 
 public:
 	static CComPtr<ISequentialInStream> Create(QIODevice& stream)
@@ -116,7 +116,7 @@ private:
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void** ppvObject) override
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override //-V835
 	{
 		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
@@ -167,8 +167,9 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(const UInt32 index, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
+	HRESULT GetUpdateItemInfo(const UInt32 indexSrc, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		if (newData != nullptr)
 			*newData = index >= m_files.files.size() ? 1 : 0; //1 = true, 0 = false;
 		if (newProperties != nullptr)
@@ -179,21 +180,21 @@ private: // IArchiveUpdateCallback
 		return S_OK;
 	}
 
-	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT* value) noexcept override
+	HRESULT GetProperty(UInt32 indexSrc, PROPID propId, PROPVARIANT* value) noexcept override
 	try
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		CPropVariant prop = [&, propId]() -> CPropVariant
 		{
 			switch (propId)
 			{
 				case kpidIsAnti:
+				case kpidIsDir:
 					return false;
 				case kpidAttrib:
 					return uint32_t { 128 };
 				case kpidPath:
 					return m_fileNames[index - m_files.files.size()].toStdWString();
-				case kpidIsDir:
-					return false;
 				case kpidMTime:
 					return FILETIME {};
 				case kpidComment:
@@ -220,8 +221,19 @@ private: // IArchiveUpdateCallback
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
-		auto inStreamLoc = SequentialInStream::Create(GetStream(index));
-		*inStream = inStreamLoc.Detach();
+		try
+		{
+			auto inStreamLoc = SequentialInStream::Create(GetStream(index));
+			*inStream = inStreamLoc.Detach();
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGW << ex.what();
+		}
+		catch (...)
+		{
+			PLOGW << "unknown error";
+		}
 		return S_OK;
 	}
 
@@ -232,18 +244,20 @@ private: // IArchiveUpdateCallback
 	}
 
 private:
-	QIODevice& GetStream(const UInt32 index)
+	QIODevice& GetStream(const UInt32 indexSrc)
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		if (m_streams.size() <= index)
-			m_streams.resize(index + 1);
+			m_streams.resize(index + 1ULL);
 
-		if (!m_streams[index])
-			m_streams[index] = m_streamGetter(index - m_files.files.size());
+		auto& stream = m_streams[index];
+		if (!stream)
+			stream = m_streamGetter(index - m_files.files.size());
 
-		if (!m_streams[index]->isOpen())
-			m_streams[index]->open(QIODevice::ReadOnly);
+		if (!stream->isOpen())
+			stream->open(QIODevice::ReadOnly);
 
-		return *m_streams[index];
+		return *stream;
 	}
 
 private:

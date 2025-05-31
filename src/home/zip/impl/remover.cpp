@@ -27,7 +27,7 @@ namespace
 
 class CryptoGetTextPassword final : public ICryptoGetTextPassword2
 {
-	UNKNOWN_IMPL(ICryptoGetTextPassword2)
+	UNKNOWN_IMPL(ICryptoGetTextPassword2) //-V835
 public:
 	static CComPtr<ICryptoGetTextPassword2> Create()
 	{
@@ -45,7 +45,7 @@ private: // ICryptoGetTextPassword2
 
 class ArchiveExtractCallbackMessage final : public IArchiveExtractCallbackMessage2
 {
-	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2)
+	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2) //-V835
 
 public:
 	static CComPtr<IArchiveExtractCallbackMessage2> Create()
@@ -77,7 +77,7 @@ private:
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void** ppvObject) override
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override //-V835
 	{
 		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
@@ -128,8 +128,9 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(const UInt32 index, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
+	HRESULT GetUpdateItemInfo(const UInt32 indexSrc, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		if (newData != nullptr)
 			*newData = 0; //1 = true, 0 = false;
 		if (newProperties != nullptr)
@@ -151,20 +152,15 @@ private: // IArchiveUpdateCallback
 			switch (propId)
 			{
 				case kpidIsAnti:
+				case kpidIsDir:
 					return false;
 				case kpidAttrib:
 					return uint32_t { 128 };
-				case kpidPath:
-					return {};
-					//					return m_fileNames[index - m_files.files.size()].toStdWString();
-				case kpidIsDir:
-					return false;
 				case kpidMTime:
 					return FILETIME {};
+				case kpidPath: // return m_fileNames[index - m_files.files.size()].toStdWString();
+				case kpidSize: // return m_sizeGetter(index - m_files.files.size());
 				case kpidComment:
-					return {};
-				case kpidSize:
-					//					return m_sizeGetter(index - m_files.files.size());
 				default:
 					return {};
 			}

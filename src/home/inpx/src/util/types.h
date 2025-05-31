@@ -95,7 +95,7 @@ struct Book
 	     const size_t insideNo_,
 	     const std::wstring_view format_,
 	     const size_t size_,
-	     const bool isDeleted_,
+	     const bool deleted_,
 	     const size_t updateId_)
 		: id { id_ }
 		, libId { libId_ }
@@ -110,7 +110,7 @@ struct Book
 		, insideNo { insideNo_ }
 		, format { InsertDot(format_) }
 		, size { size_ }
-		, isDeleted { isDeleted_ }
+		, deleted { deleted_ }
 		, updateId { updateId_ }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
@@ -129,8 +129,7 @@ struct Book
 	size_t insideNo;
 	std::wstring format;
 	size_t size;
-	bool isDeleted;
-	std::wstring keywords;
+	bool deleted;
 	size_t updateId;
 
 private:

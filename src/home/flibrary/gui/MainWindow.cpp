@@ -721,12 +721,12 @@ private:
 			return { CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::QssStyle, fileName, fileInfo.completeBaseName(), fileName) };
 
 		if (ext == "dll")
-			return AddEternalStyleDll(fileInfo);
+			return AddExternalStyleDll(fileInfo);
 
 		return {};
 	}
 
-	std::vector<QAction*> AddEternalStyleDll(const QFileInfo& fileInfo)
+	std::vector<QAction*> AddExternalStyleDll(const QFileInfo& fileInfo)
 	{
 		const auto addLibList = [&](const std::set<QString>& libList) -> std::vector<QAction*>
 		{
@@ -747,13 +747,12 @@ private:
 			return result;
 		};
 
-		const auto currentList = GetQssList();
+		auto currentList = GetQssList();
 
 		if (auto applier = m_styleApplierFactory->CreateThemeApplier(); applier->GetType() == IStyleApplier::Type::DllStyle && applier->GetChecked().second == fileInfo.filePath())
 		{
-			auto libList = currentList;
-			libList.erase(IStyleApplier::STYLE_FILE_NAME);
-			return addLibList(libList);
+			currentList.erase(IStyleApplier::STYLE_FILE_NAME);
+			return addLibList(currentList);
 		}
 
 		Util::DyLib lib(fileInfo.filePath().toStdString());

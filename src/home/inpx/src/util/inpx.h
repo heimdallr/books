@@ -32,12 +32,12 @@ enum class CreateCollectionMode
 
 struct UpdateResult
 {
-	size_t folders;
-	size_t authors;
-	size_t series;
-	size_t books;
-	size_t keywords;
-	size_t genres;
+	size_t folders { 0 };
+	size_t authors { 0 };
+	size_t series { 0 };
+	size_t books { 0 };
+	size_t keywords { 0 };
+	size_t genres { 0 };
 	bool oldDataUpdateFound { false };
 	bool error { false };
 };

@@ -227,7 +227,7 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 
 	UInt32 numItems = 0;
 	archive->GetNumberOfItems(&numItems);
-	result.files.reserve(numItems);
+	result.files.reserve(static_cast<size_t>(numItems));
 	for (UInt32 i = 0; i < numItems; i++)
 	{
 		CPropVariant prop;

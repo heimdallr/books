@@ -23,7 +23,7 @@ struct Genre
 	QString code;
 	QString name;
 	bool checked { false };
-	int row { 0 };
+	size_t row { 0 };
 	Genre* parent { nullptr };
 	std::vector<Genre> children;
 	bool removed { false };

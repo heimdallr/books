@@ -265,7 +265,7 @@ std::unique_ptr<DB::IQuery> CreateQuery(DB::IDatabase& db, QString text, QString
 {
 	PrepareQueryForLike(text, arguments);
 	auto query = db.CreateQuery(text.toStdString());
-	for (int n = 0; const auto& argument : arguments)
+	for (size_t n = 0; const auto& argument : arguments)
 		query->Bind(n++, argument.toStdString());
 	return query;
 }

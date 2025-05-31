@@ -9,9 +9,9 @@ namespace HomeCompa::ZipDetails::SevenZip
 
 struct FileItem
 {
-	uint32_t index;
+	uint32_t index { 0 };
 	QString name;
-	size_t size;
+	size_t size { 0 };
 	QDateTime time;
 	bool isDir { false };
 };
