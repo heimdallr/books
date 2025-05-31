@@ -33,8 +33,6 @@ public:
 private: // IRequester
 	QByteArray GetRoot(const QString& root, const QString& self) const override;
 	QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const override;
-	QByteArray GetCover(const QString& root, const QString& self, const QString& bookId) const override;
-	QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const override;
 	std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const override;
 	std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const override;
 	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
