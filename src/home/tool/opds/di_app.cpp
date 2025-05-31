@@ -2,12 +2,9 @@
 
 #include <Hypodermic/Hypodermic.h>
 
-#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
 
 #include "logic/di_logic.h"
-#include "util/ISettings.h"
 #include "util/CoverCache.h"
 
 #include "Requester.h"
