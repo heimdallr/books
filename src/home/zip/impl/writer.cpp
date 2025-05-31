@@ -221,8 +221,19 @@ private: // IArchiveUpdateCallback
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
-		auto inStreamLoc = SequentialInStream::Create(GetStream(index));
-		*inStream = inStreamLoc.Detach();
+		try
+		{
+			auto inStreamLoc = SequentialInStream::Create(GetStream(index));
+			*inStream = inStreamLoc.Detach();
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGW << ex.what();
+		}
+		catch (...)
+		{
+			PLOGW << "unknown error";
+		}
 		return S_OK;
 	}
 

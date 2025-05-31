@@ -76,7 +76,7 @@ struct ModelProvider::Impl
 		data = std::move(d);
 		observer = &o;
 		sourceModel = container.resolve<T>();
-		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows);
+		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
 	}
 };

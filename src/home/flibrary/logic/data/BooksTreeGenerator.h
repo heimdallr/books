@@ -55,7 +55,7 @@ struct QueryDescription
 	const QueryInfo& queryInfo;
 	const char* whereClause { nullptr };
 	const char* joinClause { nullptr };
-	Binder binder;
+	Binder binder { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
