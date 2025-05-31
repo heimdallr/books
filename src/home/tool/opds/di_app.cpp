@@ -8,6 +8,7 @@
 
 #include "logic/di_logic.h"
 #include "util/ISettings.h"
+#include "util/CoverCache.h"
 
 #include "Requester.h"
 #include "Server.h"
@@ -19,6 +20,7 @@ void DiInit(Hypodermic::ContainerBuilder& builder, std::shared_ptr<Hypodermic::C
 {
 	Flibrary::DiLogic(builder, container);
 
+	builder.registerType<CoverCache>().as<ICoverCache>().singleInstance();
 	builder.registerType<Requester>().as<IRequester>().singleInstance();
 	builder.registerType<Server>().as<IServer>().singleInstance();
 
