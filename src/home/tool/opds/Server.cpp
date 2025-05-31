@@ -1,6 +1,5 @@
 #include "Server.h"
 
-#include <QHttpHeaders>
 #include <QHttpServer>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -10,6 +9,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
+#include "interface/IReactAppRequester.h"
 #include "interface/IRequester.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
@@ -45,6 +45,8 @@ constexpr auto READ = "%1/read/%2";
 constexpr auto SEARCH = "%1/search";
 constexpr auto FAVICON = "/favicon.ico";
 constexpr auto ASSETS = "/assets/%1";
+
+constexpr auto GET_BOOKS_API = "/main/getBooks/%1";
 constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
@@ -153,9 +155,13 @@ QString GetAcceptEncoding(const QHttpServerRequest& request)
 class Server::Impl
 {
 public:
-	Impl(const ISettings& settings, std::shared_ptr<const IRequester> requester, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider)
-		: m_requester { std::move(requester) }
-		, m_collectionProvider { std::move(collectionProvider) }
+	Impl(const ISettings& settings,
+	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IRequester> requester,
+	     std::shared_ptr<const IReactAppRequester> reactAppRequesterRequester)
+		: m_collectionProvider { std::move(collectionProvider) }
+		, m_requester { std::move(requester) }
+		, m_reactAppRequesterRequester { std::move(reactAppRequesterRequester) }
 	{
 		const auto host = [&]() -> QHostAddress
 		{
@@ -263,22 +269,22 @@ private:
 		               [this](const QString& fileName, const QHttpServerRequest& request)
 		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
 
-		using Requester = QByteArray (IRequester::*)(const QString&) const;
+		using Requester = QByteArray (IReactAppRequester::*)(const QString&) const;
 		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
-#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IRequester::NAME },
+#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IReactAppRequester::NAME },
 			OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
 		};
 
 		for (const auto& [name, queryKey, requester] : booksApiDescription)
 		{
-			m_server.route(QString("/main/getBooks/%1").arg(name),
+			m_server.route(QString(GET_BOOKS_API).arg(name),
 			               [this, requester, queryKey](const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
 								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded), acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   auto response = EncodeContent(std::invoke(requester, *m_requester, std::cref(value)), acceptEncoding);
+									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequesterRequester, std::cref(value)), acceptEncoding);
 									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
 									   return response;
 								   });
@@ -544,12 +550,16 @@ private:
 private:
 	QLocalServer m_localServer;
 	QHttpServer m_server;
-	std::shared_ptr<const IRequester> m_requester;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const IRequester> m_requester;
+	std::shared_ptr<const IReactAppRequester> m_reactAppRequesterRequester;
 };
 
-Server::Server(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<IRequester> requester, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider)
-	: m_impl(*settings, std::move(requester), std::move(collectionProvider))
+Server::Server(const std::shared_ptr<const ISettings>& settings,
+               std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+               std::shared_ptr<const IRequester> requester,
+               std::shared_ptr<const IReactAppRequester> reactAppRequesterRequester)
+	: m_impl(*settings, std::move(collectionProvider), std::move(requester), std::move(reactAppRequesterRequester))
 {
 	PLOGV << "Server created";
 }
