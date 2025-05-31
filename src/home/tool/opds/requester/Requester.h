@@ -3,7 +3,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/IBookExtractor.h"
 #include "interface/ICoverCache.h"
+#include "interface/INoSqlRequester.h"
 #include "interface/IRequester.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IAuthorAnnotationController.h"
@@ -27,16 +29,14 @@ public:
 	          std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	          std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	          std::shared_ptr<const ICoverCache> coverCache,
+	          std::shared_ptr<const IBookExtractor> bookExtractor,
+	          std::shared_ptr<const INoSqlRequester> noSqlRequester,
 	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
 	~Requester() override;
 
 private: // IRequester
 	QByteArray GetRoot(const QString& root, const QString& self) const override;
 	QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const override;
-	QByteArray GetCover(const QString& root, const QString& self, const QString& bookId) const override;
-	QByteArray GetCoverThumbnail(const QString& root, const QString& self, const QString& bookId) const override;
-	std::pair<QString, QByteArray> GetBook(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const override;
-	std::pair<QString, QByteArray> GetBookZip(const QString& root, const QString& self, const QString& bookId, bool restoreImages) const override;
 	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
 	QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const override;
 
