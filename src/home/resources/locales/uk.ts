@@ -5647,47 +5647,47 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Number of: %1</source>
         <translation>Кількість: %1</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Book</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>Усі книги розділу</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books found for the request &quot;%1&quot;: %2</source>
         <translation>За запитом &quot;%1&quot; знайдені книги: %2</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Previous page]</source>
         <translation>Попередня сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Next page]</source>
         <translation>Наступна сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[First page]</source>
         <translation>Перша сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Last page]</source>
         <translation>Остання сторінка</translation>
     </message>

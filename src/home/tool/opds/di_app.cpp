@@ -5,9 +5,9 @@
 #include "interface/logic/ICollectionProvider.h"
 
 #include "logic/di_logic.h"
+#include "requester/Requester.h"
 #include "util/CoverCache.h"
 
-#include "Requester.h"
 #include "Server.h"
 
 namespace HomeCompa::Opds
