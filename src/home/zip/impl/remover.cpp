@@ -152,20 +152,15 @@ private: // IArchiveUpdateCallback
 			switch (propId)
 			{
 				case kpidIsAnti:
+				case kpidIsDir:
 					return false;
 				case kpidAttrib:
 					return uint32_t { 128 };
-				case kpidPath:
-					return {};
-					//					return m_fileNames[index - m_files.files.size()].toStdWString();
-				case kpidIsDir:
-					return false;
 				case kpidMTime:
 					return FILETIME {};
+				case kpidPath: // return m_fileNames[index - m_files.files.size()].toStdWString();
+				case kpidSize: // return m_sizeGetter(index - m_files.files.size());
 				case kpidComment:
-					return {};
-				case kpidSize:
-					//					return m_sizeGetter(index - m_files.files.size());
 				default:
 					return {};
 			}

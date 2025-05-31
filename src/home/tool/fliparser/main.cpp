@@ -392,9 +392,6 @@ left join libfilename f on f.BookId=b.BookID
 	{
 		QString libId = query->Get<const char*>(7);
 
-		const auto* modified = query->Get<const char*>(10);
-		const auto* modifiedEnd = strchr(modified, ' ');
-
 		QString type = query->Get<const char*>(9);
 		if (type != "fb2")
 			for (const auto* typoType : { "fd2", "fb", "???", "fb 2", "fbd" })
@@ -436,7 +433,7 @@ left join libfilename f on f.BookId=b.BookID
 									  .libId = std::move(libId),
 									  .deleted = deleted && *deleted != '0',
 									  .ext = std::move(type),
-									  .date = QString::fromUtf8(modified, modifiedEnd - modified),
+									  .date = QString::fromUtf8(query->Get<const char*>(10), 10),
 									  .lang = query->Get<const char*>(11),
 									  .rate = query->Get<double>(12),
 									  .keywords = query->Get<const char*>(13),
