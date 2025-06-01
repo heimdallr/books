@@ -21,5 +21,12 @@
 			"lib.a.annotations_pics.sql.gz",
 			"lib.a.attached.zip"
 		]
+	},
+	"zip": {
+		"path": "http://x.flibusta.is/",
+		"file": "daily/",
+		"regexp": [
+			"f\\.fb2\\.\\d+-\\d+\\.zip"
+		]
 	}
 }

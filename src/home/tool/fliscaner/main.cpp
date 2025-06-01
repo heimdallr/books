@@ -1,3 +1,4 @@
+#include <QBuffer>
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
@@ -84,8 +85,8 @@ QString GetDownloadFileName(const QString& fileName)
 	return QDir(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).filePath(fileName);
 }
 
-struct Task;
-void Suicide(Task* task);
+template <typename T>
+void KillMe(T* obj);
 
 struct Task
 {
@@ -93,7 +94,7 @@ struct Task
 	Network::Downloader downloader;
 	std::unique_ptr<QIODevice> stream;
 
-	Task(const QString& path, const QString& file, EventLooper& eventLooper, std::unique_ptr<QIODevice> stream)
+	Task(const QString& path, const QString& file, EventLooper& eventLooper, std::unique_ptr<QIODevice> stream, std::function<void()> callback)
 		: eventLooper { eventLooper }
 		, stream { std::move(stream) }
 	{
@@ -102,19 +103,16 @@ struct Task
 		downloader.Download(
 			path + file,
 			*this->stream,
-			[this_ = this, file](size_t, const int code, const QString& message)
+			[this_ = this, file, callback = std::move(callback)](size_t, const int code, const QString& message)
 			{
 				PLOGI << file << " finished " << (code ? "with " + message : "successfully");
 				if (code == 0)
 				{
 					this_->stream.reset();
-					const auto tmpFile = GetDownloadFileName(file + ".tmp"), dstFile = GetDownloadFileName(file);
-					if (QFile::exists(dstFile))
-						QFile::remove(dstFile);
-					QFile::rename(tmpFile, dstFile);
+					callback();
 				}
 
-				Suicide(this_);
+				KillMe(this_);
 			},
 			[this, file, pct = int64_t { 0 }](const int64_t bytesReceived, const int64_t bytesTotal, bool& /*stopped*/) mutable
 			{
@@ -136,13 +134,10 @@ struct Task
 	NON_COPY_MOVABLE(Task)
 };
 
-void Suicide(Task* task)
+template <typename T>
+void KillMe(T* obj)
 {
-	QTimer::singleShot(0, [task] { delete task; });
-}
-
-void ScanZip(const QJsonValue&, EventLooper&)
-{
+	QTimer::singleShot(0, [obj] { delete obj; });
 }
 
 void ScanSql(const QJsonValue& value, EventLooper& eventLooper)
@@ -153,16 +148,59 @@ void ScanSql(const QJsonValue& value, EventLooper& eventLooper)
 	for (const auto fileObj : obj["file"].toArray())
 	{
 		const auto file = fileObj.toString();
-		const auto dstFileName = GetDownloadFileName(file + ".tmp");
-		auto stream = std::make_unique<QFile>(dstFileName);
-		if (!stream->open(QIODevice::WriteOnly))
+		auto tmpFile = GetDownloadFileName(file + ".tmp"), dstFile = GetDownloadFileName(file);
+		if (QFile::exists(dstFile))
 		{
-			PLOGW << "cannot open " << dstFileName;
+			PLOGW << dstFile << " already exists";
 			continue;
 		}
 
-		new Task(path, file, eventLooper, std::move(stream));
+		auto stream = std::make_unique<QFile>(tmpFile);
+		if (!stream->open(QIODevice::WriteOnly))
+		{
+			PLOGW << "cannot open " << tmpFile;
+			continue;
+		}
+
+		new Task(path, file, eventLooper, std::move(stream), [tmpFile = std::move(tmpFile), dstFile = std::move(dstFile)] { QFile::rename(tmpFile, dstFile); });
 	}
+}
+
+void ScanZip(const QJsonArray& regexps, EventLooper& eventLooper, const QString& path, const QString& data)
+{
+	std::unordered_set<QString> files;
+	for (const auto regexpObj : regexps)
+	{
+		const auto regexp = regexpObj.toString();
+		QRegularExpression rx(regexp);
+		for (const auto& match : rx.globalMatch(data))
+			files.insert(match.captured(0));
+	}
+
+	QJsonArray filesArray;
+	std::ranges::copy(files, std::back_inserter(filesArray));
+	QJsonObject obj {
+		{ "path",       path },
+		{ "file", filesArray }
+	};
+
+	ScanSql(obj, eventLooper);
+}
+
+void ScanZip(const QJsonValue& value, EventLooper& eventLooper)
+{
+	assert(value.isObject());
+	const auto obj = value.toObject();
+	const auto path = obj["path"].toString();
+	const auto file = obj["file"].toString();
+	auto regexp = obj["regexp"];
+	assert(regexp.isArray());
+
+	auto page = std::make_shared<QByteArray>();
+	auto stream = std::make_unique<QBuffer>(page.get());
+	stream->open(QIODevice::WriteOnly);
+
+	new Task(path, file, eventLooper, std::move(stream), [&, regexps = regexp.toArray(), path = path + file, page = std::move(page)] { ScanZip(regexps, eventLooper, path, QString::fromUtf8(*page)); });
 }
 
 void ScanStub(const QJsonValue&, EventLooper&)
