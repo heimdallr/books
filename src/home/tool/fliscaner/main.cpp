@@ -1,4 +1,5 @@
 #include <QBuffer>
+#include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
@@ -28,6 +29,9 @@ using namespace HomeCompa;
 namespace
 {
 constexpr auto APP_ID = "fliscaner";
+constexpr auto OUTPUT_FOLDER = "output-folder";
+constexpr auto CONFIG = "config";
+QString DST_PATH;
 
 class EventLooper
 {
@@ -73,7 +77,7 @@ QJsonObject ReadConfig(QFile& file)
 
 QJsonObject ReadConfig(const QString& path)
 {
-	if (QFile file(path + "/config.json"); file.exists())
+	if (QFile file(path); file.exists())
 		return ReadConfig(file);
 
 	QFile file(":/config/config.json");
@@ -82,7 +86,7 @@ QJsonObject ReadConfig(const QString& path)
 
 QString GetDownloadFileName(const QString& fileName)
 {
-	return QDir(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).filePath(fileName);
+	return QDir(DST_PATH).filePath(fileName);
 }
 
 template <typename T>
@@ -218,21 +222,59 @@ constexpr std::pair<const char*, void (*)(const QJsonValue&, EventLooper&)> SCAN
 int main(int argc, char* argv[])
 {
 	const QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationName(APP_ID);
+	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+
+	DST_PATH = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
 
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender logConsoleAppender(&consoleAppender);
 	PLOGI << APP_ID << " started";
 
-	const auto config = ReadConfig(QFileInfo(QString(argv[0])).path());
+	QCommandLineParser parser;
+	parser.setApplicationDescription(QString("%1 downloads files from Flibusta").arg(APP_ID));
+	parser.addHelpOption();
+	parser.addVersionOption();
+	parser.addOptions({
+		{ { "o", OUTPUT_FOLDER }, "Output folder", DST_PATH },
+		{ { "c", CONFIG }, "Config", "Apply config or extract it from resources if not exists" },
+	});
+	parser.addPositionalArgument("sql", "Download dump files");
+	parser.addPositionalArgument("zip", "Download book archives");
+	parser.process(app);
+
+	if (parser.isSet(OUTPUT_FOLDER))
+		DST_PATH = parser.value(OUTPUT_FOLDER);
+	if (QDir dir(DST_PATH); !dir.exists())
+		dir.mkpath(".");
+
+	auto configFileName = QFileInfo(QString(argv[0])).dir().filePath("config.json");
+	if (parser.isSet(CONFIG))
+	{
+		if (auto value = parser.value(CONFIG); QFile::exists(value))
+		{
+			configFileName = std::move(value);
+		}
+		else
+		{
+			QFile inp(":/config/config.json");
+			inp.open(QIODevice::ReadOnly);
+			QFile outp(GetDownloadFileName("config.json"));
+			outp.open(QIODevice::WriteOnly);
+			outp.write(inp.readAll());
+		}
+	}
+
+	const auto config = ReadConfig(configFileName);
 
 	EventLooper evenLooper;
 
-	for (size_t i = 1; i < static_cast<size_t>(argc); ++i)
+	for (const auto& arg : parser.positionalArguments())
 	{
-		const auto invoker = FindSecond(SCANNERS, argv[i], &ScanStub, PszComparer {});
-		PLOGI << argv[i] << " in process";
-		std::invoke(invoker, config[argv[i]], evenLooper);
+		const auto invoker = FindSecond(SCANNERS, arg.toStdString().data(), &ScanStub, PszComparer {});
+		PLOGI << arg << " in process";
+		std::invoke(invoker, config[arg], evenLooper);
 	}
 
 	return evenLooper.Start();
