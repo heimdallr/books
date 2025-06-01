@@ -5225,6 +5225,18 @@ Try again?</source>
         <source>Navigation</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Grayscale &amp;cover</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;images</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Export</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>

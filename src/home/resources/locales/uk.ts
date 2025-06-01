@@ -5237,6 +5237,18 @@ Try again?</source>
         <source>Navigation</source>
         <translation>Навігація</translation>
     </message>
+    <message>
+        <source>Grayscale &amp;cover</source>
+        <translation>Чорно-біла &amp;обкладинка</translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;images</source>
+        <translation>Чорно-білі &amp;ілюстрації</translation>
+    </message>
+    <message>
+        <source>&amp;Export</source>
+        <translation>&amp;Експорт</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowClass</name>

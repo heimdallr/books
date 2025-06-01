@@ -408,11 +408,19 @@
      <addaction name="menuLog"/>
      <addaction name="menuTheme"/>
     </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>&amp;Export</string>
+     </property>
+     <addaction name="actionExportTemplate"/>
+     <addaction name="actionConvertCoverToGrayscale"/>
+     <addaction name="actionConvertImagesToGrayscale"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
+    <addaction name="menuExport"/>
     <addaction name="actionScripts"/>
     <addaction name="actionOpds"/>
-    <addaction name="actionExportTemplate"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -906,6 +914,28 @@
    </property>
    <property name="text">
     <string>About the author</string>
+   </property>
+  </action>
+  <action name="actionConvertCoverToGrayscale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grayscale &amp;cover</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionConvertImagesToGrayscale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grayscale &amp;images</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>
