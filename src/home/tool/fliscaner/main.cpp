@@ -237,8 +237,8 @@ int main(int argc, char* argv[])
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addOptions({
-		{ { "o", OUTPUT_FOLDER }, "Output folder", DST_PATH },
-		{ { "c", CONFIG }, "Config", "Apply config or extract it from resources if not exists" },
+		{ { "o", OUTPUT_FOLDER }, "Output folder",                                                  DST_PATH },
+		{        { "c", CONFIG },        "Config", "Apply config or extract it from resources if not exists" },
 	});
 	parser.addPositionalArgument("sql", "Download dump files");
 	parser.addPositionalArgument("zip", "Download book archives");
