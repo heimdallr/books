@@ -19,7 +19,7 @@ protected: // std::streambuf
 
 private:
 	static constexpr std::streamsize BUFFER_SIZE = 1024;
-	std::streambuf::char_type m_inBuf[BUFFER_SIZE]{};
+	std::streambuf::char_type m_inBuf[BUFFER_SIZE] {};
 	QIODevice& m_dev;
 };
 
