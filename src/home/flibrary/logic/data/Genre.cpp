@@ -85,6 +85,7 @@ Genre Genre::Load(DB::IDatabase& db)
 	{
 		const auto* fb2Code = query->Get<const char*>(1);
 		auto translated = Loc::Tr(GENRE, fb2Code);
+		assert(!translated.contains(','));
 		AllGenresItem item {
 			Genre { .fb2Code = fb2Code,
                    .code = query->Get<const char*>(0),

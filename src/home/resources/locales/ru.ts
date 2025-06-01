@@ -1011,7 +1011,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_all_root</source>
-        <translation>Поэзия, Драматургия</translation>
+        <translation>Поэзия. Драматургия</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1021,12 +1021,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>science_all_root</source>
-        <translation>Наука, Образование</translation>
+        <translation>Наука. Образование</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antiscience_all_root</source>
-        <translation>Антинаука, Мракобесие</translation>
+        <translation>Антинаука. Мракобесие</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1226,7 +1226,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_alt_hist</source>
-        <translation>Альтернативная история, фэнтези</translation>
+        <translation>Альтернативная история. Фэнтези</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2336,7 +2336,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_sex</source>
-        <translation>Эротика, Секс</translation>
+        <translation>Эротика. Секс</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2351,7 +2351,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>accounting</source>
-        <translation>Бухучет, налогообложение, аудит</translation>
+        <translation>Бухучет. Налогообложение. Аудит</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2386,7 +2386,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>marketing</source>
-        <translation>Маркетинг, PR, реклама</translation>
+        <translation>Маркетинг. PR. Реклама</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2406,7 +2406,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>job_hunting</source>
-        <translation>Поиск работы, карьера</translation>
+        <translation>Поиск работы. Карьера</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2416,12 +2416,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>management</source>
-        <translation>Управление, подбор персонала</translation>
+        <translation>Управление. Подбор персонала</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>stock</source>
-        <translation>Ценные бумаги, инвестиции</translation>
+        <translation>Ценные бумаги. Инвестиции</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2521,7 +2521,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>proverbs</source>
-        <translation>Пословицы, поговорки</translation>
+        <translation>Пословицы. Поговорки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2531,7 +2531,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>limerick</source>
-        <translation>Частушки, прибаутки, потешки</translation>
+        <translation>Частушки. Прибаутки. Потешки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
