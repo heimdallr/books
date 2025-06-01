@@ -408,11 +408,17 @@
      <addaction name="menuLog"/>
      <addaction name="menuTheme"/>
     </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionExportTemplate"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
+    <addaction name="menuExport"/>
     <addaction name="actionScripts"/>
     <addaction name="actionOpds"/>
-    <addaction name="actionExportTemplate"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>

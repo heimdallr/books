@@ -484,6 +484,30 @@ private:
 		connect(m_ui.actionDeleteAllThemes, &QAction::triggered, &m_self, [this] { DeleteCustomThemes(); });
 	}
 
+	void ConnectActionsSettingsExport()
+	{
+		PLOGV << "ConnectActionsSettingsExport";
+		connect(m_ui.actionExportTemplate,
+		        &QAction::triggered,
+		        &m_self,
+		        [&]
+		        {
+					m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit,
+			                                                                 &QWidget::customContextMenuRequested,
+			                                                                 &m_self,
+			                                                                 [this]
+			                                                                 {
+																				 {
+																					 QSignalBlocker blocker(m_ui.settingsLineEdit);
+																					 IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
+																				 }
+																				 emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
+																			 });
+					m_lineOption->Register(this);
+					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+				});
+	}
+
 	void ConnectActionsSettingsView()
 	{
 		PLOGV << "ConnectActionsSettingsView";
@@ -515,6 +539,7 @@ private:
 	void ConnectActionsSettings()
 	{
 		PLOGV << "ConnectActionsSettings";
+		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
@@ -533,26 +558,6 @@ private:
 						m_uiFactory->ShowError(QString::fromStdString(ex.what()));
 					}
 				});
-		connect(m_ui.actionExportTemplate,
-		        &QAction::triggered,
-		        &m_self,
-		        [&]
-		        {
-					m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit,
-			                                                                 &QWidget::customContextMenuRequested,
-			                                                                 &m_self,
-			                                                                 [this]
-			                                                                 {
-																				 {
-																					 QSignalBlocker blocker(m_ui.settingsLineEdit);
-																					 IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
-																				 }
-																				 emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
-																			 });
-					m_lineOption->Register(this);
-					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
-				});
-
 		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
 	}
 
