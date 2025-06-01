@@ -506,6 +506,8 @@ private:
 					m_lineOption->Register(this);
 					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 				});
+		ConnectSettings(m_ui.actionConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
+		ConnectSettings(m_ui.actionConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
 	}
 
 	void ConnectActionsSettingsView()
