@@ -144,7 +144,7 @@ void KillMe(T* obj)
 	QTimer::singleShot(0, [obj] { delete obj; });
 }
 
-void ScanSql(const QJsonValue& value, EventLooper& eventLooper)
+void GetFiles(const QJsonValue& value, EventLooper& eventLooper)
 {
 	assert(value.isObject());
 	const auto obj = value.toObject();
@@ -155,7 +155,7 @@ void ScanSql(const QJsonValue& value, EventLooper& eventLooper)
 		auto tmpFile = GetDownloadFileName(file + ".tmp"), dstFile = GetDownloadFileName(file);
 		if (QFile::exists(dstFile))
 		{
-			PLOGW << dstFile << " already exists";
+			PLOGW << file << " already exists";
 			continue;
 		}
 
@@ -170,7 +170,7 @@ void ScanSql(const QJsonValue& value, EventLooper& eventLooper)
 	}
 }
 
-void ScanZip(const QJsonArray& regexps, EventLooper& eventLooper, const QString& path, const QString& data)
+void GetDaily(const QJsonArray& regexps, EventLooper& eventLooper, const QString& path, const QString& data)
 {
 	std::unordered_set<QString> files;
 	for (const auto regexpObj : regexps)
@@ -183,28 +183,28 @@ void ScanZip(const QJsonArray& regexps, EventLooper& eventLooper, const QString&
 
 	QJsonArray filesArray;
 	std::ranges::copy(files, std::back_inserter(filesArray));
-	QJsonObject obj {
+	const QJsonObject obj {
 		{ "path",       path },
 		{ "file", filesArray }
 	};
 
-	ScanSql(obj, eventLooper);
+	GetFiles(obj, eventLooper);
 }
 
-void ScanZip(const QJsonValue& value, EventLooper& eventLooper)
+void GetDaily(const QJsonValue& value, EventLooper& eventLooper)
 {
 	assert(value.isObject());
 	const auto obj = value.toObject();
 	const auto path = obj["path"].toString();
 	const auto file = obj["file"].toString();
-	auto regexp = obj["regexp"];
+	const auto regexp = obj["regexp"];
 	assert(regexp.isArray());
 
 	auto page = std::make_shared<QByteArray>();
 	auto stream = std::make_unique<QBuffer>(page.get());
 	stream->open(QIODevice::WriteOnly);
 
-	new Task(path, file, eventLooper, std::move(stream), [&, regexps = regexp.toArray(), path = path + file, page = std::move(page)] { ScanZip(regexps, eventLooper, path, QString::fromUtf8(*page)); });
+	new Task(path, file, eventLooper, std::move(stream), [&, regexps = regexp.toArray(), path = path + file, page = std::move(page)] { GetDaily(regexps, eventLooper, path, QString::fromUtf8(*page)); });
 }
 
 void ScanStub(const QJsonValue&, EventLooper&)
@@ -213,8 +213,8 @@ void ScanStub(const QJsonValue&, EventLooper&)
 }
 
 constexpr std::pair<const char*, void (*)(const QJsonValue&, EventLooper&)> SCANNERS[] {
-	{ "zip", &ScanZip },
-	{ "sql", &ScanSql },
+	{ "zip", &GetDaily },
+	{ "sql", &GetFiles },
 };
 
 } // namespace
@@ -246,8 +246,12 @@ int main(int argc, char* argv[])
 
 	if (parser.isSet(OUTPUT_FOLDER))
 		DST_PATH = parser.value(OUTPUT_FOLDER);
-	if (QDir dir(DST_PATH); !dir.exists())
-		dir.mkpath(".");
+	if (const QDir dir(DST_PATH); !dir.exists())
+		if (!dir.mkpath("."))
+		{
+			PLOGE << "Cannot create " << DST_PATH;
+			return 1;
+		}
 
 	auto configFileName = QFileInfo(QString(argv[0])).dir().filePath("config.json");
 	if (parser.isSet(CONFIG))
@@ -277,5 +281,7 @@ int main(int argc, char* argv[])
 		std::invoke(invoker, config[arg], evenLooper);
 	}
 
-	return evenLooper.Start();
+	const auto result = evenLooper.Start();
+	PLOGI << APP_ID << " finished with " << result;
+	return result;
 }
