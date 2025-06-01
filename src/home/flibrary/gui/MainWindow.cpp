@@ -261,7 +261,9 @@ private: // plog::IAppender
 private: // ILineOption::IObserver
 	void OnOptionEditing(const QString& value) override
 	{
-		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
+		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books = logicFactory->GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
+
 		if (books.empty())
 			return;
 

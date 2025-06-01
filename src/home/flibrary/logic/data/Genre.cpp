@@ -85,6 +85,7 @@ Genre Genre::Load(DB::IDatabase& db)
 	{
 		const auto* fb2Code = query->Get<const char*>(1);
 		auto translated = Loc::Tr(GENRE, fb2Code);
+		assert(!translated.contains(','));
 		AllGenresItem item {
 			Genre { .fb2Code = fb2Code,
                    .code = query->Get<const char*>(0),
@@ -125,6 +126,17 @@ Genre Genre::Load(DB::IDatabase& db)
 	updateChildren(root.children);
 
 	SORTER(root);
+
+	const auto updateParent = [](Genre& genre, const auto& f) -> void
+	{
+		for (auto& child : genre.children)
+		{
+			child.parent = &genre;
+			f(child, f);
+		}
+	};
+	updateParent(root, updateParent);
+
 	return root;
 }
 

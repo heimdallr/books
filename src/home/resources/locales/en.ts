@@ -1016,7 +1016,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antiscience_all_root</source>
-        <translation>Anti-science, obscurantism</translation>
+        <translation>Anti-science. Obscurantism</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1216,7 +1216,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_alt_hist</source>
-        <translation>Alternate history, fantasy</translation>
+        <translation>Alternate history. Fantasy</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -5791,6 +5791,16 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_m%</source>
         <translation>Author&apos;s M.</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre%</source>
+        <translation>Book genre</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre_tree%</source>
+        <translation>Genre, subgenre, etc.</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>

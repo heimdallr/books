@@ -6,10 +6,10 @@ prose_all_root||Проза
 love_all_root||Любовные романы
 adventure_all_root||Приключения
 children_all_root||Детское
-poetry_all_root||Поэзия, Драматургия
+poetry_all_root||Поэзия. Драматургия
 antique_all_root||Старинное
-science_all_root||Наука, Образование
-antiscience_all_root||Антинаука, Мракобесие
+science_all_root||Наука. Образование
+antiscience_all_root||Антинаука. Мракобесие
 computers_all_root||Компьютеры и Интернет
 reference_all_root||Справочная литература
 nonfiction_all_root||Документальная литература
@@ -52,7 +52,7 @@ popadancy:popadanec|sf_all_root|Попаданцы
 gothic_novel|sf_all_root|Готический роман
 
 sf_fantasy|fantasy_all_root|Фэнтези
-fantasy_alt_hist|fantasy_all_root|Альтернативная история, фэнтези
+fantasy_alt_hist|fantasy_all_root|Альтернативная история. Фэнтези
 fairy_fantasy|fantasy_all_root|Сказочное фэнтези
 sf_fantasy_city|fantasy_all_root|Городское фэнтези
 sf_fantasy_irony:humor_fantasy|fantasy_all_root|Ироническое фэнтези
@@ -290,25 +290,25 @@ home_health|home_all_root|Здоровье
 home_garden|home_all_root|Сад и огород
 home_diy|home_all_root|Сделай сам
 home_sport|home_all_root|Спорт
-home_sex|home_all_root|Эротика, Секс
+home_sex|home_all_root|Эротика. Секс
 family:home_all|home_all_root|Прочее
 
 busines|busines_all_root|Разное
-accounting|busines_all_root|Бухучет, налогообложение, аудит
+accounting|busines_all_root|Бухучет. Налогообложение. Аудит
 banking|busines_all_root|Банковское дело
 global_economy|busines_all_root|Внешнеэкономическая деятельность
 paper_work|busines_all_root|Делопроизводство
 org_behavior|busines_all_root|Корпоративная культура
 personal_finance|busines_all_root|Личные финансы
 small_business|busines_all_root|Малый бизнес
-marketing|busines_all_root|Маркетинг, PR, реклама
+marketing|busines_all_root|Маркетинг. PR. Реклама
 real_estate|busines_all_root|Недвижимость
 popular_business|busines_all_root|О бизнесе популярно
 industries|busines_all_root|Отраслевые издания
-job_hunting|busines_all_root|Поиск работы, карьера
+job_hunting|busines_all_root|Поиск работы. Карьера
 economics_ref|busines_all_root|Справочники
-management|busines_all_root|Управление, подбор персонала
-stock|busines_all_root|Ценные бумаги, инвестиции
+management|busines_all_root|Управление. Подбор персонала
+stock|busines_all_root|Ценные бумаги. Инвестиции
 economics|busines_all_root|Экономика
 trade|busines_all_root|Торговля
 
@@ -331,9 +331,9 @@ child_folklore|epic_all_root|Детский фольклор
 riddles|epic_all_root|Загадки
 folk_songs|epic_all_root|Народные песни
 folk_tale|epic_all_root|Народные сказки
-proverbs|epic_all_root|Пословицы, поговорки
+proverbs|epic_all_root|Пословицы. Поговорки
 folklore:folklore_all|epic_all_root|Фольклор: прочее
-limerick|epic_all_root|Частушки, прибаутки, потешки
+limerick|epic_all_root|Частушки. Прибаутки. Потешки
 
 military_history|military_all_root|Военная история
 military_arts|military_all_root|Боевые искусства
