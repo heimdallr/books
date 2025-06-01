@@ -12,7 +12,6 @@
 #include <QRegularExpression>
 #include <QStandardPaths>
 
-#include <config/version.h>
 #include <plog/Appenders/ConsoleAppender.h>
 
 #include "fnd/ScopedCall.h"
@@ -35,6 +34,8 @@
 #include "Constant.h"
 #include "log.h"
 #include "zip.h"
+
+#include "config/version.h"
 
 using namespace HomeCompa;
 
