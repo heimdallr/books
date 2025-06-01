@@ -3,8 +3,12 @@
 #include <QBuffer>
 #include <QDir>
 #include <QFileInfo>
+#include <QPixmap>
+
+#include "interface/constants/SettingsConstant.h"
 
 #include "common/Constant.h"
+#include "util/ISettings.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
@@ -25,17 +29,25 @@ using Covers = std::unordered_map<QString, QByteArray>;
 constexpr auto BINARY = "binary";
 constexpr auto ID = "id";
 constexpr auto CONTENT_TYPE = "content-type";
-constexpr auto JPEG = "image/jpeg";
-constexpr auto PNG = "image/png";
+constexpr auto IMAGE_JPEG = "image/jpeg";
+constexpr auto IMAGE_PNG = "image/png";
+constexpr auto JPEG = "jpeg";
+constexpr auto PNG = "png";
 
 constexpr auto FICTION_BOOK = "FictionBook";
 constexpr auto DESCRIPTION = "FictionBook/description";
 constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
 constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
 
-constexpr std::pair<const char*, const char*> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0", JPEG },
-	{ "\x89\x50\x4E\x47",  PNG },
+struct ImageFormatDescription
+{
+	const char* mediaType;
+	const char* format;
+};
+
+constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
+	{ "\xFF\xD8\xFF\xE0", { IMAGE_JPEG, JPEG } },
+	{ "\x89\x50\x4E\x47",   { IMAGE_PNG, PNG } },
 };
 
 class SaxPrinter final : public Util::SaxParser
@@ -153,7 +165,7 @@ private:
 		for (const auto& [name, body] : m_covers)
 		{
 			const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return body.startsWith(item.first); });
-			const auto* contentType = it != std::end(SIGNATURES) ? it->second : JPEG;
+			const auto* contentType = it != std::end(SIGNATURES) ? it->second.mediaType : IMAGE_JPEG;
 			m_writer.WriteStartElement(BINARY).WriteAttribute(ID, name).WriteAttribute(CONTENT_TYPE, contentType).WriteCharacters(QString::fromUtf8(body.toBase64())).WriteEndElement();
 		}
 
@@ -176,16 +188,40 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
 }
 
-QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName)
+void ConvertToGrayscale(QByteArray& srcImageBody)
+{
+	const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return srcImageBody.startsWith(item.first); });
+	const auto* format = it != std::end(SIGNATURES) ? it->second.format : nullptr;
+
+	QPixmap pixmap;
+	if (!pixmap.loadFromData(srcImageBody, format))
+		return;
+
+	auto image = pixmap.toImage();
+	image.convertTo(QImage::Format::Format_Grayscale8);
+
+	QByteArray result;
+	{
+		QBuffer imageOutput(&result);
+		if (!image.save(&imageOutput, format ? format : JPEG))
+			return;
+	}
+
+	srcImageBody = std::move(result);
+}
+
+QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
 {
 	Covers covers;
-	ExtractBookImages(folder,
-	                  fileName,
-	                  [&covers](auto name, auto body)
-	                  {
-						  covers.try_emplace(std::move(name), std::move(body));
-						  return false;
-					  });
+	ExtractBookImages(
+		folder,
+		fileName,
+		[&covers](auto name, auto body)
+		{
+			covers.try_emplace(std::move(name), std::move(body));
+			return false;
+		},
+		settings);
 	if (covers.empty())
 		return stream.readAll();
 
@@ -196,7 +232,7 @@ QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QSt
 	return stream.readAll();
 }
 
-bool ParseCovers(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, bool& stop)
+bool ParseCover(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, bool& stop, const bool grayscale)
 {
 	if (!QFile::exists(folder))
 		return false;
@@ -208,11 +244,14 @@ bool ParseCovers(const QString& folder, const QString& fileName, const ExtractBo
 		return false;
 
 	const auto stream = zip.Read(file);
-	stop = callback(Global::COVER, stream->GetStream().readAll());
+	auto body = stream->GetStream().readAll();
+	if (grayscale)
+		ConvertToGrayscale(body);
+	stop = callback(Global::COVER, std::move(body));
 	return true;
 }
 
-void ParseImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback)
+void ParseImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const bool grayscale)
 {
 	if (!QFile::exists(folder))
 		return;
@@ -226,6 +265,8 @@ void ParseImages(const QString& folder, const QString& fileName, const ExtractBo
 	for (const auto& file : fileList)
 	{
 		auto body = zip.Read(file)->GetStream().readAll();
+		if (grayscale)
+			ConvertToGrayscale(body);
 		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
 			return;
 	}
@@ -236,12 +277,12 @@ void ParseImages(const QString& folder, const QString& fileName, const ExtractBo
 namespace HomeCompa::Flibrary
 {
 
-QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName)
+QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
 {
-	return RestoreImagesImpl(input, folder, fileName);
+	return RestoreImagesImpl(input, folder, fileName, settings);
 }
 
-bool ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback)
+bool ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
 {
 	static constexpr const char* EXTENSIONS[] { "zip", "7z" };
 
@@ -255,7 +296,12 @@ bool ExtractBookImages(const QString& folder, const QString& fileName, const Ext
 	                                    {
 											try
 											{
-												return ParseCovers(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext), fileName, callback, stop) || init;
+												return ParseCover(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
+			                                                      fileName,
+			                                                      callback,
+			                                                      stop,
+			                                                      settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false))
+			                                        || init;
 											}
 											catch (const std::exception& ex)
 											{
@@ -272,7 +318,10 @@ bool ExtractBookImages(const QString& folder, const QString& fileName, const Ext
 	{
 		try
 		{
-			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext), fileName, callback);
+			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext),
+			            fileName,
+			            callback,
+			            settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY, false));
 		}
 		catch (const std::exception& ex)
 		{
