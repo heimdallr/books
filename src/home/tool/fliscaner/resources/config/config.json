@@ -1,0 +1,32 @@
+{
+	"sql": {
+		"path": "http://x.flibusta.is/sql/",
+		"file": [
+			"lib.libavtor.sql.gz",
+			"lib.libtranslator.sql.gz",
+			"lib.libavtorname.sql.gz",
+			"lib.libbook.sql.gz",
+			"lib.libfilename.sql.gz",
+			"lib.libgenre.sql.gz",
+			"lib.libgenrelist.sql.gz",
+			"lib.libjoinedbooks.sql.gz",
+			"lib.librate.sql.gz",
+			"lib.librecs.sql.gz",
+			"lib.libseqname.sql.gz",
+			"lib.libseq.sql.gz",
+			"lib.reviews.sql.gz",
+			"lib.b.annotations.sql.gz",
+			"lib.b.annotations_pics.sql.gz",
+			"lib.a.annotations.sql.gz",
+			"lib.a.annotations_pics.sql.gz",
+			"lib.a.attached.zip"
+		]
+	},
+	"zip": {
+		"path": "http://x.flibusta.is/",
+		"file": "daily/",
+		"regexp": [
+			"f\\.fb2\\.\\d+-\\d+\\.zip"
+		]
+	}
+}
