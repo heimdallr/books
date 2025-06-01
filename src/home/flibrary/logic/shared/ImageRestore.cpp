@@ -188,7 +188,7 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
 }
 
-void ConvertToGrayscale(QByteArray& srcImageBody)
+void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
 	const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return srcImageBody.startsWith(item.first); });
 	const auto* format = it != std::end(SIGNATURES) ? it->second.format : nullptr;
@@ -203,7 +203,7 @@ void ConvertToGrayscale(QByteArray& srcImageBody)
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, format ? format : JPEG))
+		if (!image.save(&imageOutput, format ? format : JPEG, quality))
 			return;
 	}
 
@@ -246,7 +246,7 @@ bool ParseCover(const QString& folder, const QString& fileName, const ExtractBoo
 	const auto stream = zip.Read(file);
 	auto body = stream->GetStream().readAll();
 	if (grayscale)
-		ConvertToGrayscale(body);
+		ConvertToGrayscale(body, 50);
 	stop = callback(Global::COVER, std::move(body));
 	return true;
 }
@@ -266,7 +266,7 @@ void ParseImages(const QString& folder, const QString& fileName, const ExtractBo
 	{
 		auto body = zip.Read(file)->GetStream().readAll();
 		if (grayscale)
-			ConvertToGrayscale(body);
+			ConvertToGrayscale(body, 25);
 		if (!body.isEmpty() && callback(file.split('/').back(), std::move(body)))
 			return;
 	}
