@@ -63,6 +63,8 @@ public:
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)                \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)             \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)              \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                 \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)             \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                    \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)
 
@@ -165,9 +167,12 @@ public:
 		{				Macro::Series, QT_TRANSLATE_NOOP("ScriptController",                  "%series%") },
 		{			 Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController",              "%seq_number%") },
 		{			  Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController",               "%file_size%") },
+		{				 Macro::Genre, QT_TRANSLATE_NOOP("ScriptController",                   "%genre%") },
+		{			 Macro::GenreTree, QT_TRANSLATE_NOOP("ScriptController",              "%genre_tree%") },
 		{					Macro::Id, QT_TRANSLATE_NOOP("ScriptController",                   "%db_id%") },
 		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
 	};
+	static_assert(std::size(s_commandMacros) == static_cast<size_t>(Macro::Last));
 
 public:
 	FLINT_EXPORT static bool HasMacro(const QString& str, Macro macro);

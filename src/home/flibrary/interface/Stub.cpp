@@ -59,6 +59,118 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	return replace(value, start - 1, start + macroStr.length() - 1);
 }
 
+QString ApplyMacroSourceFile(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+{
+	return {};
+}
+
+QString ApplyMacroUserDestinationFolder(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+{
+	return {};
+}
+
+QString ApplyMacroTitle(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(book.title);
+}
+
+QString ApplyMacroFileName(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(fileInfo.fileName());
+}
+
+QString ApplyMacroFileExt(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(fileInfo.suffix());
+}
+
+QString ApplyMacroBaseFileName(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(fileInfo.completeBaseName());
+}
+
+QString ApplyMacroAuthor(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(book.author);
+}
+
+QString ApplyMacroAuthorLastFM(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return QString("%1 %2%3")
+	    .arg(!authorNameSplitted.empty() ? authorNameSplitted[0] : QString {})
+	    .arg(authorNameSplitted.size() > 1 ? QString("%1.").arg(authorNameSplitted[1][0]) : QString {})
+	    .arg(authorNameSplitted.size() > 2 ? QString("%1.").arg(authorNameSplitted[2][0]) : QString {})
+	    .simplified();
+}
+
+QString ApplyMacroAuthorLastName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return !authorNameSplitted.empty() ? authorNameSplitted[0] : QString {};
+}
+
+QString ApplyMacroAuthorFirstName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return authorNameSplitted.size() > 1 ? authorNameSplitted[1] : QString {};
+}
+
+QString ApplyMacroAuthorMiddleName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString {};
+}
+
+QString ApplyMacroAuthorF(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString {};
+}
+
+QString ApplyMacroAuthorM(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+{
+	return authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString {};
+}
+
+QString ApplyMacroSeries(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(book.series);
+}
+
+QString ApplyMacroSeqNumber(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {};
+}
+
+QString ApplyMacroFileSize(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return QString::number(book.size);
+}
+
+QString ApplyMacroGenre(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return Util::RemoveIllegalPathCharacters(book.genre);
+}
+
+QString ApplyMacroGenreTree(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	QStringList genreTree;
+	std::ranges::transform(book.genreTree, std::back_inserter(genreTree), &Util::RemoveIllegalPathCharacters);
+	return genreTree.join("/");
+}
+
+QString ApplyMacroId(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return QString::number(book.id);
+}
+
+QString ApplyMacroUid(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+{
+	return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+constexpr std::pair<IScriptController::Macro, QString (*)(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)> MACRO_APPLIERS[] {
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) { IScriptController::Macro::NAME, &ApplyMacro##NAME },
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
+};
+
 } // namespace
 
 static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(IScriptController::s_commandMacros));
@@ -139,30 +251,12 @@ std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractIte
 void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book)
 {
 	const auto authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
-
 	const QFileInfo fileInfo(book.file);
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Title, Util::RemoveIllegalPathCharacters(book.title));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileExt, Util::RemoveIllegalPathCharacters(fileInfo.suffix()));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileName, Util::RemoveIllegalPathCharacters(fileInfo.fileName()));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::BaseFileName, Util::RemoveIllegalPathCharacters(fileInfo.completeBaseName()));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Uid, QUuid::createUuid().toString(QUuid::WithoutBraces));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Id, QString::number(book.id));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Author, Util::RemoveIllegalPathCharacters(book.author));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::Series, Util::RemoveIllegalPathCharacters(book.series));
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::SeqNumber, book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {});
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::FileSize, QString::number(book.size));
-	IScriptController::SetMacro(scriptTemplate,
-	                            IScriptController::Macro::AuthorLastFM,
-	                            QString("%1 %2%3")
-	                                .arg(authorNameSplitted.size() > 0 ? authorNameSplitted[0] : QString {})
-	                                .arg(authorNameSplitted.size() > 1 ? QString("%1.").arg(authorNameSplitted[1][0]) : QString {})
-	                                .arg(authorNameSplitted.size() > 2 ? QString("%1.").arg(authorNameSplitted[2][0]) : QString {})
-	                                .simplified());
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorLastName, authorNameSplitted.size() > 0 ? authorNameSplitted[0] : QString {});
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorFirstName, authorNameSplitted.size() > 1 ? authorNameSplitted[1] : QString {});
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorMiddleName, authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString {});
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorF, authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString {});
-	IScriptController::SetMacro(scriptTemplate, IScriptController::Macro::AuthorM, authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString {});
+	for (const auto [macro, applier] : MACRO_APPLIERS)
+	{
+		const auto value = std::invoke(applier, std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
+		IScriptController::SetMacro(scriptTemplate, macro, value);
+	}
 }
 
 QString IDatabaseUser::GetDatabaseVersionStatement()
