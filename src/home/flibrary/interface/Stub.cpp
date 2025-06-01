@@ -136,30 +136,6 @@ std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractIte
 	return result;
 }
 
-ILogicFactory::ExtractedBooks ILogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList)
-{
-	ExtractedBooks books;
-
-	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title };
-	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
-	std::ranges::transform(selected,
-	                       std::back_inserter(books),
-	                       [&](auto&& book)
-	                       {
-							   assert(book.size() == roles.size());
-							   return ExtractedBook { .id = book[0].toInt(),
-			                                          .folder = std::move(book[1]),
-			                                          .file = std::move(book[2]),
-			                                          .size = book[3].toLongLong(),
-			                                          .author = std::move(book[4]),
-			                                          .series = std::move(book[5]),
-			                                          .seqNumber = book[6].toInt(),
-			                                          .title = std::move(book[7]) };
-						   });
-
-	return books;
-}
-
 void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book)
 {
 	const auto authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);

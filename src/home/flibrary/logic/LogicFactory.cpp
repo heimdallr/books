@@ -5,6 +5,7 @@
 #include <Hypodermic/Hypodermic.h>
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IUpdateChecker.h"
@@ -194,6 +195,31 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(c
 		m_impl->singleTemporaryDir = std::make_shared<SingleTemporaryDir>();
 
 	return m_impl->singleTemporaryDir;
+}
+
+ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
+{
+	ExtractedBooks books;
+
+	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre };
+	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
+	std::ranges::transform(selected,
+	                       std::back_inserter(books),
+	                       [&](auto&& book)
+	                       {
+							   assert(book.size() == roles.size());
+							   ExtractedBook result { .id = book[0].toInt(),
+			                                          .folder = std::move(book[1]),
+			                                          .file = std::move(book[2]),
+			                                          .size = book[3].toLongLong(),
+			                                          .author = std::move(book[4]),
+			                                          .series = std::move(book[5]),
+			                                          .seqNumber = book[6].toInt(),
+			                                          .title = std::move(book[7]) };
+							   return result;
+						   });
+
+	return books;
 }
 
 std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const
