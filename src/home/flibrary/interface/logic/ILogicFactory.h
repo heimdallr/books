@@ -56,6 +56,8 @@ public:
 		QString series;
 		int seqNumber;
 		QString title;
+		QString genre;
+		QStringList genreTree;
 	};
 
 	using ExtractedBooks = std::vector<ExtractedBook>;

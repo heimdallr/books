@@ -126,6 +126,17 @@ Genre Genre::Load(DB::IDatabase& db)
 	updateChildren(root.children);
 
 	SORTER(root);
+
+	const auto updateParent = [](Genre& genre, const auto& f) -> void
+	{
+		for (auto& child : genre.children)
+		{
+			child.parent = &genre;
+			f(child, f);
+		}
+	};
+	updateParent(root, updateParent);
+
 	return root;
 }
 

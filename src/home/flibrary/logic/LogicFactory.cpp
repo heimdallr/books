@@ -15,6 +15,7 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
+#include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
 #include "shared/BooksContextMenuProvider.h"
@@ -88,10 +89,33 @@ struct LogicFactory::Impl final
 
 	std::mutex progressControllerGuard;
 	std::shared_ptr<IProgressController> progressController;
+	std::unordered_map<QString, QString> genreParents;
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
 	{
+	}
+
+	void UpdateGenreParents()
+	{
+		if (!genreParents.empty())
+			return;
+
+		const auto databaseUser = container.resolve<IDatabaseUser>();
+		const auto db = databaseUser->CheckDatabase();
+		const auto genres = Genre::Load(*db);
+
+		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void
+		{
+			for (const auto& genre : children)
+			{
+				assert(genre.parent);
+				genreParents.try_emplace(genre.name, genre.parent->name);
+				f(genre.children, f);
+			}
+		};
+
+		process(genres.children, process);
 	}
 };
 
@@ -199,6 +223,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(c
 
 ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
 {
+	m_impl->UpdateGenreParents();
 	ExtractedBooks books;
 
 	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre };
@@ -208,6 +233,7 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 	                       [&](auto&& book)
 	                       {
 							   assert(book.size() == roles.size());
+							   auto genres = book[8].split(", ", Qt::SkipEmptyParts);
 							   ExtractedBook result { .id = book[0].toInt(),
 			                                          .folder = std::move(book[1]),
 			                                          .file = std::move(book[2]),
@@ -215,7 +241,12 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 			                                          .author = std::move(book[4]),
 			                                          .series = std::move(book[5]),
 			                                          .seqNumber = book[6].toInt(),
-			                                          .title = std::move(book[7]) };
+			                                          .title = std::move(book[7]),
+			                                          .genre = genres.isEmpty() ? QString {} : std::move(genres.front()) };
+
+							   for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
+								   result.genreTree.push_front(genre);
+
 							   return result;
 						   });
 
