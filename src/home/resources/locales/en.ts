@@ -5206,10 +5206,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Http Server...</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Http server management</source>
         <translation></translation>
     </message>
@@ -5235,6 +5231,22 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Export</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Server &amp;Management...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;Site</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;Web</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;OPDS</source>
         <translation></translation>
     </message>
 </context>
@@ -5524,10 +5536,12 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Web Address</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>OPDS Address</source>
         <translation></translation>
     </message>
@@ -5551,6 +5565,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Site Address</source>
         <translation></translation>
     </message>

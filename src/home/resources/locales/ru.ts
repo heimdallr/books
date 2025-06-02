@@ -2715,6 +2715,21 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::OpdsDialog::Impl</name>
+    <message>
+        <source>Site Address</source>
+        <translation type="vanished">Адрес сайта</translation>
+    </message>
+    <message>
+        <source>OPDS Address</source>
+        <translation type="vanished">Адрес OPDS</translation>
+    </message>
+    <message>
+        <source>Web Address</source>
+        <translation type="vanished">Веб-адрес</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::QueryWindow</name>
     <message>
         <location filename="../../flibrary/gui/QueryWindow.cpp"/>
@@ -5218,10 +5233,6 @@ Try again?</source>
         <translation>Панель поиска по &amp;названию</translation>
     </message>
     <message>
-        <source>&amp;Http Server...</source>
-        <translation>&amp;HTTP-сервер...</translation>
-    </message>
-    <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
     </message>
@@ -5248,6 +5259,22 @@ Try again?</source>
     <message>
         <source>&amp;Export</source>
         <translation>&amp;Экспорт</translation>
+    </message>
+    <message>
+        <source>Server &amp;Management...</source>
+        <translation>&amp;Управление сервером...</translation>
+    </message>
+    <message>
+        <source>Go to &amp;Site</source>
+        <translation>Переход на &amp;сайт</translation>
+    </message>
+    <message>
+        <source>Go to &amp;Web</source>
+        <translation>Переход на &amp;Web</translation>
+    </message>
+    <message>
+        <source>Go to &amp;OPDS</source>
+        <translation>Переход на &amp;OPDS</translation>
     </message>
 </context>
 <context>
@@ -5536,10 +5563,12 @@ Try again?</source>
         <translation>Http-сервер</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Web Address</source>
         <translation>Веб-адрес</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>OPDS Address</source>
         <translation>Адрес OPDS</translation>
     </message>
@@ -5563,6 +5592,7 @@ Try again?</source>
         <translation>Адрес</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Site Address</source>
         <translation>Адрес сайта</translation>
     </message>
