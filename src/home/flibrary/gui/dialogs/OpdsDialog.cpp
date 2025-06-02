@@ -22,6 +22,9 @@ constexpr auto CONTEXT = "OpdsDialog";
 constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
 constexpr auto ANY = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
+constexpr auto SITE = QT_TRANSLATE_NOOP("OpdsDialog", "Site Address");
+constexpr auto OPDS = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS Address");
+constexpr auto WEB = QT_TRANSLATE_NOOP("OpdsDialog", "Web Address");
 TR_DEF
 }
 
@@ -147,15 +150,15 @@ private:
 	{
 		if (isRunning)
 		{
-			ui.labelSite->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSiteAddress->text()).arg(tr("Site Address")));
-			ui.labelOpds->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpdsAddress->text()).arg(tr("OPDS Address")));
-			ui.labelWeb->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditWebAddress->text()).arg(tr("Web Address")));
+			ui.labelSite->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSiteAddress->text()).arg(Tr(SITE)));
+			ui.labelOpds->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpdsAddress->text()).arg(Tr(OPDS)));
+			ui.labelWeb->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditWebAddress->text()).arg(Tr(WEB)));
 		}
 		else
 		{
-			ui.labelSite->setText(tr("Site Address"));
-			ui.labelOpds->setText(tr("OPDS Address"));
-			ui.labelWeb->setText(tr("Web Address"));
+			ui.labelSite->setText(Tr(SITE));
+			ui.labelOpds->setText(Tr(OPDS));
+			ui.labelWeb->setText(Tr(WEB));
 		}
 	}
 
