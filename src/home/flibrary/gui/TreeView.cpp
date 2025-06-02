@@ -8,7 +8,6 @@
 #include <QActionGroup>
 #include <QMenu>
 #include <QPainter>
-#include <QProxyStyle>
 #include <QResizeEvent>
 #include <QTimer>
 
@@ -47,21 +46,6 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
-
-class MenuProxyStyle final : public QProxyStyle
-{
-public:
-	explicit MenuProxyStyle(QStyle* style)
-		: QProxyStyle(style)
-	{
-	}
-
-private: // QProxyStyle
-	int styleHint(const StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
-	{
-		return IsOneOf(hint, SH_Menu_Scrollable, SH_Menu_KeyboardSearch) ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
-	}
-};
 
 class HeaderView final : public QHeaderView
 {
@@ -147,6 +131,46 @@ private: // QObject
 private:
 	const TreeView& m_view;
 	const QWidget& m_widget;
+};
+
+class MenuEventFilter final : public QObject
+{
+public:
+	explicit MenuEventFilter(QObject* parent = nullptr)
+		: QObject(parent)
+	{
+		m_timer.setSingleShot(true);
+		m_timer.setInterval(std::chrono::seconds(2));
+		connect(&m_timer, &QTimer::timeout, [this] { m_text.clear(); });
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() != QEvent::KeyPress)
+			return QObject::eventFilter(watched, event);
+
+		const auto text = static_cast<const QKeyEvent*>(event)->text(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+		if (text.isEmpty())
+			return false;
+
+		auto* menu = qobject_cast<QMenu*>(watched);
+		if (!menu)
+			return false;
+
+		m_text.append(text);
+		m_timer.start();
+
+		const auto actions = menu->actions();
+		if (const auto it = std::ranges::find_if(actions, [this](const QAction* action) { return action->text().startsWith(m_text, Qt::CaseInsensitive); }); it != actions.end())
+			menu->setActiveAction(*it);
+
+		return false;
+	}
+
+private:
+	QTimer m_timer;
+	QString m_text;
 };
 
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
@@ -474,7 +498,6 @@ private:
 			stack.pop();
 
 			auto maxWidth = subMenu->minimumWidth();
-			subMenu->setStyle(m_menuProxyStyle);
 
 			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
 			{
@@ -518,6 +541,8 @@ private:
 			}
 
 			subMenu->setMinimumWidth(maxWidth);
+			if (parent->GetChildCount() > 16)
+				subMenu->installEventFilter(&m_menuEventFilter);
 		}
 	}
 
@@ -929,7 +954,7 @@ private:
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
-	QStyle* m_menuProxyStyle { new MenuProxyStyle(m_self.style()) }; ///@todo memory leak :(
+	MenuEventFilter m_menuEventFilter;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
