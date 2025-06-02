@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 
 #include <QActionGroup>
+#include <QDesktopServices>
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
@@ -18,6 +19,7 @@
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IInpxGenerator.h"
+#include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/logic/IUpdateChecker.h"
@@ -540,15 +542,9 @@ private:
 		ConnectActionsSettingsTheme();
 	}
 
-	void ConnectActionsSettings()
+	void ConnectActionsSettingsHttp()
 	{
-		PLOGV << "ConnectActionsSettings";
-		ConnectActionsSettingsExport();
-		ConnectActionsSettingsView();
-
-		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
-		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
-		connect(m_ui.actionOpds,
+		connect(m_ui.actionHttpServerManagement,
 		        &QAction::triggered,
 		        &m_self,
 		        [&]
@@ -562,6 +558,32 @@ private:
 						m_uiFactory->ShowError(QString::fromStdString(ex.what()));
 					}
 				});
+		const auto browse = [this](const QString& folder = {})
+		{ QDesktopServices::openUrl(QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder)); };
+		connect(m_ui.actionBrowseHttpOpds, &QAction::triggered, [=] { browse("opds"); });
+		connect(m_ui.actionBrowseHttpSite, &QAction::triggered, [=] { browse(); });
+		connect(m_ui.actionBrowseHttpWeb, &QAction::triggered, [=] { browse("web"); });
+		connect(m_ui.menuHttp,
+		        &QMenu::aboutToShow,
+		        [this]
+		        {
+					auto controller = ILogicFactory::Lock(m_logicFactory)->CreateOpdsController();
+					const auto running = controller->IsRunning();
+					m_ui.actionBrowseHttpOpds->setEnabled(running);
+					m_ui.actionBrowseHttpSite->setEnabled(running);
+					m_ui.actionBrowseHttpWeb->setEnabled(running);
+				});
+	}
+
+	void ConnectActionsSettings()
+	{
+		PLOGV << "ConnectActionsSettings";
+		ConnectActionsSettingsExport();
+		ConnectActionsSettingsView();
+		ConnectActionsSettingsHttp();
+
+		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
+		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
 		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
 	}
 

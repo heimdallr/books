@@ -416,11 +416,21 @@
      <addaction name="actionConvertCoverToGrayscale"/>
      <addaction name="actionConvertImagesToGrayscale"/>
     </widget>
+    <widget class="QMenu" name="menuHttp">
+     <property name="title">
+      <string notr="true">Http</string>
+     </property>
+     <addaction name="actionHttpServerManagement"/>
+     <addaction name="separator"/>
+     <addaction name="actionBrowseHttpSite"/>
+     <addaction name="actionBrowseHttpWeb"/>
+     <addaction name="actionBrowseHttpOpds"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="menuExport"/>
+    <addaction name="menuHttp"/>
     <addaction name="actionScripts"/>
-    <addaction name="actionOpds"/>
     <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -764,9 +774,9 @@
     <number>0</number>
    </property>
   </action>
-  <action name="actionOpds">
+  <action name="actionHttpServerManagement">
    <property name="text">
-    <string>&amp;Http Server...</string>
+    <string>Server &amp;Management...</string>
    </property>
    <property name="toolTip">
     <string>Http server management</string>
@@ -933,6 +943,30 @@
    </property>
    <property name="text">
     <string>Grayscale &amp;images</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpSite">
+   <property name="text">
+    <string>Go to &amp;Site</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpWeb">
+   <property name="text">
+    <string>Go to &amp;Web</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpOpds">
+   <property name="text">
+    <string>Go to &amp;OPDS</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
