@@ -16,6 +16,8 @@ using namespace Flibrary;
 
 namespace
 {
+constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
+
 constexpr auto CONTEXT = "OpdsDialog";
 constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
@@ -117,8 +119,17 @@ private: // IOpdsController::IObserver
 		ui.lineEditOpdsAddress->setEnabled(isRunning);
 		ui.lineEditWebAddress->setEnabled(isRunning);
 		ui.lineEditSiteAddress->setEnabled(isRunning);
+		ui.labelOpds->setOpenExternalLinks(isRunning);
+		ui.labelWeb->setOpenExternalLinks(isRunning);
+		ui.labelSite->setOpenExternalLinks(isRunning);
+		ui.labelOpds->setEnabled(isRunning);
+		ui.labelWeb->setEnabled(isRunning);
+		ui.labelSite->setEnabled(isRunning);
+
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
+
+		SelLabelLink(isRunning);
 	}
 
 private:
@@ -128,6 +139,24 @@ private:
 		ui.lineEditSiteAddress->setText(QString("http://%1:%2/").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
+
+		SelLabelLink(true);
+	}
+
+	void SelLabelLink(const bool isRunning) const
+	{
+		if (isRunning)
+		{
+			ui.labelSite->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSiteAddress->text()).arg(tr("Site Address")));
+			ui.labelOpds->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpdsAddress->text()).arg(tr("OPDS Address")));
+			ui.labelWeb->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditWebAddress->text()).arg(tr("Web Address")));
+		}
+		else
+		{
+			ui.labelSite->setText(tr("Site Address"));
+			ui.labelOpds->setText(tr("OPDS Address"));
+			ui.labelWeb->setText(tr("Web Address"));
+		}
 	}
 
 private:

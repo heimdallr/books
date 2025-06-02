@@ -57,9 +57,18 @@
       </widget>
      </item>
      <item row="4" column="0">
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="labelWeb">
        <property name="text">
         <string>Web Address</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
        </property>
       </widget>
      </item>
@@ -71,9 +80,18 @@
       </widget>
      </item>
      <item row="5" column="0">
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="labelOpds">
        <property name="text">
         <string>OPDS Address</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
        </property>
       </widget>
      </item>
@@ -95,9 +113,18 @@
       <widget class="QComboBox" name="comboBoxHosts"/>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="label_6">
+      <widget class="QLabel" name="labelSite">
        <property name="text">
         <string>Site Address</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
        </property>
       </widget>
      </item>
