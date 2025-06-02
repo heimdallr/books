@@ -133,6 +133,46 @@ private:
 	const QWidget& m_widget;
 };
 
+class MenuEventFilter final : public QObject
+{
+public:
+	explicit MenuEventFilter(QObject* parent = nullptr)
+		: QObject(parent)
+	{
+		m_timer.setSingleShot(true);
+		m_timer.setInterval(std::chrono::seconds(2));
+		connect(&m_timer, &QTimer::timeout, [this] { m_text.clear(); });
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() != QEvent::KeyPress)
+			return QObject::eventFilter(watched, event);
+
+		const auto text = static_cast<const QKeyEvent*>(event)->text(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+		if (text.isEmpty())
+			return false;
+
+		auto* menu = qobject_cast<QMenu*>(watched);
+		if (!menu)
+			return false;
+
+		m_text.append(text);
+		m_timer.start();
+
+		const auto actions = menu->actions();
+		if (const auto it = std::ranges::find_if(actions, [this](const QAction* action) { return action->text().startsWith(m_text, Qt::CaseInsensitive); }); it != actions.end())
+			menu->setActiveAction(*it);
+
+		return false;
+	}
+
+private:
+	QTimer m_timer;
+	QString m_text;
+};
+
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
 {
 	f(index);
@@ -501,6 +541,8 @@ private:
 			}
 
 			subMenu->setMinimumWidth(maxWidth);
+			if (parent->GetChildCount() > 16)
+				subMenu->installEventFilter(&m_menuEventFilter);
 		}
 	}
 
@@ -912,6 +954,7 @@ private:
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
+	MenuEventFilter m_menuEventFilter;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
