@@ -9,6 +9,7 @@
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IUpdateChecker.h"
+#include "interface/logic/IOpdsController.h"
 #include "interface/logic/IUserDataController.h"
 
 #include "Annotation/ArchiveParser.h"
@@ -201,6 +202,11 @@ std::shared_ptr<IUpdateChecker> LogicFactory::CreateUpdateChecker() const
 std::shared_ptr<ICollectionCleaner> LogicFactory::CreateCollectionCleaner() const
 {
 	return m_impl->container.resolve<ICollectionCleaner>();
+}
+
+std::shared_ptr<IOpdsController> LogicFactory::CreateOpdsController() const
+{
+	return m_impl->container.resolve<IOpdsController>();
 }
 
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const
