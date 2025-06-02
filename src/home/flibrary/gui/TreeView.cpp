@@ -8,7 +8,6 @@
 #include <QActionGroup>
 #include <QMenu>
 #include <QPainter>
-#include <QProxyStyle>
 #include <QResizeEvent>
 #include <QTimer>
 
@@ -47,21 +46,6 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
-
-class MenuProxyStyle final : public QProxyStyle
-{
-public:
-	explicit MenuProxyStyle(QStyle* style)
-		: QProxyStyle(style)
-	{
-	}
-
-private: // QProxyStyle
-	int styleHint(const StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
-	{
-		return IsOneOf(hint, SH_Menu_Scrollable, SH_Menu_KeyboardSearch) ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
-	}
-};
 
 class HeaderView final : public QHeaderView
 {
@@ -474,7 +458,6 @@ private:
 			stack.pop();
 
 			auto maxWidth = subMenu->minimumWidth();
-			subMenu->setStyle(m_menuProxyStyle);
 
 			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
 			{
@@ -929,7 +912,6 @@ private:
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
-	QStyle* m_menuProxyStyle { new MenuProxyStyle(m_self.style()) }; ///@todo memory leak :(
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
