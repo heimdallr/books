@@ -8,6 +8,7 @@
 
 #include "util/Localization.h"
 
+#include "ChuckNorrisJokeRequester.h"
 #include "SetupPunchlineJokeRequester.h"
 
 using namespace HomeCompa;
@@ -17,6 +18,7 @@ namespace
 {
 
 constexpr auto CONTEXT = "JokeRequester";
+constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Chuck Norris");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Punchline");
 TR_DEF
 
