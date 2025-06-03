@@ -238,6 +238,11 @@ private: // IJokeRequester::IClient
 		m_impl.OnTextReceived(value);
 	}
 
+	void OnImageReceived(const QByteArray& value) override
+	{
+		m_impl.OnImageReceived(value);
+	}
+
 private:
 	IClient& m_impl;
 };
@@ -442,7 +447,12 @@ private: // IProgressController::IObserver
 private: // IJokeRequester::IClient
 	void OnTextReceived(const QString& value) override
 	{
-		Perform(&IAnnotationController::IObserver::OnJokeChanged, std::cref(value));
+		Perform(&IAnnotationController::IObserver::OnJokeTextChanged, std::cref(value));
+	}
+
+	void OnImageReceived(const QByteArray& value) override
+	{
+		Perform(&IAnnotationController::IObserver::OnJokeImageChanged, std::cref(value));
 	}
 
 private:
