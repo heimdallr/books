@@ -1,22 +1,14 @@
 #pragma once
 
-#include "fnd/NonCopyMovable.h"
-
-#include "BaseJokeRequester.h"
+#include "SimpleJokeRequester.h"
 
 namespace HomeCompa::Flibrary
 {
 
-class ChuckNorrisJokeRequester final : public BaseJokeRequester
+class ChuckNorrisJokeRequester final : public SimpleJokeRequester
 {
-	NON_COPY_MOVABLE(ChuckNorrisJokeRequester)
-
 public:
 	ChuckNorrisJokeRequester();
-	~ChuckNorrisJokeRequester() override;
-
-private: // BaseJokeRequester
-	bool Process(const QJsonValue& value, const std::weak_ptr<IClient>& client) override;
 };
 
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QString>
+
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 

@@ -1,7 +1,6 @@
 #include "SetupPunchlineJokeRequester.h"
 
 #include <QJsonObject>
-#include <QString>
 
 using namespace HomeCompa::Flibrary;
 
