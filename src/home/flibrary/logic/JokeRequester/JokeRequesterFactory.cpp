@@ -10,8 +10,9 @@
 
 #include "CatFactJokeRequester.h"
 #include "ChuckNorrisJokeRequester.h"
-#include "SetupPunchlineJokeRequester.h"
 #include "DogPicsJokeRequester.h"
+#include "FoxPicsJokeRequester.h"
+#include "SetupPunchlineJokeRequester.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -24,6 +25,7 @@ constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "C
 constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
 constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogDictures");
+constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxDictures");
 TR_DEF
 
 template <typename T>

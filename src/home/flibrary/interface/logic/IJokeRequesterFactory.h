@@ -12,7 +12,8 @@ namespace HomeCompa::Flibrary
 	JOKE_REQUESTER_IMPL_ITEM(CatFact)        \
 	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris)    \
 	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline) \
-	JOKE_REQUESTER_IMPL_ITEM(DogPics)
+	JOKE_REQUESTER_IMPL_ITEM(DogPics)        \
+	JOKE_REQUESTER_IMPL_ITEM(FoxPics)
 
 class IJokeRequesterFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
