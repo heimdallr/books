@@ -20,10 +20,10 @@ namespace
 {
 
 constexpr auto CONTEXT = "JokeRequester";
-constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Cat facts");
-constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Chuck Norris facts");
-constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Punchline jokes");
-constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Dog pictures");
+constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
+constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
+constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
+constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogDictures");
 TR_DEF
 
 template <typename T>
