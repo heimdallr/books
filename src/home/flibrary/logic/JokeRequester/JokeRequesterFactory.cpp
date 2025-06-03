@@ -8,6 +8,7 @@
 
 #include "util/Localization.h"
 
+#include "CatFactJokeRequester.h"
 #include "ChuckNorrisJokeRequester.h"
 #include "SetupPunchlineJokeRequester.h"
 
@@ -18,8 +19,9 @@ namespace
 {
 
 constexpr auto CONTEXT = "JokeRequester";
-constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Chuck Norris");
-constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Punchline");
+constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Cat facts");
+constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Chuck Norris facts");
+constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Punchline jokes");
 TR_DEF
 
 template <typename T>

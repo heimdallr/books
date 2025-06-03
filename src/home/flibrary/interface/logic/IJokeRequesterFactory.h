@@ -8,9 +8,10 @@
 namespace HomeCompa::Flibrary
 {
 
-#define JOKE_REQUESTER_IMPL_ITEMS_X_MACRO    \
-	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline) \
-	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris)
+#define JOKE_REQUESTER_IMPL_ITEMS_X_MACRO \
+	JOKE_REQUESTER_IMPL_ITEM(CatFact)     \
+	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris) \
+	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline)
 
 class IJokeRequesterFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
