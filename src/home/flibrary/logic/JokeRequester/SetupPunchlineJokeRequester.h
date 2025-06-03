@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseJokeRequester.h"
+#include "shared/BaseJokeRequester.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -11,7 +11,7 @@ public:
 	SetupPunchlineJokeRequester();
 
 private: // BaseJokeRequester
-	bool Process(const QJsonValue& value, const std::weak_ptr<IClient>& client) override;
+	bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) override;
 };
 
 }

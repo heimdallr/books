@@ -13,7 +13,7 @@ SimpleJokeRequester::SimpleJokeRequester(QString uri, QString fieldName)
 
 SimpleJokeRequester::~SimpleJokeRequester() = default;
 
-bool SimpleJokeRequester::Process(const QJsonValue& value, const std::weak_ptr<IClient>& clientPtr)
+bool SimpleJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient> clientPtr)
 {
 	const auto client = clientPtr.lock();
 	if (!client)

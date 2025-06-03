@@ -26,14 +26,14 @@ SimplePicsJokeRequester::SimplePicsJokeRequester(QString uri, QString fieldName)
 
 SimplePicsJokeRequester::~SimplePicsJokeRequester() = default;
 
-bool SimplePicsJokeRequester::Process(const QJsonValue& value, const std::weak_ptr<IClient>& client)
+bool SimplePicsJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient> client)
 {
 	const auto jsonObject = value.toObject();
 	const auto uri = jsonObject[m_impl->fieldName];
 	if (!uri.isString())
 		return false;
 
-	auto item = std::make_unique<Item>(client);
+	auto item = std::make_unique<Item>(std::move(client));
 	const auto id = m_impl->downloader.Download(uri.toString(), item->stream, [this](const size_t idMessage, const int code, const QString& message) { OnImageReceived(idMessage, code, message); });
 	m_impl->requests.try_emplace(id, std::move(item));
 	return true;

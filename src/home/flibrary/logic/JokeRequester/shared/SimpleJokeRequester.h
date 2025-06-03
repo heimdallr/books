@@ -16,7 +16,7 @@ public:
 	~SimpleJokeRequester() override;
 
 private: // BaseJokeRequester
-	bool Process(const QJsonValue& value, const std::weak_ptr<IClient>& client) override;
+	bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) override;
 
 private:
 	const QString m_fieldName;

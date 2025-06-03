@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimplePicsJokeRequester.h"
+#include "shared/SimplePicsJokeRequester.h"
 
 namespace HomeCompa::Flibrary
 {

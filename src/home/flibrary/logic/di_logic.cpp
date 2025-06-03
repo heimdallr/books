@@ -13,7 +13,7 @@
 #include "Collection/CollectionController.h"
 #include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
-#include "JokeRequester/JokeRequesterFactory.h"
+#include "JokeRequester/factory/JokeRequesterFactory.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "data/NavigationQueryExecutor.h"

@@ -8,11 +8,11 @@
 
 #include "util/Localization.h"
 
-#include "CatFactJokeRequester.h"
-#include "ChuckNorrisJokeRequester.h"
-#include "DogPicsJokeRequester.h"
-#include "FoxPicsJokeRequester.h"
-#include "SetupPunchlineJokeRequester.h"
+#include "JokeRequester/CatFactJokeRequester.h"
+#include "JokeRequester/ChuckNorrisJokeRequester.h"
+#include "JokeRequester/DogPicsJokeRequester.h"
+#include "JokeRequester/FoxPicsJokeRequester.h"
+#include "JokeRequester/SetupPunchlineJokeRequester.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

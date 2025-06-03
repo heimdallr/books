@@ -17,7 +17,7 @@ public:
 	~SimplePicsJokeRequester() override;
 
 private: // BaseJokeRequester
-	bool Process(const QJsonValue& value, const std::weak_ptr<IClient>& client) override;
+	bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) override;
 
 private:
 	void OnImageReceived(size_t id, int code, const QString& message);
