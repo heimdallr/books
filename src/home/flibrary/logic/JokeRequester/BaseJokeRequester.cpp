@@ -1,6 +1,5 @@
 #include "BaseJokeRequester.h"
 
-#include <QBuffer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QNetworkReply>
@@ -13,20 +12,10 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
+BaseJokeRequester::Item::Item(std::weak_ptr<IClient> client)
+	: client { std::move(client) }
 {
-struct Item
-{
-	std::weak_ptr<IJokeRequester::IClient> client;
-	QByteArray data;
-	QBuffer stream { &data };
-
-	explicit Item(std::weak_ptr<IJokeRequester::IClient> client)
-		: client { std::move(client) }
-	{
-		stream.open(QIODevice::WriteOnly);
-	}
-};
+	stream.open(QIODevice::WriteOnly);
 }
 
 struct BaseJokeRequester::Impl

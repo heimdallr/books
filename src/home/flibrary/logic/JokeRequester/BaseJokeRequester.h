@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QBuffer>
 #include <QString>
 
 #include "fnd/NonCopyMovable.h"
@@ -15,6 +16,16 @@ namespace HomeCompa::Flibrary
 class BaseJokeRequester : virtual public IJokeRequester
 {
 	NON_COPY_MOVABLE(BaseJokeRequester)
+
+protected:
+	struct Item
+	{
+		std::weak_ptr<IClient> client;
+		QByteArray data;
+		QBuffer stream { &data };
+
+		explicit Item(std::weak_ptr<IClient> client);
+	};
 
 public:
 	explicit BaseJokeRequester(QString uri);
