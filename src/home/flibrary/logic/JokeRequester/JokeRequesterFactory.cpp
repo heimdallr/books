@@ -11,6 +11,7 @@
 #include "CatFactJokeRequester.h"
 #include "ChuckNorrisJokeRequester.h"
 #include "SetupPunchlineJokeRequester.h"
+#include "DogPicsJokeRequester.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -22,6 +23,7 @@ constexpr auto CONTEXT = "JokeRequester";
 constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Cat facts");
 constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Chuck Norris facts");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Punchline jokes");
+constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Dog pictures");
 TR_DEF
 
 template <typename T>
