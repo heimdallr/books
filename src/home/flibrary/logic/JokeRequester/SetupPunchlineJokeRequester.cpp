@@ -84,5 +84,5 @@ void SetupPunchlineJokeRequester::OnResponse(const size_t id, const int code, co
 		return;
 	}
 
-	client->Response(QString("<p>%1 %2</p><p>%1 %3</p>").arg(QChar(0x2014), setup.toString(), jsonObject["punchline"].toString()));
+	client->OnTextReceived(QString("<p>%1 %2</p><p>%1 %3</p>").arg(QChar(0x2014), setup.toString(), jsonObject["punchline"].toString()));
 }

@@ -70,9 +70,9 @@ constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "ui/View/AnnotationJokes/%1";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
-constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
 constexpr auto QSS = "qss";
@@ -131,6 +131,7 @@ public:
 	Impl(MainWindow& self,
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
+	     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	     std::shared_ptr<const IUiFactory> uiFactory,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ICollectionController> collectionController,
@@ -151,6 +152,7 @@ public:
 		, m_self { self }
 		, m_logicFactory { logicFactory }
 		, m_styleApplierFactory { std::move(styleApplierFactory) }
+		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
@@ -418,6 +420,23 @@ private:
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
+	void ConnectActionsSettingsAnnotationJokes()
+	{
+		for (const auto& [implementation, name, title] : m_jokeRequesterFactory->GetImplementations())
+		{
+			auto* action = m_ui.menuJokes->addAction(title);
+			action->setCheckable(true);
+			connect(action,
+			        &QAction::toggled,
+			        [this, implementation, name](const bool checked)
+			        {
+						m_annotationController->ShowJokes(implementation, checked);
+						m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+					});
+			action->setChecked(m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), false));
+		}
+	}
+
 	void ConnectActionsSettingsAnnotation()
 	{
 		PLOGV << "ConnectActionsSettingsAnnotation";
@@ -425,11 +444,12 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowContent);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
-		ConnectSettings(m_ui.actionShowJokes, SHOW_JOKES_KEY, m_annotationController.get(), &IAnnotationController::ShowJokes);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] { m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible()); });
 
 		m_ui.actionShowReadersReviews->setVisible(m_collectionController->ActiveCollectionExists()
 		                                          && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists());
+
+		ConnectActionsSettingsAnnotationJokes();
 	}
 
 	void ConnectActionsSettingsFont()
@@ -977,6 +997,7 @@ private:
 	QTimer m_delayStarter;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IStyleApplierFactory> m_styleApplierFactory;
+	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
@@ -1011,6 +1032,7 @@ private:
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
+                       std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
                        std::shared_ptr<IUiFactory> uiFactory,
                        std::shared_ptr<ISettings> settings,
                        std::shared_ptr<ICollectionController> collectionController,
@@ -1031,6 +1053,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	, m_impl(*this,
              logicFactory,
              std::move(styleApplierFactory),
+             std::move(jokeRequesterFactory),
              std::move(uiFactory),
              std::move(settings),
              std::move(collectionController),

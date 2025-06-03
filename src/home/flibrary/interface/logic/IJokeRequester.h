@@ -12,7 +12,7 @@ public:
 	{
 	public:
 		virtual ~IClient() = default;
-		virtual void Response(const QString& value) = 0;
+		virtual void OnTextReceived(const QString& value) = 0;
 	};
 
 public:

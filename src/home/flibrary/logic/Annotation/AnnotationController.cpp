@@ -1,5 +1,6 @@
 #include "AnnotationController.h"
 
+#include <random>
 #include <ranges>
 
 #include <QFileInfo>
@@ -20,6 +21,7 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
@@ -231,9 +233,9 @@ public:
 	}
 
 private: // IJokeRequester::IClient
-	void Response(const QString& value) override
+	void OnTextReceived(const QString& value) override
 	{
-		m_impl.Response(value);
+		m_impl.OnTextReceived(value);
 	}
 
 private:
@@ -253,15 +255,18 @@ class AnnotationController::Impl final
 public:
 	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<const ICollectionProvider> collectionProvider,
-	     std::shared_ptr<const IDatabaseUser> databaseUser,
-	     std::shared_ptr<IJokeRequester> jokeRequester)
+	     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
+	     std::shared_ptr<const IDatabaseUser> databaseUser)
 		: m_logicFactory { logicFactory }
 		, m_collectionProvider { std::move(collectionProvider) }
+		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_databaseUser { std::move(databaseUser) }
-		, m_jokeRequester { std::move(jokeRequester) }
 		, m_executor { logicFactory->GetExecutor() }
 		, m_jokeRequesterClientImpl(JokeRequesterClientImpl::Create(*this))
 	{
+		m_jokeTimer.setSingleShot(true);
+		m_jokeTimer.setInterval(std::chrono::seconds(1));
+		QObject::connect(&m_jokeTimer, &QTimer::timeout, [this] { RequestJoke(); });
 	}
 
 public:
@@ -273,13 +278,16 @@ public:
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 		if (m_currentBookId = std::move(bookId); !m_currentBookId.isEmpty())
 			extractNow ? ExtractInfo() : m_extractInfoTimer->start();
-		else if (m_showJokes)
-			RequestJoke();
+		else if (!m_jokeRequesters.empty())
+			m_jokeTimer.start();
 	}
 
-	void ShowJokes(const bool value) noexcept
+	void ShowJokes(const IJokeRequesterFactory::Implementation impl, const bool value) noexcept
 	{
-		m_showJokes = value;
+		if (value)
+			m_jokeRequesters.emplace_back(impl, m_jokeRequesterFactory->Create(impl));
+		else
+			std::erase_if(m_jokeRequesters, [impl](const auto& item) { return item.first == impl; });
 	}
 
 	void ShowReviews(const bool value) noexcept
@@ -432,7 +440,7 @@ private: // IProgressController::IObserver
 	}
 
 private: // IJokeRequester::IClient
-	void Response(const QString& value) override
+	void OnTextReceived(const QString& value) override
 	{
 		Perform(&IAnnotationController::IObserver::OnJokeChanged, std::cref(value));
 	}
@@ -621,14 +629,21 @@ private:
 
 	void RequestJoke()
 	{
-		m_jokeRequester->Request(m_jokeRequesterClientImpl);
+		if (m_jokeRequesters.empty())
+			return;
+
+		std::uniform_int_distribution<size_t> distribution(0, m_jokeRequesters.size() - 1);
+		const auto index = distribution(m_mt);
+		m_jokeRequesters[index].second->Request(m_jokeRequesterClientImpl);
 	}
 
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	PropagateConstPtr<IJokeRequester, std::shared_ptr> m_jokeRequester;
+
+	std::vector<std::pair<IJokeRequesterFactory::Implementation, PropagateConstPtr<IJokeRequester, std::shared_ptr>>> m_jokeRequesters;
 	PropagateConstPtr<Util::IExecutor> m_executor;
 	std::shared_ptr<IJokeRequester::IClient> m_jokeRequesterClientImpl;
 	PropagateConstPtr<QTimer> m_extractInfoTimer { Util::CreateUiTimer([&] { ExtractInfo(); }) };
@@ -652,15 +667,18 @@ private:
 
 	std::weak_ptr<ArchiveParser> m_archiveParser;
 
-	bool m_showJokes { false };
 	bool m_showReviews { true };
+	QTimer m_jokeTimer;
+
+	std::random_device m_rd;
+	std::mt19937 m_mt { m_rd() };
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
                                            std::shared_ptr<const ICollectionProvider> collectionProvider,
-                                           std::shared_ptr<IDatabaseUser> databaseUser,
-                                           std::shared_ptr<IJokeRequester> jokeRequester)
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(jokeRequester))
+                                           std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
+                                           std::shared_ptr<const IDatabaseUser> databaseUser)
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser))
 {
 	PLOGV << "AnnotationController created";
 }
@@ -754,9 +772,9 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	return annotation;
 }
 
-void AnnotationController::ShowJokes(const bool value)
+void AnnotationController::ShowJokes(const IJokeRequesterFactory::Implementation impl, const bool value)
 {
-	m_impl->ShowJokes(value);
+	m_impl->ShowJokes(impl, value);
 }
 
 void AnnotationController::ShowReviews(const bool value)
