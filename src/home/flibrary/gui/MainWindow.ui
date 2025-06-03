@@ -347,11 +347,16 @@
       <property name="title">
        <string>&amp;Annotation</string>
       </property>
+      <widget class="QMenu" name="menuJokes">
+       <property name="title">
+        <string>&amp;Jokes</string>
+       </property>
+      </widget>
       <addaction name="actionShowAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
       <addaction name="actionShowReadersReviews"/>
-      <addaction name="actionShowJokes"/>
+      <addaction name="menuJokes"/>
       <addaction name="separator"/>
       <addaction name="actionHideAnnotation"/>
      </widget>
@@ -818,17 +823,6 @@
   <action name="actionGenerateIndexInpx">
    <property name="text">
     <string>Generate &amp;index (*.inpx)</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionShowJokes">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

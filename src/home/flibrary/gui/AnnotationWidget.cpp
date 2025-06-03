@@ -421,9 +421,16 @@ private: // IAnnotationController::IObserver
 		OnResize();
 	}
 
-	void OnJokeChanged(const QString& value) override
+	void OnJokeTextChanged(const QString& value) override
 	{
 		m_ui.info->setText(value);
+	}
+
+	void OnJokeImageChanged(const QByteArray& value) override
+	{
+		m_covers.emplace_back("", value);
+		m_currentCoverIndex = 0;
+		OnResize();
 	}
 
 	void OnArchiveParserProgress(const int percents) override

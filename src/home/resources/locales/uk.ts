@@ -2715,21 +2715,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::OpdsDialog::Impl</name>
-    <message>
-        <source>Site Address</source>
-        <translation type="vanished">Адреса сайту</translation>
-    </message>
-    <message>
-        <source>OPDS Address</source>
-        <translation type="vanished">Адреса OPDS</translation>
-    </message>
-    <message>
-        <source>Web Address</source>
-        <translation type="vanished">Веб-адреса</translation>
-    </message>
-</context>
-<context>
     <name>HomeCompa::Flibrary::QueryWindow</name>
     <message>
         <location filename="../../flibrary/gui/QueryWindow.cpp"/>
@@ -2790,6 +2775,34 @@ Try again?</source>
     <message>
         <source>Skip</source>
         <translation>Пропустити</translation>
+    </message>
+</context>
+<context>
+    <name>JokeRequester</name>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatFacts</source>
+        <translation>Факти про котиків</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>ChuckNorrisFacts</source>
+        <translation>Факти про Чака Норріса</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>PunchlineJokes</source>
+        <translation>Жарти - панчлайни</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogDictures</source>
+        <translation>Картинки із собачками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxDictures</source>
+        <translation>Картинки з лисицями</translation>
     </message>
 </context>
 <context>

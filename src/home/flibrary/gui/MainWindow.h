@@ -10,6 +10,7 @@
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/IDatabaseChecker.h"
+#include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/ILineOption.h"
@@ -39,6 +40,7 @@ class MainWindow final
 public:
 	MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	           std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
+	           std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	           std::shared_ptr<IUiFactory> uiFactory,
 	           std::shared_ptr<ISettings> settings,
 	           std::shared_ptr<ICollectionController> collectionController,

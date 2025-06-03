@@ -7,6 +7,8 @@
 
 #include "interface/logic/IDataItem.h"
 
+#include "IJokeRequesterFactory.h"
+
 namespace HomeCompa::Flibrary::ExportStat
 {
 enum class Type;
@@ -76,7 +78,8 @@ public:
 	public:
 		virtual void OnAnnotationRequested() = 0;
 		virtual void OnAnnotationChanged(const IDataProvider& dataProvider) = 0;
-		virtual void OnJokeChanged(const QString& value) = 0;
+		virtual void OnJokeTextChanged(const QString& value) = 0;
+		virtual void OnJokeImageChanged(const QByteArray& value) = 0;
 		virtual void OnArchiveParserProgress(int percents) = 0;
 	};
 
@@ -99,7 +102,7 @@ public:
 public:
 	virtual void SetCurrentBookId(QString bookId, bool extractNow = false) = 0;
 	virtual QString CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const = 0;
-	virtual void ShowJokes(bool value) = 0;
+	virtual void ShowJokes(IJokeRequesterFactory::Implementation impl, bool value) = 0;
 	virtual void ShowReviews(bool value) = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;

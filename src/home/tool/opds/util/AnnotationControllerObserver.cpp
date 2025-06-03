@@ -16,7 +16,11 @@ void AnnotationControllerObserver::OnAnnotationChanged(const Flibrary::IAnnotati
 	m_f(dataProvider);
 }
 
-void AnnotationControllerObserver::OnJokeChanged(const QString&)
+void AnnotationControllerObserver::OnJokeTextChanged(const QString&)
+{
+}
+
+void AnnotationControllerObserver::OnJokeImageChanged(const QByteArray&)
 {
 }
 
