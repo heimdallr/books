@@ -2766,6 +2766,34 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>JokeRequester</name>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatFacts</source>
+        <translation>Cat facts</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>ChuckNorrisFacts</source>
+        <translation>Chuck Norris facts</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>PunchlineJokes</source>
+        <translation>Punchline jokes</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogDictures</source>
+        <translation>Pictures with dogs</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxDictures</source>
+        <translation>Pictures with foxes</translation>
+    </message>
+</context>
+<context>
     <name>Language</name>
     <message>
         <location filename="../../util/localization.h"/>

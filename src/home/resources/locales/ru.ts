@@ -2715,21 +2715,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::OpdsDialog::Impl</name>
-    <message>
-        <source>Site Address</source>
-        <translation type="vanished">Адрес сайта</translation>
-    </message>
-    <message>
-        <source>OPDS Address</source>
-        <translation type="vanished">Адрес OPDS</translation>
-    </message>
-    <message>
-        <source>Web Address</source>
-        <translation type="vanished">Веб-адрес</translation>
-    </message>
-</context>
-<context>
     <name>HomeCompa::Flibrary::QueryWindow</name>
     <message>
         <location filename="../../flibrary/gui/QueryWindow.cpp"/>
@@ -2790,6 +2775,34 @@ Try again?</source>
     <message>
         <source>Compression quality</source>
         <translation>Качество сжатия</translation>
+    </message>
+</context>
+<context>
+    <name>JokeRequester</name>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatFacts</source>
+        <translation>Факты о котиках</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>ChuckNorrisFacts</source>
+        <translation>Факты о Чаке Норрисе</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>PunchlineJokes</source>
+        <translation>Шутки - панчлайны</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogDictures</source>
+        <translation>Картинки с собачками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxDictures</source>
+        <translation>Картинки с лисичками</translation>
     </message>
 </context>
 <context>
