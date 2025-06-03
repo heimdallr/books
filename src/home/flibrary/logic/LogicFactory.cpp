@@ -8,8 +8,8 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
-#include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 
 #include "Annotation/ArchiveParser.h"
