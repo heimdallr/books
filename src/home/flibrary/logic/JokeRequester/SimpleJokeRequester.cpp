@@ -1,7 +1,7 @@
+#include "SimpleJokeRequester.h"
+
 #include <QJsonObject>
 #include <QString>
-
-#include "SimpleJokeRequester.h"
 
 using namespace HomeCompa::Flibrary;
 

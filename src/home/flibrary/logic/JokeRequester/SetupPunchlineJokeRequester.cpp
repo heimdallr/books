@@ -9,8 +9,6 @@ SetupPunchlineJokeRequester::SetupPunchlineJokeRequester()
 {
 }
 
-SetupPunchlineJokeRequester::~SetupPunchlineJokeRequester() = default;
-
 bool SetupPunchlineJokeRequester::Process(const QJsonValue& value, const std::weak_ptr<IClient>& clientPtr)
 {
 	const auto client = clientPtr.lock();
