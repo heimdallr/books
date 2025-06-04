@@ -2,10 +2,20 @@
 
 #include <QHttpHeaders>
 
-using namespace HomeCompa::Flibrary;
+#include "util/Localization.h"
+
+using namespace HomeCompa;
+using namespace Flibrary;
+
+namespace
+{
+constexpr auto CONTEXT = "JokeRequester";
+constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "From dad");
+TR_DEF
+}
 
 DadJokeRequester::DadJokeRequester()
-	: SimpleJokeRequester("http://icanhazdadjoke.com/", "joke")
+	: SimpleJokeRequester("http://icanhazdadjoke.com/", "joke", Tr(PREFIX))
 {
 	QHttpHeaders headers;
 	headers.append(QHttpHeaders::WellKnownHeader::Accept, "application/json");
