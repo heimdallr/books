@@ -428,6 +428,13 @@ private:
 	{
 		static constexpr auto hasDisclaimer = "HasDisclaimer";
 		static constexpr auto actionName = "name";
+		static constexpr auto visible = "Visible";
+
+		if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(visible), true))
+		{
+			delete m_ui.menuJokes;
+			return;
+		}
 
 		const auto mayBeChecked = [](const QAction* item) { return item->isCheckable() && !item->isChecked() && !item->property(hasDisclaimer).toBool(); };
 		const auto mayBeUnchecked = [](const QAction* item) { return item->isCheckable() && item->isChecked(); };
@@ -442,7 +449,7 @@ private:
 
 		for (const auto& [implementation, name, title, disclaimer] : m_jokeRequesterFactory->GetImplementations())
 		{
-			if (m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name + "Hide"), false))
+			if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name + visible), true))
 				continue;
 
 			auto* action = m_ui.menuJokes->addAction(title);
