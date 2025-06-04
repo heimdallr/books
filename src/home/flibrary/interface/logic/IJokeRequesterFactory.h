@@ -15,6 +15,8 @@ namespace HomeCompa::Flibrary
 	JOKE_REQUESTER_IMPL_ITEM(Dad)            \
 	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline) \
 	JOKE_REQUESTER_IMPL_ITEM(JokeApi)        \
+	JOKE_REQUESTER_IMPL_ITEM(Quote)          \
+	JOKE_REQUESTER_IMPL_ITEM(QuotePic)       \
 	JOKE_REQUESTER_IMPL_ITEM(DogPics)        \
 	JOKE_REQUESTER_IMPL_ITEM(FoxPics)
 
