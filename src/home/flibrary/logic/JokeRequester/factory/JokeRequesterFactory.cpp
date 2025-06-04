@@ -8,10 +8,12 @@
 
 #include "JokeRequester/CatFactJokeRequester.h"
 #include "JokeRequester/ChuckNorrisJokeRequester.h"
+#include "JokeRequester/DadJokeRequester.h"
 #include "JokeRequester/DogPicsJokeRequester.h"
 #include "JokeRequester/FoxPicsJokeRequester.h"
 #include "JokeRequester/JokeApiJokeRequester.h"
 #include "JokeRequester/SetupPunchlineJokeRequester.h"
+#include "JokeRequester/UselessFactJokeRequester.h"
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -23,18 +25,22 @@ namespace
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
 constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
+constexpr auto DadJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DadJokes");
 constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogDictures");
 constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxDictures");
 constexpr auto JokeApiJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
+constexpr auto UselessFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "UselessFacts");
 constexpr auto CatFactJokeRequesterDisclaimer = "";
 constexpr auto ChuckNorrisJokeRequesterDisclaimer = "";
+constexpr auto DadJokeRequesterDisclaimer = "";
 constexpr auto DogPicsJokeRequesterDisclaimer = "";
 constexpr auto FoxPicsJokeRequesterDisclaimer = "";
 constexpr auto JokeApiJokeRequesterDisclaimer = QT_TRANSLATE_NOOP(
 	"JokeRequester",
 	R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)");
 constexpr auto SetupPunchlineJokeRequesterDisclaimer = "";
+constexpr auto UselessFactJokeRequesterDisclaimer = "";
 TR_DEF
 
 template <typename T>

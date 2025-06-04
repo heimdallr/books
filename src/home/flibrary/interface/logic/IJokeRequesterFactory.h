@@ -11,6 +11,8 @@ namespace HomeCompa::Flibrary
 #define JOKE_REQUESTER_IMPL_ITEMS_X_MACRO    \
 	JOKE_REQUESTER_IMPL_ITEM(CatFact)        \
 	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris)    \
+	JOKE_REQUESTER_IMPL_ITEM(UselessFact)    \
+	JOKE_REQUESTER_IMPL_ITEM(Dad)            \
 	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline) \
 	JOKE_REQUESTER_IMPL_ITEM(JokeApi)        \
 	JOKE_REQUESTER_IMPL_ITEM(DogPics)        \
