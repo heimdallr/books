@@ -2789,6 +2789,16 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Quotes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>QuotePics</source>
+        <translation>Quotes in the picture</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>UselessFacts</source>
         <translation>Useless Facts</translation>
     </message>

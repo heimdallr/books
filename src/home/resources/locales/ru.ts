@@ -2801,6 +2801,16 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Quotes</source>
+        <translation>Цитаты</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>QuotePics</source>
+        <translation>Цитаты в картинке</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>UselessFacts</source>
         <translation>Бесполезные факты</translation>
     </message>
