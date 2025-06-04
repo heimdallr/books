@@ -31,6 +31,7 @@ public:
 		Implementation implementation;
 		QString name;
 		QString title;
+		QString disclaimer;
 	};
 
 public:

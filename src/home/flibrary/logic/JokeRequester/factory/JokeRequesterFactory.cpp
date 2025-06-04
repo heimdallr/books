@@ -27,6 +27,14 @@ constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "D
 constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxDictures");
 constexpr auto JokeApiJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
+constexpr auto CatFactJokeRequesterDisclaimer = "";
+constexpr auto ChuckNorrisJokeRequesterDisclaimer = "";
+constexpr auto DogPicsJokeRequesterDisclaimer = "";
+constexpr auto FoxPicsJokeRequesterDisclaimer = "";
+constexpr auto JokeApiJokeRequesterDisclaimer = QT_TRANSLATE_NOOP(
+	"JokeRequester",
+	R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)");
+constexpr auto SetupPunchlineJokeRequesterDisclaimer = "";
 TR_DEF
 
 template <typename T>
@@ -35,17 +43,17 @@ std::shared_ptr<IJokeRequester> CreateImpl(Hypodermic::Container& container)
 	return container.resolve<T>();
 }
 
-constexpr std::pair<IJokeRequesterFactory::Implementation, std::tuple<const char*, std::shared_ptr<IJokeRequester> (*)(Hypodermic::Container&)>> IMPLEMENTATIONS[] {
-#define JOKE_REQUESTER_IMPL_ITEM(NAME)                                 \
-	{                                                                  \
-		IJokeRequesterFactory::Implementation::NAME,                   \
-		{ NAME##JokeRequesterTitle, &CreateImpl<NAME##JokeRequester> } \
+constexpr std::pair<IJokeRequesterFactory::Implementation, std::tuple<const char*, const char*, std::shared_ptr<IJokeRequester> (*)(Hypodermic::Container&)>> IMPLEMENTATIONS[] {
+#define JOKE_REQUESTER_IMPL_ITEM(NAME)                                                                \
+	{                                                                                                 \
+		IJokeRequesterFactory::Implementation::NAME,                                                  \
+		{ NAME##JokeRequesterTitle, NAME##JokeRequesterDisclaimer, &CreateImpl<NAME##JokeRequester> } \
 },
 	JOKE_REQUESTER_IMPL_ITEMS_X_MACRO
 #undef JOKE_REQUESTER_IMPL_ITEM
 };
 
-}
+} // namespace
 
 struct JokeRequesterFactory::Impl
 {
@@ -63,13 +71,15 @@ std::vector<IJokeRequesterFactory::ImplementationDescription> JokeRequesterFacto
 {
 	std::vector<ImplementationDescription> result;
 	result.reserve(std::size(IMPLEMENTATIONS));
-	std::ranges::transform(IMPLEMENTATIONS,
-	                       std::back_inserter(result),
-	                       [](const auto& item) { return ImplementationDescription { .implementation = item.first, .name = std::get<0>(item.second), .title = Tr(std::get<0>(item.second)) }; });
+	std::ranges::transform(
+		IMPLEMENTATIONS,
+		std::back_inserter(result),
+		[](const auto& item)
+		{ return ImplementationDescription { .implementation = item.first, .name = std::get<0>(item.second), .title = Tr(std::get<0>(item.second)), .disclaimer = Tr(std::get<1>(item.second)) }; });
 	return result;
 }
 
 std::shared_ptr<IJokeRequester> JokeRequesterFactory::Create(const Implementation impl) const
 {
-	return std::get<1>(FindSecond(IMPLEMENTATIONS, impl))(m_impl->container);
+	return std::get<2>(FindSecond(IMPLEMENTATIONS, impl))(m_impl->container);
 }

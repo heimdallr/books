@@ -422,18 +422,22 @@ private:
 
 	void ConnectActionsSettingsAnnotationJokes()
 	{
-		for (const auto& [implementation, name, title] : m_jokeRequesterFactory->GetImplementations())
+		for (const auto& [implementation, name, title, disclaimer] : m_jokeRequesterFactory->GetImplementations())
 		{
 			auto* action = m_ui.menuJokes->addAction(title);
 			action->setCheckable(true);
-			connect(action,
-			        &QAction::toggled,
-			        [this, implementation, name](const bool checked)
-			        {
-						m_annotationController->ShowJokes(implementation, checked);
-						m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
-					});
+			connect(action, &QAction::toggled, [this, implementation](const bool checked) { m_annotationController->ShowJokes(implementation, checked); });
 			action->setChecked(m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), false));
+
+			if (!disclaimer.isEmpty())
+				connect(action,
+				        &QAction::triggered,
+				        [this, action, name, disclaimer](const bool checked)
+				        {
+							if (!checked || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+								return m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+							QTimer::singleShot(0, [action] { action->setChecked(false); });
+						});
 		}
 	}
 
