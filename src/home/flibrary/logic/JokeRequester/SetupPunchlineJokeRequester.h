@@ -1,17 +1,14 @@
 #pragma once
 
-#include "shared/BaseJokeRequester.h"
+#include "shared/SimpleSetupPunchlineJokeRequester.h"
 
 namespace HomeCompa::Flibrary
 {
 
-class SetupPunchlineJokeRequester final : public BaseJokeRequester
+class SetupPunchlineJokeRequester final : public SimpleSetupPunchlineJokeRequester
 {
 public:
 	SetupPunchlineJokeRequester();
-
-private: // BaseJokeRequester
-	bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) override;
 };
 
 }

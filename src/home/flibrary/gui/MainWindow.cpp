@@ -2,6 +2,8 @@
 
 #include "MainWindow.h"
 
+#include <ranges>
+
 #include <QActionGroup>
 #include <QDesktopServices>
 #include <QDirIterator>
@@ -57,6 +59,8 @@ constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWin
 constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
 constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
+constexpr auto ENABLE_ALL = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
+constexpr auto DISABLE_ALL = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -422,19 +426,68 @@ private:
 
 	void ConnectActionsSettingsAnnotationJokes()
 	{
-		for (const auto& [implementation, name, title] : m_jokeRequesterFactory->GetImplementations())
+		static constexpr auto hasDisclaimer = "HasDisclaimer";
+		static constexpr auto actionName = "name";
+		static constexpr auto visible = "Visible";
+
+		if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(visible), true))
 		{
+			delete m_ui.menuJokes;
+			return;
+		}
+
+		const auto mayBeChecked = [](const QAction* item) { return item->isCheckable() && !item->isChecked() && !item->property(hasDisclaimer).toBool(); };
+		const auto mayBeUnchecked = [](const QAction* item) { return item->isCheckable() && item->isChecked(); };
+
+		const auto setEnabled = [this, mayBeChecked, mayBeUnchecked]
+		{
+			if (m_enableAllJokes)
+				m_enableAllJokes->setEnabled(std::ranges::any_of(m_ui.menuJokes->actions(), mayBeChecked));
+			if (m_disableAllJokes)
+				m_disableAllJokes->setEnabled(std::ranges::any_of(m_ui.menuJokes->actions(), mayBeUnchecked));
+		};
+
+		for (const auto& [implementation, name, title, disclaimer] : m_jokeRequesterFactory->GetImplementations())
+		{
+			if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name + visible), true))
+				continue;
+
 			auto* action = m_ui.menuJokes->addAction(title);
+			action->setProperty(actionName, name);
+			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
 			action->setCheckable(true);
+
 			connect(action,
 			        &QAction::toggled,
-			        [this, implementation, name](const bool checked)
+			        [this, implementation, setEnabled](const bool checked)
 			        {
 						m_annotationController->ShowJokes(implementation, checked);
-						m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+						setEnabled();
 					});
 			action->setChecked(m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), false));
+
+			connect(action,
+			        &QAction::triggered,
+			        [this, action, name, disclaimer](const bool checked)
+			        {
+						if (!checked || disclaimer.isEmpty() || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+							return m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+						QTimer::singleShot(0, [action] { action->setChecked(false); });
+					});
 		}
+
+		m_ui.menuJokes->addSeparator();
+		const auto checkAll = [this](const auto& filter, const bool checked)
+		{
+			for (auto* action : m_ui.menuJokes->actions() | std::views::filter(filter))
+			{
+				m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(action->property(actionName).toString()), checked);
+				action->setChecked(checked);
+			}
+		};
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] { checkAll(mayBeChecked, true); });
+		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] { checkAll(mayBeUnchecked, false); });
+		setEnabled();
 	}
 
 	void ConnectActionsSettingsAnnotation()
@@ -1028,6 +1081,9 @@ private:
 
 	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
 	QString m_lastStyleFileHovered;
+
+	QAction* m_enableAllJokes { nullptr };
+	QAction* m_disableAllJokes { nullptr };
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,

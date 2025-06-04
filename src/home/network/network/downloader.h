@@ -7,6 +7,7 @@
 
 #include "export/network.h"
 
+class QHttpHeaders;
 class QIODevice;
 class QString;
 
@@ -26,6 +27,7 @@ public:
 	~Downloader();
 
 public:
+	void SetHeaders(QHttpHeaders headers);
 	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress = {});
 
 private:

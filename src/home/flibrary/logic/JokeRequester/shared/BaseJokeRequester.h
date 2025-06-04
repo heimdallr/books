@@ -8,6 +8,7 @@
 
 #include "interface/logic/IJokeRequester.h"
 
+class QHttpHeaders;
 class QJsonValue;
 
 namespace HomeCompa::Flibrary
@@ -30,6 +31,7 @@ protected:
 public:
 	explicit BaseJokeRequester(QString uri);
 	~BaseJokeRequester() override;
+	void SetHeaders(QHttpHeaders headers);
 
 private: // IJokeRequester
 	void Request(std::weak_ptr<IClient> client) override;

@@ -349,7 +349,7 @@
       </property>
       <widget class="QMenu" name="menuJokes">
        <property name="title">
-        <string>&amp;Jokes</string>
+        <string>&amp;Entertainment</string>
        </property>
       </widget>
       <addaction name="actionShowAnnotationCover"/>

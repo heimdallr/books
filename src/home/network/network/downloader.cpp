@@ -17,9 +17,17 @@ public:
 	}
 
 public:
+	void SetHeaders(QHttpHeaders headers)
+	{
+		m_headers = std::move(headers);
+	}
+
 	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
 	{
-		const QNetworkRequest request(url);
+		QNetworkRequest request(url);
+		if (!m_headers.isEmpty())
+			request.setHeaders(m_headers);
+
 		auto* reply = m_manager.get(request);
 		const auto id = ++m_id;
 		m_replies.try_emplace(reply, std::make_tuple(id, QNetworkReply::NetworkError::NoError, QString {}));
@@ -44,8 +52,7 @@ public:
 		                 [&, reply, url](const QNetworkReply::NetworkError code)
 		                 {
 							 auto error = reply->errorString();
-							 PLOGE << "Download error: " << url;
-							 PLOGE << QString("(%1) %2").arg(static_cast<int>(code)).arg(error);
+							 PLOGE << QString("Download '%1' error: %2 %3").arg(url).arg(static_cast<int>(code)).arg(error);
 							 const auto it = m_replies.find(reply);
 							 assert(it != m_replies.end());
 							 auto& [_, errorCode, errorMessage] = it->second;
@@ -73,6 +80,7 @@ private:
 	size_t m_id { 0 };
 	std::unordered_map<const QObject*, std::tuple<size_t, QNetworkReply::NetworkError, QString>> m_replies;
 	QNetworkAccessManager m_manager;
+	QHttpHeaders m_headers;
 };
 
 Downloader::Downloader()
@@ -83,6 +91,11 @@ Downloader::Downloader()
 Downloader::~Downloader()
 {
 	PLOGV << "Downloader destroyed";
+}
+
+void Downloader::SetHeaders(QHttpHeaders headers)
+{
+	m_impl->SetHeaders(std::move(headers));
 }
 
 size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
