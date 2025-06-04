@@ -442,6 +442,9 @@ private:
 
 		for (const auto& [implementation, name, title, disclaimer] : m_jokeRequesterFactory->GetImplementations())
 		{
+			if (m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name + "Hide"), false))
+				continue;
+
 			auto* action = m_ui.menuJokes->addAction(title);
 			action->setProperty(actionName, name);
 			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
