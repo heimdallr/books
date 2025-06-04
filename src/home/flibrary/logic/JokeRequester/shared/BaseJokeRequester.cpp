@@ -57,6 +57,9 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 	if (!client)
 		return;
 
+	if (Process(it->second->data, client))
+		return;
+
 	QJsonParseError parseError;
 	const auto doc = QJsonDocument::fromJson(it->second->data, &parseError);
 	if (parseError.error != QJsonParseError::NoError)
@@ -68,4 +71,15 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 	const auto value = doc.isObject() ? QJsonValue { doc.object() } : doc.isArray() ? QJsonValue { doc.array() } : QJsonValue {};
 	if (!Process(value, client))
 		PLOGE << "unexpected response: " << QString::fromUtf8(it->second->data);
+}
+
+bool BaseJokeRequester::Process(const QJsonValue&, std::weak_ptr<IClient>)
+{
+	assert(false && "unexpected call");
+	return false;
+}
+
+bool BaseJokeRequester::Process(const QByteArray&, std::weak_ptr<IClient>)
+{
+	return false;
 }
