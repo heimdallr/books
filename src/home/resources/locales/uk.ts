@@ -2786,6 +2786,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatPictures</source>
+        <translation>Зображення з котиками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>ChuckNorrisFacts</source>
         <translation>Факти про Чака Норріса</translation>
     </message>
@@ -2793,6 +2798,16 @@ Try again?</source>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>DadJokes</source>
         <translation>Жарти від баті</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogPictures</source>
+        <translation>Картинки із собачками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxPictures</source>
+        <translation>Картинки з лисицями</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
@@ -2823,16 +2838,6 @@ Try again?</source>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>PunchlineJokes</source>
         <translation>Жарти - панчлайни</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
-        <source>DogDictures</source>
-        <translation>Картинки із собачками</translation>
-    </message>
-    <message>
-        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
-        <source>FoxDictures</source>
-        <translation>Картинки з лисицями</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>

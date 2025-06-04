@@ -1,5 +1,6 @@
 #include "SimplePicsJokeRequester.h"
 
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QNetworkReply>
 
@@ -28,7 +29,27 @@ SimplePicsJokeRequester::~SimplePicsJokeRequester() = default;
 
 bool SimplePicsJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient> client)
 {
-	const auto jsonObject = value.toObject();
+	const auto jsonObject = [&]() -> QJsonObject
+	{
+		if (value.isObject())
+			return value.toObject();
+
+		if (!value.isArray())
+			return {};
+
+		const auto jsonArray = value.toArray();
+		if (jsonArray.isEmpty())
+			return {};
+
+		const auto jsonArrayFront = *jsonArray.cbegin();
+		if (!jsonArrayFront.isObject())
+			return {};
+
+		return jsonArrayFront.toObject();
+	}();
+	if (jsonObject.isEmpty())
+		return false;
+
 	const auto uri = jsonObject[m_impl->fieldName];
 	if (!uri.isString())
 		return false;

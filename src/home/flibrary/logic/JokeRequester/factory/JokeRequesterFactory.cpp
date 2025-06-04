@@ -7,6 +7,7 @@
 #include "fnd/FindPair.h"
 
 #include "JokeRequester/CatFactJokeRequester.h"
+#include "JokeRequester/CatPicsJokeRequester.h"
 #include "JokeRequester/ChuckNorrisJokeRequester.h"
 #include "JokeRequester/DadJokeRequester.h"
 #include "JokeRequester/DogPicsJokeRequester.h"
@@ -26,16 +27,18 @@ namespace
 
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
+constexpr auto CatPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatPictures");
 constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
 constexpr auto DadJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DadJokes");
-constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogDictures");
-constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxDictures");
+constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogPictures");
+constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxPictures");
 constexpr auto JokeApiJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
 constexpr auto QuoteJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Quotes");
 constexpr auto QuotePicJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "QuotePics");
 constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
 constexpr auto UselessFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "UselessFacts");
 constexpr auto CatFactJokeRequesterDisclaimer = "";
+constexpr auto CatPicsJokeRequesterDisclaimer = "";
 constexpr auto ChuckNorrisJokeRequesterDisclaimer = "";
 constexpr auto DadJokeRequesterDisclaimer = "";
 constexpr auto DogPicsJokeRequesterDisclaimer = "";
