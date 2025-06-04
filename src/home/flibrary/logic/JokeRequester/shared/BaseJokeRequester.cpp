@@ -44,14 +44,14 @@ void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 
-void BaseJokeRequester::OnResponse(const size_t id, const int code, const QString& message)
+void BaseJokeRequester::OnResponse(const size_t id, const int code, const QString&)
 {
 	const auto it = m_impl->requests.find(id);
 	assert(it != m_impl->requests.end());
 	const ScopedCall requestGuard([&] { m_impl->requests.erase(it); });
 
 	if (code != QNetworkReply::NetworkError::NoError)
-		PLOGE << message;
+		return;
 
 	const auto client = it->second->client.lock();
 	if (!client)

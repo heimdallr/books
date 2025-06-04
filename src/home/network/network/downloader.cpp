@@ -52,8 +52,7 @@ public:
 		                 [&, reply, url](const QNetworkReply::NetworkError code)
 		                 {
 							 auto error = reply->errorString();
-							 PLOGE << "Download error: " << url;
-							 PLOGE << QString("(%1) %2").arg(static_cast<int>(code)).arg(error);
+							 PLOGE << QString("Download '%1' error: %2 %3").arg(url).arg(static_cast<int>(code)).arg(error);
 							 const auto it = m_replies.find(reply);
 							 assert(it != m_replies.end());
 							 auto& [_, errorCode, errorMessage] = it->second;
