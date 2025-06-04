@@ -32,6 +32,11 @@ BaseJokeRequester::BaseJokeRequester(QString uri)
 
 BaseJokeRequester::~BaseJokeRequester() = default;
 
+void BaseJokeRequester::SetHeaders(QHttpHeaders headers)
+{
+	m_impl->downloader.SetHeaders(std::move(headers));
+}
+
 void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 {
 	auto item = std::make_unique<Item>(std::move(client));
