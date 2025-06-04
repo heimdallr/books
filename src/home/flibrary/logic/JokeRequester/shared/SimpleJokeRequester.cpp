@@ -5,9 +5,10 @@
 
 using namespace HomeCompa::Flibrary;
 
-SimpleJokeRequester::SimpleJokeRequester(QString uri, QString fieldName)
+SimpleJokeRequester::SimpleJokeRequester(QString uri, QString fieldName, QString prefix)
 	: BaseJokeRequester(std::move(uri))
 	, m_fieldName { std::move(fieldName) }
+	, m_prefix { std::move(prefix) }
 {
 }
 
@@ -23,10 +24,12 @@ bool SimpleJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient
 		return false;
 
 	const auto jsonObject = value.toObject();
-	const auto text = jsonObject[m_fieldName];
-	if (!text.isString())
+	auto textValue = jsonObject[m_fieldName];
+	if (!textValue.isString())
 		return false;
 
-	client->OnTextReceived(text.toString());
+	const auto text = textValue.toString();
+	client->OnTextReceived(m_prefix.isEmpty() ? text : QString("<p><i>%1</i></p>%2").arg(m_prefix, text));
+
 	return true;
 }

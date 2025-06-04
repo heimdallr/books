@@ -12,7 +12,7 @@ class SimpleJokeRequester : public BaseJokeRequester
 	NON_COPY_MOVABLE(SimpleJokeRequester)
 
 public:
-	SimpleJokeRequester(QString uri, QString fieldName);
+	SimpleJokeRequester(QString uri, QString fieldName, QString prefix = {});
 	~SimpleJokeRequester() override;
 
 private: // BaseJokeRequester
@@ -20,6 +20,7 @@ private: // BaseJokeRequester
 
 private:
 	const QString m_fieldName;
+	const QString m_prefix;
 };
 
 }
