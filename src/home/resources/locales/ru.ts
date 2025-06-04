@@ -2791,6 +2791,26 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DadJokes</source>
+        <translation>Шутки от бати</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Jokes</source>
+        <translation>Разные шутки</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>UselessFacts</source>
+        <translation>Бесполезные факты</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
+        <translation>&lt;center&gt;&lt;b&gt;Внимание!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Шутки в этом разделе могут быть грубыми, небезопасными для рабочей среды, религиозно или политически оскорбительными, сексистскими или откровенными. Нажимая «Да», вы принимаете на себя всю ответственность за их прочтение. В противном случае вы должны нажать «Нет».&lt;br/&gt;&lt;br/&gt;Вы все еще хотите читать такие шутки?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>PunchlineJokes</source>
         <translation>Шутки - панчлайны</translation>
     </message>
@@ -2803,6 +2823,61 @@ Try again?</source>
         <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
         <source>FoxDictures</source>
         <translation>Картинки с лисичками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Category</source>
+        <translation>Категория</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Programming</source>
+        <translation>Программирование</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Misc</source>
+        <translation>Разное</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Dark</source>
+        <translation>Черный юмор</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Pun</source>
+        <translation>Каламбур</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Spooky</source>
+        <translation>Страшилки</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Christmas</source>
+        <translation>Рождество</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/ChuckNorrisJokeRequester.cpp"/>
+        <source>Important fact about Chuck Norris</source>
+        <translation>Важный факт о Чаке Норрисе</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/DadJokeRequester.cpp"/>
+        <source>From dad</source>
+        <translation>От бати</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/UselessFactJokeRequester.cpp"/>
+        <source>One more useless fact</source>
+        <translation>Еще один бесполезный факт</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/CatFactJokeRequester.cpp"/>
+        <source>Interesting fact about cats</source>
+        <translation>Интересный факт о котиках</translation>
     </message>
 </context>
 <context>
@@ -5105,6 +5180,16 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Enable all</source>
+        <translation>Включить все</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Disable all</source>
+        <translation>Выключить все</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Разрешая деструктивные операции, вы берете на себя ответственность за возможную потерю нужных вам книг. Вы уверены?</translation>
     </message>
@@ -5238,10 +5323,6 @@ Try again?</source>
         <translation>&amp;Кнопки навигации на обложке</translation>
     </message>
     <message>
-        <source>&amp;Jokes</source>
-        <translation>&amp;Шутки</translation>
-    </message>
-    <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель поиска по &amp;названию</translation>
     </message>
@@ -5288,6 +5369,10 @@ Try again?</source>
     <message>
         <source>Go to &amp;OPDS</source>
         <translation>Переход на &amp;OPDS</translation>
+    </message>
+    <message>
+        <source>&amp;Entertainment</source>
+        <translation>&amp;Развлечения</translation>
     </message>
 </context>
 <context>
