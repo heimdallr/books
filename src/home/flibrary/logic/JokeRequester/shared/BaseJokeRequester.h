@@ -38,7 +38,8 @@ private: // IJokeRequester
 
 private:
 	void OnResponse(size_t id, int code, const QString& message);
-	virtual bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) = 0;
+	virtual bool Process(const QJsonValue& value, std::weak_ptr<IClient> client);
+	virtual bool Process(const QByteArray& data, std::weak_ptr<IClient> client);
 
 private:
 	struct Impl;
