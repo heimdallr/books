@@ -10,6 +10,7 @@
 #include "JokeRequester/ChuckNorrisJokeRequester.h"
 #include "JokeRequester/DogPicsJokeRequester.h"
 #include "JokeRequester/FoxPicsJokeRequester.h"
+#include "JokeRequester/JokeApiJokeRequester.h"
 #include "JokeRequester/SetupPunchlineJokeRequester.h"
 #include "util/Localization.h"
 
@@ -22,9 +23,10 @@ namespace
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
 constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
-constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
 constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogDictures");
 constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxDictures");
+constexpr auto JokeApiJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
+constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
 TR_DEF
 
 template <typename T>
