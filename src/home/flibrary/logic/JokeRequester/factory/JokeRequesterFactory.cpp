@@ -17,6 +17,7 @@
 #include "JokeRequester/QuotePicJokeRequester.h"
 #include "JokeRequester/SetupPunchlineJokeRequester.h"
 #include "JokeRequester/UselessFactJokeRequester.h"
+#include "network/network/downloader.h"
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -73,6 +74,7 @@ constexpr std::pair<IJokeRequesterFactory::Implementation, std::tuple<const char
 struct JokeRequesterFactory::Impl
 {
 	Hypodermic::Container& container;
+	std::shared_ptr<Network::Downloader> downloader;
 };
 
 JokeRequesterFactory::JokeRequesterFactory(Hypodermic::Container& container)
@@ -97,4 +99,11 @@ std::vector<IJokeRequesterFactory::ImplementationDescription> JokeRequesterFacto
 std::shared_ptr<IJokeRequester> JokeRequesterFactory::Create(const Implementation impl) const
 {
 	return std::get<2>(FindSecond(IMPLEMENTATIONS, impl))(m_impl->container);
+}
+
+std::shared_ptr<Network::Downloader> JokeRequesterFactory::GetDownloader() const
+{
+	if (!m_impl->downloader)
+		m_impl->downloader = std::make_shared<Network::Downloader>();
+	return m_impl->downloader;
 }

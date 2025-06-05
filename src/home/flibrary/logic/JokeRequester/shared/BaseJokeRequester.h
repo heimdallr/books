@@ -1,12 +1,18 @@
 #pragma once
 
 #include <QBuffer>
+#include <QHttpHeaders>
 #include <QString>
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/logic/IJokeRequester.h"
+
+namespace HomeCompa::Network
+{
+class Downloader;
+}
 
 class QHttpHeaders;
 class QJsonValue;
@@ -29,9 +35,8 @@ protected:
 	};
 
 public:
-	explicit BaseJokeRequester(QString uri);
+	BaseJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QHttpHeaders headers = {});
 	~BaseJokeRequester() override;
-	void SetHeaders(QHttpHeaders headers);
 
 private: // IJokeRequester
 	void Request(std::weak_ptr<IClient> client) override;

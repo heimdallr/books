@@ -4,11 +4,12 @@
 
 namespace HomeCompa::Flibrary
 {
+class IJokeRequesterFactory;
 
 class QuotePicJokeRequester final : public BaseJokeRequester
 {
 public:
-	QuotePicJokeRequester();
+	explicit QuotePicJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory);
 
 private:
 	bool Process(const QByteArray& data, std::weak_ptr<IClient> client) override;

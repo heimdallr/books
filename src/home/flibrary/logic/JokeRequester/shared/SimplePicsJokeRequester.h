@@ -13,7 +13,7 @@ class SimplePicsJokeRequester : public BaseJokeRequester
 	NON_COPY_MOVABLE(SimplePicsJokeRequester)
 
 public:
-	SimplePicsJokeRequester(QString uri, QString fieldName);
+	SimplePicsJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QHttpHeaders headers = {});
 	~SimplePicsJokeRequester() override;
 
 private: // BaseJokeRequester

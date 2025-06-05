@@ -4,8 +4,8 @@
 
 using namespace HomeCompa::Flibrary;
 
-SimpleSetupPunchlineJokeRequester::SimpleSetupPunchlineJokeRequester(QString uri, QString setupField, QString punchlineField)
-	: BaseJokeRequester(std::move(uri))
+SimpleSetupPunchlineJokeRequester::SimpleSetupPunchlineJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString setupField, QString punchlineField, QHttpHeaders headers)
+	: BaseJokeRequester(std::move(downloader), std::move(uri), std::move(headers))
 	, m_setupField { std::move(setupField) }
 	, m_punchlineField { std::move(punchlineField) }
 {

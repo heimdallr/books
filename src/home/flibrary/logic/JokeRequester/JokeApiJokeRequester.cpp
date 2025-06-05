@@ -4,6 +4,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/logic/IJokeRequesterFactory.h"
+
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -52,8 +54,8 @@ constexpr std::pair<const char*, QString (*)(const QJsonObject&)> PARSERS[] {
 
 } // namespace
 
-JokeApiJokeRequester::JokeApiJokeRequester()
-	: BaseJokeRequester("http://v2.jokeapi.dev/joke/Any")
+JokeApiJokeRequester::JokeApiJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: BaseJokeRequester(jokeRequesterFactory->GetDownloader(), "http://v2.jokeapi.dev/joke/Any")
 {
 }
 

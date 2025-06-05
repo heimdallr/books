@@ -1,12 +1,12 @@
 #include "QuotePicJokeRequester.h"
 
-#include "util/Localization.h"
+#include "interface/logic/IJokeRequesterFactory.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-QuotePicJokeRequester::QuotePicJokeRequester()
-	: BaseJokeRequester("https://zenquotes.io/api/image")
+QuotePicJokeRequester::QuotePicJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: BaseJokeRequester(jokeRequesterFactory->GetDownloader(), "https://zenquotes.io/api/image")
 {
 }
 

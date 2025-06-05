@@ -4,11 +4,12 @@
 
 namespace HomeCompa::Flibrary
 {
+class IJokeRequesterFactory;
 
 class DogPicsJokeRequester final : public SimplePicsJokeRequester
 {
 public:
-	DogPicsJokeRequester();
+	explicit DogPicsJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory);
 };
 
 }

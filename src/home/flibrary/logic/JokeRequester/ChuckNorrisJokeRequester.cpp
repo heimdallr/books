@@ -1,5 +1,7 @@
 #include "ChuckNorrisJokeRequester.h"
 
+#include "interface/logic/IJokeRequesterFactory.h"
+
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -12,7 +14,7 @@ constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "Important fact about
 TR_DEF
 }
 
-ChuckNorrisJokeRequester::ChuckNorrisJokeRequester()
-	: SimpleJokeRequester("http://api.chucknorris.io/jokes/random", "value", Tr(PREFIX))
+ChuckNorrisJokeRequester::ChuckNorrisJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "http://api.chucknorris.io/jokes/random", "value", Tr(PREFIX))
 {
 }

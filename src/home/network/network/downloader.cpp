@@ -17,16 +17,11 @@ public:
 	}
 
 public:
-	void SetHeaders(QHttpHeaders headers)
-	{
-		m_headers = std::move(headers);
-	}
-
-	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
+	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress, const QHttpHeaders& headers)
 	{
 		QNetworkRequest request(url);
-		if (!m_headers.isEmpty())
-			request.setHeaders(m_headers);
+		if (!headers.isEmpty())
+			request.setHeaders(headers);
 
 		auto* reply = m_manager.get(request);
 		const auto id = ++m_id;
@@ -80,7 +75,6 @@ private:
 	size_t m_id { 0 };
 	std::unordered_map<const QObject*, std::tuple<size_t, QNetworkReply::NetworkError, QString>> m_replies;
 	QNetworkAccessManager m_manager;
-	QHttpHeaders m_headers;
 };
 
 Downloader::Downloader()
@@ -93,12 +87,7 @@ Downloader::~Downloader()
 	PLOGV << "Downloader destroyed";
 }
 
-void Downloader::SetHeaders(QHttpHeaders headers)
+size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress, const QHttpHeaders& headers)
 {
-	m_impl->SetHeaders(std::move(headers));
-}
-
-size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
-{
-	return m_impl->Download(url, io, std::move(callback), std::move(progress));
+	return m_impl->Download(url, io, std::move(callback), std::move(progress), headers);
 }

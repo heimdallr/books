@@ -15,6 +15,7 @@ AddTarget(fliscaner	app_console
 	SKIP_INSTALL
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Core
+		Qt${QT_MAJOR_VERSION}::Network
 	LINK_TARGETS
 		logging
 		network

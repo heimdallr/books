@@ -1,5 +1,7 @@
 #include "CatFactJokeRequester.h"
 
+#include "interface/logic/IJokeRequesterFactory.h"
+
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -12,7 +14,7 @@ constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "Interesting fact abo
 TR_DEF
 }
 
-CatFactJokeRequester::CatFactJokeRequester()
-	: SimpleJokeRequester("http://catfact.ninja/fact", "fact", Tr(PREFIX))
+CatFactJokeRequester::CatFactJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "http://catfact.ninja/fact", "fact", Tr(PREFIX))
 {
 }

@@ -4,11 +4,12 @@
 
 namespace HomeCompa::Flibrary
 {
+class IJokeRequesterFactory;
 
 class SetupPunchlineJokeRequester final : public SimpleSetupPunchlineJokeRequester
 {
 public:
-	SetupPunchlineJokeRequester();
+	explicit SetupPunchlineJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory);
 };
 
 }

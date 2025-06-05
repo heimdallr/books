@@ -5,6 +5,11 @@
 
 #include <QString>
 
+namespace HomeCompa::Network
+{
+class Downloader;
+}
+
 namespace HomeCompa::Flibrary
 {
 
@@ -43,6 +48,9 @@ public:
 	virtual ~IJokeRequesterFactory() = default;
 	[[nodiscard]] virtual std::vector<ImplementationDescription> GetImplementations() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IJokeRequester> Create(Implementation impl) const = 0;
+
+public: // special
+	[[nodiscard]] virtual std::shared_ptr<Network::Downloader> GetDownloader() const = 0;
 };
 
 } // namespace HomeCompa::Flibrary

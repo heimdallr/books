@@ -2,6 +2,8 @@
 
 #include <QHttpHeaders>
 
+#include "interface/logic/IJokeRequesterFactory.h"
+
 #include "util/Localization.h"
 
 using namespace HomeCompa;
@@ -12,12 +14,17 @@ namespace
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "One more useless fact");
 TR_DEF
-}
 
-UselessFactJokeRequester::UselessFactJokeRequester()
-	: SimpleJokeRequester("https://uselessfacts.jsph.pl/api/v2/facts/random", "text", Tr(PREFIX))
+QHttpHeaders CreateHeaders()
 {
 	QHttpHeaders headers;
 	headers.append(QHttpHeaders::WellKnownHeader::Accept, "application/json");
-	SetHeaders(std::move(headers));
+	return headers;
+}
+
+}
+
+UselessFactJokeRequester::UselessFactJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "https://uselessfacts.jsph.pl/api/v2/facts/random", "text", Tr(PREFIX), CreateHeaders())
+{
 }

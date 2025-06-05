@@ -8,7 +8,7 @@ namespace HomeCompa::Flibrary
 class SimpleSetupPunchlineJokeRequester : public BaseJokeRequester
 {
 public:
-	SimpleSetupPunchlineJokeRequester(QString uri, QString setupField, QString punchlineField);
+	SimpleSetupPunchlineJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString setupField, QString punchlineField, QHttpHeaders headers = {});
 
 private: // BaseJokeRequester
 	bool Process(const QJsonValue& value, std::weak_ptr<IClient> client) override;

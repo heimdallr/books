@@ -3,13 +3,13 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-#include "util/Localization.h"
+#include "interface/logic/IJokeRequesterFactory.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
 
-QuoteJokeRequester::QuoteJokeRequester()
-	: BaseJokeRequester("https://zenquotes.io/api/random")
+QuoteJokeRequester::QuoteJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
+	: BaseJokeRequester(jokeRequesterFactory->GetDownloader(), "https://zenquotes.io/api/random")
 {
 }
 

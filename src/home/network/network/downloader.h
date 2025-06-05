@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include <QHttpHeaders>
+
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -27,8 +29,7 @@ public:
 	~Downloader();
 
 public:
-	void SetHeaders(QHttpHeaders headers);
-	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress = {});
+	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress = {}, const QHttpHeaders& headers = {});
 
 private:
 	class Impl;
