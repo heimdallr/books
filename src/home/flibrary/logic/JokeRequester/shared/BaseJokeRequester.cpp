@@ -41,17 +41,28 @@ void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 
-void BaseJokeRequester::OnResponse(const size_t id, const int code, const QString&)
+void BaseJokeRequester::OnResponse(const size_t id, const int code, const QString& message)
 {
 	const auto it = m_impl->requests.find(id);
 	assert(it != m_impl->requests.end());
 	const ScopedCall requestGuard([&] { m_impl->requests.erase(it); });
 
-	if (code != QNetworkReply::NetworkError::NoError)
-		return;
-
 	const auto client = it->second->client.lock();
 	if (!client)
+		return;
+
+	auto errorMessage = message;
+	const ScopedCall errorGuard(
+		[this, &errorMessage, client]
+		{
+			if (errorMessage.isEmpty())
+				return;
+
+			PLOGE << errorMessage;
+			client->OnTextReceived(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(m_impl->uri, errorMessage));
+		});
+
+	if (code != QNetworkReply::NetworkError::NoError)
 		return;
 
 	if (Process(it->second->data, client))
@@ -60,14 +71,12 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 	QJsonParseError parseError;
 	const auto doc = QJsonDocument::fromJson(it->second->data, &parseError);
 	if (parseError.error != QJsonParseError::NoError)
-	{
-		PLOGE << parseError.errorString();
-		return;
-	}
+		return (void)(errorMessage = parseError.errorString());
 
-	const auto value = doc.isObject() ? QJsonValue { doc.object() } : doc.isArray() ? QJsonValue { doc.array() } : QJsonValue {};
-	if (!Process(value, client))
-		PLOGE << "unexpected response: " << QString::fromUtf8(it->second->data);
+	if (const auto value = doc.isObject() ? QJsonValue { doc.object() } : doc.isArray() ? QJsonValue { doc.array() } : QJsonValue {}; Process(value, client))
+		return;
+
+	errorMessage = QString::fromUtf8(it->second->data); //-V1001
 }
 
 bool BaseJokeRequester::Process(const QJsonValue&, std::weak_ptr<IClient>)
