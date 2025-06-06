@@ -24,6 +24,10 @@ public:
 	virtual ~IRequester() = default;
 
 	virtual QByteArray GetRoot(const QString& root, const Parameters& parameters) const = 0;
+
+#define OPDS_ROOT_ITEM(NAME) virtual QByteArray Get##NAME(const QString& root, const Parameters& parameters) const = 0;
+	OPDS_ROOT_ITEMS_X_MACRO
+#undef OPDS_ROOT_ITEM
 };
 
 } // namespace HomeCompa::Opds

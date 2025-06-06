@@ -15,6 +15,8 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITemporaryTable.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
@@ -89,29 +91,51 @@ constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
 TR_DEF
 
+constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
+select count(42) 
+from Authors a 
+where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+)";
+
 constexpr auto AUTHOR_STARTS_WITH = R"(
 select substr(a.SearchName, 1, :length), count(42) 
 from Authors a 
-where a.IsDeleted != %1 and a.SearchName != :starts and a.SearchName like :starts_like||'%' ESCAPE '%2'
-group by substr(a.SearchName, 1, :length))";
+where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+group by substr(a.SearchName, 1, :length)
+)";
+
+constexpr auto AUTHOR_SELECT_SINGLE = R"(
+select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '')
+from Authors a 
+where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+)";
+
+constexpr auto AUTHOR_SELECT_EQUAL = R"(
+select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '')
+from Authors a 
+where a.IsDeleted != %1 and a.SearchName = :starts
+)";
 
 struct NavigationDescription
 {
 	const char* type;
+	const char* countStartsWith;
 	const char* startsWith;
+	const char* selectSingle;
+	const char* selectEqual;
 };
 
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors, AUTHOR_STARTS_WITH },
-    { Loc::Series },
-    { Loc::Genres },
-    { Loc::Keywords },
-    { Loc::Updates },
-    { Loc::Archives },
-    { Loc::Languages },
-    { Loc::Groups },
-    { Loc::Search },
-    { Loc::AllBooks },
+	{ Loc::Authors, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL },
+	{ Loc::Series },
+	{ Loc::Genres },
+	{ Loc::Keywords },
+	{ Loc::Updates },
+	{ Loc::Archives },
+	{ Loc::Languages },
+	{ Loc::Groups },
+	{ Loc::Search },
+	{ Loc::AllBooks },
 };
 
 static_assert(std::size(NAVIGATION_DESCRIPTION) == static_cast<size_t>(Flibrary::NavigationMode::Last));
@@ -214,20 +238,22 @@ QString GetHref(const QString& root, const QString& path, const IRequester::Para
 	QStringList list;
 	list.reserve(static_cast<int>(parameters.size()));
 	std::ranges::transform(parameters, std::back_inserter(list), [](const auto& item) { return QString("%1=%2").arg(item.first, item.second); });
-	return QString("%1/%2%3").arg(root, path, list.isEmpty() ? QString {} : "?" + list.join('&'));
+	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : "/" + path, list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
-Node& WriteEntry(const QString& root, const IRequester::Parameters& parameters, Node::Children& children, QString id, QString title, QString content = {}, const bool isCatalog = true)
+Node& WriteEntry(Node::Children& children, const QString& root, const QString& path, const IRequester::Parameters& parameters, QString id, QString title, QString content = {}, const bool isCatalog = true)
 {
-	const auto href = GetHref(root, id, parameters);
 	auto& entry = children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(std::move(id), title));
 	entry.title = std::move(title);
 
 	if (isCatalog)
+	{
+		const auto href = GetHref(root, path, parameters);
 		entry.children.emplace_back("link",
 		                            QString {
         },
 		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	}
 	if (!content.isEmpty())
 		entry.children.emplace_back(CONTENT,
 		                            std::move(content),
@@ -305,7 +331,7 @@ public:
 #undef OPDS_ROOT_ITEM
 		};
 		QStringList dbStatQueryTextItems;
-		std::ranges::transform(navigationTypes | std::views::filter([](const auto& item) { return item.first != Flibrary::NavigationMode::Groups; }),
+		std::ranges::transform(navigationTypes | std::views::filter([&](const auto& item) { return item.first != Flibrary::NavigationMode::Groups && !parameters.contains(item.second); }),
 		                       std::back_inserter(dbStatQueryTextItems),
 		                       [this](const auto& item) { return QString("select '%1', count(42) from %1 where IsDeleted != %2").arg(item.second).arg(GetRemovedFlag()); });
 
@@ -319,7 +345,7 @@ public:
 			{
 				const auto* id = query->Get<const char*>(0);
 				if (const auto count = query->Get<int>(1))
-					WriteEntry(root, parameters, head.children, id, Loc::Tr(Loc::NAVIGATION, id), Tr(TOTAL).arg(count));
+					WriteEntry(head.children, root, id, parameters, id, Loc::Tr(Loc::NAVIGATION, id), Tr(TOTAL).arg(count));
 			}
 		}
 		{
@@ -336,7 +362,117 @@ group by g.GroupID
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				const auto id = QString("%1/%2").arg(Loc::Groups).arg(query->Get<int>(0));
-				WriteEntry(root, parameters, head.children, id, query->Get<const char*>(1), Tr(BOOKS).arg(query->Get<int>(2)));
+				WriteEntry(head.children, root, "", parameters, id, query->Get<const char*>(1), Tr(BOOKS).arg(query->Get<int>(2)));
+			}
+		}
+
+		return head;
+	}
+
+	Node GetNavigation(const QString& root, const Parameters& parameters, const Flibrary::NavigationMode navigationMode) const
+	{
+		const auto db = m_databaseController->GetDatabase();
+		const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(navigationMode)];
+
+		int equalCount = 0;
+		QStringList equal;
+		QStringList single;
+		std::multimap<int, QString> buffer;
+
+		const auto startsWithGlobal = GetParameter(parameters, "starts");
+
+		const auto countTotal = [&]
+		{
+			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
+			const auto queryText = QString(d.countStartsWith).arg(GetRemovedFlag()).arg(escape);
+			const auto query = db->CreateQuery(queryText.toStdString());
+			query->Bind(":starts", startsWithGlobal.toStdString());
+			query->Bind(":starts_like", startsWithLike.toStdString());
+			query->Execute();
+			assert(!query->Eof());
+			return query->Get<long long>(0);
+		}();
+
+		const auto maxSize = GetMaxResultSize();
+		if (countTotal <= maxSize)
+		{
+			single.emplaceBack(startsWithGlobal);
+		}
+		else
+		{
+			const auto selectStarts = [&](const auto startsWith)
+			{
+				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
+				const auto queryText = QString(d.startsWith).arg(GetRemovedFlag()).arg(escape);
+				const auto query = db->CreateQuery(queryText.toStdString());
+				query->Bind(":length", startsWith.length() + 1);
+				query->Bind(":starts", startsWith.toStdString());
+				query->Bind(":starts_like", startsWithLike.toStdString());
+				for (query->Execute(); !query->Eof(); query->Next())
+				{
+					QString s = query->template Get<const char*>(0);
+					const auto count = query->template Get<int>(1);
+					if (s == startsWith)
+					{
+						equal.emplaceBack(std::move(s));
+						equalCount += count;
+					}
+					else if (count == 1)
+					{
+						single.emplaceBack(std::move(s));
+					}
+					else
+					{
+						buffer.emplace(count, std::move(s));
+					}
+				}
+			};
+
+			selectStarts(startsWithGlobal);
+
+			while (!buffer.empty() && equalCount + single.size() + static_cast<ptrdiff_t>(buffer.size()) < maxSize)
+			{
+				const auto startsWith = std::move(buffer.begin()->second);
+				buffer.erase(buffer.begin());
+				selectStarts(startsWith);
+			}
+		}
+
+		auto head = GetHead(d.type, Loc::Tr(Loc::NAVIGATION, d.type), root, CreateSelf(root, d.type, parameters));
+
+		for (auto&& [count, startsWith] : buffer)
+		{
+			Parameters p = parameters;
+			const auto& s = (p["starts"] = std::move(startsWith));
+			WriteEntry(head.children, root, d.type, p, s, QString("`%1`~").arg(s), QString::number(count));
+		}
+
+		Parameters typedParameters = parameters;
+		typedParameters.erase("starts");
+
+		for (const auto& s : single)
+		{
+			const auto [startsWithLike, escape] = PrepareForLike(s);
+			const auto queryText = QString(d.selectSingle).arg(GetRemovedFlag()).arg(escape);
+			const auto query = db->CreateQuery(queryText.toStdString());
+			query->Bind(":starts", s.toStdString());
+			query->Bind(":starts_like", startsWithLike.toStdString());
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto id = (typedParameters[d.type] = query->Get<const char*>(0));
+				WriteEntry(head.children, root, "", typedParameters, std::move(id), query->Get<const char*>(1));
+			}
+		}
+
+		for (const auto& s : equal)
+		{
+			const auto queryText = QString(d.selectEqual).arg(GetRemovedFlag());
+			const auto query = db->CreateQuery(queryText.toStdString());
+			query->Bind(":starts", s.toStdString());
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto id = (typedParameters[d.type] = query->Get<const char*>(0));
+				WriteEntry(head.children, root, "", typedParameters, std::move(id), query->Get<const char*>(1));
 			}
 		}
 
@@ -457,3 +593,11 @@ QByteArray Requester::GetRoot(const QString& root, const Parameters& parameters)
 {
 	return GetImpl(*m_impl, &Impl::GetRoot, ContentType::Root, std::cref(root), std::cref(parameters));
 }
+
+#define OPDS_ROOT_ITEM(NAME)                                                                                                                            \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                            \
+	{                                                                                                                                                   \
+		return GetImpl(*m_impl, &Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
+	}
+OPDS_ROOT_ITEMS_X_MACRO
+#undef OPDS_ROOT_ITEM
