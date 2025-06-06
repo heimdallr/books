@@ -10,6 +10,9 @@ CREATE UNIQUE INDEX UIX_Series_PrimaryKey ON Series (SeriesID);
 CREATE UNIQUE INDEX UIX_Series_List_PrimaryKey ON Series_List (SeriesID, BookID);
 --@@
 
+CREATE INDEX IX_Series_List_BookID_SeriesID ON Series_List (BookID, SeriesID);
+--@@
+
 CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE);
 --@@
 
@@ -64,6 +67,9 @@ CREATE UNIQUE INDEX UIX_Keywords_PrimaryKey ON Keywords (KeywordID);
 CREATE UNIQUE INDEX UIX_Keyword_List_PrimaryKey ON Keyword_List (KeywordID, BookID);
 --@@
 
+CREATE INDEX IX_Keyword_List_BookID_KeywordID ON Keyword_List (BookID, KeywordID);
+--@@
+
 CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE);
 --@@
 
@@ -80,4 +86,48 @@ CREATE INDEX IX_Update_ParentID ON Updates (ParentID);
 --@@
 
 CREATE UNIQUE INDEX UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder);
+--@@
+
+CREATE VIEW Books_View (
+    BookID,
+    LibID,
+    Title,
+    SeriesID,
+    SeqNumber,
+    UpdateDate,
+    LibRate,
+    Lang,
+    FolderID,
+    FolderTitle,
+    FileName,
+    BookSize,
+    UpdateID,
+    UpdateTitle,
+    IsDeleted,
+    UserRate
+)
+AS
+    SELECT b.BookID,
+           b.LibID,
+           b.Title,
+           b.SeriesID,
+           b.SeqNumber,
+           b.UpdateDate,
+           b.LibRate,
+           b.Lang,
+           b.FolderID,
+           f.FolderTitle,
+           b.FileName || b.Ext AS FileName,
+           b.BookSize,
+           b.UpdateID,
+           u.UpdateTitle,
+           coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+           bu.UserRate
+      FROM Books b
+           JOIN
+           Folders f ON f.FolderID = b.FolderID
+           JOIN
+           Updates u ON u.UpdateID = b.UpdateID
+           LEFT JOIN
+           Books_User bu ON bu.BookID = b.BookID;
 --@@
