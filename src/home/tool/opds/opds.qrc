@@ -9,7 +9,7 @@
 		<file alias="index.html">resources/website/index.html</file>
 	</qresource>
 	<qresource prefix="website/assets">
-		<file alias="index-iQXWcngI.js">resources/website/assets/index.js.bin</file>
-		<file alias="index-Bi9e_szB.css">resources/website/assets/index.css.bin</file>
+		<file alias="index-DlCpZQvJ.js">resources/website/assets/index.js.bin</file>
+		<file alias="index-DwI4T9Z9.css">resources/website/assets/index.css.bin</file>
 	</qresource>
 </RCC>
