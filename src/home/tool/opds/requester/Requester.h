@@ -19,7 +19,7 @@ class QIODevice;
 namespace HomeCompa::Opds
 {
 
-class Requester : virtual public IRequester
+class Requester final : virtual public IRequester
 {
 	NON_COPY_MOVABLE(Requester)
 
@@ -35,22 +35,7 @@ public:
 	~Requester() override;
 
 private: // IRequester
-	QByteArray GetRoot(const QString& root, const QString& self) const override;
-	QByteArray GetBookInfo(const QString& root, const QString& self, const QString& bookId) const override;
-	QByteArray GetBookText(const QString& root, const QString& bookId) const override;
-	QByteArray Search(const QString& root, const QString& self, const QString& searchTerms, const QString& start) const override;
-
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Navigation(const QString& root, const QString& self, const QString& value) const override;
-	OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
-
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##Authors(const QString& root, const QString& self, const QString& navigationId, const QString& value) const override;
-	OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
-
-#define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME##AuthorBooks(const QString& root, const QString& self, const QString& navigationId, const QString& authorId, const QString& value) const override;
-	OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
+	QByteArray GetRoot(const QString& root, const Parameters& parameters) const override;
 
 private:
 	class Impl;
