@@ -91,13 +91,6 @@ constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
 TR_DEF
 
-constexpr auto AUTHOR_COUNT = "select '%2', count(42) from Authors a where a.IsDeleted != %1";
-constexpr auto SERIES_COUNT = "select '%2', count(42) from Series s where s.IsDeleted != %1";
-constexpr auto GENRE_COUNT = "select '%2', count(42) from Genres g where g.IsDeleted != %1 and not exists (select 42 from Genres c where c.ParentCode = g.GenreCode)";
-constexpr auto KEYWORD_COUNT = "select '%2', count(42) from Keywords k where k.IsDeleted != %1";
-constexpr auto UPDATE_COUNT = "select '%2', count(42) from Updates u where u.IsDeleted != %1 and not exists (select 42 from Updates c where c.ParentID = u.UpdateID)";
-constexpr auto FOLDER_COUNT = "select '%2', count(42) from Folders f where f.IsDeleted != %1";
-
 constexpr auto AUTHOR_COUNT_WITH = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT_WITH = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
 constexpr auto GENRE_COUNT_WITH = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
@@ -165,7 +158,6 @@ struct NavigationDescription
 {
 	const char* type { nullptr };
 	const char* count { nullptr };
-	const char* countWith { nullptr };
 	const char* join { nullptr };
 	const char* select { nullptr };
 	const char* countStartsWith { nullptr };
@@ -176,12 +168,12 @@ struct NavigationDescription
 
 // clang-format off
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors  , AUTHOR_COUNT , AUTHOR_COUNT_WITH, AUTHOR_JOIN, AUTHOR_SELECT, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL },
-	{ Loc::Series   , SERIES_COUNT , SERIES_COUNT_WITH, SERIES_JOIN, SERIES_SELECT, SERIES_COUNT_STARTS_WITH, SERIES_STARTS_WITH, SERIES_SELECT_SINGLE, SERIES_SELECT_EQUAL },
-	{ Loc::Genres   , GENRE_COUNT  , GENRE_COUNT_WITH },
-	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_COUNT_WITH },
-	{ Loc::Updates  , UPDATE_COUNT , UPDATE_COUNT_WITH },
-	{ Loc::Archives , FOLDER_COUNT , FOLDER_COUNT_WITH },
+	{ Loc::Authors  , AUTHOR_COUNT_WITH, AUTHOR_JOIN, AUTHOR_SELECT, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL },
+	{ Loc::Series   , SERIES_COUNT_WITH, SERIES_JOIN, SERIES_SELECT, SERIES_COUNT_STARTS_WITH, SERIES_STARTS_WITH, SERIES_SELECT_SINGLE, SERIES_SELECT_EQUAL },
+	{ Loc::Genres   , GENRE_COUNT_WITH },
+	{ Loc::Keywords , KEYWORD_COUNT_WITH },
+	{ Loc::Updates  , UPDATE_COUNT_WITH },
+	{ Loc::Archives , FOLDER_COUNT_WITH },
 	{ Loc::Languages },
 	{ Loc::Groups },
 	{ Loc::Search },
@@ -343,11 +335,6 @@ QString GetJoin(const IRequester::Parameters& parameters)
 	return list.join("\n");
 }
 
-QString GetNavigationCount(const NavigationDescription& d, const QString& join, const int removedFlag)
-{
-	return join.isEmpty() || !d.countWith ? QString(d.count).arg(removedFlag).arg(d.type) : QString(d.countWith).arg(join.arg(removedFlag)).arg(d.type);
-}
-
 } // namespace
 
 class Requester::Impl final : public IPostProcessCallback
@@ -428,7 +415,7 @@ public:
 		                       [&](const auto& item)
 		                       {
 								   const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
-								   return GetNavigationCount(d, join, removedFlag);
+								   return QString(d.count).arg(join.isEmpty() ? join : join.arg(removedFlag)).arg(d.type);
 							   });
 
 		{
