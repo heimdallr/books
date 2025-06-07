@@ -1,5 +1,8 @@
 #pragma once
 
+#include <unordered_set>
+
+#include <QHash>
 #include <QString>
 
 #include "export/logic.h"
@@ -28,7 +31,7 @@ struct Genre
 	std::vector<Genre> children;
 	bool removed { false };
 
-	LOGIC_EXPORT static Genre Load(DB::IDatabase& db);
+	LOGIC_EXPORT static Genre Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres = {});
 	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);
 	LOGIC_EXPORT static void SetSortMode(const ISettings& settings);
 

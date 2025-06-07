@@ -75,7 +75,7 @@ Sorter SORTER = &SortByCode;
 
 } // namespace
 
-Genre Genre::Load(DB::IDatabase& db)
+Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres)
 {
 	using AllGenresItem = std::tuple<Genre, QString>;
 	std::unordered_map<QString, AllGenresItem> allGenres;
@@ -93,7 +93,7 @@ Genre Genre::Load(DB::IDatabase& db)
                    .removed = static_cast<bool>(query->Get<int>(5)) },
 			query->Get<const char*>(2)
 		};
-		if (query->Get<int>(4))
+		if (query->Get<int>(4) && (neededGenres.empty() || neededGenres.contains(std::get<0>(item).code)))
 			buffer.emplace_back(std::move(item));
 		else
 			allGenres.try_emplace(query->Get<const char*>(0), std::move(item));
