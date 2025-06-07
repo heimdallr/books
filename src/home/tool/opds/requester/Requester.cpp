@@ -91,6 +91,8 @@ constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
 TR_DEF
 
+#define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') "
+
 constexpr auto AUTHOR_COUNT = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
 constexpr auto GENRE_COUNT = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
@@ -100,12 +102,21 @@ constexpr auto FOLDER_COUNT = "with WithTable(Id) as (select distinct l.FolderID
 
 constexpr auto AUTHOR_JOIN_PARAMETERS = "join Author_List al on al.BookID = l.BookID and al.AuthorID = %1";
 constexpr auto SERIES_JOIN_PARAMETERS = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
+constexpr auto GENRE_JOIN_PARAMETERS = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
+constexpr auto FOLDER_JOIN_PARAMETERS = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
 
 constexpr auto AUTHOR_JOIN_SELECT = "join Author_List l on l.AuthorID = a.AuthorID";
 constexpr auto SERIES_JOIN_SELECT = "join Series_List l on l.SeriesID = s.SeriesID";
+constexpr auto GENRE_JOIN_SELECT = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
+constexpr auto FOLDER_JOIN_SELECT = "join Books l on l.FolderID = f.FolderID";
 
-constexpr auto AUTHOR_SELECT = "select a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') from Authors a where a.AuthorID = ?";
+constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
 constexpr auto SERIES_SELECT = "select s.SeriesTitle from Series s where s.SeriesID = ?";
+constexpr auto GENRE_SELECT = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
+constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.FolderID = ?";
 
 constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
 select count(distinct a.AuthorID) 
@@ -120,6 +131,17 @@ from Series s
 %3 
 where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
 )";
+
+constexpr auto GENRE_COUNT_STARTS_WITH = static_cast<const char*>(nullptr);
+
+constexpr auto KEYWORD_COUNT_STARTS_WITH = R"(
+select count(distinct k.KeywordID) 
+from Keywords k 
+%3 
+where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+)";
+
+constexpr auto FOLDER_COUNT_STARTS_WITH = "select 0";
 
 constexpr auto AUTHOR_STARTS_WITH = R"(
 select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
@@ -137,47 +159,34 @@ where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :star
 group by substr(s.SearchTitle, 1, :length)
 )";
 
-constexpr auto AUTHOR_SELECT_SINGLE = R"(
-select distinct a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '')
-from Authors a 
+constexpr auto GENRE_STARTS_WITH = static_cast<const char*>(nullptr);
+
+constexpr auto KEYWORD_STARTS_WITH = R"(
+select substr(k.SearchTitle, 1, :length), count(distinct k.KeywordID) 
+from Keywords k 
 %3 
-where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+group by substr(k.SearchTitle, 1, :length)
 )";
 
-constexpr auto SERIES_SELECT_SINGLE = R"(
-select distinct s.SeriesID, s.SeriesTitle
-from Series s 
-%3 
-where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
-)";
+constexpr auto AUTHOR_SELECT_SINGLE =
+	"select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %3 where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')";
+constexpr auto SERIES_SELECT_SINGLE = "select distinct s.SeriesID, s.SeriesTitle from Series s %3 where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')";
+constexpr auto GENRE_SELECT_SINGLE = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_SELECT_SINGLE =
+	"select distinct k.KeywordID, k.KeywordTitle from Keywords k %3 where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')";
+constexpr auto FOLDER_SELECT_SINGLE = "select f.FolderID, f.FolderTitle from Folders f %3 where f.IsDeleted != %1 and ('%2' = '%2' and :starts = :starts and :starts_like = :starts_like)";
 
-constexpr auto AUTHOR_SELECT_EQUAL = R"(
-select distinct a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '')
-from Authors a 
-%2 
-where a.IsDeleted != %1 and a.SearchName = :starts
-)";
+constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != %1 and a.SearchName = :starts";
+constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
+constexpr auto GENRE_SELECT_EQUAL = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != %1 and k.SearchTitle = :starts";
 
-constexpr auto SERIES_SELECT_EQUAL = R"(
-select distinct s.SeriesID, s.SeriesTitle
-from Series s 
-%2 
-where s.IsDeleted != %1 and s.SearchTitle = :starts
-)";
-
-constexpr auto AUTHOR_BOOK_COUNT = R"(
-select count (42)
-from Authors a 
-%1
-where l.AuthorID = ?
-)";
-
-constexpr auto SERIES_BOOK_COUNT = R"(
-select count (42)
-from Series s 
-%1
-where l.SeriesID = ?
-)";
+constexpr auto AUTHOR_BOOK_COUNT = "select count (42) from Authors a %1 where l.AuthorID = ?";
+constexpr auto SERIES_BOOK_COUNT = "select count (42) from Series s %1 where l.SeriesID = ?";
+constexpr auto GENRE_BOOK_COUNT = static_cast<const char*>(nullptr);
+constexpr auto KEYWORD_BOOK_COUNT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
+constexpr auto FOLDER_BOOK_COUNT = "select count (42) from Folders f %1 where f.FolderID = ?";
 
 struct NavigationDescription
 {
@@ -195,12 +204,12 @@ struct NavigationDescription
 
 // clang-format off
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors  , AUTHOR_COUNT, AUTHOR_JOIN_PARAMETERS, AUTHOR_JOIN_SELECT, AUTHOR_SELECT, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL, AUTHOR_BOOK_COUNT },
-	{ Loc::Series   , SERIES_COUNT, SERIES_JOIN_PARAMETERS, SERIES_JOIN_SELECT, SERIES_SELECT, SERIES_COUNT_STARTS_WITH, SERIES_STARTS_WITH, SERIES_SELECT_SINGLE, SERIES_SELECT_EQUAL, SERIES_BOOK_COUNT },
-	{ Loc::Genres   , GENRE_COUNT },
-	{ Loc::Keywords , KEYWORD_COUNT },
+	{ Loc::Authors  , AUTHOR_COUNT , AUTHOR_JOIN_PARAMETERS , AUTHOR_JOIN_SELECT , AUTHOR_SELECT , AUTHOR_COUNT_STARTS_WITH , AUTHOR_STARTS_WITH , AUTHOR_SELECT_SINGLE , AUTHOR_SELECT_EQUAL , AUTHOR_BOOK_COUNT  },
+	{ Loc::Series   , SERIES_COUNT , SERIES_JOIN_PARAMETERS , SERIES_JOIN_SELECT , SERIES_SELECT , SERIES_COUNT_STARTS_WITH , SERIES_STARTS_WITH , SERIES_SELECT_SINGLE , SERIES_SELECT_EQUAL , SERIES_BOOK_COUNT  },
+	{ Loc::Genres   , GENRE_COUNT  , GENRE_JOIN_PARAMETERS  , GENRE_JOIN_SELECT  , GENRE_SELECT  , GENRE_COUNT_STARTS_WITH  , GENRE_STARTS_WITH  , GENRE_SELECT_SINGLE  , GENRE_SELECT_EQUAL  , GENRE_BOOK_COUNT   },
+	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_BOOK_COUNT },
 	{ Loc::Updates  , UPDATE_COUNT },
-	{ Loc::Archives , FOLDER_COUNT },
+	{ Loc::Archives , FOLDER_COUNT , FOLDER_JOIN_PARAMETERS , FOLDER_JOIN_SELECT , FOLDER_SELECT , FOLDER_COUNT_STARTS_WITH , nullptr            , FOLDER_SELECT_SINGLE , nullptr             , FOLDER_BOOK_COUNT  },
 	{ Loc::Languages },
 	{ Loc::Groups },
 	{ Loc::Search },
