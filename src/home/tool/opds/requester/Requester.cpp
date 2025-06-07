@@ -485,10 +485,10 @@ group by g.GroupID
 		const auto db = m_databaseController->GetDatabase(true);
 		const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(navigationMode)];
 
-		int equalCount = 0;
+		ptrdiff_t equalCount = 0;
 		QStringList equal;
-		QStringList single;
-		std::multimap<int, QString> buffer;
+		std::vector<std::tuple<long long, QString, long long>> ones;
+		std::multimap<long long, QString, std::greater<>> buffer;
 
 		const auto startsWithGlobal = GetParameter(parameters, "starts");
 		auto join = GetJoin(parameters);
@@ -507,10 +507,26 @@ group by g.GroupID
 			return query->Get<long long>(0);
 		}();
 
+		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params)
+		{
+			const auto query = db->CreateQuery(queryText.toStdString());
+			for (const auto& [key, value] : params)
+				query->Bind(key.toStdString(), value.toStdString());
+
+			for (query->Execute(); !query->Eof(); query->Next())
+				ones.emplace_back(query->Get<long long>(0), query->Get<const char*>(1), 0);
+		};
+
 		const auto maxSize = GetMaxResultSize();
 		if (countTotal <= maxSize)
 		{
-			single.emplaceBack(startsWithGlobal);
+			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
+			const auto queryText = QString(d.selectSingle).arg(removedFlag).arg(escape).arg(join);
+			selectOne(queryText,
+			          {
+						  {      ":starts", startsWithGlobal },
+						  { ":starts_like",   startsWithLike },
+            });
 		}
 		else
 		{
@@ -525,15 +541,11 @@ group by g.GroupID
 				for (query->Execute(); !query->Eof(); query->Next())
 				{
 					QString s = query->template Get<const char*>(0);
-					const auto count = query->template Get<int>(1);
+					const auto count = query->template Get<long long>(1);
 					if (s == startsWith)
 					{
 						equal.emplaceBack(std::move(s));
 						equalCount += count;
-					}
-					else if (count == 1)
-					{
-						single.emplaceBack(std::move(s));
 					}
 					else
 					{
@@ -544,10 +556,11 @@ group by g.GroupID
 
 			selectStarts(startsWithGlobal);
 
-			while (!buffer.empty() && equalCount + single.size() + static_cast<ptrdiff_t>(buffer.size()) < maxSize)
+			while (!buffer.empty() && equalCount + static_cast<ptrdiff_t>(buffer.size()) < maxSize)
 			{
-				const auto startsWith = std::move(buffer.begin()->second);
-				buffer.erase(buffer.begin());
+				auto it = buffer.begin();
+				const auto startsWith = std::move(it->second);
+				buffer.erase(it);
 				selectStarts(startsWith);
 			}
 		}
@@ -558,37 +571,29 @@ group by g.GroupID
 		{
 			Parameters p = parameters;
 			const auto& s = (p["starts"] = std::move(startsWith));
-			WriteEntry(head.children, root, d.type, p, QString("%1/starts/%2").arg(d.type, s), QString("`%1`~").arg(s), QString::number(count));
+			WriteEntry(head.children, root, d.type, p, QString("%1/starts/%2").arg(d.type, s), QString("%1~").arg(s), QString::number(count));
 		}
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase("starts");
 
-		for (const auto& s : single)
-		{
-			const auto [startsWithLike, escape] = PrepareForLike(s);
-			const auto queryText = QString(d.selectSingle).arg(removedFlag).arg(escape).arg(join);
-			const auto query = db->CreateQuery(queryText.toStdString());
-			query->Bind(":starts", s.toStdString());
-			query->Bind(":starts_like", startsWithLike.toStdString());
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				auto id = (typedParameters[d.type] = query->Get<const char*>(0));
-				WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, id), query->Get<const char*>(1));
-			}
-		}
-
 		for (const auto& s : equal)
 		{
 			const auto queryText = QString(d.selectEqual).arg(removedFlag).arg(join);
-			const auto query = db->CreateQuery(queryText.toStdString());
-			query->Bind(":starts", s.toStdString());
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				auto id = (typedParameters[d.type] = query->Get<const char*>(0));
-				WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, id), query->Get<const char*>(1));
-			}
+			selectOne(queryText,
+			          {
+						  { ":starts", s },
+            });
 		}
+
+		for (auto&& [navigationId, title, count] : ones)
+		{
+			auto id = (typedParameters[d.type] = QString::number(navigationId));
+			WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, id), std::move(title), Tr(BOOKS).arg(count));
+		}
+
+		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+		std::sort(entryBegin, head.children.end(), [](const auto& lhs, const auto& rhs) { return Util::QStringWrapper { lhs.title } < Util::QStringWrapper { rhs.title }; });
 
 		return head;
 	}
