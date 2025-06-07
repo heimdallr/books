@@ -165,6 +165,20 @@ from Series s
 where s.IsDeleted != %1 and s.SearchTitle = :starts
 )";
 
+constexpr auto AUTHOR_BOOK_COUNT = R"(
+select count (42)
+from Authors a 
+%1
+where l.AuthorID = ?
+)";
+
+constexpr auto SERIES_BOOK_COUNT = R"(
+select count (42)
+from Series s 
+%1
+where l.SeriesID = ?
+)";
+
 struct NavigationDescription
 {
 	const char* type { nullptr };
@@ -176,12 +190,13 @@ struct NavigationDescription
 	const char* startsWith { nullptr };
 	const char* selectSingle { nullptr };
 	const char* selectEqual { nullptr };
+	const char* bookCount { nullptr };
 };
 
 // clang-format off
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors  , AUTHOR_COUNT, AUTHOR_JOIN_PARAMETERS, AUTHOR_JOIN_SELECT, AUTHOR_SELECT, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL },
-	{ Loc::Series   , SERIES_COUNT, SERIES_JOIN_PARAMETERS, SERIES_JOIN_SELECT, SERIES_SELECT, SERIES_COUNT_STARTS_WITH, SERIES_STARTS_WITH, SERIES_SELECT_SINGLE, SERIES_SELECT_EQUAL },
+	{ Loc::Authors  , AUTHOR_COUNT, AUTHOR_JOIN_PARAMETERS, AUTHOR_JOIN_SELECT, AUTHOR_SELECT, AUTHOR_COUNT_STARTS_WITH, AUTHOR_STARTS_WITH, AUTHOR_SELECT_SINGLE, AUTHOR_SELECT_EQUAL, AUTHOR_BOOK_COUNT },
+	{ Loc::Series   , SERIES_COUNT, SERIES_JOIN_PARAMETERS, SERIES_JOIN_SELECT, SERIES_SELECT, SERIES_COUNT_STARTS_WITH, SERIES_STARTS_WITH, SERIES_SELECT_SINGLE, SERIES_SELECT_EQUAL, SERIES_BOOK_COUNT },
 	{ Loc::Genres   , GENRE_COUNT },
 	{ Loc::Keywords , KEYWORD_COUNT },
 	{ Loc::Updates  , UPDATE_COUNT },
@@ -487,7 +502,7 @@ group by g.GroupID
 
 		ptrdiff_t equalCount = 0;
 		QStringList equal;
-		std::vector<std::tuple<long long, QString, long long>> ones;
+		std::map<QString, QString> ones;
 		std::multimap<long long, QString, std::greater<>> buffer;
 
 		const auto startsWithGlobal = GetParameter(parameters, "starts");
@@ -514,7 +529,7 @@ group by g.GroupID
 				query->Bind(key.toStdString(), value.toStdString());
 
 			for (query->Execute(); !query->Eof(); query->Next())
-				ones.emplace_back(query->Get<long long>(0), query->Get<const char*>(1), 0);
+				ones.try_emplace(QString(query->Get<const char*>(0)).simplified(), query->Get<const char*>(1));
 		};
 
 		const auto maxSize = GetMaxResultSize();
@@ -586,10 +601,16 @@ group by g.GroupID
             });
 		}
 
-		for (auto&& [navigationId, title, count] : ones)
+		if (join.isEmpty())
+			join = QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != %1\n%2").arg(removedFlag).arg(d.joinSelect);
+		for (auto&& [navigationId, title] : ones)
 		{
-			auto id = (typedParameters[d.type] = QString::number(navigationId));
-			WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, id), std::move(title), Tr(BOOKS).arg(count));
+			const auto query = db->CreateQuery(QString(d.bookCount).arg(join).toStdString());
+			query->Bind(0, navigationId.toStdString());
+			query->Execute();
+			assert(!query->Eof());
+			typedParameters[d.type] = navigationId;
+			WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS).arg(query->Get<long long>(0)));
 		}
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
