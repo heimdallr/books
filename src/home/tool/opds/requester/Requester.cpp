@@ -122,7 +122,7 @@ where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :star
 )";
 
 constexpr auto AUTHOR_STARTS_WITH = R"(
-select distinct substr(a.SearchName, 1, :length), count(42) 
+select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
 from Authors a 
 %3 
 where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
@@ -130,7 +130,7 @@ group by substr(a.SearchName, 1, :length)
 )";
 
 constexpr auto SERIES_STARTS_WITH = R"(
-select distinct substr(s.SearchTitle, 1, :length), count(42) 
+select substr(s.SearchTitle, 1, :length), count(distinct s.SeriesID) 
 from Series s 
 %3 
 where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
@@ -350,6 +350,31 @@ QString GetJoin(const IRequester::Parameters& parameters)
 	return list.join("\n");
 }
 
+struct TitleHelper
+{
+	QString defaultTitle;
+	QString additionalTitle;
+};
+
+QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, TitleHelper helper)
+{
+	QStringList list;
+	std::ranges::transform(NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) { return item.select && parameters.contains(item.type); }),
+	                       std::back_inserter(list),
+	                       [&](const auto& item)
+	                       {
+							   const auto query = db.CreateQuery(item.select);
+							   query->Bind(0, parameters.at(item.type).toStdString());
+							   query->Execute();
+							   assert(!query->Eof());
+							   return QString(query->template Get<const char*>(0));
+						   });
+	if (!helper.additionalTitle.isEmpty())
+		list.emplaceBack(std::move(helper.additionalTitle));
+
+	return list.isEmpty() ? std::move(helper.defaultTitle) : list.join(", ");
+}
+
 } // namespace
 
 class Requester::Impl final : public IPostProcessCallback
@@ -404,25 +429,11 @@ public:
 #undef OPDS_ROOT_ITEM
 		};
 
-		const auto title = [&]
-		{
-			QStringList list;
-			std::ranges::transform(navigationTypes | std::views::filter([&](const auto& item) { return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].select && parameters.contains(item.second); }),
-			                       std::back_inserter(list),
-			                       [&](const auto& item)
-			                       {
-									   const auto query = db->CreateQuery(NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].select);
-									   query->Bind(0, parameters.at(item.second).toStdString());
-									   query->Execute();
-									   assert(!query->Eof());
-									   return QString(query->Get<const char*>(0));
-								   });
-			return list.join(", ");
-		}();
+		auto head = GetHead("root", GetTitle(*db, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
 
-		auto head = GetHead("root", title.isEmpty() ? m_collectionProvider->GetActiveCollection().name : title, root, CreateSelf(root, "", parameters));
-
-		const auto join = GetJoin(parameters);
+		auto join = GetJoin(parameters);
+		if (!join.isEmpty())
+			join = join.arg(removedFlag);
 
 		QStringList dbStatQueryTextItems;
 		std::ranges::transform(navigationTypes | std::views::filter([&](const auto& item) { return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].count && !parameters.contains(item.second); }),
@@ -430,7 +441,7 @@ public:
 		                       [&](const auto& item)
 		                       {
 								   const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
-								   return QString(d.count).arg(join.isEmpty() ? join : join.arg(removedFlag)).arg(d.type);
+								   return QString(d.count).arg(join).arg(d.type);
 							   });
 
 		{
@@ -444,16 +455,18 @@ public:
 					WriteEntry(head.children, root, id, parameters, id, Loc::Tr(Loc::NAVIGATION, id), Tr(TOTAL).arg(count));
 			}
 		}
+		if (!parameters.contains(Loc::Groups))
 		{
 			const auto query = db->CreateQuery(QString(R"(
 select g.GroupID, g.Title, count(42)
 from Groups_User g 
 join Groups_List_User l on l.GroupID = g.GroupID 
-join Books_View b on b.BookID = l.BookID 
-where b.IsDeleted != %1 
+%2
+where g.IsDeleted != %1 
 group by g.GroupID
 )")
 			                                       .arg(removedFlag)
+			                                       .arg(join)
 			                                       .toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
@@ -539,7 +552,7 @@ group by g.GroupID
 			}
 		}
 
-		auto head = GetHead(d.type, Loc::Tr(Loc::NAVIGATION, d.type), root, CreateSelf(root, d.type, parameters));
+		auto head = GetHead(d.type, GetTitle(*db, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 
 		for (auto&& [count, startsWith] : buffer)
 		{
