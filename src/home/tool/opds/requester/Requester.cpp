@@ -229,6 +229,38 @@ struct Node
 	int seqNum;
 };
 
+QString& GetContent(Node& node)
+{
+	const auto it = std::ranges::find(node.children, CONTENT, [](auto& item) { return item.name; });
+	assert(it != node.children.end());
+	return it->value;
+}
+
+const QString& GetContent(const Node& node)
+{
+	return GetContent(const_cast<Node&>(node));
+}
+
+std::tuple<Util::QStringWrapper, Util::QStringWrapper, int, Util::QStringWrapper> ToComparable(const Node& node)
+{
+	return node.author.isEmpty() ? std::make_tuple(Util::QStringWrapper { node.title }, Util::QStringWrapper { GetContent(node) }, 0, Util::QStringWrapper { node.title })
+	                             : std::make_tuple(Util::QStringWrapper { node.author }, Util::QStringWrapper { node.series }, node.seqNum, Util::QStringWrapper { node.title });
+}
+
+bool operator<(const Node& lhs, const Node& rhs)
+{
+	return ToComparable(lhs) < ToComparable(rhs);
+}
+
+Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
+{
+	const auto nodeGuard = writer.Guard(node.name);
+	std::ranges::for_each(node.attributes, [&](const auto& item) { writer.WriteAttribute(item.first, item.second); });
+	writer.WriteCharacters(node.value);
+	std::ranges::for_each(node.children, [&](const auto& item) { writer << item; });
+	return writer;
+}
+
 QString GetHref(const QString& root, const QString& path, const IRequester::Parameters& parameters)
 {
 	QStringList list;
@@ -336,7 +368,7 @@ void WriteBookEntries(Node::Children& children, const QString& root, IRequester:
 		auto content = [&]() -> QString
 		{
 			if (query->Eof())
-				return {};
+				return " ";
 
 			const auto seqNum = Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(1));
 			return QString("%1%2").arg(query->Get<const char*>(0), seqNum.isEmpty() ? QString {} : " #" + seqNum);
@@ -367,38 +399,6 @@ void WriteNavigationEntries(Node::Children& children,
 		parameters[d.type] = navigationId;
 		WriteEntry(children, root, "", parameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS_COUNTER).arg(query->Get<long long>(0)));
 	}
-}
-
-QString& GetContent(Node& node)
-{
-	const auto it = std::ranges::find(node.children, CONTENT, [](auto& item) { return item.name; });
-	assert(it != node.children.end());
-	return it->value;
-}
-
-const QString& GetContent(const Node& node)
-{
-	return GetContent(const_cast<Node&>(node));
-}
-
-std::tuple<Util::QStringWrapper, Util::QStringWrapper, int, Util::QStringWrapper> ToComparable(const Node& node)
-{
-	return node.author.isEmpty() ? std::make_tuple(Util::QStringWrapper { GetContent(node) }, Util::QStringWrapper { node.title }, 0, Util::QStringWrapper { node.author })
-	                             : std::make_tuple(Util::QStringWrapper { node.author }, Util::QStringWrapper { node.series }, node.seqNum, Util::QStringWrapper { node.title });
-}
-
-bool operator<(const Node& lhs, const Node& rhs)
-{
-	return ToComparable(lhs) < ToComparable(rhs);
-}
-
-Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
-{
-	const auto nodeGuard = writer.Guard(node.name);
-	std::ranges::for_each(node.attributes, [&](const auto& item) { writer.WriteAttribute(item.first, item.second); });
-	writer.WriteCharacters(node.value);
-	std::ranges::for_each(node.children, [&](const auto& item) { writer << item; });
-	return writer;
 }
 
 std::pair<QString, char> PrepareForLike(QString arg)
@@ -617,6 +617,9 @@ public:
 
 		auto head = GetHead(BOOKS, GetTitle(*db, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
+
+		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+		std::sort(entryBegin, head.children.end());
 
 		return head;
 	}
