@@ -75,7 +75,7 @@ constexpr auto BOOKS_COUNTER = QT_TRANSLATE_NOOP("Requester", "Books: %1");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
 constexpr auto STARTS_WITH_COUNT = QT_TRANSLATE_NOOP("Requester", "%1 with '%2'~: %3");
 
-constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
+constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "BookInfo");
 constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
@@ -549,9 +549,9 @@ public:
 		const auto db = m_databaseController->GetDatabase(true);
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
-#define OPDS_ROOT_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
-			OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
+#define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
+			OPDS_NAVIGATION_ITEMS_X_MACRO
+#undef OPDS_INVOKER_ITEM
 		};
 
 		auto head = GetHead("root", GetTitle(*db, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
@@ -617,6 +617,86 @@ public:
 
 		auto head = GetHead(BOOKS, GetTitle(*db, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
+
+		return head;
+	}
+
+	Node GetBookInfo(const QString& root, const Parameters& parameters) const
+	{
+		Node head;
+
+		QEventLoop eventLoop;
+
+		AnnotationControllerObserver observer(
+			[&](const Flibrary::IAnnotationController::IDataProvider& dataProvider)
+			{
+				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
+
+				const auto db = m_databaseController->GetDatabase(true);
+				const auto& book = dataProvider.GetBook();
+
+				head = GetHead(book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), root, CreateSelf(root, BOOKS, parameters));
+
+				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
+				const auto strategy = strategyCreator(*m_settings);
+				auto annotation = m_annotationController->CreateAnnotation(dataProvider, *strategy);
+
+				auto& entry = WriteEntry(head.children, root, "", parameters, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), annotation, false);
+				for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
+				{
+					const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
+					auto& author = entry.children.emplace_back("author");
+					author.children.emplace_back("name",
+				                                 QString("%1 %2 %3")
+				                                     .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+				                                          authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
+				                                          authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)));
+					author.children.emplace_back("uri", QString("%1/%2/%3").arg(root, Loc::Authors, authorItem->GetId()));
+				}
+				for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
+				{
+					const auto& genreItem = dataProvider.GetGenres().GetChild(i);
+					const auto& title = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
+					entry.children.emplace_back("category",
+				                                QString {
+                    },
+				                                Node::Attributes { { "term", title }, { "label", title } });
+				}
+				const auto format = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix();
+				entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
+				entry.children.emplace_back("dc:format", format);
+				entry.children.emplace_back(
+					"link",
+					QString {
+                },
+					Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } });
+				entry.children.emplace_back("link",
+			                                QString {
+                },
+			                                Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) },
+			                                                   { "rel", "http://opds-spec.org/acquisition" },
+			                                                   { "type", QString("application/%1+zip").arg(format) } });
+
+				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+				{
+					entry.children.emplace_back("link",
+				                                QString {
+                    },
+				                                Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
+
+					entry.children.emplace_back(
+						"link",
+						QString {
+                    },
+						Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
+
+					m_coverCache->Set(book.GetId(), covers.front().bytes);
+				}
+			});
+
+		m_annotationController->RegisterObserver(&observer);
+		m_annotationController->SetCurrentBookId(parameters.at(BOOKS), true);
+		eventLoop.exec();
 
 		return head;
 	}
@@ -912,20 +992,18 @@ Requester::~Requester()
 	PLOGV << "Requester destroyed";
 }
 
-QByteArray Requester::GetRoot(const QString& root, const Parameters& parameters) const
-{
-	return GetImpl(*m_impl, &Impl::GetRoot, ContentType::Root, std::cref(root), std::cref(parameters));
-}
-
-QByteArray Requester::GetBooks(const QString& root, const Parameters& parameters) const
-{
-	return GetImpl(*m_impl, &Impl::GetBooks, ContentType::Books, std::cref(root), std::cref(parameters));
-}
-
-#define OPDS_ROOT_ITEM(NAME)                                                                                                                            \
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                         \
 	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                            \
 	{                                                                                                                                                   \
 		return GetImpl(*m_impl, &Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
 	}
-OPDS_ROOT_ITEMS_X_MACRO
-#undef OPDS_ROOT_ITEM
+OPDS_NAVIGATION_ITEMS_X_MACRO
+#undef OPDS_INVOKER_ITEM
+
+#define OPDS_INVOKER_ITEM(NAME)                                                                               \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                  \
+	{                                                                                                         \
+		return GetImpl(*m_impl, &Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
+	}
+OPDS_ADDITIONAL_ITEMS_X_MACRO
+#undef OPDS_INVOKER_ITEM
