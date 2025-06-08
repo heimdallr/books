@@ -85,7 +85,7 @@ private: // IAnnotationController::IUrlGenerator
 		if (!typeMapped)
 			return str;
 
-		return str.isEmpty() ? QString {} : QString("<a href=/web/%1/%2>%3</a>").arg(typeMapped, id, str);
+		return str.isEmpty() ? QString {} : QString("<a href=/web?%1=%2>%3</a>").arg(typeMapped, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override
