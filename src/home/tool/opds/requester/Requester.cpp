@@ -71,8 +71,7 @@ constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController
 };
 
 constexpr auto CONTEXT = "Requester";
-constexpr auto TOTAL = QT_TRANSLATE_NOOP("Requester", "Total: %1");
-constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books: %1");
+constexpr auto BOOKS_COUNTER = QT_TRANSLATE_NOOP("Requester", "Books: %1");
 constexpr auto STARTS_WITH_COUNT = QT_TRANSLATE_NOOP("Requester", "%1 with '%2'~: %3");
 
 constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "Book");
@@ -122,50 +121,59 @@ constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.Fold
 constexpr auto GROUP_SELECT = "select gu.Title from Groups_User gu where gu.GroupID = ?";
 
 constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
-select count(distinct a.AuthorID) 
-from Authors a 
-%3 
-where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+	select count(distinct a.AuthorID) 
+	from Authors a 
+	%3 
+	where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
 )";
 
 constexpr auto SERIES_COUNT_STARTS_WITH = R"(
-select count(distinct s.SeriesID) 
-from Series s 
-%3 
-where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	select count(distinct s.SeriesID) 
+	from Series s 
+	%3 
+	where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
 )";
 
 constexpr auto KEYWORD_COUNT_STARTS_WITH = R"(
-select count(distinct k.KeywordID) 
-from Keywords k 
-%3 
-where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	select count(distinct k.KeywordID) 
+	from Keywords k 
+	%3 
+	where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
 )";
 
 constexpr auto FOLDER_COUNT_STARTS_WITH = "select 0";
 
 constexpr auto AUTHOR_STARTS_WITH = R"(
-select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
-from Authors a 
-%3 
-where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
-group by substr(a.SearchName, 1, :length)
+	select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
+	from Authors a 
+	%3 
+	where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+	group by substr(a.SearchName, 1, :length)
 )";
 
 constexpr auto SERIES_STARTS_WITH = R"(
-select substr(s.SearchTitle, 1, :length), count(distinct s.SeriesID) 
-from Series s 
-%3 
-where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
-group by substr(s.SearchTitle, 1, :length)
+	select substr(s.SearchTitle, 1, :length), count(distinct s.SeriesID) 
+	from Series s 
+	%3 
+	where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	group by substr(s.SearchTitle, 1, :length)
 )";
 
 constexpr auto KEYWORD_STARTS_WITH = R"(
-select substr(k.SearchTitle, 1, :length), count(distinct k.KeywordID) 
-from Keywords k 
-%3 
-where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
-group by substr(k.SearchTitle, 1, :length)
+	select substr(k.SearchTitle, 1, :length), count(distinct k.KeywordID) 
+	from Keywords k 
+	%3 
+	where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	group by substr(k.SearchTitle, 1, :length)
+)";
+
+constexpr auto GROUPS_SELECT = R"(
+	select g.GroupID, g.Title, count(42)
+	from Groups_User g 
+	join Groups_List_User l on l.GroupID = g.GroupID 
+	%2
+	where g.IsDeleted != %1 
+	group by g.GroupID
 )";
 
 constexpr auto AUTHOR_SELECT_SINGLE =
@@ -177,10 +185,12 @@ constexpr auto FOLDER_SELECT_SINGLE = "select f.FolderID, f.FolderTitle from Fol
 
 constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != %1 and a.SearchName = :starts";
 constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
+constexpr auto GENRE_SELECT_EQUAL = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
 constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != %1 and k.SearchTitle = :starts";
 
 constexpr auto AUTHOR_BOOK_COUNT = "select count (42) from Authors a %1 where l.AuthorID = ?";
 constexpr auto SERIES_BOOK_COUNT = "select count (42) from Series s %1 where l.SeriesID = ?";
+constexpr auto GENRE_BOOK_COUNT = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
 constexpr auto KEYWORD_BOOK_COUNT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
 constexpr auto FOLDER_BOOK_COUNT = "select count (42) from Folders f %1 where f.FolderID = ?";
 
@@ -229,14 +239,14 @@ struct NavigationDescription
 
 // clang-format off
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors  , AUTHOR_COUNT , AUTHOR_JOIN_PARAMETERS , AUTHOR_JOIN_SELECT , AUTHOR_SELECT , AUTHOR_COUNT_STARTS_WITH , AUTHOR_STARTS_WITH , AUTHOR_SELECT_SINGLE , AUTHOR_SELECT_EQUAL , AUTHOR_BOOK_COUNT  },
-	{ Loc::Series   , SERIES_COUNT , SERIES_JOIN_PARAMETERS , SERIES_JOIN_SELECT , SERIES_SELECT , SERIES_COUNT_STARTS_WITH , SERIES_STARTS_WITH , SERIES_SELECT_SINGLE , SERIES_SELECT_EQUAL , SERIES_BOOK_COUNT  },
-	{ Loc::Genres   , GENRE_COUNT  , GENRE_JOIN_PARAMETERS  , GENRE_JOIN_SELECT  , GENRE_SELECT  , nullptr                  , nullptr            , nullptr              , nullptr             , nullptr           , &INavigationProvider::GetNavigationGenre },
+	{ Loc::Authors  ,  AUTHOR_COUNT,  AUTHOR_JOIN_PARAMETERS,  AUTHOR_JOIN_SELECT,  AUTHOR_SELECT,  AUTHOR_COUNT_STARTS_WITH,  AUTHOR_STARTS_WITH,  AUTHOR_SELECT_SINGLE,  AUTHOR_SELECT_EQUAL,  AUTHOR_BOOK_COUNT  },
+	{ Loc::Series   ,  SERIES_COUNT,  SERIES_JOIN_PARAMETERS,  SERIES_JOIN_SELECT,  SERIES_SELECT,  SERIES_COUNT_STARTS_WITH,  SERIES_STARTS_WITH,  SERIES_SELECT_SINGLE,  SERIES_SELECT_EQUAL,  SERIES_BOOK_COUNT  },
+	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_BOOK_COUNT, &INavigationProvider::GetNavigationGenre },
 	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_BOOK_COUNT },
-	{ Loc::Updates  , UPDATE_COUNT },
-	{ Loc::Archives , FOLDER_COUNT , FOLDER_JOIN_PARAMETERS , FOLDER_JOIN_SELECT , FOLDER_SELECT , FOLDER_COUNT_STARTS_WITH , nullptr            , FOLDER_SELECT_SINGLE , nullptr             , FOLDER_BOOK_COUNT  },
+	{ Loc::Updates  ,  UPDATE_COUNT },
+	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_BOOK_COUNT  },
 	{ Loc::Languages },
-	{ Loc::Groups   , nullptr      , GROUP_JOIN_PARAMETERS  , GROUP_JOIN_SELECT  , GROUP_SELECT  },
+	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
 	{ Loc::Search },
 	{ Loc::AllBooks },
 };
@@ -486,28 +496,18 @@ public:
 				query->Execute();
 				assert(!query->Eof());
 				const auto* id = query->Get<const char*>(0);
-				if (const auto count = query->Get<int>(1))
-					WriteEntry(head.children, root, id, parameters, id, Loc::Tr(Loc::NAVIGATION, id), Tr(TOTAL).arg(count));
+				if (const auto count = query->Get<int>(1); count > 1)
+					WriteEntry(head.children, root, id, parameters, id, Loc::Tr(Loc::NAVIGATION, id), QString::number(count));
 			}
 		}
 		if (!parameters.contains(Loc::Groups))
 		{
-			const auto query = db->CreateQuery(QString(R"(
-select g.GroupID, g.Title, count(42)
-from Groups_User g 
-join Groups_List_User l on l.GroupID = g.GroupID 
-%2
-where g.IsDeleted != %1 
-group by g.GroupID
-)")
-			                                       .arg(removedFlag)
-			                                       .arg(join)
-			                                       .toStdString());
+			const auto query = db->CreateQuery(QString(GROUPS_SELECT).arg(removedFlag).arg(join).toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto p = parameters;
 				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = query->Get<const char*>(0));
-				WriteEntry(head.children, root, "", p, id, query->Get<const char*>(1), Tr(BOOKS).arg(query->Get<int>(2)));
+				WriteEntry(head.children, root, "", p, id, query->Get<const char*>(1), Tr(BOOKS_COUNTER).arg(query->Get<int>(2)));
 			}
 		}
 
@@ -636,7 +636,7 @@ private: // INavigationProvider
 			query->Execute();
 			assert(!query->Eof());
 			typedParameters[d.type] = navigationId;
-			WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS).arg(query->Get<long long>(0)));
+			WriteEntry(head.children, root, "", typedParameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS_COUNTER).arg(query->Get<long long>(0)));
 		}
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
@@ -663,15 +663,7 @@ private: // INavigationProvider
 		std::unordered_set<QString> genresWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
 		{
-			static constexpr auto queryText = R"(
-select g.GenreCode
-from Genres g
-where exists (
-select 42 from Genre_List l 
-%1 
-where l.GenreCode = g.GenreCode)
-)";
-			const auto query = db->CreateQuery(QString(queryText).arg(join).toStdString());
+			const auto query = db->CreateQuery(QString(d.selectEqual).arg(join).toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 				genresWithBooks.emplace(query->Get<const char*>(0));
 		}
@@ -697,17 +689,11 @@ where l.GenreCode = g.GenreCode)
 				if (!genre.children.empty())
 					return std::make_pair(QString(d.type), QString::number(genre.children.size()));
 
-				constexpr auto queryText = R"(
-select count(42)
-from Genre_List l 
-%1
-where l.GenreCode = ?
-)";
-				const auto query = db->CreateQuery(QString(queryText).arg(join).toStdString());
+				const auto query = db->CreateQuery(QString(d.bookCount).arg(join).toStdString());
 				query->Bind(0, genre.code.toStdString());
 				query->Execute();
 				assert(!query->Eof());
-				return std::make_pair(QString {}, QString(BOOKS).arg(query->Get<int>(0)));
+				return std::make_pair(QString {}, QString(BOOK_COUNT).arg(query->Get<int>(0)));
 			}();
 			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type, genre.code), genre.name, std::move(content));
 		}
