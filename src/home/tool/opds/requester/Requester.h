@@ -36,6 +36,7 @@ public:
 
 private: // IRequester
 	QByteArray GetRoot(const QString& root, const Parameters& parameters) const override;
+	QByteArray GetBooks(const QString& root, const Parameters& parameters) const override;
 
 #define OPDS_ROOT_ITEM(NAME) QByteArray Get##NAME(const QString& root, const Parameters& parameters) const override;
 	OPDS_ROOT_ITEMS_X_MACRO

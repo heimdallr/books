@@ -265,14 +265,15 @@ private:
 	{
 		using Invoker = QByteArray (IRequester::*)(const QString&, const IRequester::Parameters&) const;
 		static constexpr std::tuple<const char* /*path*/, Invoker> descriptions[] {
-			{ nullptr, &IRequester::GetRoot },
-#define OPDS_ROOT_ITEM(NAME) { #NAME, &IRequester::Get##NAME                                       },
+#define OPDS_ROOT_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_ROOT_ITEMS_X_MACRO
 #undef OPDS_ROOT_ITEM
+			{ nullptr,  &IRequester::GetRoot },
+			{ "Books", &IRequester::GetBooks },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
-			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString{}),
+			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}),
 			               [this, root, invoker](const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
