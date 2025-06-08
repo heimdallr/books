@@ -105,18 +105,21 @@ constexpr auto SERIES_JOIN_PARAMETERS = "join Series_List sl on sl.BookID = l.Bo
 constexpr auto GENRE_JOIN_PARAMETERS = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
 constexpr auto FOLDER_JOIN_PARAMETERS = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
+constexpr auto GROUP_JOIN_PARAMETERS = "join Groups_List_User glu on glu.BookID = l.BookID and glu.GroupID = %1";
 
 constexpr auto AUTHOR_JOIN_SELECT = "join Author_List l on l.AuthorID = a.AuthorID";
 constexpr auto SERIES_JOIN_SELECT = "join Series_List l on l.SeriesID = s.SeriesID";
 constexpr auto GENRE_JOIN_SELECT = "join Genre_List l on l.GenreCode = g.GenreCode";
 constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
 constexpr auto FOLDER_JOIN_SELECT = "join Books l on l.FolderID = f.FolderID";
+constexpr auto GROUP_JOIN_SELECT = "join Groups_List_User glu on glu.GroupID = gu.GroupID";
 
 constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
 constexpr auto SERIES_SELECT = "select s.SeriesTitle from Series s where s.SeriesID = ?";
 constexpr auto GENRE_SELECT = "select g.FB2Code from Genres g where g.GenreCode = ?";
 constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
 constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.FolderID = ?";
+constexpr auto GROUP_SELECT = "select gu.Title from Groups_User gu where gu.GroupID = ?";
 
 constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
 select count(distinct a.AuthorID) 
@@ -237,7 +240,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Updates  , UPDATE_COUNT },
 	{ Loc::Archives , FOLDER_COUNT , FOLDER_JOIN_PARAMETERS , FOLDER_JOIN_SELECT , FOLDER_SELECT , FOLDER_COUNT_STARTS_WITH , nullptr            , FOLDER_SELECT_SINGLE , nullptr             , FOLDER_BOOK_COUNT  },
 	{ Loc::Languages },
-	{ Loc::Groups },
+	{ Loc::Groups   , nullptr      , GROUP_JOIN_PARAMETERS  , GROUP_JOIN_SELECT  , GROUP_SELECT  },
 	{ Loc::Search },
 	{ Loc::AllBooks },
 };
