@@ -10,12 +10,10 @@
 #include <QUrl>
 
 #include "fnd/FindPair.h"
-#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
@@ -26,7 +24,6 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/IScriptController.h"
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
@@ -357,7 +354,7 @@ using WriteEntries = void (*)(Node::Children& children,
                               IRequester::Parameters parameters,
                               const NavigationDescription& d,
                               DB::IDatabase& db,
-                              const bool removedFlag,
+                              bool removedFlag,
                               QString join,
                               std::map<QString, QString>& ones);
 
