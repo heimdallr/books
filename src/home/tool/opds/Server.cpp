@@ -270,6 +270,7 @@ private:
 			OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
 			{ nullptr,  &IRequester::GetRoot },
+			{ "search", &IRequester::Search },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
