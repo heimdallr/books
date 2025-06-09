@@ -266,11 +266,10 @@ private:
 		using Invoker = QByteArray (IRequester::*)(const QString&, const IRequester::Parameters&) const;
 		static constexpr std::tuple<const char* /*path*/, Invoker> descriptions[] {
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
-			OPDS_NAVIGATION_ITEMS_X_MACRO
-			OPDS_ADDITIONAL_ITEMS_X_MACRO
+			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
-			{ nullptr,  &IRequester::GetRoot },
-			{ "search", &IRequester::Search },
+			{  nullptr, &IRequester::GetRoot },
+			{ "search",  &IRequester::Search },
 		};
 
 		for (const auto& [path, invoker] : descriptions)

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <QHash>
+
 #include <unordered_set>
 
-#include <QHash>
 #include <QString>
 
 #include "export/logic.h"
