@@ -5803,18 +5803,13 @@ Try again?</source>
     <name>Requester</name>
     <message>
         <location filename="../../tool/opds/requester/Requester.cpp"/>
-        <source>Number of: %1</source>
-        <translation>Количество: %1</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/requester/Requester.cpp"/>
-        <source>Book</source>
-        <translation>Книга</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>Все книги раздела</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
+        <source>Books: %1</source>
+        <translation>Книги: %1</translation>
     </message>
     <message>
         <location filename="../../tool/opds/requester/Requester.cpp"/>

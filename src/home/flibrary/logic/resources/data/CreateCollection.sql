@@ -4,6 +4,9 @@ PRAGMA page_size = 16384;
 PRAGMA journal_mode = OFF;
 --@@
 
+DROP VIEW IF EXISTS Books_View;
+--@@
+
 DROP TABLE IF EXISTS Settings;
 --@@
 
