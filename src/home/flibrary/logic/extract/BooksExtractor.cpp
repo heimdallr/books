@@ -181,12 +181,14 @@ void Process(const std::shared_ptr<const ISettings>& settings,
              IScriptController::Commands commands,
              const QTemporaryDir& tempDir)
 {
-	const auto sourceFile = Process(settings, archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs);
+	const auto needFile = std::ranges::any_of(commands, [](const auto& command) { return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile); });
+	const auto sourceFile = needFile ? Process(settings, archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs) : std::filesystem::path {};
 
 	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) { return command.number; });
 	for (auto command : commands)
 	{
-		IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
+		if (needFile)
+			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
 		ILogicFactory::FillScriptTemplate(command.args, book);
 
