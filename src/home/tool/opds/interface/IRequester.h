@@ -9,6 +9,7 @@ class QByteArray;
 	OPDS_INVOKER_ITEM(Series)         \
 	OPDS_INVOKER_ITEM(Genres)         \
 	OPDS_INVOKER_ITEM(Keywords)       \
+	OPDS_INVOKER_ITEM(Updates)        \
 	OPDS_INVOKER_ITEM(Archives)       \
 	OPDS_INVOKER_ITEM(Groups)
 

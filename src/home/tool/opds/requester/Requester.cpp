@@ -84,6 +84,7 @@ constexpr auto TITLE = "title";
 constexpr auto CONTENT = "content";
 constexpr auto SEARCH = "search";
 constexpr auto START = "start";
+constexpr auto STARTS = "starts";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 
@@ -103,6 +104,7 @@ constexpr auto AUTHOR_JOIN_PARAMETERS = "join Author_List al on al.BookID = l.Bo
 constexpr auto SERIES_JOIN_PARAMETERS = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
 constexpr auto GENRE_JOIN_PARAMETERS = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
+constexpr auto UPDATE_JOIN_PARAMETERS = "join Books ul on ul.BookID = l.BookID and ul.UpdateID = %1";
 constexpr auto FOLDER_JOIN_PARAMETERS = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
 constexpr auto GROUP_JOIN_PARAMETERS = "join Groups_List_User glu on glu.BookID = l.BookID and glu.GroupID = %1";
 
@@ -110,6 +112,7 @@ constexpr auto AUTHOR_JOIN_SELECT = "join Author_List l on l.AuthorID = a.Author
 constexpr auto SERIES_JOIN_SELECT = "join Series_List l on l.SeriesID = s.SeriesID";
 constexpr auto GENRE_JOIN_SELECT = "join Genre_List l on l.GenreCode = g.GenreCode";
 constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
+constexpr auto UPDATE_JOIN_SELECT = "join Books l on l.UpdateID = u.UpdateID";
 constexpr auto FOLDER_JOIN_SELECT = "join Books l on l.FolderID = f.FolderID";
 constexpr auto GROUP_JOIN_SELECT = "join Groups_List_User glu on glu.GroupID = gu.GroupID";
 constexpr auto BOOK_JOIN_SELECT = "from Books l";
@@ -118,6 +121,7 @@ constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a
 constexpr auto SERIES_SELECT = "select s.SeriesTitle from Series s where s.SeriesID = ?";
 constexpr auto GENRE_SELECT = "select g.FB2Code from Genres g where g.GenreCode = ?";
 constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
+constexpr auto UPDATE_SELECT = "select u.UpdateTitle from Updates u where u.UpdateID = ?";
 constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.FolderID = ?";
 constexpr auto GROUP_SELECT = "select gu.Title from Groups_User gu where gu.GroupID = ?";
 
@@ -142,6 +146,7 @@ constexpr auto KEYWORD_COUNT_STARTS_WITH = R"(
 	where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
 )";
 
+constexpr auto UPDATE_COUNT_STARTS_WITH = "select 0";
 constexpr auto FOLDER_COUNT_STARTS_WITH = "select 0";
 
 constexpr auto BOOK_COUNT_STARTS_WITH = R"(
@@ -202,12 +207,14 @@ constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_N
 constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
 constexpr auto GENRE_SELECT_EQUAL = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
 constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != %1 and k.SearchTitle = :starts";
+constexpr auto UPDATE_SELECT_EQUAL = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
 constexpr auto BOOK_SELECT_EQUAL = "select b.BookID, b.Title %2 where b.IsDeleted != %1 and b.SearchTitle = :starts";
 
 constexpr auto AUTHOR_CONTENT = "select count (42) from Authors a %1 where l.AuthorID = ?";
 constexpr auto SERIES_CONTENT = "select count (42) from Series s %1 where l.SeriesID = ?";
 constexpr auto GENRE_CONTENT = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
 constexpr auto KEYWORD_CONTENT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
+constexpr auto UPDATE_CONTENT = "select count (42) from Books l %1 where l.UpdateID = ?";
 constexpr auto FOLDER_CONTENT = "select count (42) from Folders f %1 where f.FolderID = ?";
 constexpr auto BOOK_CONTENT = R"(
 select 
@@ -346,6 +353,7 @@ public:
 	virtual ~INavigationProvider() = default;
 	virtual Node GetNavigationMain(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
 	virtual Node GetNavigationGenre(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
+	virtual Node GetNavigationUpdate(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
 };
 
 using GetNavigation = Node (INavigationProvider::*)(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const;
@@ -380,7 +388,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Series   ,  SERIES_COUNT,  SERIES_JOIN_PARAMETERS,  SERIES_JOIN_SELECT,  SERIES_SELECT,  SERIES_COUNT_STARTS_WITH,  SERIES_STARTS_WITH,  SERIES_SELECT_SINGLE,  SERIES_SELECT_EQUAL,  SERIES_CONTENT  },
 	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
 	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_CONTENT },
-	{ Loc::Updates  ,  UPDATE_COUNT },
+	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },
 	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_CONTENT  },
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
@@ -549,6 +557,42 @@ QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, Ti
 		list.emplaceBack(std::move(helper.additionalTitle));
 
 	return list.isEmpty() ? std::move(helper.defaultTitle) : list.join(", ");
+}
+
+template <typename T>
+QString ToString(T value)
+{
+	return QString::number(value);
+}
+
+template <>
+QString ToString<QString>(QString value)
+{
+	return value;
+}
+
+template <typename T>
+T ToItemCode(const QString& value)
+{
+	return static_cast<T>(value.toLongLong());
+}
+
+template <>
+QString ToItemCode<QString>(const QString& value)
+{
+	return value;
+}
+
+template <typename T>
+void BindImpl(DB::IQuery& query, const size_t index, const T& value)
+{
+	query.Bind(index, value);
+}
+
+template <>
+void BindImpl<QString>(DB::IQuery& query, const size_t index, const QString& value)
+{
+	query.Bind(index, value.toStdString());
 }
 
 } // namespace
@@ -862,7 +906,8 @@ private: // INavigationProvider
 		return head;
 	}
 
-	Node GetNavigationGenre(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
+	template <typename T, typename DBCodeType>
+	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
 		const auto removedFlag = GetRemovedFlag();
 		const auto db = m_databaseController->GetDatabase(true);
@@ -877,18 +922,18 @@ private: // INavigationProvider
 			return result;
 		}();
 
-		std::unordered_set<QString> genresWithBooks;
+		std::unordered_set<typename T::CodeType> itemsWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
 		{
 			const auto query = db->CreateQuery(QString(d.selectEqual).arg(join).toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
-				genresWithBooks.emplace(query->Get<const char*>(0));
+				itemsWithBooks.emplace(query->template Get<DBCodeType>(0));
 		}
 
-		auto genreRoot = Flibrary::Genre::Load(*db, genresWithBooks);
-		const auto* genreParent = &genreRoot;
-		if (const auto it = parameters.find(Loc::Genres); it != parameters.end())
-			genreParent = Flibrary::Genre::Find(genreParent, it->second);
+		auto rootItem = T::Load(*db, itemsWithBooks);
+		const auto* parentItem = &rootItem;
+		if (const auto it = parameters.find(d.type); it != parameters.end())
+			parentItem = T::Find(parentItem, ToItemCode<typename T::CodeType>(it->second));
 
 		TitleHelper titleHelper { .defaultTitle = Loc::Tr(Loc::NAVIGATION, d.type) };
 		if (!parameters.contains(d.type))
@@ -896,26 +941,36 @@ private: // INavigationProvider
 		auto head = GetHead(d.type, GetTitle(*db, parameters, std::move(titleHelper)), root, CreateSelf(root, d.type, parameters));
 
 		Parameters typedParameters = parameters;
-		typedParameters.erase("starts");
+		typedParameters.erase(STARTS);
 
-		for (const auto& genre : genreParent->children)
+		for (const auto& childItem : parentItem->children)
 		{
-			typedParameters[d.type] = genre.code;
+			typedParameters[d.type] = ToString(childItem.code);
 			auto [path, content] = [&]() -> std::pair<QString, QString>
 			{
-				if (!genre.children.empty())
-					return std::make_pair(QString(d.type), QString::number(genre.children.size()));
+				if (!childItem.children.empty())
+					return std::make_pair(QString(d.type), QString::number(childItem.children.size()));
 
 				const auto query = db->CreateQuery(QString(d.content).arg(join).toStdString());
-				query->Bind(0, genre.code.toStdString());
+				BindImpl(*query, 0, childItem.code);
 				query->Execute();
 				assert(!query->Eof());
-				return std::make_pair(QString {}, QString(BOOKS_COUNTER).arg(query->Get<int>(0)));
+				return std::make_pair(QString {}, QString(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
-			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type, genre.code), genre.name, std::move(content));
+			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type).arg(childItem.code), childItem.name, std::move(content));
 		}
 
 		return head;
+	}
+
+	Node GetNavigationGenre(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
+	{
+		return GetNavigationT<Flibrary::Genre, const char*>(root, parameters, d);
+	}
+
+	Node GetNavigationUpdate(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
+	{
+		return GetNavigationT<Flibrary::Update, long long>(root, parameters, d);
 	}
 
 private:
@@ -929,7 +984,7 @@ private:
 		std::map<QString, QString> ones;
 		std::multimap<long long, QString, std::greater<>> buffer;
 
-		const auto startsWithGlobal = GetParameter(parameters, "starts");
+		const auto startsWithGlobal = GetParameter(parameters, STARTS);
 		auto join = GetJoin(parameters);
 		if (!join.isEmpty())
 			join = QString("%1\n%2").arg(d.joinSelect, join.arg(removedFlag));
@@ -1007,7 +1062,7 @@ private:
 		for (auto&& [count, startsWith] : buffer)
 		{
 			Parameters p = parameters;
-			const auto& s = (p["starts"] = std::move(startsWith));
+			const auto& s = (p[STARTS] = std::move(startsWith));
 			WriteEntry(children, root, d.type, p, QString("%1/starts/%2").arg(d.type, s), QString("%1~").arg(s), QString::number(count));
 		}
 
@@ -1021,7 +1076,7 @@ private:
 		}
 
 		Parameters typedParameters = parameters;
-		typedParameters.erase("starts");
+		typedParameters.erase(STARTS);
 		d.writeEntries(children, root, std::move(typedParameters), d, *db, removedFlag, std::move(join), ones);
 	}
 
