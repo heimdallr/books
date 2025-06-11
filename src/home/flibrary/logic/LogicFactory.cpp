@@ -232,7 +232,7 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 	m_impl->UpdateGenreParents();
 	ExtractedBooks books;
 
-	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre };
+	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID };
 	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
 	std::ranges::transform(selected,
 	                       std::back_inserter(books),
@@ -240,7 +240,7 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 	                       {
 							   assert(book.size() == roles.size());
 							   auto genres = book[8].split(", ", Qt::SkipEmptyParts);
-							   ExtractedBook result { .id = book[0].toInt(),
+							   ExtractedBook result { .id = book[0].toLongLong(),
 			                                          .folder = std::move(book[1]),
 			                                          .file = std::move(book[2]),
 			                                          .size = book[3].toLongLong(),
@@ -248,7 +248,8 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 			                                          .series = std::move(book[5]),
 			                                          .seqNumber = book[6].toInt(),
 			                                          .title = std::move(book[7]),
-			                                          .genre = genres.isEmpty() ? QString {} : std::move(genres.front()) };
+			                                          .genre = genres.isEmpty() ? QString {} : std::move(genres.front()),
+			                                          .libId = book[9].toLongLong() };
 
 							   for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
 								   result.genreTree.push_front(genre);

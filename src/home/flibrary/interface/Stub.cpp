@@ -160,6 +160,11 @@ QString ApplyMacroId(const ILogicFactory::ExtractedBook& book, const QFileInfo&,
 	return QString::number(book.id);
 }
 
+QString ApplyMacroLibId(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return QString::number(book.libId);
+}
+
 QString ApplyMacroUid(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
 {
 	return QUuid::createUuid().toString(QUuid::WithoutBraces);
