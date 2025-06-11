@@ -121,7 +121,7 @@ constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a
 constexpr auto SERIES_SELECT = "select s.SeriesTitle from Series s where s.SeriesID = ?";
 constexpr auto GENRE_SELECT = "select g.FB2Code from Genres g where g.GenreCode = ?";
 constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
-constexpr auto UPDATE_SELECT = "select u.UpdateTitle from Updates u where u.UpdateID = ?";
+constexpr auto UPDATE_SELECT = "select u.UpdateTitle, p.UpdateTitle from Updates u left join Updates p on p.UpdateID = u.ParentID where u.UpdateID = ?";
 constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.FolderID = ?";
 constexpr auto GROUP_SELECT = "select gu.Title from Groups_User gu where gu.GroupID = ?";
 
@@ -373,6 +373,7 @@ struct NavigationDescription
 	const char* joinParameters { nullptr };
 	const char* joinSelect { nullptr };
 	const char* select { nullptr };
+	const char* selectTrContext { nullptr };
 	const char* countStartsWith { nullptr };
 	const char* startsWith { nullptr };
 	const char* selectSingle { nullptr };
@@ -384,12 +385,12 @@ struct NavigationDescription
 
 // clang-format off
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
-	{ Loc::Authors  ,  AUTHOR_COUNT,  AUTHOR_JOIN_PARAMETERS,  AUTHOR_JOIN_SELECT,  AUTHOR_SELECT,  AUTHOR_COUNT_STARTS_WITH,  AUTHOR_STARTS_WITH,  AUTHOR_SELECT_SINGLE,  AUTHOR_SELECT_EQUAL,  AUTHOR_CONTENT  },
-	{ Loc::Series   ,  SERIES_COUNT,  SERIES_JOIN_PARAMETERS,  SERIES_JOIN_SELECT,  SERIES_SELECT,  SERIES_COUNT_STARTS_WITH,  SERIES_STARTS_WITH,  SERIES_SELECT_SINGLE,  SERIES_SELECT_EQUAL,  SERIES_CONTENT  },
-	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
-	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_CONTENT },
-	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },
-	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_CONTENT  },
+	{ Loc::Authors  ,  AUTHOR_COUNT,  AUTHOR_JOIN_PARAMETERS,  AUTHOR_JOIN_SELECT,  AUTHOR_SELECT,         nullptr,  AUTHOR_COUNT_STARTS_WITH,  AUTHOR_STARTS_WITH,  AUTHOR_SELECT_SINGLE,  AUTHOR_SELECT_EQUAL,  AUTHOR_CONTENT  },
+	{ Loc::Series   ,  SERIES_COUNT,  SERIES_JOIN_PARAMETERS,  SERIES_JOIN_SELECT,  SERIES_SELECT,         nullptr,  SERIES_COUNT_STARTS_WITH,  SERIES_STARTS_WITH,  SERIES_SELECT_SINGLE,  SERIES_SELECT_EQUAL,  SERIES_CONTENT  },
+	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT, Flibrary::GENRE,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
+	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT,         nullptr, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_CONTENT },
+	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT,  MONTHS_CONTEXT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },
+	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,         nullptr,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_CONTENT  },
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
 	{ Loc::Search },
@@ -398,8 +399,9 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 // clang-format on
 static_assert(std::size(NAVIGATION_DESCRIPTION) == static_cast<size_t>(Flibrary::NavigationMode::Last));
 
-constexpr NavigationDescription BOOK_DESCRIPTION { BOOKS,        BOOK_COUNT, nullptr,          BOOK_JOIN_SELECT, nullptr, BOOK_COUNT_STARTS_WITH, BOOK_STARTS_WITH, BOOK_SELECT_SINGLE, BOOK_SELECT_EQUAL,
-	                                               BOOK_CONTENT, nullptr,    &WriteBookEntries };
+constexpr NavigationDescription BOOK_DESCRIPTION {
+	BOOKS, BOOK_COUNT, nullptr, BOOK_JOIN_SELECT, nullptr, nullptr, BOOK_COUNT_STARTS_WITH, BOOK_STARTS_WITH, BOOK_SELECT_SINGLE, BOOK_SELECT_EQUAL, BOOK_CONTENT, nullptr, &WriteBookEntries
+};
 
 QString GetSeriesTitle(const QString& title, QString seqNum)
 {
@@ -551,7 +553,10 @@ QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, Ti
 							   query->Bind(0, parameters.at(item.type).toStdString());
 							   query->Execute();
 							   assert(!query->Eof());
-							   return QString(Loc::Tr(Flibrary::GENRE, query->template Get<const char*>(0)));
+							   auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
+							   if (query->ColumnCount() > 1)
+								   result.append(' ').append(query->template Get<const char*>(1));
+							   return result;
 						   });
 	if (!helper.additionalTitle.isEmpty())
 		list.emplaceBack(std::move(helper.additionalTitle));
