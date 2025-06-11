@@ -71,7 +71,6 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto BOOKS_COUNTER = QT_TRANSLATE_NOOP("Requester", "Books: %1");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
 
-constexpr auto BOOK = QT_TRANSLATE_NOOP("Requester", "BookInfo");
 constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
@@ -79,6 +78,7 @@ constexpr auto NEXT = QT_TRANSLATE_NOOP("Requester", "[Next page]");
 constexpr auto FIRST = QT_TRANSLATE_NOOP("Requester", "[First page]");
 constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 
+constexpr auto BOOK = "BookInfo";
 constexpr auto ENTRY = "entry";
 constexpr auto TITLE = "title";
 constexpr auto CONTENT = "content";
@@ -595,6 +595,18 @@ void BindImpl<QString>(DB::IQuery& query, const size_t index, const QString& val
 	query.Bind(index, value.toStdString());
 }
 
+template <typename T>
+QString GetContent(const T& item)
+{
+	return QString::number(item.children.size());
+}
+
+template <>
+QString GetContent<Flibrary::Update>(const Flibrary::Update&)
+{
+	return {};
+}
+
 } // namespace
 
 class Requester::Impl final
@@ -949,13 +961,13 @@ private: // INavigationProvider
 			auto [path, content] = [&]() -> std::pair<QString, QString>
 			{
 				if (!childItem.children.empty())
-					return std::make_pair(QString(d.type), QString::number(childItem.children.size()));
+					return std::make_pair(QString(d.type), GetContent(childItem));
 
 				const auto query = db->CreateQuery(QString(d.content).arg(join).toStdString());
 				BindImpl(*query, 0, childItem.code);
 				query->Execute();
 				assert(!query->Eof());
-				return std::make_pair(QString {}, QString(BOOKS_COUNTER).arg(query->template Get<int>(0)));
+				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
 			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type).arg(childItem.code), childItem.name, std::move(content));
 		}

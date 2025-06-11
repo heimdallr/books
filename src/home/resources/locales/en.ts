@@ -5791,18 +5791,13 @@ Try again?</source>
     <name>Requester</name>
     <message>
         <location filename="../../tool/opds/requester/Requester.cpp"/>
-        <source>Number of: %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/requester/Requester.cpp"/>
-        <source>Book</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>All books in the section</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
+        <source>Books: %1</source>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../tool/opds/requester/Requester.cpp"/>
