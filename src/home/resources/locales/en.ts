@@ -5947,6 +5947,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%lib_id%</source>
+        <translation>Book ID from the source online library</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%uid%</source>
         <translation>Unique identifier (GUID)</translation>
     </message>

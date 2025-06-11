@@ -5959,6 +5959,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%lib_id%</source>
+        <translation>Идентификатор книги из сетевой библиотеки-источника</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%uid%</source>
         <translation>Уникальный идентификатор (GUID)</translation>
     </message>
