@@ -3,8 +3,13 @@
 #include <Windows.h>
 
 #include <QDir>
+#include <QEventLoop>
+#include <QProcess>
+#include <QRegularExpression>
 
 #include "fnd/FindPair.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -18,7 +23,7 @@ constexpr std::pair<IScriptController::Command::Type, std::tuple<int /*show*/, b
 };
 static_assert(std::size(TYPES) == static_cast<size_t>(IScriptController::Command::Type::Last));
 
-bool Execute(const std::wstring& file, const std::wstring& parameters, const IScriptController::Command::Type type)
+bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const IScriptController::Command::Type type)
 {
 	const auto& [show, wait] = FindSecond(TYPES, type);
 
@@ -44,13 +49,52 @@ bool Execute(const std::wstring& file, const std::wstring& parameters, const ISc
 	return true;
 }
 
+QStringList SplitStringWithQuotes(const QString& str)
+{
+	QRegularExpression regex("\"([^\"]*)\"|([^\\s,]+)");
+	QRegularExpressionMatchIterator it = regex.globalMatch(str);
+	QStringList result;
+	while (it.hasNext())
+	{
+		QRegularExpressionMatch match = it.next();
+		if (match.captured(1).length() > 0)
+			result.append(match.captured(1));
+		else if (match.captured(2).length() > 0)
+			result.append(match.captured(2));
+	}
+	return result;
+}
+
+bool CreateProcess(const std::wstring& file, const std::wstring& parameters)
+{
+	QProcess process;
+	QEventLoop eventLoop;
+	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
+
+	QByteArray fixed;
+	QObject::connect(&process, &QProcess::started, [&] { PLOGV << QString("%1 %2 launched").arg(file, args.join(" ")); });
+	QObject::connect(&process,
+	                 &QProcess::finished,
+	                 [&](const int code, const QProcess::ExitStatus)
+	                 {
+						 eventLoop.exit(code);
+					 });
+	QObject::connect(&process, &QProcess::readyReadStandardError, [&] { PLOGV << process.readAllStandardError(); });
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] { PLOGV << process.readAllStandardOutput(); });
+
+	process.start(QString::fromStdWString(file), args, QIODevice::ReadWrite);
+	process.closeWriteChannel();
+
+	return eventLoop.exec() == 0;
+}
+
 } // namespace
 
 bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::System);
 	const auto cmdLine = QString("/D /C %1 %2").arg(command.command, command.args).toStdWString();
-	return Execute(L"cmd.exe", cmdLine, IScriptController::Command::Type::System);
+	return ShellExecute(L"cmd.exe", cmdLine, IScriptController::Command::Type::System);
 }
 
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
@@ -58,7 +102,7 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
 	const auto file = QDir::toNativeSeparators(command.command).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	return Execute(file, parameters, IScriptController::Command::Type::LaunchConsoleApp);
+	return CreateProcess(file, parameters);
 }
 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
@@ -66,5 +110,5 @@ bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& comm
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
 	const auto file = QDir::toNativeSeparators(command.command).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	return Execute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
+	return ShellExecute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
 }

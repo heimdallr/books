@@ -48,7 +48,7 @@ public:
 
 	struct ExtractedBook
 	{
-		int id;
+		long long id;
 		QString folder;
 		QString file;
 		int64_t size;
@@ -58,6 +58,7 @@ public:
 		QString title;
 		QString genre;
 		QStringList genreTree;
+		long long libId;
 	};
 
 	using ExtractedBooks = std::vector<ExtractedBook>;
