@@ -428,6 +428,6 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 	                                                   const QString& dstFolder,
 	                                                   const ILogicFactory::ExtractedBook& book,
 	                                                   IProgressController::IProgressItem& progress,
-	                                                   IPathChecker& pathChecker) mutable
-	                { Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, std::move(commands), *tempDir); });
+	                                                   IPathChecker& pathChecker)
+	                { Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir); });
 }
