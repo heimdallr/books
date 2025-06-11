@@ -831,8 +831,18 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
-        <translation>Ще один каталогізатор книг електронної бібліотеки&lt;p&gt;Версія: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
+        <source>Another e-library book cataloger</source>
+        <translation>Ще один каталогізатор електронної бібліотеки</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Version: %1 (%2)</source>
+        <translation>Версія: %1 (%2)</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Distributed under license %1</source>
+        <translation>Розповсюджується за ліцензією %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
