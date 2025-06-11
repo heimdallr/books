@@ -184,47 +184,41 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
 		R"(
 CREATE VIEW IF NOT EXISTS Books_View (
-    BookID,
-    LibID,
-    Title,
-    SeriesID,
-    SeqNumber,
-    UpdateDate,
-    LibRate,
-    Lang,
-    FolderID,
-    FolderTitle,
-    FileName,
-    BookSize,
-    UpdateID,
-    UpdateTitle,
-    IsDeleted,
-    UserRate
+		BookID,
+		LibID,
+		Title,
+		SeriesID,
+		SeqNumber,
+		UpdateDate,
+		LibRate,
+		Lang,
+		FolderID,
+		FileName,
+		BookSize,
+		UpdateID,
+		IsDeleted,
+		UserRate,
+		SearchTitle
 )
-AS
-    SELECT b.BookID,
-           b.LibID,
-           b.Title,
-           b.SeriesID,
-           b.SeqNumber,
-           b.UpdateDate,
-           b.LibRate,
-           b.Lang,
-           b.FolderID,
-           f.FolderTitle,
-           b.FileName || b.Ext AS FileName,
-           b.BookSize,
-           b.UpdateID,
-           u.UpdateTitle,
-           coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
-           bu.UserRate
-      FROM Books b
-           JOIN
-           Folders f ON f.FolderID = b.FolderID
-           JOIN
-           Updates u ON u.UpdateID = b.UpdateID
-           LEFT JOIN
-           Books_User bu ON bu.BookID = b.BookID)",
+AS SELECT
+		b.BookID,
+		b.LibID,
+		b.Title,
+		b.SeriesID,
+		b.SeqNumber,
+		b.UpdateDate,
+		b.LibRate,
+		b.Lang,
+		b.FolderID,
+		b.FileName || b.Ext AS FileName,
+		b.BookSize,
+		b.UpdateID,
+		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+		bu.UserRate,
+		b.SearchTitle
+	FROM Books b
+	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
+)",
 	};
 	// clang-format on
 
