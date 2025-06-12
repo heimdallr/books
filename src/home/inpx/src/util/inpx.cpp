@@ -1037,7 +1037,7 @@ public:
 							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 							return [this, foldersCount, genres](size_t)
 							{
-								m_callback(UpdateResult { foldersCount ? 0 : *foldersCount,
+								m_callback(UpdateResult { foldersCount ? *foldersCount : 0,
 				                                          m_data.authors.size(),
 				                                          m_data.series.size(),
 				                                          m_data.books.size(),
