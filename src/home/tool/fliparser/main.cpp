@@ -503,14 +503,24 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 	QFileInfo fileInfo(fileName);
 
 	const auto value = it.value().toObject();
+
+	std::vector<Series> series;
+	if (const auto seriesObj = value["series"]; seriesObj.isArray())
+		std::ranges::transform(seriesObj.toArray(),
+		                       std::back_inserter(series),
+		                       [](const auto& item)
+		                       {
+								   const auto obj = item.toObject();
+								   return Series { obj["title"].toString(), obj["number"].toString() };
+							   });
+	if (series.empty())
+		series.emplace_back();
+
 	return Book {
 		.author = value["author"].toString(),
 		.genre = value["genre"].toString(),
 		.title = value["title"].toString(),
-		.series = { {
-			value["series"].toString(),
-			value["serNo"].toString(),
-		} },
+		.series = std::move(series),
 		.file = fileInfo.baseName(),
 		.size = QString::number(fileData.size()),
 		.libId = fileInfo.baseName(),
