@@ -35,7 +35,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 	return data;
 }
 
-QByteArray Compress(QByteArray data, const QString& fileName)
+QByteArray Compress(QByteArray data, QString fileName)
 {
 	QByteArray zippedData;
 	{
@@ -43,10 +43,9 @@ QByteArray Compress(QByteArray data, const QString& fileName)
 		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 		buffer.open(QIODevice::WriteOnly);
 		Zip zip(buffer, Zip::Format::Zip);
-		std::vector<std::pair<QString, QByteArray>> toZip {
-			{ fileName, std::move(data) }
-		};
-		zip.Write(std::move(toZip));
+		auto zipFiles = Zip::CreateZipFileController();
+		zipFiles->AddFile(std::move(fileName), std::move(data));
+		zip.Write(std::move(zipFiles));
 	}
 	return zippedData;
 }
@@ -131,6 +130,6 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, co
 std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages) const
 {
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages);
-	data = Compress(std::move(data), fileName);
+	data = Compress(std::move(data), std::move(fileName));
 	return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 }

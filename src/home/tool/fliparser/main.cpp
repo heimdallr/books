@@ -565,56 +565,52 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 	if (exists(inpxFileName))
 		remove(inpxFileName);
 
-	std::vector<QString> inpFiles;
-	std::vector<QByteArray> data;
+	auto zipFileController = Zip::CreateZipFileController();
 
-	std::ranges::transform(std::filesystem::directory_iterator { archivesPath }
-	                           | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
-	                       std::back_inserter(inpFiles),
-	                       [&](const auto& entry)
-	                       {
-							   const auto& path = entry.path();
-							   PLOGV << path.string();
+	std::ranges::for_each(std::filesystem::directory_iterator { archivesPath }
+	                          | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
+	                      [&](const auto& entry)
+	                      {
+							  const auto& path = entry.path();
+							  PLOGV << path.string();
 
-							   QByteArray file;
-							   const QFileInfo zipFileInfo(QString::fromStdWString(path));
-							   Zip zip(zipFileInfo.filePath());
-							   for (const auto& bookFile : zip.GetFileNameList())
-							   {
-								   if (const auto it = inpData.find(bookFile); it != inpData.end())
-								   {
-									   file << it->second;
-								   }
-								   else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
-								   {
-									   file << customBook;
-								   }
-								   else if (auto parsedBytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBytes.isEmpty())
-								   {
-									   file.append(parsedBytes).append("\x0d\x0a");
-								   }
-								   else
-								   {
-									   PLOGW << zipFileInfo.filePath() << "/" << bookFile << " not found";
-									   continue;
-								   }
+							  QByteArray file;
+							  const QFileInfo zipFileInfo(QString::fromStdWString(path));
+							  Zip zip(zipFileInfo.filePath());
+							  for (const auto& bookFile : zip.GetFileNameList())
+							  {
+								  if (const auto it = inpData.find(bookFile); it != inpData.end())
+								  {
+									  file << it->second;
+								  }
+								  else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
+								  {
+									  file << customBook;
+								  }
+								  else if (auto parsedBytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBytes.isEmpty())
+								  {
+									  file.append(parsedBytes).append("\x0d\x0a");
+								  }
+								  else
+								  {
+									  PLOGW << zipFileInfo.filePath() << "/" << bookFile << " not found";
+									  continue;
+								  }
 
-								   if (const auto it = fileToId.find(bookFile); it != fileToId.end())
-								   {
-									   libIds.insert(it->second);
-								   }
-								   else
-								   {
-									   bool ok = false;
-									   if (const auto libId = QFileInfo(bookFile).baseName().toLongLong(&ok); ok)
-										   libIds.insert(libId);
-								   }
-							   }
+								  if (const auto it = fileToId.find(bookFile); it != fileToId.end())
+								  {
+									  libIds.insert(it->second);
+								  }
+								  else
+								  {
+									  bool ok = false;
+									  if (const auto libId = QFileInfo(bookFile).baseName().toLongLong(&ok); ok)
+										  libIds.insert(libId);
+								  }
+							  }
 
-							   data.emplace_back(std::move(file));
-
-							   return QString::fromStdWString(path.filename().replace_extension("inp"));
-						   });
+							  zipFileController->AddFile(QString::fromStdWString(path.filename().replace_extension("inp")), std::move(file), QDateTime::currentDateTime());
+						  });
 
 	if (const auto itFile = std::find_if(std::filesystem::directory_iterator { archivesPath },
 	                                     std::filesystem::directory_iterator {},
@@ -624,29 +620,14 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 		const auto& path = itFile->path();
 		PLOGV << path.string();
 
-		QByteArray file;
 		Zip zip(QString::fromStdWString(path));
-		std::ranges::transform(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
-		                       std::back_inserter(data),
-		                       [&](const auto& item)
-		                       {
-								   inpFiles.emplace_back(item);
-								   return zip.Read(item)->GetStream().readAll();
-							   });
+		std::ranges::for_each(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+		                      [&](const auto& item) { zipFileController->AddFile(item, zip.Read(item)->GetStream().readAll(), QDateTime::currentDateTime()); });
 	}
 
 	{
 		Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
-
-		const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice>
-		{
-			PLOGV << inpFiles[n];
-			return std::make_unique<QBuffer>(&data[n]);
-		};
-
-		const auto sizeGetter = [&](const size_t n) -> size_t { return data[n].size(); };
-
-		inpx.Write(inpFiles, streamGetter, sizeGetter);
+		inpx.Write(std::move(zipFileController));
 	}
 
 	return libIds;
@@ -699,9 +680,9 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 				QBuffer buffer(&zipBytes);
 				const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 				Zip zip(buffer, Zip::Format::Zip);
-				zip.Write({
-					{ REVIEWS_ADDITIONAL_BOOKS_FILE_NAME, std::move(additional) }
-                });
+				auto zipFiles = Zip::CreateZipFileController();
+				zipFiles->AddFile(REVIEWS_ADDITIONAL_BOOKS_FILE_NAME, std::move(additional));
+				zip.Write(std::move(zipFiles));
 			}
 
 			std::lock_guard lock(archivesGuard);
@@ -729,41 +710,32 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 			{
 				const ScopedCall logGuard([&] { PLOGI << archiveName << " started"; }, [=] { PLOGI << archiveName << " finished"; });
 
-				std::vector<QString> files;
-				files.reserve(data.size());
-				std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const long long id) { return QString::number(id); });
-
-				std::vector<QByteArray> bytes;
-				bytes.reserve(data.size());
-				std::ranges::transform(data | std::views::values,
-			                           std::back_inserter(bytes),
-			                           [](auto& value)
-			                           {
-										   QJsonArray array;
-										   for (auto& [name, time, text] : value)
-										   {
-											   text.prepend(' ');
-											   text.append(' ');
-											   array.append(QJsonObject {
-												   { "name",              name.simplified() },
-												   { "time",                           time },
-												   { "text", ReplaceTags(text).simplified() },
-											   });
-										   }
-										   return QJsonDocument(array).toJson();
-									   });
+				auto zipFiles = Zip::CreateZipFileController();
+				std::ranges::for_each(data,
+			                          [&](auto& value)
+			                          {
+										  QJsonArray array;
+										  for (auto& [name, time, text] : value.second)
+										  {
+											  text.prepend(' ');
+											  text.append(' ');
+											  array.append(QJsonObject {
+												  { "name",              name.simplified() },
+												  { "time",                           time },
+												  { "text", ReplaceTags(text).simplified() },
+											  });
+										  }
+										  zipFiles->AddFile(QString::number(value.first), QJsonDocument(array).toJson());
+									  });
 
 				QByteArray zipBytes;
 				{
-					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
-					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
-
 					QBuffer buffer(&zipBytes);
 					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 					Zip zip(buffer, Zip::Format::SevenZip);
 					zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
 					zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
-					zip.Write(files, streamGetter, sizeGetter);
+					zip.Write(std::move(zipFiles));
 				}
 
 				std::lock_guard lock(archivesGuard);
@@ -847,40 +819,28 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 				QByteArray annotation;
 
 				{
-					std::vector<QString> files;
-					files.reserve(data.size());
-					std::ranges::transform(data | std::views::keys, std::back_inserter(files), [](const auto& item) { return item; });
-
-					std::vector<QByteArray> bytes;
-					bytes.reserve(data.size());
-					std::ranges::transform(data | std::views::values | std::views::keys,
-				                           std::back_inserter(bytes),
-				                           [](QString& value)
-				                           {
-											   value.prepend(' ');
-											   value.append(' ');
-											   return ReplaceTags(value).simplified().toUtf8();
-										   });
-
-					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
-
-					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
+					auto zipFiles = Zip::CreateZipFileController();
+					std::ranges::for_each(data,
+				                          [&](auto& value)
+				                          {
+											  value.second.first.prepend(' ');
+											  value.second.first.append(' ');
+											  zipFiles->AddFile(value.first, ReplaceTags(value.second.first).simplified().toUtf8());
+										  });
 
 					QBuffer buffer(&annotation);
 					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 					Zip zip(buffer, Zip::Format::SevenZip);
 					zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
 					zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
-					zip.Write(files, streamGetter, sizeGetter);
+					zip.Write(std::move(zipFiles));
 				}
 
 				QByteArray pictures;
 
 				if (pics)
 				{
-					std::vector<QString> files;
-					std::vector<QByteArray> bytes;
-
+					auto zipFiles = Zip::CreateZipFileController();
 					for (const auto& [dstFolder, values] : data)
 					{
 						std::unordered_set<QString> uniqueFiles;
@@ -895,24 +855,22 @@ std::vector<std::tuple<int, QByteArray, QByteArray>> CreateAuthorAnnotationsData
 
 							if (uniqueFiles.insert(fileSplit.back()).second)
 							{
-								files.emplace_back(QString("%1/%2").arg(dstFolder, fileSplit.back()));
-
 								std::lock_guard lock(picsGuard);
-								bytes.emplace_back(pics->Read(file)->GetStream().readAll());
+								auto picBody = pics->Read(file)->GetStream().readAll();
+								if (picBody.isEmpty())
+									PLOGW << fileSplit.join("/") << " is empty";
+								else
+									zipFiles->AddFile(QString("%1/%2").arg(dstFolder, fileSplit.back()), std::move(picBody), pics->GetFileTime(file));
 							}
 						}
 					}
-
-					const auto streamGetter = [&](const size_t n) -> std::unique_ptr<QIODevice> { return std::make_unique<QBuffer>(&bytes[n]); };
-
-					const auto sizeGetter = [&](const size_t n) -> size_t { return bytes[n].size(); };
 
 					QBuffer buffer(&pictures);
 					const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
 
 					std::lock_guard zipLock(zipGuard);
 					Zip zip(buffer, Zip::Format::Zip);
-					zip.Write(files, streamGetter, sizeGetter);
+					zip.Write(std::move(zipFiles));
 				}
 
 				std::lock_guard lock(archivesGuard);

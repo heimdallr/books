@@ -92,9 +92,9 @@ QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
 		Zip zip(stream, Zip::Format::GZip);
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
-		zip.Write({
-			{ "file", std::move(src) }
-        });
+		auto zipFiles = Zip::CreateZipFileController();
+		zipFiles->AddFile("file", std::move(src));
+		zip.Write(std::move(zipFiles));
 	}
 
 	QHttpServerResponse result { zipped };

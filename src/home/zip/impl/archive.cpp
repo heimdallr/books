@@ -242,14 +242,28 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 
 		auto time = [&]
 		{
-			if (FAILED(archive->GetProperty(i, kpidCTime, &prop)) || (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime))
+			prop = CPropVariant {};
+			auto hr = archive->GetProperty(i, kpidCTime, &prop);
+			if (FAILED(hr) || prop.vt == VT_EMPTY)
+			{
+				hr = archive->GetProperty(i, kpidATime, &prop);
+				if (FAILED(hr) || prop.vt == VT_EMPTY)
+				{
+					hr = archive->GetProperty(i, kpidMTime, &prop);
+					if (FAILED(hr) || prop.vt == VT_EMPTY)
+					{
+						return QDateTime {};
+					}
+				}
+			}
+			if (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime)
 				return QDateTime {};
 
 			SYSTEMTIME systemTime {};
 			if (!FileTimeToSystemTime(&prop.filetime, &systemTime))
 				return QDateTime {};
 
-			return QDateTime(QDate(systemTime.wYear, systemTime.wMonth, systemTime.wDay), QTime(systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds));
+			return QDateTime(QDate(systemTime.wYear, systemTime.wMonth, systemTime.wDay), QTime(systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds), QTimeZone::utc());
 		}();
 
 		archive->GetProperty(i, kpidPath, &prop);
@@ -293,7 +307,7 @@ private: // IZip
 		return File::Read(*m_archive->archive, m_files.GetFile(filename), *m_progress);
 	}
 
-	bool Write(const std::vector<QString>& /*fileNames*/, const StreamGetter&, const SizeGetter&) override
+	bool Write(std::shared_ptr<IZipFileProvider> zipFileProvider) override
 	{
 		assert(false && "Cannot write with reader");
 		return false;
@@ -374,11 +388,11 @@ public:
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter) override
+	bool Write(std::shared_ptr<IZipFileProvider> zipFileProvider) override
 	{
 		if (!m_archive->archive)
 			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
-		return File::Write(m_files, *m_outArchive, *m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
+		return File::Write(m_files, *m_outArchive, *m_ioDevice, std::move(zipFileProvider), *m_progress);
 	}
 
 	bool Remove(const std::vector<QString>& fileNames) override
@@ -414,11 +428,11 @@ public:
 	}
 
 private: // IZip
-	bool Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter) override
+	bool Write(std::shared_ptr<IZipFileProvider> zipFileProvider) override
 	{
 		if (!m_archive->archive)
 			SetArchiveProperties(*m_outArchive, GetInOutFormat(m_format), m_properties);
-		return File::Write(m_files, *m_outArchive, m_ioDevice, fileNames, streamGetter, sizeGetter, *m_progress);
+		return File::Write(m_files, *m_outArchive, m_ioDevice, std::move(zipFileProvider), *m_progress);
 	}
 
 	bool Remove(const std::vector<QString>& fileNames) override
