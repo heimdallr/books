@@ -73,7 +73,7 @@ std::map<double, uint32_t> ReadColors(const ISettings& settings)
 		{ 6.0, color },
 	};
 
-	const ScopedCall settingsGuard([&] { settings.BeginGroup(Constant::Settings::LIBRATE_VIEW_COLORS_KEY); }, [&] { settings.EndGroup(); });
+	SettingsGroup viewColorsGroup(settings, Constant::Settings::LIBRATE_VIEW_COLORS_KEY);
 	for (const auto& key : settings.GetKeys())
 	{
 		bool ok = false;

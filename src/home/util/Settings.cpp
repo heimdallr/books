@@ -28,6 +28,7 @@ struct Settings::Impl final : Observable<ISettingsObserver>
 
 	QSettings settings;
 	std::vector<QString> group { 1 };
+	std::recursive_mutex mutex;
 };
 
 Settings::Settings(const QString& fileName)
@@ -44,6 +45,7 @@ Settings::~Settings() = default;
 
 QVariant Settings::Get(const QString& key, const QVariant& defaultValue) const
 {
+	std::lock_guard lock(m_impl->mutex);
 	return m_impl->settings.value(key, defaultValue);
 }
 
@@ -52,6 +54,7 @@ void Settings::Set(const QString& key, const QVariant& value)
 	if (Get(key) == value)
 		return;
 
+	std::lock_guard lock(m_impl->mutex);
 	m_impl->settings.setValue(key, value);
 	m_impl->settings.sync();
 
@@ -60,6 +63,7 @@ void Settings::Set(const QString& key, const QVariant& value)
 
 bool Settings::HasKey(const QString& key) const
 {
+	std::lock_guard lock(m_impl->mutex);
 	return m_impl->settings.contains(key);
 }
 
@@ -70,16 +74,19 @@ bool Settings::HasGroup(const QString& group) const
 
 QStringList Settings::GetKeys() const
 {
+	std::lock_guard lock(m_impl->mutex);
 	return m_impl->settings.childKeys();
 }
 
 QStringList Settings::GetGroups() const
 {
+	std::lock_guard lock(m_impl->mutex);
 	return m_impl->settings.childGroups();
 }
 
 void Settings::Remove(const QString& key)
 {
+	std::lock_guard lock(m_impl->mutex);
 	m_impl->settings.remove(key);
 	m_impl->settings.sync();
 }
@@ -94,14 +101,17 @@ void Settings::UnregisterObserver(ISettingsObserver* observer)
 	m_impl->Unregister(observer);
 }
 
-void Settings::BeginGroup(const QString& group) const
+std::recursive_mutex& Settings::BeginGroup(const QString& group) const
 {
+	std::lock_guard lock(m_impl->mutex);
 	m_impl->settings.beginGroup(group);
 	m_impl->group.push_back(m_impl->Key(group));
+	return m_impl->mutex;
 }
 
 void Settings::EndGroup() const
 {
+	std::lock_guard lock(m_impl->mutex);
 	m_impl->settings.endGroup();
 	m_impl->group.pop_back();
 }

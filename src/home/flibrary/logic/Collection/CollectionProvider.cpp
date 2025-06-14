@@ -45,14 +45,16 @@ public:
 
 	Collection& GetActiveCollection() noexcept
 	{
-		auto collection = FindCollectionById(GetActiveCollectionId());
+		const auto id = GetActiveCollectionId();
+		auto collection = FindCollectionById(id);
 		assert(collection);
 		return *collection;
 	}
 
 	bool ActiveCollectionExists() noexcept
 	{
-		const auto collection = FindCollectionById(GetActiveCollectionId());
+		const auto id = GetActiveCollectionId();
+		const auto collection = FindCollectionById(id);
 		return !!collection;
 	}
 

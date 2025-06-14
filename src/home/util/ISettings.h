@@ -41,9 +41,6 @@ public:
 
 	virtual void Remove(const QString& key) = 0;
 
-	virtual void BeginGroup(const QString& group) const = 0;
-	virtual void EndGroup() const = 0;
-
 	virtual void RegisterObserver(ISettingsObserver* observer) = 0;
 	virtual void UnregisterObserver(ISettingsObserver* observer) = 0;
 
@@ -80,6 +77,11 @@ public:
 		auto value = Get(key, QVariant::fromValue(defaultValue)).toDouble(&ok);
 		return ok ? static_cast<T>(value) : defaultValue;
 	}
+
+private:
+	virtual std::recursive_mutex& BeginGroup(const QString& group) const = 0;
+	virtual void EndGroup() const = 0;
+	friend class SettingsGroup;
 };
 
 class SettingsGroup
@@ -88,9 +90,9 @@ class SettingsGroup
 
 public:
 	SettingsGroup(const ISettings& settings, const QString& group)
-		: m_settings(settings)
+		: m_settings { settings }
+		, m_lock { m_settings.BeginGroup(group) }
 	{
-		m_settings.BeginGroup(group);
 	}
 
 	~SettingsGroup()
@@ -100,6 +102,7 @@ public:
 
 private:
 	const ISettings& m_settings;
+	std::lock_guard<std::recursive_mutex> m_lock;
 };
 
 } // namespace HomeCompa
