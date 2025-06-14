@@ -8,6 +8,11 @@ class QIODevice;
 class QString;
 struct IOutArchive;
 
+namespace HomeCompa
+{
+class IZipFileProvider;
+}
+
 namespace HomeCompa::ZipDetails::SevenZip
 {
 struct FileStorage;
@@ -15,7 +20,7 @@ class Lib;
 
 namespace File
 {
-bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress);
+bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress);
 };
 
 }

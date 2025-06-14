@@ -100,17 +100,15 @@ class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 	{
-		return new ArchiveUpdateCallback(files, fileNames, streamGetter, sizeGetter, progress);
+		return new ArchiveUpdateCallback(files, std::move(zipFileProvider), progress);
 	}
 
 private:
-	ArchiveUpdateCallback(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+	ArchiveUpdateCallback(FileStorage& files, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 		: m_files { files }
-		, m_fileNames { fileNames }
-		, m_streamGetter { streamGetter }
-		, m_sizeGetter { sizeGetter }
+		, m_zipFileProvider { std::move(zipFileProvider) }
 		, m_progress { progress }
 	{
 	}
@@ -194,13 +192,28 @@ private: // IArchiveUpdateCallback
 				case kpidAttrib:
 					return uint32_t { 128 };
 				case kpidPath:
-					return m_fileNames[index - m_files.files.size()].toStdWString();
+					return m_zipFileProvider->GetFileName(index - m_files.files.size()).toStdWString();
+				case kpidATime:
+				case kpidCTime:
 				case kpidMTime:
-					return FILETIME {};
+				{
+					FILETIME fileTime {};
+					auto dateTime = m_zipFileProvider->GetFileTime(index - m_files.files.size());
+					if (!dateTime.isValid())
+						dateTime = QDateTime(QDate(1974, 1, 1), QTime(12, 0));
+
+					dateTime = dateTime.toUTC();
+					const auto date = dateTime.date();
+					const auto time = dateTime.time();
+					SYSTEMTIME sysTime { static_cast<WORD>(date.year()), static_cast<WORD>(date.month()),  static_cast<WORD>(date.dayOfWeek()), static_cast<WORD>(date.day()),
+						                 static_cast<WORD>(time.hour()), static_cast<WORD>(time.minute()), static_cast<WORD>(time.second()),    static_cast<WORD>(time.msec()) };
+					SystemTimeToFileTime(&sysTime, &fileTime);
+					return fileTime;
+				}
 				case kpidComment:
 					return {};
 				case kpidSize:
-					return m_sizeGetter(index - m_files.files.size());
+					return m_zipFileProvider->GetFileSize(index - m_files.files.size());
 				default:
 					return {};
 			}
@@ -252,7 +265,7 @@ private:
 
 		auto& stream = m_streams[index];
 		if (!stream)
-			stream = m_streamGetter(index - m_files.files.size());
+			stream = m_zipFileProvider->GetStream(index - m_files.files.size());
 
 		if (!stream->isOpen())
 			stream->open(QIODevice::ReadOnly);
@@ -262,9 +275,7 @@ private:
 
 private:
 	FileStorage& m_files;
-	const std::vector<QString>& m_fileNames;
-	const StreamGetter& m_streamGetter;
-	const SizeGetter& m_sizeGetter;
+	std::shared_ptr<IZipFileProvider> m_zipFileProvider;
 	ProgressCallback& m_progress;
 	std::vector<std::unique_ptr<QIODevice>> m_streams;
 };
@@ -274,23 +285,30 @@ private:
 namespace File
 {
 
-bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 {
 	ProgressCallbackStub progressCallbackStub;
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
-	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, sizeGetter, progress);
-	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + fileNames.size()), std::move(archiveUpdateCallback));
+	const auto size = zipFileProvider->GetCount();
+	FileStorage newFiles;
+	for (size_t index = 0; index < size; ++index)
+	{
+		auto fileName = zipFileProvider->GetFileName(index);
+		const auto [it, inserted] = newFiles.index.try_emplace(fileName, newFiles.index.size());
+		if (inserted)
+			newFiles.files.emplace_back(static_cast<uint32_t>(it->second), std::move(fileName), zipFileProvider->GetFileSize(index), zipFileProvider->GetFileTime(index));
+	}
+
+	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, std::move(zipFileProvider), progress);
+	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + size), std::move(archiveUpdateCallback));
 	progress.OnDone();
-	std::ranges::transform(fileNames,
-	                       std::back_inserter(files.files),
-	                       [&, n = files.files.size(), m = size_t { 0 }](const QString& fileName) mutable
-	                       {
-							   files.index.try_emplace(fileName, n);
-							   return FileItem { static_cast<uint32_t>(n++), fileName, sizeGetter(m++), QDateTime::currentDateTime() };
-						   });
+
+	std::ranges::move(newFiles.index, std::inserter(files.index, files.index.end()));
+	std::ranges::move(newFiles.files, std::back_inserter(files.files));
+
 	return result == S_OK;
 }
 
-}
+} // namespace File
 
 } // namespace HomeCompa::ZipDetails::SevenZip
