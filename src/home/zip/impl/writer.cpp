@@ -85,7 +85,7 @@ private: // ISequentialInStream
 			return S_OK;
 		}
 
-		const auto realSize = m_inStream.read(reinterpret_cast<char*>(data), size);
+		const auto realSize = m_inStream.read(static_cast<char*>(data), size);
 		if (processedSize)
 			*processedSize = static_cast<UInt32>(realSize);
 
@@ -293,10 +293,9 @@ bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, std::shared
 	FileStorage newFiles;
 	for (size_t index = 0; index < size; ++index)
 	{
-		auto fileName = zipFileProvider->GetFileName(index);
-		const auto [it, inserted] = newFiles.index.try_emplace(fileName, newFiles.index.size());
+		const auto [it, inserted] = newFiles.index.try_emplace(zipFileProvider->GetFileName(index), newFiles.index.size());
 		if (inserted)
-			newFiles.files.emplace_back(static_cast<uint32_t>(it->second), std::move(fileName), zipFileProvider->GetFileSize(index), zipFileProvider->GetFileTime(index));
+			newFiles.files.emplace_back(static_cast<uint32_t>(it->second), it->first, zipFileProvider->GetFileSize(index), zipFileProvider->GetFileTime(index));
 	}
 
 	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, std::move(zipFileProvider), progress);
