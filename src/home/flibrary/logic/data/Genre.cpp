@@ -196,9 +196,9 @@ Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGe
 Update Update::Load(DB::IDatabase& db, const std::unordered_set<long long>& neededUpdates)
 {
 	auto root = LoadImpl<Update>(db,
-	                               neededUpdates,
-	                               "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted from Updates u",
-	                               &SortByNameIntegral<Update>);
+	                             neededUpdates,
+	                             "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted from Updates u",
+	                             &SortByNameIntegral<Update>);
 
 	const auto tr = [](Update& treeItem, const auto& f) -> void
 	{

@@ -73,12 +73,7 @@ bool CreateProcess(const std::wstring& file, const std::wstring& parameters)
 
 	QByteArray fixed;
 	QObject::connect(&process, &QProcess::started, [&] { PLOGV << QString("%1 %2 launched").arg(file, args.join(" ")); });
-	QObject::connect(&process,
-	                 &QProcess::finished,
-	                 [&](const int code, const QProcess::ExitStatus)
-	                 {
-						 eventLoop.exit(code);
-					 });
+	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) { eventLoop.exit(code); });
 	QObject::connect(&process, &QProcess::readyReadStandardError, [&] { PLOGV << process.readAllStandardError(); });
 	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] { PLOGV << process.readAllStandardOutput(); });
 
