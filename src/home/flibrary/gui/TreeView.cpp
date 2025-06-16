@@ -195,7 +195,8 @@ public:
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController,
-	     std::shared_ptr<const ICollectionProvider> collectionProvider)
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IGenreFilterProvider> genreFilterProvider)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_settings { std::move(settings) }
@@ -203,6 +204,7 @@ public:
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_collectionProvider { std::move(collectionProvider) }
+		, m_genreFilterProvider { std::move(genreFilterProvider) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
@@ -366,6 +368,7 @@ private:
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+		model->setData({}, QVariant::fromValue(m_genreFilterProvider->GetFilteredGenreNames()), Role::GenreFilter);
 
 		m_delegate->OnModelChanged();
 
@@ -782,6 +785,9 @@ private:
 	void CreateHeaderContextMenu(const QPoint& pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
+		if (column == BookItem::Column::Genre)
+			return ShowGenreFilter();
+
 		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
 		contextMenu->setFont(m_self.font());
 		contextMenu->exec(m_ui.treeView->header()->mapToGlobal(pos));
@@ -866,6 +872,17 @@ private:
 		return m_languageContextMenu;
 	}
 
+	void ShowGenreFilter()
+	{
+		auto allGenreCodes = m_ui.treeView->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
+		auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
+		if (dialog->exec() != QDialog::Accepted)
+			return;
+
+		m_ui.treeView->model()->setData({}, QVariant::fromValue(m_genreFilterProvider->GetFilteredGenreNames()), Role::GenreFilter);
+		OnCountChanged();
+	}
+
 	void SetLanguageFilter() const
 	{
 		if (!m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false))
@@ -943,6 +960,7 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const IGenreFilterProvider> m_genreFilterProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
@@ -962,9 +980,10 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings,
                    std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                    std::shared_ptr<ScrollBarController> scrollBarController,
                    std::shared_ptr<const ICollectionProvider> collectionProvider,
+                   std::shared_ptr<const IGenreFilterProvider> genreFilterProvider,
                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider))
+	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider), std::move(genreFilterProvider))
 {
 	PLOGV << "TreeView created";
 }

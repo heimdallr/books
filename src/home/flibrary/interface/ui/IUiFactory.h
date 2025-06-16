@@ -21,6 +21,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateOpdsDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres = {}) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QWidget> CreateCollectionCleaner(AdditionalWidgetCallback callback) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
@@ -34,6 +35,7 @@ public: // special
 	[[nodiscard]] virtual QAbstractItemView& GetAbstractItemView() const noexcept = 0;
 	[[nodiscard]] virtual QString GetTitle() const noexcept = 0;
 	[[nodiscard]] virtual AdditionalWidgetCallback GetAdditionalWidgetCallback() const noexcept = 0;
+	[[nodiscard]] virtual std::unordered_set<QString> GetVisibleGenres() const noexcept = 0;
 };
 
 } // namespace HomeCompa::Flibrary

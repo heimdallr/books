@@ -6,6 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IGenreFilterProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -30,6 +31,7 @@ public:
 	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	         std::shared_ptr<ScrollBarController> scrollBarController,
 	         std::shared_ptr<const ICollectionProvider> collectionProvider,
+	         std::shared_ptr<const IGenreFilterProvider> genreFilterProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;
 
