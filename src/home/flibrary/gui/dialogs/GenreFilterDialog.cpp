@@ -2,6 +2,8 @@
 
 #include "GenreFilterDialog.h"
 
+#include <QMenu>
+
 #include "interface/logic/IModel.h"
 
 #include "GuiUtil/GeometryRestorable.h"
@@ -12,12 +14,19 @@ using namespace Flibrary;
 namespace
 {
 
+using Role = IGenreModel::Role;
+
 std::set<QString> GetSelected(const QAbstractItemModel& model)
 {
-	auto list = model.data({}, IGenreModel::Role::SelectedList).toStringList();
+	auto list = model.data({}, Role::SelectedList).toStringList();
 	std::set<QString> selected;
 	std::ranges::move(list, std::inserter(selected, selected.end()));
 	return selected;
+}
+
+void SetModelData(QAbstractItemModel& model, const int role, const QVariant& value = {}, const QModelIndex& index = {})
+{
+	model.setData(index, value, role);
 }
 
 }
@@ -26,6 +35,7 @@ struct GenreFilterDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
+	QWidget& self;
 	PropagateConstPtr<IGenreFilterController, std::shared_ptr> genreFilterController;
 	PropagateConstPtr<IGenreModel, std::shared_ptr> genreModel;
 	std::set<QString> selected;
@@ -39,6 +49,7 @@ struct GenreFilterDialog::Impl final
 	     std::shared_ptr<IGenreModel> genreModel)
 		: GeometryRestorable(*this, std::move(settings), "GenreFilterDialog")
 		, GeometryRestorableObserver(self)
+		, self { self }
 		, genreFilterController { std::move(genreFilterController) }
 		, genreModel { std::move(genreModel) }
 	{
@@ -46,16 +57,24 @@ struct GenreFilterDialog::Impl final
 
 		auto* model = this->genreModel->GetModel();
 
+		for (auto [action, role] : std::initializer_list<std::pair<QAction*, int>> {
+				 {     ui.actionGenreCheckAll,     Role::CheckAll },
+				 {   ui.actionGenreUncheckAll,   Role::UncheckAll },
+				 { ui.actionGenreInvertChecks, Role::RevertChecks },
+        })
+			connect(action, &QAction::triggered, &self, [=] { SetModelData(*model, role); });
+
+		connect(ui.view, &QWidget::customContextMenuRequested, &self, [&] { OnGenresContextMenuRequested(); });
 		connect(model,
 		        &QAbstractItemModel::modelReset,
 		        [this, model]
 		        {
-					model->setData({}, {}, IGenreModel::Role::CheckAll);
+					model->setData({}, {}, Role::CheckAll);
 					if (!filtered.empty())
-						model->setData({}, QVariant::fromValue(filtered), IGenreModel::Role::UncheckAll);
+						model->setData({}, QVariant::fromValue(filtered), Role::UncheckAll);
 					selected = GetSelected(*model);
 				});
-		model->setData({}, QVariant::fromValue(std::move(visibleGenres)), IGenreModel::Role::VisibleGenreCodes);
+		model->setData({}, QVariant::fromValue(std::move(visibleGenres)), Role::VisibleGenreCodes);
 		ui.view->setModel(model);
 
 		LoadGeometry();
@@ -74,6 +93,17 @@ struct GenreFilterDialog::Impl final
 
 		std::ranges::set_difference(selected, current, std::inserter(filtered, filtered.end()));
 		genreFilterController->SetFilteredGenres(filtered);
+	}
+
+private:
+	void OnGenresContextMenuRequested() const
+	{
+		QMenu menu;
+		menu.setFont(self.font());
+		menu.addAction(ui.actionGenreCheckAll);
+		menu.addAction(ui.actionGenreUncheckAll);
+		menu.addAction(ui.actionGenreInvertChecks);
+		menu.exec(QCursor::pos());
 	}
 
 	NON_COPY_MOVABLE(Impl)
