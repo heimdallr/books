@@ -91,34 +91,3 @@ GenreFilterDialog::GenreFilterDialog(const std::shared_ptr<const IUiFactory>& ui
 }
 
 GenreFilterDialog::~GenreFilterDialog() = default;
-
-/*
-std::unordered_set<QString> ModelProvider::GetFilteredGenres() const
-{
-	auto list = m_impl->container.resolve<ISettings>()->Get(Constant::Settings::FILTERED_GENRES_KEY).toStringList();
-	if (list.isEmpty())
-		return {};
-
-	if (m_impl->genreCodeToName.empty())
-	{
-		const auto enumerate = [&genreCodeToName = m_impl->genreCodeToName](const Genre& genre, const auto& f) -> void
-		{
-			genreCodeToName.try_emplace(genre.code, genre.name);
-			for (const auto& child : genre.children)
-				f(child, f);
-		};
-		enumerate(GetGenres(), enumerate);
-	}
-
-	std::unordered_set<QString> result;
-	std::ranges::transform(list,
-	                       std::inserter(result, result.end()),
-	                       [&genreCodeToName = m_impl->genreCodeToName](const QString& code)
-	                       {
-							   const auto it = genreCodeToName.find(code);
-							   return it != genreCodeToName.end() ? it->second : QString {};
-						   });
-
-	return result;
-}
-*/

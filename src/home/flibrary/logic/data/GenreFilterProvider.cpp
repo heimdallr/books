@@ -10,7 +10,6 @@ using namespace Flibrary;
 namespace
 {
 constexpr auto FILTERED_GENRES_KEY = "ui/Books/GenreFilter/genres";
-
 }
 
 struct GenreFilterProvider::Impl
