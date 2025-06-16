@@ -357,18 +357,25 @@ private:
 					m_settings->Set(GetRecentIdKey(), m_currentId);
 				});
 
-		if (m_controller->GetItemType() == ItemType::Books)
+		if (m_controller->GetItemType() == ItemType::Navigation)
+		{
+			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+		}
+		else
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
 			SetLanguageFilter();
-		}
-		else
-		{
-			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+			auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
+			if (m_navigationModeName == Loc::Genres)
+			{
+				const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
+				if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
+					filteredGenreNames.erase(it->second);
+			}
+			model->setData({}, QVariant::fromValue(filteredGenreNames), Role::GenreFilter);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-		model->setData({}, QVariant::fromValue(m_genreFilterProvider->GetFilteredGenreNames()), Role::GenreFilter);
 
 		m_delegate->OnModelChanged();
 

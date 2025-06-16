@@ -16,6 +16,7 @@ public:
 	[[nodiscard]] virtual std::unordered_set<QString> GetFilteredGenreCodes() const = 0;
 	[[nodiscard]] virtual std::unordered_set<QString> GetFilteredGenreNames() const = 0;
 	[[nodiscard]] virtual const std::unordered_map<QString, QString>& GetGenreNameToCodeMap() const = 0;
+	[[nodiscard]] virtual const std::unordered_map<QString, QString>& GetGenreCodeToNameMap() const = 0;
 };
 
 class IGenreFilterController : virtual public IGenreFilterProvider

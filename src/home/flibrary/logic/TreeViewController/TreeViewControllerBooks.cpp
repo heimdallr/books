@@ -113,6 +113,11 @@ void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
 	m_impl->annotationController->SetCurrentBookId(type == ItemType::Books ? std::move(id) : QString {});
 }
 
+const QString& TreeViewControllerBooks::GetNavigationId() const noexcept
+{
+	return m_impl->dataProvider->GetNavigationID();
+}
+
 void TreeViewControllerBooks::OnModeChanged(const QString& mode)
 {
 	m_impl->viewMode = GetViewModeImpl(mode.toStdString()).viewMode;

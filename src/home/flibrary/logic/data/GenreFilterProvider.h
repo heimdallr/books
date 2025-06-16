@@ -24,6 +24,7 @@ private: // IGenreFilterProvider
 	[[nodiscard]] std::unordered_set<QString> GetFilteredGenreCodes() const override;
 	[[nodiscard]] std::unordered_set<QString> GetFilteredGenreNames() const override;
 	[[nodiscard]] const std::unordered_map<QString, QString>& GetGenreNameToCodeMap() const override;
+	[[nodiscard]] const std::unordered_map<QString, QString>& GetGenreCodeToNameMap() const override;
 
 private: // IGenreFilterController
 	void SetFilteredGenres(const std::unordered_set<QString>& codes) override;

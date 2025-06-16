@@ -87,6 +87,11 @@ public:
 		m_booksTimer->start();
 	}
 
+	const QString& GetNavigationID() const noexcept
+	{
+		return m_navigationId;
+	}
+
 	BookInfo GetBookInfo(const long long id) const
 	{
 		assert(m_booksGenerator);
@@ -231,6 +236,11 @@ void DataProvider::RequestNavigation(const bool force) const
 void DataProvider::RequestBooks(const bool force) const
 {
 	m_impl->RequestBooks(force);
+}
+
+const QString& DataProvider::GetNavigationID() const noexcept
+{
+	return m_impl->GetNavigationID();
 }
 
 BookInfo DataProvider::GetBookInfo(const long long id) const

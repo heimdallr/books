@@ -16,6 +16,7 @@ public:
 public:
 	virtual ~IDataProvider() = default;
 	virtual void RequestBooks(bool force = false) const = 0;
+	virtual const QString& GetNavigationID() const noexcept = 0;
 };
 
 }

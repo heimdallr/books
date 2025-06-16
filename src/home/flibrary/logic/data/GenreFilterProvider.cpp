@@ -72,6 +72,14 @@ const std::unordered_map<QString, QString>& GenreFilterProvider::GetGenreNameToC
 	return m_impl->nameToCode;
 }
 
+const std::unordered_map<QString, QString>& GenreFilterProvider::GetGenreCodeToNameMap() const
+{
+	if (m_impl->codeToName.empty())
+		m_impl->Update();
+
+	return m_impl->codeToName;
+}
+
 void GenreFilterProvider::SetFilteredGenres(const std::unordered_set<QString>& codes)
 {
 	m_impl->settings->Set(FILTERED_GENRES_KEY, QStringList { codes.cbegin(), codes.cend() });
