@@ -21,8 +21,7 @@ protected: // ILanguageMode
 	QAbstractItemModel* GetModel() noexcept override;
 
 protected:
-	class Model;
-	PropagateConstPtr<Model> m_model;
+	PropagateConstPtr<QAbstractItemModel> m_model;
 };
 
 }
