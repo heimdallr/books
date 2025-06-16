@@ -37,6 +37,7 @@ struct Role
 		InvertCheck,
 		IsTree,
 		HeaderTitle,
+		AllGenreCodes,
 	};
 };
 

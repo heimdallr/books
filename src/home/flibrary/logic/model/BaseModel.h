@@ -8,6 +8,7 @@
 
 namespace HomeCompa::Flibrary
 {
+class IGenreFilterProvider;
 class ILibRateProvider;
 
 class BaseModel : public QAbstractItemModel
@@ -24,8 +25,12 @@ protected: // QAbstractItemModel
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+private:
+	QVariant GetAllGenreCodes() const;
+
 protected:
 	IDataItem::Ptr m_data;
+	std::shared_ptr<const IGenreFilterProvider> m_genreFilterProvider;
 	std::shared_ptr<const ILibRateProvider> m_libRateProvider;
 	bool m_checkable { false };
 };
