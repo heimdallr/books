@@ -2645,6 +2645,25 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>GenreFilterDialog</name>
+    <message>
+        <source>Genre filter settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Check all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Invert checks</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>GroupController</name>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
@@ -5385,6 +5404,22 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Entertainment</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Genres filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter &amp;enabled</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter &amp;settings...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Filters</source>
         <translation></translation>
     </message>
 </context>
