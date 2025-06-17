@@ -431,12 +431,26 @@
      <addaction name="actionBrowseHttpWeb"/>
      <addaction name="actionBrowseHttpOpds"/>
     </widget>
+    <widget class="QMenu" name="menuFilters">
+     <property name="title">
+      <string>&amp;Filters</string>
+     </property>
+     <widget class="QMenu" name="menuGenresFilter">
+      <property name="title">
+       <string>&amp;Genres filter</string>
+      </property>
+      <addaction name="actionGenreFilterEnabled"/>
+      <addaction name="actionGenreFilterSettings"/>
+     </widget>
+     <addaction name="actionPermanentLanguageFilter"/>
+     <addaction name="menuGenresFilter"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="menuExport"/>
     <addaction name="menuHttp"/>
+    <addaction name="menuFilters"/>
     <addaction name="actionScripts"/>
-    <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
@@ -966,10 +980,49 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionGenreFilterEnabled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Filter &amp;enabled</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreFilterSettings">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Filter &amp;settings...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="../icons/light/resources/light.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionGenreFilterEnabled</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionGenreFilterSettings</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

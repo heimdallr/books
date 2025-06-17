@@ -227,12 +227,41 @@ public:
 	void ShowRemoved(const bool showRemoved)
 	{
 		m_showRemoved = showRemoved;
-		if (auto* model = m_ui.treeView->model())
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
+	}
+
+	void FilterGenres(const bool filterGenres)
+	{
+		m_filterGenres = filterGenres;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		const auto getFilteredGenres = [this]() -> std::unordered_set<QString>
 		{
-			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-			OnCountChanged();
-			Find(m_currentId, Role::Id);
-		}
+			if (!m_filterGenres)
+				return {};
+
+			auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
+			if (m_navigationModeName != Loc::Genres)
+				return filteredGenreNames;
+
+			const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
+			if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
+				filteredGenreNames.erase(it->second);
+
+			return filteredGenreNames;
+		};
+
+		model->setData({}, QVariant::fromValue(getFilteredGenres()), Role::GenreFilter);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
 	}
 
 	QAbstractItemView* GetView() const
@@ -366,14 +395,7 @@ private:
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
 			SetLanguageFilter();
-			auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
-			if (m_navigationModeName == Loc::Genres)
-			{
-				const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
-				if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
-					filteredGenreNames.erase(it->second);
-			}
-			model->setData({}, QVariant::fromValue(filteredGenreNames), Role::GenreFilter);
+			FilterGenres(m_filterGenres);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -792,9 +814,6 @@ private:
 	void CreateHeaderContextMenu(const QPoint& pos)
 	{
 		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
-		if (column == BookItem::Column::Genre)
-			return ShowGenreFilter();
-
 		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
 		contextMenu->setFont(m_self.font());
 		contextMenu->exec(m_ui.treeView->header()->mapToGlobal(pos));
@@ -877,17 +896,6 @@ private:
 		}
 
 		return m_languageContextMenu;
-	}
-
-	void ShowGenreFilter()
-	{
-		auto allGenreCodes = m_ui.treeView->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
-		auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
-		if (dialog->exec() != QDialog::Accepted)
-			return;
-
-		m_ui.treeView->model()->setData({}, QVariant::fromValue(m_genreFilterProvider->GetFilteredGenreNames()), Role::GenreFilter);
-		OnCountChanged();
 	}
 
 	void SetLanguageFilter() const
@@ -976,6 +984,7 @@ private:
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
+	bool m_filterGenres { false };
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
@@ -1008,6 +1017,11 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+void TreeView::FilterGenres(const bool filterGenres)
+{
+	m_impl->FilterGenres(filterGenres);
 }
 
 QAbstractItemView* TreeView::GetView() const

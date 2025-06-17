@@ -41,7 +41,8 @@ signals:
 
 public:
 	void SetNavigationModeName(QString navigationModeName);
-	void ShowRemoved(bool hideRemoved);
+	void ShowRemoved(bool showRemoved);
+	void FilterGenres(bool filterGenres);
 	QAbstractItemView* GetView() const;
 
 private slots:
