@@ -450,6 +450,11 @@ void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
 	m_impl->dataProvider->SetNavigationId(std::move(id));
 }
 
+const QString& TreeViewControllerNavigation::GetNavigationId() const noexcept
+{
+	return m_impl->dataProvider->GetNavigationID();
+}
+
 void TreeViewControllerNavigation::OnModeChanged(const QString& modeSrc)
 {
 	if (m_impl->modes.empty())

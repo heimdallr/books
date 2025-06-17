@@ -29,6 +29,7 @@ struct Role
 		TextFilter,
 		LanguageFilter,
 		ShowRemovedFilter,
+		GenreFilter,
 		VisibleColumns,
 		Selected,
 		SortOrder,
@@ -37,6 +38,7 @@ struct Role
 		InvertCheck,
 		IsTree,
 		HeaderTitle,
+		AllGenreCodes,
 	};
 };
 

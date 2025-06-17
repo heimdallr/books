@@ -60,6 +60,7 @@ public:
 	virtual void OnDoubleClicked(const QModelIndex& index) const = 0;
 	virtual CreateNewItem GetNewItemCreator() const = 0;
 	virtual RemoveItems GetRemoveItems() const = 0;
+	virtual const QString& GetNavigationId() const noexcept = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

@@ -79,6 +79,7 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
+constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
 constexpr auto QSS = "qss";
 
 class LineEditPlaceholderTextController final : public QObject
@@ -648,16 +649,33 @@ private:
 				});
 	}
 
+	void ConnectActionsSettingsFilters()
+	{
+		PLOGV << "ConnectActionsSettingsFilters";
+		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
+		ConnectSettings(m_ui.actionGenreFilterEnabled, GENRE_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterGenres);
+		connect(m_ui.actionGenreFilterSettings,
+		        &QAction::triggered,
+		        &m_self,
+		        [this]
+		        {
+					auto allGenreCodes = m_booksWidget->GetView()->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
+					auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
+					if (dialog->exec() == QDialog::Accepted)
+						m_booksWidget->FilterGenres(true);
+				});
+	}
+
 	void ConnectActionsSettings()
 	{
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
 		ConnectActionsSettingsHttp();
+		ConnectActionsSettingsFilters();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
-		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
 	}
 
 	void ConnectActionsHelp()

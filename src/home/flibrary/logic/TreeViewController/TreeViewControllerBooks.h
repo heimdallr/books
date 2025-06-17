@@ -33,6 +33,7 @@ public:
 private: // ITreeViewController
 	[[nodiscard]] std::vector<std::pair<const char*, int>> GetModeNames() const override;
 	void SetCurrentId(ItemType type, QString id) override;
+	const QString& GetNavigationId() const noexcept override;
 
 private: // AbstractTreeViewController
 	void OnModeChanged(const QString& mode) override;

@@ -16,7 +16,7 @@ class QString;
 namespace HomeCompa::Flibrary
 {
 
-class DataProvider : public IDataProvider
+class DataProvider final : public IDataProvider
 {
 	NON_COPY_MOVABLE(DataProvider)
 
@@ -24,12 +24,13 @@ public:
 	DataProvider(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
 	~DataProvider() override;
 
-public:
+private: // IDataProvider
 	void SetNavigationId(QString id) override;
 	void SetNavigationMode(NavigationMode navigationMode) override;
 	void SetNavigationRequestCallback(Callback callback) override;
 	void RequestNavigation(bool force) const override;
 	void RequestBooks(bool force) const override;
+	const QString& GetNavigationID() const noexcept override;
 
 private: // IBookInfoProvider
 	void SetBookRequestCallback(Callback callback) override;

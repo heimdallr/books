@@ -5,7 +5,8 @@
 
 #include "util/SortString.h"
 
-using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace
 {
@@ -35,16 +36,17 @@ struct SortFilterProxyModel::Impl final
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
 	QVector<int> m_visibleColumns;
+	std::unordered_set<QString> m_filteredGenres;
 
-	explicit Impl(const std::shared_ptr<IModelProvider>& modelProvider)
-		: m_sourceModel(modelProvider->GetSourceModel())
+	explicit Impl(const IModelProvider& modelProvider)
+		: m_sourceModel(modelProvider.GetSourceModel())
 	{
 	}
 };
 
-SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
+SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<const IModelProvider>& modelProvider, QObject* parent)
 	: AbstractSortFilterProxyModel(parent)
-	, m_impl(modelProvider)
+	, m_impl(*modelProvider)
 {
 	QSortFilterProxyModel::setSourceModel(m_impl->m_sourceModel.get());
 	setRecursiveFilteringEnabled(true);
@@ -107,6 +109,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			case Role::ShowRemovedFilter:
 				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
+			case Role::GenreFilter:
+				return Set(m_impl->m_filteredGenres, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
+
 			case Role::LanguageFilter:
 				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
@@ -135,7 +140,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex);
+	return FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex) && FilterAcceptsGenres(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -171,4 +176,10 @@ bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
+}
+
+bool SortFilterProxyModel::FilterAcceptsGenres(const QModelIndex& index) const
+{
+	return m_impl->m_filteredGenres.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books
+	    || std::ranges::none_of(index.data(Role::Genre).toString().split(", "), [&filtered = m_impl->m_filteredGenres](const auto& item) { return filtered.contains(item); });
 }

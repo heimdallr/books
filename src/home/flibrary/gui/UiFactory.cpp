@@ -15,6 +15,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/GenreFilterDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -27,8 +28,8 @@
 #include "config/git_hash.h"
 #include "config/version.h"
 
-namespace HomeCompa::Flibrary
-{
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace
 {
@@ -83,6 +84,7 @@ struct UiFactory::Impl
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
 	mutable AdditionalWidgetCallback additionalWidgetCallback;
+	mutable std::unordered_set<QString> visibleGenres;
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -143,6 +145,12 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 {
 	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres) const
+{
+	m_impl->visibleGenres = std::move(visibleGenres);
+	return m_impl->container.resolve<GenreFilterDialog>();
 }
 
 std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
@@ -282,4 +290,9 @@ IUiFactory::AdditionalWidgetCallback UiFactory::GetAdditionalWidgetCallback() co
 	return callback;
 }
 
-} // namespace HomeCompa::Flibrary
+std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
+{
+	auto visibleGenres = std::move(m_impl->visibleGenres);
+	m_impl->visibleGenres = {};
+	return visibleGenres;
+}

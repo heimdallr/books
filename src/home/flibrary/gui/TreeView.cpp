@@ -195,7 +195,8 @@ public:
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController,
-	     std::shared_ptr<const ICollectionProvider> collectionProvider)
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IGenreFilterProvider> genreFilterProvider)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_settings { std::move(settings) }
@@ -203,6 +204,7 @@ public:
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_collectionProvider { std::move(collectionProvider) }
+		, m_genreFilterProvider { std::move(genreFilterProvider) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
@@ -225,12 +227,41 @@ public:
 	void ShowRemoved(const bool showRemoved)
 	{
 		m_showRemoved = showRemoved;
-		if (auto* model = m_ui.treeView->model())
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
+	}
+
+	void FilterGenres(const bool filterGenres)
+	{
+		m_filterGenres = filterGenres;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		const auto getFilteredGenres = [this]() -> std::unordered_set<QString>
 		{
-			model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-			OnCountChanged();
-			Find(m_currentId, Role::Id);
-		}
+			if (!m_filterGenres)
+				return {};
+
+			auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
+			if (m_navigationModeName != Loc::Genres)
+				return filteredGenreNames;
+
+			const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
+			if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
+				filteredGenreNames.erase(it->second);
+
+			return filteredGenreNames;
+		};
+
+		model->setData({}, QVariant::fromValue(getFilteredGenres()), Role::GenreFilter);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
 	}
 
 	QAbstractItemView* GetView() const
@@ -355,15 +386,16 @@ private:
 					m_settings->Set(GetRecentIdKey(), m_currentId);
 				});
 
-		if (m_controller->GetItemType() == ItemType::Books)
+		if (m_controller->GetItemType() == ItemType::Navigation)
+		{
+			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+		}
+		else
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
 			SetLanguageFilter();
-		}
-		else
-		{
-			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+			FilterGenres(m_filterGenres);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -943,6 +975,7 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
+	std::shared_ptr<const IGenreFilterProvider> m_genreFilterProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
@@ -951,6 +984,7 @@ private:
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
+	bool m_filterGenres { false };
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
@@ -962,9 +996,10 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings,
                    std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                    std::shared_ptr<ScrollBarController> scrollBarController,
                    std::shared_ptr<const ICollectionProvider> collectionProvider,
+                   std::shared_ptr<const IGenreFilterProvider> genreFilterProvider,
                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider))
+	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider), std::move(genreFilterProvider))
 {
 	PLOGV << "TreeView created";
 }
@@ -982,6 +1017,11 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+void TreeView::FilterGenres(const bool filterGenres)
+{
+	m_impl->FilterGenres(filterGenres);
 }
 
 QAbstractItemView* TreeView::GetView() const

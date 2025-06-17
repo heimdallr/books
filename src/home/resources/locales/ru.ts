@@ -2655,6 +2655,25 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>GenreFilterDialog</name>
+    <message>
+        <source>Genre filter settings</source>
+        <translation>Настройки фильтра жанров</translation>
+    </message>
+    <message>
+        <source>Check all</source>
+        <translation>Выделить всё</translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation>Снять выделение</translation>
+    </message>
+    <message>
+        <source>Invert checks</source>
+        <translation>Инвертировать выделение</translation>
+    </message>
+</context>
+<context>
     <name>GroupController</name>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
@@ -5398,6 +5417,22 @@ Try again?</source>
     <message>
         <source>&amp;Entertainment</source>
         <translation>&amp;Развлечения</translation>
+    </message>
+    <message>
+        <source>&amp;Genres filter</source>
+        <translation>Фильтр &amp;жанров</translation>
+    </message>
+    <message>
+        <source>Filter &amp;enabled</source>
+        <translation>Фильтр &amp;активен</translation>
+    </message>
+    <message>
+        <source>Filter &amp;settings...</source>
+        <translation>&amp;Настройки фильтра...</translation>
+    </message>
+    <message>
+        <source>&amp;Filters</source>
+        <translation>&amp;Фильтры</translation>
     </message>
 </context>
 <context>

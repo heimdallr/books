@@ -18,6 +18,9 @@ public:
 			UncheckAll,
 			RevertChecks,
 			SelectedList,
+			Code,
+			ChildrenCodes,
+			VisibleGenreCodes,
 		};
 	};
 
