@@ -24,6 +24,9 @@ using namespace HomeCompa::Opds;
 namespace
 {
 
+constexpr auto SEARCH = "search";
+constexpr auto SELECTED_ITEM_ID = "selectedItemID";
+
 template <typename T>
 QJsonObject FromQuery(const HomeCompa::DB::IQuery& query)
 {
@@ -40,7 +43,13 @@ QString PrepareSearchTerms(const QString& searchTerms)
 	return terms.join(' ');
 }
 
+QString Get(const IReactAppRequester::Parameters& parameters, const QString& key, const QString& defaultValue = {})
+{
+	const auto it = parameters.find(key);
+	return it != parameters.end() ? it->second : defaultValue;
 }
+
+} // namespace
 
 struct ReactAppRequester::Impl
 {
@@ -60,13 +69,13 @@ struct ReactAppRequester::Impl
 	{
 	}
 
-	QJsonObject getConfig(const QString&) const
+	QJsonObject getConfig(const Parameters&) const
 	{
 		const auto db = databaseController->GetDatabase(true);
 
 		QJsonObject result;
 		{
-			auto query = db->CreateQuery("select count (42) from Books");
+			const auto query = db->CreateQuery("select count (42) from Books");
 			query->Execute();
 			assert(!query->Eof());
 			result.insert("numberOfBooks", query->Get<long long>(0));
@@ -97,7 +106,7 @@ struct ReactAppRequester::Impl
 		return result;
 	}
 
-	QJsonObject getSearchStats(const QString& searchTerms) const
+	QJsonObject getSearchStats(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 with Search (Title) as (
@@ -107,7 +116,7 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
     , (select count (42) from Authors_Search join Search s on Authors_Search match s.Title) as authors
     , (select count (42) from Series_Search join Search s on Series_Search match s.Title) as bookSeries
 )";
-		const auto query = CreateSearchQuery(queryText, searchTerms);
+		const auto query = CreateSearchQuery(queryText, Get(parameters, SEARCH));
 		query->Execute();
 		assert(!query->Eof());
 
@@ -116,7 +125,7 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
 		};
 	}
 
-	QJsonObject getSearchTitles(const QString& searchTerms) const
+	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, (
@@ -132,10 +141,10 @@ from Books b
 join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "titlesList");
+		return GetBookListBySearch(queryText, Get(parameters, SEARCH), "titlesList");
 	}
 
-	QJsonObject getSearchAuthors(const QString& searchTerms) const
+	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') as Authors, count(42) as Books
@@ -144,10 +153,10 @@ join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?
 join Author_List al on al.AuthorID = a.AuthorID
 group by a.AuthorID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "authorsList");
+		return GetBookListBySearch(queryText, Get(parameters, SEARCH), "authorsList");
 	}
 
-	QJsonObject getSearchSeries(const QString& searchTerms) const
+	QJsonObject getSearchSeries(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select s.SeriesID, s.SeriesTitle, count(42) as Books
@@ -156,10 +165,10 @@ join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?
 join Series_List sl on sl.SeriesID = s.SeriesID
 group by s.SeriesID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "seriesList");
+		return GetBookListBySearch(queryText, Get(parameters, SEARCH), "seriesList");
 	}
 
-	QJsonObject getSearchAuthorBooks(const QString& authorId) const
+	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, (
@@ -171,10 +180,10 @@ from Books b
 join Author_List al on al.BookID = b.BookID and al.AuthorID = ?
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		return GetBookListById(queryText, authorId, "titlesList");
+		return GetBookListById(queryText, Get(parameters, SELECTED_ITEM_ID), "titlesList");
 	}
 
-	QJsonObject getSearchSeriesBooks(const QString& seriesId) const
+	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, (
@@ -189,12 +198,14 @@ select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) 
 from Books b
 join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 )";
-		return GetBookListById(queryText, seriesId, "titlesList");
+		return GetBookListById(queryText, Get(parameters, SELECTED_ITEM_ID), "titlesList");
 	}
 
-	QJsonObject getBookForm(const QString& bookId) const
+	QJsonObject getBookForm(const Parameters& parameters) const
 	{
 		QJsonObject result;
+
+		const auto bookId = Get(parameters, SELECTED_ITEM_ID);
 
 		QEventLoop eventLoop;
 		AnnotationControllerObserver observer(
@@ -380,10 +391,10 @@ ReactAppRequester::ReactAppRequester(std::shared_ptr<const Flibrary::ICollection
 
 ReactAppRequester::~ReactAppRequester() = default;
 
-#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                           \
-	QByteArray ReactAppRequester::NAME(const QString& value) const \
-	{                                                              \
-		return GetImpl(*m_impl, &Impl::NAME, value);               \
+#define OPDS_GET_BOOKS_API_ITEM(NAME)                                      \
+	QByteArray ReactAppRequester::NAME(const Parameters& parameters) const \
+	{                                                                      \
+		return GetImpl(*m_impl, &Impl::NAME, parameters);                  \
 	}
 OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
