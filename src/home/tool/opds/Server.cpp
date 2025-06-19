@@ -314,8 +314,12 @@ private:
 			m_server.route(QString(GET_BOOKS_API).arg(name),
 			               [this, requester](const QHttpServerRequest& request)
 			               {
+							   auto parameters = GetParameters<IReactAppRequester::Parameters>(request);
+							   if (const auto it = parameters.find("selectedGroupID"); it != parameters.end() && it->second == "0")
+								   parameters.erase(it);
+
 							   return QtConcurrent::run(
-								   [this, requester, parameters = GetParameters<IReactAppRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
+								   [this, requester, parameters = std::move(parameters), acceptEncoding = GetAcceptEncoding(request)]
 								   {
 									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
 									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
