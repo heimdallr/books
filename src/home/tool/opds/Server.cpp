@@ -137,9 +137,10 @@ QString GetAcceptEncoding(const QHttpServerRequest& request)
 	return QString::fromUtf8(request.headers().value(QHttpHeaders::WellKnownHeader::AcceptEncoding));
 }
 
-IRequester::Parameters GetParameters(const QHttpServerRequest& request)
+template <typename T>
+T GetParameters(const QHttpServerRequest& request)
 {
-	IRequester::Parameters result;
+	T result;
 	std::ranges::transform(request.query().queryItems(QUrl::FullyDecoded), std::inserter(result, result.end()), [](const auto& item) { return std::make_pair(item.first, item.second); });
 	return result;
 }
@@ -277,7 +278,7 @@ private:
 			               [this, root, invoker](const QHttpServerRequest& request)
 			               {
 							   return QtConcurrent::run(
-								   [this, root, invoker, parameters = GetParameters(request), acceptEncoding = GetAcceptEncoding(request)]
+								   [this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
 								   {
 									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 									   SetContentType(response, root, MessageType::Atom);
@@ -301,22 +302,26 @@ private:
 		               [this](const QString& fileName, const QHttpServerRequest& request)
 		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
 
-		using Requester = QByteArray (IReactAppRequester::*)(const QString&) const;
-		static constexpr std::tuple<const char*, const char*, Requester> booksApiDescription[] {
-#define OPDS_GET_BOOKS_API_ITEM(NAME, QUERY) { #NAME, #QUERY, &IReactAppRequester::NAME },
+		using Requester = QByteArray (IReactAppRequester::*)(const std::unordered_map<QString, QString>&) const;
+		static constexpr std::tuple<const char*, Requester> booksApiDescription[] {
+#define OPDS_GET_BOOKS_API_ITEM(NAME) { #NAME, &IReactAppRequester::NAME },
 			OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
 		};
 
-		for (const auto& [name, queryKey, requester] : booksApiDescription)
+		for (const auto& [name, requester] : booksApiDescription)
 		{
 			m_server.route(QString(GET_BOOKS_API).arg(name),
-			               [this, requester, queryKey](const QHttpServerRequest& request)
+			               [this, requester](const QHttpServerRequest& request)
 			               {
+							   auto parameters = GetParameters<IReactAppRequester::Parameters>(request);
+							   if (const auto it = parameters.find("selectedGroupID"); it != parameters.end() && it->second == "0")
+								   parameters.erase(it);
+
 							   return QtConcurrent::run(
-								   [this, requester, value = request.query().queryItemValue(queryKey, QUrl::FullyDecoded), acceptEncoding = GetAcceptEncoding(request)]
+								   [this, requester, parameters = std::move(parameters), acceptEncoding = GetAcceptEncoding(request)]
 								   {
-									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(value)), acceptEncoding);
+									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
 									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
 									   return response;
 								   });

@@ -24,7 +24,7 @@ public:
 	~ReactAppRequester() override;
 
 private: // IReactAppRequester
-#define OPDS_GET_BOOKS_API_ITEM(NAME, _) QByteArray NAME(const QString& value) const override;
+#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray NAME(const Parameters& parameters) const override;
 	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
 

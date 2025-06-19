@@ -1,5 +1,7 @@
 #include "ReactAppRequester.h"
 
+#include <ranges>
+
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QJsonArray>
@@ -24,6 +26,10 @@ using namespace HomeCompa::Opds;
 namespace
 {
 
+constexpr auto SEARCH = "search";
+constexpr auto SELECTED_ITEM_ID = "selectedItemID";
+constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
+
 template <typename T>
 QJsonObject FromQuery(const HomeCompa::DB::IQuery& query)
 {
@@ -40,7 +46,13 @@ QString PrepareSearchTerms(const QString& searchTerms)
 	return terms.join(' ');
 }
 
+QString Get(const IReactAppRequester::Parameters& parameters, const QString& key, const QString& defaultValue = {})
+{
+	const auto it = parameters.find(key);
+	return it != parameters.end() ? it->second : defaultValue;
 }
+
+} // namespace
 
 struct ReactAppRequester::Impl
 {
@@ -60,13 +72,13 @@ struct ReactAppRequester::Impl
 	{
 	}
 
-	QJsonObject getConfig(const QString&) const
+	QJsonObject getConfig(const Parameters&) const
 	{
 		const auto db = databaseController->GetDatabase(true);
 
 		QJsonObject result;
 		{
-			auto query = db->CreateQuery("select count (42) from Books");
+			const auto query = db->CreateQuery("select count (42) from Books");
 			query->Execute();
 			assert(!query->Eof());
 			result.insert("numberOfBooks", query->Get<long long>(0));
@@ -94,12 +106,24 @@ struct ReactAppRequester::Impl
 			result.insert("genres", array);
 		}
 
+		{
+			QJsonArray array;
+			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g left join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			for (query->Execute(); !query->Eof(); query->Next())
+				array.append(QJsonObject {
+					{       "GroupID", query->Get<const char*>(0) },
+					{         "Title", query->Get<const char*>(1) },
+					{ "numberOfBooks", query->Get<const char*>(2) },
+				});
+			result.insert("groups", array);
+		}
+
 		return result;
 	}
 
-	QJsonObject getSearchStats(const QString& searchTerms) const
+	QJsonObject getSearchStats(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
+		static constexpr auto searchQueryText = R"(
 with Search (Title) as (
     select ?
 )
@@ -107,16 +131,38 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
     , (select count (42) from Authors_Search join Search s on Authors_Search match s.Title) as authors
     , (select count (42) from Series_Search join Search s on Series_Search match s.Title) as bookSeries
 )";
-		const auto query = CreateSearchQuery(queryText, searchTerms);
-		query->Execute();
-		assert(!query->Eof());
 
-		return QJsonObject {
-			{ "searchStats", FromQuery<int>(*query) }
+		static constexpr auto groupsQueryText = R"(
+select (select count (42) from Groups_List_User l where l.GroupID = g.GroupID) as bookTitles
+    , (select count (distinct al.AuthorID) from Author_List al join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = g.GroupID) as authors
+    , (select count (distinct sl.SeriesID) from Series_List sl join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = g.GroupID) as bookSeries
+from Groups_User g
+where g.GroupID = ?
+)";
+		static constexpr std::tuple<const char*, const char*, bool> queries[] {
+			{ SELECTED_GROUP_ID, groupsQueryText, false },
+			{            SEARCH, searchQueryText,  true },
 		};
+
+		for (const auto& [key, queryText, isSearch] : queries)
+		{
+			const auto parameter = Get(parameters, key);
+			if (parameter.isEmpty())
+				continue;
+
+			const auto query = CreateParameterQuery(queryText, parameter, isSearch);
+			query->Execute();
+
+			return QJsonObject {
+				{ "searchStats", FromQuery<int>(*query) }
+			};
+		}
+
+		assert(false);
+		return {};
 	}
 
-	QJsonObject getSearchTitles(const QString& searchTerms) const
+	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, (
@@ -129,37 +175,59 @@ select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b
         join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
     ) as Genres
 from Books b
-join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?
+%1
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "titlesList");
+		static constexpr auto groupJoin = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = ?";
+		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
+
+		static constexpr std::tuple<const char*, const char*, bool> list[] {
+			{ SELECTED_GROUP_ID,  groupJoin, false },
+			{            SEARCH, searchJoin,  true },
+		};
+
+		return SelectByParameter(list, queryText, parameters, "titlesList");
 	}
 
-	QJsonObject getSearchAuthors(const QString& searchTerms) const
+	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') as Authors, count(42) as Books
 from Authors a
-join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?
-join Author_List al on al.AuthorID = a.AuthorID
+%1
 group by a.AuthorID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "authorsList");
+		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = ?";
+		static constexpr auto searchJoin = "join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
+
+		static constexpr std::tuple<const char*, const char*, bool> list[] {
+			{ SELECTED_GROUP_ID,  groupJoin, false },
+			{            SEARCH, searchJoin,  true },
+		};
+
+		return SelectByParameter(list, queryText, parameters, "authorsList");
 	}
 
-	QJsonObject getSearchSeries(const QString& searchTerms) const
+	QJsonObject getSearchSeries(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select s.SeriesID, s.SeriesTitle, count(42) as Books
 from Series s
-join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?
-join Series_List sl on sl.SeriesID = s.SeriesID
+%1
 group by s.SeriesID
 )";
-		return GetBookListBySearch(queryText, searchTerms, "seriesList");
+		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = ?";
+		static constexpr auto searchJoin = "join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
+
+		static constexpr std::tuple<const char*, const char*, bool> list[] {
+			{ SELECTED_GROUP_ID,  groupJoin, false },
+			{            SEARCH, searchJoin,  true },
+		};
+
+		return SelectByParameter(list, queryText, parameters, "seriesList");
 	}
 
-	QJsonObject getSearchAuthorBooks(const QString& authorId) const
+	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, (
@@ -168,13 +236,18 @@ select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b
         join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
     ) as Genres
 from Books b
-join Author_List al on al.BookID = b.BookID and al.AuthorID = ?
+%1
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		return GetBookListById(queryText, authorId, "titlesList");
+		static constexpr std::tuple<const char*, const char*> list[] {
+			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{  SELECTED_ITEM_ID,     "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
+		};
+
+		return GetBookListByIds(list, queryText, parameters, "titlesList");
 	}
 
-	QJsonObject getSearchSeriesBooks(const QString& seriesId) const
+	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
 select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, (
@@ -187,14 +260,21 @@ select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) 
         join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
     ) as Genres
 from Books b
-join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
+%1
 )";
-		return GetBookListById(queryText, seriesId, "titlesList");
+		static constexpr std::tuple<const char*, const char*> list[] {
+			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{  SELECTED_ITEM_ID,     "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
+		};
+
+		return GetBookListByIds(list, queryText, parameters, "titlesList");
 	}
 
-	QJsonObject getBookForm(const QString& bookId) const
+	QJsonObject getBookForm(const Parameters& parameters) const
 	{
 		QJsonObject result;
+
+		const auto bookId = Get(parameters, SELECTED_ITEM_ID);
 
 		QEventLoop eventLoop;
 		AnnotationControllerObserver observer(
@@ -288,29 +368,33 @@ join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = ?
 	}
 
 private:
-	std::unique_ptr<DB::IQuery> CreateIdQuery(const QString& queryText, const QString& id) const
+	std::unique_ptr<DB::IQuery> CreateParameterQuery(const QString& queryText, const QString& parameter, const bool isSearch) const
 	{
 		const auto db = databaseController->GetDatabase(true);
 		auto query = db->CreateQuery(queryText.toStdString());
-		bool ok = false;
-		query->Bind(0, id.toLongLong(&ok));
-		assert(ok);
+		query->Bind(0, (isSearch ? PrepareSearchTerms(parameter) : parameter).toStdString());
 		return query;
 	}
 
-	std::unique_ptr<DB::IQuery> CreateSearchQuery(const QString& queryText, const QString& searchTerms) const
+	template <std::ranges::range T>
+	QJsonObject SelectByParameter(const T& list, const QString& queryText, const Parameters& parameters, const QString& resultName) const
 	{
-		const auto db = databaseController->GetDatabase(true);
-		auto query = db->CreateQuery(queryText.toStdString());
-		query->Bind(0, PrepareSearchTerms(searchTerms).toStdString());
-		return query;
+		for (const auto& [key, join, isSearch] : list)
+		{
+			const auto parameter = Get(parameters, key);
+			if (!parameter.isEmpty())
+				return GetBookListByParameter(QString(queryText).arg(join), parameter, resultName, isSearch);
+		}
+
+		assert(false);
+		return {};
 	}
 
-	QJsonObject GetBookListBySearch(const QString& queryText, const QString& searchTerms, const QString& resultName) const
+	QJsonObject GetBookListByParameter(const QString& queryText, const QString& parameter, const QString& resultName, const bool isSearch) const
 	{
 		QJsonArray array;
 
-		const auto query = CreateSearchQuery(queryText, searchTerms);
+		const auto query = CreateParameterQuery(queryText, parameter, isSearch);
 		for (query->Execute(); !query->Eof(); query->Next())
 			array.append(FromQuery<const char*>(*query));
 
@@ -319,11 +403,18 @@ private:
 		};
 	}
 
-	QJsonObject GetBookListById(const QString& queryText, const QString& id, const QString& resultName) const
+	template <std::ranges::range T>
+	QJsonObject GetBookListByIds(const T& list, const QString& queryText, const Parameters& parameters, const QString& resultName) const
 	{
 		QJsonArray array;
 
-		auto query = CreateIdQuery(queryText, id);
+		QStringList joins;
+		std::ranges::transform(list | std::views::filter([&](const auto& item) { return parameters.contains(std::get<0>(item)); }),
+		                       std::back_inserter(joins),
+		                       [&](const auto& item) { return QString(std::get<1>(item)).arg(parameters.at(std::get<0>(item))); });
+
+		const auto db = databaseController->GetDatabase(true);
+		auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString());
 		for (query->Execute(); !query->Eof(); query->Next())
 			array.append(FromQuery<const char*>(*query));
 
@@ -380,10 +471,10 @@ ReactAppRequester::ReactAppRequester(std::shared_ptr<const Flibrary::ICollection
 
 ReactAppRequester::~ReactAppRequester() = default;
 
-#define OPDS_GET_BOOKS_API_ITEM(NAME, _)                           \
-	QByteArray ReactAppRequester::NAME(const QString& value) const \
-	{                                                              \
-		return GetImpl(*m_impl, &Impl::NAME, value);               \
+#define OPDS_GET_BOOKS_API_ITEM(NAME)                                      \
+	QByteArray ReactAppRequester::NAME(const Parameters& parameters) const \
+	{                                                                      \
+		return GetImpl(*m_impl, &Impl::NAME, parameters);                  \
 	}
 OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
