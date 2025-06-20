@@ -502,7 +502,7 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read?book=%1").arg(m_feedId)).WriteCharacters(Tr(READ));
 
 				const auto createLinks = [&](const QFileInfo& fileInfo)
 				{

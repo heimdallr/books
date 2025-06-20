@@ -910,6 +910,11 @@ public:
 		return head;
 	}
 
+	QByteArray GetBookText(const QString& bookId) const
+	{
+		return m_noSqlRequester->GetBook(bookId).second;
+	}
+
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
@@ -1209,6 +1214,14 @@ Requester::~Requester()
 QByteArray Requester::Search(const QString& root, const Parameters& parameters) const
 {
 	return GetImpl(*m_impl, &Impl::Search, ContentType::Books, std::cref(root), std::cref(parameters));
+}
+
+QByteArray Requester::GetBookText(const QString& root, const Parameters& parameters) const
+{
+	const auto bookId = GetParameter(parameters, "book");
+	assert(!bookId.isEmpty());
+	auto result = m_impl->GetBookText(bookId);
+	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
 }
 
 #define OPDS_INVOKER_ITEM(NAME)                                                                                                                         \

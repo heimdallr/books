@@ -29,9 +29,6 @@ namespace
 constexpr auto ARG = "<arg>";
 constexpr auto FAVICON = "/favicon.ico";
 
-constexpr auto ROOT = "%1";
-constexpr auto NAVIGATION = "%1/%2";
-
 constexpr auto GET_BOOKS_API = "/main/getBooks/%1";
 constexpr auto GET_BOOKS_API_ASSETS = "/assets/%1";
 constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
@@ -271,6 +268,7 @@ private:
 #undef OPDS_INVOKER_ITEM
 			{  nullptr, &IRequester::GetRoot },
 			{ "search",  &IRequester::Search },
+			{ "read",  &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
