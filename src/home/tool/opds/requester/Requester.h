@@ -36,6 +36,7 @@ public:
 
 private: // IRequester
 	QByteArray Search(const QString& root, const Parameters& parameters) const override;
+	QByteArray GetBookText(const QString& root, const Parameters& parameters) const override;
 
 #define OPDS_INVOKER_ITEM(NAME) QByteArray Get##NAME(const QString& root, const Parameters& parameters) const override;
 	OPDS_NAVIGATION_ITEMS_X_MACRO
