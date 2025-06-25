@@ -165,7 +165,7 @@ where g.GroupID = ?
 	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, (
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.UpdateDate, (
     select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
         from Authors a 
         join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
@@ -230,7 +230,7 @@ group by s.SeriesID
 	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, (
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.UpdateDate, (
     select group_concat(g.GenreAlias, ', ')
         from Genres g
         join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
@@ -250,7 +250,7 @@ left join Series s on s.SeriesID = b.SeriesID
 	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
 		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, (
+select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.UpdateDate, (
     select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
         from Authors a 
         join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
