@@ -166,7 +166,7 @@ private:
 
 	std::unordered_map<QString, int> m_authorToArchive;
 
-	long long m_authorId;
+	long long m_authorId {};
 };
 
 AuthorAnnotationController::AuthorAnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory, const std::shared_ptr<const ICollectionProvider>& collectionProvider)

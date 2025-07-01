@@ -14,7 +14,6 @@
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
 
 #include "log.h"
@@ -26,7 +25,7 @@ namespace
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool autoAcceptChildRows) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool autoAcceptChildRows) const;
 
 struct ModeDescriptor
 {
@@ -48,7 +47,7 @@ auto GetViewModeImpl(const std::string& strMode)
 
 }
 
-struct TreeViewControllerBooks::Impl final : IModelObserver
+struct TreeViewControllerBooks::Impl
 {
 	ViewMode viewMode { ViewMode::Unknown };
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel>() };
@@ -89,7 +88,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> sett
 		{
 			assert(m_impl->viewMode != ViewMode::Unknown);
 			const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-			auto model = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), true);
+			auto model = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), true);
 			m_impl->model.reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->model.get());
 		});
@@ -112,6 +111,11 @@ std::vector<std::pair<const char*, int>> TreeViewControllerBooks::GetModeNames()
 void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
 {
 	m_impl->annotationController->SetCurrentBookId(type == ItemType::Books ? std::move(id) : QString {});
+}
+
+const QString& TreeViewControllerBooks::GetNavigationId() const noexcept
+{
+	return m_impl->dataProvider->GetNavigationID();
 }
 
 void TreeViewControllerBooks::OnModeChanged(const QString& mode)

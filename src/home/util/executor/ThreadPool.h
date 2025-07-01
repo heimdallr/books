@@ -17,7 +17,7 @@ class ThreadPool
 public:
 	explicit ThreadPool(const int numThreads = static_cast<int>(std::thread::hardware_concurrency()))
 	{
-		m_threads.reserve(numThreads);
+		m_threads.reserve(static_cast<size_t>(numThreads));
 		std::ranges::transform(std::views::iota(0, numThreads), std::back_inserter(m_threads), [this](auto) { return std::thread(&ThreadPool::work, this); });
 	}
 

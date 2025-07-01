@@ -17,7 +17,6 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "model/IModelObserver.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "util/FunctorExecutionForwarder.h"
 
@@ -32,7 +31,7 @@ namespace
 constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, IModelObserver&, bool) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool) const;
 using MenuRequester = IDataItem::Ptr (*)(ITreeViewController::RequestContextMenuOptions options);
 
 IDataItem::Ptr MenuRequesterStub(ITreeViewController::RequestContextMenuOptions)
@@ -238,8 +237,7 @@ std::vector<std::pair<const char*, int>> GetModes(const IDatabaseController& dat
 } // namespace
 
 struct TreeViewControllerNavigation::Impl final
-	: IModelObserver
-	, virtual IContextMenuHandler
+	: virtual IContextMenuHandler
 	, virtual private IDatabaseController::IObserver
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
@@ -397,7 +395,7 @@ private: // ITableSubscriptionHandler
 private:
 	void OnTableChanged(const NavigationMode tableMode)
 	{
-		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<int>(tableMode)].reset();
+		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<size_t>(tableMode)].reset();
 	}
 
 	NON_COPY_MOVABLE(Impl)
@@ -419,7 +417,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 		[&](IDataItem::Ptr data)
 		{
 			const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), std::ref(*m_impl), false);
+			auto model = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), false);
 			m_impl->models[m_impl->mode].reset(std::move(model));
 			Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 		});
@@ -450,6 +448,11 @@ std::vector<std::pair<const char*, int>> TreeViewControllerNavigation::GetModeNa
 void TreeViewControllerNavigation::SetCurrentId(ItemType, QString id)
 {
 	m_impl->dataProvider->SetNavigationId(std::move(id));
+}
+
+const QString& TreeViewControllerNavigation::GetNavigationId() const noexcept
+{
+	return m_impl->dataProvider->GetNavigationID();
 }
 
 void TreeViewControllerNavigation::OnModeChanged(const QString& modeSrc)
@@ -489,13 +492,13 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback)
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback) //-V801
 {
 	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester(options))
 		callback(index.data(Role::Id).toString(), item);
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item)
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item) //-V801
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<MenuAction>(item->GetData(MenuItem::Column::Id).toInt()), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index));

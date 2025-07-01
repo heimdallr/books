@@ -92,9 +92,11 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 					continue;
 				}
 
-				const auto subStream = subZip.Read(archiveFileName);
 				if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
+				{
+					const auto subStream = subZip.Read(archiveFileName);
 					file.write(RestoreImages(subStream->GetStream(), archive, fileName));
+				}
 			}
 
 			if (fileList.size() == 1)

@@ -85,7 +85,7 @@ private: // IAnnotationController::IUrlGenerator
 		if (!typeMapped)
 			return str;
 
-		return str.isEmpty() ? QString {} : QString("<a href=/web/%1/%2>%3</a>").arg(typeMapped, id, str);
+		return str.isEmpty() ? QString {} : QString("<a href=/web?%1=%2>%3</a>").arg(typeMapped, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override
@@ -502,7 +502,7 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read/%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read?book=%1").arg(m_feedId)).WriteCharacters(Tr(READ));
 
 				const auto createLinks = [&](const QFileInfo& fileInfo)
 				{
@@ -720,9 +720,6 @@ private: // SaxParser
 		};
 
 		const auto result = Parse(*this, PARSERS, path, value);
-		if (m_processed || !m_body)
-			return result;
-
 		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, value);
 	}
 

@@ -21,7 +21,6 @@
 
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
-#include "logic/model/IModelObserver.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 
@@ -98,7 +97,6 @@ class AnnotationWidget::Impl final
 	: QObject
 	, IAnnotationController::IObserver
 	, IAnnotationController::IStrategy
-	, IModelObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -416,16 +414,23 @@ private: // IAnnotationController::IObserver
 		{
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
-			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), *this, true));
+			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), true));
 			m_ui.content->setModel(m_contentModel.get());
 		}
 
 		OnResize();
 	}
 
-	void OnJokeChanged(const QString& value) override
+	void OnJokeTextChanged(const QString& value) override
 	{
 		m_ui.info->setText(value);
+	}
+
+	void OnJokeImageChanged(const QByteArray& value) override
+	{
+		m_covers.emplace_back("", value);
+		m_currentCoverIndex = 0;
+		OnResize();
 	}
 
 	void OnArchiveParserProgress(const int percents) override

@@ -16,10 +16,15 @@ using namespace Flibrary;
 
 namespace
 {
+constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
+
 constexpr auto CONTEXT = "OpdsDialog";
 constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
 constexpr auto ANY = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
+constexpr auto SITE = QT_TRANSLATE_NOOP("OpdsDialog", "Site Address");
+constexpr auto OPDS = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS Address");
+constexpr auto WEB = QT_TRANSLATE_NOOP("OpdsDialog", "Web Address");
 TR_DEF
 }
 
@@ -117,8 +122,17 @@ private: // IOpdsController::IObserver
 		ui.lineEditOpdsAddress->setEnabled(isRunning);
 		ui.lineEditWebAddress->setEnabled(isRunning);
 		ui.lineEditSiteAddress->setEnabled(isRunning);
+		ui.labelOpds->setOpenExternalLinks(isRunning);
+		ui.labelWeb->setOpenExternalLinks(isRunning);
+		ui.labelSite->setOpenExternalLinks(isRunning);
+		ui.labelOpds->setEnabled(isRunning);
+		ui.labelWeb->setEnabled(isRunning);
+		ui.labelSite->setEnabled(isRunning);
+
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
+
+		SelLabelLink(isRunning);
 	}
 
 private:
@@ -128,6 +142,24 @@ private:
 		ui.lineEditSiteAddress->setText(QString("http://%1:%2/").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
 		ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
+
+		SelLabelLink(true);
+	}
+
+	void SelLabelLink(const bool isRunning) const
+	{
+		if (isRunning)
+		{
+			ui.labelSite->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSiteAddress->text()).arg(Tr(SITE)));
+			ui.labelOpds->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpdsAddress->text()).arg(Tr(OPDS)));
+			ui.labelWeb->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditWebAddress->text()).arg(Tr(WEB)));
+		}
+		else
+		{
+			ui.labelSite->setText(Tr(SITE));
+			ui.labelOpds->setText(Tr(OPDS));
+			ui.labelWeb->setText(Tr(WEB));
+		}
 	}
 
 private:

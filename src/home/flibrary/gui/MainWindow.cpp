@@ -2,7 +2,10 @@
 
 #include "MainWindow.h"
 
+#include <ranges>
+
 #include <QActionGroup>
+#include <QDesktopServices>
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
@@ -18,6 +21,7 @@
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IInpxGenerator.h"
+#include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/logic/IUpdateChecker.h"
@@ -55,6 +59,8 @@ constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWin
 constexpr auto SELECT_QSS_FILE = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
 constexpr auto QSS_FILE_FILTER = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto SEARCH_BOOKS_BY_TITLE_PLACEHOLDER = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
+constexpr auto ENABLE_ALL = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
+constexpr auto DISABLE_ALL = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -68,11 +74,12 @@ constexpr auto SHOW_ANNOTATION_KEY = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY = "ui/View/AnnotationCoverButtons";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "ui/View/AnnotationJokes/%1";
 constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
-constexpr auto SHOW_JOKES_KEY = "ui/View/ShowJokes";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
+constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
 constexpr auto QSS = "qss";
 
 class LineEditPlaceholderTextController final : public QObject
@@ -129,6 +136,7 @@ public:
 	Impl(MainWindow& self,
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
+	     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	     std::shared_ptr<const IUiFactory> uiFactory,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ICollectionController> collectionController,
@@ -149,6 +157,7 @@ public:
 		, m_self { self }
 		, m_logicFactory { logicFactory }
 		, m_styleApplierFactory { std::move(styleApplierFactory) }
+		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
@@ -261,7 +270,9 @@ private: // plog::IAppender
 private: // ILineOption::IObserver
 	void OnOptionEditing(const QString& value) override
 	{
-		const auto books = ILogicFactory::GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
+		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books = logicFactory->GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
+
 		if (books.empty())
 			return;
 
@@ -414,6 +425,72 @@ private:
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
+	void ConnectActionsSettingsAnnotationJokes()
+	{
+		static constexpr auto hasDisclaimer = "HasDisclaimer";
+		static constexpr auto actionName = "name";
+		static constexpr auto visible = "Visible";
+
+		if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(visible), true))
+		{
+			delete m_ui.menuJokes;
+			return;
+		}
+
+		const auto mayBeChecked = [](const QAction* item) { return item->isCheckable() && !item->isChecked() && !item->property(hasDisclaimer).toBool(); };
+		const auto mayBeUnchecked = [](const QAction* item) { return item->isCheckable() && item->isChecked(); };
+
+		const auto setEnabled = [this, mayBeChecked, mayBeUnchecked]
+		{
+			if (m_enableAllJokes)
+				m_enableAllJokes->setEnabled(std::ranges::any_of(m_ui.menuJokes->actions(), mayBeChecked));
+			if (m_disableAllJokes)
+				m_disableAllJokes->setEnabled(std::ranges::any_of(m_ui.menuJokes->actions(), mayBeUnchecked));
+		};
+
+		for (const auto& [implementation, name, title, disclaimer] : m_jokeRequesterFactory->GetImplementations())
+		{
+			if (!m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name + visible), true))
+				continue;
+
+			auto* action = m_ui.menuJokes->addAction(title);
+			action->setProperty(actionName, name);
+			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
+			action->setCheckable(true);
+
+			connect(action,
+			        &QAction::toggled,
+			        [this, implementation, setEnabled](const bool checked)
+			        {
+						m_annotationController->ShowJokes(implementation, checked);
+						setEnabled();
+					});
+			action->setChecked(m_settings->Get(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), false));
+
+			connect(action,
+			        &QAction::triggered,
+			        [this, action, name, disclaimer](const bool checked)
+			        {
+						if (!checked || disclaimer.isEmpty() || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+							return m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+						QTimer::singleShot(0, [action] { action->setChecked(false); });
+					});
+		}
+
+		m_ui.menuJokes->addSeparator();
+		const auto checkAll = [this](const auto& filter, const bool checked)
+		{
+			for (auto* action : m_ui.menuJokes->actions() | std::views::filter(filter))
+			{
+				m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(action->property(actionName).toString()), checked);
+				action->setChecked(checked);
+			}
+		};
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] { checkAll(mayBeChecked, true); });
+		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] { checkAll(mayBeUnchecked, false); });
+		setEnabled();
+	}
+
 	void ConnectActionsSettingsAnnotation()
 	{
 		PLOGV << "ConnectActionsSettingsAnnotation";
@@ -421,11 +498,12 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowContent);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
-		ConnectSettings(m_ui.actionShowJokes, SHOW_JOKES_KEY, m_annotationController.get(), &IAnnotationController::ShowJokes);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] { m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible()); });
 
 		m_ui.actionShowReadersReviews->setVisible(m_collectionController->ActiveCollectionExists()
 		                                          && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists());
+
+		ConnectActionsSettingsAnnotationJokes();
 	}
 
 	void ConnectActionsSettingsFont()
@@ -484,6 +562,32 @@ private:
 		connect(m_ui.actionDeleteAllThemes, &QAction::triggered, &m_self, [this] { DeleteCustomThemes(); });
 	}
 
+	void ConnectActionsSettingsExport()
+	{
+		PLOGV << "ConnectActionsSettingsExport";
+		connect(m_ui.actionExportTemplate,
+		        &QAction::triggered,
+		        &m_self,
+		        [&]
+		        {
+					m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit,
+			                                                                 &QWidget::customContextMenuRequested,
+			                                                                 &m_self,
+			                                                                 [this]
+			                                                                 {
+																				 {
+																					 QSignalBlocker blocker(m_ui.settingsLineEdit);
+																					 IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
+																				 }
+																				 emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
+																			 });
+					m_lineOption->Register(this);
+					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+				});
+		ConnectSettings(m_ui.actionConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
+		ConnectSettings(m_ui.actionConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
+	}
+
 	void ConnectActionsSettingsView()
 	{
 		PLOGV << "ConnectActionsSettingsView";
@@ -512,14 +616,9 @@ private:
 		ConnectActionsSettingsTheme();
 	}
 
-	void ConnectActionsSettings()
+	void ConnectActionsSettingsHttp()
 	{
-		PLOGV << "ConnectActionsSettings";
-		ConnectActionsSettingsView();
-
-		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
-		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
-		connect(m_ui.actionOpds,
+		connect(m_ui.actionHttpServerManagement,
 		        &QAction::triggered,
 		        &m_self,
 		        [&]
@@ -533,27 +632,50 @@ private:
 						m_uiFactory->ShowError(QString::fromStdString(ex.what()));
 					}
 				});
-		connect(m_ui.actionExportTemplate,
+		const auto browse = [this](const QString& folder = {})
+		{ QDesktopServices::openUrl(QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder)); };
+		connect(m_ui.actionBrowseHttpOpds, &QAction::triggered, [=] { browse("opds"); });
+		connect(m_ui.actionBrowseHttpSite, &QAction::triggered, [=] { browse(); });
+		connect(m_ui.actionBrowseHttpWeb, &QAction::triggered, [=] { browse("web"); });
+		connect(m_ui.menuHttp,
+		        &QMenu::aboutToShow,
+		        [this]
+		        {
+					auto controller = ILogicFactory::Lock(m_logicFactory)->CreateOpdsController();
+					const auto running = controller->IsRunning();
+					m_ui.actionBrowseHttpOpds->setEnabled(running);
+					m_ui.actionBrowseHttpSite->setEnabled(running);
+					m_ui.actionBrowseHttpWeb->setEnabled(running);
+				});
+	}
+
+	void ConnectActionsSettingsFilters()
+	{
+		PLOGV << "ConnectActionsSettingsFilters";
+		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
+		ConnectSettings(m_ui.actionGenreFilterEnabled, GENRE_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterGenres);
+		connect(m_ui.actionGenreFilterSettings,
 		        &QAction::triggered,
 		        &m_self,
-		        [&]
+		        [this]
 		        {
-					m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit,
-			                                                                 &QWidget::customContextMenuRequested,
-			                                                                 &m_self,
-			                                                                 [this]
-			                                                                 {
-																				 {
-																					 QSignalBlocker blocker(m_ui.settingsLineEdit);
-																					 IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
-																				 }
-																				 emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
-																			 });
-					m_lineOption->Register(this);
-					m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+					auto allGenreCodes = m_booksWidget->GetView()->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
+					auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
+					if (dialog->exec() == QDialog::Accepted)
+						m_booksWidget->FilterGenres(true);
 				});
+	}
 
-		ConnectSettings(m_ui.actionPermanentLanguageFilter, Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY);
+	void ConnectActionsSettings()
+	{
+		PLOGV << "ConnectActionsSettings";
+		ConnectActionsSettingsExport();
+		ConnectActionsSettingsView();
+		ConnectActionsSettingsHttp();
+		ConnectActionsSettingsFilters();
+
+		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
+		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
 	}
 
 	void ConnectActionsHelp()
@@ -721,12 +843,12 @@ private:
 			return { CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::QssStyle, fileName, fileInfo.completeBaseName(), fileName) };
 
 		if (ext == "dll")
-			return AddEternalStyleDll(fileInfo);
+			return AddExternalStyleDll(fileInfo);
 
 		return {};
 	}
 
-	std::vector<QAction*> AddEternalStyleDll(const QFileInfo& fileInfo)
+	std::vector<QAction*> AddExternalStyleDll(const QFileInfo& fileInfo)
 	{
 		const auto addLibList = [&](const std::set<QString>& libList) -> std::vector<QAction*>
 		{
@@ -747,13 +869,12 @@ private:
 			return result;
 		};
 
-		const auto currentList = GetQssList();
+		auto currentList = GetQssList();
 
 		if (auto applier = m_styleApplierFactory->CreateThemeApplier(); applier->GetType() == IStyleApplier::Type::DllStyle && applier->GetChecked().second == fileInfo.filePath())
 		{
-			auto libList = currentList;
-			libList.erase(IStyleApplier::STYLE_FILE_NAME);
-			return addLibList(libList);
+			currentList.erase(IStyleApplier::STYLE_FILE_NAME);
+			return addLibList(currentList);
 		}
 
 		Util::DyLib lib(fileInfo.filePath().toStdString());
@@ -947,6 +1068,7 @@ private:
 	QTimer m_delayStarter;
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
 	std::shared_ptr<const IStyleApplierFactory> m_styleApplierFactory;
+	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
@@ -977,10 +1099,14 @@ private:
 
 	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
 	QString m_lastStyleFileHovered;
+
+	QAction* m_enableAllJokes { nullptr };
+	QAction* m_disableAllJokes { nullptr };
 };
 
 MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<const IStyleApplierFactory> styleApplierFactory,
+                       std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
                        std::shared_ptr<IUiFactory> uiFactory,
                        std::shared_ptr<ISettings> settings,
                        std::shared_ptr<ICollectionController> collectionController,
@@ -1001,6 +1127,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	, m_impl(*this,
              logicFactory,
              std::move(styleApplierFactory),
+             std::move(jokeRequesterFactory),
              std::move(uiFactory),
              std::move(settings),
              std::move(collectionController),

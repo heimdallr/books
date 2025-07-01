@@ -621,7 +621,7 @@ size_t Store(const Path& dbFileName, Data& data)
 			cmd.bind(11, book.insideNo);
 			cmd.bind(12, format, sqlite3pp::nocopy);
 			cmd.bind(13, book.size);
-			cmd.bind(14, book.isDeleted ? 1 : 0);
+			cmd.bind(14, book.deleted ? 1 : 0);
 			cmd.bind(15, book.updateId);
 			cmd.bind(16, title, sqlite3pp::nocopy);
 			return cmd.execute();
@@ -713,7 +713,7 @@ size_t Store(const Path& dbFileName, Data& data)
 				}
 			}
 			catch (...) // NOLINT(bugprone-empty-catch)
-			{
+			{ //-V565
 			}
 		}
 
@@ -1018,8 +1018,7 @@ public:
 		(*m_executor)({ "Update collection",
 		                [&]
 		                {
-							std::string error;
-							const auto foldersCount = [&]() -> size_t
+							auto foldersCount = [&]() -> std::optional<size_t>
 							{
 								try
 								{
@@ -1027,17 +1026,26 @@ public:
 								}
 								catch (const std::exception& ex)
 								{
-									PLOGE << (error = ex.what());
+									PLOGE << ex.what();
 								}
 								catch (...)
 								{
-									PLOGE << (error = "Unknown error");
+									PLOGE << "Unknown error";
 								}
-								return 0;
+								return std::nullopt;
 							}();
 							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-							return [this, foldersCount, genres, hasError = !error.empty()](size_t)
-							{ m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound, hasError }); };
+							return [this, foldersCount, genres](size_t)
+							{
+								m_callback(UpdateResult { foldersCount ? *foldersCount : 0,
+				                                          m_data.authors.size(),
+				                                          m_data.series.size(),
+				                                          m_data.books.size(),
+				                                          m_data.keywords.size(),
+				                                          genres,
+				                                          m_oldDataUpdateFound,
+				                                          !foldersCount });
+							};
 						} });
 	}
 

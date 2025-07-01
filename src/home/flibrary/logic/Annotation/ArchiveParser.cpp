@@ -124,8 +124,6 @@ private: // Util::SaxParser
 		if (name.compare(A, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(L_HREF);
 
-		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
-
 		if (m_annotationMode)
 		{
 			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
@@ -136,6 +134,8 @@ private: // Util::SaxParser
 					m_data.annotation.append(QString(R"( %1="%2")").arg(AnnotationReplaceAttributeName(attributes.GetName(i)), attributes.GetValue(i)));
 			}
 		}
+
+		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;

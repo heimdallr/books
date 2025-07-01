@@ -2,7 +2,7 @@
 
 #include <ranges>
 
-#include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
 
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
@@ -17,6 +17,8 @@ using namespace Flibrary;
 namespace
 {
 
+using Role = IGenreModel::Role;
+
 template <typename T>
 void Enumerate(T root, const auto& f)
 {
@@ -27,15 +29,12 @@ void Enumerate(T root, const auto& f)
 	}
 }
 
-Qt::CheckState GetChecked(const Genre& genre)
+Qt::CheckState IsChecked(const QModelIndex& index)
 {
-	if (genre.children.empty())
-		return genre.checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
-
 	bool hasChecked = false, hasUnchecked = false;
-	for (const auto& item : genre.children)
+	for (int row = 0, rowCount = index.model()->rowCount(index); row < rowCount; ++row)
 	{
-		switch (GetChecked(item))
+		switch (index.model()->index(row, 0, index).data(Qt::CheckStateRole).value<Qt::CheckState>())
 		{
 			case Qt::CheckState::PartiallyChecked:
 				return Qt::CheckState::PartiallyChecked;
@@ -56,10 +55,14 @@ Qt::CheckState GetChecked(const Genre& genre)
 	return hasChecked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
 }
 
-} // namespace
-
-class GenreModel::Model final : public QAbstractItemModel
+class Model final : public QAbstractItemModel
 {
+public:
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseUser> databaseUser)
+	{
+		return std::make_unique<Model>(std::move(databaseUser));
+	}
+
 public:
 	explicit Model(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
@@ -73,7 +76,7 @@ private: // QAbstractItemModel
 			return {};
 
 		auto* parentItem = parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root;
-		auto& childItem = parentItem->children[row];
+		auto& childItem = parentItem->children[static_cast<size_t>(row)];
 
 		return createIndex(row, column, &childItem);
 	}
@@ -86,7 +89,7 @@ private: // QAbstractItemModel
 		auto* childItem = static_cast<Genre*>(index.internalPointer());
 		auto* parentItem = childItem->parent;
 
-		return parentItem != &m_root ? createIndex(parentItem->row, 0, parentItem) : QModelIndex {};
+		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
 	}
 
 	int rowCount(const QModelIndex& parent) const override
@@ -125,7 +128,18 @@ private: // QAbstractItemModel
 				return genre->name;
 
 			case Qt::CheckStateRole:
-				return GetChecked(*genre);
+				return genre->checked ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
+
+			case Role::Code:
+				return genre->code;
+
+			case Role::ChildrenCodes:
+			{
+				QStringList result;
+				result.reserve(static_cast<int>(genre->children.size()));
+				std::ranges::transform(genre->children, std::back_inserter(result), [](const auto& item) { return item.code; });
+				return result;
+			}
 
 			default:
 				break;
@@ -133,21 +147,22 @@ private: // QAbstractItemModel
 		return {};
 	}
 
-	bool setData(const QModelIndex& index, const QVariant& value, [[maybe_unused]] const int role) override
+	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
 		if (index.isValid())
 		{
 			assert(role == Qt::CheckStateRole);
-			SetChecked(index, value.value<Qt::CheckState>() == Qt::CheckState::Checked);
+			auto* genre = static_cast<Genre*>(index.internalPointer());
+			genre->checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
 			return true;
 		}
 
 		switch (role)
 		{
 			case Role::CheckAll:
-				return SetChecks([](const auto&) { return true; });
+				return SetChecks([](const auto&) { return true; }, value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
 			case Role::UncheckAll:
-				return SetChecks([](const auto&) { return false; });
+				return SetChecks([](const auto&) { return false; }, value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
 			case Role::RevertChecks:
 				return SetChecks([](const auto& item) { return !item.checked; });
 			case Role::SelectedList:
@@ -165,12 +180,12 @@ private: // QAbstractItemModel
 	}
 
 private:
-	bool SetChecks(const std::function<bool(const Genre&)>& f)
+	bool SetChecks(const std::function<bool(const Genre&)>& f, const std::unordered_set<QString>& codes = {})
 	{
 		Enumerate<Genre&>(m_root,
 		                  [&](Genre&, Genre& item)
 		                  {
-							  if (item.children.empty())
+							  if (item.children.empty() && (codes.empty() || codes.contains(item.code)))
 								  item.checked = f(item);
 						  });
 
@@ -189,24 +204,6 @@ private:
 		return true;
 	}
 
-	void SetChecked(QModelIndex index, const bool value)
-	{
-		assert(index.isValid());
-
-		const auto sz = rowCount(index);
-		if (sz == 0)
-		{
-			auto& genre = *static_cast<Genre*>(index.internalPointer());
-			genre.checked = value;
-
-			for (; index.isValid(); index = index.parent())
-				emit dataChanged(index, index, { Qt::CheckStateRole });
-		}
-
-		for (int row = 0; row < sz; ++row)
-			SetChecked(this->index(row, 0, index), value);
-	}
-
 	void CreateGenreTree(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
@@ -218,12 +215,12 @@ private:
 									  {
 										  const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
 										  m_root = std::move(root);
-										  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+										  std::unordered_set checked(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
 										  Enumerate<Genre&>(m_root,
 				                                            [&](Genre& parent, Genre& item)
 				                                            {
 																item.parent = &parent;
-																item.checked = languagesIndexed.contains(item.code);
+																item.checked = checked.contains(item.code);
 															});
 									  };
 								  } });
@@ -234,8 +231,101 @@ private:
 	QStringList m_checked;
 };
 
+class ModelFiltered final : public QSortFilterProxyModel
+{
+public:
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseUser> databaseUser, QObject* parent = nullptr)
+	{
+		return std::make_unique<ModelFiltered>(std::move(databaseUser), parent);
+	}
+
+public:
+	ModelFiltered(std::shared_ptr<const IDatabaseUser> databaseUser, QObject* parent)
+		: QSortFilterProxyModel(parent)
+		, m_sourceModel { Model::Create(std::move(databaseUser)) }
+	{
+		QSortFilterProxyModel::setSourceModel(m_sourceModel.get());
+	}
+
+private: // QAbstractItemModel
+	QVariant data(const QModelIndex& index, const int role) const override
+	{
+		if (!index.isValid())
+			return QSortFilterProxyModel::data(index, role);
+
+		switch (role)
+		{
+			case Qt::CheckStateRole:
+				return rowCount(index) == 0 ? QSortFilterProxyModel::data(index, role) : IsChecked(index);
+
+			default:
+				break;
+		}
+
+		return QSortFilterProxyModel::data(index, role);
+	}
+
+	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
+	{
+		if (index.isValid())
+		{
+			assert(role == Qt::CheckStateRole);
+			SetChecked(index, value.value<Qt::CheckState>());
+			return true;
+		}
+
+		switch (role)
+		{
+			case Role::VisibleGenreCodes:
+				m_visibleGenres = value.value<std::unordered_set<QString>>();
+				invalidateFilter();
+				return true;
+
+			default:
+				break;
+		}
+
+		return QSortFilterProxyModel::setData(index, value, role);
+	}
+
+private: // QSortFilterProxyModel
+	bool filterAcceptsRow(const int sourceRow, const QModelIndex& sourceParent) const override
+	{
+		if (m_visibleGenres.empty())
+			return true;
+
+		const auto sourceIndex = sourceModel()->index(sourceRow, 0, sourceParent);
+		return sourceModel()->rowCount(sourceIndex)
+		         ? std::ranges::any_of(sourceIndex.data(IGenreModel::Role::ChildrenCodes).toStringList(), [this](const QString& code) { return m_visibleGenres.contains(code); })
+		         : m_visibleGenres.contains(sourceIndex.data(IGenreModel::Role::Code).toString());
+	}
+
+private:
+	void SetChecked(QModelIndex index, const Qt::CheckState state)
+	{
+		assert(index.isValid());
+
+		const auto sz = rowCount(index);
+		if (sz == 0)
+		{
+			QSortFilterProxyModel::setData(index, state, Qt::CheckStateRole);
+			for (; index.isValid(); index = index.parent())
+				emit dataChanged(index, index, { Qt::CheckStateRole });
+		}
+
+		for (int row = 0; row < sz; ++row)
+			SetChecked(this->index(row, 0, index), state);
+	}
+
+private:
+	PropagateConstPtr<QAbstractItemModel> m_sourceModel;
+	std::unordered_set<QString> m_visibleGenres;
+};
+
+} // namespace
+
 GenreModel::GenreModel(std::shared_ptr<const IDatabaseUser> databaseUser)
-	: m_model(std::move(databaseUser))
+	: m_model { ModelFiltered::Create(std::move(databaseUser)) }
 {
 }
 

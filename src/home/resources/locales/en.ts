@@ -821,7 +821,17 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
+        <source>Another e-library book cataloger</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Version: %1 (%2)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Distributed under license %1</source>
         <translation></translation>
     </message>
     <message>
@@ -1016,7 +1026,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antiscience_all_root</source>
-        <translation>Anti-science, obscurantism</translation>
+        <translation>Anti-science. Obscurantism</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1216,7 +1226,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_alt_hist</source>
-        <translation>Alternate history, fantasy</translation>
+        <translation>Alternate history. Fantasy</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2635,6 +2645,25 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>GenreFilterDialog</name>
+    <message>
+        <source>Genre filter settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Check all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Invert checks</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>GroupController</name>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
@@ -2762,6 +2791,124 @@ Try again?</source>
     </message>
     <message>
         <source>Compression quality</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>JokeRequester</name>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatFacts</source>
+        <translation>Cat facts</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatPictures</source>
+        <translation>Pictures with cats</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>ChuckNorrisFacts</source>
+        <translation>Chuck Norris facts</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DadJokes</source>
+        <translation>Dad jokes</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogPictures</source>
+        <translation>Pictures with dogs</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxPictures</source>
+        <translation>Pictures with foxes</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Jokes</source>
+        <translation>All sorts of jokes</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Quotes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>QuotePics</source>
+        <translation>Quotes in the picture</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>UselessFacts</source>
+        <translation>Useless Facts</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>PunchlineJokes</source>
+        <translation>Punchline jokes</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Category</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Programming</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Misc</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Dark</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Pun</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Spooky</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Christmas</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/ChuckNorrisJokeRequester.cpp"/>
+        <source>Important fact about Chuck Norris</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/DadJokeRequester.cpp"/>
+        <source>From dad</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/UselessFactJokeRequester.cpp"/>
+        <source>One more useless fact</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/CatFactJokeRequester.cpp"/>
+        <source>Interesting fact about cats</source>
         <translation></translation>
     </message>
 </context>
@@ -5065,6 +5212,16 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Enable all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Disable all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation></translation>
     </message>
@@ -5198,15 +5355,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Jokes</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Search &amp;bar by title</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>&amp;Http Server...</source>
         <translation></translation>
     </message>
     <message>
@@ -5223,6 +5372,54 @@ Try again?</source>
     </message>
     <message>
         <source>Navigation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;cover</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;images</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Export</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Server &amp;Management...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;Site</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;Web</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Go to &amp;OPDS</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Entertainment</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Genres filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter &amp;enabled</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter &amp;settings...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Filters</source>
         <translation></translation>
     </message>
 </context>
@@ -5512,10 +5709,12 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Web Address</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>OPDS Address</source>
         <translation></translation>
     </message>
@@ -5539,6 +5738,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Site Address</source>
         <translation></translation>
     </message>
@@ -5635,47 +5835,42 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
-        <source>Number of: %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
-        <source>Book</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>All books in the section</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
+        <source>Books: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books found for the request &quot;%1&quot;: %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Previous page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Next page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[First page]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Last page]</source>
         <translation></translation>
     </message>
@@ -5782,8 +5977,23 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre%</source>
+        <translation>Book genre</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre_tree%</source>
+        <translation>Genre, subgenre, etc.</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%db_id%</source>
         <translation>Book ID from the database</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%lib_id%</source>
+        <translation>Book ID from the source online library</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>

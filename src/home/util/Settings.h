@@ -35,7 +35,7 @@ public:
 
 	void Remove(const QString& key) override;
 
-	void BeginGroup(const QString& group) const override;
+	std::recursive_mutex& BeginGroup(const QString& group) const override;
 	void EndGroup() const override;
 
 	void RegisterObserver(ISettingsObserver* observer) override;

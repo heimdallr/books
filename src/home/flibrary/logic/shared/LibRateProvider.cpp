@@ -48,7 +48,7 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 		const auto obj = doc.object();
 		std::unordered_map<QString, double> rate;
 		for (auto it = obj.constBegin(); it != obj.constEnd(); ++it)
-			rate.emplace(it.key(), it.value().toObject()["libRate"].toDouble());
+			rate.try_emplace(it.key(), it.value().toObject()["libRate"].toDouble());
 
 		return rate;
 	}
@@ -73,7 +73,7 @@ std::map<double, uint32_t> ReadColors(const ISettings& settings)
 		{ 6.0, color },
 	};
 
-	const ScopedCall settingsGuard([&] { settings.BeginGroup(Constant::Settings::LIBRATE_VIEW_COLORS_KEY); }, [&] { settings.EndGroup(); });
+	SettingsGroup viewColorsGroup(settings, Constant::Settings::LIBRATE_VIEW_COLORS_KEY);
 	for (const auto& key : settings.GetKeys())
 	{
 		bool ok = false;
@@ -151,8 +151,9 @@ QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const Q
 
 	rateValue = std::lround(rateValue * m_impl->power) * 1.0 / m_impl->power;
 
-	const auto it = m_impl->colors.upper_bound(rateValue);
-	assert(!IsOneOf(it, m_impl->colors.begin(), m_impl->colors.end()));
+	const auto& colors = m_impl->colors;
+	const auto it = colors.upper_bound(rateValue);
+	assert(!IsOneOf(it, colors.begin(), colors.end()));
 
 	const auto get = [&](const int bits)
 	{

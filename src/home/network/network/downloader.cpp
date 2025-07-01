@@ -17,9 +17,12 @@ public:
 	}
 
 public:
-	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
+	size_t Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress, const QHttpHeaders& headers)
 	{
-		const QNetworkRequest request(url);
+		QNetworkRequest request(url);
+		if (!headers.isEmpty())
+			request.setHeaders(headers);
+
 		auto* reply = m_manager.get(request);
 		const auto id = ++m_id;
 		m_replies.try_emplace(reply, std::make_tuple(id, QNetworkReply::NetworkError::NoError, QString {}));
@@ -44,8 +47,7 @@ public:
 		                 [&, reply, url](const QNetworkReply::NetworkError code)
 		                 {
 							 auto error = reply->errorString();
-							 PLOGE << "Download error: " << url;
-							 PLOGE << QString("(%1) %2").arg(static_cast<int>(code)).arg(error);
+							 PLOGE << QString("Download '%1' error: %2 %3").arg(url).arg(static_cast<int>(code)).arg(error);
 							 const auto it = m_replies.find(reply);
 							 assert(it != m_replies.end());
 							 auto& [_, errorCode, errorMessage] = it->second;
@@ -85,7 +87,7 @@ Downloader::~Downloader()
 	PLOGV << "Downloader destroyed";
 }
 
-size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress)
+size_t Downloader::Download(const QString& url, QIODevice& io, OnFinish callback, OnProgress progress, const QHttpHeaders& headers)
 {
-	return m_impl->Download(url, io, std::move(callback), std::move(progress));
+	return m_impl->Download(url, io, std::move(callback), std::move(progress), headers);
 }

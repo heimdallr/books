@@ -96,8 +96,8 @@ constexpr auto UNDEFINED = QT_TRANSLATE_NOOP("Language", "[Undetermined]");
 
 struct Language
 {
-	const char* key;
-	const char* title;
+	const char* key { nullptr };
+	const char* title { nullptr };
 	int priority { std::numeric_limits<int>::max() };
 };
 

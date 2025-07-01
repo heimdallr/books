@@ -350,7 +350,7 @@ private:
 		{
 			const auto widths = var.value<QVector<int>>();
 			for (auto i = 0, sz = std::min(header->count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
-				header->resizeSection(i, widths[i]);
+				header->resizeSection(i, widths[static_cast<qsizetype>(i)]);
 		}
 	}
 

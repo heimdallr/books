@@ -29,7 +29,7 @@ constexpr auto EMPTY_FILE_ALIAS = "[Content]";
 
 class CryptoGetTextPasswordImpl final : public ICryptoGetTextPassword
 {
-	UNKNOWN_IMPL(ICryptoGetTextPassword)
+	UNKNOWN_IMPL(ICryptoGetTextPassword) //-V835
 
 public:
 	static CComPtr<ICryptoGetTextPassword> Create(QString password = {})

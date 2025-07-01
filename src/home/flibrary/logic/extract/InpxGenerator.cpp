@@ -4,7 +4,6 @@
 
 #include <filesystem>
 
-#include <QBuffer>
 #include <QFileInfo>
 #include <QTimer>
 
@@ -218,31 +217,23 @@ void Write(QByteArray& stream,
 QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress)
 {
 	size_t n = 0;
-	Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip);
 	QByteArray inpx;
 
-	std::vector<QString> fileNames;
-	fileNames.reserve(books.size());
-	std::ranges::transform(books, std::back_inserter(fileNames), [](const auto& book) { return book.book->GetRawData(BookItem::Column::FileName); });
+	for (const auto& book : books)
+	{
+		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
+		const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
+		const Zip zipInput(folder);
+		const auto input = zipInput.Read(fileName);
+		auto bytes = RestoreImages(input->GetStream(), folder, fileName);
+		progress.Increment(bytes.size());
+		Write(inpx, uid, book, n);
 
-	QByteArray bytes;
-
-	zip.Write(fileNames,
-	          [&](const size_t index) -> std::unique_ptr<QIODevice>
-	          {
-				  const auto& book = books[index];
-				  const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-				  const auto folder = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
-				  const Zip zipInput(folder);
-				  const auto input = zipInput.Read(fileName);
-				  bytes = RestoreImages(input->GetStream(), folder, fileName);
-				  progress.Increment(bytes.size());
-				  if (progress.IsStopped())
-					  return {};
-
-				  Write(inpx, uid, book, n);
-				  return std::make_unique<QBuffer>(&bytes);
-			  });
+		auto zipFiles = Zip::CreateZipFileController();
+		zipFiles->AddFile(book.book->GetRawData(BookItem::Column::FileName), bytes, QDateTime::currentDateTime());
+		Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip, true);
+		zip.Write(std::move(zipFiles));
+	}
 
 	return inpx;
 }
@@ -401,20 +392,20 @@ private:
 	{
 		const auto inpxFileExists = QFile::exists(inpxFileName);
 
-		std::vector<std::pair<QString, QByteArray>> toZip;
+		auto zipFileController = Zip::CreateZipFileController();
 
 		if (!inpxFileExists)
 		{
-			toZip.emplace_back("collection.info", QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8());
-			toZip.emplace_back("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
+			zipFileController->AddFile("collection.info", QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 		}
 
 		for (auto&& [uid, data] : m_paths)
 			if (!data.isEmpty())
-				toZip.emplace_back(QString("%1.inp").arg(uid), std::move(data));
+				zipFileController->AddFile(QString("%1.inp").arg(uid), std::move(data), QDateTime::currentDateTime());
 
 		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
-		zip.Write(std::move(toZip));
+		zip.Write(std::move(zipFileController));
 
 		m_callback(m_hasError);
 	}
@@ -457,11 +448,13 @@ private:
 			if (QFile::exists(inpxFileName))
 				QFile::remove(inpxFileName);
 
+			auto zipFileController = Zip::CreateZipFileController();
+			zipFileController->AddFile("collection.info", QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+
 			Zip zip(inpxFileName, Zip::Format::Zip);
 			std::vector<std::pair<QString, QByteArray>> toZip;
-			toZip.emplace_back("collection.info", QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8());
-			toZip.emplace_back("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8());
-			zip.Write(std::move(toZip));
+			zip.Write(std::move(zipFileController));
 		}
 
 		QString currentFolder;
@@ -477,9 +470,9 @@ private:
 			Zip zip(inpxFileName, Zip::Format::Auto, true);
 
 			QFileInfo fileInfo(currentFolder);
-			zip.Write({
-				{ fileInfo.completeBaseName() + ".inp", std::move(data) }
-            });
+			auto zipFileController = Zip::CreateZipFileController();
+			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", std::move(data), QDateTime::currentDateTime());
+			zip.Write(std::move(zipFileController));
 
 			bookProgressItem->Increment(counter);
 			counter = 0;

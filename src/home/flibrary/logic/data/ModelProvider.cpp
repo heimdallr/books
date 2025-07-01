@@ -13,6 +13,7 @@
 #include "model/script/ScriptModel.h"
 #include "model/script/ScriptSortFilterModel.h"
 
+#include "GenreFilterProvider.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -54,7 +55,6 @@ struct ModelProvider::Impl
 {
 	Hypodermic::Container& container;
 	mutable IDataItem::Ptr data;
-	mutable IModelObserver* observer { nullptr };
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
 
 	explicit Impl(Hypodermic::Container& container)
@@ -71,12 +71,11 @@ struct ModelProvider::Impl
 	}
 
 	template <typename T>
-	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, IModelObserver& o, const bool autoAcceptChildRows) const
+	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, const bool autoAcceptChildRows) const
 	{
 		data = std::move(d);
-		observer = &o;
 		sourceModel = container.resolve<T>();
-		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows);
+		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
 	}
 };
@@ -92,19 +91,19 @@ ModelProvider::~ModelProvider()
 	PLOGV << "ModelProvider destroyed";
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
-	return m_impl->CreateModel<ListModel>(std::move(data), observer, autoAcceptChildRows);
+	return m_impl->CreateModel<ListModel>(std::move(data), autoAcceptChildRows);
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorsListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorsListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
-	return m_impl->CreateModel<AuthorsModel>(std::move(data), observer, autoAcceptChildRows);
+	return m_impl->CreateModel<AuthorsModel>(std::move(data), autoAcceptChildRows);
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
-	auto model = CreateListModel(std::move(data), observer, autoAcceptChildRows);
+	auto model = CreateListModel(std::move(data), autoAcceptChildRows);
 	return std::make_shared<BooksSearchProxyModel>(std::move(model));
 }
 
@@ -120,9 +119,9 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 	return m_impl->container.resolve<ScriptSortFilterModel>();
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, IModelObserver& observer, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
-	return m_impl->CreateModel<TreeModel>(std::move(data), observer, autoAcceptChildRows);
+	return m_impl->CreateModel<TreeModel>(std::move(data), autoAcceptChildRows);
 }
 
 IDataItem::Ptr ModelProvider::GetData() const noexcept
@@ -131,19 +130,18 @@ IDataItem::Ptr ModelProvider::GetData() const noexcept
 	return std::move(m_impl->data);
 }
 
-IModelObserver& ModelProvider::GetObserver() const noexcept
-{
-	assert(m_impl->observer);
-	return *m_impl->observer;
-}
-
 [[nodiscard]] std::shared_ptr<QAbstractItemModel> ModelProvider::GetSourceModel() const noexcept
 {
 	assert(m_impl->sourceModel);
 	return std::move(m_impl->sourceModel);
 }
 
-std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() const noexcept
+std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() const
 {
 	return m_impl->container.resolve<ILibRateProvider>();
+}
+
+std::shared_ptr<const IGenreFilterProvider> ModelProvider::GetGenreFilterProvider() const
+{
+	return m_impl->container.resolve<IGenreFilterProvider>();
 }

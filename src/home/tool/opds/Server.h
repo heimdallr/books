@@ -3,6 +3,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/INoSqlRequester.h"
+#include "interface/IReactAppRequester.h"
+#include "interface/IRequester.h"
 #include "interface/IServer.h"
 #include "interface/logic/ICollectionProvider.h"
 
@@ -19,7 +22,11 @@ class Server : virtual public IServer
 	NON_COPY_MOVABLE(Server)
 
 public:
-	Server(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<class IRequester> requester, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider);
+	Server(const std::shared_ptr<const ISettings>& settings,
+	       std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	       std::shared_ptr<const IRequester> requester,
+	       std::shared_ptr<const IReactAppRequester> reactAppRequester,
+	       std::shared_ptr<const INoSqlRequester> noSqlRequester);
 	~Server() override;
 
 private:

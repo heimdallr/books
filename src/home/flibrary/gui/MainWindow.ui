@@ -347,11 +347,16 @@
       <property name="title">
        <string>&amp;Annotation</string>
       </property>
+      <widget class="QMenu" name="menuJokes">
+       <property name="title">
+        <string>&amp;Entertainment</string>
+       </property>
+      </widget>
       <addaction name="actionShowAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
       <addaction name="actionShowReadersReviews"/>
-      <addaction name="actionShowJokes"/>
+      <addaction name="menuJokes"/>
       <addaction name="separator"/>
       <addaction name="actionHideAnnotation"/>
      </widget>
@@ -408,12 +413,44 @@
      <addaction name="menuLog"/>
      <addaction name="menuTheme"/>
     </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>&amp;Export</string>
+     </property>
+     <addaction name="actionExportTemplate"/>
+     <addaction name="actionConvertCoverToGrayscale"/>
+     <addaction name="actionConvertImagesToGrayscale"/>
+    </widget>
+    <widget class="QMenu" name="menuHttp">
+     <property name="title">
+      <string notr="true">Http</string>
+     </property>
+     <addaction name="actionHttpServerManagement"/>
+     <addaction name="separator"/>
+     <addaction name="actionBrowseHttpSite"/>
+     <addaction name="actionBrowseHttpWeb"/>
+     <addaction name="actionBrowseHttpOpds"/>
+    </widget>
+    <widget class="QMenu" name="menuFilters">
+     <property name="title">
+      <string>&amp;Filters</string>
+     </property>
+     <widget class="QMenu" name="menuGenresFilter">
+      <property name="title">
+       <string>&amp;Genres filter</string>
+      </property>
+      <addaction name="actionGenreFilterEnabled"/>
+      <addaction name="actionGenreFilterSettings"/>
+     </widget>
+     <addaction name="actionPermanentLanguageFilter"/>
+     <addaction name="menuGenresFilter"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
+    <addaction name="menuExport"/>
+    <addaction name="menuHttp"/>
+    <addaction name="menuFilters"/>
     <addaction name="actionScripts"/>
-    <addaction name="actionOpds"/>
-    <addaction name="actionExportTemplate"/>
-    <addaction name="actionPermanentLanguageFilter"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
@@ -756,9 +793,9 @@
     <number>0</number>
    </property>
   </action>
-  <action name="actionOpds">
+  <action name="actionHttpServerManagement">
    <property name="text">
-    <string>&amp;Http Server...</string>
+    <string>Server &amp;Management...</string>
    </property>
    <property name="toolTip">
     <string>Http server management</string>
@@ -800,17 +837,6 @@
   <action name="actionGenerateIndexInpx">
    <property name="text">
     <string>Generate &amp;index (*.inpx)</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionShowJokes">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Jokes</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -908,10 +934,95 @@
     <string>About the author</string>
    </property>
   </action>
+  <action name="actionConvertCoverToGrayscale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grayscale &amp;cover</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionConvertImagesToGrayscale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grayscale &amp;images</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpSite">
+   <property name="text">
+    <string>Go to &amp;Site</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpWeb">
+   <property name="text">
+    <string>Go to &amp;Web</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBrowseHttpOpds">
+   <property name="text">
+    <string>Go to &amp;OPDS</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreFilterEnabled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Filter &amp;enabled</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenreFilterSettings">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Filter &amp;settings...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="../icons/light/resources/light.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionGenreFilterEnabled</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionGenreFilterSettings</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

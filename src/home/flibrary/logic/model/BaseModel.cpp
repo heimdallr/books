@@ -5,10 +5,12 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IGenreFilterProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
 
 #include "data/DataItem.h"
+#include "data/Genre.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -28,11 +30,20 @@ QVariant GetValue(const IDataItem& item, const int column)
 	return item.GetRawData(column);
 }
 
+template <typename F>
+void Enumerate(const IDataItem& root, const F& f)
+{
+	f(root);
+	for (size_t i = 0, sz = root.GetChildCount(); i < sz; ++i)
+		Enumerate(*root.GetChild(i), f);
+}
+
 }
 
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data { modelProvider->GetData() }
+	, m_genreFilterProvider { modelProvider->GetGenreFilterProvider() }
 	, m_libRateProvider { modelProvider->GetLibRateProvider() }
 {
 }
@@ -60,7 +71,7 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
 	if (!index.isValid())
-		return {};
+		return role == Role::AllGenreCodes ? GetAllGenreCodes() : QVariant {};
 
 	const auto* item = static_cast<IDataItem*>(index.internalPointer());
 	if (item->GetType() == ItemType::Books)
@@ -158,4 +169,22 @@ Qt::ItemFlags BaseModel::flags(const QModelIndex& index) const
 		flags |= Qt::ItemIsUserCheckable;
 
 	return flags;
+}
+
+QVariant BaseModel::GetAllGenreCodes() const
+{
+	std::unordered_set<QString> uniqueCodes;
+
+	Enumerate(*m_data,
+	          [&uniqueCodes, &genresNameToCode = m_genreFilterProvider->GetGenreNameToCodeMap()](const IDataItem& item)
+	          {
+				  if (item.GetType() != ItemType::Books)
+					  return;
+
+				  for (const auto& name : item.GetRawData(BookItem::Column::Genre).split(", ", Qt::SkipEmptyParts))
+					  if (const auto it = genresNameToCode.find(name); it != genresNameToCode.end())
+						  uniqueCodes.insert(it->second);
+			  });
+
+	return QVariant::fromValue(uniqueCodes);
 }

@@ -15,6 +15,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/GenreFilterDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -27,14 +28,16 @@
 #include "config/git_hash.h"
 #include "config/version.h"
 
-namespace HomeCompa::Flibrary
-{
+using namespace HomeCompa;
+using namespace Flibrary;
 
 namespace
 {
 constexpr auto CONTEXT = "Dialog";
 constexpr auto ABOUT_TITLE = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto ABOUT_TEXT = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger<p>Version: %1 (%2)<p><a href='%3'>%3</a></p>%4");
+constexpr auto ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto ABOUT_VERSION = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2)");
+constexpr auto ABOUT_LICENSE = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
 constexpr auto PERSONAL_BUILD = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
 constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
@@ -49,6 +52,7 @@ constexpr const char* COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/rikyoz/bit7z'>bit7z</a> &copy; 2014-2022 <a href='https://github.com/rikyoz'>Riccardo Ostani</a> <a href='https://github.com/rikyoz/bit7z/blob/master/LICENSE'>MPL-2.0</a></td></tr>",
 	"<tr><td><a href='https://www.sqlite.org/'>SQLite</a> <a href='https://www.sqlite.org/copyright.html'>Public Domain</a></td></tr>",
 	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 <a href='https://github.com/iwongu'>Wongoo Lee</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
+	"<tr><td><a href='https://github.com/heimdallr/ReactApp'>FLibrary React interface</a> &copy; 2025 alloroc2 <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/heimdallr/MyHomeLib/tree/master/Utils/MHLSQLiteExt'>MyHomeLib SQLite extension library</a> &copy; 2010 Nick Rymanov <a href='https://www.gnu.org/licenses/gpl-3.0.html#license-text'>GNU GPL</a></td></tr>",
 	"<tr><td><a href='https://github.com/ImageOptim/libimagequant'>libimagequant</a> &copy; 2009-2018 Kornel Lesiński <a href='https://github.com/ImageOptim/libimagequant?tab=License-1-ov-file'>GNU GPL-v3</a></td></tr>",
 	"<tr><td><a href='https://icu.unicode.org/'>ICU</a> &copy; 2016-2025 Unicode, Inc. <a href='https://www.unicode.org/copyright.html#License'>Open Source License</a></td></tr>",
@@ -56,6 +60,8 @@ constexpr const char* COMPONENTS[] = {
 	// clang-format on
 	"</table>"
 };
+constexpr auto ABOUT_TEXT = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
+TR_DEF
 
 QString GetPersonalBuildString()
 {
@@ -66,7 +72,7 @@ QString GetPersonalBuildString()
 		return QString {};
 }
 
-}
+} // namespace
 
 struct UiFactory::Impl
 {
@@ -78,6 +84,7 @@ struct UiFactory::Impl
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
 	mutable AdditionalWidgetCallback additionalWidgetCallback;
+	mutable std::unordered_set<QString> visibleGenres;
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -140,6 +147,12 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 	return m_impl->container.resolve<OpdsDialog>();
 }
 
+std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres) const
+{
+	m_impl->visibleGenres = std::move(visibleGenres);
+	return m_impl->container.resolve<GenreFilterDialog>();
+}
+
 std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
 {
 	m_impl->title = std::move(title);
@@ -164,9 +177,15 @@ void UiFactory::ShowAbout() const
 	QMessageBox msgBox(parent);
 	msgBox.setFont(parent->font());
 	msgBox.setIcon(QMessageBox::Information);
-	msgBox.setWindowTitle(Loc::Tr(CONTEXT, ABOUT_TITLE));
+	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
 	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), GIT_HASH, "https://github.com/heimdallr/books", GetPersonalBuildString()));
+	msgBox.setText(QString(ABOUT_TEXT)
+	                   .arg(Tr(ABOUT_DESCRIPTION),
+	                        Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH),
+	                        "https://github.com/heimdallr/books",
+	                        Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
+	                        GetPersonalBuildString()));
+	//	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), GIT_HASH, "https://github.com/heimdallr/books", GetPersonalBuildString()));
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) { return Loc::Tr(CONTEXT, str); });
@@ -271,4 +290,9 @@ IUiFactory::AdditionalWidgetCallback UiFactory::GetAdditionalWidgetCallback() co
 	return callback;
 }
 
-} // namespace HomeCompa::Flibrary
+std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
+{
+	auto visibleGenres = std::move(m_impl->visibleGenres);
+	m_impl->visibleGenres = {};
+	return visibleGenres;
+}

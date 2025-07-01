@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include <QBuffer>
+#include <QFileInfo>
 #include <QVariant>
 
 #include "fnd/FindPair.h"
@@ -31,7 +32,69 @@ constexpr std::pair<const char*, Zip::Format> ZIP_FORMATS[] {
 	{  "7z", Zip::Format::SevenZip },
 };
 
-}
+class ZipFileController final : public IZipFileController
+{
+private:
+	struct Item
+	{
+		QString name;
+		QByteArray body;
+		QDateTime time;
+		std::unique_ptr<QFileInfo> info;
+	};
+
+private: // IZipFileProvider
+	size_t GetCount() const noexcept override
+	{
+		return m_items.size();
+	}
+
+	size_t GetFileSize(const size_t index) const noexcept override
+	{
+		assert(index < GetCount());
+		const auto& item = m_items[index];
+		return static_cast<size_t>(item.info ? item.info->size() : item.body.size());
+	}
+
+	QString GetFileName(const size_t index) const override
+	{
+		assert(index < GetCount());
+		const auto& item = m_items[index];
+		assert(!item.name.isEmpty());
+		return item.name;
+	}
+
+	QDateTime GetFileTime(const size_t index) const override
+	{
+		assert(index < GetCount());
+		return m_items[index].time;
+	}
+
+	std::unique_ptr<QIODevice> GetStream(const size_t index) override
+	{
+		assert(index < GetCount());
+		auto& item = m_items[index];
+		return item.info ? std::unique_ptr<QIODevice> { std::make_unique<QFile>(item.info->filePath()) } : std::make_unique<QBuffer>(&item.body);
+	}
+
+private: // IZipFileController
+	void AddFile(QString name, QByteArray body, QDateTime time) override
+	{
+		m_items.emplace_back(std::move(name), std::move(body), std::move(time));
+	}
+
+	void AddFile(const QString& path) override
+	{
+		assert(QFile::exists(path));
+		auto info = std::make_unique<QFileInfo>(path);
+		m_items.emplace_back(info->fileName(), QByteArray {}, info->fileTime(QFile::FileBirthTime)).info = std::move(info);
+	}
+
+private:
+	std::vector<Item> m_items;
+};
+
+} // namespace
 
 class Zip::Impl
 {
@@ -77,9 +140,9 @@ public:
 		return m_file->Read();
 	}
 
-	bool Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter)
+	bool Write(std::shared_ptr<IZipFileProvider> zipFileProvider)
 	{
-		return m_zip->Write(fileNames, streamGetter, sizeGetter);
+		return m_zip->Write(std::move(zipFileProvider));
 	}
 
 	bool Remove(const std::vector<QString>& fileNames)
@@ -149,26 +212,9 @@ QStringList Zip::GetFileNameList() const
 	return m_impl->GetFileNameList();
 }
 
-bool Zip::Write(const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter)
+bool Zip::Write(std::shared_ptr<IZipFileProvider> zipFileProvider)
 {
-	return sizeGetter ? m_impl->Write(fileNames, streamGetter, sizeGetter)
-	                  : m_impl->Write(fileNames,
-	                                  streamGetter,
-	                                  [&](const size_t index)
-	                                  {
-										  const auto stream = streamGetter(index);
-										  if (!stream->isOpen())
-											  stream->open(QIODevice::ReadOnly);
-										  return static_cast<size_t>(stream->size());
-									  });
-}
-
-bool Zip::Write(std::vector<std::pair<QString, QByteArray>> data)
-{
-	std::vector<QString> fileNames;
-	fileNames.reserve(data.size());
-	std::ranges::move(data | std::views::keys, std::back_inserter(fileNames));
-	return Write(fileNames, [&](const size_t index) { return std::make_unique<QBuffer>(&data[index].second); }, [&](const size_t index) { return static_cast<size_t>(data[index].second.size()); });
+	return m_impl->Write(std::move(zipFileProvider));
 }
 
 bool Zip::Remove(const std::vector<QString>& fileNames)
@@ -194,6 +240,11 @@ Zip::Format Zip::FormatFromString(const QString& str)
 QString Zip::FormatToString(const Format format)
 {
 	return FindFirst(ZIP_FORMATS, format);
+}
+
+std::shared_ptr<IZipFileController> Zip::CreateZipFileController()
+{
+	return std::make_shared<ZipFileController>();
 }
 
 std::ostream& operator<<(std::ostream& stream, const Zip::Format format)

@@ -195,7 +195,10 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 	languages.reserve(std::size(LANGUAGES) + 1);
 	std::ranges::transform(LANGUAGES, std::back_inserter(languages), [](const Language& item) { return std::make_tuple(item.key, Loc::Tr(LANGUAGES_CONTEXT, item.title), item.priority); });
 	if (auto it = std::ranges::find(languages, currentLocale, [](const auto& item) { return std::get<0>(item); }); it != languages.end())
-		std::get<2>(*it) = std::numeric_limits<int>::min();
+	{
+		auto& item = *it;
+		std::get<2>(item) = std::numeric_limits<int>::min();
+	}
 	std::ranges::sort(languages, {}, [](const auto& item) { return std::make_tuple(std::get<2>(item), std::get<1>(item)); });
 
 	for (auto&& [key, value, priority] : languages)

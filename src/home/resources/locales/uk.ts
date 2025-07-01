@@ -831,8 +831,18 @@ Restart now?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
-        <source>Another e-library book cataloger&lt;p&gt;Version: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</source>
-        <translation>Ще один каталогізатор книг електронної бібліотеки&lt;p&gt;Версія: %1 (%2)&lt;p&gt;&lt;a href=&apos;%3&apos;&gt;%3&lt;/a&gt;&lt;/p&gt;%4</translation>
+        <source>Another e-library book cataloger</source>
+        <translation>Ще один каталогізатор електронної бібліотеки</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Version: %1 (%2)</source>
+        <translation>Версія: %1 (%2)</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/UiFactory.cpp"/>
+        <source>Distributed under license %1</source>
+        <translation>Розповсюджується за ліцензією %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/UiFactory.cpp"/>
@@ -1011,7 +1021,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>poetry_all_root</source>
-        <translation>Поезія, Драматургія</translation>
+        <translation>Поезія. Драматургія</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1021,12 +1031,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>science_all_root</source>
-        <translation>Наука, Освіта</translation>
+        <translation>Наука. Освіта</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>antiscience_all_root</source>
-        <translation>Антинаука, Мракобісся</translation>
+        <translation>Антинаука. Мракобісся</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1226,7 +1236,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>fantasy_alt_hist</source>
-        <translation>Альтернативна історія, фентезі</translation>
+        <translation>Альтернативна історія. Фентезі</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1571,7 +1581,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>adv_indian</source>
-        <translation>Пригоди, індіанці</translation>
+        <translation>Пригоди. Iндіанці</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2336,7 +2346,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>home_sex</source>
-        <translation>Еротика, Секс</translation>
+        <translation>Еротика. Секс</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2351,7 +2361,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>accounting</source>
-        <translation>Бухоблік, оподаткування, аудит</translation>
+        <translation>Бухоблік. Оподаткування. Аудит</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2386,7 +2396,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>marketing</source>
-        <translation>Маркетинг, PR, реклама</translation>
+        <translation>Маркетинг. PR. Реклама</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2406,7 +2416,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>job_hunting</source>
-        <translation>Пошук роботи, кар&apos;єра</translation>
+        <translation>Пошук роботи. Кар&apos;єра</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2416,12 +2426,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>management</source>
-        <translation>Управління, підбір персоналу</translation>
+        <translation>Управління. Підбір персоналу</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>stock</source>
-        <translation>Цінні папери, інвестиції</translation>
+        <translation>Цінні папери. Iнвестиції</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2521,7 +2531,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>proverbs</source>
-        <translation>Прислів&apos;я, приказки</translation>
+        <translation>Прислів&apos;я. Приказки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2531,7 +2541,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>limerick</source>
-        <translation>Частинки, примовки, потішки</translation>
+        <translation>Частинки. Примовки. Потішки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2642,6 +2652,25 @@ Restart now?</source>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>other</source>
         <translation>Інше</translation>
+    </message>
+</context>
+<context>
+    <name>GenreFilterDialog</name>
+    <message>
+        <source>Genre filter settings</source>
+        <translation>Налаштування фільтру жанрів</translation>
+    </message>
+    <message>
+        <source>Check all</source>
+        <translation>Виділити все</translation>
+    </message>
+    <message>
+        <source>Uncheck all</source>
+        <translation>Зняти виділення</translation>
+    </message>
+    <message>
+        <source>Invert checks</source>
+        <translation>Інвертувати виділення</translation>
     </message>
 </context>
 <context>
@@ -2775,6 +2804,124 @@ Try again?</source>
     <message>
         <source>Skip</source>
         <translation>Пропустити</translation>
+    </message>
+</context>
+<context>
+    <name>JokeRequester</name>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatFacts</source>
+        <translation>Факти про котиків</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>CatPictures</source>
+        <translation>Зображення з котиками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>ChuckNorrisFacts</source>
+        <translation>Факти про Чака Норріса</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DadJokes</source>
+        <translation>Жарти від баті</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>DogPictures</source>
+        <translation>Картинки із собачками</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>FoxPictures</source>
+        <translation>Картинки з лисицями</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Jokes</source>
+        <translation>Різні жарти</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>Quotes</source>
+        <translation>Цитати</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>QuotePics</source>
+        <translation>Цитати в картинці</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>UselessFacts</source>
+        <translation>Некорисні факти</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
+        <translation>&lt;center&gt;&lt;b&gt;Увага!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Жарти в цьому розділі можуть бути грубими, небезпечними для робочого середовища, релігійно чи політично образливими, сексистськими або відвертими. Натискаючи «Так», ви берете на себе всю відповідальність за їх прочитання. В іншому випадку ви повинні натиснути «Ні».&lt;br/&gt;&lt;br/&gt;Ви все ще хочете читати такі жарти?</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/factory/JokeRequesterFactory.cpp"/>
+        <source>PunchlineJokes</source>
+        <translation>Жарти - панчлайни</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Category</source>
+        <translation>Категорія</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Programming</source>
+        <translation>Програмування</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Misc</source>
+        <translation>Різне</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Dark</source>
+        <translation>Чорний гумор</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Pun</source>
+        <translation>Каламбур</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Spooky</source>
+        <translation>Страшилки</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/JokeApiJokeRequester.cpp"/>
+        <source>Christmas</source>
+        <translation>Різдво</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/ChuckNorrisJokeRequester.cpp"/>
+        <source>Important fact about Chuck Norris</source>
+        <translation>Важливий факт про Чака Норріса</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/DadJokeRequester.cpp"/>
+        <source>From dad</source>
+        <translation>Від баті</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/UselessFactJokeRequester.cpp"/>
+        <source>One more useless fact</source>
+        <translation>Ще один непотрібний факт</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/JokeRequester/CatFactJokeRequester.cpp"/>
+        <source>Interesting fact about cats</source>
+        <translation>Цікавий факт про котів</translation>
     </message>
 </context>
 <context>
@@ -5169,6 +5316,16 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Enable all</source>
+        <translation>Включити все</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
+        <source>Disable all</source>
+        <translation>Вимкнути все</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
         <translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
     </message>
@@ -5210,16 +5367,8 @@ Try again?</source>
         <translation>&amp;Кнопки навігації на обкладинці</translation>
     </message>
     <message>
-        <source>&amp;Jokes</source>
-        <translation>&amp;Жарти</translation>
-    </message>
-    <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель пошуку за &amp;назвою</translation>
-    </message>
-    <message>
-        <source>&amp;Http Server...</source>
-        <translation>&amp;Http сервер...</translation>
     </message>
     <message>
         <source>Http server management</source>
@@ -5236,6 +5385,54 @@ Try again?</source>
     <message>
         <source>Navigation</source>
         <translation>Навігація</translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;cover</source>
+        <translation>Чорно-біла &amp;обкладинка</translation>
+    </message>
+    <message>
+        <source>Grayscale &amp;images</source>
+        <translation>Чорно-білі &amp;ілюстрації</translation>
+    </message>
+    <message>
+        <source>&amp;Export</source>
+        <translation>&amp;Експорт</translation>
+    </message>
+    <message>
+        <source>Server &amp;Management...</source>
+        <translation>&amp;Керування сервером...</translation>
+    </message>
+    <message>
+        <source>Go to &amp;Site</source>
+        <translation>Перехід на &amp;сайт</translation>
+    </message>
+    <message>
+        <source>Go to &amp;Web</source>
+        <translation>Перехід на &amp;Web</translation>
+    </message>
+    <message>
+        <source>Go to &amp;OPDS</source>
+        <translation>Перехід на &amp;OPDS</translation>
+    </message>
+    <message>
+        <source>&amp;Entertainment</source>
+        <translation>&amp;Розваги</translation>
+    </message>
+    <message>
+        <source>&amp;Genres filter</source>
+        <translation>Фільтр &amp;жанрів</translation>
+    </message>
+    <message>
+        <source>Filter &amp;enabled</source>
+        <translation>Фільтр &amp;активний</translation>
+    </message>
+    <message>
+        <source>Filter &amp;settings...</source>
+        <translation>&amp;Налаштування фільтра...</translation>
+    </message>
+    <message>
+        <source>&amp;Filters</source>
+        <translation>&amp;Фільтри</translation>
     </message>
 </context>
 <context>
@@ -5524,10 +5721,12 @@ Try again?</source>
         <translation>Http сервер</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Web Address</source>
         <translation>Веб-адреса</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>OPDS Address</source>
         <translation>Адреса OPDS</translation>
     </message>
@@ -5551,6 +5750,7 @@ Try again?</source>
         <translation>Адреса</translation>
     </message>
     <message>
+        <location filename="../../flibrary/gui/dialogs/OpdsDialog.cpp"/>
         <source>Site Address</source>
         <translation>Адреса сайту</translation>
     </message>
@@ -5647,47 +5847,42 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
-        <source>Number of: %1</source>
-        <translation>Кількість: %1</translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
-        <source>Book</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books</source>
         <translation>Усі книги розділу</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
+        <source>Books: %1</source>
+        <translation>Книги: %1</translation>
+    </message>
+    <message>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>Books found for the request &quot;%1&quot;: %2</source>
         <translation>За запитом &quot;%1&quot; знайдені книги: %2</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Previous page]</source>
         <translation>Попередня сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Next page]</source>
         <translation>Наступна сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[First page]</source>
         <translation>Перша сторінка</translation>
     </message>
     <message>
-        <location filename="../../tool/opds/Requester.cpp"/>
+        <location filename="../../tool/opds/requester/Requester.cpp"/>
         <source>[Last page]</source>
         <translation>Остання сторінка</translation>
     </message>
@@ -5814,8 +6009,23 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre%</source>
+        <translation>Жанр книги</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%genre_tree%</source>
+        <translation>Жанр, поджанр і т.д.</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%db_id%</source>
         <translation>Ідентифікатор книги з бази даних</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>%lib_id%</source>
+        <translation>Ідентифікатор книги з мережевої бібліотеки-джерела</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>

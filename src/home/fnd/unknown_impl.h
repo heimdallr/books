@@ -21,7 +21,7 @@ ULONG ReleaseRefImpl(LONG& refCount, T* obj)
 }
 
 template <typename T>
-HRESULT QueryInterface(REFIID iid, void** ppvObject, REFIID iidObj, T* obj)
+HRESULT QueryInterface(REFIID iid, void** ppvObject, REFIID iidObj, T* obj) //-V835
 {
 	if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 	{

@@ -11,6 +11,8 @@
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
 
+#include "util/ISettings.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -23,7 +25,8 @@ public:
 	using Extract = void (BooksExtractor::*)(QString, const QString&, ILogicFactory::ExtractedBooks&&, QString, Callback);
 
 public:
-	BooksExtractor(std::shared_ptr<ICollectionController> collectionController,
+	BooksExtractor(std::shared_ptr<const ISettings> settings,
+	               std::shared_ptr<ICollectionController> collectionController,
 	               std::shared_ptr<IBooksExtractorProgressController> progressController,
 	               const std::shared_ptr<const ILogicFactory>& logicFactory,
 	               std::shared_ptr<const IScriptController> scriptController,

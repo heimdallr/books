@@ -19,7 +19,7 @@ protected: // std::streambuf
 
 private:
 	static constexpr std::streamsize BUFFER_SIZE = 1024;
-	std::streambuf::char_type m_inbuf[BUFFER_SIZE];
+	std::streambuf::char_type m_inBuf[BUFFER_SIZE] {};
 	QIODevice& m_dev;
 };
 
@@ -61,7 +61,7 @@ std::streambuf::pos_type QStdStreamBuf::seekoff(std::streambuf::off_type off, co
 	return result;
 }
 
-std::streambuf::pos_type QStdStreamBuf::seekpos(const std::streambuf::pos_type off, std::ios_base::openmode /*__mode*/)
+std::streambuf::pos_type QStdStreamBuf::seekpos(const std::streambuf::pos_type off, std::ios_base::openmode /*__mode*/) //-V801
 {
 	return std::streambuf::pos_type(m_dev.seek(off) ? m_dev.pos() : std::streambuf::off_type(-1));
 }
@@ -69,18 +69,18 @@ std::streambuf::pos_type QStdStreamBuf::seekpos(const std::streambuf::pos_type o
 std::streambuf::int_type QStdStreamBuf::underflow()
 {
 	// Read enough bytes to fill the buffer.
-	const auto len = sgetn(m_inbuf, sizeof(m_inbuf) / sizeof(m_inbuf[0]));
+	const auto len = sgetn(m_inBuf, BUFFER_SIZE);
 
 	// Since the input buffer content is now valid (or is new)
 	// the get pointer should be initialized (or reset).
-	setg(m_inbuf, m_inbuf, m_inbuf + len);
+	setg(m_inBuf, m_inBuf, m_inBuf + len);
 
 	// If nothing was read, then the end is here.
 	if (len == 0)
 		return traits_type::eof();
 
 	// Return the first character.
-	return traits_type::not_eof(m_inbuf[0]);
+	return traits_type::not_eof(m_inBuf[0]);
 }
 
 class QStdIStreamBuf : public QStdStreamBuf

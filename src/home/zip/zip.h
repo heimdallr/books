@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <QStringList>
-
 #include "zip/interface/ProgressCallback.h"
 #include "zip/interface/format.h"
 #include "zip/interface/stream.h"
@@ -31,6 +29,8 @@ public:
 	static Format FormatFromString(const QString& str);
 	static QString FormatToString(Format format);
 
+	static std::shared_ptr<IZipFileController> CreateZipFileController();
+
 public:
 	static bool IsArchive(const QString& filename);
 	static QStringList GetTypes();
@@ -49,8 +49,7 @@ public:
 	[[nodiscard]] std::unique_ptr<Stream> Read(const QString& filename) const;
 
 	void SetProperty(PropertyId id, QVariant value);
-	bool Write(const std::vector<QString>& fileNames, const ZipDetails::StreamGetter& streamGetter, const ZipDetails::SizeGetter& sizeGetter = {});
-	bool Write(std::vector<std::pair<QString, QByteArray>> data);
+	bool Write(std::shared_ptr<IZipFileProvider> zipFileProvider);
 
 	bool Remove(const std::vector<QString>& fileNames);
 

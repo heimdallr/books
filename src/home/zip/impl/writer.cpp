@@ -26,7 +26,7 @@ namespace
 
 class CryptoGetTextPassword final : public ICryptoGetTextPassword2
 {
-	UNKNOWN_IMPL(ICryptoGetTextPassword2)
+	UNKNOWN_IMPL(ICryptoGetTextPassword2) //-V835
 public:
 	static CComPtr<ICryptoGetTextPassword2> Create()
 	{
@@ -44,7 +44,7 @@ private: // ICryptoGetTextPassword2
 
 class ArchiveExtractCallbackMessage final : public IArchiveExtractCallbackMessage2
 {
-	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2)
+	UNKNOWN_IMPL(IArchiveExtractCallbackMessage2) //-V835
 
 public:
 	static CComPtr<IArchiveExtractCallbackMessage2> Create()
@@ -61,7 +61,7 @@ private: // IArchiveExtractCallbackMessage2
 
 class SequentialInStream final : public ISequentialInStream
 {
-	UNKNOWN_IMPL(ISequentialInStream)
+	UNKNOWN_IMPL(ISequentialInStream) //-V835
 
 public:
 	static CComPtr<ISequentialInStream> Create(QIODevice& stream)
@@ -85,7 +85,7 @@ private: // ISequentialInStream
 			return S_OK;
 		}
 
-		const auto realSize = m_inStream.read(reinterpret_cast<char*>(data), size);
+		const auto realSize = m_inStream.read(static_cast<char*>(data), size);
 		if (processedSize)
 			*processedSize = static_cast<UInt32>(realSize);
 
@@ -100,23 +100,21 @@ class ArchiveUpdateCallback : public IArchiveUpdateCallback
 {
 	ADD_RELEASE_REF_IMPL
 public:
-	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+	static CComPtr<IArchiveUpdateCallback> Create(FileStorage& files, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 	{
-		return new ArchiveUpdateCallback(files, fileNames, streamGetter, sizeGetter, progress);
+		return new ArchiveUpdateCallback(files, std::move(zipFileProvider), progress);
 	}
 
 private:
-	ArchiveUpdateCallback(FileStorage& files, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+	ArchiveUpdateCallback(FileStorage& files, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 		: m_files { files }
-		, m_fileNames { fileNames }
-		, m_streamGetter { streamGetter }
-		, m_sizeGetter { sizeGetter }
+		, m_zipFileProvider { std::move(zipFileProvider) }
 		, m_progress { progress }
 	{
 	}
 
 private: // IUnknown
-	HRESULT QueryInterface(REFIID iid, void** ppvObject) override
+	HRESULT QueryInterface(REFIID iid, void** ppvObject) override //-V835
 	{
 		if (iid == __uuidof(IUnknown)) // NOLINT(clang-diagnostic-language-extension-token)
 		{
@@ -167,8 +165,9 @@ private: // IProgress
 	}
 
 private: // IArchiveUpdateCallback
-	HRESULT GetUpdateItemInfo(const UInt32 index, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
+	HRESULT GetUpdateItemInfo(const UInt32 indexSrc, Int32* newData, Int32* newProperties, UInt32* indexInArchive) noexcept override
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		if (newData != nullptr)
 			*newData = index >= m_files.files.size() ? 1 : 0; //1 = true, 0 = false;
 		if (newProperties != nullptr)
@@ -179,27 +178,42 @@ private: // IArchiveUpdateCallback
 		return S_OK;
 	}
 
-	HRESULT GetProperty(UInt32 index, PROPID propId, PROPVARIANT* value) noexcept override
+	HRESULT GetProperty(UInt32 indexSrc, PROPID propId, PROPVARIANT* value) noexcept override
 	try
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		CPropVariant prop = [&, propId]() -> CPropVariant
 		{
 			switch (propId)
 			{
 				case kpidIsAnti:
+				case kpidIsDir:
 					return false;
 				case kpidAttrib:
 					return uint32_t { 128 };
 				case kpidPath:
-					return m_fileNames[index - m_files.files.size()].toStdWString();
-				case kpidIsDir:
-					return false;
+					return m_zipFileProvider->GetFileName(index - m_files.files.size()).toStdWString();
+				case kpidATime:
+				case kpidCTime:
 				case kpidMTime:
-					return FILETIME {};
+				{
+					FILETIME fileTime {};
+					auto dateTime = m_zipFileProvider->GetFileTime(index - m_files.files.size());
+					if (!dateTime.isValid())
+						dateTime = QDateTime(QDate(1974, 1, 1), QTime(12, 0));
+
+					dateTime = dateTime.toUTC();
+					const auto date = dateTime.date();
+					const auto time = dateTime.time();
+					SYSTEMTIME sysTime { static_cast<WORD>(date.year()), static_cast<WORD>(date.month()),  static_cast<WORD>(date.dayOfWeek()), static_cast<WORD>(date.day()),
+						                 static_cast<WORD>(time.hour()), static_cast<WORD>(time.minute()), static_cast<WORD>(time.second()),    static_cast<WORD>(time.msec()) };
+					SystemTimeToFileTime(&sysTime, &fileTime);
+					return fileTime;
+				}
 				case kpidComment:
 					return {};
 				case kpidSize:
-					return m_sizeGetter(index - m_files.files.size());
+					return m_zipFileProvider->GetFileSize(index - m_files.files.size());
 				default:
 					return {};
 			}
@@ -220,8 +234,19 @@ private: // IArchiveUpdateCallback
 		if (m_progress.OnCheckBreak())
 			return E_ABORT;
 
-		auto inStreamLoc = SequentialInStream::Create(GetStream(index));
-		*inStream = inStreamLoc.Detach();
+		try
+		{
+			auto inStreamLoc = SequentialInStream::Create(GetStream(index));
+			*inStream = inStreamLoc.Detach();
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGW << ex.what();
+		}
+		catch (...)
+		{
+			PLOGW << "unknown error";
+		}
 		return S_OK;
 	}
 
@@ -232,25 +257,25 @@ private: // IArchiveUpdateCallback
 	}
 
 private:
-	QIODevice& GetStream(const UInt32 index)
+	QIODevice& GetStream(const UInt32 indexSrc)
 	{
+		const auto index = static_cast<size_t>(indexSrc);
 		if (m_streams.size() <= index)
-			m_streams.resize(index + 1);
+			m_streams.resize(index + 1ULL);
 
-		if (!m_streams[index])
-			m_streams[index] = m_streamGetter(index - m_files.files.size());
+		auto& stream = m_streams[index];
+		if (!stream)
+			stream = m_zipFileProvider->GetStream(index - m_files.files.size());
 
-		if (!m_streams[index]->isOpen())
-			m_streams[index]->open(QIODevice::ReadOnly);
+		if (!stream->isOpen())
+			stream->open(QIODevice::ReadOnly);
 
-		return *m_streams[index];
+		return *stream;
 	}
 
 private:
 	FileStorage& m_files;
-	const std::vector<QString>& m_fileNames;
-	const StreamGetter& m_streamGetter;
-	const SizeGetter& m_sizeGetter;
+	std::shared_ptr<IZipFileProvider> m_zipFileProvider;
 	ProgressCallback& m_progress;
 	std::vector<std::unique_ptr<QIODevice>> m_streams;
 };
@@ -260,23 +285,29 @@ private:
 namespace File
 {
 
-bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std::vector<QString>& fileNames, const StreamGetter& streamGetter, const SizeGetter& sizeGetter, ProgressCallback& progress)
+bool Write(FileStorage& files, IOutArchive& zip, QIODevice& oStream, std::shared_ptr<IZipFileProvider> zipFileProvider, ProgressCallback& progress)
 {
 	ProgressCallbackStub progressCallbackStub;
 	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
-	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, fileNames, streamGetter, sizeGetter, progress);
-	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + fileNames.size()), std::move(archiveUpdateCallback));
+	const auto size = zipFileProvider->GetCount();
+	FileStorage newFiles;
+	for (size_t index = 0; index < size; ++index)
+	{
+		const auto [it, inserted] = newFiles.index.try_emplace(zipFileProvider->GetFileName(index), newFiles.index.size());
+		if (inserted)
+			newFiles.files.emplace_back(static_cast<uint32_t>(it->second), it->first, zipFileProvider->GetFileSize(index), zipFileProvider->GetFileTime(index));
+	}
+
+	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, std::move(zipFileProvider), progress);
+	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size() + size), std::move(archiveUpdateCallback));
 	progress.OnDone();
-	std::ranges::transform(fileNames,
-	                       std::back_inserter(files.files),
-	                       [&, n = files.files.size(), m = size_t { 0 }](const QString& fileName) mutable
-	                       {
-							   files.index.try_emplace(fileName, n);
-							   return FileItem { static_cast<uint32_t>(n++), fileName, sizeGetter(m++), QDateTime::currentDateTime() };
-						   });
+
+	std::ranges::move(newFiles.index, std::inserter(files.index, files.index.end()));
+	std::ranges::move(newFiles.files, std::back_inserter(files.files));
+
 	return result == S_OK;
 }
 
-}
+} // namespace File
 
 } // namespace HomeCompa::ZipDetails::SevenZip
