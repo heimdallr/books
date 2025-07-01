@@ -308,7 +308,10 @@ struct InpxContent
 InpxContent ExtractInpxFileNames(const Path& inpxFileName)
 {
 	if (!exists(inpxFileName))
+	{
+		PLOGW << QString::fromStdWString(inpxFileName) << " not found";
 		return {};
+	}
 
 	InpxContent inpxContent;
 
@@ -326,6 +329,12 @@ InpxContent ExtractInpxFileNames(const Path& inpxFileName)
 		else
 			PLOGI << folder << L" skipped";
 	}
+
+	PLOGD << QString("%1 content: connection info: %2, version info: %3, inp: %4")
+				 .arg(QString::fromStdWString(inpxFileName.generic_wstring()))
+				 .arg(inpxContent.collectionInfo.size())
+				 .arg(inpxContent.versionInfo.size())
+				 .arg(inpxContent.inpx.size());
 
 	return inpxContent;
 }
@@ -1349,6 +1358,7 @@ private:
 		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
 			const auto& inpxFileName = inpxFileNameEntry.path();
+			PLOGI << QString("parsing %1 started").arg(QString::fromStdWString(inpxFileName));
 			const auto inpxContent = ExtractInpxFileNames(inpxFileName);
 
 			const auto zip = [&]
