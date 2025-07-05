@@ -219,6 +219,36 @@ AS SELECT
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
 )",
+	R"(
+CREATE VIEW IF NOT EXISTS Groups_List_User_View (
+    GroupID,
+    BookID
+)
+AS
+    SELECT glu.GroupID,
+           b.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Books b ON b.BookID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           al.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Author_List al ON al.AuthorID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           sl.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Series_List sl ON sl.SeriesID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           kl.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Keyword_List kl ON kl.KeywordID = glu.ObjectID
+)",
 	};
 	// clang-format on
 
@@ -271,6 +301,30 @@ void AddTableFields(DB::ITransaction& transaction)
 	AddUserTableField(transaction, "Series", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Updates", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Books_User", "Lang", "VARCHAR(3)");
+	AddUserTableField(transaction,
+	                  "Groups_List_User",
+	                  "ObjectID",
+	                  "INTEGER",
+	                  {
+						  R"(CREATE TABLE Groups_List_User_Tmp (
+    GroupID   INTEGER  NOT NULL,
+    ObjectID  INTEGER  NOT NULL,
+    CreatedAt DATETIME,
+    PRIMARY KEY (
+        GroupID,
+        ObjectID
+    ),
+    FOREIGN KEY (
+        GroupID
+    )
+    REFERENCES Groups_User (GroupID) ON DELETE CASCADE
+)
+)",
+						  "insert into Groups_List_User_Tmp(GroupID, ObjectID, CreatedAt) select GroupID, BookID, CreatedAt from Groups_List_User",
+						  "DROP TABLE Groups_List_User",
+						  "ALTER TABLE Groups_List_User_Tmp RENAME TO Groups_List_User",
+						  "CREATE INDEX IX_Groups_List_User_ObjectID ON Groups_List_User(ObjectID)",
+					  });
 }
 
 } // namespace
@@ -279,8 +333,8 @@ void Update(DB::IDatabase& db, const ICollectionProvider& collectionProvider)
 {
 	const auto transaction = db.CreateTransaction();
 	DropTriggers(*transaction);
-	AddUserTables(*transaction);
 	AddTableFields(*transaction);
+	AddUserTables(*transaction);
 	FixSearches_User(*transaction);
 	FillSearchTables(*transaction);
 	FillSeriesList(*transaction);

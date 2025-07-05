@@ -18,11 +18,11 @@
 #include "interface/logic/IInpxGenerator.h"
 
 #include "ChangeNavigationController/GroupController.h"
-#include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
 #include "util/localization.h"
 
+#include "MenuItems.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -39,11 +39,6 @@ constexpr auto SEND_AS_IS = QT_TRANSLATE_NOOP("BookContextMenu", "As &original f
 constexpr auto UNPACK = QT_TRANSLATE_NOOP("BookContextMenu", "&Unpack");
 constexpr auto SEND_AS_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
 constexpr auto SEND_AS_SINGLE_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "Generate inde&x file (*.inpx)");
-constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
-constexpr auto GROUPS_ADD_TO = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
-constexpr auto GROUPS_ADD_TO_NEW = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
-constexpr auto GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
-constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
 constexpr auto MY_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "&My rate");
 constexpr auto REMOVE_MY_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove my rate");
 constexpr auto CHECK = QT_TRANSLATE_NOOP("BookContextMenu", "&Check");
@@ -72,10 +67,7 @@ constexpr auto CHANGE_LANGUAGE_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "A
 
 TR_DEF
 
-constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
 constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, 0) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
-
-using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -86,64 +78,27 @@ public:
 public:
 	virtual ~IContextMenuHandler() = default;
 
-#define BOOKS_MENU_ACTION_ITEM(NAME) \
+#define MENU_ACTION_ITEM(NAME) \
 	virtual void NAME(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+	GROUPS_MENU_ACTION_ITEMS_X_MACRO
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
-#undef BOOKS_MENU_ACTION_ITEM
+#undef MENU_ACTION_ITEM
 };
 
-constexpr std::pair<BooksMenuAction, IContextMenuHandler::Function> MENU_HANDLERS[] {
-#define BOOKS_MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME },
+constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
+#define MENU_ACTION_ITEM(NAME) { BooksMenuAction::NAME, &IContextMenuHandler::NAME },
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
-#undef BOOKS_MENU_ACTION_ITEM
+#undef MENU_ACTION_ITEM
+#define MENU_ACTION_ITEM(NAME) { GroupsMenuAction::NAME, &IContextMenuHandler::NAME },
+		GROUPS_MENU_ACTION_ITEMS_X_MACRO
+#undef MENU_ACTION_ITEM
 };
-
-IDataItem::Ptr& Add(const IDataItem::Ptr& dst, QString title = {}, const BooksMenuAction id = BooksMenuAction::None)
-{
-	auto item = MenuItem::Create();
-	item->SetData(std::move(title), MenuItem::Column::Title);
-	item->SetData(QString::number(static_cast<int>(id)), MenuItem::Column::Id);
-	return dst->AppendChild(std::move(item));
-}
-
-void CreateGroupMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db)
-{
-	const auto parent = Add(root, Tr(GROUPS));
-
-	const auto add = Add(parent, Tr(GROUPS_ADD_TO), BooksMenuAction::AddToGroup);
-	const auto remove = Add(parent, Tr(GROUPS_REMOVE_FROM), BooksMenuAction::RemoveFromGroup);
-
-	const auto query = db.CreateQuery(GROUPS_QUERY);
-	query->Bind(0, id.toInt());
-	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		const auto needAdd = query->Get<long long>(2) < 0;
-		const auto& item = needAdd ? add : remove;
-		Add(item, query->Get<const char*>(1), needAdd ? BooksMenuAction::AddToGroup : BooksMenuAction::RemoveFromGroup)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
-	}
-
-	if (remove->GetChildCount() > 0)
-	{
-		Add(remove);
-		Add(remove, Tr(GROUPS_REMOVE_FROM_ALL), BooksMenuAction::RemoveFromAllGroups)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	}
-	else
-	{
-		Add(remove);
-		remove->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	}
-
-	if (add->GetChildCount() > 0)
-		Add(add);
-
-	Add(add, Tr(GROUPS_ADD_TO_NEW), BooksMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-}
 
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
-	const auto parent = Add(root, Tr(MY_RATE));
+	const auto parent = AddMenuItem(root, Tr(MY_RATE));
 	for (int rate = 1; rate <= 5; ++rate)
-		Add(parent, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+		AddMenuItem(parent, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
@@ -152,43 +107,43 @@ void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDataba
 	if (const auto currentUserRate = query->Get<int>(0); currentUserRate == 0)
 		return;
 
-	Add(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	Add(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+	AddMenuItem(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
 }
 
 void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
 {
-	const auto& send = Add(root, Tr(EXPORT));
-	Add(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
-	Add(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
+	const auto& send = AddMenuItem(root, Tr(EXPORT));
+	AddMenuItem(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
+	AddMenuItem(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsArchive))
-		Add(send, Tr(UNPACK), BooksMenuAction::SendUnpack);
+		AddMenuItem(send, Tr(UNPACK), BooksMenuAction::SendUnpack);
 
 	if (!scripts.empty())
 	{
-		Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+		AddMenuItem(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 		for (const auto& script : scripts)
 		{
-			const auto& scriptItem = Add(send, script.name, BooksMenuAction::SendAsScript);
+			const auto& scriptItem = AddMenuItem(send, script.name, BooksMenuAction::SendAsScript);
 			scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
 		}
 	}
-	Add(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	Add(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpxCollection);
-	Add(send, Tr(SEND_AS_SINGLE_INPX), BooksMenuAction::SendAsInpxFile);
+	AddMenuItem(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpxCollection);
+	AddMenuItem(send, Tr(SEND_AS_SINGLE_INPX), BooksMenuAction::SendAsInpxFile);
 }
 
 void CreateCheckMenu(const IDataItem::Ptr& root)
 {
-	const auto parent = Add(root, Tr(CHECK));
-	Add(parent, Tr(CHECK_ALL), BooksMenuAction::CheckAll);
-	Add(parent, Tr(UNCHECK_ALL), BooksMenuAction::UncheckAll);
-	Add(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
+	const auto parent = AddMenuItem(root, Tr(CHECK));
+	AddMenuItem(parent, Tr(CHECK_ALL), BooksMenuAction::CheckAll);
+	AddMenuItem(parent, Tr(UNCHECK_ALL), BooksMenuAction::UncheckAll);
+	AddMenuItem(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
 void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLocale)
 {
-	const auto parent = Add(root, Tr(CHANGE_LANGUAGE));
+	const auto parent = AddMenuItem(root, Tr(CHANGE_LANGUAGE));
 	std::vector<std::tuple<const char*, QString, int>> languages {
 		{ "-1", "", 5000 }
 	};
@@ -202,13 +157,13 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 	std::ranges::sort(languages, {}, [](const auto& item) { return std::make_tuple(std::get<2>(item), std::get<1>(item)); });
 
 	for (auto&& [key, value, priority] : languages)
-		Add(parent, std::move(value), priority == 5000 ? BooksMenuAction::None : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
+		AddMenuItem(parent, std::move(value), priority == 5000 ? INVALID_MENU_ITEM : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
 }
 
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
-		BooksContextMenuProvider::AddTreeMenuItems(Add(root, Tr(TREE)), options);
+		BooksContextMenuProvider::AddTreeMenuItems(AddMenuItem(root, Tr(TREE)), options);
 }
 
 } // namespace
@@ -256,10 +211,10 @@ public:
 									  auto result = MenuItem::Create();
 
 									  if (type == ItemType::Books)
-										  Add(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
+										  AddMenuItem(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
 									  CreateSendMenu(result, options, scripts);
-									  Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+									  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 
 									  if (type == ItemType::Books)
 									  {
@@ -273,9 +228,9 @@ public:
 
 									  if (type == ItemType::Books)
 									  {
-										  Add(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-										  Add(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-										  auto removeItem = Add(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+										  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+										  AddMenuItem(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+										  auto removeItem = AddMenuItem(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
 										  if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
 											  removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 									  }
@@ -646,12 +601,12 @@ private:
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeCollapsed))
-		Add(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
+		AddMenuItem(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
-		Add(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = Add(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
+		AddMenuItem(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
+	if (const auto item = AddMenuItem(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto item = Add(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
+	if (const auto item = AddMenuItem(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 
@@ -680,6 +635,6 @@ void BooksContextMenuProvider::Request(const QModelIndex& index, const ITreeView
 
 void BooksContextMenuProvider::OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const
 {
-	const auto invoker = FindSecond(MENU_HANDLERS, static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()));
+	const auto invoker = FindSecond(MENU_HANDLERS, item->GetData(MenuItem::Column::Id).toInt());
 	std::invoke(invoker, *m_impl, model, std::cref(index), std::cref(indexList), std::move(item), std::move(callback));
 }

@@ -124,3 +124,33 @@ AS SELECT
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID;
 --@@
+
+CREATE VIEW Groups_List_User_View (
+    GroupID,
+    BookID
+)
+AS
+    SELECT glu.GroupID,
+           b.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Books b ON b.BookID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           al.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Author_List al ON al.AuthorID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           sl.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Series_List sl ON sl.SeriesID = glu.ObjectID
+    UNION
+    SELECT glu.GroupID,
+           kl.BookID
+      FROM Groups_List_User glu
+           JOIN
+           Keyword_List kl ON kl.KeywordID = glu.ObjectID;
+--@@

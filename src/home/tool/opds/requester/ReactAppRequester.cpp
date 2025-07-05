@@ -108,7 +108,7 @@ struct ReactAppRequester::Impl
 
 		{
 			QJsonArray array;
-			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g left join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g left join Groups_List_User_View l on l.GroupID = g.GroupID group by g.GroupID");
 			for (query->Execute(); !query->Eof(); query->Next())
 				array.append(QJsonObject {
 					{       "GroupID", query->Get<const char*>(0) },
@@ -133,9 +133,9 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
 )";
 
 		static constexpr auto groupsQueryText = R"(
-select (select count (42) from Groups_List_User l where l.GroupID = g.GroupID) as bookTitles
-    , (select count (distinct al.AuthorID) from Author_List al join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = g.GroupID) as authors
-    , (select count (distinct sl.SeriesID) from Series_List sl join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = g.GroupID) as bookSeries
+select (select count (42) from Groups_List_User_View l where l.GroupID = g.GroupID) as bookTitles
+    , (select count (distinct al.AuthorID) from Author_List al join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = g.GroupID) as authors
+    , (select count (distinct sl.SeriesID) from Series_List sl join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = g.GroupID) as bookSeries
 from Groups_User g
 where g.GroupID = ?
 )";
@@ -178,7 +178,7 @@ from Books b
 %1
 left join Series s on s.SeriesID = b.SeriesID
 )";
-		static constexpr auto groupJoin = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = ?";
+		static constexpr auto groupJoin = "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -197,7 +197,7 @@ from Authors a
 %1
 group by a.AuthorID
 )";
-		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = ?";
+		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -216,7 +216,7 @@ from Series s
 %1
 group by s.SeriesID
 )";
-		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = ?";
+		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -240,7 +240,7 @@ from Books b
 left join Series s on s.SeriesID = b.SeriesID
 )";
 		static constexpr std::tuple<const char*, const char*> list[] {
-			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,     "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
 		};
 
@@ -263,7 +263,7 @@ from Books b
 %1
 )";
 		static constexpr std::tuple<const char*, const char*> list[] {
-			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,     "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
 		};
 

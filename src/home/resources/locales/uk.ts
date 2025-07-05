@@ -397,27 +397,27 @@
         <translation>Створити інде&amp;кс (*.inpx)</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Groups</source>
         <translation>&amp;Групи</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Add to</source>
         <translation>&amp;Додати до</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;New group...</source>
         <translation>&amp;Нова група...</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Remove from</source>
         <translation>&amp;Видалити з</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;All</source>
         <translation>&amp;Усі</translation>
     </message>
