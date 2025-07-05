@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QString>
+
 namespace HomeCompa::Flibrary::Constant
 {
 

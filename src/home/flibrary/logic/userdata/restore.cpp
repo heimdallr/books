@@ -44,6 +44,7 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 	RESTORE_ITEM(Books, 6)    \
 	RESTORE_ITEM(Groups, 1)   \
 	RESTORE_ITEM(Groups, 3)   \
+	RESTORE_ITEM(Groups, 7)   \
 	RESTORE_ITEM(Searches, 1) \
 	RESTORE_ITEM(Searches, 3) \
 	RESTORE_ITEM(Searches, 5) \
