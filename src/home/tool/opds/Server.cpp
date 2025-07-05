@@ -266,9 +266,9 @@ private:
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
-			{  nullptr, &IRequester::GetRoot },
-			{ "search",  &IRequester::Search },
-			{ "read",  &IRequester::GetBookText },
+			{  nullptr,     &IRequester::GetRoot },
+			{ "search",      &IRequester::Search },
+			{   "read", &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)

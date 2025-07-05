@@ -52,6 +52,7 @@ struct GroupsMenuAction
 {
 	enum
 	{
+
 #define MENU_ACTION_ITEM(NAME) NAME,
 		GROUPS_MENU_ACTION_ITEMS_X_MACRO
 #undef MENU_ACTION_ITEM

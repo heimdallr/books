@@ -241,7 +241,7 @@ left join Series s on s.SeriesID = b.SeriesID
 )";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
-			{  SELECTED_ITEM_ID,     "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
+			{  SELECTED_ITEM_ID,          "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
 		};
 
 		return GetBookListByIds(list, queryText, parameters, "titlesList");
@@ -264,7 +264,7 @@ from Books b
 )";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
-			{  SELECTED_ITEM_ID,     "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
+			{  SELECTED_ITEM_ID,          "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
 		};
 
 		return GetBookListByIds(list, queryText, parameters, "titlesList");

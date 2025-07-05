@@ -32,4 +32,4 @@ InstallerDescription GetInstallerDescription()
 	return it != std::end(MODES) ? *it : MODES[0];
 }
 
-}
+} // namespace HomeCompa::Util
