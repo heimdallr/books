@@ -898,8 +898,7 @@ order by n.nid
 
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(QString(query->Get<const char*>(1)).split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
-		auto authorHash = hash.result().toHex();
-		auto& files = data.try_emplace(std::move(authorHash), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
+		auto& files = data.try_emplace(hash.result().toHex(), std::make_pair(QString(query->Get<const char*>(2)), PictureList {})).first->second.second;
 		if (const auto* file = query->Get<const char*>(3))
 			files.insert(file);
 	}
