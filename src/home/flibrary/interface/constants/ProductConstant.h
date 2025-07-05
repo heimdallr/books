@@ -12,7 +12,7 @@ constexpr auto VALUE = "Value";
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
-constexpr auto FlibraryBackupVersionNumber = 6;
+constexpr auto FlibraryBackupVersionNumber = 7;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
 constexpr auto FlibraryDatabaseVersionNumber = 4;
