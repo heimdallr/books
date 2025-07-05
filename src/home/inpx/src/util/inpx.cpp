@@ -406,7 +406,11 @@ void SetIsNavigationDeleted(DatabaseWrapper& db)
 	for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
 	{
 		PLOGI << "set IsDeleted for " << table;
-		[[maybe_unused]] const auto rc = sqlite3pp::command(db, QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString().data()).execute();
+		const auto query = QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional).toStdString();
+#ifndef NDEBUG
+		PLOGD << query;
+#endif
+		[[maybe_unused]] const auto rc = sqlite3pp::command(db, query.data()).execute();
 		assert(rc == 0);
 	}
 }
