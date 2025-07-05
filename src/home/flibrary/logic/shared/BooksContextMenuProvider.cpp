@@ -72,7 +72,7 @@ constexpr auto CHANGE_LANGUAGE_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "A
 
 TR_DEF
 
-constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.BookID = ?";
+constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title, coalesce(gl.BookID, -1) from Groups_User g left join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = ?";
 constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, 0) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
 
 using GroupActionFunction = void (GroupController::*)(GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback) const;

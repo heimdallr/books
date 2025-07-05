@@ -31,8 +31,8 @@ constexpr auto CANNOT_REMOVE_BOOKS_FROM_GROUP = QT_TRANSLATE_NOOP("GroupControll
 
 constexpr auto CREATE_NEW_GROUP_QUERY = "insert into Groups_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
-constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, BookId, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
-constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where BookID = ?";
+constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, ObjectId, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
+constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where ObjectID = ?";
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX = " and GroupID = ?";
 
 using Names = std::unordered_set<QString>;

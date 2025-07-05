@@ -70,7 +70,7 @@ static constexpr IsDeletedUpdateArguments IS_DELETED_UPDATE_ARGS[] {
      "Genres", "and l.GenreCode = Genres.GenreCode",
      "join Books b on b.BookID = t.id join Genre_List l on  l.BookID = b.BookID %1", "join Genre_List l on l.BookID = b.BookID",
      "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)", },
-	{ "Groups_User", "and l.GroupID = Groups_User.GroupID", "join Groups_List_User l on l.BookID = t.id %1", "join Groups_List_User l on l.BookID = b.BookID", "" },
+	{ "Groups_User", "and l.GroupID = Groups_User.GroupID", "join Groups_List_User_View l on l.BookID = t.id %1", "join Groups_List_User_View l on l.BookID = b.BookID", "" },
 	{ "Keywords", "and l.KeywordID = Keywords.KeywordID", "join Keyword_List l on l.BookID = t.id %1", "join Keyword_List l on l.BookID = b.BookID", "" },
 	{ "Series", "and l.SeriesID = Series.SeriesID", "join Series_List l on l.BookID = t.id %1", "join Series_List l on l.BookID = b.BookID", "" },
 	{ "Updates", "and b.UpdateID = Updates.UpdateID", "join Books b on b.BookID = t.id %1", "", "and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
