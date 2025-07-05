@@ -220,7 +220,7 @@ AS SELECT
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
 )",
 	R"(
-CREATE VIEW Groups_List_User_View (
+CREATE VIEW IF NOT EXISTS Groups_List_User_View (
     GroupID,
     BookID
 )
