@@ -1757,6 +1757,7 @@ void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, C
 {
 	try
 	{
+		PLOGI << "Create collection mode: " << static_cast<int>(mode);
 		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
 		m_impl->Process();
 	}
@@ -1774,6 +1775,7 @@ void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Call
 {
 	try
 	{
+		PLOGI << "Update collection mode: " << static_cast<int>(mode);
 		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
 		m_impl->UpdateDatabase();
 	}
