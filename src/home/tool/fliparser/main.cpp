@@ -566,6 +566,7 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 		remove(inpxFileName);
 
 	auto zipFileController = Zip::CreateZipFileController();
+	QDateTime maxTime;
 
 	std::ranges::for_each(std::filesystem::directory_iterator { archivesPath }
 	                          | std::views::filter([](const auto& entry) { return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path())); }),
@@ -607,6 +608,8 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 									  if (const auto libId = QFileInfo(bookFile).baseName().toLongLong(&ok); ok)
 										  libIds.insert(libId);
 								  }
+
+								  maxTime = std::max(maxTime, zip.GetFileTime(bookFile));
 							  }
 
 							  zipFileController->AddFile(QString::fromStdWString(path.filename().replace_extension("inp")), std::move(file), QDateTime::currentDateTime());
@@ -621,8 +624,10 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 		PLOGV << path.string();
 
 		Zip zip(QString::fromStdWString(path));
-		std::ranges::for_each(zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
-		                      [&](const auto& item) { zipFileController->AddFile(item, zip.Read(item)->GetStream().readAll(), QDateTime::currentDateTime()); });
+		std::ranges::for_each(
+			zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+			[&](const auto& item)
+			{ zipFileController->AddFile(item, [&] { return item == "version.info" ? maxTime.toString("yyyyMMdd").toUtf8() : zip.Read(item)->GetStream().readAll(); }(), QDateTime::currentDateTime()); });
 	}
 
 	{
