@@ -397,27 +397,27 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;All</source>
         <translation></translation>
     </message>
