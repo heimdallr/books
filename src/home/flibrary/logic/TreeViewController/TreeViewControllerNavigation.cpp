@@ -290,22 +290,35 @@ private: // IContextMenuHandler
 	using ControllerCreator = std::shared_ptr<T> (ILogicFactory::*)() const;
 
 	template <typename T>
-	void OnCreateNavigationItem(ControllerCreator<T> creator) const
+	void OnCreateNavigationItem(ControllerCreator<T> creator, Callback callback) const
 	{
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->CreateNew([=](long long) mutable { controller.reset(); });
+		auto& controllerRef = *controller;
+		controllerRef.CreateNew(
+			[controller = std::move(controller), callback = std::move(callback)](long long) mutable
+			{
+				callback();
+				controller.reset();
+			});
 	}
 
 	template <typename T>
-	void OnRenameNavigationItem(const QModelIndex& index, ControllerCreator<T> creator) const
+	void OnRenameNavigationItem(const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
 	{
 		assert(index.isValid());
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->Rename(index.data(Role::Id).toLongLong(), index.data(Qt::DisplayRole).toString(), [=](long long) mutable { controller.reset(); });
+		auto& controllerRef = *controller;
+		controllerRef.Rename(index.data(Role::Id).toLongLong(),
+		                     index.data(Qt::DisplayRole).toString(),
+		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
+		                     {
+								 callback();
+								 controller.reset();
+							 });
 	}
 
 	template <typename T>
-	void OnRemoveNavigationItem(const QList<QModelIndex>& indexList, const QModelIndex& index, ControllerCreator<T> creator) const
+	void OnRemoveNavigationItem(const QList<QModelIndex>& indexList, const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
 	{
 		const auto toId = [](const QModelIndex& ind) { return ind.data(Role::Id).toLongLong(); };
 
@@ -317,42 +330,43 @@ private: // IContextMenuHandler
 			return;
 
 		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		controller->Remove(std::move(ids), [=](long long) mutable { controller.reset(); });
+		auto& controllerRef = *controller;
+		controllerRef.Remove(std::move(ids),
+		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
+		                     {
+								 callback();
+								 controller.reset();
+							 });
 	}
 
-	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
+	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, const Callback callback) const override //-V801
 	{
 		callback();
 	}
 
 	void OnCreateNewGroupTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
 	{
-		OnCreateNavigationItem(&ILogicFactory::CreateGroupController);
-		callback();
+		OnCreateNavigationItem(&ILogicFactory::CreateGroupController, std::move(callback));
 	}
 
 	void OnRenameGroupTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const override
 	{
-		OnRenameNavigationItem(index, &ILogicFactory::CreateGroupController);
-		callback();
+		OnRenameNavigationItem(index, &ILogicFactory::CreateGroupController, std::move(callback));
 	}
 
 	void OnRemoveGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const override
 	{
-		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateGroupController);
-		callback();
+		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateGroupController, std::move(callback));
 	}
 
 	void OnCreateNewSearchTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
 	{
-		OnCreateNavigationItem(&ILogicFactory::CreateSearchController);
-		callback();
+		OnCreateNavigationItem(&ILogicFactory::CreateSearchController, std::move(callback));
 	}
 
 	void OnRemoveSearchTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const override
 	{
-		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateSearchController);
-		callback();
+		OnRemoveNavigationItem(indexList, index, &ILogicFactory::CreateSearchController, std::move(callback));
 	}
 
 	void OnAddToNewGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
@@ -378,7 +392,17 @@ private: // IContextMenuHandler
 	void ExecuteGroupActionImpl(const GroupActionFunction invoker, const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
-		ExecuteGroupAction(*groupController, invoker, id, GetSelected(index, indexList), [callback = std::move(callback)](auto) { callback(); });
+		auto controller = ILogicFactory::Lock(logicFactory)->CreateGroupController();
+		const auto& controllerRef = *controller;
+		ExecuteGroupAction(controllerRef,
+		                   invoker,
+		                   id,
+		                   GetSelected(index, indexList),
+		                   [callback = std::move(callback), controller = std::move(controller)](auto) mutable
+		                   {
+							   callback();
+							   controller.reset();
+						   });
 	}
 
 private: // DatabaseController::IObserver
