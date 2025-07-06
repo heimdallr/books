@@ -37,7 +37,6 @@ public:
 	                         std::shared_ptr<const IDatabaseUser> databaseUser,
 	                         std::shared_ptr<const IBookInfoProvider> dataProvider,
 	                         std::shared_ptr<const IUiFactory> uiFactory,
-	                         std::shared_ptr<GroupController> groupController,
 	                         std::shared_ptr<IScriptController> scriptController);
 	~BooksContextMenuProvider();
 

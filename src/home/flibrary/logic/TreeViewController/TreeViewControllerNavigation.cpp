@@ -255,7 +255,6 @@ struct TreeViewControllerNavigation::Impl final
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
-	std::shared_ptr<const GroupController> groupController;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
 	const std::vector<std::pair<const char*, int>> modes { GetModes(*this->databaseController, *self.m_settings) };
@@ -266,14 +265,12 @@ struct TreeViewControllerNavigation::Impl final
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<INavigationInfoProvider> dataProvider,
 	     std::shared_ptr<IUiFactory> uiFactory,
-	     std::shared_ptr<const GroupController> groupController,
 	     std::shared_ptr<IDatabaseController> databaseController,
 	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 		: self { self }
 		, logicFactory { logicFactory }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
-		, groupController { std::move(groupController) }
 		, databaseController { std::move(databaseController) }
 		, authorAnnotationController { std::move(authorAnnotationController) }
 	{
@@ -449,11 +446,10 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
                                                            const std::shared_ptr<const ILogicFactory>& logicFactory,
                                                            std::shared_ptr<INavigationInfoProvider> dataProvider,
                                                            std::shared_ptr<IUiFactory> uiFactory,
-                                                           std::shared_ptr<GroupController> groupController,
                                                            std::shared_ptr<IDatabaseController> databaseController,
                                                            std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(groupController), std::move(databaseController), std::move(authorAnnotationController))
+	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
 {
 	Setup();
 
