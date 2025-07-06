@@ -177,7 +177,6 @@ public:
 	              std::shared_ptr<const IDatabaseUser> databaseUser,
 	              std::shared_ptr<const IBookInfoProvider> dataProvider,
 	              std::shared_ptr<const IUiFactory> uiFactory,
-	              std::shared_ptr<GroupController> groupController,
 	              std::shared_ptr<IScriptController> scriptController)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
@@ -185,7 +184,6 @@ public:
 		, m_databaseUser { std::move(databaseUser) }
 		, m_dataProvider { std::move(dataProvider) }
 		, m_uiFactory { std::move(uiFactory) }
-		, m_groupController { std::move(groupController) }
 		, m_scriptController { std::move(scriptController) }
 	{
 	}
@@ -555,7 +553,15 @@ private:
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
-		((*m_groupController).*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback)](long long) { callback(item); });
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateGroupController();
+		const auto& controllerRef = *controller;
+		(controllerRef.*f)(id,
+		                   GetSelected(model, index, indexList),
+		                   [item = std::move(item), callback = std::move(callback), controller = std::move(controller)](long long) mutable
+		                   {
+							   callback(item);
+							   controller.reset();
+						   });
 	}
 
 	GroupController::Ids GetSelected(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
@@ -593,7 +599,6 @@ private:
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
-	PropagateConstPtr<GroupController, std::shared_ptr> m_groupController;
 	std::shared_ptr<IScriptController> m_scriptController;
 	const int m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
@@ -616,9 +621,8 @@ BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const I
                                                    std::shared_ptr<const IDatabaseUser> databaseUser,
                                                    std::shared_ptr<const IBookInfoProvider> dataProvider,
                                                    std::shared_ptr<const IUiFactory> uiFactory,
-                                                   std::shared_ptr<GroupController> groupController,
                                                    std::shared_ptr<IScriptController> scriptController)
-	: m_impl(logicFactory, std::move(settings), std::move(readerController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(groupController), std::move(scriptController))
+	: m_impl(logicFactory, std::move(settings), std::move(readerController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(scriptController))
 {
 	PLOGV << "BooksContextMenuProvider created";
 }
