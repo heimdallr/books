@@ -43,11 +43,10 @@ long long CreateNewGroupImpl(DB::ITransaction& transaction, const QString& name)
 	const auto command = transaction.CreateCommand(CREATE_NEW_GROUP_QUERY);
 	command->Bind(0, name.toStdString());
 	if (!command->Execute())
-		return 0;
+		return -1;
 
 	const auto query = transaction.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
-	query->Execute();
-	return query->Get<long long>(0);
+	return query->Execute() ? query->Get<long long>(0) : -1;
 }
 
 TR_DEF
@@ -91,8 +90,7 @@ struct GroupController::Impl
 									const auto db = databaseUser->Database();
 									const auto transaction = db->CreateTransaction();
 									auto id = CreateNewGroupImpl(*transaction, name);
-									auto ok = id > 0;
-									ok = transaction->Commit() && ok;
+									const auto ok = id > 0 && transaction->Commit();
 
 									return [this, id, callback = std::move(callback), ok](size_t)
 									{
@@ -118,8 +116,7 @@ struct GroupController::Impl
 									const auto command = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?");
 									command->Bind(0, name.toStdString());
 									command->Bind(1, id);
-									auto ok = command->Execute();
-									ok = transaction->Commit() && ok;
+									const auto ok = command->Execute() && transaction->Commit();
 
 									return [this, id, callback = std::move(callback), ok](size_t)
 									{
@@ -152,22 +149,22 @@ struct GroupController::Impl
 										callback(id);
 									};
 
-									if (id == 0)
+									if (id < 0)
 									{
 										*errorMessage = Tr(CANNOT_CREATE_GROUP);
 										return result;
 									}
 
 									const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
-									bool ok = true;
-									std::ranges::for_each(ids,
-			                                              [&](const Id idBook)
-			                                              {
-															  command->Bind(0, id);
-															  command->Bind(1, idBook);
-															  ok = command->Execute() && ok;
-														  });
-									ok = transaction->Commit() && ok;
+									bool ok = std::ranges::all_of(ids,
+			                                                      [&](const Id idBook)
+			                                                      {
+																	  command->Bind(0, id);
+																	  command->Bind(1, idBook);
+																	  return command->Execute();
+																  });
+									if (ok)
+										ok = transaction->Commit();
 
 									if (!ok)
 										*errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);
@@ -271,7 +268,7 @@ void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
 		return m_impl->AddToGroup(id, std::move(ids), {}, std::move(callback));
 
 	m_impl->GetAllGroups(
-		[&, ids = std::move(ids), callback = std::move(callback)](const Names& names) mutable
+		[this, id, ids = std::move(ids), callback = std::move(callback)](const Names& names) mutable
 		{
 			auto name = m_impl->GetNewGroupName(names);
 			if (name.isEmpty())
@@ -293,18 +290,16 @@ void GroupController::RemoveFromGroup(Id id, Ids ids, Callback callback) const
 										const auto db = m_impl->databaseUser->Database();
 										const auto transaction = db->CreateTransaction();
 										const auto command = transaction->CreateCommand(queryText);
-										auto ok = std::accumulate(ids.cbegin(),
-		                                                          ids.cend(),
-		                                                          true,
-		                                                          [&](const bool init, const Id idBook)
-		                                                          {
-																	  command->Bind(0, idBook);
-																	  if (id >= 0)
-																		  command->Bind(1, id);
+										const auto ok = std::ranges::all_of(ids,
+		                                                                    [&](const Id idBook)
+		                                                                    {
+																				command->Bind(0, idBook);
+																				if (id >= 0)
+																					command->Bind(1, id);
 
-																	  return command->Execute() && init;
-																  });
-										ok = transaction->Commit() && ok;
+																				return command->Execute();
+																			})
+		                                             && transaction->Commit();
 
 										return [this, id, callback = std::move(callback), ok](size_t)
 										{

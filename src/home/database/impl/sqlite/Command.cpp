@@ -24,9 +24,14 @@ public:
 private: // DB::Command
 	bool Execute() override
 	{
-		const auto ok = m_command.execute() == 0;
+		const auto res = m_command.execute();
+		if (res != 0)
+		{
+			assert(false);
+			PLOGE << "command failed: " << res;
+		}
 		m_command.reset();
-		return ok;
+		return res == 0;
 	}
 
 	int Bind(const size_t index) override
