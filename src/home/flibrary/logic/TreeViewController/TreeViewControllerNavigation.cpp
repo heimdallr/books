@@ -578,7 +578,7 @@ void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, c
 ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const
 {
 	if (const auto creator = MODE_DESCRIPTORS[m_impl->mode].second.createNewAction)
-		return [creator, &impl = *m_impl] { std::invoke(creator, impl, QList<QModelIndex> {}, QModelIndex {}, IDataItem::Ptr {}, Callback {}); };
+		return [creator, &impl = *m_impl] { std::invoke(creator, impl, QList<QModelIndex> {}, QModelIndex {}, IDataItem::Ptr {}, [] {}); };
 
 	return {};
 }
@@ -589,7 +589,7 @@ ITreeViewController::RemoveItems TreeViewControllerNavigation::GetRemoveItems() 
 		return [creator, &impl = *m_impl](const QList<QModelIndex>& list)
 		{
 			assert(!list.empty());
-			std::invoke(creator, impl, std::cref(list), list.front(), IDataItem::Ptr {}, Callback {});
+			std::invoke(creator, impl, std::cref(list), list.front(), IDataItem::Ptr {}, [] {});
 		};
 
 	return {};
