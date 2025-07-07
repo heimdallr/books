@@ -46,6 +46,8 @@ struct Series
 {
 	QString title;
 	QString serNo;
+	int type;
+	int level;
 };
 
 struct Book
@@ -70,7 +72,7 @@ QByteArray& operator<<(QByteArray& bytes, const Book& book)
 	const auto rate = std::llround(book.rate);
 	const auto rateBytes = rate > 0 && rate <= 5 ? QString::number(rate).toUtf8() : QByteArray {};
 
-	for (const auto& [seriesTitle, serNo] : book.series)
+	for (const auto& [seriesTitle, serNo, type, level] : book.series)
 	{
 		QByteArray data;
 		data.append(book.author.toUtf8())
@@ -269,6 +271,7 @@ constexpr const char* g_indices[] {
 	"CREATE INDEX ix_libreviews_Time ON libreviews (Time)",
 	"CREATE INDEX ix_libaannotations_nid ON libaannotations (nid)",
 	"CREATE INDEX ix_libapics_AvtorId ON libapics (AvtorId)",
+	"delete from libseq where not exists(select 42 from libseqname where libseqname.SeqId = libseq.SeqId)",
 };
 
 void ReplaceStringInPlace(std::string& subject, const std::string& search, const std::string& replace)
@@ -365,7 +368,7 @@ with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywor
         left join librate r on r.BookID = b.BookId
         group by b.BookId
 )
-select distinct
+select
     (select group_concat(
             case when m.rowid is null 
                 then a.LastName ||','|| a.FirstName ||','|| a.MiddleName
@@ -381,12 +384,14 @@ select distinct
         join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID 
         order by g.GenreID
     ) Genre,
-    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords
+    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords, ls.Type, ls.Level
 from Books b
 left join libseq ls on ls.BookID = b.BookID
 left join libseqname s on s.SeqID = ls.SeqID
 left join libfilename f on f.BookId=b.BookID
 )");
+
+	PLOGV << "records selection started";
 
 	size_t n = 0;
 	for (query->Execute(); !query->Eof(); query->Next())
@@ -442,13 +447,17 @@ left join libfilename f on f.BookId=b.BookID
 			         .first;
 		}
 
-		it->second.series.emplace_back(query->Get<const char*>(3), Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)));
+		it->second.series.emplace_back(query->Get<const char*>(3), Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)), query->Get<int>(14), query->Get<int>(15));
 
 		++n;
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
 	}
 
 	PLOGV << n << " total records selected";
+
+	for (auto& [_, book] : inpData)
+		std::ranges::sort(book.series, {}, [](const Series& item) { return std::tuple(item.type, -item.level); });
+
 	return inpData;
 }
 
@@ -483,7 +492,10 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 	{
 		const auto tr = db->CreateTransaction();
 		for (const auto* index : g_indices)
+		{
+			PLOGI << index;
 			tr->CreateCommand(index)->Execute();
+		}
 		tr->Commit();
 	}
 
