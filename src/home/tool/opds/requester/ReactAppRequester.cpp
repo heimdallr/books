@@ -35,7 +35,7 @@ QJsonObject FromQuery(const HomeCompa::DB::IQuery& query)
 {
 	QJsonObject object;
 	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
-		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
+		object.insert(QString::fromStdString(query.ColumnName(i)), query.IsNull(i) ? QJsonValue {} : query.Get<T>(i));
 	return object;
 }
 
@@ -107,14 +107,22 @@ struct ReactAppRequester::Impl
 		}
 
 		{
+			static constexpr std::string_view queryText = R"(
+SELECT gu.GroupID, gu.Title
+          , (SELECT COUNT(42) FROM Groups_List_User_View WHERE Groups_List_User_View.GroupID = gu.GroupID) AS numberOfBooks
+          , (SELECT COUNT(42) FROM Books b join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = b.BookID) AS booksInGroup
+          , (SELECT COUNT(42) FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsInGroup
+          , (SELECT group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ", ") FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsListInGroup
+          , (SELECT COUNT(42) FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesInGroup
+          , (SELECT group_concat(s.SeriesTitle, ", ") FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesListInGroup
+          , (SELECT COUNT(42) FROM Keywords k join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = k.KeywordID) AS keywordsInGroup
+          , (SELECT group_concat(k.KeywordTitle, ", ") FROM Keywords k join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = k.KeywordID) AS keywordsListInGroup
+          FROM Groups_User gu
+)";
 			QJsonArray array;
-			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g left join Groups_List_User_View l on l.GroupID = g.GroupID group by g.GroupID");
+			const auto query = db->CreateQuery(queryText);
 			for (query->Execute(); !query->Eof(); query->Next())
-				array.append(QJsonObject {
-					{       "GroupID", query->Get<const char*>(0) },
-					{         "Title", query->Get<const char*>(1) },
-					{ "numberOfBooks", query->Get<const char*>(2) },
-				});
+				array.append(FromQuery<const char*>(*query));
 			result.insert("groups", array);
 		}
 
