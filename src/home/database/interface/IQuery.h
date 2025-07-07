@@ -18,6 +18,7 @@ public:
 	virtual size_t ColumnCount() const = 0;
 	virtual std::string ColumnName(size_t index) const = 0;
 
+	virtual bool IsNull(size_t index) const = 0;
 	virtual int GetInt(size_t index) const = 0;
 	virtual long long int GetLong(size_t index) const = 0;
 	virtual double GetDouble(size_t index) const = 0;
