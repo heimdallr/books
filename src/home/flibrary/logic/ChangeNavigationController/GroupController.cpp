@@ -34,6 +34,12 @@ constexpr auto REMOVE_GROUP_QUERY = "delete from Groups_User where GroupId = ?";
 constexpr auto ADD_TO_GROUP_QUERY = "insert into Groups_List_User(GroupId, ObjectId, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 constexpr auto REMOVE_FROM_GROUP_QUERY = "delete from Groups_List_User where ObjectID = ?";
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX = " and GroupID = ?";
+constexpr auto REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS = R"(
+delete from Groups_List_User where 
+exists (select 42 from Groups_List_User glu join Author_List al on al.AuthorID = glu.ObjectID and al.BookID = Groups_List_User.ObjectID) or
+exists (select 42 from Groups_List_User glu join Series_List sl on sl.SeriesID = glu.ObjectID and sl.BookID = Groups_List_User.ObjectID) or
+exists (select 42 from Groups_List_User glu join Keyword_List kl on kl.KeywordID = glu.ObjectID and kl.BookID = Groups_List_User.ObjectID)
+)";
 
 using Names = std::unordered_set<QString>;
 
@@ -155,16 +161,19 @@ struct GroupController::Impl
 										return result;
 									}
 
-									const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
-									bool ok = std::ranges::all_of(ids,
-			                                                      [&](const Id idBook)
-			                                                      {
-																	  command->Bind(0, id);
-																	  command->Bind(1, idBook);
-																	  return command->Execute();
-																  });
-									if (ok)
-										ok = transaction->Commit();
+									const bool ok =
+										[&]
+									{
+										const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
+										return std::ranges::all_of(ids,
+				                                                   [&](const Id idObj)
+				                                                   {
+																	   command->Bind(0, id);
+																	   command->Bind(1, idObj);
+																	   return command->Execute();
+																   });
+									}() && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute()
+										&& transaction->Commit();
 
 									if (!ok)
 										*errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);
