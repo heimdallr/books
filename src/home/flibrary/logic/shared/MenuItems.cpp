@@ -51,14 +51,13 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 
 	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr
 	{
-		QString groupName = query.Get<const char*>(1);
 		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
-			return AddMenuItem(remove, std::move(groupName), GroupsMenuAction::RemoveFromGroup);
+			return AddMenuItem(remove, query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
 
-		if (const auto bookExistsInLinkView = query.Get<long long>(3) >= 0; bookExistsInLinkView)
+		if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
 			return {};
 
-		return AddMenuItem(add, std::move(groupName), GroupsMenuAction::AddToGroup);
+		return AddMenuItem(add, query.Get<const char*>(1), GroupsMenuAction::AddToGroup);
 	};
 
 	const auto query = db.CreateQuery(GROUPS_QUERY);
