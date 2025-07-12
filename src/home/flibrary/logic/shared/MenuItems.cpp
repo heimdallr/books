@@ -38,7 +38,7 @@ IDataItem::Ptr AddMenuItem(const IDataItem::Ptr& dst, QString title, const int i
 void CreateGroupMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db)
 {
 	constexpr auto GROUPS_QUERY = R"(
-select g.GroupID, g.Title, coalesce(gl.ObjectID, gw.BookID, -1) 
+select g.GroupID, g.Title, coalesce(gl.ObjectID, -1), coalesce(gw.BookID, -1) 
 from Groups_User g 
 left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.ObjectID = :id 
 left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
@@ -49,15 +49,22 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	const auto add = AddMenuItem(parent, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
 	const auto remove = AddMenuItem(parent, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
 
+	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr
+	{
+		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
+			return AddMenuItem(remove, query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
+
+		if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
+			return {};
+
+		return AddMenuItem(add, query.Get<const char*>(1), GroupsMenuAction::AddToGroup);
+	};
+
 	const auto query = db.CreateQuery(GROUPS_QUERY);
 	query->Bind(":id", id.toInt());
 	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		const auto needAdd = query->Get<long long>(2) < 0;
-		const auto& item = needAdd ? add : remove;
-		AddMenuItem(item, query->Get<const char*>(1), needAdd ? GroupsMenuAction::AddToGroup : GroupsMenuAction::RemoveFromGroup)
-			->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
-	}
+		if (const auto menuItem = createMenuItem(*query))
+			menuItem->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
 
 	if (remove->GetChildCount() > 0)
 	{
