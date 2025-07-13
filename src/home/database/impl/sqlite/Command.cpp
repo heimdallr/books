@@ -26,10 +26,7 @@ private: // DB::Command
 	{
 		const auto res = m_command.execute();
 		if (res != 0)
-		{
-			assert(false);
 			PLOGE << "command failed: " << res;
-		}
 		m_command.reset();
 		return res == 0;
 	}
