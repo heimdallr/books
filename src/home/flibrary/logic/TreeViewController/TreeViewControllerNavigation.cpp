@@ -20,6 +20,7 @@
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/SortString.h"
 
 #include "log.h"
 
@@ -135,6 +136,8 @@ IDataItem::Ptr MenuRequesterGroups(DB::IDatabase& db, const QString& groupId, co
 
 		if (subMenu->GetChildCount() < 2)
 			return;
+
+		subMenu->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return Util::QStringWrapper { lhs.GetData() } < Util::QStringWrapper { rhs.GetData() }; });
 
 		AddMenuItem(subMenu);
 		AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
