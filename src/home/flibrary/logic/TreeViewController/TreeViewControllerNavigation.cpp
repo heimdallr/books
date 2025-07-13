@@ -130,9 +130,14 @@ IDataItem::Ptr MenuRequesterGroups(DB::IDatabase& db, const QString& groupId, co
 			return;
 
 		auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));
-		AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
 		for (; !query->Eof(); query->Next())
 			AddMenuItem(subMenu, query->Get<const char*>(1), MenuAction::RemoveFromGroupOneItem)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
+
+		if (subMenu->GetChildCount() < 2)
+			return;
+
+		AddMenuItem(subMenu);
+		AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
 	};
 
 	constexpr auto authorsQueryText =
