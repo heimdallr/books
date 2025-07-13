@@ -5682,6 +5682,21 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Remove from group</source>
+        <translation>Видалити із групи</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All books</source>
+        <translation>Усі книги</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All</source>
+        <translation>Усі</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
         <translation>Новий пошук...</translation>
     </message>
