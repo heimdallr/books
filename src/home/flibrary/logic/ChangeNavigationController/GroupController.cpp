@@ -165,13 +165,15 @@ struct GroupController::Impl
 										[&]
 									{
 										const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
-										return std::ranges::all_of(ids,
-				                                                   [&](const Id idObj)
-				                                                   {
-																	   command->Bind(0, id);
-																	   command->Bind(1, idObj);
-																	   return command->Execute();
-																   });
+										bool any = false;
+										std::ranges::for_each(ids,
+				                                              [&](const Id idObj)
+				                                              {
+																  command->Bind(0, id);
+																  command->Bind(1, idObj);
+																  any = command->Execute() || any;
+															  });
+										return any;
 									}() && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute()
 										&& transaction->Commit();
 
