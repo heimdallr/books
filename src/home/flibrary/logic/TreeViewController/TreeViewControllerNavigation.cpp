@@ -431,18 +431,22 @@ private: // IContextMenuHandler
 
 	void OnRemoveFromGroupAllBooksTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		ExecuteGroupActionInvertedImpl(&GroupController::RemoveBooks, index, item, std::move(callback));
 	}
 
 	void OnRemoveFromGroupAllAuthorsTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		ExecuteGroupActionInvertedImpl(&GroupController::RemoveAuthors, index, item, std::move(callback));
 	}
 
 	void OnRemoveFromGroupAllSeriesTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		ExecuteGroupActionInvertedImpl(&GroupController::RemoveSeries, index, item, std::move(callback));
 	}
 
 	void OnRemoveFromGroupAllKeywordsTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		ExecuteGroupActionInvertedImpl(&GroupController::RemoveKeywords, index, item, std::move(callback));
 	}
 
 private: // DatabaseController::IObserver

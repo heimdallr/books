@@ -216,6 +216,28 @@ struct GroupController::Impl
 			return name;
 		}
 	}
+
+	void RemoveFromGroupAll(const Id id, Callback callback, const char* queryArg, const char* logArg) const
+	{
+		databaseUser->Execute({ QString("Remove all %1 from group").arg(logArg).toStdString(),
+		                        [&, id, callback = std::move(callback), queryArg]() mutable
+		                        {
+									const auto db = databaseUser->Database();
+									const auto transaction = db->CreateTransaction();
+									const auto command = transaction->CreateCommand(
+										QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg).toStdString());
+									command->Bind(0, id);
+									const auto ok = command->Execute() && transaction->Commit();
+
+									return [this, id, callback = std::move(callback), ok](size_t)
+									{
+										if (!ok)
+											uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
+
+										callback(id);
+									};
+								} });
+	}
 };
 
 GroupController::GroupController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory)
@@ -287,7 +309,7 @@ void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
 		});
 }
 
-void GroupController::RemoveFromGroup(Id id, Ids ids, Callback callback) const
+void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) const
 {
 	m_impl->databaseUser->Execute({ "Remove from group",
 	                                [&, id, ids = std::move(ids), callback = std::move(callback)]() mutable
@@ -318,4 +340,24 @@ void GroupController::RemoveFromGroup(Id id, Ids ids, Callback callback) const
 											callback(id);
 										};
 									} });
+}
+
+void GroupController::RemoveBooks(const Id id, Ids, Callback callback) const
+{
+	m_impl->RemoveFromGroupAll(id, std::move(callback), "Books b where b.BookID", "books");
+}
+
+void GroupController::RemoveAuthors(const Id id, Ids, Callback callback) const
+{
+	m_impl->RemoveFromGroupAll(id, std::move(callback), "Authors a where a.AuthorID", "authors");
+}
+
+void GroupController::RemoveSeries(const Id id, Ids, Callback callback) const
+{
+	m_impl->RemoveFromGroupAll(id, std::move(callback), "Series s where s.SeriesID", "series");
+}
+
+void GroupController::RemoveKeywords(const Id id, Ids, Callback callback) const
+{
+	m_impl->RemoveFromGroupAll(id, std::move(callback), "Keywords k where k.KeywordID", "keywords");
 }
