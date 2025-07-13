@@ -426,6 +426,7 @@ private: // IContextMenuHandler
 
 	void OnRemoveFromGroupOneItemTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		ExecuteGroupActionInvertedImpl(&GroupController::RemoveFromGroup, index, item, std::move(callback));
 	}
 
 	void OnRemoveFromGroupAllBooksTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
@@ -505,6 +506,21 @@ private:
 		                   invoker,
 		                   id,
 		                   GetSelected(index, indexList),
+		                   [callback = std::move(callback), controller = std::move(controller)](auto) mutable
+		                   {
+							   callback();
+							   controller.reset();
+						   });
+	}
+
+	void ExecuteGroupActionInvertedImpl(const GroupActionFunction invoker, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const
+	{
+		auto controller = ILogicFactory::Lock(logicFactory)->CreateGroupController();
+		const auto& controllerRef = *controller;
+		ExecuteGroupAction(controllerRef,
+		                   invoker,
+		                   index.data(Role::Id).toLongLong(),
+		                   { item->GetData(MenuItem::Column::Parameter).toLongLong() },
 		                   [callback = std::move(callback), controller = std::move(controller)](auto) mutable
 		                   {
 							   callback();
