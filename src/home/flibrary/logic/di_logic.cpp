@@ -2,8 +2,6 @@
 
 #include <QCoreApplication>
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "interface/constants/SettingsConstant.h"
 
 #include "Annotation/AnnotationController.h"
@@ -13,6 +11,7 @@
 #include "Collection/CollectionController.h"
 #include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
+#include "Hypodermic/Hypodermic.h"
 #include "JokeRequester/factory/JokeRequesterFactory.h"
 #include "data/DataProvider.h"
 #include "data/GenreFilterProvider.h"

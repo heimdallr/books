@@ -1,8 +1,7 @@
 #include "di_app.h"
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "GuiUtil/di_gui_util.h"
+#include "Hypodermic/Hypodermic.h"
 #include "logic/di_logic.h"
 
 namespace HomeCompa::fb2cut

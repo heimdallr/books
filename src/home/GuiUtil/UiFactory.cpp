@@ -3,12 +3,11 @@
 #include <QFileInfo>
 #include <QPushButton>
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "fnd/FindPair.h"
 
 #include "interface/IParentWidgetProvider.h"
 
+#include "Hypodermic/Hypodermic.h"
 #include "util/ISettings.h"
 
 #include "Dialog.h"

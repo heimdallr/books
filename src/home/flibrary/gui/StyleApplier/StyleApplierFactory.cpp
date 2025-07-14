@@ -2,7 +2,7 @@
 
 #include <QAction>
 
-#include <Hypodermic/Hypodermic.h>
+#include "Hypodermic/Hypodermic.h"
 
 #include "ColorSchemeApplier.h"
 #include "DllStyleApplier.h"

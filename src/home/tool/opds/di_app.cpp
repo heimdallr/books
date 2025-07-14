@@ -1,9 +1,8 @@
 #include "di_app.h"
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "interface/logic/ICollectionProvider.h"
 
+#include "Hypodermic/Hypodermic.h"
 #include "logic/di_logic.h"
 #include "requester/NoSqlRequester.h"
 #include "requester/ReactAppRequester.h"

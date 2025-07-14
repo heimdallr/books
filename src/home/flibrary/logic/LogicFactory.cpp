@@ -2,8 +2,6 @@
 
 #include <QTemporaryDir>
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IBookSearchController.h"
@@ -14,6 +12,7 @@
 
 #include "Annotation/ArchiveParser.h"
 #include "ChangeNavigationController/GroupController.h"
+#include "Hypodermic/Hypodermic.h"
 #include "TreeViewController/TreeViewControllerBooks.h"
 #include "TreeViewController/TreeViewControllerNavigation.h"
 #include "data/Genre.h"

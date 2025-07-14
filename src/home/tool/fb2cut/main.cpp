@@ -9,7 +9,6 @@
 #include <QStandardPaths>
 #include <QTranslator>
 
-#include <Hypodermic/Hypodermic.h>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Record.h>
@@ -20,6 +19,7 @@
 #include "fnd/ScopedCall.h"
 
 #include "GuiUtil/interface/IUiFactory.h"
+#include "Hypodermic/Hypodermic.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "util/ISettings.h"

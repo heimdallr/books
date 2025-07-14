@@ -2,8 +2,7 @@
 
 #include <QCoreApplication>
 
-#include <Hypodermic/Hypodermic.h>
-
+#include "Hypodermic/Hypodermic.h"
 #include "StyleApplier/StyleApplierFactory.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/ComboBoxTextDialog.h"

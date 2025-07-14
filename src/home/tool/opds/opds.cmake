@@ -15,7 +15,7 @@ AddTarget(opds	app
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
 	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/opds.rc
 	LINK_LIBRARIES
-		Hypodermic
+		boost
 		Qt${QT_MAJOR_VERSION}::Concurrent
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::HttpServer

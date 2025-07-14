@@ -3,7 +3,7 @@ AddTarget(GuiUtil	shared_lib
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
-		Hypodermic
+		boost
 		plog
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
