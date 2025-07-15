@@ -3,8 +3,8 @@ AddTarget(gui	shared_lib
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
-		boost
 		plog
+		Boost::boost
 		Qt${QT_MAJOR_VERSION}::Network
 		Qt${QT_MAJOR_VERSION}::Widgets
 		Qt${QT_MAJOR_VERSION}::Svg

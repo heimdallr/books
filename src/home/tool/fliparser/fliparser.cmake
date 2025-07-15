@@ -12,7 +12,7 @@ AddTarget(fliparser	app_console
 	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/fliparser.rc
 	SKIP_INSTALL
 	LINK_LIBRARIES
-		boost
+		Boost::boost
 		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		DatabaseFactory
