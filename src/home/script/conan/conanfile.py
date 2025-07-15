@@ -12,6 +12,7 @@ class FLibrary(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.88.0")
+        self.requires("plog/1.1.10")
 
     def configure(self):
         configure_boost(self)
