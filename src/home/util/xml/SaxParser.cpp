@@ -16,7 +16,7 @@
 
 using namespace HomeCompa;
 using namespace Util;
-namespace xercesc = xercesc_3_2;
+namespace xercesc = xercesc_3_3;
 
 namespace
 {
@@ -90,7 +90,7 @@ private:
 	QStringList m_data;
 };
 
-class BinInputStream final : public xercesc_3_2::BinInputStream
+class BinInputStream final : public xercesc_3_3::BinInputStream
 {
 public:
 	BinInputStream(QIODevice& source, const int64_t maxChunkSize)

@@ -6,6 +6,9 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps
 def configure_boost(recipe):
     recipe.options["boost"].shared = True
 
+def configure_xercesc(recipe):
+    recipe.options["xerces-c"].char_type = 'char16_t'
+
 class FLibrary(ConanFile):
     name = "FLibrary"
     settings = "os", "compiler", "build_type", "arch"
@@ -13,9 +16,11 @@ class FLibrary(ConanFile):
     def requirements(self):
         self.requires("boost/1.88.0")
         self.requires("plog/1.1.10")
+        self.requires("xerces-c/3.3.0")
 
     def configure(self):
         configure_boost(self)
+        configure_xercesc(self)
 
     def generate(self):
         deps = CMakeDeps(self)
