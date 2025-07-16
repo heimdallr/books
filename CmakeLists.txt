@@ -36,7 +36,10 @@ include(${BUILDSCRIPTS_ROOT}/cmake/GenerateTranslations.cmake)
 
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
-find_package(xercesc REQUIRED)
+find_package(XercesC REQUIRED)
+
+set(ICU_FIND_COMPONENTS "tu;io;dt;uc")
+find_package(ICU REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

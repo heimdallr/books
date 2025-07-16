@@ -9,6 +9,9 @@ def configure_boost(recipe):
 def configure_xercesc(recipe):
     recipe.options["xerces-c"].char_type = 'char16_t'
 
+def configure_icu(recipe):
+    recipe.options["icu"].shared = False
+
 class FLibrary(ConanFile):
     name = "FLibrary"
     settings = "os", "compiler", "build_type", "arch"
@@ -17,10 +20,12 @@ class FLibrary(ConanFile):
         self.requires("boost/1.88.0")
         self.requires("plog/1.1.10")
         self.requires("xerces-c/3.3.0")
+        self.requires("icu/77.1")
 
     def configure(self):
         configure_boost(self)
         configure_xercesc(self)
+        configure_icu(self)
 
     def generate(self):
         deps = CMakeDeps(self)
