@@ -5,6 +5,8 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps
 
 def configure_boost(recipe):
     recipe.options["boost"].shared = True
+    recipe.options["boost"].header_only = True
+    recipe.options["boost"].error_code_header_only = True
 
 def configure_xercesc(recipe):
     recipe.options["xerces-c"].char_type = 'char16_t'

@@ -3,7 +3,7 @@ AddTarget(logic	shared_lib
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
-		Boost::boost
+		Boost::headers
 		plog::plog
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Network
