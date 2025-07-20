@@ -11,6 +11,7 @@ public:
 	bool ExecuteSystem(const IScriptController::Command& command) const override;
 	bool ExecuteLaunchConsoleApp(const IScriptController::Command& command) const override;
 	bool ExecuteLaunchGuiApp(const IScriptController::Command& command) const override;
+	bool ExecuteEmbeddedCommand(const IScriptController::Command& command) const override;
 };
 
 }

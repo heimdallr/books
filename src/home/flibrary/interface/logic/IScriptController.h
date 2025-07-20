@@ -21,6 +21,7 @@ public:
 		enum
 		{
 			Mode = Qt::UserRole + 1,
+			Name,
 			Type,
 			Number,
 			Observer,
@@ -77,6 +78,16 @@ public:
 			Last
 	};
 
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)
+
+	enum class EmbeddedCommand
+	{
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(NAME) NAME,
+		SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO
+#undef SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM
+			Last
+	};
+
 	struct Base
 	{
 		QString uid;
@@ -110,6 +121,7 @@ public:
 			LaunchConsoleApp,
 			LaunchGuiApp,
 			System,
+			Embedded,
 			Last
 		};
 
@@ -134,6 +146,7 @@ public:
 		virtual bool ExecuteSystem(const Command& command) const = 0;
 		virtual bool ExecuteLaunchConsoleApp(const Command& command) const = 0;
 		virtual bool ExecuteLaunchGuiApp(const Command& command) const = 0;
+		virtual bool ExecuteEmbeddedCommand(const Command& command) const = 0;
 	};
 
 	using CommandExecutorFunctor = bool (ICommandExecutor::*)(const Command& command) const;
@@ -148,6 +161,7 @@ public:
 		{ Command::Type::LaunchConsoleApp, { QT_TRANSLATE_NOOP("ScriptController", "LaunchApp"), &ICommandExecutor::ExecuteLaunchConsoleApp } },
 		{     Command::Type::LaunchGuiApp,  { QT_TRANSLATE_NOOP("ScriptController", "LaunchGuiApp"), &ICommandExecutor::ExecuteLaunchGuiApp } },
 		{		   Command::Type::System,              { QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem } },
+		{         Command::Type::Embedded,   { QT_TRANSLATE_NOOP("ScriptController", "Embedded"), &ICommandExecutor::ExecuteEmbeddedCommand } },
 	};
 	static_assert(std::size(s_commandTypes) == static_cast<size_t>(Command::Type::Last));
 
