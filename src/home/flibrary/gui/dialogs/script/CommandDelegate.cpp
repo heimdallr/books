@@ -113,7 +113,7 @@ QWidget* CommandDelegate::createEditor(QWidget* parent, const QStyleOptionViewIt
 void CommandDelegate::setEditorData(QWidget* /*editor*/, const QModelIndex& index) const
 {
 	auto* editor = m_impl->GetEditor(index);
-	editor->SetText(index.data().toString());
+	editor->SetText(index.data(Role::Name).toString());
 }
 
 void CommandDelegate::setModelData(QWidget* /*editor*/, QAbstractItemModel* model, const QModelIndex& index) const

@@ -21,6 +21,7 @@ public:
 		enum
 		{
 			Mode = Qt::UserRole + 1,
+			Name,
 			Type,
 			Number,
 			Observer,
