@@ -969,6 +969,14 @@ bool run(int argc, char* argv[])
 		PLOGI << stream.str();
 	}
 
+	const auto checkExternalUtil = [](const QString& name, const QString& path)
+	{
+		if (!(path.isEmpty() || QFile::exists(path)))
+			throw std::invalid_argument(QString("Cannot find %1, path '%2' not found").arg(name).arg(path).toStdString());
+	};
+	checkExternalUtil("ffmpeg", settings.settings.ffmpeg);
+	checkExternalUtil("external archiver", settings.settings.archiver);
+
 	const auto failedArchives = ProcessArchives(settings.settings);
 	if (failedArchives.isEmpty())
 		return false;
