@@ -5964,6 +5964,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>Embedded</source>
+        <translation>Встроенная команда</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%title%</source>
         <translation>Название книги</translation>
     </message>
@@ -6046,6 +6051,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_size%</source>
         <translation>Размер файла</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/delegate/EmbeddedCommandsDelegateEditor.cpp"/>
+        <source>Download</source>
+        <translation>Скачать</translation>
     </message>
 </context>
 <context>

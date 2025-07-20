@@ -5944,6 +5944,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>Embedded</source>
+        <translation>Вбудована команда</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%source_file%</source>
         <translation>Повний шлях до розпакованого файлу у тимчасовій папці</translation>
     </message>
@@ -6046,6 +6051,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%uid%</source>
         <translation>Унікальний ідентифікатор (GUID)</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/delegate/EmbeddedCommandsDelegateEditor.cpp"/>
+        <source>Download</source>
+        <translation>Завантажити</translation>
     </message>
 </context>
 <context>
