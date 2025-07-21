@@ -6,6 +6,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/logic/IScriptController.h"
+
 #include "util/localization.h"
 
 #include "ScriptSortFilterModel.h"
