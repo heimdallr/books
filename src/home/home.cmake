@@ -17,6 +17,7 @@ set(MODULES
 	network
 	tool
 	GuiUtil
+	icu
 )
 foreach(module ${MODULES})
 	include("${CMAKE_CURRENT_LIST_DIR}/${module}/${module}.cmake")

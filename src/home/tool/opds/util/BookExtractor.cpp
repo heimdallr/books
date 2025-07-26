@@ -1,12 +1,15 @@
 #include "BookExtractor.h"
 
-#include <unicode/translit.h>
-
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IScriptController.h"
+
+#include "icu/icu.h"
+#include "util/DyLib.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Opds;
@@ -23,20 +26,6 @@ QString GetOutputFileNameTemplate(const ISettings& settings)
 	return outputFileNameTemplate;
 }
 
-void Transliterate(const char* id, QString& str)
-{
-	UErrorCode status = U_ZERO_ERROR;
-	icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
-	assert(myTrans);
-
-	auto s = str.toStdU32String();
-	auto icuString = icu_77::UnicodeString::fromUTF32(reinterpret_cast<int32_t*>(s.data()), static_cast<int32_t>(s.length()));
-	myTrans->transliterate(icuString);
-	auto buf = std::make_unique_for_overwrite<int32_t[]>(icuString.length() * 4ULL);
-	icuString.toUTF32(buf.get(), icuString.length() * 4, status);
-	str = QString::fromStdU32String(std::u32string(reinterpret_cast<char32_t*>(buf.get())));
-}
-
 } // namespace
 
 struct BookExtractor::Impl
@@ -45,6 +34,13 @@ struct BookExtractor::Impl
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
 	const QString m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
+
+	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider, std::shared_ptr<const Flibrary::IDatabaseController> databaseController)
+		: settings { std::move(settings) }
+		, collectionProvider { std::move(collectionProvider) }
+		, databaseController { std::move(databaseController) }
+	{
+	}
 
 	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
@@ -80,12 +76,45 @@ where b.BookID = ?
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
+		LoadICU();
+		if (!m_icuTransliterate)
+			return outputFileName;
+
 		Transliterate("ru-ru_Latn/BGN", outputFileName);
 		Transliterate("Any-Latin", outputFileName);
 		Transliterate("Latin-ASCII", outputFileName);
 
 		return outputFileName;
 	}
+
+private:
+	void LoadICU() const
+	{
+		if (m_icuTransliterate)
+			return;
+
+		if (!((m_icuLib = std::make_unique<Util::DyLib>(ICU::LIB_NAME))))
+		{
+			PLOGW << "Cannot load " << ICU::LIB_NAME << " dynamic library";
+			return;
+		}
+
+		if (!((m_icuTransliterate = m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME))))
+			PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
+	}
+
+	void Transliterate(const char* id, QString& str) const
+	{
+		assert(m_icuTransliterate);
+		auto src = str.toStdU32String();
+		src.push_back(0);
+		std::u32string dst;
+		m_icuTransliterate(id, &src, &dst);
+		str = QString::fromStdU32String(dst);
+	}
+
+	mutable std::unique_ptr<Util::DyLib> m_icuLib;
+	mutable ICU::TransliterateType m_icuTransliterate { nullptr };
 };
 
 BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings,

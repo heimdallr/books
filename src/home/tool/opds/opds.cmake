@@ -20,7 +20,6 @@ AddTarget(opds	app
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::HttpServer
 		Qt${QT_MAJOR_VERSION}::Network
-		${icu_modules}
 	LINK_TARGETS
 		flint
 		Fnd
@@ -29,4 +28,6 @@ AddTarget(opds	app
 		Util
 		ver
 		zip
+	DEPENDENCIES
+		icu
 )
