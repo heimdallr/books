@@ -37,6 +37,7 @@ include(${BUILDSCRIPTS_ROOT}/cmake/GenerateTranslations.cmake)
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(XercesC REQUIRED)
+find_package(7zip REQUIRED)
 
 set(ICU_FIND_COMPONENTS "tu;io;dt;uc")
 find_package(ICU REQUIRED)

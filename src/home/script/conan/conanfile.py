@@ -23,6 +23,7 @@ class FLibrary(ConanFile):
         self.requires("plog/1.1.10")
         self.requires("xerces-c/3.3.0")
         self.requires("icu/77.1")
+        self.requires("7zip/25.00")
 
     def configure(self):
         configure_boost(self)
