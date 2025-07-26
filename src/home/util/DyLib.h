@@ -22,10 +22,10 @@ public:
 	void* GetProc(const std::string& procName); ///< Получить адрес функции
 
 	template <typename ProcType>
-	ProcType* GetTypedProc(const std::string& procName)
+	ProcType GetTypedProc(const std::string& procName)
 	{
 		void* const procPtr = this->GetProc(procName);
-		ProcType* const typedProcPtr = reinterpret_cast<ProcType*>(procPtr);
+		ProcType const typedProcPtr = reinterpret_cast<ProcType>(procPtr);
 		return typedProcPtr;
 	}
 
