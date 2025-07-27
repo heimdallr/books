@@ -244,20 +244,18 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 		{
 			prop = CPropVariant {};
 			auto hr = archive->GetProperty(i, kpidCTime, &prop);
-			if (FAILED(hr) || prop.vt == VT_EMPTY)
+			if (FAILED(hr) || prop.vt == VT_EMPTY || (prop.filetime.dwHighDateTime == 0 && prop.filetime.dwLowDateTime == 0))
 			{
 				hr = archive->GetProperty(i, kpidATime, &prop);
-				if (FAILED(hr) || prop.vt == VT_EMPTY)
+				if (FAILED(hr) || prop.vt == VT_EMPTY || (prop.filetime.dwHighDateTime == 0 && prop.filetime.dwLowDateTime == 0))
 				{
 					hr = archive->GetProperty(i, kpidMTime, &prop);
-					if (FAILED(hr) || prop.vt == VT_EMPTY)
+					if (FAILED(hr) || prop.vt == VT_EMPTY || (prop.filetime.dwHighDateTime == 0 && prop.filetime.dwLowDateTime == 0))
 					{
 						return QDateTime {};
 					}
 				}
 			}
-			if (!prop.filetime.dwHighDateTime && !prop.filetime.dwLowDateTime)
-				return QDateTime {};
 
 			SYSTEMTIME systemTime {};
 			if (!FileTimeToSystemTime(&prop.filetime, &systemTime))
