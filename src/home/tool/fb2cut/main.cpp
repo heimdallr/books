@@ -215,6 +215,22 @@ QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputIm
 	return result;
 }
 
+QByteArray Encode(const ImageSettings& settings, const QString& imageFile, QImage& image, const QByteArray& body)
+{
+	const auto hasAlpha = HasAlpha(image, body.constData());
+	if (hasAlpha)
+		image = ReducePng(settings.type, imageFile, image, settings.quality);
+
+	QByteArray imageBody;
+	{
+		QBuffer imageOutput(&imageBody);
+		if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
+			return {};
+	}
+
+	return imageBody;
+}
+
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -348,16 +364,9 @@ private:
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
-			const auto hasAlpha = HasAlpha(image, body.constData());
-			if (hasAlpha)
-				image = ReducePng(settings.type, imageFile, image, settings.quality);
-
-			QByteArray imageBody;
-			{
-				QBuffer imageOutput(&imageBody);
-				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
-					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
-			}
+			auto imageBody = Encode(settings, imageFile, image, body);
+			if (imageBody.isEmpty())
+				return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 
 			auto& storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody), dateTime);
