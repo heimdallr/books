@@ -198,7 +198,7 @@ struct WStringHash
 using Books = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres = std::vector<Genre>;
-using Links = std::vector<std::pair<size_t, size_t>>;
+using Links = std::unordered_map<size_t, std::vector<size_t>>;
 using Folders = std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
@@ -206,7 +206,7 @@ using FindFunctor = std::function<Dictionary::const_iterator(const Dictionary&, 
 using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter = std::function<std::vector<std::wstring>(std::wstring_view)>;
 using InpxFolders = std::map<std::pair<std::wstring, std::wstring>, std::string, CaseInsensitiveComparer<>>;
-using BooksSeries = std::unordered_map<std::pair<size_t, size_t>, std::optional<int>, PairHash<size_t, size_t>>;
+using BooksSeries = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
 using Reviews = std::map<size_t, std::set<std::string>>;
 
 struct Data

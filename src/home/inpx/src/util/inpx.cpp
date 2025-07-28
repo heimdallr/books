@@ -195,30 +195,36 @@ T Add(std::wstring_view value, Dictionary& container, const GetIdFunctor& getId 
 	return static_cast<T>(it->second);
 }
 
-std::set<size_t> ParseItem(const std::wstring_view data,
-                           Dictionary& container,
-                           const wchar_t separator = Util::Fb2InpxParser::LIST_SEPARATOR,
-                           const ParseChecker& parseChecker = &ParseCheckerDefault,
-                           const GetIdFunctor& getId = &GetIdDefault,
-                           const FindFunctor& find = &FindDefault)
+std::vector<size_t> ParseItem(const std::wstring_view data,
+                              Dictionary& container,
+                              const wchar_t separator = Util::Fb2InpxParser::LIST_SEPARATOR,
+                              const ParseChecker& parseChecker = &ParseCheckerDefault,
+                              const GetIdFunctor& getId = &GetIdDefault,
+                              const FindFunctor& find = &FindDefault)
 {
-	std::set<size_t> result;
+	std::unordered_set<size_t> unique;
+	std::vector<size_t> result;
 	auto it = std::ranges::find_if(data, [=](const auto ch) { return ch != separator; });
 	while (it != std::cend(data))
 		if (const auto value = Next(it, std::cend(data), separator); parseChecker(value))
-			result.emplace(Add<size_t>(value, container, getId, find));
+			if (const auto [valueIt, added] = unique.insert(Add<size_t>(value, container, getId, find)); added)
+				result.emplace_back(*valueIt);
 
 	return result;
 }
 
-std::set<size_t> ParseItem(const std::wstring_view data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault)
+std::vector<size_t> ParseItem(const std::wstring_view data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault)
 {
-	std::set<size_t> result;
-	std::ranges::transform(splitter(data), std::inserter(result, result.end()), [&](const auto& value) { return Add<size_t>(value, container, getId, find); });
+	std::unordered_set<size_t> unique;
+	std::vector<size_t> result;
+	for (const auto& value : splitter(data))
+		if (const auto [valueIt, added] = unique.insert(Add<size_t>(value, container, getId, find)); added)
+			result.emplace_back(*valueIt);
+
 	return result;
 }
 
-std::set<size_t> ParseKeywords(const std::wstring_view keywordsSrc, Dictionary& keywordsLinks, std::unordered_map<QString, std::wstring>& uniqueKeywords)
+std::vector<size_t> ParseKeywords(const std::wstring_view keywordsSrc, Dictionary& keywordsLinks, std::unordered_map<QString, std::wstring>& uniqueKeywords)
 {
 	return ParseItem(
 		keywordsSrc,
@@ -431,31 +437,6 @@ void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
 	assert(rc == 0);
 }
 
-template <typename T>
-void print(const T& value)
-{
-	PLOGE << value;
-}
-
-template <>
-void print<BooksSeries::value_type>(const BooksSeries::value_type& value)
-{
-	PLOGE << value.first.first << ", " << value.first.second << ": " << (value.second ? *value.second : -1);
-}
-
-void print(const std::pair<size_t, std::string>& value)
-{
-	PLOGE << value.first << ", " << value.second;
-}
-
-template <typename... ARGS>
-void print(const std::tuple<ARGS...>& value)
-{
-	std::ostringstream stream;
-	std::apply([&](auto&&... arg) { ((stream << arg << ", "), ...); }, value);
-	PLOGE << stream.str();
-}
-
 template <typename Container, typename Functor>
 size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
@@ -486,8 +467,8 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 											}
 											else
 											{
+												assert(false);
 												PLOGE << db->error_code() << ": " << db->error_msg();
-												print(value);
 											}
 
 											return init + static_cast<size_t>(localResult);
@@ -643,51 +624,81 @@ size_t Store(const Path& dbFileName, Data& data)
 
 	result += StoreRange(dbFileName,
 	                     "Author_List",
-	                     "INSERT INTO Author_List (AuthorID, BookID) VALUES(?, ?)",
+	                     "INSERT INTO Author_List (AuthorID, BookID, OrdNum) VALUES(?, ?, ?)",
 	                     data.booksAuthors,
 	                     [](sqlite3pp::command& cmd, const Links::value_type& item)
 	                     {
-							 cmd.binder() << item.second << item.first;
-							 return cmd.execute();
+							 return std::accumulate(item.second.cbegin(),
+		                                            item.second.cend(),
+		                                            0,
+		                                            [&, ordNum = 0](const int init, const size_t id) mutable
+		                                            {
+														cmd.reset();
+														cmd.binder() << id << item.first << ++ordNum;
+														return init + cmd.execute();
+													});
 						 });
 
 	result += StoreRange(dbFileName,
 	                     "Series_List",
-	                     "INSERT INTO Series_List (SeriesID, BookID, SeqNumber) VALUES(?, ?, ?)",
+	                     "INSERT INTO Series_List (SeriesID, BookID, SeqNumber, OrdNum) VALUES(?, ?, ?, ?)",
 	                     data.booksSeries,
 	                     [](sqlite3pp::command& cmd, const BooksSeries::value_type& item)
 	                     {
-							 cmd.bind(1, item.first.second);
-							 cmd.bind(2, item.first.first);
-							 if (item.second)
-								 cmd.bind(3, *item.second);
-							 else
-								 cmd.bind(3);
-							 return cmd.execute();
+							 return std::accumulate(item.second.cbegin(),
+		                                            item.second.cend(),
+		                                            0,
+		                                            [&, ordNum = 0](const int init, const std::pair<size_t, std::optional<int>> series) mutable
+		                                            {
+														cmd.reset();
+														cmd.bind(1, series.first);
+														cmd.bind(2, item.first);
+														if (series.second)
+															cmd.bind(3, *series.second);
+														else
+															cmd.bind(3);
+														cmd.bind(4, ++ordNum);
+														return init + cmd.execute();
+													});
 						 });
 
 	result += StoreRange(dbFileName,
 	                     "Keyword_List",
-	                     "INSERT INTO Keyword_List (KeywordID, BookID) VALUES(?, ?)",
+	                     "INSERT INTO Keyword_List (KeywordID, BookID, OrdNum) VALUES(?, ?, ?)",
 	                     data.booksKeywords,
 	                     [](sqlite3pp::command& cmd, const Links::value_type& item)
 	                     {
-							 cmd.binder() << item.second << item.first;
-							 return cmd.execute();
+							 return std::accumulate(item.second.cbegin(),
+		                                            item.second.cend(),
+		                                            0,
+		                                            [&, ordNum = 0](const int init, const size_t id) mutable
+		                                            {
+														cmd.reset();
+														cmd.binder() << id << item.first << ++ordNum;
+														return init + cmd.execute();
+													});
 						 });
 	std::vector<std::string> genres;
 	genres.reserve(std::size(genres));
 	std::ranges::transform(data.genres, std::back_inserter(genres), [](const auto& item) { return ToMultiByte(item.dbCode); });
 	result += StoreRange(dbFileName,
 	                     "Genre_List",
-	                     "INSERT INTO Genre_List (BookID, GenreCode) VALUES(?, ?)",
+	                     "INSERT INTO Genre_List (BookID, GenreCode, OrdNum) VALUES(?, ?, ?)",
 	                     data.booksGenres,
 	                     [genres = std::move(genres)](sqlite3pp::command& cmd, const Links::value_type& item)
 	                     {
-							 assert(item.second < std::size(genres));
-							 cmd.bind(1, item.first);
-							 cmd.bind(2, genres[item.second], sqlite3pp::nocopy);
-							 return cmd.execute();
+							 return std::accumulate(item.second.cbegin(),
+		                                            item.second.cend(),
+		                                            0,
+		                                            [&, ordNum = 0](const int init, const size_t id) mutable
+		                                            {
+														assert(id < std::size(genres));
+														cmd.reset();
+														cmd.bind(1, item.first);
+														cmd.bind(2, genres[id], sqlite3pp::nocopy);
+														cmd.bind(3, ++ordNum);
+														return init + cmd.execute();
+													});
 						 });
 
 	std::vector<std::tuple<size_t, int, size_t>> updates;
@@ -1637,7 +1648,7 @@ private:
 		{
 			const auto [it, inserted] = m_uniqueFiles.try_emplace(std::make_pair(idFolder, file), id);
 			if (seriesId != -1)
-				m_data.booksSeries.try_emplace(std::make_pair(it->second, seriesId), IsOneOf(serNo, 0, -1) ? std::nullopt : std::optional(serNo));
+				m_data.booksSeries[it->second].emplace_back(seriesId, IsOneOf(serNo, 0, -1) ? std::nullopt : std::optional(serNo));
 			if (!inserted)
 				return std::numeric_limits<size_t>::max();
 		}
@@ -1646,7 +1657,7 @@ private:
 		if (authorIds.empty())
 			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
-		std::ranges::transform(authorIds, std::back_inserter(m_data.booksAuthors), [=](const size_t idAuthor) { return std::make_pair(id, idAuthor); });
+		std::ranges::copy(authorIds, std::back_inserter(m_data.booksAuthors[id]));
 
 		auto idGenres = ParseItem(
 			buf.GENRE,
@@ -1670,10 +1681,10 @@ private:
 
 		const auto updateId = ParseDate(buf.DATE, m_data);
 
-		std::ranges::transform(idGenres, std::back_inserter(m_data.booksGenres), [&](const size_t idGenre) { return std::make_pair(id, idGenre); });
+		std::ranges::copy(idGenres, std::back_inserter(m_data.booksGenres[id]));
 
 		if (!buf.KEYWORDS.empty())
-			std::ranges::transform(ParseKeywords(buf.KEYWORDS, m_data.keywords, m_uniqueKeywords), std::back_inserter(m_data.booksKeywords), [=](size_t idKeyword) { return std::make_pair(id, idKeyword); });
+			std::ranges::copy(ParseKeywords(buf.KEYWORDS, m_data.keywords, m_uniqueKeywords), std::back_inserter(m_data.booksKeywords[id]));
 
 		auto& book = m_data.books.emplace_back(id,
 		                                       buf.LIBID,
