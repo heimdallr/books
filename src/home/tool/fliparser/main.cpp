@@ -371,13 +371,20 @@ with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywor
 select
     (select group_concat(
             case when m.rowid is null 
-                then a.LastName ||','|| a.FirstName ||','|| a.MiddleName
+                then n.LastName ||','|| n.FirstName ||','|| n.MiddleName
                 else m.LastName ||','|| m.FirstName ||','|| m.MiddleName
             end, ':')||':'
-        from libavtorname a 
-        join libavtor l on l.AvtorID = a.AvtorID and l.BookID = b.BookID
-        left join libavtorname m on m.AvtorID = a.MasterId
-        order by l.pos
+		from libavtor l
+		join libavtorname n on n.AvtorId = l.AvtorId
+		left join libavtorname m on m.AvtorID = n.MasterId
+		where l.BookId = b.BookID 
+			and (n.NickName != 'иллюстратор' or not exists (
+				select 42 
+				from libavtor ll
+				join libavtorname nn on nn.AvtorId = ll.AvtorId and nn.NickName != 'иллюстратор'
+				where ll.BookId = l.BookId )
+			)
+		order by l.Pos
     ) Author,
     (select group_concat(g.GenreCode, ':')||':'
         from libgenrelist g 
