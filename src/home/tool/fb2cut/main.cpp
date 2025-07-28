@@ -219,12 +219,6 @@ QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputIm
 	return result;
 }
 
-QByteArray Encode(const ImageSettings& settings, const QString& /*imageFile*/, QImage& image, const QByteArray& body)
-{
-	image = HasAlpha(image, body.constData());
-	return JXL::Encode(image, settings.quality);
-}
-
 class Worker
 {
 	NON_COPY_MOVABLE(Worker)
@@ -352,13 +346,18 @@ private:
 			if (image.isNull())
 				return;
 
+			image = HasAlpha(image, body.constData());
+
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
-				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				image = image.scaled(settings.maxSize.width(),
+				                     settings.maxSize.height(),
+				                     Qt::KeepAspectRatio,
+				                     image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
 
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
-			auto imageBody = Encode(settings, imageFile, image, body);
+			auto imageBody = JXL::Encode(image, settings.quality);
 			if (imageBody.isEmpty())
 				return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 
