@@ -9,7 +9,6 @@ AddTarget(fb2cut	app_console
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
 		Boost::headers
-		libjxl::libjxl
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Widgets
@@ -17,6 +16,7 @@ AddTarget(fb2cut	app_console
 	LINK_TARGETS
 		logging
 		Util
+		JxlWrapper
 		zip
 		GuiUtil
 		logic
