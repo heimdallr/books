@@ -301,6 +301,10 @@ void AddTableFields(DB::ITransaction& transaction)
 	AddUserTableField(transaction, "Series", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Updates", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Books_User", "Lang", "VARCHAR(3)");
+	AddUserTableField(transaction, "Series_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Genre_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Author_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Keyword_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction,
 	                  "Groups_List_User",
 	                  "ObjectID",
