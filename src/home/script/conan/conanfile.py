@@ -15,6 +15,9 @@ def configure_xercesc(recipe):
 def configure_icu(recipe):
     recipe.options["icu"].shared = False
 
+def configure_libjxl(recipe):
+    recipe.options["libjxl"].shared = False
+
 def configure_qt(recipe):
     recipe.options["qt"].shared = True
     recipe.options["qt"].commercial = False
@@ -103,12 +106,14 @@ class FLibrary(ConanFile):
         self.requires("icu/77.1")
         self.requires("7zip/25.00")
         self.requires("qt/6.8.3")
+        self.requires("libjxl/0.11.1")
 
     def configure(self):
         configure_boost(self)
         configure_xercesc(self)
         configure_icu(self)
         configure_qt(self)
+        configure_libjxl(self)
 
     def generate(self):
         deps = CMakeDeps(self)

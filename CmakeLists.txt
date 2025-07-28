@@ -39,6 +39,7 @@ find_package(Boost REQUIRED)
 find_package(XercesC REQUIRED)
 find_package(7zip REQUIRED)
 find_package(ICU REQUIRED)
+find_package(libjxl REQUIRED)
 
 set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
 find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
