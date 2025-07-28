@@ -47,6 +47,7 @@ constexpr auto BOOKS_QUERY = R"(
 		left join Series s on s.SeriesID = b.SeriesID
 		left join Books_User bu on bu.BookID = b.BookID
 		%3
+		order by b.BookID, al.OrdNum, gl.OrdNum
 )";
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
@@ -104,14 +105,17 @@ std::optional<KeyType> UpdateDictionary(
 }
 
 template <typename KeyType>
-void Add(std::unordered_set<KeyType>& set, std::optional<KeyType> key)
+using UniqueIdList = std::pair<std::unordered_set<KeyType>, std::vector<KeyType>>;
+
+template <typename KeyType>
+void Add(UniqueIdList<KeyType>& uniqueIdList, std::optional<KeyType> key)
 {
-	if (key)
-		set.emplace(std::move(*key));
+	if (key && uniqueIdList.first.emplace(*key).second)
+		uniqueIdList.second.emplace_back(*key);
 }
 
 template <typename T>
-QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const std::unordered_set<T>& keyIds, const std::function<bool(const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs)>& comparator)
+QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const std::vector<T>& keyIds)
 {
 	IDataItem::Items values;
 	values.reserve(std::size(keyIds));
@@ -123,8 +127,6 @@ QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const std:
 							   assert(it != dictionary.end());
 							   return it->second;
 						   });
-
-	std::ranges::sort(values, comparator);
 
 	QString result;
 	for (const auto& value : values)
@@ -171,11 +173,10 @@ public:
 				std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
 		}
 
-		const auto genresComparator = [](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) { return Util::QStringWrapper { lhs->GetId() } < Util::QStringWrapper { rhs->GetId() }; };
-
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			const auto& author = m_authors.find(*authorIds.begin())->second;
+			assert(!authorIds.second.empty());
+			const auto& author = m_authors.find(authorIds.second.front())->second;
 			auto authorStr = GetAuthorFull(*author);
 			book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
 		}
@@ -185,8 +186,8 @@ public:
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			book->SetData(std::size(authorIds) > 1 ? Join(m_authors, authorIds, AuthorComparator {}) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
-			book->SetData(Join(m_genres, genreIds, genresComparator), BookItem::Column::Genre);
+			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
+			book->SetData(Join(m_genres, genreIds.second), BookItem::Column::Genre);
 		}
 	}
 
@@ -231,7 +232,7 @@ public:
 	{
 		std::unordered_map<IdsSet, IdsSet, UnorderedSetHash<long long>> authorToBooks;
 		for (const auto& [id, book] : m_books)
-			authorToBooks[std::get<2>(book)].insert(id);
+			authorToBooks[std::get<2>(book).first].insert(id);
 
 		rootCached = CreateBooksRoot();
 		for (const auto& [authorIds, bookIds] : authorToBooks)
@@ -250,7 +251,7 @@ public:
 		std::unordered_map<IdsSet, std::pair<SeriesToBooks, IdsSet>, UnorderedSetHash<long long>> authorToBooks;
 		for (const auto& [id, book] : m_books)
 		{
-			auto& [series, books] = authorToBooks[std::get<2>(book)];
+			auto& [series, books] = authorToBooks[std::get<2>(book).first];
 			const auto& seriesId = std::get<1>(book);
 			auto& bookIds = seriesId ? series[*seriesId] : books;
 			bookIds.insert(id);
@@ -289,8 +290,8 @@ public:
 
 		BookInfo bookInfo { book };
 
-		std::ranges::transform(idAuthors, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) { return m_authors.at(idAuthor); });
-		std::ranges::transform(idGenres, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) { return m_genres.at(idGenre); });
+		std::ranges::transform(idAuthors.second, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) { return m_authors.at(idAuthor); });
+		std::ranges::transform(idGenres.second, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) { return m_genres.at(idGenre); });
 
 		return bookInfo;
 	}
@@ -336,7 +337,7 @@ private:
 	}
 
 private:
-	std::unordered_map<long long, std::tuple<IDataItem::Ptr, std::optional<long long>, IdsSet, std::unordered_set<QString>>> m_books;
+	std::unordered_map<long long, std::tuple<IDataItem::Ptr, std::optional<long long>, UniqueIdList<long long>, UniqueIdList<QString>>> m_books;
 	std::unordered_map<long long, IDataItem::Ptr> m_series;
 	std::unordered_map<long long, IDataItem::Ptr> m_authors;
 	std::unordered_map<QString, IDataItem::Ptr> m_genres;
