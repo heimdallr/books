@@ -9,6 +9,10 @@
 #include <QStandardPaths>
 #include <QTranslator>
 
+#include <jxl/encode.h>
+#include <jxl/encode_cxx.h>
+#include <jxl/thread_parallel_runner.h>
+#include <jxl/thread_parallel_runner_cxx.h>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Record.h>
@@ -17,6 +21,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/linear.h"
 
 #include "GuiUtil/interface/IUiFactory.h"
 #include "Hypodermic/Hypodermic.h"
@@ -130,23 +135,25 @@ QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 	return validator.Validate(buffer);
 }
 
-bool HasAlpha(const QImage& image, const char* data)
+QImage HasAlpha(const QImage& image, const char* data)
 {
 	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
-		return false;
+		return image.convertToFormat(QImage::Format_RGB888);
 
 	if (!image.hasAlphaChannel())
-		return false;
+		return image.convertToFormat(QImage::Format_RGB888);
 
-	const auto argb = image.convertToFormat(QImage::Format_ARGB32);
+	auto argb = image.convertToFormat(QImage::Format_RGBA8888);
 	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
 	{
 		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
 		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
-			return true;
+		{
+			return argb;
+		}
 	}
 
-	return true;
+	return image.convertToFormat(QImage::Format_RGB888);
 }
 
 QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputImage, int quantity)
@@ -215,20 +222,102 @@ QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputIm
 	return result;
 }
 
-QByteArray Encode(const ImageSettings& settings, const QString& imageFile, QImage& image, const QByteArray& body)
+QByteArray EncodeJxl(const QImage& image, int quality)
 {
-	const auto hasAlpha = HasAlpha(image, body.constData());
-	if (hasAlpha)
-		image = ReducePng(settings.type, imageFile, image, settings.quality);
+	std::vector<uint8_t> compressed;
 
-	QByteArray imageBody;
+	JxlEncoderPtr enc = JxlEncoderMake(/*memory_manager=*/nullptr);
+	JxlThreadParallelRunnerPtr runner = JxlThreadParallelRunnerMake(
+		/*memory_manager=*/nullptr,
+		JxlThreadParallelRunnerDefaultNumWorkerThreads());
+	if (JXL_ENC_SUCCESS != JxlEncoderSetParallelRunner(enc.get(), JxlThreadParallelRunner, runner.get()))
 	{
-		QBuffer imageOutput(&imageBody);
-		if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
-			return {};
+		PLOGE << "JxlEncoderSetParallelRunner failed";
+		return {};
 	}
 
-	return imageBody;
+	const auto imagePixelFormat = image.pixelFormat();
+
+	JxlPixelFormat pixel_format { imagePixelFormat.channelCount(), JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, static_cast<size_t>(image.bytesPerLine()) };
+
+	JxlBasicInfo basic_info;
+	JxlEncoderInitBasicInfo(&basic_info);
+	basic_info.xsize = image.width();
+	basic_info.ysize = image.height();
+	basic_info.bits_per_sample = 8;
+	basic_info.exponent_bits_per_sample = 0;
+	basic_info.uses_original_profile = JXL_FALSE;
+	basic_info.num_extra_channels = imagePixelFormat.alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? 1 : 0;
+	if (JXL_ENC_SUCCESS != JxlEncoderSetBasicInfo(enc.get(), &basic_info))
+	{
+		PLOGE << "JxlEncoderSetBasicInfo failed";
+		return {};
+	}
+
+	JxlColorEncoding color_encoding = {};
+	JXL_BOOL is_gray = TO_JXL_BOOL(pixel_format.num_channels < 3);
+	JxlColorEncodingSetToSRGB(&color_encoding, is_gray);
+	if (JXL_ENC_SUCCESS != JxlEncoderSetColorEncoding(enc.get(), &color_encoding))
+	{
+		PLOGE << "JxlEncoderSetColorEncoding failed";
+		return {};
+	}
+
+	JxlEncoderFrameSettings* frame_settings = JxlEncoderFrameSettingsCreate(enc.get(), nullptr);
+	if (!frame_settings)
+	{
+		PLOGE << "JxlEncoderFrameSettingsCreate failed";
+		return {};
+	}
+
+	if (quality < 0)
+		quality = 70;
+
+	const auto distance = quality < 70 ? Linear(0, 25.0f, 70, 3.0f)(quality) : Linear(100, 0.0f, 70, 3.0f)(quality);
+
+//	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frame_settings, Linear(0, 25.0f, 100, 0.0f)(quality == -1 ? 70 : quality)))
+	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frame_settings, distance))
+	{
+		PLOGE << "JxlEncoderAddImageFrame failed";
+		return {};
+	}
+
+	if (JXL_ENC_SUCCESS != JxlEncoderAddImageFrame(frame_settings, &pixel_format, image.constBits(), image.height() * image.bytesPerLine()))
+	{
+		PLOGE << "JxlEncoderAddImageFrame failed";
+		return {};
+	}
+	JxlEncoderCloseInput(enc.get());
+
+	compressed.resize(16 * 1024);
+	uint8_t* next_out = compressed.data();
+	size_t avail_out = compressed.size() - (next_out - compressed.data());
+	JxlEncoderStatus process_result = JXL_ENC_NEED_MORE_OUTPUT;
+	while (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+	{
+		process_result = JxlEncoderProcessOutput(enc.get(), &next_out, &avail_out);
+		if (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+		{
+			size_t offset = next_out - compressed.data();
+			compressed.resize(compressed.size() * 2);
+			next_out = compressed.data() + offset;
+			avail_out = compressed.size() - offset;
+		}
+	}
+	compressed.resize(next_out - compressed.data());
+	if (JXL_ENC_SUCCESS != process_result)
+	{
+		PLOGE << "JxlEncoderProcessOutput failed";
+		return {};
+	}
+
+	return QByteArray { reinterpret_cast<char*>(compressed.data()), static_cast<qsizetype>(compressed.size()) };
+}
+
+QByteArray Encode(const ImageSettings& settings, const QString& /*imageFile*/, QImage& image, const QByteArray& body)
+{
+	image = HasAlpha(image, body.constData());
+	return EncodeJxl(image, settings.quality);
 }
 
 class Worker
@@ -669,7 +758,10 @@ bool ArchiveFb2(const Settings& settings)
 	for (const auto& file : settings.dstDir.entryList({ "*.fb2" }))
 		zipFiles->AddFile(settings.dstDir.filePath(file));
 
-	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
+	const auto dstArchiveFileName = QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format));
+	PLOGI << "archive " << zipFiles->GetCount() << " fb2: " << dstArchiveFileName;
+
+	Zip zip(dstArchiveFileName, settings.format);
 	zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
 	zip.SetProperty(Zip::PropertyId::SolidArchive, false);
 	zip.SetProperty(Zip::PropertyId::ThreadsCount, settings.maxThreadCount);
