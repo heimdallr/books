@@ -40,6 +40,10 @@ find_package(XercesC REQUIRED)
 find_package(7zip REQUIRED)
 find_package(ICU REQUIRED)
 
+set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
+find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
+include(QtInstallPaths)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)

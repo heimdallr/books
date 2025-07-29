@@ -38,20 +38,20 @@ AddTarget(${PROJECT_NAME}	app
 		Util
 		ver
 	QT_PLUGINS
-		Qt6::QWindowsIntegrationPlugin
-		Qt6::QModernWindowsStylePlugin
-		Qt6::QGifPlugin
-		Qt6::QJpegPlugin
-		Qt6::QSvgPlugin
-		Qt6::QSchannelBackendPlugin
+		qwindows
+		qmodernwindowsstyle
+		qgif
+		qjpeg
+		qsvg
+		qschannelbackend
 )
 
 file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
 if (${QT_MAJOR_VERSION} STREQUAL 6)
-	foreach(ts ${qt_ts})
-		get_filename_component(ts ${ts} NAME_WE)
-		file(COPY ${Qt6Translations_DIR}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
-	endforeach()
+    foreach(ts ${qt_ts})
+        get_filename_component(ts ${ts} NAME_WE)
+        file(COPY ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_TRANSLATIONS}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
+    endforeach()
 endif()
 
 GenerateTranslations(
