@@ -4,6 +4,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTimer>

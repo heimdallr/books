@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "GuiUtil/interface/IUiFactory.h"
 
 class QAbstractItemView;

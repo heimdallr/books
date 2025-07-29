@@ -1,6 +1,7 @@
 #include "BaseJokeRequester.h"
 
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 
