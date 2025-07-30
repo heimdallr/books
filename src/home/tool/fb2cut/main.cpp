@@ -346,16 +346,17 @@ private:
 			if (image.isNull())
 				return;
 
-			image = HasAlpha(image, body.constData());
+			if (settings.grayscale)
+				image.convertTo(QImage::Format::Format_Grayscale8);
+
+			if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
+				image = HasAlpha(image, body.constData());
 
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
 				image = image.scaled(settings.maxSize.width(),
 				                     settings.maxSize.height(),
 				                     Qt::KeepAspectRatio,
 				                     image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
-
-			if (settings.grayscale)
-				image.convertTo(QImage::Format::Format_Grayscale8);
 
 			auto imageBody = JXL::Encode(image, settings.quality);
 			if (imageBody.isEmpty())
