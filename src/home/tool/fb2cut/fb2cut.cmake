@@ -16,7 +16,7 @@ AddTarget(fb2cut	app_console
 	LINK_TARGETS
 		logging
 		Util
-		JxlWrapper
+		fljxl
 		zip
 		GuiUtil
 		logic
