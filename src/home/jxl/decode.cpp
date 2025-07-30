@@ -14,9 +14,9 @@ namespace HomeCompa::JXL
 QImage Decode(const QByteArray& bytes)
 {
 	QImage image;
-	auto runner = JxlResizableParallelRunnerMake(nullptr);
+	const auto runner = JxlResizableParallelRunnerMake(nullptr);
 
-	auto dec = JxlDecoderMake(nullptr);
+	const auto dec = JxlDecoderMake(nullptr);
 	if (JXL_DEC_SUCCESS != JxlDecoderSubscribeEvents(dec.get(), JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE))
 	{
 		PLOGE << "JxlDecoderSubscribeEvents failed";
@@ -62,16 +62,16 @@ QImage Decode(const QByteArray& bytes)
 
 			case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
 			{
-				auto imageDataSize = static_cast<size_t>(image.height() * image.bytesPerLine());
-				size_t buffer_size;
-				if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(dec.get(), &format, &buffer_size))
+				const auto imageDataSize = static_cast<size_t>(image.height() * image.bytesPerLine());
+				size_t bufferSize;
+				if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(dec.get(), &format, &bufferSize))
 				{
 					PLOGE << "JxlDecoderImageOutBufferSize failed";
 					return {};
 				}
-				if (buffer_size > imageDataSize)
+				if (bufferSize > imageDataSize)
 				{
-					PLOGE << QString("Invalid out buffer size %d vs %d").arg(buffer_size).arg(imageDataSize);
+					PLOGE << QString("Invalid out buffer size %d vs %d").arg(bufferSize).arg(imageDataSize);
 					return {};
 				}
 

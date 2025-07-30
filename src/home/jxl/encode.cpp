@@ -15,8 +15,8 @@ QByteArray Encode(const QImage& image, int quality)
 {
 	std::vector<uint8_t> compressed;
 
-	JxlEncoderPtr enc = JxlEncoderMake(/*memory_manager=*/nullptr);
-	JxlThreadParallelRunnerPtr runner = JxlThreadParallelRunnerMake(
+	const JxlEncoderPtr enc = JxlEncoderMake(/*memory_manager=*/nullptr);
+	const JxlThreadParallelRunnerPtr runner = JxlThreadParallelRunnerMake(
 		/*memory_manager=*/nullptr,
 		JxlThreadParallelRunnerDefaultNumWorkerThreads());
 	if (JXL_ENC_SUCCESS != JxlEncoderSetParallelRunner(enc.get(), JxlThreadParallelRunner, runner.get()))
@@ -27,33 +27,37 @@ QByteArray Encode(const QImage& image, int quality)
 
 	const auto imagePixelFormat = image.pixelFormat();
 
-	JxlPixelFormat pixel_format { imagePixelFormat.channelCount(), JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, static_cast<size_t>(image.bytesPerLine()) };
+	const JxlPixelFormat pixelFormat { imagePixelFormat.channelCount(), JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, static_cast<size_t>(image.bytesPerLine()) };
 
-	JxlBasicInfo basic_info;
-	JxlEncoderInitBasicInfo(&basic_info);
-	basic_info.xsize = image.width();
-	basic_info.ysize = image.height();
-	basic_info.bits_per_sample = 8;
-	basic_info.exponent_bits_per_sample = 0;
-	basic_info.uses_original_profile = JXL_FALSE;
-	basic_info.num_extra_channels = imagePixelFormat.alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? 1 : 0;
-	if (JXL_ENC_SUCCESS != JxlEncoderSetBasicInfo(enc.get(), &basic_info))
+	JxlBasicInfo basicInfo;
+	JxlEncoderInitBasicInfo(&basicInfo);
+	basicInfo.xsize = image.width();
+	basicInfo.ysize = image.height();
+	basicInfo.bits_per_sample = 8;
+	basicInfo.exponent_bits_per_sample = 0;
+	basicInfo.uses_original_profile = JXL_FALSE;
+	basicInfo.num_color_channels = imagePixelFormat.colorModel() == QPixelFormat::Grayscale ? 1 : 3;
+	basicInfo.num_extra_channels = imagePixelFormat.alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? 1 : 0;
+	if (basicInfo.num_extra_channels != 0)
+		basicInfo.alpha_bits = 8;
+
+	if (JXL_ENC_SUCCESS != JxlEncoderSetBasicInfo(enc.get(), &basicInfo))
 	{
 		PLOGE << "JxlEncoderSetBasicInfo failed";
 		return {};
 	}
 
-	JxlColorEncoding color_encoding = {};
-	JXL_BOOL is_gray = TO_JXL_BOOL(pixel_format.num_channels < 3);
-	JxlColorEncodingSetToSRGB(&color_encoding, is_gray);
-	if (JXL_ENC_SUCCESS != JxlEncoderSetColorEncoding(enc.get(), &color_encoding))
+	JxlColorEncoding colorEncoding = {};
+	JXL_BOOL isGray = TO_JXL_BOOL(pixelFormat.num_channels < 3);
+	JxlColorEncodingSetToSRGB(&colorEncoding, isGray);
+	if (JXL_ENC_SUCCESS != JxlEncoderSetColorEncoding(enc.get(), &colorEncoding))
 	{
 		PLOGE << "JxlEncoderSetColorEncoding failed";
 		return {};
 	}
 
-	JxlEncoderFrameSettings* frame_settings = JxlEncoderFrameSettingsCreate(enc.get(), nullptr);
-	if (!frame_settings)
+	JxlEncoderFrameSettings* frameSettings = JxlEncoderFrameSettingsCreate(enc.get(), nullptr);
+	if (!frameSettings)
 	{
 		PLOGE << "JxlEncoderFrameSettingsCreate failed";
 		return {};
@@ -62,36 +66,44 @@ QByteArray Encode(const QImage& image, int quality)
 	if (quality < 0)
 		quality = 70;
 
-	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frame_settings, JxlEncoderDistanceFromQuality(static_cast<float>(quality))))
+	const auto distance = JxlEncoderDistanceFromQuality(static_cast<float>(quality));
+
+	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frameSettings, distance))
 	{
 		PLOGE << "JxlEncoderSetFrameDistance failed";
 		return {};
 	}
 
-	if (JXL_ENC_SUCCESS != JxlEncoderAddImageFrame(frame_settings, &pixel_format, image.constBits(), image.height() * image.bytesPerLine()))
+	if (basicInfo.num_extra_channels != 0 && JXL_ENC_SUCCESS != JxlEncoderSetExtraChannelDistance(frameSettings, 0, distance))
+	{
+		PLOGE << "JxlEncoderSetExtraChannelDistance failed";
+		return {};
+	}
+
+	if (JXL_ENC_SUCCESS != JxlEncoderAddImageFrame(frameSettings, &pixelFormat, image.constBits(), image.height() * image.bytesPerLine()))
 	{
 		PLOGE << "JxlEncoderAddImageFrame failed";
 		return {};
 	}
 	JxlEncoderCloseInput(enc.get());
 
-	compressed.resize(16 * 1024);
-	uint8_t* next_out = compressed.data();
-	size_t avail_out = compressed.size() - (next_out - compressed.data());
-	JxlEncoderStatus process_result = JXL_ENC_NEED_MORE_OUTPUT;
-	while (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+	compressed.resize(16LL * 1024);
+	uint8_t* nextOut = compressed.data();
+	size_t availOut = compressed.size() - (nextOut - compressed.data());
+	JxlEncoderStatus processResult = JXL_ENC_NEED_MORE_OUTPUT;
+	while (processResult == JXL_ENC_NEED_MORE_OUTPUT)
 	{
-		process_result = JxlEncoderProcessOutput(enc.get(), &next_out, &avail_out);
-		if (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+		processResult = JxlEncoderProcessOutput(enc.get(), &nextOut, &availOut);
+		if (processResult == JXL_ENC_NEED_MORE_OUTPUT)
 		{
-			size_t offset = next_out - compressed.data();
+			const auto offset = nextOut - compressed.data();
 			compressed.resize(compressed.size() * 2);
-			next_out = compressed.data() + offset;
-			avail_out = compressed.size() - offset;
+			nextOut = compressed.data() + offset;
+			availOut = compressed.size() - offset;
 		}
 	}
-	compressed.resize(next_out - compressed.data());
-	if (JXL_ENC_SUCCESS != process_result)
+	compressed.resize(nextOut - compressed.data());
+	if (JXL_ENC_SUCCESS != processResult)
 	{
 		PLOGE << "JxlEncoderProcessOutput failed";
 		return {};
