@@ -397,27 +397,27 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Groups</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Add to</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;New group...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Remove from</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;All</source>
         <translation></translation>
     </message>
@@ -5670,6 +5670,21 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Remove from group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
         <translation></translation>
     </message>
@@ -5937,6 +5952,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>Embedded</source>
+        <translation>Embedded command</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%title%</source>
         <translation>Book title</translation>
     </message>
@@ -6019,6 +6039,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%file_size%</source>
         <translation>File size</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/delegate/EmbeddedCommandsDelegateEditor.cpp"/>
+        <source>Download</source>
+        <translation></translation>
     </message>
 </context>
 <context>

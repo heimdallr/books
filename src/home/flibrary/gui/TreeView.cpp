@@ -318,7 +318,7 @@ private: // ITreeViewController::IObserver
 
 	void OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& item) override
 	{
-		switch (static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt())) // NOLINT(clang-diagnostic-switch-enum)
+		switch (item->GetData(MenuItem::Column::Id).toInt())
 		{
 			case BooksMenuAction::Collapse:
 				for (const auto& row : m_ui.treeView->selectionModel()->selectedRows())
@@ -336,8 +336,7 @@ private: // ITreeViewController::IObserver
 				break;
 		}
 
-		if (IsOneOf(static_cast<BooksMenuAction>(item->GetData(MenuItem::Column::Id).toInt()), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript)
-		    && item->GetData(MenuItem::Column::HasError).toInt())
+		if (IsOneOf(item->GetData(MenuItem::Column::Id).toInt(), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript) && item->GetData(MenuItem::Column::HasError).toInt())
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
 	}
 

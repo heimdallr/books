@@ -4,6 +4,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTimer>
@@ -106,7 +107,7 @@ constexpr auto GENRE_JOIN_PARAMETERS = "join Genre_List gl on gl.BookID = l.Book
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
 constexpr auto UPDATE_JOIN_PARAMETERS = "join Books ul on ul.BookID = l.BookID and ul.UpdateID = %1";
 constexpr auto FOLDER_JOIN_PARAMETERS = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
-constexpr auto GROUP_JOIN_PARAMETERS = "join Groups_List_User glu on glu.BookID = l.BookID and glu.GroupID = %1";
+constexpr auto GROUP_JOIN_PARAMETERS = "join Groups_List_User_View glu on glu.BookID = l.BookID and glu.GroupID = %1";
 
 constexpr auto AUTHOR_JOIN_SELECT = "join Author_List l on l.AuthorID = a.AuthorID";
 constexpr auto SERIES_JOIN_SELECT = "join Series_List l on l.SeriesID = s.SeriesID";
@@ -114,7 +115,7 @@ constexpr auto GENRE_JOIN_SELECT = "join Genre_List l on l.GenreCode = g.GenreCo
 constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
 constexpr auto UPDATE_JOIN_SELECT = "join Books l on l.UpdateID = u.UpdateID";
 constexpr auto FOLDER_JOIN_SELECT = "join Books l on l.FolderID = f.FolderID";
-constexpr auto GROUP_JOIN_SELECT = "join Groups_List_User glu on glu.GroupID = gu.GroupID";
+constexpr auto GROUP_JOIN_SELECT = "join Groups_List_User_View glu on glu.GroupID = gu.GroupID";
 constexpr auto BOOK_JOIN_SELECT = "from Books l";
 
 constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
@@ -189,7 +190,7 @@ constexpr auto BOOK_STARTS_WITH = R"(
 constexpr auto GROUPS_SELECT = R"(
 	select g.GroupID, g.Title, count(42)
 	from Groups_User g 
-	join Groups_List_User l on l.GroupID = g.GroupID 
+	join Groups_List_User_View l on l.GroupID = g.GroupID 
 	%2
 	where g.IsDeleted != %1 
 	group by g.GroupID

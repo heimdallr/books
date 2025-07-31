@@ -130,21 +130,24 @@ CREATE TABLE Books (
 --@@
 
 CREATE TABLE Series_List (
-    SeriesID  INTEGER NOT NULL,
-    BookID    INTEGER NOT NULL,
-    SeqNumber INTEGER
+  SeriesID  INTEGER NOT NULL,
+  BookID    INTEGER NOT NULL,
+  SeqNumber INTEGER,
+  OrdNum   INTEGER NOT NULL DEFAULT (0) 
 );
 --@@
 
 CREATE TABLE Genre_List (
   GenreCode VARCHAR(20) NOT NULL COLLATE NOCASE,
-  BookID    INTEGER     NOT NULL
+  BookID    INTEGER     NOT NULL,
+  OrdNum   INTEGER NOT NULL DEFAULT (0) 
 );
 --@@
 
 CREATE TABLE Author_List (
   AuthorID INTEGER NOT NULL,
-  BookID   INTEGER NOT NULL
+  BookID   INTEGER NOT NULL,
+  OrdNum   INTEGER NOT NULL DEFAULT (0) 
 );
 --@@
 
@@ -168,11 +171,9 @@ CREATE TABLE Groups_User (
 
 CREATE TABLE Groups_List_User (
   GroupID   INTEGER  NOT NULL,
-  BookID    INTEGER  NOT NULL,
+  ObjectID  INTEGER  NOT NULL,
   CreatedAt DATETIME,
-  PRIMARY KEY (GroupID, BookID),
-  FOREIGN KEY (GroupID) REFERENCES Groups_User (GroupID) ON DELETE CASCADE,
-  FOREIGN KEY (BookID)  REFERENCES Books (BookID) ON DELETE CASCADE
+  FOREIGN KEY (GroupID) REFERENCES Groups_User (GroupID) ON DELETE CASCADE
 );
 --@@
 
@@ -193,7 +194,8 @@ CREATE TABLE Keywords (
 
 CREATE TABLE Keyword_List (
   KeywordID INTEGER NOT NULL,
-  BookID    INTEGER NOT NULL
+  BookID    INTEGER NOT NULL,
+  OrdNum   INTEGER NOT NULL DEFAULT (0) 
 );
 --@@
 

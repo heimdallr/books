@@ -46,7 +46,7 @@ constexpr auto WHERE_UPDATE = "where b.UpdateID  = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
 constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
 constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
-constexpr auto JOIN_GROUPS = "join Groups_List_User grl on grl.BookID = b.BookID and grl.GroupID = :id";
+constexpr auto JOIN_GROUPS = "join Groups_List_User_View grl on grl.BookID = b.BookID and grl.GroupID = :id";
 constexpr auto JOIN_SEARCHES = "join Ids i on i.BookID = b.BookID";
 constexpr auto JOIN_KEYWORDS = "join Keyword_List kl on kl.BookID = b.BookID and kl.KeywordID = :id";
 

@@ -1,6 +1,6 @@
 #include "di_gui_util.h"
 
-#include <Hypodermic/Hypodermic.h>
+#include "Hypodermic/Hypodermic.h"
 
 #include "Dialog.h"
 #include "ParentWidgetProvider.h"

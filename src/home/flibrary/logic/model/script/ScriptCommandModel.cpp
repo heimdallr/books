@@ -7,6 +7,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/logic/IScriptController.h"
 
+#include "util/localization.h"
+
 #include "ScriptSortFilterModel.h"
 #include "log.h"
 
@@ -71,7 +73,7 @@ private: // QAbstractItemModel
 						return Loc::Tr(IScriptController::s_context, FindSecond(IScriptController::s_commandTypes, item.type).type);
 
 					case 1:
-						return item.command;
+						return Loc::Tr("ScriptController", item.command.toStdString().data());
 
 					case 2:
 						return item.args;
@@ -80,6 +82,9 @@ private: // QAbstractItemModel
 						break;
 				}
 				break;
+
+			case Role::Name:
+				return item.command;
 
 			case Role::Mode:
 				return QVariant::fromValue(item.mode);

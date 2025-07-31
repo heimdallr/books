@@ -13,3 +13,6 @@
 [submodule "src/ext/ReactApp"]
 	path = src/ext/ReactApp
 	url = ../ReactApp.git
+[submodule "src/ext/Hypodermic"]
+	path = src/ext/Hypodermic
+	url = git@github.com:heimdallr/Hypodermic.git

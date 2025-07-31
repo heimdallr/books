@@ -2,13 +2,13 @@
 #include <QStandardPaths>
 #include <QTranslator>
 
-#include <Hypodermic/Hypodermic.h>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 
 #include "interface/IServer.h"
 #include "interface/constants/ProductConstant.h"
 
+#include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "util/ISettings.h"

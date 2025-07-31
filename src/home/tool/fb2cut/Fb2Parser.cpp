@@ -88,11 +88,6 @@ private: // Util::SaxParser
 					continue;
 				}
 
-				if (!keyName.startsWith("l:"))
-				{
-					PLOGD << "here";
-				}
-
 				while (!image.isEmpty() && image.front() == '#')
 					image.removeFirst();
 

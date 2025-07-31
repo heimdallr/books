@@ -397,27 +397,27 @@
         <translation>Створити інде&amp;кс (*.inpx)</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Groups</source>
         <translation>&amp;Групи</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Add to</source>
         <translation>&amp;Додати до</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;New group...</source>
         <translation>&amp;Нова група...</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;Remove from</source>
         <translation>&amp;Видалити з</translation>
     </message>
     <message>
-        <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
+        <location filename="../../flibrary/logic/shared/MenuItems.cpp"/>
         <source>&amp;All</source>
         <translation>&amp;Усі</translation>
     </message>
@@ -5682,6 +5682,21 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>Remove from group</source>
+        <translation>Видалити із групи</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All books</source>
+        <translation>Усі книги</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
+        <source>All</source>
+        <translation>Усі</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/logic/TreeViewController/TreeViewControllerNavigation.cpp"/>
         <source>Create new search...</source>
         <translation>Новий пошук...</translation>
     </message>
@@ -5929,6 +5944,11 @@ Try again?</source>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
+        <source>Embedded</source>
+        <translation>Вбудована команда</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%source_file%</source>
         <translation>Повний шлях до розпакованого файлу у тимчасовій папці</translation>
     </message>
@@ -6031,6 +6051,11 @@ Try again?</source>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%uid%</source>
         <translation>Унікальний ідентифікатор (GUID)</translation>
+    </message>
+    <message>
+        <location filename="../../flibrary/gui/delegate/EmbeddedCommandsDelegateEditor.cpp"/>
+        <source>Download</source>
+        <translation>Завантажити</translation>
     </message>
 </context>
 <context>

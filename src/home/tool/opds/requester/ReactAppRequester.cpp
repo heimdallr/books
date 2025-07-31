@@ -30,12 +30,27 @@ constexpr auto SEARCH = "search";
 constexpr auto SELECTED_ITEM_ID = "selectedItemID";
 constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
+#define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
+
+constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.Ext, b.UpdateDate";
+constexpr auto AUTHORS_FIELD = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
+	from Authors a 
+	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
+) as AuthorsNames
+)";
+constexpr auto GENRES_FIELD = R"(
+(select group_concat(g.GenreAlias, ', ')
+	from Genres g
+	join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
+) as Genres
+)";
+
 template <typename T>
 QJsonObject FromQuery(const HomeCompa::DB::IQuery& query)
 {
 	QJsonObject object;
 	for (size_t i = 0, sz = query.ColumnCount(); i < sz; ++i)
-		object.insert(QString::fromStdString(query.ColumnName(i)), query.Get<T>(i));
+		object.insert(QString::fromStdString(query.ColumnName(i)), query.IsNull(i) ? QJsonValue {} : query.Get<T>(i));
 	return object;
 }
 
@@ -107,14 +122,22 @@ struct ReactAppRequester::Impl
 		}
 
 		{
+			static constexpr std::string_view queryText = R"(
+SELECT gu.GroupID, gu.Title
+          , (SELECT COUNT(42) FROM Groups_List_User_View WHERE Groups_List_User_View.GroupID = gu.GroupID) AS numberOfBooks
+          , (SELECT COUNT(42) FROM Books b join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = b.BookID) AS booksInGroup
+          , (SELECT COUNT(42) FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsInGroup
+          , (SELECT group_concat()" AUTHOR_FULL_NAME R"(, ", ") FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsListInGroup
+          , (SELECT COUNT(42) FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesInGroup
+          , (SELECT group_concat(s.SeriesTitle, ", ") FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesListInGroup
+          , (SELECT COUNT(42) FROM Keywords k join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = k.KeywordID) AS keywordsInGroup
+          , (SELECT group_concat(k.KeywordTitle, ", ") FROM Keywords k join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = k.KeywordID) AS keywordsListInGroup
+          FROM Groups_User gu
+)";
 			QJsonArray array;
-			const auto query = db->CreateQuery("select g.GroupID, g.Title, count(42) from Groups_User g left join Groups_List_User l on l.GroupID = g.GroupID group by g.GroupID");
+			const auto query = db->CreateQuery(queryText);
 			for (query->Execute(); !query->Eof(); query->Next())
-				array.append(QJsonObject {
-					{       "GroupID", query->Get<const char*>(0) },
-					{         "Title", query->Get<const char*>(1) },
-					{ "numberOfBooks", query->Get<const char*>(2) },
-				});
+				array.append(FromQuery<const char*>(*query));
 			result.insert("groups", array);
 		}
 
@@ -133,9 +156,9 @@ select (select count (42) from Books_Search join Search s on Books_Search match 
 )";
 
 		static constexpr auto groupsQueryText = R"(
-select (select count (42) from Groups_List_User l where l.GroupID = g.GroupID) as bookTitles
-    , (select count (distinct al.AuthorID) from Author_List al join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = g.GroupID) as authors
-    , (select count (distinct sl.SeriesID) from Series_List sl join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = g.GroupID) as bookSeries
+select (select count (42) from Groups_List_User_View l where l.GroupID = g.GroupID) as bookTitles
+    , (select count (distinct al.AuthorID) from Author_List al join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = g.GroupID) as authors
+    , (select count (distinct sl.SeriesID) from Series_List sl join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = g.GroupID) as bookSeries
 from Groups_User g
 where g.GroupID = ?
 )";
@@ -164,21 +187,8 @@ where g.GroupID = ?
 
 	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.UpdateDate, (
-    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
-        from Authors a 
-        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
-    ) as AuthorsNames, (
-    select group_concat(g.GenreAlias, ', ')
-        from Genres g
-        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
-    ) as Genres
-from Books b
-%1
-left join Series s on s.SeriesID = b.SeriesID
-)";
-		static constexpr auto groupJoin = "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = ?";
+		static constexpr auto queryText = "select %1, %2, %3, s.SeriesTitle from Books b %4 left join Series s on s.SeriesID = b.SeriesID";
+		static constexpr auto groupJoin = "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -186,18 +196,13 @@ left join Series s on s.SeriesID = b.SeriesID
 			{            SEARCH, searchJoin,  true },
 		};
 
-		return SelectByParameter(list, queryText, parameters, "titlesList");
+		return SelectByParameter(list, QString(queryText).arg(MAIN_BOOK_FIELDS).arg(AUTHORS_FIELD).arg(GENRES_FIELD).arg("%1"), parameters, "titlesList");
 	}
 
 	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
-select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') as Authors, count(42) as Books
-from Authors a
-%1
-group by a.AuthorID
-)";
-		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User gl on gl.BookID = al.BookID and gl.GroupID = ?";
+		static constexpr auto queryText = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
+		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -210,13 +215,8 @@ group by a.AuthorID
 
 	QJsonObject getSearchSeries(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
-select s.SeriesID, s.SeriesTitle, count(42) as Books
-from Series s
-%1
-group by s.SeriesID
-)";
-		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User gl on gl.BookID = sl.BookID and gl.GroupID = ?";
+		static constexpr auto queryText = "select s.SeriesID, s.SeriesTitle, count(42) as Books from Series s %1 group by s.SeriesID";
+		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
@@ -229,45 +229,24 @@ group by s.SeriesID
 
 	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, s.SeriesTitle, nullif(b.SeqNumber, 0) as SeqNumber, b.UpdateDate, (
-    select group_concat(g.GenreAlias, ', ')
-        from Genres g
-        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
-    ) as Genres
-from Books b
-%1
-left join Series s on s.SeriesID = b.SeriesID
-)";
+		static constexpr auto queryText = "select %1, %2, s.SeriesTitle from Books b %3 left join Series s on s.SeriesID = b.SeriesID";
 		static constexpr std::tuple<const char*, const char*> list[] {
-			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
-			{  SELECTED_ITEM_ID,     "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
+			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{  SELECTED_ITEM_ID,          "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
 		};
 
-		return GetBookListByIds(list, queryText, parameters, "titlesList");
+		return GetBookListByIds(list, QString(queryText).arg(MAIN_BOOK_FIELDS).arg(GENRES_FIELD).arg("%1"), parameters, "titlesList");
 	}
 
 	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = R"(
-select b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.UpdateDate, (
-    select group_concat(a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), ''), ', ')
-        from Authors a 
-        join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
-    ) as AuthorsNames, (
-    select group_concat(g.GenreAlias, ', ')
-        from Genres g
-        join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = b.BookID
-    ) as Genres
-from Books b
-%1
-)";
+		static constexpr auto queryText = "select %1, %2, %3 from Books b %4";
 		static constexpr std::tuple<const char*, const char*> list[] {
-			{ SELECTED_GROUP_ID, "join Groups_List_User gl on gl.BookID = b.BookID and gl.GroupID = %1" },
-			{  SELECTED_ITEM_ID,     "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
+			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
+			{  SELECTED_ITEM_ID,          "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
 		};
 
-		return GetBookListByIds(list, queryText, parameters, "titlesList");
+		return GetBookListByIds(list, QString(queryText).arg(MAIN_BOOK_FIELDS).arg(AUTHORS_FIELD).arg(GENRES_FIELD).arg("%1"), parameters, "titlesList");
 	}
 
 	QJsonObject getBookForm(const Parameters& parameters) const

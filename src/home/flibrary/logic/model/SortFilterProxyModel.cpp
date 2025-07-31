@@ -1,5 +1,7 @@
 #include "SortFilterProxyModel.h"
 
+#include <unordered_set>
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 

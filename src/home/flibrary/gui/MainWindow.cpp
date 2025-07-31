@@ -633,7 +633,11 @@ private:
 					}
 				});
 		const auto browse = [this](const QString& folder = {})
-		{ QDesktopServices::openUrl(QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder)); };
+		{
+			const auto url = QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder);
+			if (!QDesktopServices::openUrl(url))
+				PLOGE << "Cannot open " << url;
+		};
 		connect(m_ui.actionBrowseHttpOpds, &QAction::triggered, [=] { browse("opds"); });
 		connect(m_ui.actionBrowseHttpSite, &QAction::triggered, [=] { browse(); });
 		connect(m_ui.actionBrowseHttpWeb, &QAction::triggered, [=] { browse("web"); });

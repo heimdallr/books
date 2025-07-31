@@ -15,12 +15,11 @@ AddTarget(opds	app
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
 	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/opds.rc
 	LINK_LIBRARIES
-		Hypodermic
+		Boost::headers
 		Qt${QT_MAJOR_VERSION}::Concurrent
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::HttpServer
 		Qt${QT_MAJOR_VERSION}::Network
-		${icu_modules}
 	LINK_TARGETS
 		flint
 		Fnd
@@ -29,4 +28,6 @@ AddTarget(opds	app
 		Util
 		ver
 		zip
+	DEPENDENCIES
+		icu
 )

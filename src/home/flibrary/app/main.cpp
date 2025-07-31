@@ -5,8 +5,6 @@
 #include <QStyleFactory>
 #include <QTranslator>
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Localization.h"
@@ -20,6 +18,7 @@
 #include "interface/ui/IMigrateWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
 
+#include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"

@@ -3,8 +3,6 @@
 #include <QFileInfo>
 #include <QPushButton>
 
-#include <Hypodermic/Hypodermic.h>
-
 #include "fnd/FindPair.h"
 
 #include "interface/logic/ILogicFactory.h"
@@ -12,6 +10,7 @@
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
+#include "Hypodermic/Hypodermic.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"

@@ -54,6 +54,11 @@ private: // Query
 		return m_query.column_name(Index(index));
 	}
 
+	bool IsNull(const size_t index) const override
+	{
+		return (*m_it).column_type(Index(index)) == SQLITE_NULL;
+	}
+
 	int GetInt(const size_t index) const override
 	{
 		return Get<int>(index);

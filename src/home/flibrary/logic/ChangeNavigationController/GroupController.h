@@ -34,6 +34,10 @@ public:
 	void Remove(Ids ids, Callback callback) const;
 	void AddToGroup(Id id, Ids ids, Callback callback) const;
 	void RemoveFromGroup(Id id, Ids ids, Callback callback) const;
+	void RemoveBooks(Id id, Ids ids, Callback callback) const;
+	void RemoveAuthors(Id id, Ids ids, Callback callback) const;
+	void RemoveSeries(Id id, Ids ids, Callback callback) const;
+	void RemoveKeywords(Id id, Ids ids, Callback callback) const;
 
 private:
 	struct Impl;

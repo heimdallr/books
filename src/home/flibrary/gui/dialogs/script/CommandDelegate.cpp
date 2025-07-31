@@ -27,25 +27,30 @@ public:
 	virtual ~IDelegateGetter() = default;
 	virtual BaseDelegateEditor* GetOpenFileDialogDelegateEditor() const = 0;
 	virtual BaseDelegateEditor* GetStorableComboboxDelegateEditor() const = 0;
+	virtual BaseDelegateEditor* GetEmbeddedCommandsDelegateEditor() const = 0;
 };
 
 constexpr std::pair<IScriptController::Command::Type, BaseDelegateEditor* (IDelegateGetter::*)() const> TYPES[] {
 	{ IScriptController::Command::Type::LaunchConsoleApp,   &IDelegateGetter::GetOpenFileDialogDelegateEditor },
 	{     IScriptController::Command::Type::LaunchGuiApp,   &IDelegateGetter::GetOpenFileDialogDelegateEditor },
 	{		   IScriptController::Command::Type::System, &IDelegateGetter::GetStorableComboboxDelegateEditor },
+	{		 IScriptController::Command::Type::Embedded, &IDelegateGetter::GetEmbeddedCommandsDelegateEditor },
 };
 static_assert(std::size(TYPES) == static_cast<size_t>(IScriptController::Command::Type::Last));
 
-}
+} // namespace
 
 class CommandDelegate::Impl final : public IDelegateGetter
 {
 	using Editors = std::vector<std::pair<IScriptController::Command::Type, BaseDelegateEditor*>>;
 
 public:
-	Impl(std::shared_ptr<OpenFileDialogDelegateEditor> openFileDialogDelegateEditor, std::shared_ptr<StorableComboboxDelegateEditor> storableComboboxDelegateEditor)
-		: m_openFileDialogDelegateEditor(std::move(openFileDialogDelegateEditor))
-		, m_storableComboboxDelegateEditor(CreateStorableComboboxDelegateEditor(std::move(storableComboboxDelegateEditor)))
+	Impl(std::shared_ptr<OpenFileDialogDelegateEditor> openFileDialogDelegateEditor,
+	     std::shared_ptr<StorableComboboxDelegateEditor> storableComboboxDelegateEditor,
+	     std::shared_ptr<EmbeddedCommandsDelegateEditor> embeddedCommandsDelegateEditor)
+		: m_openFileDialogDelegateEditor { std::move(openFileDialogDelegateEditor) }
+		, m_storableComboboxDelegateEditor { CreateStorableComboboxDelegateEditor(std::move(storableComboboxDelegateEditor)) }
+		, m_embeddedCommandsDelegateEditor { std::move(embeddedCommandsDelegateEditor) }
 		, m_editors(CreateEditors())
 	{
 	}
@@ -66,6 +71,11 @@ private: // IDelegateGetter
 		return m_storableComboboxDelegateEditor.get();
 	}
 
+	BaseDelegateEditor* GetEmbeddedCommandsDelegateEditor() const override
+	{
+		return m_embeddedCommandsDelegateEditor.get();
+	}
+
 private:
 	Editors CreateEditors() const
 	{
@@ -78,12 +88,16 @@ private:
 private:
 	std::shared_ptr<BaseDelegateEditor> m_openFileDialogDelegateEditor;
 	std::shared_ptr<BaseDelegateEditor> m_storableComboboxDelegateEditor;
+	std::shared_ptr<BaseDelegateEditor> m_embeddedCommandsDelegateEditor;
 	const Editors m_editors;
 };
 
-CommandDelegate::CommandDelegate(std::shared_ptr<OpenFileDialogDelegateEditor> openFileDialogDelegateEditor, std::shared_ptr<StorableComboboxDelegateEditor> storableComboboxDelegateEditor, QObject* parent)
+CommandDelegate::CommandDelegate(std::shared_ptr<OpenFileDialogDelegateEditor> openFileDialogDelegateEditor,
+                                 std::shared_ptr<StorableComboboxDelegateEditor> storableComboboxDelegateEditor,
+                                 std::shared_ptr<EmbeddedCommandsDelegateEditor> embeddedCommandsDelegateEditor,
+                                 QObject* parent)
 	: QStyledItemDelegate(parent)
-	, m_impl(std::make_unique<Impl>(std::move(openFileDialogDelegateEditor), std::move(storableComboboxDelegateEditor)))
+	, m_impl(std::make_unique<Impl>(std::move(openFileDialogDelegateEditor), std::move(storableComboboxDelegateEditor), std::move(embeddedCommandsDelegateEditor)))
 {
 }
 
@@ -99,7 +113,7 @@ QWidget* CommandDelegate::createEditor(QWidget* parent, const QStyleOptionViewIt
 void CommandDelegate::setEditorData(QWidget* /*editor*/, const QModelIndex& index) const
 {
 	auto* editor = m_impl->GetEditor(index);
-	editor->SetText(index.data().toString());
+	editor->SetText(index.data(Role::Name).toString());
 }
 
 void CommandDelegate::setModelData(QWidget* /*editor*/, QAbstractItemModel* model, const QModelIndex& index) const

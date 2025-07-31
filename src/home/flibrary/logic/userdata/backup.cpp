@@ -96,26 +96,25 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
-	static constexpr auto text = "select f.FolderTitle, b.FileName, gl.CreatedAt, g.Title, g.CreatedAt groupCreatedAt "
+	static constexpr auto text = "select g.Title, g.CreatedAt, gl.CreatedAt, b.FileName, f.FolderTitle "
+								 ", a.LastName||','||a.FirstName||','||a.MiddleName "
+								 ", s.SeriesTitle, k.KeywordTitle "
 								 "from Groups_User g "
-								 "join Groups_List_User gl on gl.GroupID = g.GroupID "
-								 "join Books b on b.BookID = gl.BookID "
-								 "join Folders f on f.FolderID = b.FolderID "
+								 "left join Groups_List_User gl on gl.GroupID = g.GroupID "
+								 "left join Books b on b.BookID = gl.ObjectID "
+								 "left join Folders f on f.FolderID = b.FolderID "
+								 "left join Authors a on a.AuthorID = gl.ObjectID "
+								 "left join Series s on s.SeriesID = gl.ObjectID "
+								 "left join Keywords k on k.KeywordID = gl.ObjectID "
 								 "order by g.GroupID ";
-
-	static constexpr const char* fields[] = {
-		Constant::UserData::Books::Folder,
-		Constant::UserData::Books::FileName,
-		Constant::UserData::Books::CreatedAt,
-	};
 
 	std::unique_ptr<ScopedCall> group;
 	QString currentTitle;
 	const auto query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		QString title = query->Get<const char*>(3);
-		QString groupCreatedAt = query->Get<const char*>(4);
+		QString title = query->Get<const char*>(0);
+		QString groupCreatedAt = query->Get<const char*>(1);
 		if (currentTitle != title)
 		{
 			currentTitle = std::move(title);
@@ -133,7 +132,27 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 				.swap(group);
 		}
 
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
+		if (const auto* fileName = query->Get<const char*>(3))
+			xmlWriter.WriteStartElement(Constant::ITEM)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
+				.WriteAttribute(Constant::UserData::Books::FileName, fileName)
+				.WriteAttribute(Constant::UserData::Books::Folder, query->Get<const char*>(4))
+				.WriteEndElement();
+		else if (const auto* authorName = query->Get<const char*>(5))
+			xmlWriter.WriteStartElement(Constant::UserData::Groups::Author)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
+				.WriteAttribute(Constant::TITLE, authorName)
+				.WriteEndElement();
+		else if (const auto* seriesTitle = query->Get<const char*>(6))
+			xmlWriter.WriteStartElement(Constant::UserData::Groups::Series)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
+				.WriteAttribute(Constant::TITLE, seriesTitle)
+				.WriteEndElement();
+		else if (const auto* keywordTitle = query->Get<const char*>(7))
+			xmlWriter.WriteStartElement(Constant::UserData::Groups::Keyword)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
+				.WriteAttribute(Constant::TITLE, keywordTitle)
+				.WriteEndElement();
 	}
 }
 

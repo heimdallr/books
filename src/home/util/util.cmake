@@ -4,7 +4,7 @@ AddTarget(Util	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Gui
-		xercesc
+		XercesC::XercesC
 	LINK_TARGETS
 		logging
 		zip

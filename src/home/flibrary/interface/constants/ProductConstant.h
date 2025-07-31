@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QString>
+
 namespace HomeCompa::Flibrary::Constant
 {
 
@@ -12,10 +14,10 @@ constexpr auto VALUE = "Value";
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
-constexpr auto FlibraryBackupVersionNumber = 6;
+constexpr auto FlibraryBackupVersionNumber = 7;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
-constexpr auto FlibraryDatabaseVersionNumber = 3;
+constexpr auto FlibraryDatabaseVersionNumber = 5;
 
 constexpr int APP_FAILED = 1;
 constexpr int RESTART_APP = 1234;

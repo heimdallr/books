@@ -9,7 +9,6 @@
 #include <QStandardPaths>
 #include <QTranslator>
 
-#include <Hypodermic/Hypodermic.h>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Record.h>
@@ -20,6 +19,7 @@
 #include "fnd/ScopedCall.h"
 
 #include "GuiUtil/interface/IUiFactory.h"
+#include "Hypodermic/Hypodermic.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "util/ISettings.h"
@@ -968,6 +968,14 @@ bool run(int argc, char* argv[])
 		stream << "Process started with " << settings.settings;
 		PLOGI << stream.str();
 	}
+
+	const auto checkExternalUtil = [](const QString& name, const QString& path)
+	{
+		if (!(path.isEmpty() || QFile::exists(path)))
+			throw std::invalid_argument(QString("Cannot find %1, path '%2' not found").arg(name).arg(path).toStdString());
+	};
+	checkExternalUtil("ffmpeg", settings.settings.ffmpeg);
+	checkExternalUtil("external archiver", settings.settings.archiver);
 
 	const auto failedArchives = ProcessArchives(settings.settings);
 	if (failedArchives.isEmpty())
