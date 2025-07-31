@@ -15,7 +15,7 @@ rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
 echo installer creating
-cd %~dp0%BUILD_DIR%
+cd %BUILD_DIR%
 cpack -G WIX -C Release
 if %errorlevel% NEQ 0 goto Error
 cd %originalDir%

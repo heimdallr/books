@@ -2,6 +2,8 @@
 
 #include "GenreFilterDialog.h"
 
+#include <set>
+
 #include <QMenu>
 
 #include "interface/logic/IModel.h"

@@ -14,10 +14,14 @@ set originalDir=%CD%
 
 if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
 
-set BUILD_DIR=build\%BUILD_TYPE%
-mkdir %~dp0%BUILD_DIR%
-cd %~dp0%BUILD_DIR%
+set BUILD_DIR=%~dp0build\%BUILD_TYPE%
+mkdir %BUILD_DIR%
+cd %BUILD_DIR%
 del *.sln
+
+set CONAN_PROFILE=%~dp0src\ext\scripts\conan\profiles\msvc2022_x86_64_%BUILD_TYPE%
+conan install %~dp0src\home\script\conan --output-folder %BUILD_DIR% -pr:b %CONAN_PROFILE% -pr:h %CONAN_PROFILE% --build=missing
+if %errorlevel% NEQ 0 goto end
 
 cmake ^
 --no-warn-unused-cli ^
@@ -25,6 +29,8 @@ cmake ^
 -DCMAKE_CONFIGURATION_TYPES=Debug;Release ^
 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
 -DPRODUCT_VERSION=%PRODUCT_VERSION% ^
+-DCMAKE_TOOLCHAIN_FILE="%BUILD_DIR%\conan_toolchain.cmake" ^
+-DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
 %* ^
 -G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% generate_solution.log
 

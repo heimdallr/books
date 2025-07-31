@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include <QBuffer>
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -6,6 +8,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
 #include <QString>

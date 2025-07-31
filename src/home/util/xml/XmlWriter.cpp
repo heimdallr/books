@@ -13,7 +13,7 @@
 #include "XmlAttributes.h"
 
 using namespace HomeCompa::Util;
-using namespace xercesc_3_2;
+using namespace xercesc_3_3;
 
 namespace
 {

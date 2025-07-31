@@ -4,7 +4,7 @@ AddTarget(logging	shared_lib
 	PROJECT_GROUP Util
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Core
-		LINK_PUBLIC plog
+		LINK_PUBLIC plog::plog
 	COMPILE_DEFINITIONS
 		PLOG_EXPORT
 )

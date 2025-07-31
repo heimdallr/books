@@ -17,7 +17,7 @@
 #include "Initializer.h"
 
 using namespace HomeCompa::Util;
-namespace xercesc = xercesc_3_2;
+namespace xercesc = xercesc_3_3;
 
 namespace
 {
