@@ -19,13 +19,7 @@ mkdir %BUILD_DIR%
 cd %BUILD_DIR%
 del *.sln
 
-set CONAN_PROFILE=msvc2022_x86_64
-if [%BUILD_TYPE%]==[Debug] (
-    set CONAN_PROFILE=%~dp0src\ext\scripts\conan\profiles\%CONAN_PROFILE%_debug
-) else (
-    set CONAN_PROFILE=%~dp0src\ext\scripts\conan\profiles\%CONAN_PROFILE%_release
-)
-
+set CONAN_PROFILE=%~dp0src\ext\scripts\conan\profiles\msvc2022_x86_64_%BUILD_TYPE%
 conan install %~dp0src\home\script\conan --output-folder %BUILD_DIR% -pr:b %CONAN_PROFILE% -pr:h %CONAN_PROFILE% --build=missing
 if %errorlevel% NEQ 0 goto end
 
