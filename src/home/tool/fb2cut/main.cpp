@@ -35,7 +35,6 @@
 #include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "di_app.h"
-#include "libimagequant.h"
 #include "log.h"
 #include "settings.h"
 #include "zip.h"
@@ -151,72 +150,6 @@ QImage HasAlpha(const QImage& image, const char* data)
 	}
 
 	return image.convertToFormat(QImage::Format_RGB888);
-}
-
-QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputImage, int quantity)
-{
-	if (quantity < 0)
-		quantity = 80;
-
-	QImage image = std::move(inputImage);
-
-	quantity = std::min(quantity, 100);
-
-	const auto size = image.size();
-	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
-	std::vector<void*> rowsIn;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsIn.emplace_back(imageSrc.scanLine(i));
-	auto* attr = liq_attr_create();
-	if (!attr)
-	{
-		PLOGE << "liq_attr_create failed";
-		return image;
-	}
-	const ScopedCall attrGuard([=] { liq_attr_destroy(attr); });
-
-	liq_set_quality(attr, quantity / 3, quantity);
-
-	liq_image* im = liq_image_create_rgba_rows(attr, rowsIn.data(), size.width(), size.height(), 0);
-	if (!im)
-	{
-		PLOGE << "liq_attr_create failed";
-		return image;
-	}
-	const ScopedCall imGuard([=] { liq_image_destroy(im); });
-
-	liq_result* res = nullptr;
-	if (const auto opResult = liq_image_quantize(im, attr, &res); opResult != LIQ_OK || !res)
-	{
-		PLOGW << QString("Cannot quantize %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const ScopedCall resGuard([=] { liq_result_destroy(res); });
-
-	QImage result(size, QImage::Format_Indexed8);
-	std::vector<unsigned char*> rowsOut;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsOut.emplace_back(result.scanLine(i));
-
-	if (const auto opResult = liq_write_remapped_image_rows(res, im, rowsOut.data()); opResult != LIQ_OK)
-	{
-		PLOGW << QString("Cannot remap %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const liq_palette* pal = liq_get_palette(res);
-	result.setColorCount(static_cast<int>(pal->count));
-
-	QList<QRgb> colors;
-	for (unsigned int i = 0; i < pal->count; ++i)
-	{
-		const auto& entry = pal->entries[i];
-		colors.push_back(qRgba(entry.r, entry.g, entry.b, entry.a));
-	}
-	result.setColorTable(colors);
-
-	return result;
 }
 
 class Worker
