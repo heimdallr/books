@@ -949,16 +949,16 @@ private:
 			return;
 
 		auto searchController = ILogicFactory::Lock(m_logicFactory)->CreateSearchController();
-		searchController->Search(searchString,
-		                         [this, searchController](const long long id) mutable
-		                         {
-									 if (id <= 0)
-										 return;
+		auto& searchControllerRef = *searchController;
+		searchControllerRef.Search(searchString,
+		                           [this, searchController = std::move(searchController)](const long long id) mutable
+		                           {
+									   if (id <= 0)
+										   return;
 
-									 m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionController->GetActiveCollectionId()).arg(Loc::Search), QString::number(id));
-									 ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation)->SetMode(Loc::Search);
-									 searchController.reset();
-								 });
+									   m_navigationWidget->SetMode(static_cast<int>(NavigationMode::Search), QString::number(id));
+									   searchController.reset();
+								   });
 	}
 
 	void CreateLogMenu()

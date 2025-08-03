@@ -45,6 +45,7 @@ public:
 	void ShowRemoved(bool showRemoved);
 	void FilterGenres(bool filterGenres);
 	QAbstractItemView* GetView() const;
+	void SetMode(int mode, const QString& id);
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;
