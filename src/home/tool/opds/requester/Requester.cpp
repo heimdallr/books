@@ -28,6 +28,7 @@
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/SortString.h"
@@ -806,7 +807,7 @@ public:
                     },
 				                                Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
 
-					m_coverCache->Set(book.GetId(), covers.front().bytes);
+					m_coverCache->Set(book.GetId(), std::move(Flibrary::Recode(covers.front().bytes).first));
 				}
 			});
 

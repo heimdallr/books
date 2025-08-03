@@ -15,6 +15,7 @@
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -336,7 +337,7 @@ where g.GroupID = ?
 				result.insert("series", series);
 
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					coverCache->Set(bookId, covers.front().bytes);
+					coverCache->Set(bookId, std::move(Flibrary::Recode(covers.front().bytes).first));
 			});
 
 		annotationController->RegisterObserver(&observer);
