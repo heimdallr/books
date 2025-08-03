@@ -396,6 +396,16 @@ class ParserBookInfo final : public ParserOpds
 	{
 	};
 
+	static QString CreateReadTemplate(const ISettings& settings)
+	{
+		auto readTemplate = settings.Get("opds/ReadUrlTemplate", QString("/web/read?book=%1"));
+		const auto host = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
+		const auto port = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
+		readTemplate.replace("%HTTP_HOST%", host);
+		readTemplate.replace("%HTTP_PORT%", QString::number(port));
+		return readTemplate;
+	}
+
 public:
 	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings& settings)
 	{
@@ -406,6 +416,7 @@ public:
 public:
 	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, const ISettings& settings, CreateGuard)
 		: ParserOpds(callback, stream, std::move(root))
+		, m_readTemplate { CreateReadTemplate(settings) }
 	{
 	}
 
@@ -502,7 +513,7 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read?book=%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ));
 
 				const auto createLinks = [&](const QFileInfo& fileInfo)
 				{
@@ -555,6 +566,7 @@ private: // AbstractParser
 	}
 
 private:
+	const QString m_readTemplate;
 	std::vector<std::pair<QString, QString>> m_authors;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
