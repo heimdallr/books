@@ -157,6 +157,8 @@ public:
 
 		m_annotationController->RegisterObserver(this);
 
+		m_ui.cover->setStyleSheet("background-color: white;");
+
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { OnLinkActivated(link); });
 		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
 
@@ -279,7 +281,7 @@ public:
 
 		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName)
 		{
-			auto* btn = new QToolButton(m_ui.cover);
+			auto* btn = new QToolButton(&m_self);
 			btn->setVisible(false);
 			btn->setIcon(QIcon(iconFileName));
 			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
@@ -501,14 +503,16 @@ private:
 		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.front()->size().width() * 4)
 			return;
 
-		for (auto* btn : m_coverButtons)
-			btn->setVisible(true);
-
+		m_coverButtons[CoverButtonType::Previous]->setVisible(true);
+		m_coverButtons[CoverButtonType::Next]->setVisible(true);
 		m_coverButtons[CoverButtonType::Home]->setVisible(m_currentCoverIndex != m_coverIndex);
 	}
 
 	void OnCoverLeave() const
 	{
+		if (std::ranges::any_of(m_coverButtons, [widget = QApplication::widgetAt(QCursor::pos())](const auto* item) { return widget == item; }))
+			return;
+
 		for (auto* btn : m_coverButtons)
 			btn->setVisible(false);
 	}
