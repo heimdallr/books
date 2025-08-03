@@ -25,8 +25,7 @@ public:
 	ProcType GetTypedProc(const std::string& procName)
 	{
 		void* const procPtr = this->GetProc(procName);
-		ProcType const typedProcPtr = reinterpret_cast<ProcType>(procPtr);
-		return typedProcPtr;
+		return reinterpret_cast<ProcType>(procPtr);
 	}
 
 	std::string GetErrorDescription()

@@ -88,8 +88,8 @@ struct ImageFormatDescription
 constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder };
 
 constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0",  { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder } },
-	{ "\x89\x50\x4E\x47",   { IMAGE_PNG, PNG, &QtDecoder, &QtRecoder } },
+	{ "\xFF\xD8\xFF\xE0",   { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder } },
+	{ "\x89\x50\x4E\x47",     { IMAGE_PNG, PNG, &QtDecoder, &QtRecoder } },
 	{		 "\xFF\x0A", { nullptr, JPEG_XL, &JxlDecoder, &JxlRecoder } },
 };
 

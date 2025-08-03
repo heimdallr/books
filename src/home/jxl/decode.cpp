@@ -25,7 +25,7 @@ QImage Decode(const QByteArray& bytes)
 
 	if (JXL_DEC_SUCCESS != JxlDecoderSetParallelRunner(dec.get(), JxlResizableParallelRunner, runner.get()))
 	{
-		PLOGE <<  "JxlDecoderSetParallelRunner failed";
+		PLOGE << "JxlDecoderSetParallelRunner failed";
 		return {};
 	}
 
@@ -37,7 +37,7 @@ QImage Decode(const QByteArray& bytes)
 
 	while (true)
 	{
-		switch (const auto status = JxlDecoderProcessInput(dec.get()); status)  // NOLINT(clang-diagnostic-switch-enum)
+		switch (const auto status = JxlDecoderProcessInput(dec.get()); status) // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case JXL_DEC_ERROR:
 				PLOGE << "Decoder error";
@@ -96,4 +96,4 @@ QImage Decode(const QByteArray& bytes)
 	}
 }
 
-}
+} // namespace HomeCompa::JXL
