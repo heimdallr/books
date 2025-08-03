@@ -14,14 +14,18 @@ using MetaPair = std::pair<const QObject*, std::string>;
 using MetaObjects = std::unordered_map<QString, std::list<MetaPair>>;
 MetaObjects g_signals, g_slots; // NOLINT(clang-diagnostic-exit-time-destructors)
 
+#ifndef NDEBUG
+ObjectsConnector OBJECTS_CONNECTOR;
+#endif
+
 void registerMetaType(MetaObjects& metaObjects, QString id, MetaPair metaPair)
 {
 	metaObjects[id].emplace_back(metaPair);
-
-	QObject::connect(metaPair.first, &QObject::destroyed, [&metaObjects, id = std::move(id), metaPair = std::move(metaPair)]() { metaObjects[id].remove(metaPair); });
+	auto* object = metaPair.first;
+	QObject::connect(object, &QObject::destroyed, [&metaObjects, id = std::move(id), metaPair = std::move(metaPair)] { metaObjects[id].remove(metaPair); });
 }
 
-std::string GetMetaName(const QString& name, QChar prefix)
+std::string GetMetaName(const QString& name, const QChar prefix)
 {
 	return ((name.startsWith(prefix)) ? name : prefix + name).toStdString();
 }
@@ -35,9 +39,13 @@ ObjectsConnector::ObjectsConnector(QObject* parent)
 
 ObjectsConnector::~ObjectsConnector() = default;
 
-void ObjectsConnector::registerEmitter(QString ID, QObject* sender, const QString& signal_, bool queued /* = false*/)
+void ObjectsConnector::registerEmitter(QString ID, QObject* sender, const QString& signal_, const bool queued /* = false*/)
 {
 	auto signal = GetMetaName(signal_, '2');
+
+#ifndef NDEBUG
+	connect(sender, signal_.toStdString().data(), &OBJECTS_CONNECTOR, SLOT(Log()));
+#endif
 
 	for (const auto& [receiver, slot] : g_slots[ID])
 	{
@@ -50,7 +58,7 @@ void ObjectsConnector::registerEmitter(QString ID, QObject* sender, const QStrin
 	registerMetaType(g_signals, std::move(ID), std::make_pair(sender, std::move(signal)));
 }
 
-void ObjectsConnector::registerReceiver(QString ID, QObject* receiver, const QString& slot_, bool queued /* = false*/)
+void ObjectsConnector::registerReceiver(QString ID, QObject* receiver, const QString& slot_, const bool queued /* = false*/)
 {
 	auto slot = GetMetaName(slot_, '1');
 
@@ -89,6 +97,10 @@ void ObjectsConnector::unregisterReceiver(const QString& ID, QObject* receiver, 
 	}
 
 	g_slots[ID].remove(std::make_pair(receiver, std::move(slot)));
+}
+
+void ObjectsConnector::Log()
+{
 }
 
 } // namespace HomeCompa::Util

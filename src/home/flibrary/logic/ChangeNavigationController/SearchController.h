@@ -9,8 +9,6 @@
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
-
 class QString;
 
 namespace HomeCompa::Flibrary
@@ -22,7 +20,6 @@ class SearchController final : virtual public IBookSearchController
 
 public:
 	SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
-	                 std::shared_ptr<ISettings> settings,
 	                 std::shared_ptr<IDatabaseUser> databaseUser,
 	                 std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
 	                 std::shared_ptr<IUiFactory> uiFactory);
