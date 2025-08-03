@@ -17,9 +17,11 @@
 #include "fnd/FindPair.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/linear.h"
 
 #include "GuiUtil/interface/IUiFactory.h"
 #include "Hypodermic/Hypodermic.h"
+#include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "util/ISettings.h"
@@ -33,7 +35,6 @@
 #include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "di_app.h"
-#include "libimagequant.h"
 #include "log.h"
 #include "settings.h"
 #include "zip.h"
@@ -130,89 +131,25 @@ QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 	return validator.Validate(buffer);
 }
 
-bool HasAlpha(const QImage& image, const char* data)
+QImage HasAlpha(const QImage& image, const char* data)
 {
 	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
-		return false;
+		return image.convertToFormat(QImage::Format_RGB888);
 
 	if (!image.hasAlphaChannel())
-		return false;
+		return image.convertToFormat(QImage::Format_RGB888);
 
-	const auto argb = image.convertToFormat(QImage::Format_ARGB32);
+	auto argb = image.convertToFormat(QImage::Format_RGBA8888);
 	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
 	{
 		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
 		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
-			return true;
+		{
+			return argb;
+		}
 	}
 
-	return true;
-}
-
-QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputImage, int quantity)
-{
-	if (quantity < 0)
-		quantity = 80;
-
-	QImage image = std::move(inputImage);
-
-	quantity = std::min(quantity, 100);
-
-	const auto size = image.size();
-	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
-	std::vector<void*> rowsIn;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsIn.emplace_back(imageSrc.scanLine(i));
-	auto* attr = liq_attr_create();
-	if (!attr)
-	{
-		PLOGE << "liq_attr_create failed";
-		return image;
-	}
-	const ScopedCall attrGuard([=] { liq_attr_destroy(attr); });
-
-	liq_set_quality(attr, quantity / 3, quantity);
-
-	liq_image* im = liq_image_create_rgba_rows(attr, rowsIn.data(), size.width(), size.height(), 0);
-	if (!im)
-	{
-		PLOGE << "liq_attr_create failed";
-		return image;
-	}
-	const ScopedCall imGuard([=] { liq_image_destroy(im); });
-
-	liq_result* res = nullptr;
-	if (const auto opResult = liq_image_quantize(im, attr, &res); opResult != LIQ_OK || !res)
-	{
-		PLOGW << QString("Cannot quantize %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const ScopedCall resGuard([=] { liq_result_destroy(res); });
-
-	QImage result(size, QImage::Format_Indexed8);
-	std::vector<unsigned char*> rowsOut;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsOut.emplace_back(result.scanLine(i));
-
-	if (const auto opResult = liq_write_remapped_image_rows(res, im, rowsOut.data()); opResult != LIQ_OK)
-	{
-		PLOGW << QString("Cannot remap %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const liq_palette* pal = liq_get_palette(res);
-	result.setColorCount(static_cast<int>(pal->count));
-
-	QList<QRgb> colors;
-	for (unsigned int i = 0; i < pal->count; ++i)
-	{
-		const auto& entry = pal->entries[i];
-		colors.push_back(qRgba(entry.r, entry.g, entry.b, entry.a));
-	}
-	result.setColorTable(colors);
-
-	return result;
+	return image.convertToFormat(QImage::Format_RGB888);
 }
 
 class Worker
@@ -342,22 +279,21 @@ private:
 			if (image.isNull())
 				return;
 
-			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
-				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
-			const auto hasAlpha = HasAlpha(image, body.constData());
-			if (hasAlpha)
-				image = ReducePng(settings.type, imageFile, image, settings.quality);
+			if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
+				image = HasAlpha(image, body.constData());
 
-			QByteArray imageBody;
-			{
-				QBuffer imageOutput(&imageBody);
-				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
-					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
-			}
+			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
+				image = image.scaled(settings.maxSize.width(),
+				                     settings.maxSize.height(),
+				                     Qt::KeepAspectRatio,
+				                     image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
+
+			auto imageBody = JXL::Encode(image, settings.quality);
+			if (imageBody.isEmpty())
+				return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
 
 			auto& storage = isCover ? m_covers : m_images;
 			storage.emplace_back(std::move(imageFile), std::move(imageBody), dateTime);
@@ -660,7 +596,10 @@ bool ArchiveFb2(const Settings& settings)
 	for (const auto& file : settings.dstDir.entryList({ "*.fb2" }))
 		zipFiles->AddFile(settings.dstDir.filePath(file));
 
-	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
+	const auto dstArchiveFileName = QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format));
+	PLOGI << "archive " << zipFiles->GetCount() << " fb2: " << dstArchiveFileName;
+
+	Zip zip(dstArchiveFileName, settings.format);
 	zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
 	zip.SetProperty(Zip::PropertyId::SolidArchive, false);
 	zip.SetProperty(Zip::PropertyId::ThreadsCount, settings.maxThreadCount);

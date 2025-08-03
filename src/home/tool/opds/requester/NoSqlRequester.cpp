@@ -74,7 +74,7 @@ struct NoSqlRequester::Impl
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 					if (const auto coverIndex = dataProvider.GetCoverIndex())
 					{
-						result = covers[*coverIndex].bytes;
+						result = std::move(Flibrary::Recode(covers[*coverIndex].bytes).first);
 						return;
 					}
 

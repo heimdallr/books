@@ -21,6 +21,7 @@
 
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 
@@ -57,10 +58,11 @@ constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENR
 
 TR_DEF
 
-bool SaveImage(QString fileName, const QByteArray& bytes)
+bool SaveImage(QString& fileName, const QByteArray& bytes)
 {
+	const auto [recoded, mediaType] = Recode(bytes);
 	if (const QFileInfo fileInfo(fileName); fileInfo.suffix().isEmpty())
-		fileName += ".jpg";
+		fileName += QString(mediaType) == IMAGE_PNG ? ".png" : ".jpg";
 
 	if (QFile::exists(fileName))
 		PLOGW << fileName << " already exists and will be overwritten";
@@ -72,7 +74,7 @@ bool SaveImage(QString fileName, const QByteArray& bytes)
 		return false;
 	}
 
-	if (file.write(bytes) != bytes.size())
+	if (file.write(recoded) != recoded.size())
 	{
 		PLOGW << "Write incomplete into " << fileName;
 		return false;
@@ -155,6 +157,8 @@ public:
 
 		m_annotationController->RegisterObserver(this);
 
+		m_ui.cover->setStyleSheet("background-color: white;");
+
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { OnLinkActivated(link); });
 		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
 
@@ -200,8 +204,6 @@ public:
 			assert(!m_covers.empty());
 			const auto& [name, bytes] = m_covers[*m_currentCoverIndex];
 			auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
-			if (const QFileInfo fileInfo(path); fileInfo.suffix().isEmpty())
-				path += ".jpg";
 
 			if (!SaveImage(path, bytes))
 				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
@@ -221,9 +223,7 @@ public:
 		        [this]
 		        {
 					assert(!m_covers.empty());
-
-					QPixmap pixmap;
-					[[maybe_unused]] const auto ok = pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes);
+					const auto pixmap = Decode(m_covers[*m_currentCoverIndex].bytes);
 					QGuiApplication::clipboard()->setImage(pixmap.toImage());
 				});
 
@@ -233,7 +233,7 @@ public:
 		        [this]
 		        {
 					assert(!m_covers.empty());
-					if (const auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+					if (auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
 						SaveImage(fileName, m_covers[*m_currentCoverIndex].bytes);
 				});
 
@@ -255,7 +255,8 @@ public:
 									  size_t savedCount = 0;
 									  for (const auto& [name, bytes] : covers)
 									  {
-										  if (SaveImage(QString("%1/%2").arg(folder).arg(name), bytes))
+										  auto path = QString("%1/%2").arg(folder).arg(name);
+										  if (SaveImage(path, bytes))
 											  ++savedCount;
 
 										  progressItem->Increment(1);
@@ -280,7 +281,7 @@ public:
 
 		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName)
 		{
-			auto* btn = new QToolButton(m_ui.cover);
+			auto* btn = new QToolButton(&m_self);
 			btn->setVisible(false);
 			btn->setIcon(QIcon(iconFileName));
 			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
@@ -329,7 +330,7 @@ public:
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth = m_ui.mainWidget->width() / 3;
 
-		if (QPixmap pixmap; pixmap.loadFromData(m_covers[*m_currentCoverIndex].bytes))
+		if (const auto pixmap = Decode(m_covers[*m_currentCoverIndex].bytes); !pixmap.isNull())
 		{
 			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
 				imgHeight = pixmap.height() * imgWidth / pixmap.width();
@@ -502,14 +503,16 @@ private:
 		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.front()->size().width() * 4)
 			return;
 
-		for (auto* btn : m_coverButtons)
-			btn->setVisible(true);
-
+		m_coverButtons[CoverButtonType::Previous]->setVisible(true);
+		m_coverButtons[CoverButtonType::Next]->setVisible(true);
 		m_coverButtons[CoverButtonType::Home]->setVisible(m_currentCoverIndex != m_coverIndex);
 	}
 
 	void OnCoverLeave() const
 	{
+		if (std::ranges::any_of(m_coverButtons, [widget = QApplication::widgetAt(QCursor::pos())](const auto* item) { return widget == item; }))
+			return;
+
 		for (auto* btn : m_coverButtons)
 			btn->setVisible(false);
 	}

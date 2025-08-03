@@ -29,5 +29,5 @@ AddTarget(opds	app
 		ver
 		zip
 	DEPENDENCIES
-		icu
+		flicu
 )

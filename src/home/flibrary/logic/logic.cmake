@@ -11,6 +11,7 @@ AddTarget(logic	shared_lib
 	LINK_TARGETS
 		DatabaseFactory
 		flint
+		fljxl
 		InpxLib
 		logging
 		network
