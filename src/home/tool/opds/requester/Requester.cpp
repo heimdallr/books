@@ -41,7 +41,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&, const ISettings&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -57,7 +57,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&, const ISettings&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -614,6 +614,23 @@ QString GetContent<Flibrary::Update>(const Flibrary::Update&)
 	return {};
 }
 
+QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters, const ISettings& settings)
+{
+	if (root.isEmpty())
+		return src;
+
+	QBuffer buffer(&src);
+	buffer.open(QIODevice::ReadOnly);
+	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
+	auto result = postprocessor(callback, buffer, contentType, parameters, settings);
+
+#ifndef NDEBUG
+	PLOGV << result;
+#endif
+
+	return result;
+}
+
 } // namespace
 
 class Requester::Impl final
@@ -912,10 +929,49 @@ public:
 		return head;
 	}
 
-	QByteArray GetBookText(const QString& bookId) const
+	QByteArray GetBookText(const QString& root, const Parameters& parameters) const
 	{
-		return m_noSqlRequester->GetBook(bookId).second;
+		const auto bookId = GetParameter(parameters, "book");
+		assert(!bookId.isEmpty());
+		auto result = GetBookTextImpl(bookId);
+		return PostProcess(ContentType::BookText, root, *this, result, { root, bookId }, *m_settings);
 	}
+
+	template <typename NavigationGetter, typename... ARGS>
+	QByteArray GetImpl(NavigationGetter getter, const ContentType contentType, const QString& root, const IRequester::Parameters& parameters, const ARGS&... args) const
+	{
+		if (!m_collectionProvider->ActiveCollectionExists())
+			return {};
+
+		QByteArray bytes;
+		QBuffer buffer(&bytes);
+		try
+		{
+			const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+			const auto node = std::invoke(getter, *this, std::cref(root), std::cref(parameters), std::cref(args)...);
+			Util::XmlWriter writer(buffer);
+			writer << node;
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGE << ex.what();
+			return {};
+		}
+		catch (...)
+		{
+			PLOGE << "Unknown error";
+			return {};
+		}
+		buffer.close();
+
+#ifndef NDEBUG
+		PLOGV << bytes;
+#endif
+
+		return PostProcess(contentType, root, *this, bytes, { root }, *m_settings);
+	}
+
+
 
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
@@ -1121,6 +1177,11 @@ private:
 		return OPDS_BOOK_LIMIT_DEFAULT;
 	}
 
+	QByteArray GetBookTextImpl(const QString& bookId) const
+	{
+		return m_noSqlRequester->GetBook(bookId).second;
+	}
+
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
@@ -1134,58 +1195,6 @@ private:
 
 namespace
 {
-
-QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
-{
-	if (root.isEmpty())
-		return src;
-
-	QBuffer buffer(&src);
-	buffer.open(QIODevice::ReadOnly);
-	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = postprocessor(callback, buffer, contentType, parameters);
-
-#ifndef NDEBUG
-	PLOGV << result;
-#endif
-
-	return result;
-}
-
-template <typename Obj, typename NavigationGetter, typename... ARGS>
-QByteArray GetImpl(const Obj& obj, NavigationGetter getter, const ContentType contentType, const QString& root, const IRequester::Parameters& parameters, const ARGS&... args)
-{
-	if (!obj.GetCollectionProvider().ActiveCollectionExists())
-		return {};
-
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-	try
-	{
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		const auto node = std::invoke(getter, std::cref(obj), std::cref(root), std::cref(parameters), std::cref(args)...);
-		Util::XmlWriter writer(buffer);
-		writer << node;
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-		return {};
-	}
-	catch (...)
-	{
-		PLOGE << "Unknown error";
-		return {};
-	}
-	buffer.close();
-
-#ifndef NDEBUG
-	PLOGV << bytes;
-#endif
-
-	return PostProcess(contentType, root, obj, bytes, { root });
-}
-
 } // namespace
 
 Requester::Requester(std::shared_ptr<const ISettings> settings,
@@ -1215,21 +1224,18 @@ Requester::~Requester()
 
 QByteArray Requester::Search(const QString& root, const Parameters& parameters) const
 {
-	return GetImpl(*m_impl, &Impl::Search, ContentType::Books, std::cref(root), std::cref(parameters));
+	return m_impl->GetImpl(&Impl::Search, ContentType::Books, std::cref(root), std::cref(parameters));
 }
 
 QByteArray Requester::GetBookText(const QString& root, const Parameters& parameters) const
 {
-	const auto bookId = GetParameter(parameters, "book");
-	assert(!bookId.isEmpty());
-	auto result = m_impl->GetBookText(bookId);
-	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
+	return m_impl->GetBookText(root, parameters);
 }
 
 #define OPDS_INVOKER_ITEM(NAME)                                                                                                                         \
 	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                            \
 	{                                                                                                                                                   \
-		return GetImpl(*m_impl, &Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
+		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
 	}
 OPDS_NAVIGATION_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
@@ -1237,7 +1243,7 @@ OPDS_NAVIGATION_ITEMS_X_MACRO
 #define OPDS_INVOKER_ITEM(NAME)                                                                               \
 	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                  \
 	{                                                                                                         \
-		return GetImpl(*m_impl, &Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
+		return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
 	}
 OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM

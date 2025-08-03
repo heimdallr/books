@@ -33,7 +33,7 @@ private: // IAnnotationController::IUrlGenerator
 
 }
 
-QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const QStringList&)
+QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const QStringList&, const ISettings&)
 {
 	auto result = stream.readAll();
 	return result;
