@@ -379,10 +379,13 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [&](const QModelIndex& index)
+		        [this](const QModelIndex& index)
 		        {
 					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
 					m_settings->Set(GetRecentIdKey(), m_currentId);
+
+					if (m_controller->GetItemType() == ItemType::Navigation && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
+						emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
 				});
 
 		if (m_controller->GetItemType() == ItemType::Navigation)
@@ -595,6 +598,8 @@ private:
 		if (m_controller->GetItemType() == ItemType::Navigation)
 		{
 			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
+
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
 		}
 		else
 		{

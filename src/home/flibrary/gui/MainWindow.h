@@ -70,6 +70,7 @@ private: // QWidget
 
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
+	void OnSearchNavigationItemSelected(long long id, const QString& text);
 
 private:
 	class Impl;

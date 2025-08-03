@@ -38,6 +38,7 @@ public:
 signals:
 	void NavigationModeNameChanged(QString navigationModeName) const;
 	void ValueGeometryChanged(const QRect& geometry) const;
+	void SearchNavigationItemSelected(long long id, const QString& text) const;
 
 public:
 	void SetNavigationModeName(QString navigationModeName);

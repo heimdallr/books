@@ -221,6 +221,11 @@ public:
 		m_searchBooksByTitleLayout->invalidate();
 	}
 
+	void OnSearchNavigationItemSelected(long long /*id*/, const QString& text) const
+	{
+		m_ui.lineEditBookTitleToSearch->setText(text);
+	}
+
 	void RemoveCustomStyleFile()
 	{
 		if (m_lastStyleFileHovered.isEmpty())
@@ -1150,6 +1155,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
 	PLOGV << "MainWindow created";
 }
 
@@ -1174,4 +1180,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
 {
 	m_impl->OnBooksSearchFilterValueGeometryChanged(geometry);
+}
+
+void MainWindow::OnSearchNavigationItemSelected(const long long id, const QString& text)
+{
+	m_impl->OnSearchNavigationItemSelected(id, text);
 }
