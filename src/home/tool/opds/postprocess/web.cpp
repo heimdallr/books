@@ -273,7 +273,7 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings&)
 	{
 		assert(!parameters.isEmpty());
 		return std::make_unique<ParserNavigation>(callback, stream, parameters.front(), CreateGuard {});
@@ -397,14 +397,14 @@ class ParserBookInfo final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings& settings)
 	{
 		assert(!parameters.isEmpty());
-		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), CreateGuard {});
+		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), settings, CreateGuard {});
 	}
 
 public:
-	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
+	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, const ISettings& settings, CreateGuard)
 		: ParserOpds(callback, stream, std::move(root))
 	{
 	}
@@ -613,7 +613,7 @@ class ParserFb2 final : public AbstractParser
 	static constexpr auto IMAGE = "image";
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters, const ISettings&)
 	{
 		assert(parameters.size() > 1);
 		return std::make_unique<ParserFb2>(stream, parameters[0], parameters[1], CreateGuard {});
@@ -931,17 +931,17 @@ private:
 	std::vector<Binary> m_binary;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&)> PARSER_CREATORS[] {
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&, const ISettings&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
 	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters)
+QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters, const ISettings& settings)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser = parserCreator(callback, stream, parameters);
+	const auto parser = parserCreator(callback, stream, parameters, settings);
 	parser->Parse();
 	return parser->GetResult();
 }
