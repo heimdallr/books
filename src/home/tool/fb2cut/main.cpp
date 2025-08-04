@@ -493,7 +493,7 @@ QString GetImagesFolder(const QDir& dir, const QString& type)
 	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
 }
 
-class FileProcessor : public Worker::IClient
+class FileProcessor final : public Worker::IClient
 {
 public:
 	FileProcessor(const Settings& settings, std::condition_variable& queueCondition, std::mutex& queueGuard, const int poolSize, std::atomic_int& fileCount)
