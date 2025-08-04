@@ -72,6 +72,7 @@ constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 constexpr auto FORMAT = "format";
+constexpr auto IMAGE_STATISTICS = "image-statistics";
 
 constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
@@ -881,6 +882,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 
 		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME, "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
 		{ FFMPEG_OPTION_NAME, "Path to ffmpeg executable", PATH },
+		{ IMAGE_STATISTICS, "Image statistics output path", PATH },
 
 		{ { QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME }, "Convert all images to grayscale" },
 		{ COVER_GRAYSCALE_OPTION_NAME, "Convert covers to grayscale" },
@@ -917,6 +919,8 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
+
+	settings.imageStatistics = parser.value(IMAGE_STATISTICS);
 
 	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
 	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
