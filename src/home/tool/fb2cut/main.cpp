@@ -92,6 +92,26 @@ struct DataItem
 
 using DataItems = std::queue<DataItem>;
 
+struct ImageStatisticsItem
+{
+	enum class PixelSchema
+	{
+		Normal,
+		GrayScale,
+		Alpha,
+	};
+	QString folder;
+	QString fileName;
+	QString ordNum;
+	size_t size;
+	int width;
+	int height;
+	PixelSchema schema;
+	QString md5;
+};
+
+using ImageStatistics = std::vector<ImageStatisticsItem>;
+
 void WriteError(const QDir& dir, std::mutex& guard, const QString& name, const QString& ext, const QByteArray& body)
 {
 	std::scoped_lock lock(guard);
@@ -164,11 +184,12 @@ public:
 	{
 	public:
 		virtual ~IClient() = default;
-		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) = 0;
+		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) = 0;
 	};
 
 public:
 	Worker(const Settings& settings,
+	       QString folder,
 	       std::condition_variable& queueCondition,
 	       std::mutex& queueGuard,
 	       DataItems& queue,
@@ -178,6 +199,7 @@ public:
 	       std::atomic_int& fileCount,
 	       IClient& client)
 		: m_settings { settings }
+		, m_folder { std::move(folder) }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_queue { queue }
@@ -223,7 +245,7 @@ private:
 			m_hasError = ProcessFile(name, body, dateTime) || m_hasError;
 		}
 
-		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images));
+		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images), std::move(m_imageStatistics));
 	}
 
 	bool ProcessFile(const QString& inputFilePath, QByteArray& inputFileBody, const QDateTime& dateTime)
@@ -293,6 +315,8 @@ private:
 			if (image.isNull())
 				return;
 
+			const auto size = image.size();
+
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
@@ -309,6 +333,16 @@ private:
 				m_hash.addData(QByteArrayView { image.constScanLine(h), length });
 
 			ImageItem imageItem { std::move(body), std::move(imageFile), std::move(image), QString::fromUtf8(m_hash.result().toHex()) };
+			m_imageStatistics.emplace_back(m_folder,
+			                               completeFileName,
+			                               imageItem.fileName == completeFileName ? QString {} : imageItem.fileName.last(imageItem.fileName.length() - completeFileName.length() - 1),
+			                               static_cast<size_t>(imageItem.body.size()),
+			                               size.width(),
+			                               size.height(),
+			                               pixelFormat.colorModel() == QPixelFormat::Grayscale ? ImageStatisticsItem::PixelSchema::GrayScale
+			                               : hasAlpha                                          ? ImageStatisticsItem::PixelSchema::Alpha
+			                                                                                   : ImageStatisticsItem::PixelSchema::Normal,
+			                               imageItem.md5);
 
 			if (isCover)
 				cover = std::move(imageItem);
@@ -468,6 +502,7 @@ private:
 
 private:
 	const Settings& m_settings;
+	const QString m_folder;
 
 	std::condition_variable& m_queueCondition;
 	std::mutex& m_queueGuard;
@@ -480,6 +515,7 @@ private:
 	QCryptographicHash m_hash { QCryptographicHash::Algorithm::Md5 };
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
+	ImageStatistics m_imageStatistics;
 
 	const Util::XmlValidator m_validator;
 
@@ -497,16 +533,23 @@ QString GetImagesFolder(const QDir& dir, const QString& type)
 class FileProcessor final : public Worker::IClient
 {
 public:
-	FileProcessor(const Settings& settings, std::condition_variable& queueCondition, std::mutex& queueGuard, const int poolSize, std::atomic_int& fileCount)
+	FileProcessor(const Settings& settings,
+	              const QString& folder,
+	              std::condition_variable& queueCondition,
+	              std::mutex& queueGuard,
+	              const int poolSize,
+	              std::atomic_int& fileCount,
+	              QTextStream* imageStatisticsStream)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_dstDir { settings.dstDir }
 		, m_saveCovers { settings.cover.save }
 		, m_saveImages { settings.image.save }
 		, m_maxThreadCount { settings.maxThreadCount }
+		, m_imageStatisticsStream { imageStatisticsStream }
 	{
 		for (int i = 0; i < poolSize; ++i)
-			m_workers.push_back(std::make_unique<Worker>(settings, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
+			m_workers.push_back(std::make_unique<Worker>(settings, folder, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
 	}
 
 public:
@@ -533,8 +576,10 @@ public:
 		m_workers.clear();
 		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
 		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
+		WriteImageStatistics();
 	}
 
+private:
 	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const //-V826
 	{
 		if (!saveFlag || images.empty())
@@ -573,14 +618,29 @@ public:
 		images.clear();
 	}
 
-private:
-	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) override
+	void WriteImageStatistics()
+	{
+		ScopedCall clearGuard([this] { m_imageStatistics.clear(); });
+
+		if (!m_imageStatisticsStream)
+			return;
+
+		for (const auto& [folder, fileName, ordNum, size, width, height, schema, md5] : m_imageStatistics)
+			(*m_imageStatisticsStream) << folder << ',' << fileName << ',' << ordNum << ',' << static_cast<int>(schema) << ',' << size << ',' << width << ',' << height << ',' << md5 << '\n';
+
+		m_imageStatisticsStream->flush();
+	}
+
+private: // Worker::IClient
+	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) override
 	{
 		std::lock_guard lock(m_workClientGuard);
 		m_covers.reserve(m_covers.size() + covers.size());
 		std::ranges::move(covers, std::back_inserter(m_covers));
 		m_images.reserve(m_images.size() + images.size());
 		std::ranges::move(images, std::back_inserter(m_images));
+		m_imageStatistics.reserve(m_imageStatistics.size() + imageStatistics.size());
+		std::ranges::move(imageStatistics, std::back_inserter(m_imageStatistics));
 	}
 
 private:
@@ -600,6 +660,8 @@ private:
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
+	ImageStatistics m_imageStatistics;
+	QTextStream* m_imageStatisticsStream;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -678,7 +740,7 @@ bool ArchiveFb2(const Settings& settings)
 	return !result;
 }
 
-bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount)
+bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
@@ -700,7 +762,7 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 
 		std::condition_variable queueCondition;
 		std::mutex queueGuard;
-		FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
+		FileProcessor fileProcessor(settings, fileInfo.completeBaseName(), queueCondition, queueGuard, maxThreadCount, fileCount, imageStatisticsStream);
 
 		while (!fileList.isEmpty())
 		{
@@ -749,11 +811,11 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 	return hasError;
 }
 
-bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount)
+bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
 {
 	try
 	{
-		return ProcessArchiveImpl(file, settings, fileCount);
+		return ProcessArchiveImpl(file, settings, fileCount, imageStatisticsStream);
 	}
 	catch (const std::exception& ex)
 	{
@@ -793,10 +855,19 @@ QStringList ProcessArchives(Settings& settings)
 											  });
 	PLOGI << "Total file count: " << settings.totalFileCount;
 
+	std::unique_ptr<QTextStream> imageStatisticsStream;
+	QFile imageStatisticsFile(settings.imageStatistics);
+	if (!settings.imageStatistics.isEmpty())
+	{
+		if (!imageStatisticsFile.open(QIODevice::WriteOnly))
+			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
+		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
+	}
+
 	std::atomic_int fileCount;
 	QStringList failed;
 	for (auto&& file : files)
-		if (ProcessArchive(file, settings, fileCount))
+		if (ProcessArchive(file, settings, fileCount, imageStatisticsStream.get()))
 			failed << std::move(file);
 
 	return failed;
