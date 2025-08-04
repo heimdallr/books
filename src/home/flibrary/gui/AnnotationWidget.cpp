@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QGuiApplication>
+#include <QMenu>
 #include <QPainter>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -193,11 +194,19 @@ public:
 			OnResize();
 		};
 		connect(m_ui.cover, &ClickableLabel::clicked, onCoverClicked);
-
-		m_ui.cover->addAction(m_ui.actionOpenImage);
-		m_ui.cover->addAction(m_ui.actionCopyImage);
-		m_ui.cover->addAction(m_ui.actionSaveImageAs);
-		m_ui.cover->addAction(m_ui.actionSaveAllImages);
+		connect(m_ui.cover,
+		        &QWidget::customContextMenuRequested,
+		        &m_self,
+		        [this](const QPoint& pos)
+		        {
+					QMenu menu;
+					menu.addAction(m_ui.actionOpenImage);
+					menu.addAction(m_ui.actionCopyImage);
+					menu.addAction(m_ui.actionSaveImageAs);
+					menu.addAction(m_ui.actionSaveAllImages);
+					menu.setFont(m_self.font());
+					menu.exec(m_ui.cover->mapToGlobal(pos));
+				});
 
 		const auto openImage = [this]
 		{

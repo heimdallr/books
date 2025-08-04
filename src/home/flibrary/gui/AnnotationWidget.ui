@@ -162,7 +162,7 @@
               <item>
                <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
                 <property name="contextMenuPolicy">
-                 <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+                 <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
                 </property>
                 <property name="visible">
                  <bool>true</bool>
