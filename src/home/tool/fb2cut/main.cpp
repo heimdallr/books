@@ -1,3 +1,5 @@
+#include <QCryptographicHash>
+
 #include <queue>
 #include <ranges>
 
@@ -267,6 +269,17 @@ private:
 		QBuffer output(&bodyOutput);
 		output.open(QIODevice::WriteOnly);
 
+		struct ImageItem
+		{
+			QByteArray body;
+			QString fileName;
+			QImage image;
+			QString md5;
+		};
+
+		ImageItem cover;
+		std::vector<ImageItem> images;
+
 		auto binaryCallback = [&](const QString& name, const bool isCover, QByteArray body)
 		{
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
@@ -285,21 +298,70 @@ private:
 			if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
 				image = HasAlpha(image, body.constData());
 
+			const auto pixelFormat = image.pixelFormat();
+			const bool hasAlpha = pixelFormat.alphaUsage() == QPixelFormat::UsesAlpha;
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
-				image = image.scaled(settings.maxSize.width(),
-				                     settings.maxSize.height(),
-				                     Qt::KeepAspectRatio,
-				                     image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
+				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, hasAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
 
-			auto imageBody = JXL::Encode(image, settings.quality);
-			if (imageBody.isEmpty())
-				return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
+			m_hash.reset();
+			for (int h = 0, szh = image.height(), length = image.width() * pixelFormat.bitsPerPixel() / 8; h < szh; ++h)
+				m_hash.addData(QByteArrayView { image.constScanLine(h), length });
 
-			auto& storage = isCover ? m_covers : m_images;
-			storage.emplace_back(std::move(imageFile), std::move(imageBody), dateTime);
+			ImageItem imageItem { std::move(body), std::move(imageFile), std::move(image), QString::fromUtf8(m_hash.result().toHex()) };
+
+			if (isCover)
+				cover = std::move(imageItem);
+			else
+				images.emplace_back(std::move(imageItem));
 		};
 
 		Fb2Parser(inputFilePath, input, output, std::move(binaryCallback)).Parse();
+
+		const auto encode = [this](const ImageSettings& settings, const QString& fileName, const QImage& image, const QByteArray& body) -> QByteArray
+		{
+			if (fileName.isEmpty())
+				return {};
+
+			if (auto bytes = JXL::Encode(image, settings.quality); !bytes.isEmpty())
+				return bytes;
+
+			(void)AddError(settings.type, fileName, body, QString("Cannot compress %1 %2").arg(settings.type).arg(fileName), {}, false);
+			return {};
+		};
+
+		std::unordered_map<QString, std::pair<QByteArray, std::vector<QString>>> uniqueImages;
+		for (auto&& [body, fileName, image, md5] : images)
+		{
+			auto& [bytes, fileNames] = uniqueImages[md5];
+			if (bytes.isEmpty())
+				bytes = encode(m_settings.image, fileName, image, body);
+			fileNames.emplace_back(std::move(fileName));
+		}
+
+		std::erase_if(uniqueImages, [](const auto& item) { return item.second.first.isEmpty(); });
+
+		if (uniqueImages.size() < images.size())
+		{
+			auto fb2Str = QString::fromUtf8(bodyOutput);
+			for (const auto& fileNames : uniqueImages | std::views::values | std::views::values | std::views::filter([](const auto& items) { return items.size() > 1; }))
+			{
+				assert(fileNames.front().startsWith(completeFileName) && fileNames.front()[completeFileName.length()] == '/');
+				const auto primaryFileNameView = QStringView { fileNames.front() }.sliced(completeFileName.length() + 1, fileNames.front().length() - completeFileName.length() - 1);
+				for (const auto& secondaryFileName : fileNames | std::views::drop(1))
+				{
+					assert(secondaryFileName.startsWith(completeFileName) && secondaryFileName[completeFileName.length()] == '/');
+					const auto secondaryFileNameView = QStringView { secondaryFileName }.sliced(completeFileName.length() + 1, secondaryFileName.length() - completeFileName.length() - 1);
+					fb2Str.replace(QRegularExpression(QString(R"(<image *(.*?):href="#%1"/>)").arg(secondaryFileNameView)), QString(R"(<image \1:href="#%1"/>)").arg(primaryFileNameView));
+				}
+			}
+			bodyOutput = fb2Str.toUtf8();
+		}
+
+		std::ranges::transform(uniqueImages | std::views::values, std::back_inserter(m_images), [&](auto&& item) { return DataItem { std::move(item.second.front()), std::move(item.first), dateTime }; });
+
+		if (auto bytes = encode(m_settings.cover, cover.fileName, cover.image, cover.body); !bytes.isEmpty())
+			if (!cover.fileName.isEmpty())
+				m_covers.emplace_back(std::move(cover.fileName), std::move(bytes), dateTime);
 
 		return bodyOutput;
 	}
@@ -414,6 +476,7 @@ private:
 	std::atomic_bool& m_hasError;
 	std::atomic_int &m_queueSize, &m_fileCount;
 
+	QCryptographicHash m_hash { QCryptographicHash::Algorithm::Md5 };
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
 
