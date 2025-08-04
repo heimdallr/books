@@ -227,9 +227,6 @@ private:
 
 	bool ProcessFile(const QString& inputFilePath, QByteArray& inputFileBody, const QDateTime& dateTime)
 	{
-		++m_fileCount;
-		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
-
 		QBuffer input(&inputFileBody);
 		input.open(QIODevice::ReadOnly);
 
@@ -237,6 +234,9 @@ private:
 		const auto outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
 		auto bodyOutput = ParseFile(inputFilePath, input, dateTime);
+		++m_fileCount;
+		PLOGV << QString("done %1, %2 (%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
+
 		if (bodyOutput.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
 
