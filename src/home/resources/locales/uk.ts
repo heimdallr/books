@@ -13,7 +13,7 @@
     </message>
     <message>
         <source>Name</source>
-        <translation>Найменування</translation>
+        <translation>Ім&apos;я</translation>
     </message>
     <message>
         <source>Open file dialog</source>
@@ -143,7 +143,7 @@
     <message>
         <location filename="../../flibrary/gui/AnnotationWidget.cpp"/>
         <source>Read</source>
-        <translation>Читання</translation>
+        <translation>Читати</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/AnnotationWidget.cpp"/>
@@ -311,7 +311,7 @@
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series</source>
-        <translation>Серія</translation>
+        <translation>Серії</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -459,7 +459,7 @@
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
         <source>C&amp;ollapse</source>
-        <translation>З&amp;вернути</translation>
+        <translation>З&amp;горнути</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/shared/BooksContextMenuProvider.cpp"/>
@@ -598,11 +598,11 @@
     </message>
     <message>
         <source>Delete books by language</source>
-        <translation>Видалити книги вказаними мовами</translation>
+        <translation>Видалити книги з вказаними мовами</translation>
     </message>
     <message>
         <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-        <translation>Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
+        <translation type="vanished">Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
     </message>
     <message>
         <source>Read random book</source>
@@ -633,7 +633,7 @@
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
         <source> permanently, without the possibility of recovery</source>
-        <translation> без можливості відновлення</translation>
+        <translation> назавжди, без можливості відновлення</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/CollectionCleaner.cpp"/>
@@ -675,6 +675,10 @@
         <source>Remove unrated books</source>
         <translation>Видалити книги без рейтингу</translation>
     </message>
+    <message>
+        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</source>
+        <translation>Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
+    </message>
 </context>
 <context>
     <name>CollectionController</name>
@@ -707,7 +711,7 @@
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
         <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation>Схоже, колекція оновила. Застосувати зміни?</translation>
+        <translation>Схоже, колекція оновлена. Застосувати зміни?</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/Collection/CollectionController.cpp"/>
@@ -776,7 +780,7 @@
     <message>
         <location filename="../../flibrary/logic/log/LogController.cpp"/>
         <source>Deleted books:</source>
-        <translation>Вилучено книг:</translation>
+        <translation>Видалено книг:</translation>
     </message>
 </context>
 <context>
@@ -915,12 +919,12 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Author not specified</source>
-        <translation>Автор не вказано</translation>
+        <translation>Автора не вказано</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Retrieving books had errors</source>
-        <translation>Книжки витягнуті з помилками</translation>
+        <translation>Книжки отримані з помилками</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
@@ -940,7 +944,7 @@ Restart now?</source>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
         <source>Cannot extract file &apos;%1&apos;</source>
-        <translation>Не вдалося витягти з архіву файл %1</translation>
+        <translation>Не вдалося отримати з архіву файл %1</translation>
     </message>
     <message>
         <location filename="../../zip/interface/error.cpp"/>
@@ -1221,7 +1225,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>popadancy</source>
-        <translation>Попадани</translation>
+        <translation>Попаданці</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1366,7 +1370,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>thriller_techno</source>
-        <translation>Техно трилер</translation>
+        <translation>Техно-трилер</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -1991,7 +1995,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_oriental</source>
-        <translation>Схвалення</translation>
+        <translation>Східнознавство</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2056,7 +2060,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>computers</source>
-        <translation>Околокомп&apos;ютерна література</translation>
+        <translation>Білякомп&apos;ютерна література</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2181,7 +2185,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_popular</source>
-        <translation>Научпоп</translation>
+        <translation>Наукпоп</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2231,7 +2235,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>religion_paganism</source>
-        <translation>Язичництво</translation>
+        <translation>Язичництво (поганство)</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2466,7 +2470,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>sci_build</source>
-        <translation>Будівництво та співпромат</translation>
+        <translation>Будівництво та опір матеріаалів</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2506,7 +2510,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>epic</source>
-        <translation>Буліни</translation>
+        <translation>Булини</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2541,7 +2545,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>limerick</source>
-        <translation>Частинки. Примовки. Потішки</translation>
+        <translation>Частівки (дрібушки). Примовки. Потішки</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2646,7 +2650,7 @@ Restart now?</source>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
         <source>unordered</source>
-        <translation>Невідсортований</translation>
+        <translation>Невідсортоване</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/GenresLocalization.h"/>
@@ -2722,7 +2726,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
         <source>Cannot remove groups</source>
-        <translation>Не вдалося вилучити групу</translation>
+        <translation>Не вдалося видалити групу</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/ChangeNavigationController/GroupController.cpp"/>
@@ -2748,7 +2752,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/QueryWindow.cpp"/>
         <source>Affected rows: %1</source>
-        <translation>Торкається рядків: %1</translation>
+        <translation>Рядки, на які це впливає: %1</translation>
     </message>
 </context>
 <context>
@@ -3144,7 +3148,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Malayalam</source>
-        <translation></translation>
+        <translation>Малаялам</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3394,7 +3398,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Chuukese</source>
-        <translation>Чуукеська</translation>
+        <translation>Чукотська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3419,7 +3423,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Dargwa</source>
-        <translation>Даргва</translation>
+        <translation>Даргиинська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3444,7 +3448,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Duala</source>
-        <translation>Дуальна</translation>
+        <translation>Дуала</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3484,7 +3488,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Fang</source>
-        <translation>Iкла</translation>
+        <translation>Фанг</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3499,7 +3503,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Fon</source>
-        <translation>Фонова</translation>
+        <translation>Фон</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3534,7 +3538,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Gilbertese</source>
-        <translation>Жільбертська</translation>
+        <translation>Гільбертська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3579,7 +3583,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Hittite</source>
-        <translation>хетська</translation>
+        <translation>Хетська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3594,7 +3598,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Iloko</source>
-        <translation>Ілоцька</translation>
+        <translation>Ілоко</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3614,12 +3618,12 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Judeo-Arabic</source>
-        <translation>Іудео-арабська</translation>
+        <translation>Єврейсько-арабська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Judeo-Persian</source>
-        <translation>Іудейсько-перська</translation>
+        <translation>Єврейсько-перська</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3704,12 +3708,12 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kurukh</source>
-        <translation>Курухська</translation>
+        <translation>Курух</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Kutenai</source>
-        <translation>Кутенайська</translation>
+        <translation>Кутенай</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3734,7 +3738,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Lojban</source>
-        <translation>Ложбанська</translation>
+        <translation>Ложбан</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -3889,7 +3893,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Mohawk</source>
-        <translation>Iрокез</translation>
+        <translation>Могавк</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -4019,7 +4023,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Osage</source>
-        <translation>Осейська</translation>
+        <translation>Осейдж</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -5199,11 +5203,11 @@ Try again?</source>
     </message>
     <message>
         <source>E&amp;xport</source>
-        <translation>&amp;Експорт (збереження)</translation>
+        <translation>&amp;Експорт</translation>
     </message>
     <message>
         <source>I&amp;mport</source>
-        <translation>&amp;Імпорт (відновлення)</translation>
+        <translation>&amp;Імпорт</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
@@ -5322,7 +5326,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
         <source>Disable all</source>
-        <translation>Вимкнути все</translation>
+        <translation>Виключити все</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/MainWindow.cpp"/>
@@ -5507,7 +5511,7 @@ Try again?</source>
     </message>
     <message>
         <source>Start</source>
-        <translation>Старт</translation>
+        <translation>Пуск</translation>
     </message>
     <message>
         <source>No input archives found</source>
@@ -6010,7 +6014,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%author_m%</source>
-        <translation>О. автора</translation>
+        <translation>Пб. автора</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -6035,7 +6039,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
         <source>%genre_tree%</source>
-        <translation>Жанр, поджанр і т.д.</translation>
+        <translation>Жанр, піджанр тощо</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/logic/IScriptController.h"/>
@@ -6246,7 +6250,7 @@ Try again?</source>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>
         <source>Invalid root node name, must be %1</source>
-        <translation>Неправильне ім&apos;я кореневого вузла має бути %1</translation>
+        <translation>Недійсне ім&apos;я кореневого вузла, має бути %1</translation>
     </message>
     <message>
         <location filename="../../flibrary/logic/userdata/restore.cpp"/>

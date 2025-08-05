@@ -19,7 +19,7 @@
     </message>
     <message>
         <source>Name</source>
-        <translation>Наименование</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <source>Database file name</source>
@@ -143,7 +143,7 @@
     <message>
         <location filename="../../flibrary/gui/AnnotationWidget.cpp"/>
         <source>Read</source>
-        <translation>Чтение</translation>
+        <translation>Читать</translation>
     </message>
     <message>
         <location filename="../../flibrary/gui/AnnotationWidget.cpp"/>
@@ -168,7 +168,7 @@
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series:</source>
-        <translation>Серия:</translation>
+        <translation>Серии:</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -311,7 +311,7 @@
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
         <source>Series</source>
-        <translation>Серия</translation>
+        <translation>Серии</translation>
     </message>
     <message>
         <location filename="../../flibrary/interface/constants/Localization.h"/>
@@ -574,7 +574,7 @@
     </message>
     <message>
         <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-        <translation>Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
+        <translation type="vanished">Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
     </message>
     <message>
         <source>Find and remove duplicate books</source>
@@ -674,6 +674,10 @@
     <message>
         <source>Remove unrated books</source>
         <translation>Удалить книги без рейтинга</translation>
+    </message>
+    <message>
+        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</source>
+        <translation>Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
     </message>
 </context>
 <context>
@@ -3889,7 +3893,7 @@ Try again?</source>
     <message>
         <location filename="../../util/localization.h"/>
         <source>Mohawk</source>
-        <translation>Мохокский</translation>
+        <translation>Могаукский</translation>
     </message>
     <message>
         <location filename="../../util/localization.h"/>
@@ -5244,11 +5248,11 @@ Try again?</source>
     </message>
     <message>
         <source>E&amp;xport</source>
-        <translation>&amp;Экспорт (сохранение)</translation>
+        <translation>&amp;Экспорт</translation>
     </message>
     <message>
         <source>I&amp;mport</source>
-        <translation>&amp;Импорт (восстановление)</translation>
+        <translation>&amp;Импорт</translation>
     </message>
     <message>
         <source>&amp;Language</source>
@@ -5451,7 +5455,7 @@ Try again?</source>
     </message>
     <message>
         <source>Start</source>
-        <translation>Старт</translation>
+        <translation>Пуск</translation>
     </message>
     <message>
         <source>No input archives found</source>
@@ -5818,7 +5822,7 @@ Try again?</source>
     </message>
     <message>
         <source>Explain query &amp;plan</source>
-        <translation>Объяснить &amp;план запроса</translation>
+        <translation>Объясните &amp;план запроса</translation>
     </message>
 </context>
 <context>

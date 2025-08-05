@@ -573,10 +573,6 @@
         <translation></translation>
     </message>
     <message>
-        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Find and remove duplicate books</source>
         <translation></translation>
     </message>
@@ -673,6 +669,10 @@
     </message>
     <message>
         <source>Remove unrated books</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</source>
         <translation></translation>
     </message>
 </context>

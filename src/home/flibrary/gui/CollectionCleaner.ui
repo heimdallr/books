@@ -280,7 +280,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</string>
+          <string>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
