@@ -485,10 +485,6 @@
 		<translation>Скасувати</translation>
 	</message>
 	<message>
-		<source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-		<translation>Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
-	</message>
-	<message>
 		<source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</source>
 		<translation>Обережно! Мова книги визначається за описом в індексному файлі. Звертаємо вашу увагу на помилки у цих описах. Багато книг містять тексти мовами, відмінними від зазначеного в індексному файлі.</translation>
 	</message>

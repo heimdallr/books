@@ -485,10 +485,6 @@
 		<translation>Отмена</translation>
 	</message>
 	<message>
-		<source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages ​​other than those specified in the index file.</source>
-		<translation>Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
-	</message>
-	<message>
 		<source>Caution! The language of the book is determined by the description in the index file. Please note that there are errors in these descriptions. Many books contain texts in languages other than those specified in the index file.</source>
 		<translation>Осторожно! Язык книги определяется по описанию в индексном файле. Обращаем ваше внимание на ошибки в этих описаниях. Множество книг содержат тексты на языках, отличных от указанного в индексном файле.</translation>
 	</message>
