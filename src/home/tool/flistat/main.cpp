@@ -47,6 +47,9 @@ void go(const int argc, char* argv[])
 		size_t counter = 0;
 		while (stream.readLineInto(&line))
 		{
+			if (line.startsWith('#'))
+				continue;
+
 			const auto data = line.split(',');
 			assert(data.size() == 8);
 			command->Bind(0, data[0].toStdString());

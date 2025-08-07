@@ -862,6 +862,7 @@ QStringList ProcessArchives(Settings& settings)
 		if (!imageStatisticsFile.open(QIODevice::WriteOnly))
 			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
 		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
+		*imageStatisticsStream << "#archive,fb2_file,ord_num,pixel_type,image_file_size,Width,height,hash";
 	}
 
 	std::atomic_int fileCount;
