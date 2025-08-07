@@ -37,29 +37,43 @@ sf_detective|sf_all_root|Детективная фантастика
 sf_cyberpunk|sf_all_root|Киберпанк
 sf_space|sf_all_root|Космическая фантастика
 sf_social|sf_all_root|Социально-психологическая фантастика
+sf_su|sf_all_root|Советская фантастика
+foreign_sf|sf_all_root|Зарубежная фантастика
+utopia|sf_all_root|Утопия
+dystopian|sf_all_root|Антиутопия
 sf_horror|sf_all_root|Ужасы и Мистика
 sf_humor|sf_all_root|Юмористическая фантастика
 sf_postapocalyptic|sf_all_root|Постапокалипсис
 nsf|sf_all_root|Ненаучная фантастика
+magic_school|sf_all_root|Магическая академия
 sf_etc:sf_all|sf_all_root|Фантастика: прочее
 sf_irony|sf_all_root|Ироническая фантастика
 sf_mystic|sf_all_root|Мистика
 sf_space_opera|sf_all_root|Космоопера
 sf_stimpank|sf_all_root|Стимпанк
 sf_litrpg|sf_all_root|РПГ
+sf_realrpg|sf_all_root|РеалРПГ
 hronoopera|sf_all_root|Хроноопера
 popadancy:popadanec|sf_all_root|Попаданцы
 gothic_novel|sf_all_root|Готический роман
+sf_industrial_magic|sf_all_root|Производственная магия
+boyar_anime|sf_all_root|Бояръ-аниме
+dorama|sf_all_root|Дорама
 
 # Фэнтези
 sf_fantasy|fantasy_all_root|Фэнтези
 fantasy_alt_hist|fantasy_all_root|Альтернативная история. Фэнтези
+adventure_fantasy|fantasy_all_root|Приключенческое фэнтези
 fairy_fantasy|fantasy_all_root|Сказочное фэнтези
 sf_fantasy_city|fantasy_all_root|Городское фэнтези
+dark_fantasy|fantasy_all_root|Тёмное фэнтези
 sf_fantasy_irony:humor_fantasy|fantasy_all_root|Ироническое фэнтези
 historical_fantasy|fantasy_all_root|Историческое фэнтези
+everyday_fantasy|fantasy_all_root|Бытовое фэнтези
 sf_technofantasy|fantasy_all_root|Технофэнтези
 russian_fantasy|fantasy_all_root|Русское фэнтези
+slavic_fantasy|fantasy_all_root|Славянское фэнтези
+asian_fantasy|fantasy_all_root|Азиатское фэнтези
 
 # Детективы и Триллеры
 detective|detective_all_root|Детектив
@@ -67,12 +81,14 @@ det_classic|detective_all_root|Классический детектив
 det_police|detective_all_root|Полицейский детектив
 det_action|detective_all_root|Боевик
 det_irony|detective_all_root|Иронический детектив
+fantasy_det|detective_all_root|Фантастический детектив
 det_history|detective_all_root|Исторический детектив
 det_espionage|detective_all_root|Шпионский детектив
 det_crime|detective_all_root|Криминальный детектив
 det_political|detective_all_root|Политический детектив
 det_maniac|detective_all_root|Маньяки
 det_hard|detective_all_root|Крутой детектив
+det_artifact|detective_all_root|Артефакт-детективы
 thriller|detective_all_root|Триллер
 thriller_mystery|detective_all_root|Мистический триллер
 det_su|detective_all_root|Советский детектив
@@ -82,7 +98,7 @@ thriller_legal|detective_all_root|Юридический триллер
 thriller_medical|detective_all_root|Медицинский триллер
 thriller_psychology|detective_all_root|Психологический триллер
 thriller_techno|detective_all_root|Техно триллер
-det_cozy|detective_all_root|Дамский детективный роман
+det_cozy:det_lady|detective_all_root|Дамский детективный роман
 det_all|detective_all_root|Детектив: прочее
 
 # Проза
@@ -142,12 +158,26 @@ children:child_all|children_all_root|Детская литература
 child_tale|children_all_root|Сказка
 child_verse|children_all_root|Детские стихи
 child_prose|children_all_root|Детская проза
+child_adv_animal|children_all_root|О животных и природе
 child_sf|children_all_root|Детская фантастика
+child_sf_space|children_all_root|Космические приключения. Пришельцы
+child_sf_fantasy|children_all_root|Фэнтези
+child_sf_hronoopera|children_all_root|Темпоральная фантастика. Попаданцы
+child_sf_horror|children_all_root|Ужасы и мистика
 child_adv|children_all_root|Детские приключения
 child_education|children_all_root|Детская образовательная литература
+child_dramaturgy|children_all_root|Драматургия для детей и подростков
 ya|children_all_root|Подростковая литература
+child_prose_romantic|children_all_root|Романтическое
 child_classical|children_all_root|Классическая литература
+child_prose_history|children_all_root|Военная и историческая литература
 child_tale_rus|children_all_root|Русские сказки
+child_tale_russian_writers|children_all_root|Сказки отечественных писателей
+child_tale_foreign_writers|children_all_root|Сказки зарубежных писателей
+child_det_children_detectives|children_all_root|Детские детективы: дети-сыщики
+child_det_animal_detectives|children_all_root|Детские детективы: животные-сыщики
+child_det_other|children_all_root|Детские детективы: прочее
+child_prose_humor|children_all_root|Детская проза: юмористическая
 
 # Поэзия. Драматургия
 poetry|poetry_all_root|Поэзия
@@ -257,6 +287,10 @@ geo_guides|reference_all_root|Путеводители
 nonfiction|nonfiction_all_root|Документальная литература
 travel_notes|nonfiction_all_root|Путевые заметки
 nonf_biography|nonfiction_all_root|Биографии и Мемуары
+about_musicians|nonfiction_all_root|Музыканты. Композиторы. Художники
+nonf_biography_writers|nonfiction_all_root|Писатели. Поэты. Драматурги
+nonf_biography_celebrities|nonfiction_all_root|Звезды кино. Театра. Балета. Шоу-бизнеса
+nonf_biography_historical|nonfiction_all_root|Исторические персоны
 nonf_publicism|nonfiction_all_root|Публицистика
 nonf_criticism|nonfiction_all_root|Критика
 design|nonfiction_all_root|Искусство и Дизайн
@@ -265,6 +299,7 @@ cine|nonfiction_all_root|Кино
 theatre|nonfiction_all_root|Театр
 nonf_military|nonfiction_all_root|Военная документалистика и аналитика
 sci_popular|nonfiction_all_root|Научпоп
+nonf_biography_military_figures|nonfiction_all_root|Военные мемуары
 
 # Религия и духовность
 religion|religion_all_root|Религия
@@ -306,6 +341,7 @@ home_health|home_all_root|Здоровье
 home_garden|home_all_root|Сад и огород
 home_diy|home_all_root|Сделай сам
 home_sport|home_all_root|Спорт
+sci_psychology_popular|home_all_root|Популярная психология
 home_sex|home_all_root|Эротика. Секс
 family:home_all|home_all_root|Прочее
 
@@ -382,6 +418,8 @@ literature_20|other_all_root|20-й век
 network_literature|other_all_root|Сетевая литература
 diafilm|other_all_root|Диафильмы
 fanfiction|other_all_root|Фанфик
+fan_translation|other_all_root|Любительский перевод
+computer_translation|other_all_root|Машинный перевод
 unfinished|other_all_root|Недописанное
 other:other_all|other_all_root|Прочее
 unordered|other_all_root|Неотсортированное
