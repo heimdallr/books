@@ -27,7 +27,7 @@ foreign_all_root||Иностранная литература
 other_all_root||Прочее
 unknown_root||Жанры не из справочника
 
-# жанры
+# Фантастика
 sf:sf_writing:romance_sf|sf_all_root|Научная Фантастика
 sf_history|sf_all_root|Альтернативная история
 sf_action|sf_all_root|Боевая фантастика
@@ -37,40 +37,58 @@ sf_detective|sf_all_root|Детективная фантастика
 sf_cyberpunk|sf_all_root|Киберпанк
 sf_space|sf_all_root|Космическая фантастика
 sf_social|sf_all_root|Социально-психологическая фантастика
+sf_su|sf_all_root|Советская фантастика
+foreign_sf|sf_all_root|Зарубежная фантастика
+utopia|sf_all_root|Утопия
+dystopian|sf_all_root|Антиутопия
 sf_horror|sf_all_root|Ужасы и Мистика
 sf_humor|sf_all_root|Юмористическая фантастика
 sf_postapocalyptic|sf_all_root|Постапокалипсис
 nsf|sf_all_root|Ненаучная фантастика
+magic_school|sf_all_root|Магическая академия
 sf_etc:sf_all|sf_all_root|Фантастика: прочее
 sf_irony|sf_all_root|Ироническая фантастика
 sf_mystic|sf_all_root|Мистика
 sf_space_opera|sf_all_root|Космоопера
 sf_stimpank|sf_all_root|Стимпанк
 sf_litrpg|sf_all_root|РПГ
+sf_realrpg|sf_all_root|РеалРПГ
 hronoopera|sf_all_root|Хроноопера
 popadancy:popadanec|sf_all_root|Попаданцы
 gothic_novel|sf_all_root|Готический роман
+sf_industrial_magic|sf_all_root|Производственная магия
+boyar_anime|sf_all_root|Бояръ-аниме
+dorama|sf_all_root|Дорама
 
+# Фэнтези
 sf_fantasy|fantasy_all_root|Фэнтези
 fantasy_alt_hist|fantasy_all_root|Альтернативная история. Фэнтези
+adventure_fantasy|fantasy_all_root|Приключенческое фэнтези
 fairy_fantasy|fantasy_all_root|Сказочное фэнтези
 sf_fantasy_city|fantasy_all_root|Городское фэнтези
+dark_fantasy|fantasy_all_root|Тёмное фэнтези
 sf_fantasy_irony:humor_fantasy|fantasy_all_root|Ироническое фэнтези
 historical_fantasy|fantasy_all_root|Историческое фэнтези
+everyday_fantasy|fantasy_all_root|Бытовое фэнтези
 sf_technofantasy|fantasy_all_root|Технофэнтези
 russian_fantasy|fantasy_all_root|Русское фэнтези
+slavic_fantasy|fantasy_all_root|Славянское фэнтези
+asian_fantasy|fantasy_all_root|Азиатское фэнтези
 
+# Детективы и Триллеры
 detective|detective_all_root|Детектив
 det_classic|detective_all_root|Классический детектив
 det_police|detective_all_root|Полицейский детектив
 det_action|detective_all_root|Боевик
 det_irony|detective_all_root|Иронический детектив
+fantasy_det|detective_all_root|Фантастический детектив
 det_history|detective_all_root|Исторический детектив
 det_espionage|detective_all_root|Шпионский детектив
 det_crime|detective_all_root|Криминальный детектив
 det_political|detective_all_root|Политический детектив
 det_maniac|detective_all_root|Маньяки
 det_hard|detective_all_root|Крутой детектив
+det_artifact|detective_all_root|Артефакт-детективы
 thriller|detective_all_root|Триллер
 thriller_mystery|detective_all_root|Мистический триллер
 det_su|detective_all_root|Советский детектив
@@ -80,9 +98,10 @@ thriller_legal|detective_all_root|Юридический триллер
 thriller_medical|detective_all_root|Медицинский триллер
 thriller_psychology|detective_all_root|Психологический триллер
 thriller_techno|detective_all_root|Техно триллер
-det_cozy|detective_all_root|Дамский детективный роман
+det_cozy:det_lady|detective_all_root|Дамский детективный роман
 det_all|detective_all_root|Детектив: прочее
 
+# Проза
 prose|prose_all_root|Проза
 prose_su_classics|prose_all_root|Советская классическая проза
 prose_classic|prose_all_root|Классическая проза
@@ -113,6 +132,7 @@ comics|prose_all_root|Комиксы
 tale_chivalry|prose_all_root|О рыцарях
 prose_all|prose_all_root|Проза: прочее
 
+# Любовные романы
 love|love_all_root|О любви
 love_contemporary|love_all_root|Современные любовные романы
 love_history|love_all_root|Исторические любовные романы
@@ -122,6 +142,7 @@ love_sf|love_all_root|Любовно-фантастические романы
 love_hard|love_all_root|Порно
 love_all|love_all_root|О любви: прочее
 
+# Приключения
 adventure:adv_all|adventure_all_root|Приключения
 adv_western|adventure_all_root|Вестерн
 adv_history|adventure_all_root|Исторические приключения
@@ -132,17 +153,33 @@ adv_animal|adventure_all_root|Природа и животные
 adv_modern|adventure_all_root|Современное
 adv_story|adventure_all_root|Истории
 
+# Детское
 children:child_all|children_all_root|Детская литература
 child_tale|children_all_root|Сказка
 child_verse|children_all_root|Детские стихи
 child_prose|children_all_root|Детская проза
+child_adv_animal|children_all_root|О животных и природе
 child_sf|children_all_root|Детская фантастика
+child_sf_space|children_all_root|Космические приключения. Пришельцы
+child_sf_fantasy|children_all_root|Фэнтези
+child_sf_hronoopera|children_all_root|Темпоральная фантастика. Попаданцы
+child_sf_horror|children_all_root|Ужасы и мистика
 child_adv|children_all_root|Детские приключения
 child_education|children_all_root|Детская образовательная литература
+child_dramaturgy|children_all_root|Драматургия для детей и подростков
 ya|children_all_root|Подростковая литература
+child_prose_romantic|children_all_root|Романтическое
 child_classical|children_all_root|Классическая литература
+child_prose_history|children_all_root|Военная и историческая литература
 child_tale_rus|children_all_root|Русские сказки
+child_tale_russian_writers|children_all_root|Сказки отечественных писателей
+child_tale_foreign_writers|children_all_root|Сказки зарубежных писателей
+child_det_children_detectives|children_all_root|Детские детективы: дети-сыщики
+child_det_animal_detectives|children_all_root|Детские детективы: животные-сыщики
+child_det_other|children_all_root|Детские детективы: прочее
+child_prose_humor|children_all_root|Детская проза: юмористическая
 
+# Поэзия. Драматургия
 poetry|poetry_all_root|Поэзия
 dramaturgy:dramaturgy_all|poetry_all_root|Драматургия
 fable|poetry_all_root|Басни
@@ -170,6 +207,7 @@ poetry_rus_classical|poetry_all_root|Русская классика
 poetry_rus_modern|poetry_all_root|Русская современная
 poetry_all|poetry_all_root|Поэзия: прочее
 
+# Старинное
 antique|antique_all_root|Старинная литература
 antique_ant|antique_all_root|Античная литература
 antique_european|antique_all_root|Европейская старинная литература
@@ -178,6 +216,7 @@ antique_east|antique_all_root|Древневосточная литератур�
 antique_myths|antique_all_root|Мифы. Легенды. Эпос
 antique_all|antique_all_root|Старинная литература: прочее
 
+# Наука. Образование
 science|science_all_root|Научная литература
 sci_history|science_all_root|История
 sci_psychology|science_all_root|Психология
@@ -225,6 +264,7 @@ psy_sex_and_family|science_all_root|Секс и семейная психоло�
 psy_childs|science_all_root|Детская психология
 sci_all|science_all_root|Научная литература: прочее
 
+# Компьютеры и Интернет
 computers|computers_all_root|Околокомпьютерная литература
 comp_www|computers_all_root|Интернет
 comp_programming|computers_all_root|Программирование
@@ -235,6 +275,7 @@ comp_dsp|computers_all_root|Цифровая обработка сигналов
 comp_hard|computers_all_root|Железо
 comp_all|computers_all_root|Компьютеры: прочее
 
+# Справочная литература
 reference:ref_all|reference_all_root|Справочная литература
 ref_encyc|reference_all_root|Энциклопедии
 ref_dict|reference_all_root|Словари
@@ -242,9 +283,14 @@ ref_ref|reference_all_root|Справочники
 ref_guide|reference_all_root|Руководства
 geo_guides|reference_all_root|Путеводители
 
+# Документальная литература
 nonfiction|nonfiction_all_root|Документальная литература
 travel_notes|nonfiction_all_root|Путевые заметки
 nonf_biography|nonfiction_all_root|Биографии и Мемуары
+about_musicians|nonfiction_all_root|Музыканты. Композиторы. Художники
+nonf_biography_writers|nonfiction_all_root|Писатели. Поэты. Драматурги
+nonf_biography_celebrities|nonfiction_all_root|Звезды кино. Театра. Балета. Шоу-бизнеса
+nonf_biography_historical|nonfiction_all_root|Исторические персоны
 nonf_publicism|nonfiction_all_root|Публицистика
 nonf_criticism|nonfiction_all_root|Критика
 design|nonfiction_all_root|Искусство и Дизайн
@@ -253,7 +299,9 @@ cine|nonfiction_all_root|Кино
 theatre|nonfiction_all_root|Театр
 nonf_military|nonfiction_all_root|Военная документалистика и аналитика
 sci_popular|nonfiction_all_root|Научпоп
+nonf_biography_military_figures|nonfiction_all_root|Военные мемуары
 
+# Религия и духовность
 religion|religion_all_root|Религия
 religion_esoterics|religion_all_root|Эзотерика
 religion_self|religion_all_root|Самосовершенствование
@@ -269,16 +317,19 @@ religion_protestantism|religion_all_root|Протестантизм
 religion_hinduism|religion_all_root|Индуизм
 religion_all|religion_all_root|Религия: прочее
 
+# Антинаука. Мракобесие
 sci_medicine_alternative|antiscience_all_root|Альтернативная медицина
 astrology|antiscience_all_root|Астрология
 palmistry|antiscience_all_root|Хиромантия
 
+# Юмор
 humor|humor_all_root|Юмор
 humor_prose|humor_all_root|Юмористическая проза
 humor_verse|humor_all_root|Юмористические стихи
 humor_satire|humor_all_root|Сатира
 humor_all|humor_all_root|Юмор: прочее
 
+# Домоводство (Дом и семья)
 home|home_all_root|Домоводство
 home_cooking|home_all_root|Кулинария
 home_pets|home_all_root|Домашние животные
@@ -290,9 +341,11 @@ home_health|home_all_root|Здоровье
 home_garden|home_all_root|Сад и огород
 home_diy|home_all_root|Сделай сам
 home_sport|home_all_root|Спорт
+sci_psychology_popular|home_all_root|Популярная психология
 home_sex|home_all_root|Эротика. Секс
 family:home_all|home_all_root|Прочее
 
+# Деловая литература
 busines|busines_all_root|Разное
 accounting|busines_all_root|Бухучет. Налогообложение. Аудит
 banking|busines_all_root|Банковское дело
@@ -312,8 +365,10 @@ stock|busines_all_root|Ценные бумаги. Инвестиции
 economics|busines_all_root|Экономика
 trade|busines_all_root|Торговля
 
+# Ноты и партитуры
 notes|notes_all_root|Партитуры
 
+# Техника
 tech|tech_all_root|Техника
 sci_metal|tech_all_root|Металлургия
 sci_radio|tech_all_root|Радиоэлектроника
@@ -323,8 +378,10 @@ auto_business|tech_all_root|Автодело
 equ_history|tech_all_root|История техники
 tech_all|tech_all_root|Техника: прочее
 
+# Периодика
 periodic|periodic_all_root|Журналы
 
+# Фольклор
 humor_anecdote|epic_all_root|Анекдоты
 epic|epic_all_root|Былины
 child_folklore|epic_all_root|Детский фольклор
@@ -335,28 +392,34 @@ proverbs|epic_all_root|Пословицы. Поговорки
 folklore:folklore_all|epic_all_root|Фольклор: прочее
 limerick|epic_all_root|Частушки. Прибаутки. Потешки
 
+# Военное
 military_history|military_all_root|Военная история
 military_arts|military_all_root|Боевые искусства
 military_special|military_all_root|Особое
 military_weapon|military_all_root|Оружие
 military:military_all|military_all_root|Военное дело: прочее
 
+# Искусство
 art_criticism|art_all_root|Критика
 art_world_culture|art_all_root|Мировая культура
 painting:visual_arts|art_all_root|Изобразительное искусство
 architecture_book|art_all_root|Архитектура
 culture_all|art_all_root|Культура: прочее
 
+# Иностранная литература
 foreign_antique|foreign_all_root|Классика
 foreign_children|foreign_all_root|Для детей
 foreign_prose|foreign_all_root|Проза
 
+# Прочее
 literature_18|other_all_root|18-й век
 literature_19|other_all_root|19-й век
 literature_20|other_all_root|20-й век
 network_literature|other_all_root|Сетевая литература
 diafilm|other_all_root|Диафильмы
 fanfiction|other_all_root|Фанфик
+fan_translation|other_all_root|Любительский перевод
+computer_translation|other_all_root|Машинный перевод
 unfinished|other_all_root|Недописанное
 other:other_all|other_all_root|Прочее
 unordered|other_all_root|Неотсортированное

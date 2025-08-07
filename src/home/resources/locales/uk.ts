@@ -832,6 +832,10 @@ Restart now?</source>
 <context>
 	<name>Genre</name>
 	<message>
+		<source>about_musicians</source>
+		<translation>Музиканти. Композитори. Художники</translation>
+	</message>
+	<message>
 		<source>accounting</source>
 		<translation>Бухоблік. Оподаткування. Аудит</translation>
 	</message>
@@ -874,6 +878,10 @@ Restart now?</source>
 	<message>
 		<source>adventure_all_root</source>
 		<translation>Пригоди</translation>
+	</message>
+	<message>
+		<source>adventure_fantasy</source>
+		<translation>Пригодницьке фентезі</translation>
 	</message>
 	<message>
 		<source>antique</source>
@@ -932,6 +940,10 @@ Restart now?</source>
 		<translation>Світова культура</translation>
 	</message>
 	<message>
+		<source>asian_fantasy</source>
+		<translation>Азіатське фентезі</translation>
+	</message>
+	<message>
 		<source>astrology</source>
 		<translation>Астрологія</translation>
 	</message>
@@ -948,6 +960,10 @@ Restart now?</source>
 		<translation>Банківська справа</translation>
 	</message>
 	<message>
+		<source>boyar_anime</source>
+		<translation>Бояр-аніме</translation>
+	</message>
+	<message>
 		<source>busines</source>
 		<translation>Різне</translation>
 	</message>
@@ -960,12 +976,32 @@ Restart now?</source>
 		<translation>Дитячі пригоди</translation>
 	</message>
 	<message>
+		<source>child_adv_animal</source>
+		<translation>Про тварин та природу</translation>
+	</message>
+	<message>
 		<source>child_classical</source>
 		<translation>Класична література</translation>
 	</message>
 	<message>
 		<source>child_det</source>
 		<translation>Дитячі гостросюжетні</translation>
+	</message>
+	<message>
+		<source>child_det_animal_detectives</source>
+		<translation>Дитячі детективи: тварини-сищики</translation>
+	</message>
+	<message>
+		<source>child_det_children_detectives</source>
+		<translation>Дитячі детективи: діти-сищики</translation>
+	</message>
+	<message>
+		<source>child_det_other</source>
+		<translation>Дитячі детективи: інше</translation>
+	</message>
+	<message>
+		<source>child_dramaturgy</source>
+		<translation>Драматургія для дітей та підлітків</translation>
 	</message>
 	<message>
 		<source>child_education</source>
@@ -980,16 +1016,52 @@ Restart now?</source>
 		<translation>Дитяча проза</translation>
 	</message>
 	<message>
+		<source>child_prose_history</source>
+		<translation>Військова та історична література</translation>
+	</message>
+	<message>
+		<source>child_prose_humor</source>
+		<translation>Дитяча проза: гумористична</translation>
+	</message>
+	<message>
+		<source>child_prose_romantic</source>
+		<translation>Романтичне</translation>
+	</message>
+	<message>
 		<source>child_sf</source>
 		<translation>Дитяча фантастика</translation>
+	</message>
+	<message>
+		<source>child_sf_fantasy</source>
+		<translation>Фентезі</translation>
+	</message>
+	<message>
+		<source>child_sf_horror</source>
+		<translation>Жахи та містика</translation>
+	</message>
+	<message>
+		<source>child_sf_hronoopera</source>
+		<translation>Темпоральна фантастика. Попаданцi</translation>
+	</message>
+	<message>
+		<source>child_sf_space</source>
+		<translation>Космічні пригоди. Прибульці</translation>
 	</message>
 	<message>
 		<source>child_tale</source>
 		<translation>Казка</translation>
 	</message>
 	<message>
+		<source>child_tale_foreign_writers</source>
+		<translation>Казки зарубіжних письменників</translation>
+	</message>
+	<message>
 		<source>child_tale_rus</source>
 		<translation>Російські казки</translation>
+	</message>
+	<message>
+		<source>child_tale_russian_writers</source>
+		<translation>Казки російських письменників</translation>
 	</message>
 	<message>
 		<source>child_verse</source>
@@ -1048,6 +1120,10 @@ Restart now?</source>
 		<translation>Інтернет</translation>
 	</message>
 	<message>
+		<source>computer_translation</source>
+		<translation>Машинний переклад</translation>
+	</message>
+	<message>
 		<source>computers</source>
 		<translation>Білякомп'ютерна література</translation>
 	</message>
@@ -1060,6 +1136,10 @@ Restart now?</source>
 		<translation>Культура: інше</translation>
 	</message>
 	<message>
+		<source>dark_fantasy</source>
+		<translation>Темне фентезі</translation>
+	</message>
+	<message>
 		<source>design</source>
 		<translation>Мистецтво та Дизайн</translation>
 	</message>
@@ -1070,6 +1150,10 @@ Restart now?</source>
 	<message>
 		<source>det_all</source>
 		<translation>Детектив: інше</translation>
+	</message>
+	<message>
+		<source>det_artifact</source>
+		<translation>Артефакт-детективи</translation>
 	</message>
 	<message>
 		<source>det_classic</source>
@@ -1132,6 +1216,10 @@ Restart now?</source>
 		<translation>Антирадянська література</translation>
 	</message>
 	<message>
+		<source>dorama</source>
+		<translation>Дорама</translation>
+	</message>
+	<message>
 		<source>drama</source>
 		<translation>Драма</translation>
 	</message>
@@ -1142,6 +1230,10 @@ Restart now?</source>
 	<message>
 		<source>dramaturgy</source>
 		<translation>Драматургія</translation>
+	</message>
+	<message>
+		<source>dystopian</source>
+		<translation>Антиутопія</translation>
 	</message>
 	<message>
 		<source>economics</source>
@@ -1176,6 +1268,10 @@ Restart now?</source>
 		<translation>Есе</translation>
 	</message>
 	<message>
+		<source>everyday_fantasy</source>
+		<translation>Побутове фентезі</translation>
+	</message>
+	<message>
 		<source>experimental_poetry</source>
 		<translation>Експериментальна поезія</translation>
 	</message>
@@ -1196,6 +1292,10 @@ Restart now?</source>
 		<translation>Інше</translation>
 	</message>
 	<message>
+		<source>fan_translation</source>
+		<translation>Аматорський переклад</translation>
+	</message>
+	<message>
 		<source>fanfiction</source>
 		<translation>Фанфік</translation>
 	</message>
@@ -1206,6 +1306,10 @@ Restart now?</source>
 	<message>
 		<source>fantasy_alt_hist</source>
 		<translation>Альтернативна історія. Фентезі</translation>
+	</message>
+	<message>
+		<source>fantasy_det</source>
+		<translation>Фантастичний детектив</translation>
 	</message>
 	<message>
 		<source>folk_songs</source>
@@ -1238,6 +1342,10 @@ Restart now?</source>
 	<message>
 		<source>foreign_prose</source>
 		<translation>Проза</translation>
+	</message>
+	<message>
+		<source>foreign_sf</source>
+		<translation>Зарубіжна фантастика</translation>
 	</message>
 	<message>
 		<source>geo_guides</source>
@@ -1412,6 +1520,10 @@ Restart now?</source>
 		<translation>Лірика</translation>
 	</message>
 	<message>
+		<source>magic_school</source>
+		<translation>Магічна академія</translation>
+	</message>
+	<message>
 		<source>management</source>
 		<translation>Управління. Підбір персоналу</translation>
 	</message>
@@ -1466,6 +1578,22 @@ Restart now?</source>
 	<message>
 		<source>nonf_biography</source>
 		<translation>Біографії та Мемуари</translation>
+	</message>
+	<message>
+		<source>nonf_biography_celebrities</source>
+		<translation>Зірки кіно. Театру. Балет. Шоу-бізнесу</translation>
+	</message>
+	<message>
+		<source>nonf_biography_historical</source>
+		<translation>Історичні особи</translation>
+	</message>
+	<message>
+		<source>nonf_biography_military_figures</source>
+		<translation>Військові мемуари</translation>
+	</message>
+	<message>
+		<source>nonf_biography_writers</source>
+		<translation>Письменники. Поети. Драматурги</translation>
 	</message>
 	<message>
 		<source>nonf_criticism</source>
@@ -1904,6 +2032,10 @@ Restart now?</source>
 		<translation>Психологія</translation>
 	</message>
 	<message>
+		<source>sci_psychology_popular</source>
+		<translation>Популярна психологія</translation>
+	</message>
+	<message>
 		<source>sci_radio</source>
 		<translation>Радіоелектроніка</translation>
 	</message>
@@ -2012,6 +2144,10 @@ Restart now?</source>
 		<translation>Гумористична фантастика</translation>
 	</message>
 	<message>
+		<source>sf_industrial_magic</source>
+		<translation>Виробнича магія</translation>
+	</message>
+	<message>
 		<source>sf_irony</source>
 		<translation>Іронічна фантастика</translation>
 	</message>
@@ -2026,6 +2162,10 @@ Restart now?</source>
 	<message>
 		<source>sf_postapocalyptic</source>
 		<translation>Постапокаліпсис</translation>
+	</message>
+	<message>
+		<source>sf_realrpg</source>
+		<translation>РеалРПГ</translation>
 	</message>
 	<message>
 		<source>sf_social</source>
@@ -2044,12 +2184,20 @@ Restart now?</source>
 		<translation>Стімпанк</translation>
 	</message>
 	<message>
+		<source>sf_su</source>
+		<translation>Радянська фантастика</translation>
+	</message>
+	<message>
 		<source>sf_technofantasy</source>
 		<translation>Технофентезі</translation>
 	</message>
 	<message>
 		<source>short_story</source>
 		<translation>Розповідь</translation>
+	</message>
+	<message>
+		<source>slavic_fantasy</source>
+		<translation>Слов'янське фентезі</translation>
 	</message>
 	<message>
 		<source>small_business</source>
@@ -2150,6 +2298,10 @@ Restart now?</source>
 	<message>
 		<source>unordered</source>
 		<translation>Невідсортоване</translation>
+	</message>
+	<message>
+		<source>utopia</source>
+		<translation>Утопія</translation>
 	</message>
 	<message>
 		<source>vaudeville</source>
