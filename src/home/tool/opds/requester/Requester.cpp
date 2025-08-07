@@ -971,8 +971,6 @@ public:
 		return PostProcess(contentType, root, *this, bytes, { root }, *m_settings);
 	}
 
-
-
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
@@ -1232,17 +1230,17 @@ QByteArray Requester::GetBookText(const QString& root, const Parameters& paramet
 	return m_impl->GetBookText(root, parameters);
 }
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                                                                         \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                            \
-	{                                                                                                                                                   \
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                        \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                           \
+	{                                                                                                                                                  \
 		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
 	}
 OPDS_NAVIGATION_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                               \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                  \
-	{                                                                                                         \
+#define OPDS_INVOKER_ITEM(NAME)                                                                              \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                 \
+	{                                                                                                        \
 		return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
 	}
 OPDS_ADDITIONAL_ITEMS_X_MACRO

@@ -30,7 +30,7 @@ std::string GetMetaName(const QString& name, const QChar prefix)
 	return ((name.startsWith(prefix)) ? name : prefix + name).toStdString();
 }
 
-}
+} // namespace
 
 ObjectsConnector::ObjectsConnector(QObject* parent)
 	: QObject(parent)
