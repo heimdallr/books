@@ -822,6 +822,10 @@ Restart now?</source>
 <context>
 	<name>Genre</name>
 	<message>
+		<source>about_musicians</source>
+		<translation>Musicians. Composers. Artists</translation>
+	</message>
+	<message>
 		<source>accounting</source>
 		<translation>Accounting</translation>
 	</message>
@@ -864,6 +868,10 @@ Restart now?</source>
 	<message>
 		<source>adventure_all_root</source>
 		<translation>Adventure</translation>
+	</message>
+	<message>
+		<source>adventure_fantasy</source>
+		<translation>Adventure fantasy</translation>
 	</message>
 	<message>
 		<source>antique</source>
@@ -922,6 +930,10 @@ Restart now?</source>
 		<translation>World culture</translation>
 	</message>
 	<message>
+		<source>asian_fantasy</source>
+		<translation>Asian Fantasy</translation>
+	</message>
+	<message>
 		<source>astrology</source>
 		<translation>Astrology</translation>
 	</message>
@@ -938,6 +950,10 @@ Restart now?</source>
 		<translation>Banking</translation>
 	</message>
 	<message>
+		<source>boyar_anime</source>
+		<translation>Boyar-anime</translation>
+	</message>
+	<message>
 		<source>busines</source>
 		<translation>Others</translation>
 	</message>
@@ -950,12 +966,32 @@ Restart now?</source>
 		<translation>Adventures</translation>
 	</message>
 	<message>
+		<source>child_adv_animal</source>
+		<translation>About animals and nature</translation>
+	</message>
+	<message>
 		<source>child_classical</source>
 		<translation>Classical</translation>
 	</message>
 	<message>
 		<source>child_det</source>
 		<translation>Children's action-packed</translation>
+	</message>
+	<message>
+		<source>child_det_animal_detectives</source>
+		<translation>Children's detectives: animal detectives</translation>
+	</message>
+	<message>
+		<source>child_det_children_detectives</source>
+		<translation>Children's detectives: children-sleuths</translation>
+	</message>
+	<message>
+		<source>child_det_other</source>
+		<translation>Children's detectives: other</translation>
+	</message>
+	<message>
+		<source>child_dramaturgy</source>
+		<translation>Drama for children and teenagers</translation>
 	</message>
 	<message>
 		<source>child_education</source>
@@ -970,16 +1006,52 @@ Restart now?</source>
 		<translation>Prose</translation>
 	</message>
 	<message>
+		<source>child_prose_history</source>
+		<translation>Military and historical literature</translation>
+	</message>
+	<message>
+		<source>child_prose_humor</source>
+		<translation>Children's prose: humorous</translation>
+	</message>
+	<message>
+		<source>child_prose_romantic</source>
+		<translation>Romantic</translation>
+	</message>
+	<message>
 		<source>child_sf</source>
 		<translation>Science Fiction</translation>
+	</message>
+	<message>
+		<source>child_sf_fantasy</source>
+		<translation>Fantasy</translation>
+	</message>
+	<message>
+		<source>child_sf_horror</source>
+		<translation>Horror and mysticism</translation>
+	</message>
+	<message>
+		<source>child_sf_hronoopera</source>
+		<translation>Temporal Fantasy. Time Travelers</translation>
+	</message>
+	<message>
+		<source>child_sf_space</source>
+		<translation>Space Adventures. Aliens</translation>
 	</message>
 	<message>
 		<source>child_tale</source>
 		<translation>Fairy Tales</translation>
 	</message>
 	<message>
+		<source>child_tale_foreign_writers</source>
+		<translation>Fairy tales of foreign writers</translation>
+	</message>
+	<message>
 		<source>child_tale_rus</source>
 		<translation>Russian tales</translation>
+	</message>
+	<message>
+		<source>child_tale_russian_writers</source>
+		<translation>Fairy tales of Russian writers</translation>
 	</message>
 	<message>
 		<source>child_verse</source>
@@ -1038,6 +1110,10 @@ Restart now?</source>
 		<translation>Internet</translation>
 	</message>
 	<message>
+		<source>computer_translation</source>
+		<translation>Machine translation</translation>
+	</message>
+	<message>
 		<source>computers</source>
 		<translation>Computers</translation>
 	</message>
@@ -1050,6 +1126,10 @@ Restart now?</source>
 		<translation>Culture: others</translation>
 	</message>
 	<message>
+		<source>dark_fantasy</source>
+		<translation>Dark fantasy</translation>
+	</message>
+	<message>
 		<source>design</source>
 		<translation>Design</translation>
 	</message>
@@ -1060,6 +1140,10 @@ Restart now?</source>
 	<message>
 		<source>det_all</source>
 		<translation>Detective: other</translation>
+	</message>
+	<message>
+		<source>det_artifact</source>
+		<translation>Artifact Detectives</translation>
 	</message>
 	<message>
 		<source>det_classic</source>
@@ -1122,6 +1206,10 @@ Restart now?</source>
 		<translation>Dissident</translation>
 	</message>
 	<message>
+		<source>dorama</source>
+		<translation>Dorama</translation>
+	</message>
+	<message>
 		<source>drama</source>
 		<translation>Drama</translation>
 	</message>
@@ -1132,6 +1220,10 @@ Restart now?</source>
 	<message>
 		<source>dramaturgy</source>
 		<translation>Dramaturgy</translation>
+	</message>
+	<message>
+		<source>dystopian</source>
+		<translation>Dystopia</translation>
 	</message>
 	<message>
 		<source>economics</source>
@@ -1166,6 +1258,10 @@ Restart now?</source>
 		<translation>Essay</translation>
 	</message>
 	<message>
+		<source>everyday_fantasy</source>
+		<translation>Everyday fantasy</translation>
+	</message>
+	<message>
 		<source>experimental_poetry</source>
 		<translation>Experimental poetry</translation>
 	</message>
@@ -1186,6 +1282,10 @@ Restart now?</source>
 		<translation>Others</translation>
 	</message>
 	<message>
+		<source>fan_translation</source>
+		<translation>Amateur translation</translation>
+	</message>
+	<message>
 		<source>fanfiction</source>
 		<translation>Fanfiction</translation>
 	</message>
@@ -1196,6 +1296,10 @@ Restart now?</source>
 	<message>
 		<source>fantasy_alt_hist</source>
 		<translation>Alternate history. Fantasy</translation>
+	</message>
+	<message>
+		<source>fantasy_det</source>
+		<translation>Fantasy detective</translation>
 	</message>
 	<message>
 		<source>folk_songs</source>
@@ -1228,6 +1332,10 @@ Restart now?</source>
 	<message>
 		<source>foreign_prose</source>
 		<translation>Foreign prose</translation>
+	</message>
+	<message>
+		<source>foreign_sf</source>
+		<translation>Foreign science fiction</translation>
 	</message>
 	<message>
 		<source>geo_guides</source>
@@ -1402,6 +1510,10 @@ Restart now?</source>
 		<translation>Lyrics</translation>
 	</message>
 	<message>
+		<source>magic_school</source>
+		<translation>Magic Academy</translation>
+	</message>
+	<message>
 		<source>management</source>
 		<translation>Management</translation>
 	</message>
@@ -1456,6 +1568,22 @@ Restart now?</source>
 	<message>
 		<source>nonf_biography</source>
 		<translation>Biography</translation>
+	</message>
+	<message>
+		<source>nonf_biography_celebrities</source>
+		<translation>Movie stars. Theater. Ballet. Show business</translation>
+	</message>
+	<message>
+		<source>nonf_biography_historical</source>
+		<translation>Historical figures</translation>
+	</message>
+	<message>
+		<source>nonf_biography_military_figures</source>
+		<translation>War memoirs</translation>
+	</message>
+	<message>
+		<source>nonf_biography_writers</source>
+		<translation>Writers. Poets. Playwrights</translation>
 	</message>
 	<message>
 		<source>nonf_criticism</source>
@@ -1894,6 +2022,10 @@ Restart now?</source>
 		<translation>Psychology</translation>
 	</message>
 	<message>
+		<source>sci_psychology_popular</source>
+		<translation>Popular psychology</translation>
+	</message>
+	<message>
 		<source>sci_radio</source>
 		<translation>Radioelectronics</translation>
 	</message>
@@ -2002,6 +2134,10 @@ Restart now?</source>
 		<translation>Humor</translation>
 	</message>
 	<message>
+		<source>sf_industrial_magic</source>
+		<translation>Manufacturing magic</translation>
+	</message>
+	<message>
 		<source>sf_irony</source>
 		<translation>Ironic fiction</translation>
 	</message>
@@ -2016,6 +2152,10 @@ Restart now?</source>
 	<message>
 		<source>sf_postapocalyptic</source>
 		<translation>Post-apocalyptic</translation>
+	</message>
+	<message>
+		<source>sf_realrpg</source>
+		<translation>RealRPG</translation>
 	</message>
 	<message>
 		<source>sf_social</source>
@@ -2034,12 +2174,20 @@ Restart now?</source>
 		<translation>Steampunk</translation>
 	</message>
 	<message>
+		<source>sf_su</source>
+		<translation>Soviet science fiction</translation>
+	</message>
+	<message>
 		<source>sf_technofantasy</source>
 		<translation>Technofantasy</translation>
 	</message>
 	<message>
 		<source>short_story</source>
 		<translation>Short story</translation>
+	</message>
+	<message>
+		<source>slavic_fantasy</source>
+		<translation>Slavic fantasy</translation>
 	</message>
 	<message>
 		<source>small_business</source>
@@ -2140,6 +2288,10 @@ Restart now?</source>
 	<message>
 		<source>unordered</source>
 		<translation>Unordered</translation>
+	</message>
+	<message>
+		<source>utopia</source>
+		<translation>Utopia</translation>
 	</message>
 	<message>
 		<source>vaudeville</source>
