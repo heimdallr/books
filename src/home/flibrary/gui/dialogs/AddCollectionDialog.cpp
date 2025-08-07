@@ -8,8 +8,8 @@
 #include "interface/constants/Localization.h"
 
 #include "GuiUtil/GeometryRestorable.h"
-#include "icu/icu.h"
 #include "util/DyLib.h"
+#include "util/translit.h"
 
 #include "log.h"
 #include "zip.h"
@@ -258,34 +258,13 @@ private: // GeometryRestorableObserver
 	}
 
 private:
-	void Transliterate(const char* id, QString& str) const
-	{
-		assert(m_icuTransliterate);
-		auto src = str.toStdU32String();
-		src.push_back(0);
-		std::u32string dst;
-		m_icuTransliterate(id, &src, &dst);
-		str = QString::fromStdU32String(dst);
-	}
-
-	QString Transliterate(QString fileName) const
-	{
-		if (!m_icuTransliterate)
-			return fileName;
-
-		Transliterate("ru-ru_Latn/BGN", fileName);
-		Transliterate("Any-Latin", fileName);
-		Transliterate("Latin-ASCII", fileName);
-		return fileName.replace(' ', '_');
-	}
-
 	void UpdateDatabasePath(QString text) const
 	{
 		if (m_userDefinedDatabasePath || text.isEmpty())
 			return;
 
 		const QFileInfo fileInfo(m_ui.editDatabase->text().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->text());
-		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(Transliterate(std::move(text)))));
+		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(Util::Transliterate(m_icuTransliterate, std::move(text)))));
 	}
 
 	void OnDatabaseNameChanged(const QString& db)

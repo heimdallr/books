@@ -8,4 +8,6 @@ AddTarget(Util	shared_lib
 	LINK_TARGETS
 		logging
 		zip
+	DEPENDENCIES
+		flicu
 )

@@ -18,5 +18,4 @@ AddTarget(gui	shared_lib
 		zip
 	DEPENDENCIES
 		${ICONS}
-		flicu
 )
