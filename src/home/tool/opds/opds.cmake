@@ -28,6 +28,4 @@ AddTarget(opds	app
 		Util
 		ver
 		zip
-	DEPENDENCIES
-		flicu
 )
