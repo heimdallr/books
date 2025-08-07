@@ -8,6 +8,8 @@
 #include "interface/constants/Localization.h"
 
 #include "GuiUtil/GeometryRestorable.h"
+#include "icu/icu.h"
+#include "util/DyLib.h"
 
 #include "log.h"
 #include "zip.h"
@@ -84,10 +86,12 @@ public:
 	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<const IUiFactory> uiFactory)
 		: GeometryRestorable(*this, settings, "AddCollectionDialog")
 		, GeometryRestorableObserver(self)
-		, m_self(self)
-		, m_settings(std::move(settings))
-		, m_collectionController(std::move(collectionController))
-		, m_uiFactory(std::move(uiFactory))
+		, m_self { self }
+		, m_settings { std::move(settings) }
+		, m_collectionController { std::move(collectionController) }
+		, m_uiFactory { std::move(uiFactory) }
+		, m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
 	{
 		m_ui.setupUi(&m_self);
 
@@ -136,7 +140,7 @@ public:
 					if (file.isEmpty())
 						return;
 
-		        	m_ui.editDatabase->setText(file);
+					m_ui.editDatabase->setText(file);
 					m_userDefinedDatabasePath = true;
 				});
 		connect(m_ui.btnArchive,
@@ -151,9 +155,9 @@ public:
 		connect(m_ui.editName,
 		        &QLineEdit::textChanged,
 		        &m_self,
-		        [&]
+		        [&](const QString& text)
 		        {
-					UpdateDatabasePath();
+					UpdateDatabasePath(text);
 					(void)CheckData();
 				});
 		connect(m_ui.editDatabase, &QLineEdit::textEdited, &m_self, [this] { m_userDefinedDatabasePath = true; });
@@ -254,14 +258,34 @@ private: // GeometryRestorableObserver
 	}
 
 private:
-	void UpdateDatabasePath() const
+	void Transliterate(const char* id, QString& str) const
 	{
-		if (m_userDefinedDatabasePath)
+		assert(m_icuTransliterate);
+		auto src = str.toStdU32String();
+		src.push_back(0);
+		std::u32string dst;
+		m_icuTransliterate(id, &src, &dst);
+		str = QString::fromStdU32String(dst);
+	}
+
+	QString Transliterate(QString fileName) const
+	{
+		if (!m_icuTransliterate)
+			return fileName;
+
+		Transliterate("ru-ru_Latn/BGN", fileName);
+		Transliterate("Any-Latin", fileName);
+		Transliterate("Latin-ASCII", fileName);
+		return fileName.replace(' ', '_');
+	}
+
+	void UpdateDatabasePath(QString text) const
+	{
+		if (m_userDefinedDatabasePath || text.isEmpty())
 			return;
 
 		const QFileInfo fileInfo(m_ui.editDatabase->text().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->text());
-
-		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(m_ui.editName->text())));
+		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(Transliterate(std::move(text)))));
 	}
 
 	void OnDatabaseNameChanged(const QString& db)
@@ -379,6 +403,8 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
+	std::unique_ptr<Util::DyLib> m_icuLib;
+	ICU::TransliterateType m_icuTransliterate { nullptr };
 	bool m_createMode { false };
 	bool m_userDefinedDatabasePath { false };
 	Ui::AddCollectionDialog m_ui {};
