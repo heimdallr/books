@@ -132,8 +132,12 @@ public:
 		        &m_self,
 		        [&]
 		        {
-					if (const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName()); !file.isEmpty())
-						m_ui.editDatabase->setText(file);
+					const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName());
+					if (file.isEmpty())
+						return;
+
+		        	m_ui.editDatabase->setText(file);
+					m_userDefinedDatabasePath = true;
 				});
 		connect(m_ui.btnArchive,
 		        &QAbstractButton::clicked,
@@ -144,7 +148,15 @@ public:
 						m_ui.editArchive->setText(dir);
 				});
 
-		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(); });
+		connect(m_ui.editName,
+		        &QLineEdit::textChanged,
+		        &m_self,
+		        [&]
+		        {
+					UpdateDatabasePath();
+					(void)CheckData();
+				});
+		connect(m_ui.editDatabase, &QLineEdit::textEdited, &m_self, [this] { m_userDefinedDatabasePath = true; });
 		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&](const QString& db) { OnDatabaseNameChanged(db); });
 		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] { (void)CheckData(); });
 		connect(m_ui.checkBoxScanUnindexedArchives, &QCheckBox::checkStateChanged, &m_self, [&] { (void)CheckData(); });
@@ -242,6 +254,16 @@ private: // GeometryRestorableObserver
 	}
 
 private:
+	void UpdateDatabasePath() const
+	{
+		if (m_userDefinedDatabasePath)
+			return;
+
+		const QFileInfo fileInfo(m_ui.editDatabase->text().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->text());
+
+		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(m_ui.editName->text())));
+	}
+
 	void OnDatabaseNameChanged(const QString& db)
 	{
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
@@ -358,6 +380,7 @@ private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	bool m_createMode { false };
+	bool m_userDefinedDatabasePath { false };
 	Ui::AddCollectionDialog m_ui {};
 };
 
