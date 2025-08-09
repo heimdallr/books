@@ -303,10 +303,13 @@ private: // IAlphabetPanel::IObserver
 		const auto hasVisible = [this]
 		{
 			const auto panelAlreadyAdded = m_ui.mainPageLayout->itemAt(0)->widget() == m_alphabetPanel->GetWidget();
-			if (std::ranges::any_of(m_alphabetPanel->GetToolBars(), [](const auto* toolBar) { return toolBar->property(IAlphabetPanel::VISIBLE).toBool(); }))
+			if (std::ranges::any_of(m_alphabetPanel->GetToolBars(), [this](const auto* toolBar) { return m_alphabetPanel->Visible(toolBar); }))
 			{
-				if (!panelAlreadyAdded)
-					m_ui.mainPageLayout->insertWidget(0, m_alphabetPanel->GetWidget());
+				if (panelAlreadyAdded)
+					return;
+
+				m_alphabetPanel->GetWidget()->setFont(m_self.font());
+				m_ui.mainPageLayout->insertWidget(0, m_alphabetPanel->GetWidget());
 			}
 			else if (panelAlreadyAdded)
 				m_ui.mainPageLayout->removeWidget(m_alphabetPanel->GetWidget());
@@ -316,13 +319,18 @@ private: // IAlphabetPanel::IObserver
 
 		for (auto* toolBar : m_alphabetPanel->GetToolBars())
 		{
-			auto* action = m_ui.menuAlphabets->addAction(toolBar->property(IAlphabetPanel::TITLE).toString());
+			auto* action = m_ui.menuAlphabets->addAction(toolBar->accessibleName());
 			action->setCheckable(true);
-			action->setChecked(toolBar->isVisible());
+			action->setChecked(m_alphabetPanel->Visible(toolBar));
 
-			connect(action, &QAction::toggled, toolBar, &QWidget::setVisible);
+			connect(action,
+			        &QAction::toggled,
+			        [this, toolBar, hasVisible](const bool checked)
+			        {
+						m_alphabetPanel->SetVisible(toolBar, checked);
+						hasVisible();
+					});
 			connect(toolBar, &QToolBar::visibilityChanged, action, &QAction::setChecked);
-			connect(toolBar, &QToolBar::visibilityChanged, hasVisible);
 		}
 
 		m_ui.menuAlphabets->addSeparator();
@@ -575,8 +583,9 @@ private:
 
 	void ConnectActionsSettingsAlphabet()
 	{
-		m_alphabetPanel->RegisterObserver(this);
+		connect(m_ui.actionAddNewAlphabet, &QAction::triggered, [this] { m_alphabetPanel->AddNewAlphabet(); });
 		OnToolBarChanged();
+		m_alphabetPanel->RegisterObserver(this);
 	}
 
 	void ConnectActionsSettingsLog()
