@@ -13,6 +13,7 @@
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/ILineOption.h"
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
@@ -56,6 +57,7 @@ public:
 	           std::shared_ptr<ICommandLine> commandLine,
 	           std::shared_ptr<ILineOption> lineOption,
 	           std::shared_ptr<IDatabaseChecker> databaseChecker,
+	           std::shared_ptr<IAlphabetPanel> alphabetPanel,
 	           QWidget* parent = nullptr);
 	~MainWindow() override;
 

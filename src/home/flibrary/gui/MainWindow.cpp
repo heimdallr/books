@@ -11,6 +11,7 @@
 #include <QKeyEvent>
 #include <QStyleFactory>
 #include <QTimer>
+#include <QToolBar>
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -23,9 +24,9 @@
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
-#include "interface/logic/ITreeViewController.h"
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
+#include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "GuiUtil/GeometryRestorable.h"
@@ -128,6 +129,7 @@ class MainWindow::Impl final
 	, Util::GeometryRestorableObserver
 	, ICollectionsObserver
 	, ILineOption::IObserver
+	, IAlphabetPanel::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -151,7 +153,8 @@ public:
 	     std::shared_ptr<QStyledItemDelegate> logItemDelegate,
 	     std::shared_ptr<ICommandLine> commandLine,
 	     std::shared_ptr<ILineOption> lineOption,
-	     std::shared_ptr<IDatabaseChecker> databaseChecker)
+	     std::shared_ptr<IDatabaseChecker> databaseChecker,
+	     std::shared_ptr<IAlphabetPanel> alphabetPanel)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -170,6 +173,7 @@ public:
 		, m_progressBar { std::move(progressBar) }
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
+		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
@@ -208,6 +212,7 @@ public:
 	{
 		SaveGeometry();
 		m_collectionController->UnregisterObserver(this);
+		m_alphabetPanel->UnregisterObserver(this);
 	}
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
@@ -290,6 +295,48 @@ private: // ILineOption::IObserver
 	{
 		disconnect(m_settingsLineEditExecuteContextMenuConnection);
 		QTimer::singleShot(0, [&] { m_lineOption->Unregister(this); });
+	}
+
+private: // IAlphabetPanel::IObserver
+	void OnToolBarChanged() override
+	{
+		const auto hasVisible = [this]
+		{
+			const auto panelAlreadyAdded = m_ui.mainPageLayout->itemAt(0)->widget() == m_alphabetPanel->GetWidget();
+			if (std::ranges::any_of(m_alphabetPanel->GetToolBars(), [this](const auto* toolBar) { return m_alphabetPanel->Visible(toolBar); }))
+			{
+				if (panelAlreadyAdded)
+					return;
+
+				m_alphabetPanel->GetWidget()->setFont(m_self.font());
+				m_ui.mainPageLayout->insertWidget(0, m_alphabetPanel->GetWidget());
+			}
+			else if (panelAlreadyAdded)
+				m_ui.mainPageLayout->removeWidget(m_alphabetPanel->GetWidget());
+		};
+
+		m_ui.menuAlphabets->clear();
+
+		for (auto* toolBar : m_alphabetPanel->GetToolBars())
+		{
+			auto* action = m_ui.menuAlphabets->addAction(toolBar->accessibleName());
+			action->setCheckable(true);
+			action->setChecked(m_alphabetPanel->Visible(toolBar));
+
+			connect(action,
+			        &QAction::toggled,
+			        [this, toolBar, hasVisible](const bool checked)
+			        {
+						m_alphabetPanel->SetVisible(toolBar, checked);
+						hasVisible();
+					});
+			connect(toolBar, &QToolBar::visibilityChanged, action, &QAction::setChecked);
+		}
+
+		m_ui.menuAlphabets->addSeparator();
+		m_ui.menuAlphabets->addAction(m_ui.actionAddNewAlphabet);
+
+		hasVisible();
 	}
 
 private:
@@ -534,6 +581,13 @@ private:
 				});
 	}
 
+	void ConnectActionsSettingsAlphabet()
+	{
+		connect(m_ui.actionAddNewAlphabet, &QAction::triggered, [this] { m_alphabetPanel->AddNewAlphabet(); });
+		OnToolBarChanged();
+		m_alphabetPanel->RegisterObserver(this);
+	}
+
 	void ConnectActionsSettingsLog()
 	{
 		PLOGV << "ConnectActionsSettingsLog";
@@ -617,6 +671,7 @@ private:
 
 		ConnectActionsSettingsAnnotation();
 		ConnectActionsSettingsFont();
+		ConnectActionsSettingsAlphabet();
 		ConnectActionsSettingsLog();
 		ConnectActionsSettingsTheme();
 	}
@@ -1090,6 +1145,7 @@ private:
 	PropagateConstPtr<QWidget, std::shared_ptr> m_progressBar;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr> m_lineOption;
+	PropagateConstPtr<IAlphabetPanel, std::shared_ptr> m_alphabetPanel;
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
@@ -1131,6 +1187,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<ICommandLine> commandLine,
                        std::shared_ptr<ILineOption> lineOption,
                        std::shared_ptr<IDatabaseChecker> databaseChecker,
+                       std::shared_ptr<IAlphabetPanel> alphabetPanel,
                        QWidget* parent)
 	: QMainWindow(parent)
 	, m_impl(*this,
@@ -1151,7 +1208,8 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(logItemDelegate),
              std::move(commandLine),
              std::move(lineOption),
-             std::move(databaseChecker))
+             std::move(databaseChecker),
+             std::move(alphabetPanel))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);

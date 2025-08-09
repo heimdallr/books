@@ -88,6 +88,25 @@
 	</message>
 </context>
 <context>
+	<name>AlphabetPanel</name>
+	<message>
+		<source>Select language</source>
+		<translation>Выберите язык</translation>
+	</message>
+	<message>
+		<source>Specify the language of the new alphabet</source>
+		<translation>Укажите язык нового алфавита</translation>
+	</message>
+	<message>
+		<source>Specify the letters of the new alphabet</source>
+		<translation>Укажите буквы нового алфавита</translation>
+	</message>
+	<message>
+		<source>Type letters</source>
+		<translation>Наберите буквы</translation>
+	</message>
+</context>
+<context>
 	<name>Annotation</name>
 	<message>
 		<source> or %1</source>
@@ -4300,6 +4319,10 @@ Try again?</source>
 		<translation>&amp;О программе...</translation>
 	</message>
 	<message>
+		<source>&amp;Add new alphabet...</source>
+		<translation>Добавить новый &amp;алфавит...</translation>
+	</message>
+	<message>
 		<source>&amp;Annotation</source>
 		<translation>&amp;Аннотация</translation>
 	</message>
@@ -4426,6 +4449,10 @@ Try again?</source>
 	<message>
 		<source>Allow destructive operations</source>
 		<translation>Разрешить деструктивные операции</translation>
+	</message>
+	<message>
+		<source>Alphabets</source>
+		<translation>Алфавиты</translation>
 	</message>
 	<message>
 		<source>Are you really sure?</source>
