@@ -129,7 +129,7 @@ public:
 			return ids;
 		}();
 
-		std::ranges::for_each(customIds, [this](const auto& id) { AddToolBar(m_self, id, m_settings->Get(QString(KEY_TEMPLATE).arg(id, ALPHABET)).toString()); });
+		std::ranges::for_each(customIds, [this](const auto& id) { AddToolBar(m_self, id, m_settings->Get(QString(KEY_TEMPLATE).arg(id, ALPHABET)).toString(), true); });
 
 		std::ranges::sort(m_toolBars, {}, [](const auto* toolBar) { return toolBar->property(ORD_NUM).toInt(); });
 
@@ -206,12 +206,12 @@ public:
 		m_settings->Set(keyTemplate.arg(ORD_NUM), m_toolBars.size() + 1);
 		m_settings->Set(keyTemplate.arg(ALPHABET), alphabet);
 
-		AddToolBar(m_self, it->second, alphabet);
+		AddToolBar(m_self, it->second, alphabet, true);
 		Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
 	}
 
 private:
-	void AddToolBar(QMainWindow& self, const QString& id, const QString& alphabet)
+	void AddToolBar(QMainWindow& self, const QString& id, const QString& alphabet, const bool removable = false)
 	{
 		const auto it = m_languages.find(id);
 		const auto* lang = it != m_languages.end() ? it->second : nullptr;
@@ -226,6 +226,26 @@ private:
 			action->setFont(self.font());
 			connect(action, &QAction::triggered, CreateLetterClickFunctor(ch));
 		}
+
+		if (removable)
+		{
+			auto* spacer = new QWidget(toolBar);
+			spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			toolBar->addWidget(spacer);
+
+			auto* removeAction = toolBar->addAction(QIcon(":/icons/remove.svg"), "");
+			connect(removeAction,
+			        &QAction::triggered,
+			        [this, toolBar]
+			        {
+						const QSignalBlocker blocker(toolBar);
+						m_self.removeToolBar(toolBar);
+						std::erase_if(m_toolBars, [&](const auto* item) { return item == toolBar; });
+						m_settings->Remove(QString("%1/%2").arg(GROUP_KEY, toolBar->property(ID).toString()));
+						Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
+					});
+		}
+
 		m_toolBars.emplace_back(toolBar);
 		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), m_toolBars.size()));
 	}
