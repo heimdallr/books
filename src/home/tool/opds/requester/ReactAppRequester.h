@@ -9,6 +9,8 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 
+#include "util/ISettings.h"
+
 namespace HomeCompa::Opds
 {
 
@@ -17,7 +19,8 @@ class ReactAppRequester final : virtual public IReactAppRequester
 	NON_COPY_MOVABLE(ReactAppRequester)
 
 public:
-	ReactAppRequester(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	ReactAppRequester(std::shared_ptr<const ISettings> settings,
+	                  std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	                  std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	                  std::shared_ptr<const ICoverCache> coverCache,
 	                  std::shared_ptr<Flibrary::IAnnotationController> annotationController);
