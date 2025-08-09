@@ -398,7 +398,7 @@ class ParserBookInfo final : public ParserOpds
 
 	static QString CreateReadTemplate(const ISettings& settings)
 	{
-		auto readTemplate = settings.Get("opds/ReadUrlTemplate", QString("/web/read?book=%1"));
+		auto readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
 		const auto host = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
 		const auto port = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
 		readTemplate.replace("%HTTP_HOST%", host);
