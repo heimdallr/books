@@ -147,9 +147,15 @@ SELECT gu.GroupID, gu.Title
 			result.insert("groups", array);
 		}
 
-		result.insert("linkToExtBookReader", QJsonValue::fromVariant(settings->Get(Flibrary::Constant::Settings::OPDS_READ_URL_TEMPLATE)));
-		result.insert("httpHost", QJsonValue::fromVariant(settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT)));
-		result.insert("httpPort", QJsonValue::fromVariant(settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
+		if (auto readTemplate = settings->Get(Flibrary::Constant::Settings::OPDS_READ_URL_TEMPLATE).toString(); !readTemplate.isEmpty())
+		{
+			const auto host = settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
+			const auto port = settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT);
+			readTemplate.replace("%HTTP_HOST%", host);
+			readTemplate.replace("%HTTP_PORT%", QString::number(port));
+
+			result.insert("linkToExtBookReader", std::move(readTemplate));
+		}
 
 		return result;
 	}
