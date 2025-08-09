@@ -6,6 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/ui/IAlphabetPanel.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
 
@@ -19,7 +20,7 @@ class AlphabetPanel final
 	NON_COPY_MOVABLE(AlphabetPanel)
 
 public:
-	explicit AlphabetPanel(std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
+	explicit AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
 	~AlphabetPanel() override;
 
 private: // IAlphabetPanel
