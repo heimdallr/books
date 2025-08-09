@@ -88,6 +88,25 @@
 	</message>
 </context>
 <context>
+	<name>AlphabetPanel</name>
+	<message>
+		<source>Select language</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Specify the language of the new alphabet</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Specify the letters of the new alphabet</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Type letters</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>Annotation</name>
 	<message>
 		<source> or %1</source>
@@ -4288,6 +4307,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>&amp;Add new alphabet...</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>&amp;Annotation</source>
 		<translation></translation>
 	</message>
@@ -4413,6 +4436,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Allow destructive operations</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Alphabets</source>
 		<translation></translation>
 	</message>
 	<message>

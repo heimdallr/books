@@ -88,6 +88,25 @@
 	</message>
 </context>
 <context>
+	<name>AlphabetPanel</name>
+	<message>
+		<source>Select language</source>
+		<translation>Виберіть мову</translation>
+	</message>
+	<message>
+		<source>Specify the language of the new alphabet</source>
+		<translation>Вкажіть мову нового алфавіту</translation>
+	</message>
+	<message>
+		<source>Specify the letters of the new alphabet</source>
+		<translation>Вкажіть літери нового алфавіту</translation>
+	</message>
+	<message>
+		<source>Type letters</source>
+		<translation>Наберіть літери</translation>
+	</message>
+</context>
+<context>
 	<name>Annotation</name>
 	<message>
 		<source> or %1</source>
@@ -4300,6 +4319,10 @@ Try again?</source>
 		<translation>&amp;Про програму...</translation>
 	</message>
 	<message>
+		<source>&amp;Add new alphabet...</source>
+		<translation>Додати новий &amp;алфавіт...</translation>
+	</message>
+	<message>
 		<source>&amp;Annotation</source>
 		<translation>&amp;Анотація</translation>
 	</message>
@@ -4426,6 +4449,10 @@ Try again?</source>
 	<message>
 		<source>Allow destructive operations</source>
 		<translation>Дозволити деструктивні операції</translation>
+	</message>
+	<message>
+		<source>Alphabets</source>
+		<translation>Алфавіти</translation>
 	</message>
 	<message>
 		<source>Are you really sure?</source>
