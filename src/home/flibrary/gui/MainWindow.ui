@@ -56,7 +56,7 @@
        <number>0</number>
       </property>
       <widget class="QWidget" name="mainPage">
-       <layout class="QVBoxLayout" name="_2">
+       <layout class="QVBoxLayout" name="mainPageLayout">
         <property name="spacing">
          <number>0</number>
         </property>
@@ -402,6 +402,11 @@
        <string>Navigation</string>
       </property>
      </widget>
+     <widget class="QMenu" name="menuAlphabets">
+      <property name="title">
+       <string>Alphabets</string>
+      </property>
+     </widget>
      <addaction name="actionShowRemoved"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
@@ -410,6 +415,7 @@
      <addaction name="menuNavigation"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
+     <addaction name="menuAlphabets"/>
      <addaction name="menuLog"/>
      <addaction name="menuTheme"/>
     </widget>
@@ -997,6 +1003,14 @@
    </property>
    <property name="text">
     <string>Filter &amp;settings...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAddNewAlphabet">
+   <property name="text">
+    <string>&amp;Add new alphabet...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
