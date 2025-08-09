@@ -4,5 +4,6 @@
 		<file alias="UpdateCollection.sql">data/UpdateCollection.sql</file>
 		<file alias="genres.lst">data/genres.lst</file>
 		<file alias="LanguagesMapping.json">data/LanguagesMapping.json</file>
+		<file alias="alphabet.json">data/alphabet.json</file>
 	</qresource>
 </RCC>
