@@ -154,6 +154,29 @@ public:
 	void SetVisible(QToolBar* toolBar, const bool visible)
 	{
 		m_settings->Set(GetVisibleKey(*toolBar), visible);
+
+		if (visible)
+		{
+			for (auto* tb : m_toolBars)
+			{
+				QSignalBlocker blocker(tb);
+				m_self.removeToolBar(tb);
+			}
+
+			std::erase_if(m_toolBars, [=](const auto* item) { return item == toolBar; });
+			m_toolBars.emplace_back(toolBar);
+			for (int n = 0; auto* tb : m_toolBars)
+			{
+				QSignalBlocker blocker(tb);
+				m_self.addToolBar(Qt::ToolBarArea::TopToolBarArea, tb);
+				m_self.addToolBarBreak(Qt::ToolBarArea::TopToolBarArea);
+				tb->setVisible(Visible(tb));
+				m_settings->Set(GetOrdNumKey(*tb), ++n);
+			}
+
+			Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
+		}
+
 		QTimer::singleShot(0, [=] { toolBar->setVisible(visible); });
 	}
 
