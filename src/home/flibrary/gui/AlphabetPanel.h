@@ -20,7 +20,7 @@ class AlphabetPanel final
 	NON_COPY_MOVABLE(AlphabetPanel)
 
 public:
-	explicit AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
+	AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
 	~AlphabetPanel() override;
 
 private: // IAlphabetPanel
