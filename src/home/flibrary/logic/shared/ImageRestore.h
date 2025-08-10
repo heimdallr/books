@@ -31,6 +31,6 @@ LOGIC_EXPORT std::pair<QByteArray, const char*> Recode(const QByteArray& bytes);
 LOGIC_EXPORT QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings = {});
 
 using ExtractBookImagesCallback = std::function<bool(QString, QByteArray)>;
-bool ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings = {});
+void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings = {});
 
 }
