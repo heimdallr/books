@@ -405,6 +405,21 @@
     <string>&amp;Open image</string>
    </property>
   </action>
+  <action name="actionImagePrev">
+   <property name="shortcut">
+    <string notr="true">Alt+Left</string>
+   </property>
+  </action>
+  <action name="actionImageNext">
+   <property name="shortcut">
+    <string notr="true">Alt+Right</string>
+   </property>
+  </action>
+  <action name="actionImageHome">
+   <property name="shortcut">
+    <string notr="true">Alt+Down</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

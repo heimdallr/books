@@ -288,18 +288,24 @@ public:
 								  } });
 				});
 
-		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName)
+		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName, const QAction* action)
 		{
 			auto* btn = new QToolButton(&m_self);
 			btn->setVisible(false);
+			btn->setToolTip(action->shortcut().toString());
 			btn->setIcon(QIcon(iconFileName));
 			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
 			m_coverButtons.push_back(btn);
 		};
 
-		createCoverButton(":/icons/left.svg");
-		createCoverButton(":/icons/center.svg");
-		createCoverButton(":/icons/right.svg");
+		createCoverButton(":/icons/left.svg", m_ui.actionImagePrev);
+		createCoverButton(":/icons/center.svg", m_ui.actionImageHome);
+		createCoverButton(":/icons/right.svg", m_ui.actionImageNext);
+
+		m_ui.cover->addActions({ m_ui.actionImagePrev, m_ui.actionImageNext, m_ui.actionImageHome });
+		connect(m_ui.actionImagePrev, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(1, 1)); });
+		connect(m_ui.actionImageNext, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(m_ui.cover->width() - 1, 1)); });
+		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(m_ui.cover->width() / 2, 1)); });
 	}
 
 	~Impl() override
