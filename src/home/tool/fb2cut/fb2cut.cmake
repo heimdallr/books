@@ -8,11 +8,11 @@ AddTarget(fb2cut	app_console
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
-		logging
-		Util
 		fljxl
-		zip
 		GuiUtil
+		logging
 		logic
+		Util
 		ver
+		zip
 )
