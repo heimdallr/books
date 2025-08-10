@@ -372,11 +372,6 @@ private: // IDataProvider
 		return m_archiveData.covers;
 	}
 
-	[[nodiscard]] std::optional<size_t> GetCoverIndex() const noexcept override
-	{
-		return m_archiveData.coverIndex;
-	}
-
 	[[nodiscard]] size_t GetTextSize() const noexcept override
 	{
 		return m_archiveData.textSize;

@@ -340,37 +340,32 @@ QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString&
 	return RestoreImagesImpl(input, folder, fileName, settings);
 }
 
-bool ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
+void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
 {
 	static constexpr const char* EXTENSIONS[] { "zip", "7z" };
 
 	const QFileInfo fileInfo(folder);
 
 	bool stop = false;
-	const auto result = std::accumulate(std::cbegin(EXTENSIONS),
-	                                    std::cend(EXTENSIONS),
-	                                    false,
-	                                    [&](const bool init, const char* ext)
-	                                    {
-											try
-											{
-												return ParseCover(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
-			                                                      fileName,
-			                                                      callback,
-			                                                      stop,
-			                                                      settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false))
-			                                        || init;
-											}
-											catch (const std::exception& ex)
-											{
-												PLOGE << ex.what();
-											}
-											catch (...)
-											{
-												PLOGE << "unknown error";
-											}
-											return init;
-										});
+	for (const auto* ext : EXTENSIONS)
+	{
+		try
+		{
+			ParseCover(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
+			           fileName,
+			           callback,
+			           stop,
+			           settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false));
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGE << ex.what();
+		}
+		catch (...)
+		{
+			PLOGE << "unknown error";
+		}
+	}
 
 	for (const auto* ext : EXTENSIONS)
 	{
@@ -390,8 +385,6 @@ bool ExtractBookImages(const QString& folder, const QString& fileName, const Ext
 			PLOGE << "unknown error";
 		}
 	}
-
-	return result;
 }
 
 } // namespace HomeCompa::Flibrary
