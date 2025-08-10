@@ -219,7 +219,7 @@ where g.GroupID = ?
 	{
 		static constexpr auto queryText = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
 		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
-		static constexpr auto searchJoin = "join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
+		static constexpr auto searchJoin = "join Author_List al on al.AuthorID = a.AuthorID join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
 			{ SELECTED_GROUP_ID,  groupJoin, false },
@@ -233,7 +233,7 @@ where g.GroupID = ?
 	{
 		static constexpr auto queryText = "select s.SeriesID, s.SeriesTitle, count(42) as Books from Series s %1 group by s.SeriesID";
 		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
-		static constexpr auto searchJoin = "join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
+		static constexpr auto searchJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
 			{ SELECTED_GROUP_ID,  groupJoin, false },
