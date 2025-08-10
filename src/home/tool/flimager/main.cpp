@@ -1,4 +1,5 @@
 ﻿#include <queue>
+#include <ranges>
 
 #include <QBuffer>
 #include <QCommandLineParser>
@@ -52,9 +53,10 @@ using Queue = std::queue<QString>;
 
 struct Settings
 {
-	QStringList input;
 	QDir outputDir;
-	QString format { "jxl" };
+	QString inputDir;
+	QStringList inputFiles;
+	QString format { JXL::FORMAT };
 	int quality { -1 };
 	bool grayScale { false };
 	QSize size { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
@@ -75,7 +77,7 @@ QByteArray Encode(const QImage& image, const char* format, const int quality)
 QByteArray EncodeJpeg(const QImage& image, const int quality)
 {
 	const bool hasAlpha = image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha;
-	return Encode(image, hasAlpha ? "jpeg" : "png", quality);
+	return Encode(image, hasAlpha ? "png" : "jpeg", quality);
 }
 
 QByteArray EncodePng(const QImage& image, const int quality)
@@ -123,35 +125,37 @@ private:
 				m_queue.pop();
 			}
 
-			const QFileInfo fileInfo(archive);
-			PLOGI << "process " << fileInfo.fileName() << " started";
+			PLOGI << "process " << archive << " started";
 
 			try
 			{
-				ProcessArchive(fileInfo);
-				PLOGI << "process " << fileInfo.fileName() << " finished";
+				ProcessArchive(archive);
+				PLOGI << "process " << archive << " finished";
 			}
 			catch (const std::exception& ex)
 			{
 				m_hasError = true;
-				PLOGE << "process " << fileInfo.fileName() << " failed: " << ex.what();
+				PLOGE << "process " << archive << " failed: " << ex.what();
 			}
 		}
 	}
 
-	void ProcessArchive(const QFileInfo& fileInfo) const
+	void ProcessArchive(const QString& fileName) const
 	{
-		const auto outputFileName = m_settings.outputDir.filePath(fileInfo.fileName());
+		const auto outputFileName = m_settings.outputDir.filePath(QString(fileName).remove(':'));
 		if (QFile::exists(outputFileName) && !QFile::remove(outputFileName))
 			throw std::ios_base::failure(QString("Cannot remove %1").arg(outputFileName).toStdString());
 
-		auto recoded = Recode(fileInfo);
+		auto recoded = Recode(m_settings.inputDir + fileName);
 		Write(outputFileName, std::move(recoded));
 	}
 
 	void Write(const QString& outputFileName, std::vector<std::tuple<QString, QByteArray, QDateTime>> data) const
 	{
 		PLOGI << "archive " << data.size() << " images to " << outputFileName;
+
+		if (const auto dstDir = QFileInfo(outputFileName).dir(); !dstDir.exists() && !dstDir.mkpath("."))
+			throw std::ios_base::failure(QString("Cannot create %1").arg(dstDir.path()).toStdString());
 
 		auto zipFiles = Zip::CreateZipFileController();
 		for (auto&& [fileName, body, time] : data)
@@ -165,8 +169,10 @@ private:
 		PLOGI << "archive " << outputFileName << " done";
 	}
 
-	std::vector<std::tuple<QString, QByteArray, QDateTime>> Recode(const QFileInfo& fileInfo) const
+	std::vector<std::tuple<QString, QByteArray, QDateTime>> Recode(const QString& fileName) const
 	{
+		const QFileInfo fileInfo(fileName);
+
 		std::vector<std::tuple<QString, QByteArray, QDateTime>> result;
 		const Zip zip(fileInfo.filePath());
 		for (auto imageFile : zip.GetFileNameList())
@@ -177,7 +183,7 @@ private:
 					int imageCount = ++m_imageCount;
 					const auto currentPercents = imageCount * 100 / m_settings.totalImageCount;
 					if (percents != currentPercents || imageCount % 100 == 0)
-						PLOGV << QString("%1, %2 (%3) %4%").arg(fileInfo.completeBaseName()).arg(imageCount).arg(m_settings.totalImageCount).arg(currentPercents);
+						PLOGV << QString("%1, %2 (%3) %4%").arg(fileName.last(fileName.length() - m_settings.inputDir.length())).arg(imageCount).arg(m_settings.totalImageCount).arg(currentPercents);
 				});
 
 			const auto imageBody = zip.Read(imageFile)->GetStream().readAll();
@@ -236,7 +242,7 @@ bool ProcessArchives(const Settings& settings)
 		Queue queue;
 		std::atomic_int imageCount { 0 };
 
-		for (const auto& archive : settings.input)
+		for (const auto& archive : settings.inputFiles)
 			queue.push(archive);
 
 		std::vector<std::unique_ptr<Worker>> workers;
@@ -251,15 +257,34 @@ bool ProcessArchives(const Settings& settings)
 void GetArchives(Settings& settings, const QStringList& wildCards)
 {
 	for (const auto& wildCard : wildCards)
-		settings.input << Util::ResolveWildcard(wildCard);
+		settings.inputFiles << Util::ResolveWildcard(wildCard);
+
+	settings.inputDir = QDir::fromNativeSeparators(QFileInfo(settings.inputFiles.front()).dir().path() + QDir::separator());
+	for (const auto& inputFile : settings.inputFiles | std::views::drop(1))
+	{
+		while (!settings.inputDir.isEmpty() && !inputFile.startsWith(settings.inputDir, Qt::CaseInsensitive))
+		{
+			QDir inputDir(settings.inputDir);
+			if (inputDir.cdUp())
+				settings.inputDir = QDir::fromNativeSeparators(inputDir.path() + QDir::separator());
+			else
+				settings.inputDir.clear();
+		}
+
+		if (settings.inputDir.isEmpty())
+			break;
+	}
+
+	if (!settings.inputDir.isEmpty())
+		std::ranges::transform(settings.inputFiles, settings.inputFiles.begin(), [n = settings.inputDir.length()](const QString& item) { return item.last(item.length() - n); });
 
 	PLOGD << "Total image count calculation";
-	settings.totalImageCount = std::accumulate(settings.input.cbegin(),
-	                                           settings.input.cend(),
+	settings.totalImageCount = std::accumulate(settings.inputFiles.cbegin(),
+	                                           settings.inputFiles.cend(),
 	                                           settings.totalImageCount,
-	                                           [](const auto init, const QString& file)
+	                                           [&](const auto init, const QString& file)
 	                                           {
-												   const Zip zip(file);
+												   const Zip zip(settings.inputDir + file);
 												   return init + zip.GetFileNameList().size();
 											   });
 	PLOGI << "Total image count: " << settings.totalImageCount;
