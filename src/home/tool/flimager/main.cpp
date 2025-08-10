@@ -3,8 +3,8 @@
 #include <QBuffer>
 #include <QCommandLineParser>
 #include <QCoreApplication>
-#include <QGuiApplication>
 #include <QDir>
+#include <QGuiApplication>
 #include <QPixmap>
 #include <QSize>
 #include <QStandardPaths>
@@ -172,12 +172,12 @@ private:
 		for (auto imageFile : zip.GetFileNameList())
 		{
 			const ScopedCall fileCountGuard(
-				[this, percents = m_imageCount * 100 / m_settings.totalImageCount]()
+				[&, percents = m_imageCount * 100 / m_settings.totalImageCount]()
 				{
-					++m_imageCount;
-					const auto currentPercents = m_imageCount * 100 / m_settings.totalImageCount;
-					if (percents != currentPercents)
-						PLOGV << currentPercents << "%";
+					int imageCount = ++m_imageCount;
+					const auto currentPercents = imageCount * 100 / m_settings.totalImageCount;
+					if (percents != currentPercents || imageCount % 100 == 0)
+						PLOGV << QString("%1, %2 (%3) %4%").arg(fileInfo.completeBaseName()).arg(imageCount).arg(m_settings.totalImageCount).arg(currentPercents);
 				});
 
 			const auto imageBody = zip.Read(imageFile)->GetStream().readAll();
@@ -262,7 +262,7 @@ void GetArchives(Settings& settings, const QStringList& wildCards)
 												   const Zip zip(file);
 												   return init + zip.GetFileNameList().size();
 											   });
-	PLOGI << "Total file count: " << settings.totalImageCount;
+	PLOGI << "Total image count: " << settings.totalImageCount;
 }
 
 Settings ProcessCommandLine(const QCoreApplication& app)
