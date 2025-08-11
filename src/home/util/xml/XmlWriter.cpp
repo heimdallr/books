@@ -53,28 +53,13 @@ constexpr std::pair<XmlWriter::Type, void (*)(XMLFormatter&)> STARTERS[] {
 
 class XmlWriter::Impl final : public XMLFormatTarget
 {
-	NON_COPY_MOVABLE(Impl)
-
 public:
-	Impl(QIODevice& stream, const Type type)
-		: m_stream(stream)
+	Impl(QIODevice& stream, const Type type, const bool indented)
+		: m_stream { stream }
+		, m_indented { indented }
 		, m_formatter("utf-8", this, XMLFormatter::NoEscapes, XMLFormatter::UnRep_CharRef)
 	{
 		FindSecond(STARTERS, type)(m_formatter);
-	}
-
-	~Impl() override
-	{
-		CloseTag();
-		while (!m_elements.empty())
-		{
-			const auto name = std::move(m_elements.top());
-			m_elements.pop();
-			BreakLine(name);
-			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
-		}
-
-		m_formatter << chLF;
 	}
 
 	void WriteProcessingInstruction(const QString& target, const QString& data)
@@ -95,21 +80,18 @@ public:
 		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
 
 		m_tagOpened = true;
+
+		if (m_unbreakableTags.contains(name))
+			++m_unbreakableCount;
 	}
 
 	void WriteStartElement(const QString& name, const XmlAttributes& attributes)
 	{
-		CloseTag();
-		BreakLine(name);
-		m_elements.emplace(name);
-
-		m_formatter << XMLFormatter::NoEscapes << chOpenAngle << name.toStdU16String().data();
+		WriteStartElement(name);
 
 		for (size_t i = 0, attributeCount = attributes.GetCount(); i < attributeCount; ++i)
 			m_formatter << XMLFormatter::NoEscapes << chSpace << attributes.GetName(i).toStdU16String().data() << chEqual << chDoubleQuote << XMLFormatter::AttrEscapes
 						<< attributes.GetValue(i).toStdU16String().data() << XMLFormatter::NoEscapes << chDoubleQuote;
-
-		m_tagOpened = true;
 	}
 
 	void WriteEndElement()
@@ -128,6 +110,12 @@ public:
 				BreakLine(name);
 			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
 		}
+
+		if (m_characterDepth == m_elements.size() + 1)
+			m_characterDepth = 0;
+
+		if (m_unbreakableTags.contains(name))
+			--m_unbreakableCount;
 	}
 
 	void WriteAttribute(const QString& name, const QString& value)
@@ -144,6 +132,9 @@ public:
 		CloseTag();
 		const auto chars = data.toStdU16String();
 		m_formatter.formatBuf(chars.data(), chars.length(), XMLFormatter::CharEscapes);
+
+		if (!m_characterDepth)
+			m_characterDepth = m_elements.size();
 	}
 
 	void CloseTag()
@@ -164,7 +155,7 @@ private: // XMLFormatTarget
 private:
 	void BreakLine(const QString& name)
 	{
-		if (m_unbreakableTags.contains(name))
+		if (m_characterDepth || m_unbreakableCount || !m_indented)
 			return;
 
 		m_lastElement = name;
@@ -176,16 +167,19 @@ private:
 
 private:
 	QIODevice& m_stream;
+	const bool m_indented;
 	XMLFormatter m_formatter;
 	std::stack<QString> m_elements;
 	bool m_tagOpened { false };
 	QString m_lastElement;
+	size_t m_characterDepth { 0 };
 
 	std::set<QString> m_unbreakableTags { "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code", "image" };
+	int m_unbreakableCount { 0 };
 };
 
-XmlWriter::XmlWriter(QIODevice& stream, const Type type)
-	: m_impl(stream, type)
+XmlWriter::XmlWriter(QIODevice& stream, const Type type, const bool indented)
+	: m_impl(stream, type, indented)
 {
 }
 
