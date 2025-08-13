@@ -261,15 +261,16 @@ select b.BookID, b.Title
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
-from Authors a
-join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
-where a.IsDeleted != %1
+	from Authors a
+	join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
+	where a.IsDeleted != %1
 )";
 
-constexpr auto SEARCH_QUERY_TEXT_SERIES = R"(select a.SeriesID, a.SeriesTitle
-from Series a
-join Series_Search s on s.rowid = a.SeriesID and Series_Search match ?
-where a.IsDeleted != %1
+constexpr auto SEARCH_QUERY_TEXT_SERIES = R"(
+select a.SeriesID, a.SeriesTitle
+	from Series a
+	join Series_Search s on s.rowid = a.SeriesID and Series_Search match ?
+	where a.IsDeleted != %1
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
