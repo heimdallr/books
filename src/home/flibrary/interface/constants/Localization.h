@@ -37,6 +37,9 @@ constexpr auto Groups = QT_TRANSLATE_NOOP("Navigation", "Groups");
 constexpr auto Search = QT_TRANSLATE_NOOP("Navigation", "Search");
 constexpr auto AllBooks = QT_TRANSLATE_NOOP("Navigation", "AllBooks");
 
+constexpr auto Books = QT_TRANSLATE_NOOP("Navigation", "Books");
+constexpr auto AllOptions = QT_TRANSLATE_NOOP("Navigation", "All options");
+
 constexpr auto AUTHORS = QT_TRANSLATE_NOOP("Annotation", "Authors:");
 constexpr auto SERIES = QT_TRANSLATE_NOOP("Annotation", "Series:");
 constexpr auto GENRES = QT_TRANSLATE_NOOP("Annotation", "Genres:");

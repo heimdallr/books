@@ -4799,6 +4799,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>All options</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>AllBooks</source>
 		<translation>All books</translation>
 	</message>
@@ -4808,6 +4812,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Authors</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Books</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5021,6 +5029,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Authors found for the request "%1": %2</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Books</source>
 		<translation>All books in the section</translation>
 	</message>
@@ -5034,6 +5046,14 @@ Try again?</source>
 	</message>
 	<message>
 		<source>No books found for the request "%1"</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Series found for the request "%1": %2</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Specify what to search for your request "%1"</source>
 		<translation></translation>
 	</message>
 </context>

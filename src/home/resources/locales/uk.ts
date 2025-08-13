@@ -4811,6 +4811,10 @@ Try again?</source>
 		<translation>Усі книги</translation>
 	</message>
 	<message>
+		<source>All options</source>
+		<translation>Усі варіанти</translation>
+	</message>
+	<message>
 		<source>AllBooks</source>
 		<translation>Усі книги</translation>
 	</message>
@@ -4821,6 +4825,10 @@ Try again?</source>
 	<message>
 		<source>Authors</source>
 		<translation>Автори</translation>
+	</message>
+	<message>
+		<source>Books</source>
+		<translation>Книги</translation>
 	</message>
 	<message>
 		<source>Create new group...</source>
@@ -5033,6 +5041,10 @@ Try again?</source>
 		<translation>Попередня сторінка</translation>
 	</message>
 	<message>
+		<source>Authors found for the request "%1": %2</source>
+		<translation>За запитом "%1%" знайдені автори %2</translation>
+	</message>
+	<message>
 		<source>Books</source>
 		<translation>Усі книги розділу</translation>
 	</message>
@@ -5047,6 +5059,14 @@ Try again?</source>
 	<message>
 		<source>No books found for the request "%1"</source>
 		<translation>За запитом "%1" книг не знайдено</translation>
+	</message>
+	<message>
+		<source>Series found for the request "%1": %2</source>
+		<translation>За запитом "%1" знайдені серії %2</translation>
+	</message>
+	<message>
+		<source>Specify what to search for your request "%1"</source>
+		<translation>Вкажіть, що шукати для вашого запиту "%1"</translation>
 	</message>
 </context>
 <context>
