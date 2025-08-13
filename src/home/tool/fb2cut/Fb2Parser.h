@@ -10,27 +10,34 @@ class QIODevice;
 namespace HomeCompa::fb2cut
 {
 
+class Fb2ImageParser
+{
+	NON_COPY_MOVABLE(Fb2ImageParser)
+
+public:
+	using OnBinaryFound = std::function<void(QString&&, bool isCover, const QByteArray& data)>;
+
+	static void Parse(QIODevice& input, OnBinaryFound binaryCallback);
+
+private:
+	Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback);
+	~Fb2ImageParser();
+
+private:
+	class Impl;
+	PropagateConstPtr<Impl> m_impl;
+};
+
 class Fb2Parser
 {
 	NON_COPY_MOVABLE(Fb2Parser)
 
 public:
-	struct Data
-	{
-		QString title;
-		QString lang;
-		std::vector<QString> genres;
+	static void Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
 
-		QString error;
-	};
-
-	using OnBinaryFound = std::function<void(const QString& name, bool isCover, QByteArray data)>;
-
-public:
-	Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback);
+private:
+	Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
 	~Fb2Parser();
-
-	Data Parse();
 
 private:
 	class Impl;

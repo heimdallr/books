@@ -24,7 +24,9 @@ namespace
 
 constexpr auto ID = "id";
 constexpr auto IMAGE = "image";
+constexpr auto L_HREF = "l:href";
 
+constexpr auto FICTION_BOOK = "FictionBook";
 constexpr auto GENRE = "FictionBook/description/title-info/genre";
 constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
@@ -36,25 +38,84 @@ constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-use
 
 }
 
+class Fb2ImageParser::Impl final : public Util::SaxParser
+{
+public:
+	explicit Impl(QIODevice& input, OnBinaryFound binaryCallback)
+		: SaxParser(input, 512)
+		, m_binaryCallback { std::move(binaryCallback) }
+	{
+		Parse();
+	}
+
+private: // Util::SaxParser
+	bool OnStartElement(const QString&, const QString& path, const Util::XmlAttributes& attributes) override
+	{
+		if (path == COVERPAGE_IMAGE)
+		{
+			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			{
+				auto attributeName = attributes.GetName(i);
+				auto attributeValue = attributes.GetValue(i);
+				if (attributeName.endsWith(":href"))
+				{
+					if (const auto it = std::ranges::find_if(attributeValue, [](const auto ch) { return ch != '#'; }); it != attributeValue.end())
+						m_coverPage = attributeValue.last(std::distance(it, attributeValue.end()));
+					break;
+				}
+			}
+			return true;
+		}
+
+		if (path == BINARY)
+		{
+			m_picId = attributes.GetAttribute(ID);
+		}
+		return true;
+	}
+
+	bool OnCharacters([[maybe_unused]] const QString& path, const QString& value) override
+	{
+		if (m_picId.isEmpty())
+			return true;
+
+		assert(path == BINARY);
+
+		const auto isCover = m_picId == m_coverPage;
+		m_binaryCallback(std::move(m_picId), isCover, QByteArray::fromBase64(value.toUtf8()));
+		m_picId = {};
+
+		return true;
+	}
+
+private:
+	OnBinaryFound m_binaryCallback;
+	QString m_coverPage;
+	QString m_picId;
+};
+
+void Fb2ImageParser::Parse(QIODevice& input, OnBinaryFound binaryCallback)
+{
+	const Fb2ImageParser parser(input, std::move(binaryCallback));
+}
+
+Fb2ImageParser::Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback)
+	: m_impl(input, std::move(binaryCallback))
+{
+}
+
+Fb2ImageParser::~Fb2ImageParser() = default;
+
 class Fb2Parser::Impl final : public Util::SaxParser
 {
 public:
-	explicit Impl(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback)
+	Impl(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
 		: SaxParser(input, 512)
-		, m_fileName(std::move(fileName))
-		, m_binaryCallback(std::move(binaryCallback))
-		, m_writer(output)
-	{
-	}
-
-	Data GetData()
+		, m_fileName { std::move(fileName) }
+		, m_replaceId { replaceId }
+		, m_writer(output, Util::XmlWriter::Type::Xml, false)
 	{
 		Parse();
-		assert(m_hasProgramUsed);
-
-		auto data = std::move(m_data);
-		m_data = {};
-		return data;
 	}
 
 private: // Util::SaxParser
@@ -66,49 +127,35 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		using ParseElementFunction = bool (Impl::*)(const Util::XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
-		static constexpr ParseElementItem PARSERS[] {
-			{ BINARY, &Impl::OnStartElementBinary },
-		};
+		++m_tagsOpen;
 
-		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
-			return Parse(*this, PARSERS, path, attributes);
-
-		if (name.compare(IMAGE, Qt::CaseInsensitive) == 0)
+		if (path == FICTION_BOOK)
 		{
 			m_writer.WriteStartElement(name);
-			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			{
-				const auto keyName = attributes.GetName(i);
-				auto image = attributes.GetValue(i);
-				if (!keyName.endsWith(":href"))
-				{
-					m_writer.WriteAttribute(keyName, image);
-					continue;
-				}
-
-				while (!image.isEmpty() && image.front() == '#')
-					image.removeFirst();
-
-				const auto isCover = path.compare(COVERPAGE_IMAGE, Qt::CaseInsensitive) == 0;
-				if (isCover)
-					m_coverpage = image;
-
-				const auto imageName = m_imageNames.emplace(std::move(image), m_imageNames.size()).first->second;
-				m_writer.WriteAttribute(keyName, isCover ? QString("#%1").arg(Global::COVER) : QString("#%1").arg(imageName));
-			}
+			m_writer.WriteAttribute("xmlns", "http://www.gribuser.ru/xml/fictionbook/2.0");
+			m_writer.WriteAttribute("xmlns:l", "http://www.w3.org/1999/xlink");
+			return true;
 		}
-		else
+
+		if (path == BINARY)
+			return true;
+
+		m_writer.WriteStartElement(name);
+		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 		{
-			m_writer.WriteStartElement(name, attributes);
+			auto attributeName = attributes.GetName(i);
+			auto attributeValue = attributes.GetValue(i);
+			ReplaceAttribute(attributeName, attributeValue);
+			m_writer.WriteAttribute(attributeName, attributeValue);
 		}
 
-		return Parse(*this, PARSERS, path, attributes);
+		return true;
 	}
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
+		--m_tagsOpen;
+
 		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
 		{
 			m_writer.WriteStartElement("program-used").WriteCharacters(QString("fb2cut %2").arg(PRODUCT_VERSION)).WriteEndElement();
@@ -121,7 +168,7 @@ private: // Util::SaxParser
 			m_hasProgramUsed = true;
 		}
 
-		if (path.compare(BINARY, Qt::CaseInsensitive) == 0)
+		if (path == BINARY)
 			return true;
 
 		m_writer.WriteEndElement();
@@ -131,26 +178,19 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		using ParseCharacterFunction = bool (Impl::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
-		static constexpr ParseCharacterItem PARSERS[] {
-			{      GENRE,     &Impl::ParseGenre },
-			{ BOOK_TITLE, &Impl::ParseBookTitle },
-			{       LANG,      &Impl::ParseLang },
-			{     BINARY,    &Impl::ParseBinary },
-		};
+		if (path == BINARY)
+			return true;
 
-		if (path.compare(PROGRAM_USED, Qt::CaseInsensitive) == 0)
+		if (path == PROGRAM_USED)
 		{
 			m_writer.WriteCharacters(QString("%1, fb2cut %2").arg(value, PRODUCT_VERSION));
 			m_hasProgramUsed = true;
 			return true;
 		}
 
-		if (path.compare(BINARY, Qt::CaseInsensitive))
-			m_writer.WriteCharacters(value);
+		m_writer.WriteCharacters(value);
 
-		return Parse(*this, PARSERS, path, value);
+		return true;
 	}
 
 	bool OnWarning(const QString& text) override
@@ -161,7 +201,6 @@ private: // Util::SaxParser
 
 	bool OnError(const QString& text) override
 	{
-		m_data.error = text;
 		PLOGE << m_fileName << ": " << text;
 		return false;
 	}
@@ -172,58 +211,51 @@ private: // Util::SaxParser
 	}
 
 private:
+	void ReplaceAttribute(QString& name, QString& value) const
+	{
+		if (name.startsWith("xlink:"))
+			name = "l:" + name.last(name.length() - 6);
+
+		if (!(name.endsWith(":href") && value.startsWith('#')))
+			return;
+
+		auto id = value;
+		if (const auto it = std::ranges::find_if(id, [](const auto ch) { return ch != '#'; }); it != id.end())
+			id = id.last(std::distance(it, id.end()));
+
+		name = L_HREF;
+		const auto it = m_replaceId.find(id);
+		if (it == m_replaceId.end())
+			return;
+
+		value = '#' + (it->second == -1 ? QString { "cover" } : QString::number(it->second));
+	}
+
 	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
 	{
 		m_binaryId = attributes.GetAttribute(ID);
 		return true;
 	}
 
-	bool ParseGenre(const QString& value)
-	{
-		m_data.genres.push_back(value);
-		return true;
-	}
-
-	bool ParseBookTitle(const QString& value)
-	{
-		m_data.title = value;
-		return true;
-	}
-
-	bool ParseLang(const QString& value)
-	{
-		m_data.lang = value;
-		return true;
-	}
-
-	bool ParseBinary(const QString& value)
-	{
-		const auto it = m_imageNames.find(m_binaryId);
-		if (it != m_imageNames.end())
-			m_binaryCallback(QString::number(it->second), m_binaryId.compare(m_coverpage, Qt::CaseInsensitive) == 0, QByteArray::fromBase64(value.toUtf8()));
-
-		return true;
-	}
-
 private:
 	const QString m_fileName;
-	const OnBinaryFound m_binaryCallback;
+	const std::unordered_map<QString, int>& m_replaceId;
 	Util::XmlWriter m_writer;
 	QString m_binaryId;
 	QString m_coverpage;
-	Data m_data {};
 	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
 	bool m_hasProgramUsed { false };
+	size_t m_tagsOpen { 0 };
 };
 
-Fb2Parser::Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, OnBinaryFound binaryCallback)
-	: m_impl(std::move(fileName), input, output, std::move(binaryCallback))
+void Fb2Parser::Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
+{
+	const Fb2Parser parser(std::move(fileName), input, output, replaceId);
+}
+
+Fb2Parser::Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
+	: m_impl(std::move(fileName), input, output, replaceId)
 {
 }
 
 Fb2Parser::~Fb2Parser() = default;
-
-Fb2Parser::Data Fb2Parser::Parse()
-{
-	return m_impl->GetData();
-}
