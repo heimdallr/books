@@ -7,7 +7,6 @@
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
-#include <QTimer>
 #include <QUrl>
 
 #include "fnd/FindPair.h"
@@ -24,7 +23,6 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
-#include "interface/logic/IDatabaseUser.h"
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
@@ -1010,7 +1008,7 @@ public:
 	}
 
 	template <typename NavigationGetter, typename... ARGS>
-	QByteArray GetImpl(NavigationGetter getter, const ContentType contentType, const QString& root, const IRequester::Parameters& parameters, const ARGS&... args) const
+	QByteArray GetImpl(NavigationGetter getter, const ContentType contentType, const QString& root, const Parameters& parameters, const ARGS&... args) const
 	{
 		if (!m_collectionProvider->ActiveCollectionExists())
 			return {};
