@@ -1,5 +1,7 @@
 #include "Fb2Parser.h"
 
+#include <stack>
+
 #include <QHash>
 
 #include <QString>
@@ -116,6 +118,9 @@ public:
 		, m_writer(output, Util::XmlWriter::Type::Xml, false)
 	{
 		Parse();
+		assert(m_tags.empty());
+		if (!m_tags.empty())
+			m_writer.WriteStartElement(QString::number(m_tags.size()));
 	}
 
 private: // Util::SaxParser
@@ -127,7 +132,7 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		++m_tagsOpen;
+		m_tags.push(name);
 
 		if (path == FICTION_BOOK)
 		{
@@ -152,9 +157,12 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QString&, const QString& path) override
+	bool OnEndElement(const QString& name, const QString& path) override
 	{
-		--m_tagsOpen;
+		if (m_tags.top() != name)
+			return false;
+
+		m_tags.pop();
 
 		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
 		{
@@ -216,17 +224,20 @@ private:
 		if (name.startsWith("xlink:"))
 			name = "l:" + name.last(name.length() - 6);
 
-		if (!(name.endsWith(":href") && value.startsWith('#')))
+		if (!name.endsWith(":href"))
 			return;
-
-		auto id = value;
-		if (const auto it = std::ranges::find_if(id, [](const auto ch) { return ch != '#'; }); it != id.end())
-			id = id.last(std::distance(it, id.end()));
 
 		name = L_HREF;
-		const auto it = m_replaceId.find(id);
-		if (it == m_replaceId.end())
+
+		if (!value.startsWith('#'))
 			return;
+
+		if (const auto it = std::ranges::find_if(value, [](const auto ch) { return ch != '#'; }); it != value.end() && it != value.begin())
+			value = value.last(std::distance(it, value.end()));
+
+		const auto it = m_replaceId.find(value);
+		if (it == m_replaceId.end())
+			return value.clear();
 
 		value = '#' + (it->second == -1 ? QString { "cover" } : QString::number(it->second));
 	}
@@ -245,7 +256,7 @@ private:
 	QString m_coverpage;
 	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
 	bool m_hasProgramUsed { false };
-	size_t m_tagsOpen { 0 };
+	std::stack<QString> m_tags;
 };
 
 void Fb2Parser::Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)

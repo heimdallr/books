@@ -215,7 +215,8 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 		str.append("</FictionBook>");
 	};
 
-	str.replace(QRegularExpression(R"(<([^a-z//]+?)>)", QRegularExpression::CaseInsensitiveOption), "&lt;/1&gt;");
+	str.replace(QRegularExpression(R"(</[^a-z]+?>)", QRegularExpression::CaseInsensitiveOption), "");
+	str.replace(QRegularExpression(R"(<([^a-z]+?)>)", QRegularExpression::CaseInsensitiveOption), R"(&lt;\1&gt;)");
 	if (const auto endIndex = str.indexOf("</FictionBook>"); endIndex > 0)
 	{
 		str.resize(endIndex + 14);
