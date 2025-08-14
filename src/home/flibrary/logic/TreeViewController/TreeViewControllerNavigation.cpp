@@ -257,6 +257,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
      &IContextMenuHandler::OnRemoveSearchTriggered }																																			   },
+	{   Loc::Reviews,																								 { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews } },
 	{  Loc::AllBooks,																								{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 

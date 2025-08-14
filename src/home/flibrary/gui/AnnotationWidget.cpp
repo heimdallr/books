@@ -475,10 +475,11 @@ private: // IAnnotationController::IUrlGenerator
             {   Loc::GENRES,    Loc::Genres },
             { Loc::KEYWORDS,  Loc::Keywords },
             {  Loc::UPDATES,   Loc::Updates },
-			{  Loc::ARCHIVE,  Loc::Archives },
-            { Loc::LANGUAGE, Loc::Languages },
+            {  Loc::ARCHIVE,  Loc::Archives },
+			{ Loc::LANGUAGE, Loc::Languages },
             {   Loc::GROUPS,    Loc::Groups },
             {      "Search",    Loc::Search },
+            {     "Reviews",   Loc::Reviews },
             {    "AllBooks",  Loc::AllBooks },
 		};
 		static_assert(std::size(typeToNavigation) == static_cast<size_t>(NavigationMode::Last));

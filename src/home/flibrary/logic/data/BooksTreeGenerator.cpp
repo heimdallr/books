@@ -145,8 +145,8 @@ public:
 	const QString navigationId;
 	ViewMode viewMode { ViewMode::Unknown };
 
-	Impl(DB::IDatabase& db, const NavigationMode navigationMode_, QString navigationId_, const QueryDescription& description)
-		: navigationMode(navigationMode_)
+	Impl(DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId_, const QueryDescription& description)
+		: navigationMode(navigationMode)
 		, navigationId(std::move(navigationId_))
 	{
 		if (navigationId.isEmpty())

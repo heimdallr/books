@@ -419,6 +419,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
 	{ Loc::Search },
+	{ Loc::Reviews },
 	{ Loc::AllBooks },
 };
 // clang-format on

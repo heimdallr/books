@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
@@ -14,7 +15,7 @@ class NavigationQueryExecutor final : virtual public INavigationQueryExecutor
 	NON_COPY_MOVABLE(NavigationQueryExecutor)
 
 public:
-	explicit NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser);
+	NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~NavigationQueryExecutor() override;
 
 private: // INavigationQueryExecutor
