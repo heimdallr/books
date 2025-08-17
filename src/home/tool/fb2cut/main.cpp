@@ -87,6 +87,8 @@ constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
 constexpr auto COVER_ID = "COVER_COVER_COVER_COVER123";
 
+const std::vector<QString> FB2_TAGS { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
+
 struct DataItem
 {
 	QString fileName;
@@ -158,9 +160,12 @@ QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 	return validator.Validate(buffer);
 }
 
-QByteArray FixInputFile(QByteArray inputFileBody)
+QByteArray Decode(QByteArray inputFileBody)
 {
-	auto str = [&inputFileBody]
+	if (inputFileBody.size() < 100)
+		return {};
+
+	auto str = [&inputFileBody]() -> QString
 	{
 		if (inputFileBody.startsWith("\xff\xfe") || inputFileBody.startsWith("\xfe\xff"))
 		{
@@ -169,15 +174,14 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
 		}
 
-		static constexpr const char* win1251[] {
-			R"(<?xml version="1.0" encoding="windows-)",
-			R"(<?xml version="1.0" encoding="Windows-)",
-		};
-
-		if (std::ranges::any_of(win1251, [&](const auto* enc) { return inputFileBody.startsWith(enc); }))
+		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"("?>)") + 3);
+		auto head = QString::fromLatin1(inputFileBody.data(), index);
+		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?"\?>$)", QRegularExpression::CaseInsensitiveOption);
+		if (const auto match = rx.match(head); match.hasMatch())
 		{
-			auto result = QString::fromLocal8Bit(inputFileBody, inputFileBody.size());
-			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
+			head = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+			auto body = QString::fromLocal8Bit(inputFileBody.data() + index, inputFileBody.size() - index);
+			return head.append("\x0d\x0a").append(body);
 		}
 
 		if (inputFileBody.startsWith(R"(<?xml version="1.0" encoding="iso-8859-15"?>)"))
@@ -215,85 +219,32 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 		str.resize(index);
 		str.append("</FictionBook>");
 	};
+	if (const auto endIndex = str.indexOf("</FictionBook>"); endIndex > 0)
+	{
+		str.resize(endIndex + 14);
+	}
+	else if (const auto binaryIndex = str.lastIndexOf("<binary"); binaryIndex > 0)
+	{
+		addEnd(binaryIndex);
+	}
+	else if (const auto bodyIndex = str.lastIndexOf("</body>"); bodyIndex > 0)
+	{
+		addEnd(bodyIndex + 7);
+	}
+	return str.toUtf8();
+}
+
+QByteArray FixInputFile(const QByteArray& inputFileBody)
+{
+	auto str = QString::fromUtf8(inputFileBody);
 
 	str.replace(QRegularExpression(R"(<([0-9a-zA-Z]+([0-9a-zA-Z]*[-\._+])*[0-9a-zA-Z]+@[0-9a-zA-Z]+([-\.][0-9a-zA-Z]+)*([0-9a-zA-Z]*[\.])[a-zA-Z]{2,6})>)", QRegularExpression::CaseInsensitiveOption),
 	            R"("\1")");
+	str.replace(QRegularExpression(R"(<section id=n(\d)>)", QRegularExpression::CaseInsensitiveOption), R"(<section id="n\1">)");
 
 	{
 		constexpr const char* specials[] { "amp;", "apos;", "gt;", "lt;", "quot;" };
-		constexpr const char* tags[] { "p",
-			                           "FictionBook",
-			                           "description",
-			                           "body",
-			                           "binary",
-			                           "title-info",
-			                           "src-title-info",
-			                           "document-info",
-			                           "publish-info",
-			                           "custom-info",
-			                           "genre",
-			                           "author",
-			                           "first-name",
-			                           "last-name",
-			                           "middle-name",
-			                           "nickname",
-			                           "email",
-			                           "home-page",
-			                           "book-title",
-			                           "annotation",
-			                           "poem",
-			                           "cite",
-			                           "subtitle",
-			                           "empty-line",
-			                           "keywords",
-			                           "date",
-			                           "coverpage",
-			                           "image",
-			                           "lang",
-			                           "src-lang",
-			                           "translator",
-			                           "sequence",
-			                           "program-used",
-			                           "src-url",
-			                           "src-ocr",
-			                           "id",
-			                           "version",
-			                           "history",
-			                           "book-name",
-			                           "publisher",
-			                           "city",
-			                           "year",
-			                           "isbn",
-			                           "title",
-			                           "epigraph",
-			                           "section",
-			                           "v",
-			                           "a",
-			                           "text-author",
-			                           "strong",
-			                           "emphasis",
-			                           "sub",
-			                           "sup",
-			                           "strikethrough",
-			                           "code",
-			                           "stanza",
-			                           "i",
-			                           "b",
-			                           "u",
-			                           "table",
-			                           "tr",
-			                           "td",
-			                           "th",
-			                           "img",
-			                           "pre",
-			                           "style",
-			                           "center",
-			                           "h1",
-			                           "h2",
-			                           "h3",
-			                           "h4",
-			                           "h5" };
-		const auto index = str.indexOf(R"("?>)");
+		const auto index = str.indexOf(R"(?>)");
 		QString buf = str.first(index + 3);
 		buf.reserve(str.length());
 		bool lineBreak = false;
@@ -319,26 +270,32 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 				continue;
 			}
 
-			if (ch == QChar { '<' })
+			if (ch == QChar { '<' } && str[i + 1] != '/')
 			{
-				if (str[i + 1] != '/'
-				    && std::ranges::none_of(tags,
-				                            [&](const char* tag)
-				                            {
-												const auto tagLength = static_cast<qsizetype>(strlen(tag));
-												QStringView s(str.constData() + i + 1, tagLength);
-												const auto nextCh = str[i + 1 + tagLength];
-												return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
-											}))
+				if (std::ranges::none_of(FB2_TAGS,
+				                         [&](const QString& tag)
+				                         {
+											 const auto tagLength = tag.length();
+											 QStringView s(str.constData() + i + 1, tagLength);
+											 const auto nextCh = str[i + 1 + tagLength];
+											 return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
+										 }))
 				{
 					buf.append("&lt;");
 					continue;
 				}
 			}
 
-			if (ch == QChar { '>' })
+			if (ch == QChar { '>' } && !IsOneOf(str[i - 1], '/', '"'))
 			{
-				if (const auto value = str[i - 1].toLower().unicode(); !(value >= 'a' && value <= 'z' || value >= '0' && value <= '9') && !IsOneOf(value, '/', '"'))
+				if (std::ranges::none_of(FB2_TAGS,
+				                         [&](const QString& tag)
+				                         {
+											 const auto tagLength = tag.length();
+											 QStringView s(str.constData() + i - tagLength, tagLength);
+											 const auto prevCh = str[i - tagLength - 1];
+											 return IsOneOf(prevCh, '<', '/') && s.compare(tag, Qt::CaseInsensitive) == 0;
+										 }))
 				{
 					buf.append("&gt;");
 					continue;
@@ -358,18 +315,6 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 	str.replace("<p ", "<p> ");
 	str.replace(" /p>", "</p> ");
 
-	if (const auto endIndex = str.indexOf("</FictionBook>"); endIndex > 0)
-	{
-		str.resize(endIndex + 14);
-	}
-	else if (const auto binaryIndex = str.lastIndexOf("<binary"); binaryIndex > 0)
-	{
-		addEnd(binaryIndex);
-	}
-	else if (const auto bodyIndex = str.lastIndexOf("</body>"); bodyIndex > 0)
-	{
-		addEnd(bodyIndex + 7);
-	}
 	return str.toUtf8();
 }
 
@@ -448,9 +393,12 @@ private:
 
 	bool ProcessFile(const QString& inputFilePath, const QByteArray& inputFileBody, const QDateTime& dateTime)
 	{
-		auto fixedInputFileBody = inputFileBody;
-		if (!Validate(m_validator, fixedInputFileBody).isEmpty())
-			fixedInputFileBody = FixInputFile(inputFileBody);
+		auto fixedInputFileBody = Decode(inputFileBody);
+		if (const auto errorText = Validate(m_validator, fixedInputFileBody); !errorText.isEmpty())
+		{
+			PLOGW << errorText << " trying to fix";
+			fixedInputFileBody = FixInputFile(fixedInputFileBody);
+		}
 
 		QBuffer input(&fixedInputFileBody);
 		input.open(QIODevice::ReadOnly);

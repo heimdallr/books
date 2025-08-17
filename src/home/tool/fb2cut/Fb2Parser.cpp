@@ -3,12 +3,14 @@
 #include <QHash>
 
 #include <stack>
+#include <unordered_set>
 
 #include <QIODevice>
 #include <QString>
 #include <QTextStream>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "common/Constant.h"
 #include "util/xml/SaxParser.h"
@@ -26,18 +28,17 @@ namespace
 {
 
 constexpr auto ID = "id";
-constexpr auto IMAGE = "image";
 constexpr auto L_HREF = "l:href";
 
 constexpr auto FICTION_BOOK = "FictionBook";
-constexpr auto GENRE = "FictionBook/description/title-info/genre";
-constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
-constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto BINARY = "FictionBook/binary";
+constexpr auto BODY_BINARY = "FictionBook/body/binary";
 constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
 constexpr auto DESCRIPTION = "FictionBook/description";
 constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
 constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
+
+const std::unordered_set<QString> FB2_TAGS_CACHE { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
 
 }
 
@@ -54,6 +55,12 @@ public:
 private: // Util::SaxParser
 	bool OnStartElement(const QString&, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (IsOneOf(path, BINARY, BODY_BINARY))
+		{
+			m_picId = attributes.GetAttribute(ID);
+			return true;
+		}
+
 		if (path == COVERPAGE_IMAGE)
 		{
 			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
@@ -70,10 +77,6 @@ private: // Util::SaxParser
 			return true;
 		}
 
-		if (path == BINARY)
-		{
-			m_picId = attributes.GetAttribute(ID);
-		}
 		return true;
 	}
 
@@ -82,7 +85,7 @@ private: // Util::SaxParser
 		if (m_picId.isEmpty())
 			return true;
 
-		assert(path == BINARY);
+		assert(IsOneOf(path, BINARY, BODY_BINARY));
 
 		const auto isCover = m_picId == m_coverPage;
 		m_binaryCallback(std::move(m_picId), isCover, QByteArray::fromBase64(value.toUtf8()));
@@ -133,6 +136,9 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (!FB2_TAGS_CACHE.contains(name.toLower()))
+			return m_writer.WriteCharacters(QString("&lt;%1").arg(name)), true;
+
 		m_tags.push(name);
 
 		if (path == FICTION_BOOK)
@@ -160,6 +166,9 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString& name, const QString& path) override
 	{
+		if (!FB2_TAGS_CACHE.contains(name.toLower()))
+			return m_writer.WriteCharacters("&gt;"), true;
+
 		if (m_tags.top() != name)
 			return false;
 
