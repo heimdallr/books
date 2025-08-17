@@ -18,6 +18,7 @@
 #include <plog/Util.h>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
@@ -215,8 +216,148 @@ QByteArray FixInputFile(QByteArray inputFileBody)
 		str.append("</FictionBook>");
 	};
 
+	str.replace(QRegularExpression(R"(<([0-9a-zA-Z]+([0-9a-zA-Z]*[-\._+])*[0-9a-zA-Z]+@[0-9a-zA-Z]+([-\.][0-9a-zA-Z]+)*([0-9a-zA-Z]*[\.])[a-zA-Z]{2,6})>)", QRegularExpression::CaseInsensitiveOption),
+	            R"("\1")");
+
+	{
+		constexpr const char* specials[] { "amp;", "apos;", "gt;", "lt;", "quot;" };
+		constexpr const char* tags[] { "p",
+			                           "FictionBook",
+			                           "description",
+			                           "body",
+			                           "binary",
+			                           "title-info",
+			                           "src-title-info",
+			                           "document-info",
+			                           "publish-info",
+			                           "custom-info",
+			                           "genre",
+			                           "author",
+			                           "first-name",
+			                           "last-name",
+			                           "middle-name",
+			                           "nickname",
+			                           "email",
+			                           "home-page",
+			                           "book-title",
+			                           "annotation",
+			                           "poem",
+			                           "cite",
+			                           "subtitle",
+			                           "empty-line",
+			                           "keywords",
+			                           "date",
+			                           "coverpage",
+			                           "image",
+			                           "lang",
+			                           "src-lang",
+			                           "translator",
+			                           "sequence",
+			                           "program-used",
+			                           "src-url",
+			                           "src-ocr",
+			                           "id",
+			                           "version",
+			                           "history",
+			                           "book-name",
+			                           "publisher",
+			                           "city",
+			                           "year",
+			                           "isbn",
+			                           "title",
+			                           "epigraph",
+			                           "section",
+			                           "v",
+			                           "a",
+			                           "text-author",
+			                           "strong",
+			                           "emphasis",
+			                           "sub",
+			                           "sup",
+			                           "strikethrough",
+			                           "code",
+			                           "stanza",
+			                           "i",
+			                           "b",
+			                           "u",
+			                           "table",
+			                           "tr",
+			                           "td",
+			                           "th",
+			                           "img",
+			                           "pre",
+			                           "style",
+			                           "center",
+			                           "h1",
+			                           "h2",
+			                           "h3",
+			                           "h4",
+			                           "h5" };
+		const auto index = str.indexOf(R"("?>)");
+		QString buf = str.first(index + 3);
+		buf.reserve(str.length());
+		bool lineBreak = false;
+		for (qsizetype i = buf.length(), sz = str.length(); i < sz; ++i)
+		{
+			const auto ch = str[i];
+
+			if (IsOneOf(ch, '\x0d', '\x0a'))
+			{
+				if (lineBreak)
+					continue;
+
+				buf.append("\x0d\x0a");
+				lineBreak = true;
+				continue;
+			}
+
+			lineBreak = false;
+
+			if (ch == QChar { '&' } && std::ranges::none_of(specials, [&](const char* special) { return QStringView(str.constData() + i + 1, static_cast<qsizetype>(strlen(special))) == special; }))
+			{
+				buf.append("&amp;");
+				continue;
+			}
+
+			if (ch == QChar { '<' })
+			{
+				if (str[i + 1] != '/'
+				    && std::ranges::none_of(tags,
+				                            [&](const char* tag)
+				                            {
+												const auto tagLength = static_cast<qsizetype>(strlen(tag));
+												QStringView s(str.constData() + i + 1, tagLength);
+												const auto nextCh = str[i + 1 + tagLength];
+												return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
+											}))
+				{
+					buf.append("&lt;");
+					continue;
+				}
+			}
+
+			if (ch == QChar { '>' })
+			{
+				if (const auto value = str[i - 1].toLower().unicode(); !(value >= 'a' && value <= 'z' || value >= '0' && value <= '9') && !IsOneOf(value, '/', '"'))
+				{
+					buf.append("&gt;");
+					continue;
+				}
+			}
+
+			if (const auto value = ch.unicode(); value >= char16_t { 32 })
+				buf.append(ch);
+			else if (value == '\x0d')
+				buf.append("\x0d\x0a");
+		}
+
+		str = std::move(buf);
+	}
+
 	str.replace(QRegularExpression(R"(</[^a-z]+?>)", QRegularExpression::CaseInsensitiveOption), "");
-	str.replace(QRegularExpression(R"(<([^a-z]+?)>)", QRegularExpression::CaseInsensitiveOption), R"(&lt;\1&gt;)");
+	str.replace("<p ", "<p> ");
+	str.replace(" /p>", "</p> ");
+
 	if (const auto endIndex = str.indexOf("</FictionBook>"); endIndex > 0)
 	{
 		str.resize(endIndex + 14);
@@ -307,7 +448,9 @@ private:
 
 	bool ProcessFile(const QString& inputFilePath, const QByteArray& inputFileBody, const QDateTime& dateTime)
 	{
-		auto fixedInputFileBody = FixInputFile(inputFileBody);
+		auto fixedInputFileBody = inputFileBody;
+		if (!Validate(m_validator, fixedInputFileBody).isEmpty())
+			fixedInputFileBody = FixInputFile(inputFileBody);
 
 		QBuffer input(&fixedInputFileBody);
 		input.open(QIODevice::ReadOnly);
@@ -322,8 +465,10 @@ private:
 		if (bodyOutput.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
 
-		//		AddError("fb2", fileInfo.completeBaseName(), fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
-		//		AddError("fb2", fileInfo.completeBaseName(), bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+#ifndef NDEBUG
+		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+#endif
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), "fb2", false), true;
 

@@ -1,9 +1,10 @@
 #include "Fb2Parser.h"
 
-#include <stack>
-
 #include <QHash>
 
+#include <stack>
+
+#include <QIODevice>
 #include <QString>
 #include <QTextStream>
 
@@ -118,9 +119,9 @@ public:
 		, m_writer(output, Util::XmlWriter::Type::Xml, false)
 	{
 		Parse();
-		assert(m_tags.empty());
+		//		assert(m_tags.empty());
 		if (!m_tags.empty())
-			m_writer.WriteStartElement(QString::number(m_tags.size()));
+			m_writer.WriteStartElement(QString::number(output.pos()));
 	}
 
 private: // Util::SaxParser
