@@ -220,7 +220,7 @@ private: // xercesc::ErrorHandler
 		if (m_inputSource.IsStopped())
 			return;
 
-		if (!m_parser.OnWarning(QString::fromStdU16String(exc.getMessage())))
+		if (!m_parser.OnWarning(exc.getLineNumber(), exc.getColumnNumber(), QString::fromStdU16String(exc.getMessage())))
 			m_inputSource.SetStopped(true);
 	}
 
@@ -229,7 +229,7 @@ private: // xercesc::ErrorHandler
 		if (m_inputSource.IsStopped())
 			return;
 
-		if (!m_parser.OnError(QString::fromStdU16String(exc.getMessage())))
+		if (!m_parser.OnError(exc.getLineNumber(), exc.getColumnNumber(), QString::fromStdU16String(exc.getMessage())))
 			m_inputSource.SetStopped(true);
 	}
 
@@ -238,7 +238,7 @@ private: // xercesc::ErrorHandler
 		if (m_inputSource.IsStopped())
 			return;
 
-		if (!m_parser.OnFatalError(QString::fromStdU16String(exc.getMessage())))
+		if (!m_parser.OnFatalError(exc.getLineNumber(), exc.getColumnNumber(), QString::fromStdU16String(exc.getMessage())))
 			m_inputSource.SetStopped(true);
 	}
 
@@ -330,20 +330,20 @@ bool SaxParser::OnCharacters(const QString& /*path*/, const QString& /*value*/)
 	return true;
 }
 
-bool SaxParser::OnWarning(const QString& text)
+bool SaxParser::OnWarning(const size_t line, const size_t column, const QString& text)
 {
-	PLOGW << text;
+	PLOGW << line << ":" << column << " " << text;
 	return true;
 }
 
-bool SaxParser::OnError(const QString& text)
+bool SaxParser::OnError(const size_t line, const size_t column, const QString& text)
 {
-	PLOGE << text;
+	PLOGE << line << ":" << column << " " << text;
 	return false;
 }
 
-bool SaxParser::OnFatalError(const QString& text)
+bool SaxParser::OnFatalError(const size_t line, const size_t column, const QString& text)
 {
-	PLOGF << text;
+	PLOGF << line << ":" << column << " " << text;
 	return false;
 }

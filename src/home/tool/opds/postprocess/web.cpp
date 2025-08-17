@@ -146,22 +146,6 @@ protected:
 		m_writer->Guard("hr");
 	}
 
-private: // SaxParser
-	bool OnWarning(const QString& /*text*/) override
-	{
-		return true;
-	}
-
-	bool OnError(const QString& /*text*/) override
-	{
-		return true;
-	}
-
-	bool OnFatalError(const QString& /*text*/) override
-	{
-		return true;
-	}
-
 private:
 	virtual void WriteHead() = 0;
 

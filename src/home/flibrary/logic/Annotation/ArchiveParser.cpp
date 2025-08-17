@@ -221,26 +221,26 @@ private: // Util::SaxParser
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
 
-	bool OnWarning(const QString& text) override
+	bool OnWarning(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::warning);
+		return Log(line, column, text, plog::Severity::warning);
 	}
 
-	bool OnError(const QString& text) override
+	bool OnError(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::error);
+		return Log(line, column, text, plog::Severity::error);
 	}
 
-	bool OnFatalError(const QString& text) override
+	bool OnFatalError(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::fatal);
+		return Log(line, column, text, plog::Severity::fatal);
 	}
 
 private:
-	bool Log(const QString& text, const plog::Severity severity)
+	bool Log(const size_t line, const size_t column, const QString& text, const plog::Severity severity)
 	{
 		m_data.error = text;
-		LOG(severity) << text;
+		LOG(severity) << line << ":" << column << " " << text;
 		return true;
 	}
 

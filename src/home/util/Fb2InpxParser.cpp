@@ -113,22 +113,22 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, value);
 	}
 
-	bool OnWarning(const QString& text) override
+	bool OnWarning(const size_t line, const size_t column, const QString& text) override
 	{
-		PLOGW << m_fileName << ": " << text;
+		PLOGW << m_fileName << " " << line << ":" << column << " " << text;
 		return true;
 	}
 
-	bool OnError(const QString& text) override
+	bool OnError(const size_t line, const size_t column, const QString& text) override
 	{
 		m_data.error = text;
-		PLOGE << m_fileName << ": " << text;
+		PLOGE << m_fileName << " " << line << ":" << column << " " << text;
 		return false;
 	}
 
-	bool OnFatalError(const QString& text) override
+	bool OnFatalError(const size_t line, const size_t column, const QString& text) override
 	{
-		return OnError(text);
+		return OnError(line, column, text);
 	}
 
 private:

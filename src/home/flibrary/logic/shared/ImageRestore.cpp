@@ -155,22 +155,22 @@ private: // Util::SaxParser
 		return m_writer.WriteCharacters(QString("%1, %2 %3").arg(value, PRODUCT_ID, PRODUCT_VERSION)), true;
 	}
 
-	bool OnWarning(const QString& text) override
+	bool OnWarning(const size_t line, const size_t column, const QString& text) override
 	{
-		PLOGW << text;
+		PLOGW << line << ":" << column << " " << text;
 		return true;
 	}
 
-	bool OnError(const QString& text) override
+	bool OnError(const size_t line, const size_t column, const QString& text) override
 	{
 		m_hasError = true;
-		PLOGE << text;
+		PLOGE << line << ":" << column << " " << text;
 		return false;
 	}
 
-	bool OnFatalError(const QString& text) override
+	bool OnFatalError(const size_t line, const size_t column, const QString& text) override
 	{
-		return OnError(text);
+		return OnError(line, column, text);
 	}
 
 private:
