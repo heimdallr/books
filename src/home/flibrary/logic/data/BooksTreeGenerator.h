@@ -15,6 +15,16 @@ namespace HomeCompa::Flibrary
 {
 struct Collection;
 
+class IBooksListCreator // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	using Creator = IDataItem::Ptr (IBooksListCreator::*)() const;
+
+public:
+	virtual ~IBooksListCreator() = default;
+	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralList() const = 0;
+};
+
 class IBooksTreeCreator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -27,28 +37,30 @@ public:
 	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralTree() const = 0;
 };
 
+struct QueryDescription;
+
 class IBooksRootGenerator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Generator = IDataItem::Ptr (IBooksRootGenerator::*)(IBooksTreeCreator::Creator) const;
+	using Generator = IDataItem::Ptr (IBooksRootGenerator::*)(const QueryDescription&) const;
 
 public:
 	virtual ~IBooksRootGenerator() = default;
-	virtual IDataItem::Ptr GetList(IBooksTreeCreator::Creator creator) const = 0;
-	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
+	virtual IDataItem::Ptr GetList(const QueryDescription&) const = 0;
+	virtual IDataItem::Ptr GetTree(const QueryDescription&) const = 0;
 };
-
-struct QueryDescription;
 
 class IBookSelector // NOLINT(cppcoreguidelines-special-member-functions)
 {
+public:
+	using Selector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&);
+
 public:
 	virtual ~IBookSelector() = default;
 	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 };
 
-using BookSelector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&);
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 
 struct QueryInfo
@@ -68,12 +80,13 @@ struct QueryDescription
 	const char* whereClause { nullptr };
 	const char* joinClause { nullptr };
 	Binder binder { nullptr };
+	IBooksListCreator::Creator listCreator { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
 	const char* seqNumberTableAlias { "b" };
 	const char* with { nullptr };
-	BookSelector bookSelector { &IBookSelector::SelectBooks };
+	IBookSelector::Selector bookSelector { &IBookSelector::SelectBooks };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
 	{
@@ -88,7 +101,8 @@ struct QueryDescription
 
 class BooksTreeGenerator final
 	: public IBooksRootGenerator
-	, public IBooksTreeCreator
+	, IBooksListCreator
+	, IBooksTreeCreator
 {
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
@@ -105,8 +119,11 @@ public:
 	BookInfo GetBookInfo(long long id) const;
 
 private: // IBooksRootGenerator
-	[[nodiscard]] IDataItem::Ptr GetList(Creator creator) const override;
-	[[nodiscard]] IDataItem::Ptr GetTree(Creator creator) const override;
+	[[nodiscard]] IDataItem::Ptr GetList(const QueryDescription&) const override;
+	[[nodiscard]] IDataItem::Ptr GetTree(const QueryDescription&) const override;
+
+private: // IBooksListCreator
+	[[nodiscard]] IDataItem::Ptr CreateGeneralList() const override;
 
 private: // IBooksTreeCreator
 	[[nodiscard]] IDataItem::Ptr CreateAuthorsTree() const override;

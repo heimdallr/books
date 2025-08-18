@@ -163,7 +163,7 @@ public:
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
 	}
 
-	[[nodiscard]] IDataItem::Ptr GetList() const
+	[[nodiscard]] IDataItem::Ptr CreateGeneralList() const
 	{
 		IDataItem::Items items;
 		items.reserve(std::size(m_books));
@@ -458,28 +458,34 @@ BookInfo BooksTreeGenerator::GetBookInfo(const long long id) const
 }
 
 // IBooksRootGenerator
-[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::GetList(Creator) const
+IDataItem::Ptr BooksTreeGenerator::GetList(const QueryDescription& queryDescription) const
 {
-	return m_impl->GetList();
+	return std::invoke(queryDescription.listCreator, static_cast<const IBooksListCreator&>(*this));
 }
 
-[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::GetTree(const Creator creator) const
+IDataItem::Ptr BooksTreeGenerator::GetTree(const QueryDescription& queryDescription) const
 {
-	return ((*this).*creator)();
+	return std::invoke(queryDescription.treeCreator, static_cast<const IBooksTreeCreator&>(*this));
+}
+
+// IBooksListCreator
+IDataItem::Ptr BooksTreeGenerator::CreateGeneralList() const
+{
+	return m_impl->CreateGeneralList();
 }
 
 // IBooksTreeCreator
-[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateAuthorsTree() const
+IDataItem::Ptr BooksTreeGenerator::CreateAuthorsTree() const
 {
 	return m_impl->CreateAuthorsTree();
 }
 
-[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateSeriesTree() const
+IDataItem::Ptr BooksTreeGenerator::CreateSeriesTree() const
 {
 	return m_impl->CreateSeriesTree();
 }
 
-[[nodiscard]] IDataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const
+IDataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const
 {
 	return m_impl->CreateGeneralTree();
 }
