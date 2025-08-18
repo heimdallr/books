@@ -34,7 +34,7 @@ struct ModeDescriptor
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_NAMES[] {
-	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &IModelProvider::CreateListModel } },
+	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &IModelProvider::CreateBookListModel } },
 	{ QT_TRANSLATE_NOOP("Books", "Tree"), { ViewMode::Tree, &IModelProvider::CreateTreeModel } },
 };
 

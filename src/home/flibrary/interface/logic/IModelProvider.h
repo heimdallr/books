@@ -21,6 +21,7 @@ class IModelProvider
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateBookListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateAuthorsListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateScriptModel() const = 0;

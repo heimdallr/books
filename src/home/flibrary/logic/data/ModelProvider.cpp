@@ -2,12 +2,15 @@
 
 #include <Hypodermic/Container.h>
 
+#include "fnd/FindPair.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/logic/ILibRateProvider.h"
 
 #include "model/AuthorsModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
+#include "model/ReviewListModel.h"
 #include "model/SortFilterProxyModel.h"
 #include "model/TreeModel.h"
 #include "model/script/ScriptCommandModel.h"
@@ -80,6 +83,17 @@ struct ModelProvider::Impl
 		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
 	}
+
+	std::shared_ptr<QAbstractItemModel> CreateBookListModel(IDataItem::Ptr dataItem, const bool autoAcceptChildRows) const
+	{
+		using ModelCreator = std::shared_ptr<QAbstractItemModel> (Impl::*)(IDataItem::Ptr, bool) const;
+		static constexpr std::pair<NavigationMode, ModelCreator> creators[] {
+			{ NavigationMode::Reviews, &Impl::CreateModel<ReviewListModel> },
+		};
+
+		const auto modelCreator = FindSecond(creators, navigationMode, &Impl::CreateModel<ListModel>);
+		return std::invoke(modelCreator, *this, std::move(dataItem), autoAcceptChildRows);
+	}
 };
 
 ModelProvider::ModelProvider(Hypodermic::Container& container)
@@ -124,6 +138,11 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
 	return m_impl->CreateModel<TreeModel>(std::move(data), autoAcceptChildRows);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateBookListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+{
+	return m_impl->CreateBookListModel(std::move(data), autoAcceptChildRows);
 }
 
 IDataItem::Ptr ModelProvider::GetData() const noexcept
