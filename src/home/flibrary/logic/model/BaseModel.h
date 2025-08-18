@@ -25,6 +25,12 @@ protected: // QAbstractItemModel
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+protected:
+	virtual IDataItem* GetInternalPointer(const QModelIndex& index) const;
+
+protected:
+	static QVariant GetValue(const IDataItem& item, const int column);
+
 private:
 	QVariant GetAllGenreCodes() const;
 
