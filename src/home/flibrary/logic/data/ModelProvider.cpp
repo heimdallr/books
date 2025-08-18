@@ -2,6 +2,7 @@
 
 #include <Hypodermic/Container.h>
 
+#include "interface/constants/Enums.h"
 #include "interface/logic/ILibRateProvider.h"
 
 #include "model/AuthorsModel.h"
@@ -56,6 +57,7 @@ struct ModelProvider::Impl
 	Hypodermic::Container& container;
 	mutable IDataItem::Ptr data;
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
+	NavigationMode navigationMode { NavigationMode::Unknown };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -144,4 +146,17 @@ std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() cons
 std::shared_ptr<const IGenreFilterProvider> ModelProvider::GetGenreFilterProvider() const
 {
 	return m_impl->container.resolve<IGenreFilterProvider>();
+}
+
+void ModelProvider::OnModeChanged(const int index)
+{
+	m_impl->navigationMode = static_cast<NavigationMode>(index);
+}
+
+void ModelProvider::OnModelChanged(QAbstractItemModel* /*model*/)
+{
+}
+
+void ModelProvider::OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& /*item*/)
+{
 }

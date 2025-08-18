@@ -72,7 +72,7 @@ struct TreeViewControllerBooks::Impl
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
-                                                 const std::shared_ptr<const IModelProvider>& modelProvider,
+                                                 const std::shared_ptr<IModelProvider>& modelProvider,
                                                  const std::shared_ptr<const ILogicFactory>& logicFactory,
                                                  std::shared_ptr<IBookInfoProvider> dataProvider,
                                                  std::shared_ptr<const IReaderController> readerController,

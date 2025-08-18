@@ -4,6 +4,8 @@
 
 #include "interface/logic/IDataItem.h"
 
+#include "ITreeViewController.h"
+
 class QAbstractItemModel;
 
 namespace HomeCompa::Flibrary
@@ -11,10 +13,10 @@ namespace HomeCompa::Flibrary
 class IGenreFilterProvider;
 class ILibRateProvider;
 
-class IModelProvider : public Lockable<IModelProvider> // NOLINT(cppcoreguidelines-special-member-functions)
+class IModelProvider
+	: public ITreeViewController::IObserver
+	, public Lockable<IModelProvider>
 {
-public:
-	virtual ~IModelProvider() = default;
 
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;

@@ -311,7 +311,7 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
 	const std::vector<std::pair<const char*, int>> modes { GetModes() };
 	Util::FunctorExecutionForwarder forwarder;
-	int mode = { -1 };
+	int mode { -1 };
 
 	Impl(TreeViewControllerNavigation& self,
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -602,7 +602,7 @@ private:
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
-                                                           const std::shared_ptr<const IModelProvider>& modelProvider,
+                                                           const std::shared_ptr<IModelProvider>& modelProvider,
                                                            const std::shared_ptr<const ILogicFactory>& logicFactory,
                                                            std::shared_ptr<const ICollectionProvider> collectionProvider,
                                                            std::shared_ptr<INavigationInfoProvider> dataProvider,
@@ -612,6 +612,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(*this, logicFactory, std::move(collectionProvider), std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
 {
+	static_cast<ITreeViewController*>(this)->RegisterObserver(modelProvider.get());
 	Setup();
 
 	m_impl->dataProvider->SetNavigationRequestCallback(
@@ -628,6 +629,8 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
+	if (auto modelProvider = m_modelProvider.lock())
+		static_cast<ITreeViewController*>(this)->UnregisterObserver(modelProvider.get());
 	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 
