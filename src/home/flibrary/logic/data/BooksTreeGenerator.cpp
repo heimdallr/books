@@ -165,8 +165,12 @@ public:
 
 	[[nodiscard]] IDataItem::Ptr CreateReviewsList() const
 	{
+		IDataItem::Items items;
+		items.reserve(std::size(m_reviews));
+		std::ranges::copy(m_reviews | std::views::values, std::back_inserter(items));
+
 		rootCached = CreateBooksRoot({ Loc::READER, Loc::TIME, Loc::COMMENT });
-		rootCached->SetChildren(m_reviews);
+		rootCached->SetChildren(std::move(items));
 		return rootCached;
 	}
 
@@ -293,12 +297,12 @@ private: // IBookSelector
 			return;
 
 		const auto tr = db.CreateTransaction();
-		const auto tmpTable = tr->CreateTemporaryTable({ "LibID VARCHAR (200)", "Name VARCHAR (200)", "Time VARCHAR (20)", "Text BLOB (1024)" });
+		const auto tmpTable = tr->CreateTemporaryTable({ "LibID VARCHAR (200)", "Name VARCHAR (200)", "Time VARCHAR (20)", "Text BLOB (1024)", "ReviewID INTEGER" });
 
 		{
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, Name, Time, Text) values(?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, Name, Time, Text, ReviewID) values(?, ?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
 			Zip zip(folder);
-			for (const auto& file : zip.GetFileNameList())
+			for (int reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
 				QJsonParseError parseError;
 				const auto doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
@@ -317,6 +321,7 @@ private: // IBookSelector
 					insertCommand->Bind(1, recordObject["name"].toString().toStdString());
 					insertCommand->Bind(2, recordObject["time"].toString().toStdString());
 					insertCommand->Bind(3, recordObject["text"].toString().toStdString());
+					insertCommand->Bind(4, ++reviewId);
 					insertCommand->Execute();
 				}
 			}
@@ -324,16 +329,21 @@ private: // IBookSelector
 
 		const auto queryText = QString(BOOKS_QUERY)
 		                           .arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias))
-		                           .arg(QString("join %1 t on t.LibID = b.LibID").arg(tmpTable->GetName().data()), "", "", ", t.Name, t.Time, t.Text")
+		                           .arg(QString("join %1 t on t.LibID = b.LibID").arg(tmpTable->GetName().data()), "", "", ", t.Name, t.Time, t.Text, t.ReviewID")
 		                           .toStdString();
 		const auto query = tr->CreateQuery(queryText);
 		CreateSelectedBookItems(*query,
 		                        [&](const SelectedBookItem& selectedItem)
 		                        {
-									const auto& reviewItem = m_reviews.emplace_back(ReviewItem::Create());
+									auto& reviewItem = m_reviews[query->Get<long long>(static_cast<int>(BookQueryFields::Last) + static_cast<int>(ReviewItem::Column::Last))];
+									if (reviewItem)
+										return;
+
+									reviewItem = ReviewItem::Create();
 									for (int i = 0; i < ReviewItem::Column::Last; ++i)
-										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + 1), i);
-									reviewItem->AppendChild(std::get<0>(selectedItem));
+										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + i), i);
+									const auto& book = reviewItem->AppendChild(std::get<0>(selectedItem));
+									reviewItem->SetId(book->GetId());
 								});
 	}
 
@@ -416,11 +426,11 @@ private:
 	}
 
 private:
+	std::unordered_map<long long, IDataItem::Ptr> m_reviews;
 	std::unordered_map<long long, SelectedBookItem> m_books;
 	std::unordered_map<long long, IDataItem::Ptr> m_series;
 	std::unordered_map<long long, IDataItem::Ptr> m_authors;
 	std::unordered_map<QString, IDataItem::Ptr> m_genres;
-	IDataItem::Items m_reviews;
 };
 
 BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description)
