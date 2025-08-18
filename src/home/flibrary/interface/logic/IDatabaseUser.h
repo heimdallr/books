@@ -71,6 +71,7 @@ struct BookQueryFields
 		GenreFB2Code,
 		SeriesId,
 		SeriesTitle,
+		Last
 	};
 };
 

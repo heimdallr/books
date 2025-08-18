@@ -13,6 +13,7 @@ class IDatabase;
 
 namespace HomeCompa::Flibrary
 {
+struct Collection;
 
 class IBooksTreeCreator // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -37,6 +38,17 @@ public:
 	virtual IDataItem::Ptr GetTree(IBooksTreeCreator::Creator creator) const = 0;
 };
 
+struct QueryDescription;
+
+class IBookSelector // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IBookSelector() = default;
+	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
+	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
+};
+
+using BookSelector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&);
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
 
 struct QueryInfo
@@ -61,6 +73,7 @@ struct QueryDescription
 	BookItem::Mapping treeMapping;
 	const char* seqNumberTableAlias { "b" };
 	const char* with { nullptr };
+	BookSelector bookSelector { &IBookSelector::SelectBooks };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
 	{
@@ -80,7 +93,7 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(DB::IDatabase& db, enum class NavigationMode navigationMode, QString navigationId, const QueryDescription& description);
+	BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, enum class NavigationMode navigationMode, QString navigationId, const QueryDescription& description);
 	~BooksTreeGenerator() override;
 
 public:
