@@ -4,6 +4,8 @@
 
 #include "interface/constants/ModelRole.h"
 
+#include "util/localization.h"
+
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -19,10 +21,36 @@ ReviewListModel::~ReviewListModel()
 	PLOGV << "ReviewListModel destroyed";
 }
 
-int ReviewListModel::columnCount(const QModelIndex& parent) const
+QVariant ReviewListModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
-	const auto* parentItem = parent.isValid() ? static_cast<IDataItem*>(parent.internalPointer()) : m_data.get();
-	return parentItem->GetChildCount() ? parentItem->GetChild(0)->GetColumnCount() + (parentItem->GetChild(0)->GetChildCount() ? parentItem->GetChild(0)->GetChild(0)->GetColumnCount() : 0) : 0;
+	if (orientation != Qt::Horizontal)
+		return {};
+
+	switch (role)
+	{
+		case Qt::DisplayRole:
+		case Role::HeaderTitle:
+		{
+			if (section < m_data->GetColumnCount())
+				return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
+			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last).toUtf8().data());
+		}
+
+		default:
+			break;
+	}
+
+	return {};
+}
+
+int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
+{
+	if (!m_data->GetColumnCount())
+		return 0;
+
+	const auto reviewItem = m_data->GetChild(0);
+	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount();
+	return count;
 }
 
 QVariant ReviewListModel::data(const QModelIndex& index, const int role) const

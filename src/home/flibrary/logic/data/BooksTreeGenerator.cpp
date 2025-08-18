@@ -92,7 +92,9 @@ constexpr size_t BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQue
 IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns = {})
 {
 	IDataItem::Ptr root(BookItem::Create(nullptr, additionalColumns.size()));
-	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&, n = 0](const auto* columnName) mutable { root->SetData(columnName, n++); });
+	int n = 0;
+	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&](const auto* columnName) mutable { root->SetData(columnName, n++); });
+	std::ranges::for_each(additionalColumns, [&](const auto* columnName) mutable { root->SetData(columnName, n++); });
 	return root;
 }
 
