@@ -150,7 +150,7 @@ private:
 				  }
 
 				  generator->SetBooksViewMode(viewMode);
-				  auto root = (*generator.*booksGenerator)(description.treeCreator);
+				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
 				  return
 					  [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](size_t) mutable
 				  {
