@@ -22,6 +22,7 @@ public:
 
 public:
 	virtual ~IBooksListCreator() = default;
+	[[nodiscard]] virtual IDataItem::Ptr CreateReviewsList() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralList() const = 0;
 };
 
@@ -123,6 +124,7 @@ private: // IBooksRootGenerator
 	[[nodiscard]] IDataItem::Ptr GetTree(const QueryDescription&) const override;
 
 private: // IBooksListCreator
+	[[nodiscard]] IDataItem::Ptr CreateReviewsList() const override;
 	[[nodiscard]] IDataItem::Ptr CreateGeneralList() const override;
 
 private: // IBooksTreeCreator

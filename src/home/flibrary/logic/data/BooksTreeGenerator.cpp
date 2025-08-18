@@ -89,9 +89,9 @@ constexpr size_t BOOK_QUERY_TO_AUTHOR[] {
 constexpr size_t BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
 constexpr size_t BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle, BookQueryFields::GenreFB2Code };
 
-IDataItem::Ptr CreateBooksRoot()
+IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns = {})
 {
-	IDataItem::Ptr root(BookItem::Create());
+	IDataItem::Ptr root(BookItem::Create(nullptr, additionalColumns.size()));
 	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&, n = 0](const auto* columnName) mutable { root->SetData(columnName, n++); });
 	return root;
 }
@@ -161,6 +161,13 @@ public:
 	{
 		if (!this->navigationId.isEmpty())
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
+	}
+
+	[[nodiscard]] IDataItem::Ptr CreateReviewsList() const
+	{
+		rootCached = CreateBooksRoot({ Loc::READER, Loc::TIME, Loc::COMMENT });
+		rootCached->SetChildren(m_reviews);
+		return rootCached;
 	}
 
 	[[nodiscard]] IDataItem::Ptr CreateGeneralList() const
@@ -469,6 +476,11 @@ IDataItem::Ptr BooksTreeGenerator::GetTree(const QueryDescription& queryDescript
 }
 
 // IBooksListCreator
+IDataItem::Ptr BooksTreeGenerator::CreateReviewsList() const
+{
+	return m_impl->CreateReviewsList();
+}
+
 IDataItem::Ptr BooksTreeGenerator::CreateGeneralList() const
 {
 	return m_impl->CreateGeneralList();
