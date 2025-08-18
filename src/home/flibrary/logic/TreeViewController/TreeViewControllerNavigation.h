@@ -4,6 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IAuthorAnnotationController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -22,6 +23,7 @@ public:
 	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
 	                             const std::shared_ptr<const IModelProvider>& modelProvider,
 	                             const std::shared_ptr<const ILogicFactory>& logicFactory,
+	                             std::shared_ptr<const ICollectionProvider> collectionProvider,
 	                             std::shared_ptr<INavigationInfoProvider> dataProvider,
 	                             std::shared_ptr<IUiFactory> uiFactory,
 	                             std::shared_ptr<IDatabaseController> databaseController,
