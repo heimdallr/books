@@ -2,8 +2,9 @@
 
 #include "interface/constants/ModelRole.h"
 
-#include "log.h"
 #include "util/localization.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 

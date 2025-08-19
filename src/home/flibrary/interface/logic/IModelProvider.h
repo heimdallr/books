@@ -17,7 +17,6 @@ class IModelProvider
 	: public ITreeViewController::IObserver
 	, public Lockable<IModelProvider>
 {
-
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const = 0;
