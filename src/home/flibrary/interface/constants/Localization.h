@@ -26,7 +26,7 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 #endif
 
 constexpr auto READER = QT_TRANSLATE_NOOP("Book", "Reader");
-constexpr auto TIME = QT_TRANSLATE_NOOP("Book", "Time");
+constexpr auto DATE_TIME = QT_TRANSLATE_NOOP("Book", "Date, Time");
 constexpr auto COMMENT = QT_TRANSLATE_NOOP("Book", "Comment");
 
 constexpr auto NAVIGATION = "Navigation";

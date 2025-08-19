@@ -176,7 +176,7 @@ public:
 		items.reserve(std::size(m_reviews));
 		std::ranges::copy(m_reviews | std::views::values, std::back_inserter(items));
 
-		rootCached = CreateBooksRoot({ Loc::READER, Loc::TIME, Loc::COMMENT });
+		rootCached = CreateBooksRoot({ Loc::READER, Loc::DATE_TIME, Loc::COMMENT });
 		rootCached->SetChildren(std::move(items));
 		return rootCached;
 	}
@@ -250,7 +250,7 @@ public:
 			reviewer->AppendChild(reviewItem);
 		}
 
-		rootCached = CreateBooksRoot({ Loc::READER, Loc::TIME, Loc::COMMENT });
+		rootCached = CreateBooksRoot({ Loc::READER, Loc::DATE_TIME, Loc::COMMENT });
 		for (auto&& reviewer : reviewers | std::views::values)
 			rootCached->AppendChild(std::move(reviewer));
 		return rootCached;
