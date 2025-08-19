@@ -1,7 +1,5 @@
 #include "ReviewListModel.h"
 
-#include "fnd/IsOneOf.h"
-
 #include "interface/constants/ModelRole.h"
 
 #include "util/localization.h"
