@@ -23,6 +23,7 @@
 #include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
 #include "util/SortString.h"
+#include "util/localization.h"
 
 #include "log.h"
 #include "zip.h"
@@ -32,6 +33,10 @@ using namespace Flibrary;
 
 namespace
 {
+
+constexpr auto CONTEXT = "BooksTreeGenerator";
+constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("BooksTreeGenerator", "Anonymous");
+TR_DEF
 
 using IdsSet = std::unordered_set<long long>;
 
@@ -230,6 +235,27 @@ public:
 		return rootCached;
 	}
 
+	[[nodiscard]] IDataItem::Ptr CreateReviewsTree() const
+	{
+		std::unordered_map<QString, IDataItem::Ptr> reviewers;
+		for (const auto& reviewItem : m_reviews | std::views::values)
+		{
+			auto& reviewer = reviewers[reviewItem->GetData(ReviewItem::Column::Name)];
+			if (!reviewer)
+			{
+				reviewer = NavigationItem::Create();
+				reviewer->SetData(reviewItem->GetData(ReviewItem::Column::Name));
+			}
+
+			reviewer->AppendChild(reviewItem);
+		}
+
+		rootCached = CreateBooksRoot({ Loc::READER, Loc::TIME, Loc::COMMENT });
+		for (auto&& reviewer : reviewers | std::views::values)
+			rootCached->AppendChild(std::move(reviewer));
+		return rootCached;
+	}
+
 	[[nodiscard]] IDataItem::Ptr CreateGeneralTree() const
 	{
 		using SeriesToBooks = std::unordered_map<long long, IdsSet>;
@@ -342,10 +368,12 @@ private: // IBookSelector
 										return;
 
 									reviewItem = ReviewItem::Create();
+									const auto bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
+									reviewItem->SetId(bookItem->GetId());
 									for (int i = 0; i < ReviewItem::Column::Last; ++i)
 										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + i), i);
-									const auto& book = reviewItem->AppendChild(std::get<0>(selectedItem));
-									reviewItem->SetId(book->GetId());
+									if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
+										reviewItem->SetData(Tr(ANONYMOUS), ReviewItem::Column::Name);
 								});
 	}
 
@@ -507,6 +535,11 @@ IDataItem::Ptr BooksTreeGenerator::CreateAuthorsTree() const
 IDataItem::Ptr BooksTreeGenerator::CreateSeriesTree() const
 {
 	return m_impl->CreateSeriesTree();
+}
+
+IDataItem::Ptr BooksTreeGenerator::CreateReviewsTree() const
+{
+	return m_impl->CreateReviewsTree();
 }
 
 IDataItem::Ptr BooksTreeGenerator::CreateGeneralTree() const

@@ -35,6 +35,7 @@ public:
 	virtual ~IBooksTreeCreator() = default;
 	[[nodiscard]] virtual IDataItem::Ptr CreateAuthorsTree() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateSeriesTree() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr CreateReviewsTree() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralTree() const = 0;
 };
 
@@ -130,6 +131,7 @@ private: // IBooksListCreator
 private: // IBooksTreeCreator
 	[[nodiscard]] IDataItem::Ptr CreateAuthorsTree() const override;
 	[[nodiscard]] IDataItem::Ptr CreateSeriesTree() const override;
+	[[nodiscard]] IDataItem::Ptr CreateReviewsTree() const override;
 	[[nodiscard]] IDataItem::Ptr CreateGeneralTree() const override;
 
 private:
