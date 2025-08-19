@@ -279,6 +279,14 @@
 		<translation>Автор</translation>
 	</message>
 	<message>
+		<source>Comment</source>
+		<translation>Коментар</translation>
+	</message>
+	<message>
+		<source>Date, Time</source>
+		<translation>Дата, час</translation>
+	</message>
+	<message>
 		<source>FileName</source>
 		<translation>Файл</translation>
 	</message>
@@ -299,12 +307,16 @@
 		<translation>Рейтинг</translation>
 	</message>
 	<message>
+		<source>Reader</source>
+		<translation>Читач</translation>
+	</message>
+	<message>
 		<source>SeqNumber</source>
 		<translation>№</translation>
 	</message>
 	<message>
 		<source>Series</source>
-		<translation>Серії</translation>
+		<translation>Серія</translation>
 	</message>
 	<message>
 		<source>Size</source>
@@ -475,6 +487,13 @@
 	<message>
 		<source>Tree</source>
 		<translation>Дерево</translation>
+	</message>
+</context>
+<context>
+	<name>BooksTreeGenerator</name>
+	<message>
+		<source>Anonymous</source>
+		<translation>Анонім</translation>
 	</message>
 </context>
 <context>
@@ -4865,6 +4884,10 @@ Try again?</source>
 	<message>
 		<source>Rename group...</source>
 		<translation>Перейменувати групу...</translation>
+	</message>
+	<message>
+		<source>Reviews</source>
+		<translation>Відгуки</translation>
 	</message>
 	<message>
 		<source>Search</source>

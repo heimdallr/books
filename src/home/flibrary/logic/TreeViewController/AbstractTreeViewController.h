@@ -15,13 +15,13 @@ namespace HomeCompa::Flibrary
 {
 
 class AbstractTreeViewController
-	: virtual public ITreeViewController
+	: public ITreeViewController
 	, public Observable<ITreeViewController::IObserver>
 {
 	NON_COPY_MOVABLE(AbstractTreeViewController)
 
 protected:
-	explicit AbstractTreeViewController(const char* context, std::shared_ptr<ISettings> settings, const std::shared_ptr<const IModelProvider>& modelProvider);
+	explicit AbstractTreeViewController(const char* context, std::shared_ptr<ISettings> settings, const std::shared_ptr<IModelProvider>& modelProvider);
 	~AbstractTreeViewController() override;
 
 private: // ITreeViewController
@@ -55,7 +55,7 @@ protected:
 protected:
 	const char* const m_context;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	std::weak_ptr<const IModelProvider> m_modelProvider;
+	std::weak_ptr<IModelProvider> m_modelProvider;
 
 private:
 	struct Impl;

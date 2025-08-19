@@ -34,8 +34,8 @@ struct ModeDescriptor
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_NAMES[] {
-	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &IModelProvider::CreateListModel } },
-	{ QT_TRANSLATE_NOOP("Books", "Tree"), { ViewMode::Tree, &IModelProvider::CreateTreeModel } },
+	{ QT_TRANSLATE_NOOP("Books", "List"), { ViewMode::List, &IModelProvider::CreateBookListModel } },
+	{ QT_TRANSLATE_NOOP("Books", "Tree"), { ViewMode::Tree, &IModelProvider::CreateBookTreeModel } },
 };
 
 static_assert(std::size(MODE_NAMES) == static_cast<size_t>(ViewMode::Last));
@@ -72,7 +72,7 @@ struct TreeViewControllerBooks::Impl
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
-                                                 const std::shared_ptr<const IModelProvider>& modelProvider,
+                                                 const std::shared_ptr<IModelProvider>& modelProvider,
                                                  const std::shared_ptr<const ILogicFactory>& logicFactory,
                                                  std::shared_ptr<IBookInfoProvider> dataProvider,
                                                  std::shared_ptr<const IReaderController> readerController,

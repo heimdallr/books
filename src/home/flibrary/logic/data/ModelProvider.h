@@ -15,7 +15,7 @@ class Container;
 namespace HomeCompa::Flibrary
 {
 
-class ModelProvider final : virtual public IModelProvider
+class ModelProvider final : public IModelProvider
 {
 	NON_COPY_MOVABLE(ModelProvider)
 
@@ -26,6 +26,8 @@ public:
 private: // IModelProvider
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateBookListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateBookTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateAuthorsListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateSearchListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> CreateScriptModel() const override;
@@ -34,6 +36,11 @@ private: // IModelProvider
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> GetSourceModel() const noexcept override;
 	[[nodiscard]] std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const override;
 	[[nodiscard]] std::shared_ptr<const IGenreFilterProvider> GetGenreFilterProvider() const override;
+
+private: // ITreeViewController::IObserver
+	void OnModeChanged(int index) override;
+	void OnModelChanged(QAbstractItemModel* model) override;
+	void OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) override;
 
 private:
 	struct Impl;

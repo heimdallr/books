@@ -279,6 +279,14 @@
 		<translation></translation>
 	</message>
 	<message>
+		<source>Comment</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Date, Time</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>FileName</source>
 		<translation>File</translation>
 	</message>
@@ -297,6 +305,10 @@
 	<message>
 		<source>LibRate</source>
 		<translation>Lib rate</translation>
+	</message>
+	<message>
+		<source>Reader</source>
+		<translation></translation>
 	</message>
 	<message>
 		<source>SeqNumber</source>
@@ -474,6 +486,13 @@
 	</message>
 	<message>
 		<source>Tree</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>BooksTreeGenerator</name>
+	<message>
+		<source>Anonymous</source>
 		<translation></translation>
 	</message>
 </context>
@@ -4852,6 +4871,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Rename group...</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Reviews</source>
 		<translation></translation>
 	</message>
 	<message>

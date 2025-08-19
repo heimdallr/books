@@ -165,7 +165,7 @@ private: // QStyledItemDelegate
 private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
-		const auto column = BookItem::Remap(index.column());
+		const auto column = index.data(Role::Remap).toInt();
 		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::SeqNumber))
 			o.displayAlignment = Qt::AlignRight;
 
