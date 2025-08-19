@@ -29,9 +29,8 @@ QVariant ReviewListModel::headerData(const int section, const Qt::Orientation or
 		case Qt::DisplayRole:
 		case Role::HeaderTitle:
 		{
-			if (section < m_data->GetColumnCount())
-				return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
-			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last).toUtf8().data());
+			const auto data = section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last);
+			return Loc::Tr(Loc::Ctx::BOOK, data.toUtf8().data());
 		}
 
 		default:
@@ -43,8 +42,7 @@ QVariant ReviewListModel::headerData(const int section, const Qt::Orientation or
 
 int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
 {
-	if (!m_data->GetColumnCount())
-		return 0;
+	assert(m_data->GetChildCount());
 
 	const auto reviewItem = m_data->GetChild(0);
 	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount();
@@ -70,7 +68,7 @@ QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 		}
 	}
 
-	return BaseModel::data(index, role);
+	return ListModel::data(index, role);
 }
 
 IDataItem* ReviewListModel::GetInternalPointer(const QModelIndex& index) const
