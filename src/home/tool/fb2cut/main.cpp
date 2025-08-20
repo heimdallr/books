@@ -85,8 +85,6 @@ constexpr auto PATH = "path";
 constexpr auto COMMANDLINE = "list of options";
 constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
-constexpr auto COVER_ID = "COVER_COVER_COVER_COVER123";
-
 const std::vector<QString> FB2_TAGS { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
 
 struct DataItem
@@ -102,18 +100,21 @@ struct ImageStatisticsItem
 {
 	enum class PixelSchema
 	{
+		Unknown = -1,
 		Normal,
 		GrayScale,
 		Alpha,
 	};
 	QString folder;
 	QString fileName;
-	QString ordNum;
-	size_t size;
-	int width;
-	int height;
-	PixelSchema schema;
-	QString md5;
+	QString imageId;
+	QString fail;
+	bool isCover { false };
+	qsizetype size { 0 };
+	int width { 0 };
+	int height { 0 };
+	PixelSchema schema { PixelSchema::Unknown };
+	QString hash;
 };
 
 using ImageStatistics = std::vector<ImageStatisticsItem>;
@@ -464,12 +465,33 @@ private:
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body)
 		{
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
-			if (!settings.save)
+			if (!settings.save && m_settings.imageStatistics.isEmpty())
 				return;
 
-			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name));
+			int width = 0;
+			int height = 0;
+			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
+			const char* fail = nullptr;
+			ScopedCall statGuard(
+				[&, name]() mutable
+				{
+					if (m_settings.imageStatistics.isEmpty())
+						return;
+
+					m_hash.reset();
+					m_hash.addData(body);
+					m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
+				});
+
+			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail);
 			if (image.isNull())
 				return;
+
+			width = image.width();
+			height = image.height();
+
+			if (image.pixelFormat().colorModel() == QPixelFormat::Grayscale)
+				pixelSchema = ImageStatisticsItem::PixelSchema::GrayScale;
 
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
@@ -479,13 +501,20 @@ private:
 
 			const auto pixelFormat = image.pixelFormat();
 			const bool hasAlpha = pixelFormat.alphaUsage() == QPixelFormat::UsesAlpha;
+			if (pixelSchema == ImageStatisticsItem::PixelSchema::Unknown)
+				pixelSchema = hasAlpha ? ImageStatisticsItem::PixelSchema::Alpha : ImageStatisticsItem::PixelSchema::Normal;
+
+			if (!settings.save)
+				return;
+
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
 				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, hasAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
 
 			m_hash.reset();
-			for (auto h = 0, height = image.height(), width = image.width(); h < height; ++h)
-				m_hash.addData(QByteArrayView { std::bit_cast<const char*>(image.constScanLine(h)), static_cast<qsizetype>(width) * pixelFormat.channelCount() });
+			for (auto h = 0, szH = image.height(), szW = image.width(); h < szH; ++h)
+				m_hash.addData(QByteArrayView { std::bit_cast<const char*>(image.constScanLine(h)), static_cast<qsizetype>(szW) * pixelFormat.channelCount() });
 			auto hash = QString::fromUtf8(m_hash.result().toHex());
+
 			if (const auto it = uniqueData.find(hash); it != uniqueData.end())
 			{
 				if (isCover)
@@ -510,7 +539,7 @@ private:
 		return bodyOutput;
 	}
 
-	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile) const
+	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile, const char*& fail) const
 	{
 		struct Signature
 		{
@@ -542,16 +571,16 @@ private:
 		}
 
 		if (const auto it = std::ranges::find_if(signatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
-			return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
 
 		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
-			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
 
 		if (const auto it = std::ranges::find_if(knownSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
-			return AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
+			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
 
 		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
 	}
@@ -570,7 +599,7 @@ private:
 
 	QImage TryToFix(const char* imageType, const QString& imageFile, const QByteArray& body) const
 	{
-		if (m_settings.ffmpeg.isEmpty())
+		if (m_settings.ffmpeg.isEmpty() || body.size() < 128)
 			return {};
 
 		QProcess process;
@@ -734,8 +763,9 @@ private:
 		if (!m_imageStatisticsStream)
 			return;
 
-		for (const auto& [folder, fileName, ordNum, size, width, height, schema, md5] : m_imageStatistics)
-			(*m_imageStatisticsStream) << folder << ',' << fileName << ',' << ordNum << ',' << static_cast<int>(schema) << ',' << size << ',' << width << ',' << height << ',' << md5 << '\n';
+		for (const auto& [folder, fileName, imageId, fail, isCover, size, width, height, schema, hash] : m_imageStatistics)
+			(*m_imageStatisticsStream) << folder << '|' << fileName << '|' << imageId << '|' << fail << '|' << (isCover ? 1 : 0) << '|' << static_cast<int>(schema) << '|' << size << '|' << width << '|' << height << '|'
+									   << hash << '\n';
 
 		m_imageStatisticsStream->flush();
 	}
@@ -968,10 +998,10 @@ QStringList ProcessArchives(Settings& settings)
 	QFile imageStatisticsFile(settings.imageStatistics);
 	if (!settings.imageStatistics.isEmpty())
 	{
-		if (!imageStatisticsFile.open(QIODevice::WriteOnly))
+		if (!imageStatisticsFile.open(QIODevice::Append))
 			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
 		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
-		*imageStatisticsStream << "#archive,fb2_file,ord_num,pixel_type,image_file_size,Width,height,hash";
+		*imageStatisticsStream << "#ARCHIVE|FB2_FILE|IMAGE_ID|FAIL_INFO|IS_COVER|PIXEL_TYPE|IMAGE_FILE_SIZE|WIDTH|HEIGHT|HASH\n";
 	}
 
 	std::atomic_int fileCount;

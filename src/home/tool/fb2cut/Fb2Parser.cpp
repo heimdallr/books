@@ -1,7 +1,6 @@
 #include "Fb2Parser.h"
 
-#include <QHash>
-
+#include <set>
 #include <stack>
 #include <unordered_set>
 
@@ -12,7 +11,6 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 
-#include "common/Constant.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
@@ -57,7 +55,9 @@ private: // Util::SaxParser
 	{
 		if (IsOneOf(path, BINARY, BODY_BINARY))
 		{
-			m_picId = attributes.GetAttribute(ID);
+			m_picId = attributes.GetAttribute(ID).trimmed();
+			if (const auto it = std::ranges::find_if(m_picId, [](const auto ch) { return ch != '#'; }); it != m_picId.end())
+				m_picId = m_picId.last(std::distance(it, m_picId.end())).trimmed();
 			return true;
 		}
 
@@ -70,7 +70,7 @@ private: // Util::SaxParser
 				if (attributeName.endsWith(":href"))
 				{
 					if (const auto it = std::ranges::find_if(attributeValue, [](const auto ch) { return ch != '#'; }); it != attributeValue.end())
-						m_coverPage = attributeValue.last(std::distance(it, attributeValue.end()));
+						m_coverPage = attributeValue.last(std::distance(it, attributeValue.end())).trimmed();
 					break;
 				}
 			}
