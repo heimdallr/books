@@ -1,5 +1,6 @@
 ﻿#include <QCoreApplication>
 #include <QStandardPaths>
+#include <QTimer>
 #include <QTranslator>
 
 #include <plog/Appenders/ConsoleAppender.h>
@@ -7,6 +8,8 @@
 
 #include "interface/IServer.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/constants/SettingsConstant.h"
+#include "interface/logic/ICollectionAutoUpdater.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
@@ -28,6 +31,32 @@ namespace
 {
 constexpr auto APP_ID = "opds";
 
+class CollectionAutoUpdaterObserver final : Flibrary::ICollectionAutoUpdater::IObserver
+{
+	NON_COPY_MOVABLE(CollectionAutoUpdaterObserver)
+
+public:
+	explicit CollectionAutoUpdaterObserver(Flibrary::ICollectionAutoUpdater& updater)
+		: m_updater { updater }
+	{
+		m_updater.RegisterObserver(this);
+	}
+
+	~CollectionAutoUpdaterObserver() override
+	{
+		m_updater.UnregisterObserver(this);
+	}
+
+private: // ICollectionAutoUpdater::IObserver
+	void OnCollectionUpdated() override
+	{
+		QTimer::singleShot(0, [] { QCoreApplication::exit(Flibrary::Constant::RESTART_APP); });
+	}
+
+private:
+	Flibrary::ICollectionAutoUpdater& m_updater;
+};
+
 int run(int argc, char* argv[])
 {
 	const QCoreApplication app(argc, argv);
@@ -45,6 +74,14 @@ int run(int argc, char* argv[])
 
 		auto settings = container->resolve<ISettings>();
 		Flibrary::Genre::SetSortMode(*settings);
+
+		std::shared_ptr<Flibrary::ICollectionAutoUpdater> collectionAutoUpdater;
+		std::unique_ptr<CollectionAutoUpdaterObserver> collectionAutoUpdaterObserver;
+		if (settings->Get(Flibrary::Constant::Settings::OPDS_AUTOUPDATE_COLLECTION, false))
+		{
+			collectionAutoUpdater = container->resolve<Flibrary::ICollectionAutoUpdater>();
+			collectionAutoUpdaterObserver = std::make_unique<CollectionAutoUpdaterObserver>(*collectionAutoUpdater);
+		}
 
 		Util::QStringWrapper::SetLocale(Loc::GetLocale(*settings));
 		const auto translators = Loc::LoadLocales(*settings); //-V808

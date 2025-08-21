@@ -185,7 +185,7 @@ public:
 		CreateViewNavigationMenu();
 		LoadGeometry();
 		StartDelayed(
-			[&, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
+			[this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable
 			{
 				if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
 				{
@@ -201,7 +201,14 @@ public:
 				}
 
 				auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
-				collectionUpdateCheckerRef.CheckForUpdate([collectionUpdateChecker = std::move(collectionUpdateChecker)](bool) mutable { collectionUpdateChecker.reset(); });
+				collectionUpdateCheckerRef.CheckForUpdate(
+					[this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable
+					{
+						if (result)
+							m_collectionController->OnInpxUpdateChecked(updatedCollection);
+
+						collectionUpdateChecker.reset();
+					});
 			});
 
 		if (m_checkForUpdateOnStartEnabled)
@@ -1175,7 +1182,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<IUiFactory> uiFactory,
                        std::shared_ptr<ISettings> settings,
                        std::shared_ptr<ICollectionController> collectionController,
-                       std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker,
+                       std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
                        std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
                        std::shared_ptr<IAnnotationController> annotationController,
                        std::shared_ptr<AnnotationWidget> annotationWidget,

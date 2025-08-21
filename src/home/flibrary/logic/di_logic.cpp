@@ -7,6 +7,7 @@
 #include "Annotation/AnnotationController.h"
 #include "Annotation/AuthorAnnotationController.h"
 #include "ChangeNavigationController/SearchController.h"
+#include "Collection/CollectionAutoUpdater.h"
 #include "Collection/CollectionCleaner.h"
 #include "Collection/CollectionController.h"
 #include "Collection/CollectionProvider.h"
@@ -38,7 +39,6 @@
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
 #include "userdata/UserDataController.h"
-#include "util/ISettings.h"
 #include "util/Settings.h"
 #include "util/app.h"
 
@@ -51,6 +51,7 @@ namespace HomeCompa::Flibrary
 
 void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
+	builder.registerType<CollectionAutoUpdater>().as<ICollectionAutoUpdater>();
 	builder.registerType<CollectionCleaner>().as<ICollectionCleaner>();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
@@ -63,10 +64,10 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
 	builder.registerType<ScriptController>().as<IScriptController>();
+	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UpdateChecker>().as<IUpdateChecker>();
 	builder.registerType<UserDataController>().as<IUserDataController>();
-	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<AuthorAnnotationController>().as<IAuthorAnnotationController>().singleInstance();

@@ -38,6 +38,7 @@ private: // ICollectionProvider
 	void UnregisterObserver(ICollectionsObserver* observer) override;
 	void OnActiveCollectionChanged() override;
 	void OnNewCollectionCreating(bool) override;
+	IniMapPair GetIniMap(const QString& db, const QString& inpxFolder, bool createFiles) const override;
 
 private:
 	class Impl;
