@@ -45,7 +45,7 @@ public:
 	           std::shared_ptr<IUiFactory> uiFactory,
 	           std::shared_ptr<ISettings> settings,
 	           std::shared_ptr<ICollectionController> collectionController,
-	           std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker,
+	           std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	           std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
 	           std::shared_ptr<IAnnotationController> annotationController,
 	           std::shared_ptr<AnnotationWidget> annotationWidget,

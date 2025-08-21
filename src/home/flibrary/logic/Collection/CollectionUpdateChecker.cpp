@@ -40,18 +40,18 @@ QString GetFileHash(const std::set<QString>& fileNames)
 
 struct CollectionUpdateChecker::Impl
 {
-	std::shared_ptr<ICollectionController> collectionController;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<const IDatabaseUser> databaseUser;
 
-	Impl(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<const IDatabaseUser> databaseUser)
-		: collectionController(std::move(collectionController))
-		, databaseUser(std::move(databaseUser))
+	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+		: collectionProvider { std::move(collectionProvider) }
+		, databaseUser { std::move(databaseUser) }
 	{
 	}
 };
 
-CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<IDatabaseUser> databaseUser)
-	: m_impl(std::move(collectionController), std::move(databaseUser))
+CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+	: m_impl(std::move(collectionProvider), std::move(databaseUser))
 {
 	PLOGV << "CollectionUpdateChecker created";
 }
@@ -63,8 +63,8 @@ CollectionUpdateChecker::~CollectionUpdateChecker()
 
 void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 {
-	if (!m_impl->collectionController->ActiveCollectionExists())
-		return callback(false);
+	if (!m_impl->collectionProvider->ActiveCollectionExists())
+		return callback(false, Collection {});
 
 	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute({ "Check for collection index updated",
@@ -72,27 +72,19 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 	                                {
 										std::function<void(size_t)> result;
 
-										const auto& collection = m_impl->collectionController->GetActiveCollection();
+										const auto& collection = m_impl->collectionProvider->GetActiveCollection();
 										const auto collectionFolder = collection.folder;
-										const auto inpxFiles = m_impl->collectionController->GetInpxFiles(collectionFolder);
+										const auto inpxFiles = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
 
 										Collection updatedCollection = collection;
 										if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
 										{
-											result = [callback = std::move(callback)](size_t) { callback(false); };
+											result = [&updatedCollection, callback = std::move(callback)](size_t) { callback(false, updatedCollection); };
 											return result;
 										}
 
 										const auto checkResult = Inpx::Parser::CheckForUpdate(collectionFolder.toStdWString(), *db);
-										result =
-											[checkResult, collectionController = m_impl->collectionController, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable
-										{
-											if (!checkResult)
-												return callback(false);
-
-											collectionController->OnInpxUpdateChecked(updatedCollection);
-											callback(true);
-										};
+										result = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable { callback(checkResult, updatedCollection); };
 
 										return result;
 									} },
