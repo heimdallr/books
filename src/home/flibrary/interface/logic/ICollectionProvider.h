@@ -9,6 +9,10 @@
 
 #include "fnd/observer.h"
 
+#include "inpx/src/util/inpx.h"
+
+class QTemporaryDir;
+
 namespace HomeCompa::Flibrary
 {
 
@@ -37,6 +41,9 @@ public:
 class ICollectionProvider : public ICollectionsObserver
 {
 public:
+	using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, Inpx::Parser::IniMap>;
+
+public:
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
 	[[nodiscard]] virtual bool IsCollectionNameExists(const QString& name) const = 0;
@@ -50,6 +57,7 @@ public:
 	[[nodiscard]] virtual const Collection& GetActiveCollection() const noexcept = 0;
 	[[nodiscard]] virtual bool ActiveCollectionExists() const noexcept = 0;
 	[[nodiscard]] virtual QString GetActiveCollectionId() const noexcept = 0;
+	[[nodiscard]] virtual IniMapPair GetIniMap(const QString& db, const QString& inpxFolder, bool createFiles) const = 0;
 
 	virtual void RegisterObserver(ICollectionsObserver* observer) = 0;
 	virtual void UnregisterObserver(ICollectionsObserver* observer) = 0;
