@@ -4,6 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionAutoUpdater.h"
+#include "interface/logic/ICollectionProvider.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -13,7 +14,7 @@ class CollectionAutoUpdater final : virtual public ICollectionAutoUpdater
 	NON_COPY_MOVABLE(CollectionAutoUpdater)
 
 public:
-	CollectionAutoUpdater();
+	explicit CollectionAutoUpdater(std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~CollectionAutoUpdater() override;
 
 private: // ICollectionAutoUpdater

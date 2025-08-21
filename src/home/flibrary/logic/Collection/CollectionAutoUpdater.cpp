@@ -1,16 +1,100 @@
 #include "CollectionAutoUpdater.h"
 
+#include <QCryptographicHash>
+
+#include <QDir>
+#include <QFileSystemWatcher>
+#include <QTimer>
+
+#include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
 #include "log.h"
+#include "zip.h"
 
 using namespace HomeCompa::Flibrary;
 
 class CollectionAutoUpdater::Impl final : public Observable<IObserver>
 {
+public:
+	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: m_collectionProvider { std::move(collectionProvider) }
+	{
+		if (!m_collectionProvider->ActiveCollectionExists())
+			return;
+
+		m_timer.setSingleShot(true);
+		m_timer.setInterval(std::chrono::minutes(1));
+		QObject::connect(&m_timer, &QTimer::timeout, [this] { Update(); });
+
+		QObject::connect(&m_watcher,
+		                 &QFileSystemWatcher::fileChanged,
+		                 [this](QString fileName)
+		                 {
+							 PLOGI << fileName << " update detected";
+							 m_hash.try_emplace(std::move(fileName), QString {});
+							 m_timer.start();
+						 });
+
+		const QDir folder(m_collectionProvider->GetActiveCollection().folder);
+		for (const auto& inpx : folder.entryList({ "*.inpx" }, QDir::Files))
+			m_watcher.addPath(folder.filePath(inpx));
+	}
+
+private:
+	void Update()
+	{
+		if (std::ranges::any_of(m_hash,
+		                        [](auto& item)
+		                        {
+									QCryptographicHash hash(QCryptographicHash::Md5);
+									QFile file(item.first);
+									if (!file.open(QIODevice::ReadOnly))
+										return true;
+
+									hash.addData(&file);
+									if (Util::Set(item.second, QString::fromUtf8(hash.result().toHex())))
+										return true;
+
+									try
+									{
+										Zip zip(item.first);
+										for (const auto& fileName : zip.GetFileNameList())
+											PLOGV << fileName << ": " << zip.GetFileTime(fileName).toString() << ", " << zip.Read(fileName)->GetStream().readAll().size();
+									}
+									catch (...)
+									{
+										return true;
+									}
+									return false;
+								}))
+			return m_timer.start();
+
+		const auto& collection = m_collectionProvider->GetActiveCollection();
+		auto parser = std::make_shared<Inpx::Parser>();
+		auto& parserRef = *parser;
+		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
+		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable
+		{
+			if (updateResult.oldDataUpdateFound)
+				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
+
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
+			Perform(&IObserver::OnCollectionUpdated);
+		};
+		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
+	}
+
+private:
+	const std::shared_ptr<const ICollectionProvider> m_collectionProvider;
+	QTimer m_timer;
+	QFileSystemWatcher m_watcher;
+	std::unordered_map<QString, QString> m_hash;
 };
 
-CollectionAutoUpdater::CollectionAutoUpdater()
+CollectionAutoUpdater::CollectionAutoUpdater(std::shared_ptr<const ICollectionProvider> collectionProvider)
+	: m_impl(std::move(collectionProvider))
 {
 	PLOGV << "CollectionAutoUpdater created";
 }
