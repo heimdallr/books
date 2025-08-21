@@ -53,6 +53,8 @@ private:
 		const QDir folder(m_collectionProvider->GetActiveCollection().folder);
 		for (const auto& inpx : folder.entryList({ "*.inpx" }, QDir::Files))
 			m_watcher.addPath(folder.filePath(inpx));
+
+		PLOGD << "watch for: " << m_watcher.files().join(", ");
 	}
 
 	void Check()
@@ -64,11 +66,17 @@ private:
 								QCryptographicHash hash(QCryptographicHash::Md5);
 								QFile file(item.first);
 								if (!file.open(QIODevice::ReadOnly))
+								{
+									PLOGW << "Cannot read " << item.first;
 									return true;
+								}
 
 								hash.addData(&file);
 								if (Util::Set(item.second, QString::fromUtf8(hash.result().toHex())))
+								{
+									PLOGW << item.first << " hash changed: " << item.second;
 									return true;
+								}
 
 								try
 								{
@@ -78,8 +86,10 @@ private:
 								}
 								catch (...)
 								{
+									PLOGW << "Cannot unpack" << item.first;
 									return true;
 								}
+
 								return false;
 							})
 			? m_timer.start()
@@ -88,7 +98,7 @@ private:
 
 	void Update() const
 	{
-		PLOGD << "Check started";
+		PLOGD << "Update started";
 		const auto& collection = m_collectionProvider->GetActiveCollection();
 		auto parser = std::make_shared<Inpx::Parser>();
 		auto& parserRef = *parser;
@@ -100,6 +110,7 @@ private:
 
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
 			Perform(&IObserver::OnCollectionUpdated);
+			PLOGD << "Update finished";
 		};
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
 	}
