@@ -5,6 +5,7 @@
 
 #include "interface/logic/ICollectionAutoUpdater.h"
 #include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/ICollectionUpdateChecker.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -14,7 +15,7 @@ class CollectionAutoUpdater final : virtual public ICollectionAutoUpdater
 	NON_COPY_MOVABLE(CollectionAutoUpdater)
 
 public:
-	explicit CollectionAutoUpdater(std::shared_ptr<const ICollectionProvider> collectionProvider);
+	CollectionAutoUpdater(std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~CollectionAutoUpdater() override;
 
 private: // ICollectionAutoUpdater
