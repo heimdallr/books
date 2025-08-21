@@ -4419,11 +4419,11 @@ Try again?</source>
 	</message>
 	<message>
 		<source>&amp;Removed books</source>
-		<translation>Ві&amp;ддалені книги</translation>
+		<translation>Ві&amp;далені книги</translation>
 	</message>
 	<message>
 		<source>&amp;Restore default values</source>
-		<translation>&amp;Відновити вихідні значення</translation>
+		<translation>&amp;Відновити початкові значення</translation>
 	</message>
 	<message>
 		<source>&amp;Scripts...</source>
