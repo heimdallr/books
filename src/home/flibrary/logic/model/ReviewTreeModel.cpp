@@ -51,7 +51,9 @@ int ReviewTreeModel::rowCount(const QModelIndex& parent) const
 
 int ReviewTreeModel::columnCount(const QModelIndex& /*parent*/) const
 {
-	assert(m_data->GetChildCount());
+	if (!m_data->GetChildCount())
+		return 0;
+
 	const auto reviewerItem = m_data->GetChild(0);
 	assert(reviewerItem->GetChildCount());
 	const auto reviewItem = reviewerItem->GetChild(0);

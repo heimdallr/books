@@ -42,7 +42,8 @@ QVariant ReviewListModel::headerData(const int section, const Qt::Orientation or
 
 int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
 {
-	assert(m_data->GetChildCount());
+	if (!m_data->GetChildCount())
+		return 0;
 
 	const auto reviewItem = m_data->GetChild(0);
 	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount();
