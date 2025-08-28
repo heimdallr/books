@@ -29,8 +29,8 @@
 #include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
-#include "GuiUtil/GeometryRestorable.h"
-#include "GuiUtil/util.h"
+#include "gutil/GeometryRestorable.h"
+#include "gutil/util.h"
 #include "inpx/src/util/constant.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"

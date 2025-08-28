@@ -7,7 +7,7 @@
 
 #include "interface/logic/IOpdsController.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 #include "util/Settings.h"
 
 namespace HomeCompa::Flibrary

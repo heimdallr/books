@@ -7,7 +7,7 @@
 
 #include "interface/logic/IDatabaseUser.h"
 
-#include "GuiUtil/Dialog.h"
+#include "gutil/Dialog.h"
 #include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary

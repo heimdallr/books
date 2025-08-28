@@ -23,7 +23,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 
-#include "GuiUtil/util.h"
+#include "gutil/util.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/files.h"

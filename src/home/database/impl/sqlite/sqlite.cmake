@@ -1,4 +1,4 @@
-AddTarget(DatabaseSqlite	shared_lib
+AddTarget(dbsqlite	shared_lib
 	PROJECT_GROUP Database/Impl
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -10,7 +10,6 @@ AddTarget(DatabaseSqlite	shared_lib
 		plog::plog
 		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
-		DatabaseInt
 		logging
 		sqlite
 		sqlite3pp

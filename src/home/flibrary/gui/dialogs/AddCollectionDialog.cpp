@@ -7,7 +7,7 @@
 
 #include "interface/constants/Localization.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 #include "util/DyLib.h"
 #include "util/translit.h"
 

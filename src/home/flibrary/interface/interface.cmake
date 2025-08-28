@@ -5,5 +5,5 @@ AddTarget(flint	shared_lib
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
-		Util
+		util
 )

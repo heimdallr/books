@@ -1,5 +1,5 @@
 ﻿AddTarget(fliscaner	app_console
-	PROJECT_GROUP tool
+	PROJECT_GROUP Tool
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	SKIP_INSTALL

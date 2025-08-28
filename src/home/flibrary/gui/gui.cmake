@@ -12,8 +12,8 @@ AddTarget(gui	shared_lib
 		flint
 		logging
 		logic
-		Util
-		GuiUtil
+		util
+		gutil
 		ver
 		zip
 	DEPENDENCIES

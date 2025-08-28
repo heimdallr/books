@@ -1,4 +1,4 @@
-#include "di_gui_util.h"
+#include "di_gutil.h"
 
 #include "Hypodermic/Hypodermic.h"
 
@@ -9,7 +9,7 @@
 namespace HomeCompa::Util
 {
 
-void DiGuiUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
+void DiGUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
 	builder.registerType<ParentWidgetProvider>().as<IParentWidgetProvider>().singleInstance();
 

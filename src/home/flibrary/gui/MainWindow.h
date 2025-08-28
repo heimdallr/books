@@ -19,7 +19,7 @@
 #include "interface/ui/IStyleApplierFactory.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
 #include "AnnotationWidget.h"

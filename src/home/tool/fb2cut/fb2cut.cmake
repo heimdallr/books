@@ -1,5 +1,5 @@
 AddTarget(fb2cut	app_console
-	PROJECT_GROUP tool
+	PROJECT_GROUP Tool
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
@@ -9,10 +9,10 @@ AddTarget(fb2cut	app_console
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		fljxl
-		GuiUtil
+		gutil
 		logging
 		logic
-		Util
+		util
 		ver
 		zip
 )

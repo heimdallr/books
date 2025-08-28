@@ -5,7 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 
 namespace Ui
 {

@@ -14,7 +14,7 @@
 
 #include "fnd/observable.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;

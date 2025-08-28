@@ -22,8 +22,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
-#include "GuiUtil/interface/IUiFactory.h"
 #include "Hypodermic/Hypodermic.h"
+#include "gutil/interface/IUiFactory.h"
 #include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
@@ -764,8 +764,8 @@ private:
 			return;
 
 		for (const auto& [folder, fileName, imageId, fail, isCover, size, width, height, schema, hash] : m_imageStatistics)
-			(*m_imageStatisticsStream) << folder << '|' << fileName << '|' << imageId << '|' << fail << '|' << (isCover ? 1 : 0) << '|' << static_cast<int>(schema) << '|' << size << '|' << width << '|' << height << '|'
-									   << hash << '\n';
+			(*m_imageStatisticsStream) << folder << '|' << fileName << '|' << imageId << '|' << fail << '|' << (isCover ? 1 : 0) << '|' << static_cast<int>(schema) << '|' << size << '|' << width << '|'
+									   << height << '|' << hash << '\n';
 
 		m_imageStatisticsStream->flush();
 	}

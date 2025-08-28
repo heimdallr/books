@@ -8,7 +8,7 @@
 
 #include "interface/logic/IModel.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

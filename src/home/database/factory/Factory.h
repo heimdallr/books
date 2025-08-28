@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "export/databasefactory.h"
+#include "export/dbfactory.h"
 
 namespace HomeCompa::DB
 {
@@ -18,6 +18,6 @@ enum class Impl
 	Sqlite,
 };
 
-DATABASEFACTORY_EXPORT std::unique_ptr<IDatabase> Create(Impl impl, const std::string& connection);
+DBFACTORY_EXPORT std::unique_ptr<IDatabase> Create(Impl impl, const std::string& connection);
 
 }

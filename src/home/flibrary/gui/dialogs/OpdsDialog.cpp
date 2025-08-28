@@ -8,7 +8,7 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;

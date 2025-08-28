@@ -49,11 +49,11 @@ AddTarget(${PROJECT_NAME}	app
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		gui
-		GuiUtil
+		gutil
 		logging
 		logic
 		rest
-		Util
+		util
 		ver
 	QT_PLUGINS
 		qwindows

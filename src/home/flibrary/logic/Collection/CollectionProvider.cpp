@@ -8,12 +8,12 @@
 #include "fnd/memory.h"
 #include "fnd/observable.h"
 
+#include "inpx/src/util/constant.h"
 #include "util/IExecutor.h"
 #include "util/hash.h"
 
 #include "CollectionImpl.h"
 #include "log.h"
-#include "inpx/src/util/constant.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

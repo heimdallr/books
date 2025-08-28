@@ -4,7 +4,7 @@
 
 #include "fnd/FindPair.h"
 
-#include "GuiUtil/interface/IUiFactory.h"
+#include "gutil/interface/IUiFactory.h"
 #include "util/ISettings.h"
 #include "util/files.h"
 

@@ -43,8 +43,8 @@ std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 {
 	using Scheme = std::tuple<Qt::ColorScheme, const char*>;
 	constexpr Scheme unknown { Qt::ColorScheme::Unknown, nullptr };
-	constexpr auto iconsLight = "icons_light";
-	constexpr auto iconsDark = "icons_dark";
+	constexpr auto iconsLight = "icolight";
+	constexpr auto iconsDark = "icodark";
 	constexpr std::pair<const char*, Scheme> schemes[] {
 		{ "System",								unknown },
 		{  "Light", { Qt::ColorScheme::Light, iconsLight } },

@@ -1,5 +1,5 @@
 AddTarget(flimager	app_console
-	PROJECT_GROUP tool
+	PROJECT_GROUP Tool
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
 	LINK_LIBRARIES
@@ -10,7 +10,7 @@ AddTarget(flimager	app_console
 		fljxl
 		logging
 		logic
-		Util
+		util
 		ver
 		zip
 )

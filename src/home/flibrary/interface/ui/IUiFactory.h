@@ -2,7 +2,7 @@
 
 #include <unordered_set>
 
-#include "GuiUtil/interface/IUiFactory.h"
+#include "gutil/interface/IUiFactory.h"
 
 class QAbstractItemView;
 class QMainWindow;

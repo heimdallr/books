@@ -16,7 +16,7 @@ set(MODULES
 	zip
 	network
 	tool
-	GuiUtil
+	gutil
 	icu
 	jxl
 )

@@ -1,4 +1,4 @@
-AddTarget(InpxLib	shared_lib
+AddTarget(inpx	shared_lib
 	PROJECT_GROUP Util
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -10,7 +10,7 @@ AddTarget(InpxLib	shared_lib
 		logging
 		sqlite
 		sqlite3pp
-		Util
+		util
 		zip
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Core
