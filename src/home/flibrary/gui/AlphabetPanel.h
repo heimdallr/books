@@ -23,6 +23,9 @@ public:
 	AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings, QWidget* parent = nullptr);
 	~AlphabetPanel() override;
 
+private: // QWidget
+	void showEvent(QShowEvent* event) override;
+
 private: // IAlphabetPanel
 	QWidget* GetWidget() noexcept override;
 	const ToolBars& GetToolBars() const override;

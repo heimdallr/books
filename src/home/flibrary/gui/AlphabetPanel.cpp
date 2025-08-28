@@ -141,6 +141,18 @@ public:
 		SaveGeometry();
 	}
 
+	void OnShow() const
+	{
+		QTimer::singleShot(0,
+		                   [this]
+		                   {
+							   const auto height =
+								   std::accumulate(m_toolBars.cbegin(), m_toolBars.cend(), 0, [](const int init, const auto& toolBar) { return init + (toolBar->isVisible() ? toolBar->height() : 0); });
+							   m_self.setMinimumHeight(height);
+							   m_self.setMaximumHeight(height);
+						   });
+	}
+
 	const ToolBars& GetToolBars() const
 	{
 		return m_toolBars;
@@ -177,7 +189,12 @@ public:
 			Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
 		}
 
-		QTimer::singleShot(0, [=] { toolBar->setVisible(visible); });
+		QTimer::singleShot(0,
+		                   [this, toolBar, visible]
+		                   {
+							   toolBar->setVisible(visible);
+							   OnShow();
+						   });
 	}
 
 	void AddNewAlphabet()
@@ -208,6 +225,13 @@ public:
 
 		AddToolBar(m_self, it->second, alphabet, true);
 		Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
+		OnShow();
+	}
+
+private: // Util::GeometryRestorableObserver
+	void OnFontChanged(const QFont&) override
+	{
+		OnShow();
 	}
 
 private:
@@ -266,6 +290,11 @@ AlphabetPanel::AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::s
 }
 
 AlphabetPanel::~AlphabetPanel() = default;
+
+void AlphabetPanel::showEvent(QShowEvent*)
+{
+	m_impl->OnShow();
+}
 
 QWidget* AlphabetPanel::GetWidget() noexcept
 {
