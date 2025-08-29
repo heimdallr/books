@@ -6,9 +6,11 @@
 #include <QUuid>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
+#include "logic/IAnnotationController.h"
 #include "logic/IDatabaseUser.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
@@ -290,6 +292,39 @@ IStyleApplier::Type IStyleApplier::TypeFromString(const char* name)
 QString IStyleApplier::TypeToString(const Type type)
 {
 	return TYPES[static_cast<size_t>(type)].second;
+}
+
+namespace
+{
+constexpr auto ANNOTATION_CONTEXT = "Annotation";
+}
+
+void IAnnotationController::IStrategy::AddImpl(Section, QString& text, const QString& str, const char* pattern)
+{
+	if (!str.isEmpty())
+		text.append(QString("<p>%1</p>").arg(Loc::Tr(ANNOTATION_CONTEXT, pattern).arg(str)));
+}
+
+QString IAnnotationController::IStrategy::AddTableRowImpl(const char* name, const QString& value)
+{
+	return QString(R"(<tr><td style="vertical-align: top; padding-right: 7px;">%1</td><td>%2</td></tr>)").arg(Loc::Tr(ANNOTATION_CONTEXT, name)).arg(value);
+}
+
+QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& values)
+{
+	QString str;
+	ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
+	for (const auto& value : values)
+	{
+		ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
+		str.append(value);
+	}
+	return str;
+}
+
+QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringList& values)
+{
+	return values.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(values.join("\n"));
 }
 
 } // namespace HomeCompa::Flibrary

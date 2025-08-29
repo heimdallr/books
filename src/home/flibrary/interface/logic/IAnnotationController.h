@@ -9,6 +9,8 @@
 
 #include "IJokeRequesterFactory.h"
 
+#include "export/flint.h"
+
 namespace HomeCompa::Flibrary::ExportStat
 {
 enum class Type;
@@ -85,14 +87,57 @@ public:
 	class IStrategy // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
+		enum class Section
+		{
+			Title,
+			Epigraph,
+			EpigraphAuthor,
+			Annotation,
+			Keywords,
+			UrlTable,
+			Translators,
+			BookInfo,
+			PublishInfo,
+			ParseError,
+			ExportStatistics,
+			Reviews,
+		};
+
+	public:
 		virtual ~IStrategy() = default;
 		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str) const = 0;
 		virtual QString GenerateStars(int rate) const = 0;
+
+		virtual void Add(const Section section, QString& text, const QString& str, const char* pattern = "%1") const
+		{
+			AddImpl(section, text, str, pattern);
+		}
+
+		virtual QString AddTableRow(const char* name, const QString& value) const
+		{
+			return AddTableRowImpl(name, value);
+		}
+
+		virtual QString AddTableRow(const QStringList& values) const
+		{
+			return AddTableRowImpl(values);
+		}
+
+		virtual QString TableRowsToString(const QStringList& values) const
+		{
+			return TableRowsToStringImpl(values);
+		}
 
 		virtual QString GetReviewsDelimiter() const
 		{
 			return {};
 		}
+
+	private:
+		FLINT_EXPORT static void AddImpl(Section section, QString& text, const QString& str, const char* pattern);
+		FLINT_EXPORT static QString AddTableRowImpl(const char* name, const QString& value);
+		FLINT_EXPORT static QString AddTableRowImpl(const QStringList& values);
+		FLINT_EXPORT static QString TableRowsToStringImpl(const QStringList& values);
 	};
 
 public:
