@@ -8,7 +8,7 @@
 #include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
 
-#include "export/inpxlib.h"
+#include "export/inpx.h"
 
 namespace HomeCompa::DB
 {
@@ -42,7 +42,7 @@ struct UpdateResult
 	bool error { false };
 };
 
-class INPXLIB_EXPORT Parser
+class INPX_EXPORT Parser
 {
 	NON_COPY_MOVABLE(Parser)
 

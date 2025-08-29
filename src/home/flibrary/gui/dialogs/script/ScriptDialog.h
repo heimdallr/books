@@ -8,7 +8,7 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
 #include "ComboBoxDelegate.h"

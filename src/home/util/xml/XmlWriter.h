@@ -50,7 +50,7 @@ public:
 	};
 
 public:
-	explicit XmlWriter(QIODevice& stream, Type type = Type::Xml);
+	explicit XmlWriter(QIODevice& stream, Type type = Type::Xml, bool indented = true);
 	~XmlWriter();
 
 	XmlWriter& WriteProcessingInstruction(const QString& target, const QString& data);

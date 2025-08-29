@@ -29,6 +29,9 @@ std::ostream& operator<<(std::ostream& stream, const HomeCompa::fb2cut::Settings
 	else
 		stream << std::endl << "fb2 archiving " << (settings.archiveFb2 ? "enabled" : "disabled");
 
+	if (!settings.imageStatistics.isEmpty())
+		stream << std::endl << settings.imageStatistics.toStdString();
+
 	stream << std::endl << "output format: " << settings.format;
 
 	if (!settings.ffmpeg.isEmpty())

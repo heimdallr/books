@@ -10,7 +10,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/logic/IScriptController.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 
 #include "log.h"
 

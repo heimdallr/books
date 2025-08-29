@@ -6,8 +6,8 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IScriptController.h"
 
-#include "icu/icu.h"
 #include "util/DyLib.h"
+#include "util/translit.h"
 
 #include "log.h"
 
@@ -77,14 +77,7 @@ where b.BookID = ?
 			return outputFileName;
 
 		LoadICU();
-		if (!m_icuTransliterate)
-			return outputFileName;
-
-		Transliterate("ru-ru_Latn/BGN", outputFileName);
-		Transliterate("Any-Latin", outputFileName);
-		Transliterate("Latin-ASCII", outputFileName);
-
-		return outputFileName;
+		return Util::Transliterate(m_icuTransliterate, outputFileName);
 	}
 
 private:
@@ -101,16 +94,6 @@ private:
 
 		if (!((m_icuTransliterate = m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME))))
 			PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
-	}
-
-	void Transliterate(const char* id, QString& str) const
-	{
-		assert(m_icuTransliterate);
-		auto src = str.toStdU32String();
-		src.push_back(0);
-		std::u32string dst;
-		m_icuTransliterate(id, &src, &dst);
-		str = QString::fromStdU32String(dst);
 	}
 
 	mutable std::unique_ptr<Util::DyLib> m_icuLib;

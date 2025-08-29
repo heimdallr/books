@@ -1,13 +1,12 @@
 #include <QIODevice>
 
+#include "fnd/IsOneOf.h"
+
 #include "interface/logic/IAnnotationController.h"
 
-#include "root.h"
+#include "util/localization.h"
 
-namespace HomeCompa
-{
-class ISettings;
-}
+#include "root.h"
 
 namespace HomeCompa::Opds
 {
@@ -29,11 +28,35 @@ private: // IAnnotationController::IUrlGenerator
 	{
 		return rate > 0 && rate <= 5 ? QString::number(rate) : QString {};
 	}
+
+	void Add(const Section section, QString& text, const QString& str, const char* pattern) const override
+	{
+		if (str.isEmpty() || IsOneOf(section, Section::Title))
+			return;
+
+		IStrategy::Add(section, text, str, pattern);
+		text.append("<br/>\n");
+	}
+
+	QString AddTableRow(const char* name, const QString& value) const override
+	{
+		return QString("<p>%1 %2</p>").arg(Loc::Tr("Annotation", name)).arg(value);
+	}
+
+	QString AddTableRow(const QStringList& values) const override
+	{
+		return QString("<p>%1</p>").arg(values.join(' '));
+	}
+
+	QString TableRowsToString(const QStringList& values) const override
+	{
+		return values.join('\n').append('\n');
+	}
 };
 
-}
+} // namespace
 
-QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const QStringList&)
+QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const QStringList&, const ISettings&)
 {
 	auto result = stream.readAll();
 	return result;

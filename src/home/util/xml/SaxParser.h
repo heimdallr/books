@@ -72,9 +72,9 @@ public:
 	virtual bool OnEndElement(const QString& name, const QString& path);
 	virtual bool OnCharacters(const QString& path, const QString& value);
 
-	virtual bool OnWarning(const QString& text);
-	virtual bool OnError(const QString& text);
-	virtual bool OnFatalError(const QString& text);
+	virtual bool OnWarning(size_t line, size_t column, const QString& text);
+	virtual bool OnError(size_t line, size_t column, const QString& text);
+	virtual bool OnFatalError(size_t line, size_t column, const QString& text);
 
 private:
 	class Impl;

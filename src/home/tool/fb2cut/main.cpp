@@ -1,3 +1,5 @@
+#include <QCryptographicHash>
+
 #include <queue>
 #include <ranges>
 
@@ -6,6 +8,7 @@
 #include <QCommandLineParser>
 #include <QImageReader>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTranslator>
 
@@ -15,13 +18,16 @@
 #include <plog/Util.h>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/ScopedCall.h"
 
-#include "GuiUtil/interface/IUiFactory.h"
 #include "Hypodermic/Hypodermic.h"
+#include "gutil/interface/IUiFactory.h"
+#include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/ISettings.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/files.h"
@@ -33,7 +39,6 @@
 #include "ImageSettingsWidget.h"
 #include "MainWindow.h"
 #include "di_app.h"
-#include "libimagequant.h"
 #include "log.h"
 #include "settings.h"
 #include "zip.h"
@@ -69,6 +74,7 @@ constexpr auto COVERS_ONLY_OPTION_NAME = "covers-only";
 constexpr auto FFMPEG_OPTION_NAME = "ffmpeg";
 constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 constexpr auto FORMAT = "format";
+constexpr auto IMAGE_STATISTICS = "image-statistics";
 
 constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
@@ -79,6 +85,8 @@ constexpr auto PATH = "path";
 constexpr auto COMMANDLINE = "list of options";
 constexpr auto SIZE = "size [INT_MAX,INT_MAX]";
 
+const std::vector<QString> FB2_TAGS { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
+
 struct DataItem
 {
 	QString fileName;
@@ -87,6 +95,29 @@ struct DataItem
 };
 
 using DataItems = std::queue<DataItem>;
+
+struct ImageStatisticsItem
+{
+	enum class PixelSchema
+	{
+		Unknown = -1,
+		Normal,
+		GrayScale,
+		Alpha,
+	};
+	QString folder;
+	QString fileName;
+	QString imageId;
+	QString fail;
+	bool isCover { false };
+	qsizetype size { 0 };
+	int width { 0 };
+	int height { 0 };
+	PixelSchema schema { PixelSchema::Unknown };
+	QString hash;
+};
+
+using ImageStatistics = std::vector<ImageStatisticsItem>;
 
 void WriteError(const QDir& dir, std::mutex& guard, const QString& name, const QString& ext, const QByteArray& body)
 {
@@ -130,89 +161,162 @@ QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 	return validator.Validate(buffer);
 }
 
-bool HasAlpha(const QImage& image, const char* data)
+QByteArray Decode(QByteArray inputFileBody)
 {
-	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
-		return false;
+	if (inputFileBody.size() < 100)
+		return {};
 
-	if (!image.hasAlphaChannel())
-		return false;
-
-	const auto argb = image.convertToFormat(QImage::Format_ARGB32);
-	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
+	auto str = [&inputFileBody]() -> QString
 	{
-		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
-		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
-			return true;
-	}
+		if (inputFileBody.startsWith("\xff\xfe") || inputFileBody.startsWith("\xfe\xff"))
+		{
+			inputFileBody.append("\0\0", 2);
+			auto result = QString::fromUtf16(std::bit_cast<const char16_t*>(inputFileBody.constData()));
+			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
+		}
 
-	return true;
+		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"("?>)") + 3);
+		auto head = QString::fromLatin1(inputFileBody.data(), index);
+		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?"\?>$)", QRegularExpression::CaseInsensitiveOption);
+		if (const auto match = rx.match(head); match.hasMatch())
+		{
+			head = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+			auto body = QString::fromLocal8Bit(inputFileBody.data() + index, inputFileBody.size() - index);
+			return head.append("\x0d\x0a").append(body);
+		}
+
+		if (inputFileBody.startsWith(R"(<?xml version="1.0" encoding="iso-8859-15"?>)"))
+		{
+			auto encoded = QString::fromLocal8Bit(inputFileBody, inputFileBody.size());
+			encoded.replace(R"(encoding="iso-8859-15")", R"(encoding="UTF-8")", Qt::CaseInsensitive);
+			QString result;
+			for (qsizetype i = 0, sz = encoded.length(); i < sz; ++i)
+			{
+				if (encoded[i] != '&')
+				{
+					result.append(encoded[i]);
+					continue;
+				}
+
+				if (encoded[i + 1] != '#' || encoded[i + 6] != ';')
+					continue;
+
+				auto ref = QStringView { encoded.data() + i + 2, 4 };
+				[[maybe_unused]] bool ok = false;
+				const auto code = ref.toInt(&ok);
+				assert(ok);
+				result.append(QChar { code });
+
+				i += 6;
+			}
+			return result;
+		}
+
+		return QString::fromUtf8(inputFileBody);
+	}();
+
+	const auto addEnd = [&](const qsizetype index)
+	{
+		str.resize(index);
+		str.append("</FictionBook>");
+	};
+	if (const auto endIndex = str.indexOf("</FictionBook>"); endIndex > 0)
+	{
+		str.resize(endIndex + 14);
+	}
+	else if (const auto binaryIndex = str.lastIndexOf("<binary"); binaryIndex > 0)
+	{
+		addEnd(binaryIndex);
+	}
+	else if (const auto bodyIndex = str.lastIndexOf("</body>"); bodyIndex > 0)
+	{
+		addEnd(bodyIndex + 7);
+	}
+	return str.toUtf8();
 }
 
-QImage ReducePng(const char* imageType, const QString& imageFile, QImage inputImage, int quantity)
+QByteArray FixInputFile(const QByteArray& inputFileBody)
 {
-	if (quantity < 0)
-		quantity = 80;
+	auto str = QString::fromUtf8(inputFileBody);
 
-	QImage image = std::move(inputImage);
+	str.replace(QRegularExpression(R"(<([0-9a-zA-Z]+([0-9a-zA-Z]*[-\._+])*[0-9a-zA-Z]+@[0-9a-zA-Z]+([-\.][0-9a-zA-Z]+)*([0-9a-zA-Z]*[\.])[a-zA-Z]{2,6})>)", QRegularExpression::CaseInsensitiveOption),
+	            R"("\1")");
+	str.replace(QRegularExpression(R"(<section id=n(\d)>)", QRegularExpression::CaseInsensitiveOption), R"(<section id="n\1">)");
 
-	quantity = std::min(quantity, 100);
-
-	const auto size = image.size();
-	auto imageSrc = image.convertToFormat(QImage::Format_RGBA8888);
-	std::vector<void*> rowsIn;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsIn.emplace_back(imageSrc.scanLine(i));
-	auto* attr = liq_attr_create();
-	if (!attr)
 	{
-		PLOGE << "liq_attr_create failed";
-		return image;
+		constexpr const char* specials[] { "amp;", "apos;", "gt;", "lt;", "quot;" };
+		const auto index = str.indexOf(R"(?>)");
+		QString buf = str.first(index + 3);
+		buf.reserve(str.length());
+		bool lineBreak = false;
+		for (qsizetype i = buf.length(), sz = str.length(); i < sz; ++i)
+		{
+			const auto ch = str[i];
+
+			if (IsOneOf(ch, '\x0d', '\x0a'))
+			{
+				if (lineBreak)
+					continue;
+
+				buf.append("\x0d\x0a");
+				lineBreak = true;
+				continue;
+			}
+
+			lineBreak = false;
+
+			if (ch == QChar { '&' } && std::ranges::none_of(specials, [&](const char* special) { return QStringView(str.constData() + i + 1, static_cast<qsizetype>(strlen(special))) == special; }))
+			{
+				buf.append("&amp;");
+				continue;
+			}
+
+			if (ch == QChar { '<' } && str[i + 1] != '/')
+			{
+				if (std::ranges::none_of(FB2_TAGS,
+				                         [&](const QString& tag)
+				                         {
+											 const auto tagLength = tag.length();
+											 QStringView s(str.constData() + i + 1, tagLength);
+											 const auto nextCh = str[i + 1 + tagLength];
+											 return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
+										 }))
+				{
+					buf.append("&lt;");
+					continue;
+				}
+			}
+
+			if (ch == QChar { '>' } && !IsOneOf(str[i - 1], '/', '"'))
+			{
+				if (std::ranges::none_of(FB2_TAGS,
+				                         [&](const QString& tag)
+				                         {
+											 const auto tagLength = tag.length();
+											 QStringView s(str.constData() + i - tagLength, tagLength);
+											 const auto prevCh = str[i - tagLength - 1];
+											 return IsOneOf(prevCh, '<', '/') && s.compare(tag, Qt::CaseInsensitive) == 0;
+										 }))
+				{
+					buf.append("&gt;");
+					continue;
+				}
+			}
+
+			if (const auto value = ch.unicode(); value >= char16_t { 32 })
+				buf.append(ch);
+			else if (value == '\x0d')
+				buf.append("\x0d\x0a");
+		}
+
+		str = std::move(buf);
 	}
-	const ScopedCall attrGuard([=] { liq_attr_destroy(attr); });
 
-	liq_set_quality(attr, quantity / 3, quantity);
+	str.replace(QRegularExpression(R"(</[^a-z]+?>)", QRegularExpression::CaseInsensitiveOption), "");
+	str.replace("<p ", "<p> ");
+	str.replace(" /p>", "</p> ");
 
-	liq_image* im = liq_image_create_rgba_rows(attr, rowsIn.data(), size.width(), size.height(), 0);
-	if (!im)
-	{
-		PLOGE << "liq_attr_create failed";
-		return image;
-	}
-	const ScopedCall imGuard([=] { liq_image_destroy(im); });
-
-	liq_result* res = nullptr;
-	if (const auto opResult = liq_image_quantize(im, attr, &res); opResult != LIQ_OK || !res)
-	{
-		PLOGW << QString("Cannot quantize %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const ScopedCall resGuard([=] { liq_result_destroy(res); });
-
-	QImage result(size, QImage::Format_Indexed8);
-	std::vector<unsigned char*> rowsOut;
-	rowsIn.reserve(static_cast<size_t>(size.height()));
-	for (int i = 0, sz = size.height(); i < sz; ++i)
-		rowsOut.emplace_back(result.scanLine(i));
-
-	if (const auto opResult = liq_write_remapped_image_rows(res, im, rowsOut.data()); opResult != LIQ_OK)
-	{
-		PLOGW << QString("Cannot remap %1 %2, imagequant finished with %3").arg(imageType, imageFile).arg(opResult);
-		return image;
-	}
-	const liq_palette* pal = liq_get_palette(res);
-	result.setColorCount(static_cast<int>(pal->count));
-
-	QList<QRgb> colors;
-	for (unsigned int i = 0; i < pal->count; ++i)
-	{
-		const auto& entry = pal->entries[i];
-		colors.push_back(qRgba(entry.r, entry.g, entry.b, entry.a));
-	}
-	result.setColorTable(colors);
-
-	return result;
+	return str.toUtf8();
 }
 
 class Worker
@@ -224,11 +328,12 @@ public:
 	{
 	public:
 		virtual ~IClient() = default;
-		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) = 0;
+		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) = 0;
 	};
 
 public:
 	Worker(const Settings& settings,
+	       QString folder,
 	       std::condition_variable& queueCondition,
 	       std::mutex& queueGuard,
 	       DataItems& queue,
@@ -238,6 +343,7 @@ public:
 	       std::atomic_int& fileCount,
 	       IClient& client)
 		: m_settings { settings }
+		, m_folder { std::move(folder) }
 		, m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_queue { queue }
@@ -283,24 +389,35 @@ private:
 			m_hasError = ProcessFile(name, body, dateTime) || m_hasError;
 		}
 
-		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images));
+		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images), std::move(m_imageStatistics));
 	}
 
-	bool ProcessFile(const QString& inputFilePath, QByteArray& inputFileBody, const QDateTime& dateTime)
+	bool ProcessFile(const QString& inputFilePath, const QByteArray& inputFileBody, const QDateTime& dateTime)
 	{
-		++m_fileCount;
-		PLOGV << QString("parsing %1, %2(%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
+		auto fixedInputFileBody = Decode(inputFileBody);
+		if (const auto errorText = Validate(m_validator, fixedInputFileBody); !errorText.isEmpty())
+		{
+			PLOGW << errorText << " trying to fix";
+			fixedInputFileBody = FixInputFile(fixedInputFileBody);
+		}
 
-		QBuffer input(&inputFileBody);
+		QBuffer input(&fixedInputFileBody);
 		input.open(QIODevice::ReadOnly);
 
 		const QFileInfo fileInfo(inputFilePath);
 		const auto outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
 		auto bodyOutput = ParseFile(inputFilePath, input, dateTime);
+		++m_fileCount;
+		PLOGV << QString("%1, %2 (%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
+
 		if (bodyOutput.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
 
+#ifndef NDEBUG
+		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+#endif
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), "fb2", false), true;
 
@@ -330,45 +447,99 @@ private:
 		QBuffer output(&bodyOutput);
 		output.open(QIODevice::WriteOnly);
 
-		auto binaryCallback = [&](const QString& name, const bool isCover, QByteArray body)
+		const auto encode = [this](const ImageSettings& settings, const QString& fileName, const QImage& image, const QByteArray& body) -> QByteArray
+		{
+			if (fileName.isEmpty())
+				return {};
+
+			if (auto bytes = JXL::Encode(image, settings.quality); !bytes.isEmpty())
+				return bytes;
+
+			(void)AddError(settings.type, fileName, body, QString("Cannot compress %1 %2").arg(settings.type).arg(fileName), {}, false);
+			return {};
+		};
+
+		std::unordered_map<QString, int> uniqueData;
+		std::unordered_map<QString, int> idToNum;
+
+		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body)
 		{
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
-			if (!settings.save)
+			if (!settings.save && m_settings.imageStatistics.isEmpty())
 				return;
 
-			auto imageFile = settings.fileNameGetter(completeFileName, name);
+			int width = 0;
+			int height = 0;
+			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
+			const char* fail = nullptr;
+			ScopedCall statGuard(
+				[&, name]() mutable
+				{
+					if (m_settings.imageStatistics.isEmpty())
+						return;
 
-			auto image = ReadImage(body, settings.type, imageFile);
+					m_hash.reset();
+					m_hash.addData(body);
+					m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
+				});
+
+			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail);
 			if (image.isNull())
 				return;
 
-			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
-				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			width = image.width();
+			height = image.height();
+
+			if (image.pixelFormat().colorModel() == QPixelFormat::Grayscale)
+				pixelSchema = ImageStatisticsItem::PixelSchema::GrayScale;
 
 			if (settings.grayscale)
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
-			const auto hasAlpha = HasAlpha(image, body.constData());
-			if (hasAlpha)
-				image = ReducePng(settings.type, imageFile, image, settings.quality);
+			if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
+				image = Flibrary::HasAlpha(image, body.constData());
 
-			QByteArray imageBody;
+			const auto pixelFormat = image.pixelFormat();
+			const bool hasAlpha = pixelFormat.alphaUsage() == QPixelFormat::UsesAlpha;
+			if (pixelSchema == ImageStatisticsItem::PixelSchema::Unknown)
+				pixelSchema = hasAlpha ? ImageStatisticsItem::PixelSchema::Alpha : ImageStatisticsItem::PixelSchema::Normal;
+
+			if (!settings.save)
+				return;
+
+			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
+				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, hasAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
+
+			m_hash.reset();
+			for (auto h = 0, szH = image.height(), szW = image.width(); h < szH; ++h)
+				m_hash.addData(QByteArrayView { std::bit_cast<const char*>(image.constScanLine(h)), static_cast<qsizetype>(szW) * pixelFormat.channelCount() });
+			auto hash = QString::fromUtf8(m_hash.result().toHex());
+
+			if (const auto it = uniqueData.find(hash); it != uniqueData.end())
 			{
-				QBuffer imageOutput(&imageBody);
-				if (!image.save(&imageOutput, hasAlpha ? "png" : "jpeg", settings.quality))
-					return (void)AddError(settings.type, imageFile, body, QString("Cannot compress %1 %2").arg(settings.type).arg(imageFile), {}, false);
+				if (isCover)
+					it->second = -1;
+
+				idToNum.try_emplace(std::move(name), it->second);
+				return;
 			}
 
-			auto& storage = isCover ? m_covers : m_images;
-			storage.emplace_back(std::move(imageFile), std::move(imageBody), dateTime);
+			const auto num = uniqueData.try_emplace(std::move(hash), isCover ? -1 : static_cast<int>(uniqueData.size())).first->second;
+			auto imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
+			idToNum.try_emplace(std::move(name), num);
+
+			(isCover ? m_covers : m_images).emplace_back(imageFile, encode(settings, imageFile, image, body), dateTime);
 		};
 
-		Fb2Parser(inputFilePath, input, output, std::move(binaryCallback)).Parse();
+		Fb2ImageParser::Parse(input, std::move(binaryCallback));
+
+		input.seek(0);
+		Fb2Parser::Parse(inputFilePath, input, output, idToNum);
 
 		return bodyOutput;
 	}
 
-	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile) const
+	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile, const char*& fail) const
 	{
 		struct Signature
 		{
@@ -400,16 +571,16 @@ private:
 		}
 
 		if (const auto it = std::ranges::find_if(signatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(signatures))
-			return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
 
 		if (const auto it = std::ranges::find_if(unsupportedSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(unsupportedSignatures))
-			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
 
 		if (const auto it = std::ranges::find_if(knownSignatures, [&](const auto& item) { return body.startsWith(item.signature); }); it != std::end(knownSignatures))
-			return AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
+			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
 
 		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
 	}
@@ -428,7 +599,7 @@ private:
 
 	QImage TryToFix(const char* imageType, const QString& imageFile, const QByteArray& body) const
 	{
-		if (m_settings.ffmpeg.isEmpty())
+		if (m_settings.ffmpeg.isEmpty() || body.size() < 128)
 			return {};
 
 		QProcess process;
@@ -469,6 +640,7 @@ private:
 
 private:
 	const Settings& m_settings;
+	const QString m_folder;
 
 	std::condition_variable& m_queueCondition;
 	std::mutex& m_queueGuard;
@@ -478,8 +650,10 @@ private:
 	std::atomic_bool& m_hasError;
 	std::atomic_int &m_queueSize, &m_fileCount;
 
+	QCryptographicHash m_hash { QCryptographicHash::Md5 };
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
+	ImageStatistics m_imageStatistics;
 
 	const Util::XmlValidator m_validator;
 
@@ -494,19 +668,26 @@ QString GetImagesFolder(const QDir& dir, const QString& type)
 	return QString("%1/%2/%3.zip").arg(fileInfo.dir().path(), type, fileInfo.fileName());
 }
 
-class FileProcessor : public Worker::IClient
+class FileProcessor final : public Worker::IClient
 {
 public:
-	FileProcessor(const Settings& settings, std::condition_variable& queueCondition, std::mutex& queueGuard, const int poolSize, std::atomic_int& fileCount)
+	FileProcessor(const Settings& settings,
+	              const QString& folder,
+	              std::condition_variable& queueCondition,
+	              std::mutex& queueGuard,
+	              const int poolSize,
+	              std::atomic_int& fileCount,
+	              QTextStream* imageStatisticsStream)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
 		, m_dstDir { settings.dstDir }
 		, m_saveCovers { settings.cover.save }
 		, m_saveImages { settings.image.save }
 		, m_maxThreadCount { settings.maxThreadCount }
+		, m_imageStatisticsStream { imageStatisticsStream }
 	{
 		for (int i = 0; i < poolSize; ++i)
-			m_workers.push_back(std::make_unique<Worker>(settings, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
+			m_workers.push_back(std::make_unique<Worker>(settings, folder, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
 	}
 
 public:
@@ -533,8 +714,10 @@ public:
 		m_workers.clear();
 		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
 		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
+		WriteImageStatistics();
 	}
 
+private:
 	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const //-V826
 	{
 		if (!saveFlag || images.empty())
@@ -573,14 +756,30 @@ public:
 		images.clear();
 	}
 
-private:
-	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images) override
+	void WriteImageStatistics()
+	{
+		ScopedCall clearGuard([this] { m_imageStatistics.clear(); });
+
+		if (!m_imageStatisticsStream)
+			return;
+
+		for (const auto& [folder, fileName, imageId, fail, isCover, size, width, height, schema, hash] : m_imageStatistics)
+			(*m_imageStatisticsStream) << folder << '|' << fileName << '|' << imageId << '|' << fail << '|' << (isCover ? 1 : 0) << '|' << static_cast<int>(schema) << '|' << size << '|' << width << '|'
+									   << height << '|' << hash << '\n';
+
+		m_imageStatisticsStream->flush();
+	}
+
+private: // Worker::IClient
+	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) override
 	{
 		std::lock_guard lock(m_workClientGuard);
 		m_covers.reserve(m_covers.size() + covers.size());
 		std::ranges::move(covers, std::back_inserter(m_covers));
 		m_images.reserve(m_images.size() + images.size());
 		std::ranges::move(images, std::back_inserter(m_images));
+		m_imageStatistics.reserve(m_imageStatistics.size() + imageStatistics.size());
+		std::ranges::move(imageStatistics, std::back_inserter(m_imageStatistics));
 	}
 
 private:
@@ -600,6 +799,8 @@ private:
 
 	std::vector<DataItem> m_covers;
 	std::vector<DataItem> m_images;
+	ImageStatistics m_imageStatistics;
+	QTextStream* m_imageStatisticsStream;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -660,7 +861,10 @@ bool ArchiveFb2(const Settings& settings)
 	for (const auto& file : settings.dstDir.entryList({ "*.fb2" }))
 		zipFiles->AddFile(settings.dstDir.filePath(file));
 
-	Zip zip(QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format)), settings.format);
+	const auto dstArchiveFileName = QString("%1.%2").arg(settings.dstDir.path(), Zip::FormatToString(settings.format));
+	PLOGI << "archive " << zipFiles->GetCount() << " fb2: " << dstArchiveFileName;
+
+	Zip zip(dstArchiveFileName, settings.format);
 	zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Ultra));
 	zip.SetProperty(Zip::PropertyId::SolidArchive, false);
 	zip.SetProperty(Zip::PropertyId::ThreadsCount, settings.maxThreadCount);
@@ -675,7 +879,7 @@ bool ArchiveFb2(const Settings& settings)
 	return !result;
 }
 
-bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount)
+bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
@@ -697,7 +901,7 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 
 		std::condition_variable queueCondition;
 		std::mutex queueGuard;
-		FileProcessor fileProcessor(settings, queueCondition, queueGuard, maxThreadCount, fileCount);
+		FileProcessor fileProcessor(settings, fileInfo.completeBaseName(), queueCondition, queueGuard, maxThreadCount, fileCount, imageStatisticsStream);
 
 		while (!fileList.isEmpty())
 		{
@@ -746,11 +950,11 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 	return hasError;
 }
 
-bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount)
+bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
 {
 	try
 	{
-		return ProcessArchiveImpl(file, settings, fileCount);
+		return ProcessArchiveImpl(file, settings, fileCount, imageStatisticsStream);
 	}
 	catch (const std::exception& ex)
 	{
@@ -790,10 +994,20 @@ QStringList ProcessArchives(Settings& settings)
 											  });
 	PLOGI << "Total file count: " << settings.totalFileCount;
 
+	std::unique_ptr<QTextStream> imageStatisticsStream;
+	QFile imageStatisticsFile(settings.imageStatistics);
+	if (!settings.imageStatistics.isEmpty())
+	{
+		if (!imageStatisticsFile.open(QIODevice::Append))
+			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
+		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
+		*imageStatisticsStream << "#ARCHIVE|FB2_FILE|IMAGE_ID|FAIL_INFO|IS_COVER|PIXEL_TYPE|IMAGE_FILE_SIZE|WIDTH|HEIGHT|HASH\n";
+	}
+
 	std::atomic_int fileCount;
 	QStringList failed;
 	for (auto&& file : files)
-		if (ProcessArchive(file, settings, fileCount))
+		if (ProcessArchive(file, settings, fileCount, imageStatisticsStream.get()))
 			failed << std::move(file);
 
 	return failed;
@@ -879,6 +1093,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 
 		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME, "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
 		{ FFMPEG_OPTION_NAME, "Path to ffmpeg executable", PATH },
+		{ IMAGE_STATISTICS, "Image statistics output path", PATH },
 
 		{ { QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME }, "Convert all images to grayscale" },
 		{ COVER_GRAYSCALE_OPTION_NAME, "Convert covers to grayscale" },
@@ -915,6 +1130,8 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 
 	SetValue(parser, MAX_THREAD_COUNT_OPTION_NAME, settings.maxThreadCount);
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
+
+	settings.imageStatistics = parser.value(IMAGE_STATISTICS);
 
 	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
 	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))

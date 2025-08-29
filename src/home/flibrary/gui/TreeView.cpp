@@ -23,7 +23,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 
-#include "GuiUtil/util.h"
+#include "gutil/util.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/files.h"
@@ -269,6 +269,21 @@ public:
 		return m_ui.treeView;
 	}
 
+	void SetMode(const int mode, const QString& id)
+	{
+		assert(m_controller->GetItemType() == ItemType::Navigation);
+		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
+		const auto modeName = m_ui.cbMode->itemData(modeIndex).toString();
+		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionProvider->GetActiveCollectionId()).arg(modeName), id);
+
+		if (m_controller->GetModeIndex() != mode)
+			return m_ui.cbMode->setCurrentIndex(modeIndex);
+
+		const auto& model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+			m_ui.treeView->setCurrentIndex(matched.front());
+	}
+
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -379,10 +394,13 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [&](const QModelIndex& index)
+		        [this](const QModelIndex& index)
 		        {
 					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
 					m_settings->Set(GetRecentIdKey(), m_currentId);
+
+					if (m_controller->GetItemType() == ItemType::Navigation && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
+						emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
 				});
 
 		if (m_controller->GetItemType() == ItemType::Navigation)
@@ -595,6 +613,8 @@ private:
 		if (m_controller->GetItemType() == ItemType::Navigation)
 		{
 			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
+
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
 		}
 		else
 		{
@@ -1026,6 +1046,11 @@ void TreeView::FilterGenres(const bool filterGenres)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
+}
+
+void TreeView::SetMode(const int mode, const QString& id)
+{
+	m_impl->SetMode(mode, id);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const

@@ -20,6 +20,7 @@ enum class ItemType;
 	DATA_ITEM(GenreItem)      \
 	DATA_ITEM(AuthorItem)     \
 	DATA_ITEM(SeriesItem)     \
+	DATA_ITEM(ReviewItem)     \
 	DATA_ITEM(BookItem)       \
 	DATA_ITEM(MenuItem)
 

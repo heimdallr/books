@@ -17,6 +17,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "inpx/src/util/constant.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -197,12 +198,27 @@ constexpr std::pair<int, ContextMenuHandlerFunction> MENU_HANDLERS[] {
 #undef MENU_ACTION_ITEM
 };
 
+struct ModeDescriptor;
+
+class INavigationFilter // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~INavigationFilter() = default;
+	virtual bool Stub(const ModeDescriptor&) const = 0;
+	virtual bool IsRecordExists(const ModeDescriptor&) const = 0;
+	virtual bool IsFolderExists(const ModeDescriptor&) const = 0;
+};
+
 struct ModeDescriptor
 { //-V802
+
+	using Filter = bool (INavigationFilter::*)(const ModeDescriptor&) const;
+
 	ViewMode viewMode { ViewMode::Unknown };
 	ModelCreator modelCreator { nullptr };
 	NavigationMode navigationMode { NavigationMode::Unknown };
-	const char* filter { nullptr };
+	Filter filterInvoker { &INavigationFilter::Stub };
+	const char* filterParameter { nullptr };
 	MenuRequester menuRequester { &MenuRequesterStub };
 	ContextMenuHandlerFunction createNewAction { nullptr };
 	ContextMenuHandlerFunction createRemoveAction { nullptr };
@@ -213,77 +229,68 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      { ViewMode::List,
      &IModelProvider::CreateAuthorsListModel,
      NavigationMode::Authors,
+     &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     &MenuRequesterGroupNavigation }																																							   },
+     &MenuRequesterGroupNavigation }																																									   },
 	{    Loc::Series,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Series,
+     &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))",
-     &MenuRequesterGroupNavigation }																																							   },
+     &MenuRequesterGroupNavigation }																																									   },
 	{    Loc::Genres,
      { ViewMode::Tree,
      &IModelProvider::CreateTreeModel,
      NavigationMode::Genres,
+     &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
-     &TreeMenuRequester }																																										  },
+     &TreeMenuRequester }																																												  },
 	{  Loc::Keywords,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Keywords,
+     &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))",
-     &MenuRequesterGroupNavigation }																																							   },
+     &MenuRequesterGroupNavigation }																																									   },
 	{   Loc::Updates,
      { ViewMode::Tree,
      &IModelProvider::CreateTreeModel,
      NavigationMode::Updates,
+     &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
-     &TreeMenuRequester }																																										  },
-	{  Loc::Archives, { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Archives, "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" } },
-	{ Loc::Languages,            { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages, "select exists (select 42 from Books where Lang > (select min(Lang) from Books))" } },
+     &TreeMenuRequester }																																												  },
+	{  Loc::Archives,
+     { ViewMode::List,
+     &IModelProvider::CreateListModel,
+     NavigationMode::Archives,
+     &INavigationFilter::IsRecordExists,
+     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                                                                       },
+	{ Loc::Languages,
+     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages, &INavigationFilter::IsRecordExists, "select exists (select 42 from Books where Lang > (select min(Lang) from Books))" } },
 	{    Loc::Groups,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Groups,
+     &INavigationFilter::Stub,
      nullptr,
      &MenuRequesterGroups,
      &IContextMenuHandler::OnCreateNewGroupTriggered,
-     &IContextMenuHandler::OnRemoveGroupTriggered }																																				},
+     &IContextMenuHandler::OnRemoveGroupTriggered }																																						},
 	{    Loc::Search,
      { ViewMode::List,
      &IModelProvider::CreateSearchListModel,
      NavigationMode::Search,
+     &INavigationFilter::Stub,
      nullptr,
      &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
-     &IContextMenuHandler::OnRemoveSearchTriggered }																																			   },
-	{  Loc::AllBooks,																								{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
+     &IContextMenuHandler::OnRemoveSearchTriggered }																																					   },
+	{   Loc::Reviews,														  { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{  Loc::AllBooks,																										{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
-
-std::vector<std::pair<const char*, int>> GetModes(const IDatabaseController& databaseController, const ISettings& settings)
-{
-	std::vector<std::pair<const char*, int>> result;
-	std::ranges::transform(MODE_DESCRIPTORS
-	                           | std::views::filter(
-								   [&, db = databaseController.GetDatabase()](const auto& item)
-								   {
-									   if (!settings.Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(item.first), true))
-										   return false;
-
-									   if (!db || !item.second.filter)
-										   return true;
-
-									   const auto query = db->CreateQuery(item.second.filter);
-									   query->Execute();
-									   assert(!query->Eof());
-									   return query->template Get<int>(0) != 0;
-								   }),
-	                       std::back_inserter(result),
-	                       [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.navigationMode)); });
-	return result;
-}
 
 } // namespace
 
@@ -292,26 +299,30 @@ struct TreeViewControllerNavigation::Impl final
 	, virtual private IDatabaseController::IObserver
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
+	, virtual private INavigationFilter
 {
 	TreeViewControllerNavigation& self;
 	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
-	const std::vector<std::pair<const char*, int>> modes { GetModes(*this->databaseController, *self.m_settings) };
+	const std::vector<std::pair<const char*, int>> modes { GetModes() };
 	Util::FunctorExecutionForwarder forwarder;
-	int mode = { -1 };
+	int mode { -1 };
 
 	Impl(TreeViewControllerNavigation& self,
 	     const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	     std::shared_ptr<INavigationInfoProvider> dataProvider,
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<IDatabaseController> databaseController,
 	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 		: self { self }
 		, logicFactory { logicFactory }
+		, collectionProvider { std::move(collectionProvider) }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
 		, databaseController { std::move(databaseController) }
@@ -329,59 +340,6 @@ struct TreeViewControllerNavigation::Impl final
 	}
 
 private: // IContextMenuHandler
-	template <typename T>
-	using ControllerCreator = std::shared_ptr<T> (ILogicFactory::*)() const;
-
-	template <typename T>
-	void OnCreateNavigationItem(ControllerCreator<T> creator, Callback callback) const
-	{
-		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		auto& controllerRef = *controller;
-		controllerRef.CreateNew(
-			[controller = std::move(controller), callback = std::move(callback)](long long) mutable
-			{
-				callback();
-				controller.reset();
-			});
-	}
-
-	template <typename T>
-	void OnRenameNavigationItem(const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
-	{
-		assert(index.isValid());
-		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		auto& controllerRef = *controller;
-		controllerRef.Rename(index.data(Role::Id).toLongLong(),
-		                     index.data(Qt::DisplayRole).toString(),
-		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
-		                     {
-								 callback();
-								 controller.reset();
-							 });
-	}
-
-	template <typename T>
-	void OnRemoveNavigationItem(const QList<QModelIndex>& indexList, const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
-	{
-		const auto toId = [](const QModelIndex& ind) { return ind.data(Role::Id).toLongLong(); };
-
-		typename T::Ids ids;
-		if (index.isValid())
-			ids.emplace(toId(index));
-		std::ranges::transform(indexList, std::inserter(ids, ids.end()), toId);
-		if (ids.empty())
-			return;
-
-		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
-		auto& controllerRef = *controller;
-		controllerRef.Remove(std::move(ids),
-		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
-		                     {
-								 callback();
-								 controller.reset();
-							 });
-	}
-
 	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, const Callback callback) const override //-V801
 	{
 		callback();
@@ -508,7 +466,102 @@ private: // ITableSubscriptionHandler
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
 
+private: // INavigationFilter
+	bool Stub(const ModeDescriptor&) const override
+	{
+		return true;
+	}
+
+	bool IsRecordExists(const ModeDescriptor& descriptor) const override
+	{
+		if (!descriptor.filterParameter)
+			return true;
+
+		auto db = databaseController->GetDatabase();
+		if (!db)
+			return true;
+
+		const auto query = db->CreateQuery(descriptor.filterParameter);
+		query->Execute();
+		assert(!query->Eof());
+		return query->template Get<int>(0) != 0;
+	}
+
+	bool IsFolderExists(const ModeDescriptor& descriptor) const override
+	{
+		return descriptor.filterParameter && collectionProvider && collectionProvider->ActiveCollectionExists()
+		    && QDir(collectionProvider->GetActiveCollection().folder + "/" + descriptor.filterParameter).exists();
+	}
+
 private:
+	template <typename T>
+	using ControllerCreator = std::shared_ptr<T> (ILogicFactory::*)() const;
+
+	template <typename T>
+	void OnCreateNavigationItem(ControllerCreator<T> creator, Callback callback) const
+	{
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
+		auto& controllerRef = *controller;
+		controllerRef.CreateNew(
+			[controller = std::move(controller), callback = std::move(callback)](long long) mutable
+			{
+				callback();
+				controller.reset();
+			});
+	}
+
+	template <typename T>
+	void OnRenameNavigationItem(const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
+	{
+		assert(index.isValid());
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
+		auto& controllerRef = *controller;
+		controllerRef.Rename(index.data(Role::Id).toLongLong(),
+		                     index.data(Qt::DisplayRole).toString(),
+		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
+		                     {
+								 callback();
+								 controller.reset();
+							 });
+	}
+
+	template <typename T>
+	void OnRemoveNavigationItem(const QList<QModelIndex>& indexList, const QModelIndex& index, ControllerCreator<T> creator, Callback callback) const
+	{
+		const auto toId = [](const QModelIndex& ind) { return ind.data(Role::Id).toLongLong(); };
+
+		typename T::Ids ids;
+		if (index.isValid())
+			ids.emplace(toId(index));
+		std::ranges::transform(indexList, std::inserter(ids, ids.end()), toId);
+		if (ids.empty())
+			return;
+
+		auto controller = ((*ILogicFactory::Lock(logicFactory)).*creator)();
+		auto& controllerRef = *controller;
+		controllerRef.Remove(std::move(ids),
+		                     [controller = std::move(controller), callback = std::move(callback)](long long) mutable
+		                     {
+								 callback();
+								 controller.reset();
+							 });
+	}
+
+	std::vector<std::pair<const char*, int>> GetModes() const
+	{
+		std::vector<std::pair<const char*, int>> result;
+		std::ranges::transform(MODE_DESCRIPTORS
+		                           | std::views::filter(
+									   [&, &navigatorFilter = static_cast<const INavigationFilter&>(*this)](const auto& item)
+									   {
+										   return self.m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(item.first), true)
+			                                   && std::invoke(item.second.filterInvoker, std::cref(navigatorFilter), std::cref(item.second));
+									   }),
+		                       std::back_inserter(result),
+		                       [](const auto& item) { return std::make_pair(item.first, static_cast<int>(item.second.navigationMode)); });
+		return result;
+	}
+
 	void ExecuteGroupActionImpl(const GroupActionFunction invoker, const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const
 	{
 		const auto id = item->GetData(MenuItem::Column::Parameter).toLongLong();
@@ -549,15 +602,17 @@ private:
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
-                                                           const std::shared_ptr<const IModelProvider>& modelProvider,
+                                                           const std::shared_ptr<IModelProvider>& modelProvider,
                                                            const std::shared_ptr<const ILogicFactory>& logicFactory,
+                                                           std::shared_ptr<const ICollectionProvider> collectionProvider,
                                                            std::shared_ptr<INavigationInfoProvider> dataProvider,
                                                            std::shared_ptr<IUiFactory> uiFactory,
                                                            std::shared_ptr<IDatabaseController> databaseController,
                                                            std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(*this, logicFactory, std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
+	, m_impl(*this, logicFactory, std::move(collectionProvider), std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
 {
+	static_cast<ITreeViewController*>(this)->RegisterObserver(modelProvider.get());
 	Setup();
 
 	m_impl->dataProvider->SetNavigationRequestCallback(
@@ -574,6 +629,8 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
+	if (auto modelProvider = m_modelProvider.lock())
+		static_cast<ITreeViewController*>(this)->UnregisterObserver(modelProvider.get());
 	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 

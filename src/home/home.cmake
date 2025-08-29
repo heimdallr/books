@@ -16,8 +16,9 @@ set(MODULES
 	zip
 	network
 	tool
-	GuiUtil
+	gutil
 	icu
+	jxl
 )
 foreach(module ${MODULES})
 	include("${CMAKE_CURRENT_LIST_DIR}/${module}/${module}.cmake")

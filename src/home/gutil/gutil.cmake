@@ -1,4 +1,4 @@
-AddTarget(GuiUtil	shared_lib
+AddTarget(gutil	shared_lib
 	PROJECT_GROUP Util
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"
@@ -8,5 +8,5 @@ AddTarget(GuiUtil	shared_lib
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		logging
-		Util
+		util
 )

@@ -37,8 +37,12 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[] {
 class DataProvider::Impl
 {
 public:
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
-		: m_databaseUser { std::move(databaseUser) }
+	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider,
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
+	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+		: m_collectionProvider { std::move(collectionProvider) }
+		, m_databaseUser { std::move(databaseUser) }
 		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
@@ -132,8 +136,9 @@ private:
 				  QString authorName;
 				  if (!booksGeneratorReady)
 				  {
+					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
 					  const auto db = m_databaseUser->Database();
-					  generator = std::make_unique<BooksTreeGenerator>(*db, navigationMode, navigationId, description);
+					  generator = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
@@ -145,7 +150,7 @@ private:
 				  }
 
 				  generator->SetBooksViewMode(viewMode);
-				  auto root = (*generator.*booksGenerator)(description.treeCreator);
+				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
 				  return
 					  [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](size_t) mutable
 				  {
@@ -183,6 +188,7 @@ private:
 	mutable bool m_requestNavigationForce { false };
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
@@ -190,10 +196,11 @@ private:
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };
 };
 
-DataProvider::DataProvider(std::shared_ptr<IDatabaseUser> databaseUser,
+DataProvider::DataProvider(std::shared_ptr<const ICollectionProvider> collectionProvider,
+                           std::shared_ptr<const IDatabaseUser> databaseUser,
                            std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
                            std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
-	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
+	: m_impl(std::move(collectionProvider), std::move(databaseUser), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";
 }

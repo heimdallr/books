@@ -13,12 +13,13 @@
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/ILineOption.h"
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
 #include "AnnotationWidget.h"
@@ -44,7 +45,7 @@ public:
 	           std::shared_ptr<IUiFactory> uiFactory,
 	           std::shared_ptr<ISettings> settings,
 	           std::shared_ptr<ICollectionController> collectionController,
-	           std::shared_ptr<ICollectionUpdateChecker> collectionUpdateChecker,
+	           std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	           std::shared_ptr<IParentWidgetProvider> parentWidgetProvider,
 	           std::shared_ptr<IAnnotationController> annotationController,
 	           std::shared_ptr<AnnotationWidget> annotationWidget,
@@ -56,6 +57,7 @@ public:
 	           std::shared_ptr<ICommandLine> commandLine,
 	           std::shared_ptr<ILineOption> lineOption,
 	           std::shared_ptr<IDatabaseChecker> databaseChecker,
+	           std::shared_ptr<IAlphabetPanel> alphabetPanel,
 	           QWidget* parent = nullptr);
 	~MainWindow() override;
 
@@ -70,6 +72,7 @@ private: // QWidget
 
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
+	void OnSearchNavigationItemSelected(long long id, const QString& text);
 
 private:
 	class Impl;

@@ -162,7 +162,7 @@
               <item>
                <widget class="HomeCompa::Flibrary::ClickableLabel" name="cover">
                 <property name="contextMenuPolicy">
-                 <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+                 <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
                 </property>
                 <property name="visible">
                  <bool>true</bool>
@@ -403,6 +403,21 @@
   <action name="actionOpenImage">
    <property name="text">
     <string>&amp;Open image</string>
+   </property>
+  </action>
+  <action name="actionImagePrev">
+   <property name="shortcut">
+    <string notr="true">Alt+Left</string>
+   </property>
+  </action>
+  <action name="actionImageNext">
+   <property name="shortcut">
+    <string notr="true">Alt+Right</string>
+   </property>
+  </action>
+  <action name="actionImageHome">
+   <property name="shortcut">
+    <string notr="true">Alt+Down</string>
    </property>
   </action>
  </widget>

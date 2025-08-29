@@ -25,6 +25,10 @@ QT_TRANSLATE_NOOP("Book", "Lang")
 
 #endif
 
+constexpr auto READER = QT_TRANSLATE_NOOP("Book", "Reader");
+constexpr auto DATE_TIME = QT_TRANSLATE_NOOP("Book", "Date, Time");
+constexpr auto COMMENT = QT_TRANSLATE_NOOP("Book", "Comment");
+
 constexpr auto NAVIGATION = "Navigation";
 constexpr auto Authors = QT_TRANSLATE_NOOP("Navigation", "Authors");
 constexpr auto Series = QT_TRANSLATE_NOOP("Navigation", "Series");
@@ -35,7 +39,11 @@ constexpr auto Archives = QT_TRANSLATE_NOOP("Navigation", "Archives");
 constexpr auto Languages = QT_TRANSLATE_NOOP("Navigation", "Languages");
 constexpr auto Groups = QT_TRANSLATE_NOOP("Navigation", "Groups");
 constexpr auto Search = QT_TRANSLATE_NOOP("Navigation", "Search");
+constexpr auto Reviews = QT_TRANSLATE_NOOP("Navigation", "Reviews");
 constexpr auto AllBooks = QT_TRANSLATE_NOOP("Navigation", "AllBooks");
+
+constexpr auto Books = QT_TRANSLATE_NOOP("Navigation", "Books");
+constexpr auto AllOptions = QT_TRANSLATE_NOOP("Navigation", "All options");
 
 constexpr auto AUTHORS = QT_TRANSLATE_NOOP("Annotation", "Authors:");
 constexpr auto SERIES = QT_TRANSLATE_NOOP("Annotation", "Series:");

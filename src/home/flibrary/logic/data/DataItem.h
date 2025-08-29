@@ -145,6 +145,29 @@ private: // DataItem
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
+class ReviewItem final : public DataItem
+{
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Name = 0,
+			Time,
+			Comment,
+			Last
+		};
+	};
+
+public:
+	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	explicit ReviewItem(IDataItem* parent);
+
+private: // DataItem
+	ReviewItem* ToReviewItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
+};
+
 class LOGIC_EXPORT BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
@@ -209,10 +232,10 @@ public:
 	Qt::CheckState checkState { Qt::Unchecked };
 	static const Mapping* mapping;
 
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr, size_t additionalFieldCount = 0);
 	static int Remap(int column) noexcept;
 
-	explicit BookItem(IDataItem* parent = nullptr);
+	BookItem(IDataItem* parent, size_t additionalFieldCount);
 
 private: // DataItem
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;

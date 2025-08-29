@@ -9,7 +9,7 @@
 #include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-#include "GuiUtil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary

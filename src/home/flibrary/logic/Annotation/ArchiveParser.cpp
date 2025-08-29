@@ -1,5 +1,7 @@
 #include "ArchiveParser.h"
 
+#include <ranges>
+
 #include <QFile>
 
 #include "fnd/FindPair.h"
@@ -28,7 +30,6 @@ constexpr auto FILE_EMPTY = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
 constexpr auto ID = "id";
-constexpr auto L_HREF = "l:href";
 constexpr auto A = "a";
 constexpr auto P = "p";
 constexpr auto EMPHASIS = "emphasis";
@@ -54,6 +55,7 @@ constexpr auto PUBLISH_INFO_CITY = "FictionBook/description/publish-info/city";
 constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
 constexpr auto PUBLISH_INFO_ISBN = "FictionBook/description/publish-info/isbn";
 constexpr auto BODY = "FictionBook/body/";
+constexpr auto FICTION_BOOK = "FictionBook";
 
 constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_TAGS[] {
 	{ EMPHASIS, "em" },
@@ -93,27 +95,32 @@ public:
 		m_progressItem = std::move(progressItem);
 
 		SaxParser::Parse();
+		if (const auto it = std::ranges::find_if(m_covers, [&](const auto& item) { return item.first == m_coverpage; }); it != m_covers.end())
+			m_data.covers.emplace_back(std::move(it->first), std::move(it->second));
 
-		const auto coverIndex = static_cast<int>(m_data.covers.size());
+		std::multimap<int, QByteArray> covers;
 
-		if (ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
-		                      book.GetRawData(BookItem::Column::FileName),
-		                      [&covers = m_data.covers](QString name, QByteArray data)
-		                      {
-								  covers.emplace_back(std::move(name), std::move(data));
-								  return false;
-							  }))
-			m_data.coverIndex = coverIndex;
+		ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
+		                  book.GetRawData(BookItem::Column::FileName),
+		                  [this, &covers](QString name, QByteArray data)
+		                  {
+							  bool ok = false;
+							  const auto id = name.toInt(&ok);
+							  if (ok)
+								  covers.emplace(id, std::move(data));
+							  else
+								  m_data.covers.emplace_back(std::move(name), std::move(data));
 
-		for (auto&& [name, bytes] : m_covers)
-		{
-			if (bytes.isNull())
-				continue;
+							  return false;
+						  });
 
-			if (name == m_coverpage)
-				m_data.coverIndex = static_cast<int>(m_data.covers.size());
-			m_data.covers.emplace_back(std::move(name), std::move(bytes));
-		}
+		std::ranges::transform(std::move(covers),
+		                       std::back_inserter(m_data.covers),
+		                       [](auto&& item) { return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) }; });
+
+		std::ranges::transform(std::move(m_covers) | std::views::filter([](const auto& item) { return !item.second.isNull(); }),
+		                       std::back_inserter(m_data.covers),
+		                       [](auto&& item) { return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) }; });
 
 		return m_data;
 	}
@@ -122,7 +129,7 @@ private: // Util::SaxParser
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		if (name.compare(A, Qt::CaseInsensitive) == 0)
-			m_href = attributes.GetAttribute(L_HREF);
+			m_href = attributes.GetAttribute(m_hrefLink);
 
 		if (m_annotationMode)
 		{
@@ -140,10 +147,11 @@ private: // Util::SaxParser
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{ COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
+			{    FICTION_BOOK,    &XmlParser::OnStartElementFictionBook },
+            { COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
             {          BINARY,         &XmlParser::OnStartElementBinary },
-            {         SECTION,        &XmlParser::OnStartElementSection },
-			{      TRANSLATOR,     &XmlParser::OnStartElementTranslator },
+			{         SECTION,        &XmlParser::OnStartElementSection },
+            {      TRANSLATOR,     &XmlParser::OnStartElementTranslator },
             {      ANNOTATION,     &XmlParser::OnStartElementAnnotation },
 		};
 
@@ -159,13 +167,6 @@ private: // Util::SaxParser
 			m_percents = percents;
 		}
 
-		if (m_annotationMode)
-		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
-				m_data.annotation.append(QString("</%1>").arg(replacedName));
-		}
-
 		using ParseElementFunction = bool (XmlParser::*)();
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
@@ -173,7 +174,16 @@ private: // Util::SaxParser
 			{ ANNOTATION, &XmlParser::OnEndElementAnnotation },
 		};
 
-		return SaxParser::Parse(*this, PARSERS, path);
+		const auto result = SaxParser::Parse(*this, PARSERS, path);
+
+		if (m_annotationMode)
+		{
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+				m_data.annotation.append(QString("</%1>").arg(replacedName));
+		}
+
+		return result;
 	}
 
 	bool OnCharacters(const QString& path, const QString& value) override
@@ -213,34 +223,43 @@ private: // Util::SaxParser
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
 
-	bool OnWarning(const QString& text) override
+	bool OnWarning(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::warning);
+		return Log(line, column, text, plog::Severity::warning);
 	}
 
-	bool OnError(const QString& text) override
+	bool OnError(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::error);
+		return Log(line, column, text, plog::Severity::error);
 	}
 
-	bool OnFatalError(const QString& text) override
+	bool OnFatalError(const size_t line, const size_t column, const QString& text) override
 	{
-		return Log(text, plog::Severity::fatal);
+		return Log(line, column, text, plog::Severity::fatal);
 	}
 
 private:
-	bool Log(const QString& text, const plog::Severity severity)
+	bool Log(const size_t line, const size_t column, const QString& text, const plog::Severity severity)
 	{
 		m_data.error = text;
-		LOG(severity) << text;
+		LOG(severity) << line << ":" << column << " " << text;
+		return true;
+	}
+
+	bool OnStartElementFictionBook(const Util::XmlAttributes& attributes)
+	{
+		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith("xmlns:"))
+				return (m_hrefLink = attributeName.last(attributeName.length() - 6) + ":href"), true;
+
 		return true;
 	}
 
 	bool OnStartElementCoverpageImage(const Util::XmlAttributes& attributes)
 	{
-		m_coverpage = attributes.GetAttribute(L_HREF);
-		while (!m_coverpage.isEmpty() && m_coverpage.front() == '#')
-			m_coverpage.removeFirst();
+		m_coverpage = attributes.GetAttribute(m_hrefLink);
+		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) { return ch != '#'; });
+		m_coverpage = m_coverpage.last(std::distance(it, m_coverpage.end()));
 
 		return true;
 	}
@@ -393,6 +412,7 @@ private:
 	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
 
 	ArchiveParser::Data m_data;
+	QString m_hrefLink;
 	QString m_href;
 	QString m_coverpage;
 	IDataItem* m_currentContentItem { m_data.content.get() };

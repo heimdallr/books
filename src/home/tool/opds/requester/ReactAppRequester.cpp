@@ -13,8 +13,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -71,16 +74,19 @@ QString Get(const IReactAppRequester::Parameters& parameters, const QString& key
 
 struct ReactAppRequester::Impl
 {
+	std::shared_ptr<const ISettings> settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
 	std::shared_ptr<const ICoverCache> coverCache;
 	std::shared_ptr<Flibrary::IAnnotationController> annotationController;
 
-	Impl(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	Impl(std::shared_ptr<const ISettings> settings,
+	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 	     std::shared_ptr<const ICoverCache> coverCache,
 	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-		: collectionProvider { std::move(collectionProvider) }
+		: settings { std::move(settings) }
+		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
 		, coverCache { std::move(coverCache) }
 		, annotationController { std::move(annotationController) }
@@ -139,6 +145,16 @@ SELECT gu.GroupID, gu.Title
 			for (query->Execute(); !query->Eof(); query->Next())
 				array.append(FromQuery<const char*>(*query));
 			result.insert("groups", array);
+		}
+
+		if (auto readTemplate = settings->Get(Flibrary::Constant::Settings::OPDS_READ_URL_TEMPLATE).toString(); !readTemplate.isEmpty())
+		{
+			const auto host = settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
+			const auto port = settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT);
+			readTemplate.replace("%HTTP_HOST%", host);
+			readTemplate.replace("%HTTP_PORT%", QString::number(port));
+
+			result.insert("linkToExtBookReader", std::move(readTemplate));
 		}
 
 		return result;
@@ -203,7 +219,7 @@ where g.GroupID = ?
 	{
 		static constexpr auto queryText = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
 		static constexpr auto groupJoin = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
-		static constexpr auto searchJoin = "join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
+		static constexpr auto searchJoin = "join Author_List al on al.AuthorID = a.AuthorID join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
 			{ SELECTED_GROUP_ID,  groupJoin, false },
@@ -217,7 +233,7 @@ where g.GroupID = ?
 	{
 		static constexpr auto queryText = "select s.SeriesID, s.SeriesTitle, count(42) as Books from Series s %1 group by s.SeriesID";
 		static constexpr auto groupJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
-		static constexpr auto searchJoin = "join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
+		static constexpr auto searchJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
 		static constexpr std::tuple<const char*, const char*, bool> list[] {
 			{ SELECTED_GROUP_ID,  groupJoin, false },
@@ -336,7 +352,7 @@ where g.GroupID = ?
 				result.insert("series", series);
 
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					coverCache->Set(bookId, covers.front().bytes);
+					coverCache->Set(bookId, std::move(Flibrary::Recode(covers.front().bytes).first));
 			});
 
 		annotationController->RegisterObserver(&observer);
@@ -440,11 +456,12 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
 
 } // namespace
 
-ReactAppRequester::ReactAppRequester(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+ReactAppRequester::ReactAppRequester(std::shared_ptr<const ISettings> settings,
+                                     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
                                      std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
                                      std::shared_ptr<const ICoverCache> coverCache,
                                      std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(collectionProvider), std::move(databaseController), std::move(coverCache), std::move(annotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(coverCache), std::move(annotationController))
 {
 }
 

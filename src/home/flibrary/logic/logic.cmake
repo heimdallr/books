@@ -9,13 +9,14 @@ AddTarget(logic	shared_lib
 		Qt${QT_MAJOR_VERSION}::Network
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
-		DatabaseFactory
+		dbfactory
 		flint
-		InpxLib
+		fljxl
+		inpx
 		logging
 		network
 		rest
-		Util
+		util
 		zip
 	DEPENDENCIES
 		MyHomeLibSQLIteExt

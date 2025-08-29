@@ -146,21 +146,21 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnWarning(const QString& text) override
+	bool OnWarning(const size_t line, const size_t column, const QString& text) override
 	{
-		PLOGW << text;
+		PLOGW << line << ":" << column << " " << text;
 		return true;
 	}
 
-	bool OnError(const QString& text) override
+	bool OnError(const size_t line, const size_t column, const QString& text) override
 	{
-		PLOGE << text;
+		PLOGE << line << ":" << column << " " << text;
 		return true;
 	}
 
-	bool OnFatalError(const QString& text) override
+	bool OnFatalError(const size_t line, const size_t column, const QString& text) override
 	{
-		return OnError(text);
+		return OnError(line, column, text);
 	}
 
 private:

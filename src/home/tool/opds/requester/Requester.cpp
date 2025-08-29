@@ -7,7 +7,6 @@
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
-#include <QTimer>
 #include <QUrl>
 
 #include "fnd/FindPair.h"
@@ -24,10 +23,10 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
-#include "interface/logic/IDatabaseUser.h"
 
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
+#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/SortString.h"
@@ -40,7 +39,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&, const ISettings&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -56,7 +55,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&, const ISettings&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -72,8 +71,11 @@ constexpr auto CONTEXT = "Requester";
 constexpr auto BOOKS_COUNTER = QT_TRANSLATE_NOOP("Requester", "Books: %1");
 constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
 
-constexpr auto SEARCH_RESULTS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto SEARCH_RESULTS_BOOKS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto SEARCH_RESULTS_AUTHORS = QT_TRANSLATE_NOOP("Requester", R"(Authors found for the request "%1": %2)");
+constexpr auto SEARCH_RESULTS_SERIES = QT_TRANSLATE_NOOP("Requester", R"(Series found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
+constexpr auto SPECIFY_SEARCH_CATEGORY = QT_TRANSLATE_NOOP("Requester", R"(Specify what to search for your request "%1")");
 constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
 constexpr auto NEXT = QT_TRANSLATE_NOOP("Requester", "[Next page]");
 constexpr auto FIRST = QT_TRANSLATE_NOOP("Requester", "[First page]");
@@ -86,8 +88,10 @@ constexpr auto CONTENT = "content";
 constexpr auto SEARCH = "search";
 constexpr auto START = "start";
 constexpr auto STARTS = "starts";
+constexpr auto SEPARATED = "separated";
 constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
+constexpr auto OPDS_SEPARATED_SEARCH = "opds/SeparatedSearch";
 
 TR_DEF
 
@@ -256,6 +260,26 @@ select b.BookID, b.Title
 	where b.IsDeleted != %1
 )";
 
+constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
+	from Authors a
+	join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
+	where a.IsDeleted != %1
+)";
+
+constexpr auto SEARCH_QUERY_TEXT_SERIES = R"(
+select a.SeriesID, a.SeriesTitle
+	from Series a
+	join Series_Search s on s.rowid = a.SeriesID and Series_Search match ?
+	where a.IsDeleted != %1
+)";
+
+constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
+select b.BookID, b.Title
+	from Books_View b
+	join Books_Search s on s.rowid = b.BookID and Books_Search match ?
+	where b.IsDeleted != %1
+)";
+
 struct Node
 {
 	using Attributes = std::vector<std::pair<QString, QString>>;
@@ -345,8 +369,8 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 }
 
 struct NavigationDescription;
-void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, bool, QString, std::map<QString, QString>&);
-void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, bool, QString, std::map<QString, QString>&);
+void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, int, QString, std::map<QString, QString>&);
+void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, int, QString, std::map<QString, QString>&);
 
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -363,7 +387,7 @@ using WriteEntries = void (*)(Node::Children& children,
                               IRequester::Parameters parameters,
                               const NavigationDescription& d,
                               DB::IDatabase& db,
-                              bool removedFlag,
+                              int removedFlag,
                               QString join,
                               std::map<QString, QString>& ones);
 
@@ -395,6 +419,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
 	{ Loc::Search },
+	{ Loc::Reviews },
 	{ Loc::AllBooks },
 };
 // clang-format on
@@ -418,7 +443,7 @@ QString CreateSelf(const QString& root, const QString& path, const IRequester::P
 	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : QString("/%1").arg(path), list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
-void WriteBookEntries(Node::Children& children, const QString& root, IRequester::Parameters parameters, const NavigationDescription& d, DB::IDatabase& db, bool, QString, std::map<QString, QString>& ones)
+void WriteBookEntries(Node::Children& children, const QString& root, IRequester::Parameters parameters, const NavigationDescription& d, DB::IDatabase& db, int, QString, std::map<QString, QString>& ones)
 {
 	const auto needAuthor = !parameters.contains(Loc::Authors);
 	for (auto&& [navigationId, title] : ones)
@@ -455,7 +480,7 @@ void WriteNavigationEntries(Node::Children& children,
                             IRequester::Parameters parameters,
                             const NavigationDescription& d,
                             DB::IDatabase& db,
-                            const bool removedFlag,
+                            const int removedFlag,
                             QString join,
                             std::map<QString, QString>& ones)
 {
@@ -611,6 +636,62 @@ template <>
 QString GetContent<Flibrary::Update>(const Flibrary::Update&)
 {
 	return {};
+}
+
+QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters, const ISettings& settings)
+{
+	if (root.isEmpty())
+		return src;
+
+	QBuffer buffer(&src);
+	buffer.open(QIODevice::ReadOnly);
+	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
+	auto result = postprocessor(callback, buffer, contentType, parameters, settings);
+
+#ifndef NDEBUG
+	PLOGV << result;
+#endif
+
+	return result;
+}
+
+std::pair<QString, QString> ParseSearchString(const IRequester::Parameters& parameters)
+{
+	const auto searchTerms = parameters.at("q");
+
+	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	auto termsGui = terms.join(' ');
+
+	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+
+	return std::make_pair(terms.join(' '), std::move(termsGui));
+}
+
+Node SeparatedSearch(const QString& root, const IRequester::Parameters& parameters)
+{
+	const auto [_, termsGui] = ParseSearchString(parameters);
+	auto head = GetHead(SEARCH, Tr(SPECIFY_SEARCH_CATEGORY).arg(termsGui), root, CreateSelf(root, SEARCH, parameters));
+
+	const auto addEntry = [&](const char* category)
+	{
+		auto& entry = head.children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(category, Loc::Tr(Loc::NAVIGATION, category)));
+		entry.title = Tr(category);
+		auto p = parameters;
+		p[SEPARATED] = category;
+
+		const QUrl url(CreateSelf(root, SEARCH, p));
+		entry.children.emplace_back("link",
+		                            QString {
+        },
+		                            Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+	};
+
+	addEntry(Loc::Authors);
+	addEntry(Loc::Series);
+	addEntry(Loc::Books);
+	addEntry(Loc::AllOptions);
+
+	return head;
 }
 
 } // namespace
@@ -806,7 +887,7 @@ public:
                     },
 				                                Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
 
-					m_coverCache->Set(book.GetId(), covers.front().bytes);
+					m_coverCache->Set(book.GetId(), std::move(Flibrary::Recode(covers.front().bytes).first));
 				}
 			});
 
@@ -825,47 +906,56 @@ public:
 
 	Node Search(const QString& root, const Parameters& parameters) const
 	{
-		const auto removedFlag = GetRemovedFlag();
-		const auto db = m_databaseController->GetDatabase(true);
-		const auto searchTerms = parameters.at("q");
-		const auto start = [&]
-		{
-			const auto it = parameters.find(START);
-			return it != parameters.end() ? it->second : QString {};
-		}();
+		auto separated = GetParameter(parameters, SEPARATED);
+		if (m_settings->Get(OPDS_SEPARATED_SEARCH, false) && separated.isEmpty())
+			return SeparatedSearch(root, parameters);
 
-		auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
-		const auto termsGui = terms.join(' ');
-		std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+		if (separated.isEmpty())
+			separated = Loc::AllOptions;
+
+		const auto [terms, termsGui] = ParseSearchString(parameters);
 
 		auto head = GetHead(SEARCH, Tr(NOTHING_FOUND).arg(termsGui), root, CreateSelf(root, SEARCH, parameters));
 
+		static constexpr std::pair<const char*, std::tuple<const char* /*query*/, WriteEntries /*entries writer*/, const NavigationDescription&, const char* /*found message*/>> separatedDescriptions[] {
+			{    Loc::Authors, { SEARCH_QUERY_TEXT_AUTHORS, &WriteNavigationEntries, NAVIGATION_DESCRIPTION[0], SEARCH_RESULTS_AUTHORS } },
+			{     Loc::Series,   { SEARCH_QUERY_TEXT_SERIES, &WriteNavigationEntries, NAVIGATION_DESCRIPTION[1], SEARCH_RESULTS_SERIES } },
+			{      Loc::Books,                    { SEARCH_QUERY_TEXT_BOOKS, &WriteBookEntries, BOOK_DESCRIPTION, SEARCH_RESULTS_BOOKS } },
+			{ Loc::AllOptions,                          { SEARCH_QUERY_TEXT, &WriteBookEntries, BOOK_DESCRIPTION, SEARCH_RESULTS_BOOKS } },
+		};
+
+		const auto& [queryText, writeEntries, navigationDescription, foundMessage] = FindSecond(separatedDescriptions, separated.toStdString().data(), PszComparer {});
+
 		const auto n = head.children.size();
 
+		const auto removedFlag = GetRemovedFlag();
+		const auto db = m_databaseController->GetDatabase(true);
 		std::map<QString, QString> ones;
 		{
-			const auto query = db->CreateQuery(QString(SEARCH_QUERY_TEXT).arg(removedFlag).toStdString());
-			query->Bind(0, terms.join(' ').toStdString());
+			const auto query = db->CreateQuery(QString(queryText).arg(removedFlag).toStdString());
+			query->Bind(0, terms.toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 				ones.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
 		}
 		{
 			auto p = parameters;
 			p.erase("q");
-			WriteBookEntries(head.children, root, std::move(p), BOOK_DESCRIPTION, *db, false, {}, ones);
+			p.erase(SEPARATED);
+			writeEntries(head.children, root, std::move(p), navigationDescription, *db, removedFlag, {}, ones);
 		}
 
 		if (n != head.children.size())
 		{
 			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
 			assert(it != head.children.end());
-			it->value = Tr(SEARCH_RESULTS).arg(termsGui).arg(head.children.size() - n);
+			it->value = Tr(foundMessage).arg(termsGui).arg(head.children.size() - n);
 		}
 		{
 			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
 			const auto startEntryIndex = std::distance(head.children.begin(), it);
 			std::sort(it, head.children.end());
 
+			const auto start = GetParameter(parameters, START);
 			const auto selectionSize = static_cast<ptrdiff_t>(head.children.size());
 			const auto maxResultSize = GetMaxResultSize();
 			const auto startResultIndex = start.isEmpty() ? 0 : std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
@@ -911,9 +1001,46 @@ public:
 		return head;
 	}
 
-	QByteArray GetBookText(const QString& bookId) const
+	QByteArray GetBookText(const QString& root, const Parameters& parameters) const
 	{
-		return m_noSqlRequester->GetBook(bookId).second;
+		const auto bookId = GetParameter(parameters, "book");
+		assert(!bookId.isEmpty());
+		auto result = GetBookTextImpl(bookId);
+		return PostProcess(ContentType::BookText, root, *this, result, { root, bookId }, *m_settings);
+	}
+
+	template <typename NavigationGetter, typename... ARGS>
+	QByteArray GetImpl(NavigationGetter getter, const ContentType contentType, const QString& root, const Parameters& parameters, const ARGS&... args) const
+	{
+		if (!m_collectionProvider->ActiveCollectionExists())
+			return {};
+
+		QByteArray bytes;
+		QBuffer buffer(&bytes);
+		try
+		{
+			const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+			const auto node = std::invoke(getter, *this, std::cref(root), std::cref(parameters), std::cref(args)...);
+			Util::XmlWriter writer(buffer);
+			writer << node;
+		}
+		catch (const std::exception& ex)
+		{
+			PLOGE << ex.what();
+			return {};
+		}
+		catch (...)
+		{
+			PLOGE << "Unknown error";
+			return {};
+		}
+		buffer.close();
+
+#ifndef NDEBUG
+		PLOGV << bytes;
+#endif
+
+		return PostProcess(contentType, root, *this, bytes, { root }, *m_settings);
 	}
 
 private: // INavigationProvider
@@ -1120,6 +1247,11 @@ private:
 		return OPDS_BOOK_LIMIT_DEFAULT;
 	}
 
+	QByteArray GetBookTextImpl(const QString& bookId) const
+	{
+		return m_noSqlRequester->GetBook(bookId).second;
+	}
+
 private:
 	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
@@ -1133,58 +1265,6 @@ private:
 
 namespace
 {
-
-QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters)
-{
-	if (root.isEmpty())
-		return src;
-
-	QBuffer buffer(&src);
-	buffer.open(QIODevice::ReadOnly);
-	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = postprocessor(callback, buffer, contentType, parameters);
-
-#ifndef NDEBUG
-	PLOGV << result;
-#endif
-
-	return result;
-}
-
-template <typename Obj, typename NavigationGetter, typename... ARGS>
-QByteArray GetImpl(const Obj& obj, NavigationGetter getter, const ContentType contentType, const QString& root, const IRequester::Parameters& parameters, const ARGS&... args)
-{
-	if (!obj.GetCollectionProvider().ActiveCollectionExists())
-		return {};
-
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-	try
-	{
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-		const auto node = std::invoke(getter, std::cref(obj), std::cref(root), std::cref(parameters), std::cref(args)...);
-		Util::XmlWriter writer(buffer);
-		writer << node;
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-		return {};
-	}
-	catch (...)
-	{
-		PLOGE << "Unknown error";
-		return {};
-	}
-	buffer.close();
-
-#ifndef NDEBUG
-	PLOGV << bytes;
-#endif
-
-	return PostProcess(contentType, root, obj, bytes, { root });
-}
-
 } // namespace
 
 Requester::Requester(std::shared_ptr<const ISettings> settings,
@@ -1214,29 +1294,26 @@ Requester::~Requester()
 
 QByteArray Requester::Search(const QString& root, const Parameters& parameters) const
 {
-	return GetImpl(*m_impl, &Impl::Search, ContentType::Books, std::cref(root), std::cref(parameters));
+	return m_impl->GetImpl(&Impl::Search, ContentType::Books, std::cref(root), std::cref(parameters));
 }
 
 QByteArray Requester::GetBookText(const QString& root, const Parameters& parameters) const
 {
-	const auto bookId = GetParameter(parameters, "book");
-	assert(!bookId.isEmpty());
-	auto result = m_impl->GetBookText(bookId);
-	return PostProcess(ContentType::BookText, root, *m_impl, result, { root, bookId });
+	return m_impl->GetBookText(root, parameters);
 }
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                                                                         \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                            \
-	{                                                                                                                                                   \
-		return GetImpl(*m_impl, &Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                        \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                           \
+	{                                                                                                                                                  \
+		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
 	}
 OPDS_NAVIGATION_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                               \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                  \
-	{                                                                                                         \
-		return GetImpl(*m_impl, &Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
+#define OPDS_INVOKER_ITEM(NAME)                                                                              \
+	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                 \
+	{                                                                                                        \
+		return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
 	}
 OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM

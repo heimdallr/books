@@ -11,7 +11,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 #include "util/ISettingsObserver.h"
 #include "util/localization.h"
 

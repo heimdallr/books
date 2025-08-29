@@ -37,7 +37,6 @@ public:
 		QString language, sourceLanguage;
 		std::vector<QString> keywords;
 		IAnnotationController::IDataProvider::Covers covers;
-		std::optional<size_t> coverIndex;
 		IDataItem::Ptr content { NavigationItem::Create() };
 		IDataItem::Ptr translators { NavigationItem::Create() };
 		PublishInfo publishInfo;

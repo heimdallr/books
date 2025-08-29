@@ -11,7 +11,7 @@ CreateWinRC(opds
 )
 
 AddTarget(opds	app
-	PROJECT_GROUP    tool
+	PROJECT_GROUP    Tool
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
 	WIN_RC           ${CMAKE_CURRENT_BINARY_DIR}/resources/opds.rc
 	LINK_LIBRARIES
@@ -22,12 +22,10 @@ AddTarget(opds	app
 		Qt${QT_MAJOR_VERSION}::Network
 	LINK_TARGETS
 		flint
-		Fnd
+		fnd
 		logging
 		logic
-		Util
+		util
 		ver
 		zip
-	DEPENDENCIES
-		icu
 )

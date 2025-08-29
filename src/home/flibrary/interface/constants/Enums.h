@@ -13,6 +13,7 @@ namespace HomeCompa::Flibrary
 	NAVIGATION_MODE_ITEM(Languages)   \
 	NAVIGATION_MODE_ITEM(Groups)      \
 	NAVIGATION_MODE_ITEM(Search)      \
+	NAVIGATION_MODE_ITEM(Reviews)     \
 	NAVIGATION_MODE_ITEM(AllBooks)
 
 enum class NavigationMode

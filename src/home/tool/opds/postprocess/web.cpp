@@ -146,22 +146,6 @@ protected:
 		m_writer->Guard("hr");
 	}
 
-private: // SaxParser
-	bool OnWarning(const QString& /*text*/) override
-	{
-		return true;
-	}
-
-	bool OnError(const QString& /*text*/) override
-	{
-		return true;
-	}
-
-	bool OnFatalError(const QString& /*text*/) override
-	{
-		return true;
-	}
-
 private:
 	virtual void WriteHead() = 0;
 
@@ -273,7 +257,7 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings&)
 	{
 		assert(!parameters.isEmpty());
 		return std::make_unique<ParserNavigation>(callback, stream, parameters.front(), CreateGuard {});
@@ -396,16 +380,27 @@ class ParserBookInfo final : public ParserOpds
 	{
 	};
 
-public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters)
+	static QString CreateReadTemplate(const ISettings& settings)
 	{
-		assert(!parameters.isEmpty());
-		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), CreateGuard {});
+		auto readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
+		const auto host = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
+		const auto port = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
+		readTemplate.replace("%HTTP_HOST%", host);
+		readTemplate.replace("%HTTP_PORT%", QString::number(port));
+		return readTemplate;
 	}
 
 public:
-	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings& settings)
+	{
+		assert(!parameters.isEmpty());
+		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), settings, CreateGuard {});
+	}
+
+public:
+	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, const ISettings& settings, CreateGuard)
 		: ParserOpds(callback, stream, std::move(root))
+		, m_readTemplate { CreateReadTemplate(settings) }
 	{
 	}
 
@@ -502,7 +497,7 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", QString("/web/read?book=%1").arg(m_feedId)).WriteCharacters(Tr(READ));
+				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ));
 
 				const auto createLinks = [&](const QFileInfo& fileInfo)
 				{
@@ -555,6 +550,7 @@ private: // AbstractParser
 	}
 
 private:
+	const QString m_readTemplate;
 	std::vector<std::pair<QString, QString>> m_authors;
 	QString m_downloadLinkFb2;
 	QString m_downloadLinkZip;
@@ -613,7 +609,7 @@ class ParserFb2 final : public AbstractParser
 	static constexpr auto IMAGE = "image";
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters, const ISettings&)
 	{
 		assert(parameters.size() > 1);
 		return std::make_unique<ParserFb2>(stream, parameters[0], parameters[1], CreateGuard {});
@@ -931,17 +927,17 @@ private:
 	std::vector<Binary> m_binary;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&)> PARSER_CREATORS[] {
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&, const ISettings&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
 	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters)
+QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters, const ISettings& settings)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser = parserCreator(callback, stream, parameters);
+	const auto parser = parserCreator(callback, stream, parameters, settings);
 	parser->Parse();
 	return parser->GetResult();
 }

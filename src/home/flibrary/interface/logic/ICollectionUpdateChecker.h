@@ -8,7 +8,7 @@ namespace HomeCompa::Flibrary
 class ICollectionUpdateChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Callback = std::function<void(bool updateFound)>;
+	using Callback = std::function<void(bool updateFound, const Collection& updatedCollection)>;
 
 public:
 	virtual ~ICollectionUpdateChecker() = default;

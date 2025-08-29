@@ -38,12 +38,14 @@ public:
 signals:
 	void NavigationModeNameChanged(QString navigationModeName) const;
 	void ValueGeometryChanged(const QRect& geometry) const;
+	void SearchNavigationItemSelected(long long id, const QString& text) const;
 
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool showRemoved);
 	void FilterGenres(bool filterGenres);
 	QAbstractItemView* GetView() const;
+	void SetMode(int mode, const QString& id);
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;

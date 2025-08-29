@@ -5,7 +5,7 @@
 
 #include "log.h"
 
-#include "export/databasesqlite.h"
+#include "export/dbsqlite.h"
 
 namespace HomeCompa::DB
 {
@@ -15,9 +15,9 @@ class IDatabase;
 namespace HomeCompa::DB::Impl::Sqlite
 {
 
-DATABASESQLITE_EXPORT std::unique_ptr<IDatabase> CreateDatabase(const std::string& connection);
+DBSQLITE_EXPORT std::unique_ptr<IDatabase> CreateDatabase(const std::string& connection);
 
-inline std::string_view LogStatement(std::string_view statement)
+inline std::string_view LogStatement(const std::string_view statement)
 {
 #ifndef NDEBUG
 	PLOGD << statement;

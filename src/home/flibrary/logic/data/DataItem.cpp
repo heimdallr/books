@@ -276,16 +276,36 @@ ItemType SeriesItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
-const BookItem::Mapping* BookItem::mapping = &FULL;
+std::shared_ptr<IDataItem> ReviewItem::Create(IDataItem* parent)
+{
+	return std::make_shared<ReviewItem>(parent);
+}
 
-BookItem::BookItem(IDataItem* parent)
+ReviewItem::ReviewItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> BookItem::Create(IDataItem* parent)
+ReviewItem* ReviewItem::ToReviewItem() noexcept
 {
-	return std::make_shared<BookItem>(parent);
+	return this;
+}
+
+ItemType ReviewItem::GetType() const noexcept
+{
+	return ItemType::Books;
+}
+
+const BookItem::Mapping* BookItem::mapping = &FULL;
+
+BookItem::BookItem(IDataItem* parent, const size_t additionalFieldCount)
+	: DataItem(Column::Last + additionalFieldCount, parent)
+{
+}
+
+std::shared_ptr<IDataItem> BookItem::Create(IDataItem* parent, const size_t additionalFieldCount)
+{
+	return std::make_shared<BookItem>(parent, additionalFieldCount);
 }
 
 int BookItem::Remap(const int column) noexcept

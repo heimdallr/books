@@ -1,6 +1,6 @@
 #include "GeometryRestorable.h"
 
-#include <QEvent>
+#include <QScreen>
 #include <QSplitter>
 #include <QTimer>
 
@@ -42,6 +42,14 @@ void InitSplitter(QSplitter* splitter)
 
 						   splitter->setSizes(sizes);
 					   });
+}
+
+void SetGeometry(QWidget& widget, QRect rect)
+{
+	if (std::ranges::none_of(QGuiApplication::screens(), [center = rect.center()](const auto* screen) { return screen->availableGeometry().contains(center); }))
+		rect.moveCenter(QGuiApplication::primaryScreen()->availableGeometry().center());
+
+	widget.setGeometry(rect);
 }
 
 } // namespace
@@ -108,7 +116,7 @@ public:
 	{
 		OnFontChanged();
 		if (const auto value = m_settings->Get(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name)); value.isValid())
-			m_observer.GetWidget().setGeometry(value.toRect());
+			SetGeometry(m_observer.GetWidget(), value.toRect());
 
 		m_initialized = true;
 	}

@@ -7,7 +7,7 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "GuiUtil/GeometryRestorable.h"
+#include "gutil/GeometryRestorable.h"
 
 #include "log.h"
 

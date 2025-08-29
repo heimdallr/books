@@ -1,4 +1,4 @@
-AddTarget(icons_dark	shared_lib
+AddTarget(icodark	shared_lib
 	PROJECT_GROUP App/Icons
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}"

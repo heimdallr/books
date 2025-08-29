@@ -72,11 +72,7 @@ struct NoSqlRequester::Impl
 			{
 				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
 				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					if (const auto coverIndex = dataProvider.GetCoverIndex())
-					{
-						result = covers[*coverIndex].bytes;
-						return;
-					}
+					return (void)(result = std::move(Flibrary::Recode(covers.front().bytes).first));
 
 				QFile file(":/images/book.png");
 				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
