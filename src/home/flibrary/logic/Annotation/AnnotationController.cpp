@@ -12,7 +12,6 @@
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
-#include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
