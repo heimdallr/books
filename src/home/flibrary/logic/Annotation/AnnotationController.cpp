@@ -105,12 +105,6 @@ QString GetTitleAuthor(const IDataItem& item)
 	return result;
 }
 
-void Add(QString& text, const QString& str, const char* pattern = "%1")
-{
-	if (!str.isEmpty())
-		text.append(QString("<p>%1</p>").arg(Tr(pattern).arg(str)));
-}
-
 using TitleGetter = QString (*)(const IDataItem& item);
 
 QString Join(const std::vector<QString>& strings, const QString& delimiter = ", ")
@@ -148,34 +142,33 @@ QString GetPublishInfo(const IAnnotationController::IDataProvider& dataProvider)
 
 struct Table
 {
+	explicit Table(const IAnnotationController::IStrategy& strategy)
+		: m_strategy { strategy }
+	{
+	}
+
 	Table& Add(const char* name, const QString& value)
 	{
 		if (!value.isEmpty())
-			data << QString(R"(<tr><td style="vertical-align: top; padding-right: 7px;">%1</td><td>%2</td></tr>)").arg(Tr(name)).arg(value);
+			m_data << m_strategy.AddTableRow(name, value);
 
 		return *this;
 	}
 
 	Table& Add(const QStringList& values)
 	{
-		QString str;
-		ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
-		for (const auto& value : values)
-		{
-			ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
-			str.append(value);
-		}
-		data << str;
-
+		m_data << m_strategy.AddTableRow(values);
 		return *this;
 	}
 
 	[[nodiscard]] QString ToString() const
 	{
-		return data.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(data.join("\n"));
+		return m_strategy.TableRowsToString(m_data);
 	}
 
-	QStringList data;
+private:
+	QStringList m_data;
+	const IAnnotationController::IStrategy& m_strategy;
 };
 
 QString TranslateLang(const QString& code)
@@ -205,7 +198,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)
 			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr)));
 
-	Table table;
+	Table table(strategy);
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
@@ -705,16 +698,16 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		return {};
 
 	QString annotation;
-	Add(annotation, strategy.GenerateUrl(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
-	Add(annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
-	Add(annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
-	Add(annotation, dataProvider.GetAnnotation());
+	strategy.Add(IStrategy::Section::Title, annotation, strategy.GenerateUrl(Constant::BOOK, book.GetId(), book.GetRawData(BookItem::Column::Title)), TITLE_PATTERN);
+	strategy.Add(IStrategy::Section::Epigraph, annotation, dataProvider.GetEpigraph(), EPIGRAPH_PATTERN);
+	strategy.Add(IStrategy::Section::EpigraphAuthor, annotation, dataProvider.GetEpigraphAuthor(), EPIGRAPH_PATTERN);
+	strategy.Add(IStrategy::Section::Annotation, annotation, dataProvider.GetAnnotation());
 
 	auto& keywords = dataProvider.GetKeywords();
 	if (keywords.GetChildCount() == 0)
-		Add(annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
+		strategy.Add(IStrategy::Section::Keywords, annotation, Join(dataProvider.GetFb2Keywords()), KEYWORDS_FB2);
 
-	Add(annotation, CreateUrlTable(dataProvider, strategy).ToString());
+	strategy.Add(IStrategy::Section::UrlTable, annotation, CreateUrlTable(dataProvider, strategy).ToString());
 
 	if (const auto translators = dataProvider.GetTranslators(); translators && translators->GetChildCount() > 0)
 	{
@@ -722,13 +715,13 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		translatorList.reserve(static_cast<int>(translators->GetChildCount()));
 		for (size_t i = 0, sz = translators->GetChildCount(); i < sz; ++i)
 			translatorList << GetAuthorFull(*translators->GetChild(i));
-		Table table;
+		Table table(strategy);
 		table.Add(TRANSLATORS, translatorList.join(", "));
-		Add(annotation, table.ToString());
+		strategy.Add(IStrategy::Section::Translators, annotation, table.ToString());
 	}
 
 	{
-		auto info = Table().Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
+		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
 			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
@@ -740,12 +733,12 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 			info.Add(IMAGES, QString("%1 (%L2)").arg(covers.size()).arg(total));
 		}
 
-		Add(annotation, info.ToString());
+		strategy.Add(IStrategy::Section::BookInfo, annotation, info.ToString());
 	}
 
-	Add(annotation, GetPublishInfo(dataProvider));
+	strategy.Add(IStrategy::Section::PublishInfo, annotation, GetPublishInfo(dataProvider));
 
-	Add(annotation, dataProvider.GetError(), ERROR_PATTERN);
+	strategy.Add(IStrategy::Section::ParseError, annotation, dataProvider.GetError(), ERROR_PATTERN);
 
 	if (!dataProvider.GetExportStatistics().empty())
 	{
@@ -756,19 +749,19 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 			std::ranges::transform(dates, std::back_inserter(result), [](const QDateTime& date) { return date.toString("yy.MM.dd hh:mm"); });
 			return result.join(", ");
 		};
-		auto exportStatistics = Table().Add(EXPORT_STATISTICS, " ");
+		auto exportStatistics = Table(strategy).Add(EXPORT_STATISTICS, " ");
 		for (const auto& [type, dates] : dataProvider.GetExportStatistics())
 			exportStatistics.Add(GetName(type), toDateList(dates));
-		Add(annotation, exportStatistics.ToString());
+		strategy.Add(IStrategy::Section::ExportStatistics, annotation, exportStatistics.ToString());
 	}
 
 	if (!dataProvider.GetReviews().empty())
 	{
 		annotation.append(strategy.GetReviewsDelimiter()).append("<hr/>").append(QString(TITLE_PATTERN).arg(Tr(REVIEWS)));
-		Table table;
+		Table table(strategy);
 		for (const auto& review : dataProvider.GetReviews())
 			table.Add(QStringList() << review.name << review.time.toString("yyyy.MM.dd<br>hh:mm:ss") << review.text);
-		Add(annotation, table.ToString());
+		strategy.Add(IStrategy::Section::Reviews, annotation, table.ToString());
 	}
 
 #ifndef NDEBUG

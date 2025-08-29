@@ -167,13 +167,6 @@ private: // Util::SaxParser
 			m_percents = percents;
 		}
 
-		if (m_annotationMode)
-		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
-				m_data.annotation.append(QString("</%1>").arg(replacedName));
-		}
-
 		using ParseElementFunction = bool (XmlParser::*)();
 		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
@@ -181,7 +174,16 @@ private: // Util::SaxParser
 			{ ANNOTATION, &XmlParser::OnEndElementAnnotation },
 		};
 
-		return SaxParser::Parse(*this, PARSERS, path);
+		const auto result = SaxParser::Parse(*this, PARSERS, path);
+
+		if (m_annotationMode)
+		{
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+				m_data.annotation.append(QString("</%1>").arg(replacedName));
+		}
+
+		return result;
 	}
 
 	bool OnCharacters(const QString& path, const QString& value) override
