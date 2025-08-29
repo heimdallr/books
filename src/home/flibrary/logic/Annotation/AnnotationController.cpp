@@ -60,11 +60,11 @@ constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
 constexpr auto BOOK_QUERY =
 	"select %1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, coalesce(b.SeqNumber, -1), s.SeriesTitle from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID "
 	"left join Series s on s.SeriesID = b.SeriesID where b.BookID = :id";
-constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id";
-constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a  join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id";
+constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id order by sl.OrdNum";
+constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id order by al.OrdNum";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id order by gl.OrdNum";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
-constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by k.KeywordTitle";
+constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by kl.OrdNum";
 constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
 
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
