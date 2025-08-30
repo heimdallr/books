@@ -49,7 +49,6 @@ constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export stati
 constexpr auto OR = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
 constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
-constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("Annotation", "Anonymous");
 
 TR_DEF
 
@@ -591,9 +590,9 @@ private:
 			{
 				assert(jsonValue.isObject());
 				const auto obj = jsonValue.toObject();
-				auto& review = reviews.emplace_back(QDateTime::fromString(obj["time"].toString(), "yyyy-MM-dd hh:mm:ss"), obj["name"].toString(), obj["text"].toString());
+				auto& review = reviews.emplace_back(QDateTime::fromString(obj[Constant::TIME].toString(), "yyyy-MM-dd hh:mm:ss"), obj[Constant::NAME].toString(), obj[Constant::TEXT].toString());
 				if (review.name.isEmpty())
-					review.name = Tr(ANONYMOUS);
+					review.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
 			}
 		}
 		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });

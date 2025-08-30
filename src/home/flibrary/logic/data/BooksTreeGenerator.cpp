@@ -17,6 +17,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 
@@ -33,10 +34,6 @@ using namespace Flibrary;
 
 namespace
 {
-
-constexpr auto CONTEXT = "BooksTreeGenerator";
-constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("BooksTreeGenerator", "Anonymous");
-TR_DEF
 
 using IdsSet = std::unordered_set<long long>;
 
@@ -346,9 +343,9 @@ private: // IBookSelector
 					assert(recordValue.isObject());
 					const auto recordObject = recordValue.toObject();
 					insertCommand->Bind(0, file.toStdString());
-					insertCommand->Bind(1, recordObject["name"].toString().toStdString());
-					insertCommand->Bind(2, recordObject["time"].toString().toStdString());
-					insertCommand->Bind(3, recordObject["text"].toString().toStdString());
+					insertCommand->Bind(1, recordObject[Constant::NAME].toString().toStdString());
+					insertCommand->Bind(2, recordObject[Constant::TIME].toString().toStdString());
+					insertCommand->Bind(3, recordObject[Constant::TEXT].toString().toStdString());
 					insertCommand->Bind(4, ++reviewId);
 					insertCommand->Execute();
 				}
@@ -373,7 +370,7 @@ private: // IBookSelector
 									for (int i = 0; i < ReviewItem::Column::Last; ++i)
 										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + i), i);
 									if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
-										reviewItem->SetData(Tr(ANONYMOUS), ReviewItem::Column::Name);
+										reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 								});
 	}
 
