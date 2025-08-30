@@ -188,8 +188,7 @@ IDataItem::Ptr MenuRequesterAuthors(DB::IDatabase& db, const QString& id, const 
 			return result;
 	}
 
-	const auto query =
-		db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
+	const auto query = db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
 	query->Bind(0, !(options & ITreeViewController::RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
 	query->Bind(1, id.toLongLong());
 	query->Execute();
@@ -254,7 +253,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Authors,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     &MenuRequesterAuthors }																																									   },
+     &MenuRequesterAuthors }																																											   },
 	{    Loc::Series,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
