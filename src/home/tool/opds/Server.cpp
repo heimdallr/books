@@ -28,6 +28,7 @@ namespace
 
 constexpr auto ARG = "<arg>";
 constexpr auto FAVICON = "/favicon.ico";
+constexpr auto OPENSEARCH = "/opds/opensearch";
 
 constexpr auto GET_BOOKS_API = "/main/getBooks/%1";
 constexpr auto GET_BOOKS_API_ASSETS = "/assets/%1";
@@ -231,10 +232,10 @@ private:
 				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
 			});
 
-		Route();
+		Route(host, port);
 	}
 
-	void Route()
+	void Route(const QHostAddress& host, const uint16_t port)
 	{
 		m_server.route(FAVICON,
 		               [this]
@@ -248,6 +249,11 @@ private:
 								   return response;
 							   });
 					   });
+
+		m_server.route(
+			OPENSEARCH,
+			[host = host.toString(), port]
+			{ return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port); });
 
 		for (const auto& root : {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
