@@ -3,6 +3,7 @@
 #include <QTimer>
 
 #include "interface/constants/ObjectConnectionID.h"
+
 #include "util/ObjectsConnector.h"
 
 using namespace HomeCompa;

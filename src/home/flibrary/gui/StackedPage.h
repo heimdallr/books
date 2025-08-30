@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+
 #include "fnd/NonCopyMovable.h"
 
 namespace HomeCompa::Flibrary
@@ -36,4 +37,4 @@ public:
 	void StateChanged(int state);
 };
 
-}
+} // namespace HomeCompa::Flibrary
