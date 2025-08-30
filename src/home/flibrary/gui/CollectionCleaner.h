@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QWidget>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -15,6 +13,7 @@
 #include "util/ISettings.h"
 
 #include "ScrollBarController.h"
+#include "StackedPage.h"
 
 namespace Ui
 {
@@ -24,7 +23,7 @@ class CollectionCleaner;
 namespace HomeCompa::Flibrary
 {
 
-class CollectionCleaner final : public QWidget
+class CollectionCleaner final : public StackedPage
 {
 	NON_COPY_MOVABLE(CollectionCleaner)
 

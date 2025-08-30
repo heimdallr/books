@@ -20,7 +20,6 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
-#include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
@@ -38,6 +37,7 @@
 #include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
 
+#include "StackedPage.h"
 #include "TreeView.h"
 #include "log.h"
 
@@ -236,6 +236,40 @@ public:
 	void OnSearchNavigationItemSelected(long long /*id*/, const QString& text) const
 	{
 		m_ui.lineEditBookTitleToSearch->setText(text);
+	}
+
+	void OnStackedPageStateChanged(std::shared_ptr<QWidget> widget, const int state)
+	{
+		const auto reset = [this]
+		{
+			if (!m_additionalWidget)
+				return;
+
+			m_additionalWidget->setParent(nullptr);
+			m_ui.stackedWidget->removeWidget(m_additionalWidget.get());
+			m_additionalWidget.reset();
+		};
+
+		switch (state)
+		{
+			case StackedPage::State::Created:
+				reset();
+				m_additionalWidget = std::move(widget);
+				m_ui.stackedWidget->setCurrentIndex(m_ui.stackedWidget->addWidget(m_additionalWidget.get()));
+				break;
+
+			case StackedPage::State::Finished:
+			case StackedPage::State::Canceled:
+				reset();
+				[[fallthrough]];
+
+			case StackedPage::State::Started:
+				m_ui.stackedWidget->setCurrentIndex(0);
+				break;
+
+			default:
+				assert(false && "unexpected state");
+		}
 	}
 
 	void RemoveCustomStyleFile()
@@ -459,28 +493,10 @@ private:
 	void ConnectActionsCollection()
 	{
 		PLOGV << "ConnectActionsCollection";
-		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [&] { m_collectionController->AddCollection({}); });
-		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [&] { m_collectionController->RemoveCollection(); });
-		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [&] { GenerateCollectionInpx(); });
-		connect(m_ui.actionShowCollectionCleaner,
-		        &QAction::triggered,
-		        &m_self,
-		        [&]
-		        {
-					m_additionalWidget = m_uiFactory->CreateCollectionCleaner(
-						[this](const int state)
-						{
-							m_ui.stackedWidget->setCurrentIndex(0);
-							if (state == ICollectionCleaner::State::Started)
-								return;
-
-							m_additionalWidget->setParent(nullptr);
-							m_ui.stackedWidget->removeWidget(m_additionalWidget.get());
-							m_additionalWidget.reset();
-						});
-					const auto index = m_ui.stackedWidget->addWidget(m_additionalWidget.get());
-					m_ui.stackedWidget->setCurrentIndex(index);
-				});
+		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] { m_collectionController->AddCollection({}); });
+		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] { m_collectionController->RemoveCollection(); });
+		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [this] { GenerateCollectionInpx(); });
+		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this] { m_uiFactory->CreateCollectionCleaner(); });
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
@@ -1221,6 +1237,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(std::shared_ptr<QWidget>, int)), true);
 	PLOGV << "MainWindow created";
 }
 
@@ -1250,4 +1267,9 @@ void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
 void MainWindow::OnSearchNavigationItemSelected(const long long id, const QString& text)
 {
 	m_impl->OnSearchNavigationItemSelected(id, text);
+}
+
+void MainWindow::OnStackedPageStateChanged(std::shared_ptr<QWidget> widget, const int state)
+{
+	m_impl->OnStackedPageStateChanged(std::move(widget), state);
 }

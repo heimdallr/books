@@ -1,7 +1,6 @@
 #include "UiFactory.h"
 
 #include <QFileInfo>
-#include <QPushButton>
 
 #include "fnd/FindPair.h"
 
@@ -19,6 +18,7 @@
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
+#include "AuthorReview.h"
 #include "CollectionCleaner.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
@@ -71,6 +71,24 @@ QString GetPersonalBuildString()
 		return QString {};
 }
 
+template <typename T>
+void CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
+{
+	auto collectionCleaner = container.resolve<T>();
+	auto* collectionCleanerPtr = collectionCleaner.get();
+	auto connection = std::make_shared<QMetaObject::Connection>();
+	*connection = QObject::connect(
+		collectionCleanerPtr,
+		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
+		signalReceiver,
+		[collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable
+		{
+			assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
+			QObject::disconnect(*connection);
+		},
+		Qt::QueuedConnection);
+}
+
 } // namespace
 
 struct UiFactory::Impl
@@ -82,8 +100,8 @@ struct UiFactory::Impl
 	mutable QTreeView* treeView { nullptr };
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
-	mutable AdditionalWidgetCallback additionalWidgetCallback;
 	mutable std::unordered_set<QString> visibleGenres;
+	mutable long long authorId { -1 };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -158,16 +176,21 @@ std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString
 	return m_impl->container.resolve<IComboBoxTextDialog>();
 }
 
-std::shared_ptr<QWidget> UiFactory::CreateCollectionCleaner(AdditionalWidgetCallback callback) const
-{
-	assert(callback && !m_impl->additionalWidgetCallback);
-	m_impl->additionalWidgetCallback = std::move(callback);
-	return m_impl->container.resolve<CollectionCleaner>();
-}
-
 std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 {
 	return m_impl->container.resolve<QueryWindow>();
+}
+
+void UiFactory::CreateCollectionCleaner() const
+{
+	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+void UiFactory::CreateAuthorReview(const long long id) const
+{
+	assert(id >= 0 && m_impl->authorId < 0);
+	m_impl->authorId = id;
+	CreateStackedPage<AuthorReview>(m_impl->container, this);
 }
 
 void UiFactory::ShowAbout() const
@@ -184,7 +207,6 @@ void UiFactory::ShowAbout() const
 	                        "https://github.com/heimdallr/books",
 	                        Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
 	                        GetPersonalBuildString()));
-	//	msgBox.setText(Loc::Tr(CONTEXT, ABOUT_TEXT).arg(GetApplicationVersion(), GIT_HASH, "https://github.com/heimdallr/books", GetPersonalBuildString()));
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) { return Loc::Tr(CONTEXT, str); });
@@ -281,17 +303,17 @@ QString UiFactory::GetTitle() const noexcept
 	return std::move(m_impl->title);
 }
 
-IUiFactory::AdditionalWidgetCallback UiFactory::GetAdditionalWidgetCallback() const noexcept
-{
-	assert(m_impl->additionalWidgetCallback);
-	auto callback = m_impl->additionalWidgetCallback;
-	m_impl->additionalWidgetCallback = {};
-	return callback;
-}
-
 std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
 {
 	auto visibleGenres = std::move(m_impl->visibleGenres);
 	m_impl->visibleGenres = {};
 	return visibleGenres;
+}
+
+long long UiFactory::GetAuthorId() const noexcept
+{
+	assert(m_impl->authorId >= 0);
+	const auto result = m_impl->authorId;
+	m_impl->authorId = -1;
+	return result;
 }

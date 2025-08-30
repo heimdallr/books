@@ -17,7 +17,6 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
-#include "inpx/src/util/constant.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -176,6 +175,30 @@ IDataItem::Ptr MenuRequesterGroupNavigation(DB::IDatabase& db, const QString& id
 	return result;
 }
 
+IDataItem::Ptr MenuRequesterAuthors(DB::IDatabase& db, const QString& id, const ITreeViewController::RequestContextMenuOptions options)
+{
+	auto result = MenuRequesterGroupNavigation(db, id, options);
+	if (!result)
+		return {};
+	{
+		const auto query = db.CreateQuery("select exists (select 42 from Reviews)");
+		query->Execute();
+		assert(!query->Eof());
+		if (!query->Get<int>(0))
+			return result;
+	}
+
+	const auto query =
+		db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
+	query->Bind(0, !(options & ITreeViewController::RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
+	query->Bind(1, id.toLongLong());
+	query->Execute();
+	assert(!query->Eof());
+
+	AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Reviews"), MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
+	return result;
+}
+
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -231,7 +254,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Authors,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     &MenuRequesterGroupNavigation }																																									   },
+     &MenuRequesterAuthors }																																									   },
 	{    Loc::Series,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
@@ -340,9 +363,9 @@ struct TreeViewControllerNavigation::Impl final
 	}
 
 private: // IContextMenuHandler
-	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, const Callback callback) const override //-V801
+	void OnContextMenuTriggeredStub(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
 	{
-		callback();
+		forwarder.Forward(std::move(callback));
 	}
 
 	void OnCreateNewGroupTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
@@ -390,29 +413,35 @@ private: // IContextMenuHandler
 		OnRemoveFromGroupTriggered(indexList, index, item, std::move(callback));
 	}
 
-	void OnRemoveFromGroupOneItemTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	void OnRemoveFromGroupOneItemTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionInvertedImpl(&GroupController::RemoveFromGroup, index, item, std::move(callback));
 	}
 
-	void OnRemoveFromGroupAllBooksTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	void OnRemoveFromGroupAllBooksTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionInvertedImpl(&GroupController::RemoveBooks, index, item, std::move(callback));
 	}
 
-	void OnRemoveFromGroupAllAuthorsTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	void OnRemoveFromGroupAllAuthorsTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionInvertedImpl(&GroupController::RemoveAuthors, index, item, std::move(callback));
 	}
 
-	void OnRemoveFromGroupAllSeriesTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	void OnRemoveFromGroupAllSeriesTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionInvertedImpl(&GroupController::RemoveSeries, index, item, std::move(callback));
 	}
 
-	void OnRemoveFromGroupAllKeywordsTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	void OnRemoveFromGroupAllKeywordsTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionInvertedImpl(&GroupController::RemoveKeywords, index, item, std::move(callback));
+	}
+
+	void OnAuthorReviewTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const override
+	{
+		uiFactory->CreateAuthorReview(index.data(Role::Id).toLongLong());
+		forwarder.Forward(std::move(callback));
 	}
 
 private: // DatabaseController::IObserver

@@ -95,17 +95,18 @@ struct BooksMenuAction
 	};
 };
 
-#define NAVIGATION_MENU_ACTION_ITEMS_X_MACRO    \
-	MENU_ACTION_ITEM(CreateNewGroup)            \
-	MENU_ACTION_ITEM(RenameGroup)               \
-	MENU_ACTION_ITEM(RemoveGroup)               \
-	MENU_ACTION_ITEM(CreateNewSearch)           \
-	MENU_ACTION_ITEM(RemoveSearch)              \
-	MENU_ACTION_ITEM(RemoveFromGroupOneItem)    \
-	MENU_ACTION_ITEM(RemoveFromGroupAllBooks)   \
-	MENU_ACTION_ITEM(RemoveFromGroupAllAuthors) \
-	MENU_ACTION_ITEM(RemoveFromGroupAllSeries)  \
-	MENU_ACTION_ITEM(RemoveFromGroupAllKeywords)
+#define NAVIGATION_MENU_ACTION_ITEMS_X_MACRO     \
+	MENU_ACTION_ITEM(CreateNewGroup)             \
+	MENU_ACTION_ITEM(RenameGroup)                \
+	MENU_ACTION_ITEM(RemoveGroup)                \
+	MENU_ACTION_ITEM(CreateNewSearch)            \
+	MENU_ACTION_ITEM(RemoveSearch)               \
+	MENU_ACTION_ITEM(RemoveFromGroupOneItem)     \
+	MENU_ACTION_ITEM(RemoveFromGroupAllBooks)    \
+	MENU_ACTION_ITEM(RemoveFromGroupAllAuthors)  \
+	MENU_ACTION_ITEM(RemoveFromGroupAllSeries)   \
+	MENU_ACTION_ITEM(RemoveFromGroupAllKeywords) \
+	MENU_ACTION_ITEM(AuthorReview)
 
 struct MenuAction
 {

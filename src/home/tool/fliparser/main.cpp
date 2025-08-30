@@ -21,6 +21,8 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/constants/ProductConstant.h"
+
 #include "database/factory/Factory.h"
 #include "inpx/src/util/constant.h"
 #include "inpx/src/util/types.h"
@@ -744,9 +746,9 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 											  text.prepend(' ');
 											  text.append(' ');
 											  array.append(QJsonObject {
-												  { "name",              name.simplified() },
-												  { "time",                           time },
-												  { "text", ReplaceTags(text).simplified() },
+												  { Flibrary::Constant::NAME,              name.simplified() },
+												  { Flibrary::Constant::TIME,                           time },
+												  { Flibrary::Constant::TEXT, ReplaceTags(text).simplified() },
 											  });
 										  }
 										  zipFiles->AddFile(QString::number(value.first), QJsonDocument(array).toJson());
