@@ -133,10 +133,6 @@
 		<translation>Усі %1 зображення успішно збережено</translation>
 	</message>
 	<message>
-		<source>Anonymous</source>
-		<translation>Анонім</translation>
-	</message>
-	<message>
 		<source>Archive</source>
 		<translation>В архіві</translation>
 	</message>
@@ -270,6 +266,13 @@
 	<message>
 		<source>&amp;Save image as...</source>
 		<translation>&amp;Зберегти зображення як...</translation>
+	</message>
+</context>
+<context>
+	<name>AuthorReview</name>
+	<message>
+		<source>Close</source>
+		<translation>Закрити</translation>
 	</message>
 </context>
 <context>
@@ -487,13 +490,6 @@
 	<message>
 		<source>Tree</source>
 		<translation>Дерево</translation>
-	</message>
-</context>
-<context>
-	<name>BooksTreeGenerator</name>
-	<message>
-		<source>Anonymous</source>
-		<translation>Анонім</translation>
 	</message>
 </context>
 <context>
@@ -715,6 +711,10 @@
 </context>
 <context>
 	<name>Common</name>
+	<message>
+		<source>Anonymous</source>
+		<translation>Анонім</translation>
+	</message>
 	<message>
 		<source>Error!</source>
 		<translation>Помилка!</translation>

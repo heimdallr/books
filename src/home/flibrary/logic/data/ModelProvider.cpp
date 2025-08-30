@@ -7,6 +7,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/logic/ILibRateProvider.h"
 
+#include "model/AuthorReviewModel.h"
 #include "model/AuthorsModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
@@ -145,6 +146,11 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 {
 	m_impl->sourceModel = m_impl->container.resolve<ScriptCommandModel>();
 	return m_impl->container.resolve<ScriptSortFilterModel>();
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() const
+{
+	return m_impl->container.resolve<AuthorReviewModel>();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const

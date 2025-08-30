@@ -133,10 +133,6 @@
 		<translation></translation>
 	</message>
 	<message>
-		<source>Anonymous</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>Archive</source>
 		<translation></translation>
 	</message>
@@ -269,6 +265,13 @@
 	</message>
 	<message>
 		<source>&amp;Save image as...</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>AuthorReview</name>
+	<message>
+		<source>Close</source>
 		<translation></translation>
 	</message>
 </context>
@@ -490,13 +493,6 @@
 	</message>
 </context>
 <context>
-	<name>BooksTreeGenerator</name>
-	<message>
-		<source>Anonymous</source>
-		<translation></translation>
-	</message>
-</context>
-<context>
 	<name>CollectionCleaner</name>
 	<message>
 		<source> bytes</source>
@@ -706,6 +702,10 @@
 </context>
 <context>
 	<name>Common</name>
+	<message>
+		<source>Anonymous</source>
+		<translation></translation>
+	</message>
 	<message>
 		<source>Error!</source>
 		<translation></translation>
