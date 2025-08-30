@@ -96,7 +96,6 @@ public:
 		, m_languageModel { std::shared_ptr<IModel> { std::move(languageModel) } }
 		, m_scrollBarControllerGenre { std::move(scrollBarControllerGenre) }
 		, m_scrollBarControllerLanguage { std::move(scrollBarControllerLanguage) }
-		, m_additionalWidgetCallback { m_uiFactory->GetAdditionalWidgetCallback() }
 		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
@@ -157,7 +156,7 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	void AnalyzeFinished(ICollectionCleaner::Books books) override
 	{
 		if (m_analyzeCanceled)
-			return m_additionalWidgetCallback(ICollectionCleaner::State::Canceled);
+			return m_self.StateChanged(State::Canceled);
 
 		OnAnalyzing(false);
 
@@ -168,8 +167,7 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count).arg(m_ui.removeForever->isChecked() ? Tr(PERMANENTLY) : ""), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
 
-		auto dialogGuard =
-			std::make_shared<ScopedCall>([this] { m_additionalWidgetCallback(ICollectionCleaner::State::Started); }, [this] { m_additionalWidgetCallback(ICollectionCleaner::State::Finished); });
+		auto dialogGuard = std::make_shared<ScopedCall>([this] { m_self.StateChanged(State::Started); }, [this] { m_self.StateChanged(State::Finished); });
 
 		QEventLoop eventLoop;
 
@@ -293,7 +291,7 @@ private:
 	{
 		m_ui.btnCancel->setEnabled(false);
 		m_analyzeCanceled = true;
-		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_additionalWidgetCallback(QDialog::Rejected);
+		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.StateChanged(State::Canceled);
 	}
 
 	void Analyze()
@@ -382,7 +380,7 @@ private:
 	}
 
 private:
-	QWidget& m_self;
+	StackedPage& m_self;
 	Ui::CollectionCleaner m_ui;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	std::shared_ptr<const IReaderController> m_readerController;
@@ -393,7 +391,6 @@ private:
 	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
-	IUiFactory::AdditionalWidgetCallback m_additionalWidgetCallback;
 	const QString m_destructiveOperationsAllowedKey;
 	bool m_analyzeCanceled { false };
 };
@@ -409,7 +406,7 @@ CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProv
                                      std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
                                      std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
                                      QWidget* parent)
-	: QWidget(uiFactory->GetParentWidget(parent))
+	: StackedPage(uiFactory->GetParentWidget(parent))
 	, m_impl(*this,
              *collectionProvider,
              std::move(uiFactory),

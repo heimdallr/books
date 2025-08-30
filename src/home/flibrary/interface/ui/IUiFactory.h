@@ -14,9 +14,6 @@ namespace HomeCompa::Flibrary
 class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using AdditionalWidgetCallback = std::function<void(int)>;
-
-public:
 	[[nodiscard]] virtual std::shared_ptr<class TreeView> CreateTreeViewWidget(enum class ItemType type) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IScriptDialog> CreateScriptDialog() const = 0;
@@ -25,8 +22,8 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateOpdsDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres = {}) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QWidget> CreateCollectionCleaner(AdditionalWidgetCallback callback) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
+	virtual void CreateCollectionCleaner() const = 0;
 
 	virtual void ShowAbout() const = 0;
 
@@ -36,7 +33,6 @@ public: // special
 	[[nodiscard]] virtual QTreeView& GetTreeView() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractItemView& GetAbstractItemView() const noexcept = 0;
 	[[nodiscard]] virtual QString GetTitle() const noexcept = 0;
-	[[nodiscard]] virtual AdditionalWidgetCallback GetAdditionalWidgetCallback() const noexcept = 0;
 	[[nodiscard]] virtual std::unordered_set<QString> GetVisibleGenres() const noexcept = 0;
 };
 
