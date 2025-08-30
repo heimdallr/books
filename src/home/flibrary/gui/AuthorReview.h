@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IModelProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -19,6 +20,7 @@ class AuthorReview final : public StackedPage
 
 public:
 	AuthorReview(const std::shared_ptr<const IUiFactory>& uiFactory,
+	             const std::shared_ptr<const IModelProvider>& modelProvider,
 	             std::shared_ptr<ISettings> settings,
 	             std::shared_ptr<ScrollBarController> scrollBarController,
 	             QWidget* parent = nullptr);
