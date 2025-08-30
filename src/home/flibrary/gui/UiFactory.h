@@ -39,6 +39,7 @@ private: // IUiFactory
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
 	std::shared_ptr<QMainWindow> CreateQueryWindow() const override;
 	void CreateCollectionCleaner() const override;
+	void CreateAuthorReview(long long id) const override;
 
 	void ShowAbout() const override;
 	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon icon,
@@ -65,6 +66,7 @@ private: // special
 	QAbstractItemView& GetAbstractItemView() const noexcept override;
 	QString GetTitle() const noexcept override;
 	std::unordered_set<QString> GetVisibleGenres() const noexcept override;
+	long long GetAuthorId() const noexcept override;
 
 private:
 	struct Impl;

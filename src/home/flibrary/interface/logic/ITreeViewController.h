@@ -34,6 +34,7 @@ public:
 		HasSelection               = 1 << 5,
 		AllowDestructiveOperations = 1 << 6,
 		IsArchive                  = 1 << 7,
+		ShowRemoved                = 1 << 8,
 		// clang-format on
 	};
 

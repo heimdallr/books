@@ -24,6 +24,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
 	virtual void CreateCollectionCleaner() const = 0;
+	virtual void CreateAuthorReview(long long id) const = 0;
 
 	virtual void ShowAbout() const = 0;
 
@@ -34,6 +35,7 @@ public: // special
 	[[nodiscard]] virtual QAbstractItemView& GetAbstractItemView() const noexcept = 0;
 	[[nodiscard]] virtual QString GetTitle() const noexcept = 0;
 	[[nodiscard]] virtual std::unordered_set<QString> GetVisibleGenres() const noexcept = 0;
+	[[nodiscard]] virtual long long GetAuthorId() const noexcept = 0;
 };
 
 } // namespace HomeCompa::Flibrary

@@ -18,6 +18,7 @@
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
+#include "AuthorReview.h"
 #include "CollectionCleaner.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
@@ -100,6 +101,7 @@ struct UiFactory::Impl
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
 	mutable std::unordered_set<QString> visibleGenres;
+	mutable long long authorId { -1 };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -182,6 +184,13 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 void UiFactory::CreateCollectionCleaner() const
 {
 	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+void UiFactory::CreateAuthorReview(const long long id) const
+{
+	assert(id >= 0 && m_impl->authorId < 0);
+	m_impl->authorId = id;
+	CreateStackedPage<AuthorReview>(m_impl->container, this);
 }
 
 void UiFactory::ShowAbout() const
@@ -299,4 +308,12 @@ std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
 	auto visibleGenres = std::move(m_impl->visibleGenres);
 	m_impl->visibleGenres = {};
 	return visibleGenres;
+}
+
+long long UiFactory::GetAuthorId() const noexcept
+{
+	assert(m_impl->authorId >= 0);
+	const auto result = m_impl->authorId;
+	m_impl->authorId = -1;
+	return result;
 }
