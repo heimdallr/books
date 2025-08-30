@@ -6,6 +6,7 @@
 #include <QJsonObject>
 
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -119,55 +120,70 @@ select r.Folder, b.BookID, b.LibID, b.Title
 
 		Items items;
 
-		std::unique_ptr<Zip> zip;
-
+		std::shared_ptr<const Zip> zip;
 		QString folder;
-		for (query->Execute(); !query->Eof(); query->Next())
+		const auto getZip = [&]
 		{
-			if (folder != query->Get<const char*>(0))
-			{
-				folder = query->Get<const char*>(0);
-				try
-				{
-					zip = std::make_unique<Zip>(m_folder.filePath(folder));
-				}
-				catch (const std::exception& ex)
-				{
-					PLOGE << ex.what();
-					continue;
-				}
-				catch (...)
-				{
-					PLOGE << "unknown error";
-					continue;
-				}
-			}
+			if (!Util::Set(folder, QString(query->Get<const char*>(0))))
+				return assert(zip);
 
-			const auto bookId = query->Get<long long>(1);
-			const QString libId = query->Get<const char*>(2);
-			const QString title = query->Get<const char*>(3);
-
-			QJsonParseError parseError;
-			const auto doc = QJsonDocument::fromJson(zip->Read(libId)->GetStream().readAll(), &parseError);
-			if (parseError.error != QJsonParseError::NoError)
+			try
 			{
-				PLOGE << parseError.errorString();
-				continue;
+				zip.reset();
+				zip = std::make_shared<Zip>(m_folder.filePath(folder));
 			}
-
-			assert(doc.isArray());
-			for (const auto reviewValue : doc.array())
+			catch (const std::exception& ex)
 			{
-				assert(reviewValue.isObject());
-				const auto reviewObj = reviewValue.toObject();
-				auto& item = items.emplace_back(bookId, reviewObj[Constant::TIME].toString(), reviewObj[Constant::NAME].toString(), title, reviewObj[Constant::TEXT].toString());
-				item.text.replace("<br/>", "\n").append('\n');
-				if (item.name.isEmpty())
-					item.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
+				PLOGE << ex.what();
 			}
-		}
+			catch (...)
+			{
+				PLOGE << "unknown error";
+			}
+		};
+
+		for (query->Execute(); !query->Eof(); query->Next())
+			if (getZip(), zip)
+				GetReviews(items, *query, *zip);
 
 		return items;
+	}
+
+	void GetReviews(Items& items, const DB::IQuery& query, const Zip& zip) const
+	{
+		const auto bookId = query.Get<long long>(1);
+		const QString libId = query.Get<const char*>(2);
+		QString title = query.Get<const char*>(3);
+
+		const auto stream = zip.Read(libId);
+		if (!stream)
+		{
+			PLOGE << "Cannot extract " << libId;
+			return;
+		}
+
+		QJsonParseError parseError;
+		const auto doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &parseError);
+		if (parseError.error != QJsonParseError::NoError)
+		{
+			PLOGE << parseError.errorString();
+			return;
+		}
+
+		auto toItem = [bookId, title = std::move(title)](auto&& reviewValue)
+		{
+			assert(reviewValue.isObject());
+			const auto reviewObject = reviewValue.toObject();
+			auto name = reviewObject[Constant::NAME].toString();
+			return Item { bookId,
+				          reviewObject[Constant::TIME].toString(),
+				          name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
+				          title,
+				          reviewObject[Constant::TEXT].toString().replace("<br/>", "\n").append('\n') };
+		};
+
+		assert(doc.isArray());
+		std::ranges::transform(doc.array(), std::back_inserter(items), std::move(toItem));
 	}
 
 private:
