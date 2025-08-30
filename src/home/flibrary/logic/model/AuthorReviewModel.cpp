@@ -26,10 +26,13 @@ using namespace Flibrary;
 namespace
 {
 
+using Role = AuthorReviewModelRole;
+
 class Model final : public QAbstractListModel
 {
 	struct Item
 	{
+		long long id;
 		QString time;
 		QString name;
 		QString title;
@@ -62,16 +65,25 @@ private: // QAbstractItemModel
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
 		assert(index.isValid() && index.row() < rowCount({}));
-		if (role != Qt::DisplayRole)
-			return {};
-
 		const auto& item = m_items[index.row()];
-		return QString("%1, %2. \"%3\"\n%4").arg(item.time, item.name, item.title, item.text);
+
+		switch (role)
+		{
+			case Qt::DisplayRole:
+				return QString("%1, %2. \"%3\"\n%4").arg(item.time, item.name, item.title, item.text);
+
+			case Role::BookId:
+				return item.id;
+
+			default:
+				break;
+		}
+		return {};
 	}
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
-		if (role != AuthorReviewModelRole::AuthorId)
+		if (role != Role::AuthorId)
 			return QAbstractListModel::setData(index, value, role);
 
 		Reset(value.toLongLong());
@@ -95,8 +107,13 @@ private:
 
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
-		const auto query = db.CreateQuery(
-			"select r.Folder, b.LibID, b.Title from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ? order by r.Folder");
+		const auto query = db.CreateQuery(R"(
+select r.Folder, b.BookID, b.LibID, b.Title 
+	from Reviews r 
+	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
+	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
+	order by r.Folder
+)");
 		query->Bind(0, m_showRemoved ? 2 : 1);
 		query->Bind(1, authorId);
 
@@ -126,8 +143,12 @@ private:
 				}
 			}
 
+			const auto bookId = query->Get<long long>(1);
+			const QString libId = query->Get<const char*>(2);
+			const QString title = query->Get<const char*>(3);
+
 			QJsonParseError parseError;
-			const auto doc = QJsonDocument::fromJson(zip->Read(query->Get<const char*>(1))->GetStream().readAll(), &parseError);
+			const auto doc = QJsonDocument::fromJson(zip->Read(libId)->GetStream().readAll(), &parseError);
 			if (parseError.error != QJsonParseError::NoError)
 			{
 				PLOGE << parseError.errorString();
@@ -139,7 +160,7 @@ private:
 			{
 				assert(reviewValue.isObject());
 				const auto reviewObj = reviewValue.toObject();
-				auto& item = items.emplace_back(reviewObj[Constant::TIME].toString(), reviewObj[Constant::NAME].toString(), query->Get<const char*>(2), reviewObj[Constant::TEXT].toString());
+				auto& item = items.emplace_back(bookId, reviewObj[Constant::TIME].toString(), reviewObj[Constant::NAME].toString(), title, reviewObj[Constant::TEXT].toString());
 				item.text.replace("<br/>", "\n").append('\n');
 				if (item.name.isEmpty())
 					item.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
