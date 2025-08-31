@@ -1,0 +1,12 @@
+diff --git a/qabstractitemview.cpp b/qabstractitemview.cpp
+index ca68a10..3ce8024 100644
+--- a/qabstractitemview.cpp
++++ b/qabstractitemview.cpp
+@@ -1142,6 +1142,7 @@ void QAbstractItemView::reset()
+     d->indexEditorHash.clear();
+     d->persistent.clear();
+     d->currentIndexSet = false;
++    d->pressedIndex = QModelIndex();
+     setState(NoState);
+     setRootIndex(QModelIndex());
+     if (d->selectionModel)

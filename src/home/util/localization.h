@@ -43,7 +43,6 @@ constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning!");
 constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("Common", "You must restart the application to apply the changes.\nRestart now?");
 constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("Common", "Anonymous");
 
-
 UTIL_EXPORT QString Tr(const char* context, const char* str);
 UTIL_EXPORT std::vector<const char*> GetLocales();
 UTIL_EXPORT QString GetLocale(const ISettings& settings);

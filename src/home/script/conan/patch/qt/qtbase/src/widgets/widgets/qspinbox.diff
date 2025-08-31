@@ -1,0 +1,12 @@
+diff --git a/qspinbox.cpp b/qspinbox.cpp
+index 88b5f23..a969be9 100644
+--- a/qspinbox.cpp
++++ b/qspinbox.cpp
+@@ -308,7 +308,6 @@ void QSpinBox::setSingleStep(int value)
+     Q_D(QSpinBox);
+     if (value >= 0) {
+         d->singleStep = QVariant(value);
+-        d->updateEdit();
+     }
+ }
+ 
