@@ -337,6 +337,10 @@
 		<source>UserRate</source>
 		<translation>My rate</translation>
 	</message>
+	<message>
+		<source>Year</source>
+		<translation></translation>
+	</message>
 </context>
 <context>
 	<name>BookContextMenu</name>

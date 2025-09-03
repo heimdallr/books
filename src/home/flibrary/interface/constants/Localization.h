@@ -22,6 +22,7 @@ QT_TRANSLATE_NOOP("Book", "LibRate")
 QT_TRANSLATE_NOOP("Book", "UserRate")
 QT_TRANSLATE_NOOP("Book", "UpdateDate")
 QT_TRANSLATE_NOOP("Book", "Lang")
+QT_TRANSLATE_NOOP("Book", "Year")
 
 #endif
 
