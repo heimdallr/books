@@ -247,9 +247,9 @@ private:
 
 		const auto it = m_replaceId.find(value);
 		if (it == m_replaceId.end())
-			return value.clear();
+			return (void)value.prepend('#');
 
-		value = '#' + (it->second == -1 ? QString { "cover" } : QString::number(it->second));
+		value = it->second == -1 ? QString { "#cover" } : QString("#%1").arg(it->second);
 	}
 
 	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
