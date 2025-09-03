@@ -585,10 +585,10 @@ size_t Store(const Path& dbFileName, Data& data)
 
 	const char* queryText = "INSERT INTO Books ("
 							"BookID   , LibID     , Title    , SeriesID, "
-							"SeqNumber, UpdateDate, LibRate  , Lang    , "
+							"SeqNumber, UpdateDate, LibRate  , Lang    , Year, "
 							"FolderID , FileName  , InsideNo , Ext     , "
 							"BookSize , IsDeleted, UpdateId, SearchTitle"
-							") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
+							") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
 	result += StoreRange(
 		dbFileName,
 		"Books",
@@ -610,14 +610,15 @@ size_t Store(const Path& dbFileName, Data& data)
 			cmd.bind(6, date, sqlite3pp::nocopy);
 			cmd.bind(7, book.rate);
 			cmd.bind(8, language, sqlite3pp::nocopy);
-			cmd.bind(9, book.folder);
-			cmd.bind(10, fileName, sqlite3pp::nocopy);
-			cmd.bind(11, book.insideNo);
-			cmd.bind(12, format, sqlite3pp::nocopy);
-			cmd.bind(13, book.size);
-			cmd.bind(14, book.deleted ? 1 : 0);
-			cmd.bind(15, book.updateId);
-			cmd.bind(16, title, sqlite3pp::nocopy);
+			book.year == -1 ? cmd.bind(9, sqlite3pp::null_type()) : cmd.bind(9, book.year);
+			cmd.bind(10, book.folder);
+			cmd.bind(11, fileName, sqlite3pp::nocopy);
+			cmd.bind(12, book.insideNo);
+			cmd.bind(13, format, sqlite3pp::nocopy);
+			cmd.bind(14, book.size);
+			cmd.bind(15, book.deleted ? 1 : 0);
+			cmd.bind(16, book.updateId);
+			cmd.bind(17, title, sqlite3pp::nocopy);
 			return cmd.execute();
 		},
 		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')");
@@ -1500,8 +1501,8 @@ private:
 	{
 		const auto fieldList = [&]() -> QString
 		{
-			return zip && zip->GetFileNameList().contains("structure.info") ? QString::fromUtf8(zip->Read("structure.info")->GetStream().readAll())
-			                                                                : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;");
+			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified()
+			                                                              : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;");
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {
@@ -1511,8 +1512,6 @@ private:
 		};
 
 		auto fields = fieldList.split(';', Qt::SkipEmptyParts);
-		if (const auto range = std::ranges::remove_if(fields, [](const auto& item) { return item.simplified().isEmpty(); }))
-			fields.erase(range.begin(), range.end());
 		m_bookBufMapping.clear();
 		m_bookBufMapping.reserve(fields.size());
 		std::ranges::transform(fields,
@@ -1700,7 +1699,8 @@ private:
 		                                       buf.EXT,
 		                                       To<size_t>(buf.SIZE),
 		                                       To<bool>(buf.DEL, false),
-		                                       updateId);
+		                                       updateId,
+		                                       To<int>(buf.YEAR, -1));
 
 		if (book.language.empty())
 		{

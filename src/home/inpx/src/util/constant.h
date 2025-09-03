@@ -28,6 +28,7 @@ constexpr auto VERSION_INFO = L"version.info";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";
 constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
 constexpr auto GENRE_NOT_SPECIFIED = L"unordered:";
+constexpr auto STRUCTURE_INFO = "structure.info";
 
 constexpr auto INP_EXT = L".inp";
 
