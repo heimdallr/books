@@ -1,5 +1,7 @@
 #include "TreeViewDelegateBooks.h"
 
+#include <ranges>
+
 #include <QApplication>
 #include <QHeaderView>
 #include <QPainter>
@@ -50,6 +52,7 @@ QString SizeDelegate(const QVariant& value)
 constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
 	{	  BookItem::Column::Size,   &SizeDelegate },
 	{ BookItem::Column::SeqNumber, &NumberDelegate },
+	{	  BookItem::Column::Year, &NumberDelegate },
 };
 
 class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
@@ -166,7 +169,7 @@ private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
 		const auto column = index.data(Role::Remap).toInt();
-		if (IsOneOf(column, BookItem::Column::Size, BookItem::Column::SeqNumber))
+		if (std::ranges::any_of(DELEGATES | std::views::keys, [=](const auto item) { return item == column; }))
 			o.displayAlignment = Qt::AlignRight;
 
 		if (index.data(Role::IsRemoved).toBool())

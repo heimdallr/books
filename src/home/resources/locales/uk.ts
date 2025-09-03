@@ -337,6 +337,10 @@
 		<source>UserRate</source>
 		<translation>Мій рейтинг</translation>
 	</message>
+	<message>
+		<source>Year</source>
+		<translation>Рік</translation>
+	</message>
 </context>
 <context>
 	<name>BookContextMenu</name>

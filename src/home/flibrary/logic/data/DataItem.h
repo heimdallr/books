@@ -182,6 +182,7 @@ class LOGIC_EXPORT BookItem final : public DataItem
 	BOOKS_COLUMN_ITEM(LibRate)     \
 	BOOKS_COLUMN_ITEM(UserRate)    \
 	BOOKS_COLUMN_ITEM(UpdateDate)  \
+	BOOKS_COLUMN_ITEM(Year)        \
 	BOOKS_COLUMN_ITEM(Lang)        \
 	BOOKS_COLUMN_ITEM(AuthorFull)  \
 	BOOKS_COLUMN_ITEM(LibID)       \

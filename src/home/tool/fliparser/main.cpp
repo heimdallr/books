@@ -67,6 +67,7 @@ struct Book
 	QString lang;
 	double rate;
 	QString keywords;
+	QString year;
 };
 
 QByteArray& operator<<(QByteArray& bytes, const Book& book)
@@ -103,7 +104,9 @@ QByteArray& operator<<(QByteArray& bytes, const Book& book)
 			.append('\04')
 			.append(rateBytes)
 			.append('\04')
-			.append(book.keywords.toUtf8()) // KEYWORDS
+			.append(book.keywords.toUtf8())
+			.append('\04')
+			.append(book.year.toUtf8())
 			.append('\04');
 		data.replace('\n', ' ');
 		data.replace('\r', "");
@@ -364,8 +367,8 @@ InpData GenerateInpData(DB::IDatabase& db)
 	InpData inpData;
 
 	const auto query = db.CreateQuery(R"(
-with Books(BookId, Title, FileSize, LibID, Deleted, FileType, Time, Lang, keywords, LibRate) as (
-    select b.BookId, b.Title, b.FileSize, b.BookId, b.Deleted, b.FileType, b.Time, b.Lang, b.keywords, avg(r.Rate)
+with Books(  BookId,   Title,   FileSize,   LibID,    Deleted,   FileType,   Time,   Lang,   Keywords, Year,              LibRate) as (
+    select b.BookId, b.Title, b.FileSize, b.BookId, b.Deleted, b.FileType, b.Time, b.Lang, b.keywords, nullif(b.Year, 0), avg(r.Rate)
         from libbook b
         left join librate r on r.BookID = b.BookId
         group by b.BookId
@@ -393,7 +396,7 @@ select
         join libgenre l on l.GenreId = g.GenreId and l.BookID = b.BookID 
         order by g.GenreID
     ) Genre,
-    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords, ls.Type, ls.Level
+    b.Title, s.SeqName, case when s.SeqId is null then null else ls.SeqNumb end, f.FileName, b.FileSize, b.LibID, b.Deleted, b.FileType, b.Time, b.Lang, b.LibRate, b.keywords, b.Year, ls.Type, ls.Level
 from Books b
 left join libseq ls on ls.BookID = b.BookID
 left join libseqname s on s.SeqID = ls.SeqID
@@ -452,11 +455,12 @@ left join libfilename f on f.BookId=b.BookID
 									  .lang = query->Get<const char*>(11),
 									  .rate = query->Get<double>(12),
 									  .keywords = query->Get<const char*>(13),
+									  .year = query->Get<const char*>(14),
 								  })
 			         .first;
 		}
 
-		it->second.series.emplace_back(query->Get<const char*>(3), Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)), query->Get<int>(14), query->Get<int>(15));
+		it->second.series.emplace_back(query->Get<const char*>(3), Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(4)), query->Get<int>(15), query->Get<int>(16));
 
 		++n;
 		PLOGV_IF(n % 50000 == 0) << n << " records selected";
@@ -550,6 +554,7 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 		.date = value["date"].toString(),
 		.lang = value["lang"].toString(),
 		.keywords = value["keywords"].toString(),
+		.year = value["year"].toString(),
 	};
 }
 
@@ -646,9 +651,10 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 
 		Zip zip(QString::fromStdWString(path));
 		std::ranges::for_each(
-			zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp"; }),
+			zip.GetFileNameList() | std::views::filter([](const auto& item) { return QFileInfo(item).suffix() != "inp" && item != STRUCTURE_INFO; }),
 			[&](const auto& item)
 			{ zipFileController->AddFile(item, [&] { return item == "version.info" ? maxTime.toString("yyyyMMdd").toUtf8() : zip.Read(item)->GetStream().readAll(); }(), QDateTime::currentDateTime()); });
+		zipFileController->AddFile(STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;", QDateTime::currentDateTime());
 	}
 
 	{

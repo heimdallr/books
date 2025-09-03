@@ -312,19 +312,20 @@ constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem
 constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM, 5 };
 constexpr QueryInfo QUERY_INFO_UPDATE_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 3 };
 
-constexpr int MAPPING_FULL[] { BookItem::Column::Author, BookItem::Column::Title,    BookItem::Column::Series,  BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre,
-	                           BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_FULL[] { BookItem::Column::Author,     BookItem::Column::Title,  BookItem::Column::Series,   BookItem::Column::SeqNumber, BookItem::Column::Size,
+	                           BookItem::Column::Genre,      BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate,
+	                           BookItem::Column::UpdateDate, BookItem::Column::Year,   BookItem::Column::Lang };
 constexpr int MAPPING_AUTHORS[] { BookItem::Column::Title,    BookItem::Column::Series,  BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre, BookItem::Column::Folder,
-	                              BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Lang };
+	                              BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,  BookItem::Column::Lang };
 constexpr int MAPPING_SERIES[] { BookItem::Column::Author,   BookItem::Column::Title,   BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre, BookItem::Column::Folder,
-	                             BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Lang };
+	                             BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,  BookItem::Column::Lang };
 constexpr int MAPPING_GENRES[] { BookItem::Column::Author,   BookItem::Column::Title,   BookItem::Column::Series,   BookItem::Column::SeqNumber,  BookItem::Column::Size, BookItem::Column::Folder,
-	                             BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+	                             BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Year, BookItem::Column::Lang };
 
-constexpr int MAPPING_TREE_COMMON[] { BookItem::Column::Title,    BookItem::Column::SeqNumber, BookItem::Column::Size,     BookItem::Column::Genre,      BookItem::Column::Folder,
-	                                  BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Lang };
+constexpr int MAPPING_TREE_COMMON[] { BookItem::Column::Title,   BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName,
+	                                  BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,  BookItem::Column::Lang };
 constexpr int MAPPING_TREE_GENRES[] { BookItem::Column::Title,   BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Folder, BookItem::Column::FileName,
-	                                  BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Lang };
+	                                  BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,   BookItem::Column::Lang };
 
 constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescription>> QUERIES[] {
 	{   NavigationMode::Authors,

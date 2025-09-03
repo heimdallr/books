@@ -329,6 +329,50 @@ AS
            Keyword_List kl ON kl.KeywordID = glu.ObjectID
 )",
 					  });
+	AddUserTableField(transaction,
+	                  "Books",
+	                  "Year",
+	                  "INTEGER",
+	                  { "DROP VIEW IF EXISTS Books_View",
+	                    R"(
+CREATE VIEW IF NOT EXISTS Books_View (
+		BookID,
+		LibID,
+		Title,
+		SeriesID,
+		SeqNumber,
+		UpdateDate,
+		LibRate,
+		Lang,
+		Year,
+		FolderID,
+		FileName,
+		BookSize,
+		UpdateID,
+		IsDeleted,
+		UserRate,
+		SearchTitle
+)
+AS SELECT
+		b.BookID,
+		b.LibID,
+		b.Title,
+		b.SeriesID,
+		b.SeqNumber,
+		b.UpdateDate,
+		b.LibRate,
+		b.Lang,
+		b.Year,
+		b.FolderID,
+		b.FileName || b.Ext AS FileName,
+		b.BookSize,
+		b.UpdateID,
+		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+		bu.UserRate,
+		b.SearchTitle
+	FROM Books b
+	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
+)" });
 }
 
 } // namespace
