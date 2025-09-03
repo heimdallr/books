@@ -175,9 +175,9 @@ QByteArray Decode(QByteArray inputFileBody)
 			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
 		}
 
-		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"("?>)") + 3);
+		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"(?>)") + 2);
 		auto head = QString::fromLatin1(inputFileBody.data(), index);
-		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?"\?>$)", QRegularExpression::CaseInsensitiveOption);
+		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?" *?\?>$)", QRegularExpression::CaseInsensitiveOption);
 		if (const auto match = rx.match(head); match.hasMatch())
 		{
 			head = R"(<?xml version="1.0" encoding="UTF-8"?>)";
